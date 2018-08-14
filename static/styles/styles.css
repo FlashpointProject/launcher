@@ -78,10 +78,12 @@ body {
 }
 .header__search__tag__remove {
   /* Pimp */
+  /*
   border: 0.1em solid #800;
   border-radius: 999em;
   background-color: #a00;
   font-size: 0.75rem;
+  */
 }
 .header__search__tag__remove:hover {
   /* Pimp */
@@ -101,7 +103,8 @@ body {
   padding: 0.25em;
 }
 .search__input, .search__input:active {
-  flex-grow: 1;
+  flex: 1;
+  vertical-align: middle;
   /* Pimp */
   color: #f1f1f1;
   background: none;
@@ -113,6 +116,7 @@ body {
   white-space: nowrap;
   text-align: center;
   vertical-align: middle;
+  flex: 0 1 auto;
   margin-right: 0.5rem;
   padding: 0.15rem 0.25rem;
 }

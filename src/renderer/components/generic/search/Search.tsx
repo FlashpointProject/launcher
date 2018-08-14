@@ -47,7 +47,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   render() {
     const tags = this.state.tags || [];
-    const search = this.getClassName('serach', 'search');
+    const search = this.getClassName('search', 'search');
     const searchInput = this.getClassName('search__input', 'input');
     return (
       <div className={search}>
@@ -83,7 +83,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     if (e.keyCode === 8) {
       // The caret (text cursor) is at the left-most position
       const current = this._inputRef.current;
-      if (current && current.selectionStart === 0) {
+      if (current && current.selectionStart === 0 && current.selectionEnd === 0) {
         // There are any tags
         const tags = this.state.tags;
         if (tags.length > 0) {

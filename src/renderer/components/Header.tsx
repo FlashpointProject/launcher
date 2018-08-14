@@ -26,7 +26,7 @@ export const Header: React.StatelessComponent<{}> = (props) => {
             <Link to="/about" className="header__menu__item__link">About</Link>
           </li>
         </ul>
-        <Search onSearch={(a)=>{console.log(a)}} classNames={searchClassNames} />
+        <Search onSearch={(a)=>{console.log('Search!', a)}} classNames={searchClassNames} />
       </div>
     </div>
   );
