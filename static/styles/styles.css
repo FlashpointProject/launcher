@@ -1,0 +1,136 @@
+/* ------ General ------ */
+* {
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  height: 100%;
+}
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  outline: none;
+}
+
+body {
+  /* Pimp */
+  background: #fafafa;
+  font-size: 12px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+/* ------ Header ------ */
+.header {
+  padding-bottom: 1em;
+  /* Pimp */
+  background-color: #2d2d30;
+}
+.header__title {
+  margin-bottom: 1em;
+  /* Pimp */
+  color: #f1f1f1;
+}
+.header__menu {
+  display: inline-block;
+  margin-right: 1em;
+  margin-bottom: 1em;
+}
+.header__menu__item {
+  display: inline-block;
+}
+.header__menu__item__link {
+  padding: 0.4em 0.7em;
+  border: 1px solid rgba(0,0,0,0);
+  /* Pimp */
+  cursor: pointer;
+  text-decoration: none;
+  color: #f1f1f1;
+}
+.header__menu__item__link:hover {
+  /* Pimp */
+  background-color: #3c2d4b;
+  border-color: #d33682;
+}
+/* Header Search */
+.header__search {
+  width: 25em;
+  padding: 0.25em;
+  /* Pimp */
+  border: 1px solid #47474d;
+  background-color: #1b1b1c;
+}
+.header__search__input, .header__search__input:active {
+  /* Pimp */
+  color: #f1f1f1;
+  background: none;
+  border: none;
+  outline: none;
+}
+.header__search__tag {
+  /* Pimp */
+  border: 1px solid #888;
+  background-color: #aaa;
+}
+.header__search__tag__text,
+.header__search__tag__text:active {
+  /* Pimp */
+}
+.header__search__tag__remove {
+  /* Pimp */
+  border: 0.1em solid #800;
+  border-radius: 999em;
+  background-color: #a00;
+  font-size: 0.75rem;
+}
+.header__search__tag__remove:hover {
+  /* Pimp */
+  cursor: pointer;
+}
+.header__search__tag__remove__inner {
+  /* Pimp */
+  color: #c00;
+  font-family: monospace, monospace;
+}
+
+
+/* ------ Search & SearchTag Components ------ */
+.search {
+  display: inline-flex;
+  white-space: nowrap;
+  padding: 0.25em;
+}
+.search__input, .search__input:active {
+  flex-grow: 1;
+  /* Pimp */
+  color: #f1f1f1;
+  background: none;
+  border: none;
+  outline: none;
+}
+.search__tag {
+  display: inline-block;
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+  padding: 0.15rem 0.25rem;
+}
+.search__tag__text,
+.search__tag__text:active {
+  display: inline-block;
+  white-space: nowrap;
+}
+.search__tag__remove {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-left: 0.25rem;
+}
+.search__tag__remove__inner {
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: -0.9rem;
+}

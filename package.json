@@ -1,0 +1,39 @@
+{
+  "name": "electron-flash",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "gulp build",
+    "watch": "gulp watch",
+    "lint": "tslint -c tslint.json -p tsconfig.json",
+    "start": "electron ./dist/main/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/swfobject": "2.2.27",
+    "awesome-typescript-loader": "5.2.0",
+    "copy-webpack-plugin": "4.5.2",
+    "electron": "2.0.6",
+    "gulp": "3.9.1",
+    "gulp-if": "2.0.2",
+    "gulp-typescript": "5.0.0-alpha.3",
+    "gulp-uglify": "3.0.1",
+    "ts-loader": "4.4.2",
+    "tslint": "5.11.0",
+    "typescript": "3.0.1",
+    "webpack": "4.16.4",
+    "webpack-cli": "3.1.0",
+    "webpack-dev-server": "3.1.4",
+    "webpack-stream": "5.1.0",
+    "@types/react": "^16.4.6",
+    "@types/react-dom": "^16.0.6",
+    "@types/react-router-dom": "^4.2.7",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
+    "react-responsive-carousel": "^3.1.41",
+    "react-router-dom": "^4.3.1",
+    "react-text-truncate": "^0.13.1"
+  }
+}
