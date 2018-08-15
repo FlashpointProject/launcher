@@ -20,6 +20,21 @@ body {
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
+
+/* ------ Main Layout ------ */
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+.root__main {
+  flex: 1;
+}
+.root__aids {
+  
+}
+
 /* ------ Header ------ */
 .header {
   padding-bottom: 1em;
@@ -97,18 +112,19 @@ body {
 
 
 /* ------ Browse ------ */
+.game-browser {
+  width: 100%;
+  height: 100%;
+}
+
 .game_list {
   
 }
 .game_list__item {
-  height: 3em;
+  height: 50px;
   /* Pimp */
   background-color: #1b1b1c;
   color: #aaa;
-}
-.game_list__item:nth-child(2n) {
-  /* Pimp */
-  background-color: #1e1e1f
 }
 .game_list__item img {
   display: inline-block;
@@ -117,6 +133,10 @@ body {
 }
 .game_list__item--hidden {
   display: none;  
+}
+.game_list__item--even {
+  /* Pimp */
+  background-color: #1e1e1f
 }
 
 

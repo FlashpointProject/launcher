@@ -28,7 +28,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       search: this.props.search,
     };
     return (
-      <Switch key={(this._key++ % 1000)}>
+      <Switch /*key={(this._key++ % 1000)}*/>
         <Route exact path="/" component={HomePage} />
         <PropsRoute exact path="/browse" component={BrowsePage} {...props} />
         <Route component={NotFoundPage} />

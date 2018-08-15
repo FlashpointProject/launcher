@@ -1,4 +1,4 @@
-/** @license React v16.4.1
+/** @license React v16.4.2
  * react-dom.development.js
  *
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -10,9 +10,9 @@
 'use strict';
 
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('react')) :
-	typeof define === 'function' && define.amd ? define(['react'], factory) :
-	(global.ReactDOM = factory(global.React));
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('react')) :
+  typeof define === 'function' && define.amd ? define(['react'], factory) :
+  (global.ReactDOM = factory(global.React));
 }(this, (function (React) { 'use strict';
 
 /**
@@ -447,13 +447,13 @@ function injectEventPluginsByName(injectedNamesToPlugins) {
 }
 
 var EventPluginRegistry = Object.freeze({
-	plugins: plugins,
-	eventNameDispatchConfigs: eventNameDispatchConfigs,
-	registrationNameModules: registrationNameModules,
-	registrationNameDependencies: registrationNameDependencies,
-	possibleRegistrationNames: possibleRegistrationNames,
-	injectEventPluginOrder: injectEventPluginOrder,
-	injectEventPluginsByName: injectEventPluginsByName
+  plugins: plugins,
+  eventNameDispatchConfigs: eventNameDispatchConfigs,
+  registrationNameModules: registrationNameModules,
+  registrationNameDependencies: registrationNameDependencies,
+  possibleRegistrationNames: possibleRegistrationNames,
+  injectEventPluginOrder: injectEventPluginOrder,
+  injectEventPluginsByName: injectEventPluginsByName
 });
 
 /**
@@ -871,10 +871,10 @@ function runExtractedEventsInBatch(topLevelType, targetInst, nativeEvent, native
 }
 
 var EventPluginHub = Object.freeze({
-	injection: injection,
-	getListener: getListener,
-	runEventsInBatch: runEventsInBatch,
-	runExtractedEventsInBatch: runExtractedEventsInBatch
+  injection: injection,
+  getListener: getListener,
+  runEventsInBatch: runEventsInBatch,
+  runExtractedEventsInBatch: runExtractedEventsInBatch
 });
 
 var IndeterminateComponent = 0; // Before we know whether it is functional or class
@@ -972,12 +972,12 @@ function updateFiberProps(node, props) {
 }
 
 var ReactDOMComponentTree = Object.freeze({
-	precacheFiberNode: precacheFiberNode,
-	getClosestInstanceFromNode: getClosestInstanceFromNode,
-	getInstanceFromNode: getInstanceFromNode$1,
-	getNodeFromInstance: getNodeFromInstance$1,
-	getFiberCurrentPropsFromNode: getFiberCurrentPropsFromNode$1,
-	updateFiberProps: updateFiberProps
+  precacheFiberNode: precacheFiberNode,
+  getClosestInstanceFromNode: getClosestInstanceFromNode,
+  getInstanceFromNode: getInstanceFromNode$1,
+  getNodeFromInstance: getNodeFromInstance$1,
+  getFiberCurrentPropsFromNode: getFiberCurrentPropsFromNode$1,
+  updateFiberProps: updateFiberProps
 });
 
 function getParent(inst) {
@@ -1214,10 +1214,10 @@ function accumulateDirectDispatches(events) {
 }
 
 var EventPropagators = Object.freeze({
-	accumulateTwoPhaseDispatches: accumulateTwoPhaseDispatches,
-	accumulateTwoPhaseDispatchesSkipTarget: accumulateTwoPhaseDispatchesSkipTarget,
-	accumulateEnterLeaveDispatches: accumulateEnterLeaveDispatches,
-	accumulateDirectDispatches: accumulateDirectDispatches
+  accumulateTwoPhaseDispatches: accumulateTwoPhaseDispatches,
+  accumulateTwoPhaseDispatchesSkipTarget: accumulateTwoPhaseDispatchesSkipTarget,
+  accumulateEnterLeaveDispatches: accumulateEnterLeaveDispatches,
+  accumulateDirectDispatches: accumulateDirectDispatches
 });
 
 /**
@@ -2274,10 +2274,10 @@ function restoreStateIfNeeded() {
 }
 
 var ReactControlledComponent = Object.freeze({
-	injection: injection$2,
-	enqueueStateRestore: enqueueStateRestore,
-	needsStateRestore: needsStateRestore,
-	restoreStateIfNeeded: restoreStateIfNeeded
+  injection: injection$2,
+  enqueueStateRestore: enqueueStateRestore,
+  needsStateRestore: needsStateRestore,
+  restoreStateIfNeeded: restoreStateIfNeeded
 });
 
 // Used as a way to call batchedUpdates when we don't have a reference to
@@ -2745,14 +2745,15 @@ var ATTRIBUTE_NAME_CHAR = ATTRIBUTE_NAME_START_CHAR + '\\-.0-9\\u00B7\\u0300-\\u
 var ROOT_ATTRIBUTE_NAME = 'data-reactroot';
 var VALID_ATTRIBUTE_NAME_REGEX = new RegExp('^[' + ATTRIBUTE_NAME_START_CHAR + '][' + ATTRIBUTE_NAME_CHAR + ']*$');
 
+var hasOwnProperty = Object.prototype.hasOwnProperty;
 var illegalAttributeNameCache = {};
 var validatedAttributeNameCache = {};
 
 function isAttributeNameSafe(attributeName) {
-  if (validatedAttributeNameCache.hasOwnProperty(attributeName)) {
+  if (hasOwnProperty.call(validatedAttributeNameCache, attributeName)) {
     return true;
   }
-  if (illegalAttributeNameCache.hasOwnProperty(attributeName)) {
+  if (hasOwnProperty.call(illegalAttributeNameCache, attributeName)) {
     return false;
   }
   if (VALID_ATTRIBUTE_NAME_REGEX.test(attributeName)) {
@@ -3959,7 +3960,7 @@ var getActiveElement_1 = getActiveElement;
 
 
 
-var hasOwnProperty = Object.prototype.hasOwnProperty;
+var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
 
 /**
  * inlined Object.is polyfill to avoid requiring consumers ship their own
@@ -4001,7 +4002,7 @@ function shallowEqual(objA, objB) {
 
   // Test for A's keys different from B.
   for (var i = 0; i < keysA.length; i++) {
-    if (!hasOwnProperty.call(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
+    if (!hasOwnProperty$1.call(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
       return false;
     }
   }
@@ -4909,12 +4910,12 @@ function dispatchEvent(topLevelType, nativeEvent) {
 }
 
 var ReactDOMEventListener = Object.freeze({
-	get _enabled () { return _enabled; },
-	setEnabled: setEnabled,
-	isEnabled: isEnabled,
-	trapBubbledEvent: trapBubbledEvent,
-	trapCapturedEvent: trapCapturedEvent,
-	dispatchEvent: dispatchEvent
+  get _enabled () { return _enabled; },
+  setEnabled: setEnabled,
+  isEnabled: isEnabled,
+  trapBubbledEvent: trapBubbledEvent,
+  trapCapturedEvent: trapCapturedEvent,
+  dispatchEvent: dispatchEvent
 });
 
 /**
@@ -7480,7 +7481,7 @@ var warnedProperties = {};
 var rARIA = new RegExp('^(aria)-[' + ATTRIBUTE_NAME_CHAR + ']*$');
 var rARIACamel = new RegExp('^(aria)[A-Z][' + ATTRIBUTE_NAME_CHAR + ']*$');
 
-var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
+var hasOwnProperty$2 = Object.prototype.hasOwnProperty;
 
 function getStackAddendum() {
   var stack = ReactDebugCurrentFrame.getStackAddendum();
@@ -7488,7 +7489,7 @@ function getStackAddendum() {
 }
 
 function validateProperty(tagName, name) {
-  if (hasOwnProperty$1.call(warnedProperties, name) && warnedProperties[name]) {
+  if (hasOwnProperty$2.call(warnedProperties, name) && warnedProperties[name]) {
     return true;
   }
 
@@ -8649,19 +8650,19 @@ function restoreControlledState$1(domElement, tag, props) {
 }
 
 var ReactDOMFiberComponent = Object.freeze({
-	createElement: createElement$1,
-	createTextNode: createTextNode$1,
-	setInitialProperties: setInitialProperties$1,
-	diffProperties: diffProperties$1,
-	updateProperties: updateProperties$1,
-	diffHydratedProperties: diffHydratedProperties$1,
-	diffHydratedText: diffHydratedText$1,
-	warnForUnmatchedText: warnForUnmatchedText$1,
-	warnForDeletedHydratableElement: warnForDeletedHydratableElement$1,
-	warnForDeletedHydratableText: warnForDeletedHydratableText$1,
-	warnForInsertedHydratedElement: warnForInsertedHydratedElement$1,
-	warnForInsertedHydratedText: warnForInsertedHydratedText$1,
-	restoreControlledState: restoreControlledState$1
+  createElement: createElement$1,
+  createTextNode: createTextNode$1,
+  setInitialProperties: setInitialProperties$1,
+  diffProperties: diffProperties$1,
+  updateProperties: updateProperties$1,
+  diffHydratedProperties: diffHydratedProperties$1,
+  diffHydratedText: diffHydratedText$1,
+  warnForUnmatchedText: warnForUnmatchedText$1,
+  warnForDeletedHydratableElement: warnForDeletedHydratableElement$1,
+  warnForDeletedHydratableText: warnForDeletedHydratableText$1,
+  warnForInsertedHydratedElement: warnForInsertedHydratedElement$1,
+  warnForInsertedHydratedText: warnForInsertedHydratedText$1,
+  restoreControlledState: restoreControlledState$1
 });
 
 // TODO: direct imports like some-package/src/* are bad. Fix me.
@@ -12429,7 +12430,7 @@ function coerceRef(returnFiber, current, element) {
       if (returnFiber.mode & StrictMode) {
         var componentName = getComponentName(returnFiber) || 'Component';
         if (!didWarnAboutStringRefInStrictMode[componentName]) {
-          warning_1(false, 'A string ref, "%s", has been found within a strict mode tree. ' + 'String refs are a source of potential bugs and should be avoided. ' + 'We recommend using createRef() instead.' + '\n%s' + '\n\nLearn more about using refs safely here:' + '\nhttps://fb.me/react-strict-mode-string-ref', mixedRef, getStackAddendumByWorkInProgressFiber(returnFiber));
+          warning_1(false, 'A string ref, "%s", has been found within a strict mode tree. ' + 'String refs are a source of potential bugs and should be avoided. ' + 'We recommend using createRef() instead.' + '\n%s' + '\n\nLearn more about using refs safely here:' + '\nhttps://fb.me/react-strict-mode-string-ref', mixedRef, getStackAddendumByWorkInProgressFiber(returnFiber));
           didWarnAboutStringRefInStrictMode[componentName] = true;
         }
       }
@@ -17465,24 +17466,24 @@ function injectIntoDevTools(devToolsConfig) {
 
 
 var DOMRenderer = Object.freeze({
-	updateContainerAtExpirationTime: updateContainerAtExpirationTime,
-	createContainer: createContainer,
-	updateContainer: updateContainer,
-	flushRoot: flushRoot,
-	requestWork: requestWork,
-	computeUniqueAsyncExpiration: computeUniqueAsyncExpiration,
-	batchedUpdates: batchedUpdates$1,
-	unbatchedUpdates: unbatchedUpdates,
-	deferredUpdates: deferredUpdates,
-	syncUpdates: syncUpdates,
-	interactiveUpdates: interactiveUpdates$1,
-	flushInteractiveUpdates: flushInteractiveUpdates$1,
-	flushControlled: flushControlled,
-	flushSync: flushSync,
-	getPublicRootInstance: getPublicRootInstance,
-	findHostInstance: findHostInstance,
-	findHostInstanceWithNoPortals: findHostInstanceWithNoPortals,
-	injectIntoDevTools: injectIntoDevTools
+  updateContainerAtExpirationTime: updateContainerAtExpirationTime,
+  createContainer: createContainer,
+  updateContainer: updateContainer,
+  flushRoot: flushRoot,
+  requestWork: requestWork,
+  computeUniqueAsyncExpiration: computeUniqueAsyncExpiration,
+  batchedUpdates: batchedUpdates$1,
+  unbatchedUpdates: unbatchedUpdates,
+  deferredUpdates: deferredUpdates,
+  syncUpdates: syncUpdates,
+  interactiveUpdates: interactiveUpdates$1,
+  flushInteractiveUpdates: flushInteractiveUpdates$1,
+  flushControlled: flushControlled,
+  flushSync: flushSync,
+  getPublicRootInstance: getPublicRootInstance,
+  findHostInstance: findHostInstance,
+  findHostInstanceWithNoPortals: findHostInstanceWithNoPortals,
+  injectIntoDevTools: injectIntoDevTools
 });
 
 function createPortal$1(children, containerInfo,
@@ -17502,7 +17503,7 @@ implementation) {
 
 // TODO: this is special because it gets imported during build.
 
-var ReactVersion = '16.4.1';
+var ReactVersion = '16.4.2';
 
 // TODO: This type is shared between the reconciler and ReactDOM, but will
 // eventually be lifted out to the renderer.
@@ -17994,7 +17995,7 @@ var foundDevTools = injectIntoDevTools({
 
 
 var ReactDOM$2 = Object.freeze({
-	default: ReactDOM
+  default: ReactDOM
 });
 
 var ReactDOM$3 = ( ReactDOM$2 && ReactDOM ) || ReactDOM$2;

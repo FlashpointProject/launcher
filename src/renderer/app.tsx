@@ -27,13 +27,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
   render() {
     return (
-      <div>
+      <>
         {/* "Header" stuff */}
         <Header onSearch={this.onSearch} />
         {/* "Main" / "Content" stuff */}
-        <div id="main">
+        <div className="root__main">
           <AppRouter platform={this.state.platform} search={this.state.search} />
-          <noscript id="nojs">
+          <noscript className="nojs">
             <div style={{textAlign:'center'}}>
               This website requires JavaScript to be enabled.
             </div>
@@ -41,7 +41,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         </div>
         {/* "Footer" stuff */}
         <Footer />
-      </div>
+      </>
     );
   }
   private onSearch(event: ISearchOnSearchEvent): void {
