@@ -96,6 +96,30 @@ body {
 }
 
 
+/* ------ Browse ------ */
+.game_list {
+  
+}
+.game_list__item {
+  height: 3em;
+  /* Pimp */
+  background-color: #1b1b1c;
+  color: #aaa;
+}
+.game_list__item:nth-child(2n) {
+  /* Pimp */
+  background-color: #1e1e1f
+}
+.game_list__item img {
+  display: inline-block;
+  width: 3em;
+  height: 3em;
+}
+.game_list__item--hidden {
+  display: none;  
+}
+
+
 /* ------ Search & SearchTag Components ------ */
 .search {
   display: inline-flex;

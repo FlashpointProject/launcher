@@ -32,7 +32,10 @@ const config = {
     static: {
       src:  './static',
       dest: './dist/renderer'
-    }
+    },
+    shared: {
+      src:  './src/shared',
+    },
   }
 }
 
@@ -49,7 +52,8 @@ function buildMain() {
 }
 
 function watchRenderer() {
-  gulp.watch([config.paths.renderer.src+'/**/*'], ['build_renderer']);
+  gulp.watch([config.paths.renderer.src+'/**/*',
+              config.paths.shared.src+'/**/*'], ['build_renderer']);
 }
 function buildRenderer() {
   const webpackConfig = require('./webpack.config.js');
