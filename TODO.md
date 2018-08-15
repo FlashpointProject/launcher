@@ -1,3 +1,7 @@
-Todo:
-* Currently the PPAPI Flash Plugin is fetched from the default path (which means it has to be installed already). Allow the user to change the path to another version?
-* Add an error message if the PPAPI Flash Plugin doesn't load / isn't found / any other problem that might occur.
+# Fix:
+* Make the thumbnails for the games in the BrowsePage scale correctly (use the Thumbnail component?)
+* Make all game thumbnails work (some are currently not found, probably because all of the are not ".png" and some characters in the title are probably formatted to work in the file system)
+* Make the BrowsePage render faster (the thumbnails take very long to render)
+
+# Add:
+* Load games from all LaucnhBox Platform XML files instead of just the flash one
