@@ -6,18 +6,22 @@
 html, body {
   height: 100%;
 }
-input:focus,
-select:focus,
-textarea:focus,
-button:focus {
+*:focus {
   outline: none;
 }
 
 body {
   /* Pimp */
-  background: #fafafa;
+  background-color: #1b1b1c;
   font-size: 12px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+:root {
+  font-size: 1em;
+  overflow: hidden;
+  /* Pimp */
+  color: #f1f1f1;
 }
 
 
@@ -28,11 +32,10 @@ body {
   width: 100%;
   height: 100%;
 }
-.root__main {
+.main {
   flex: 1;
-}
-.root__aids {
-  
+  /* Pimp */
+  background-color: #1b1b1c;
 }
 
 /* ------ Header ------ */
@@ -42,9 +45,7 @@ body {
   background-color: #2d2d30;
 }
 .header__title {
-  margin-bottom: 1em;
-  /* Pimp */
-  color: #f1f1f1;
+  padding: 0.2em 0 0.2em 0.3em;
 }
 .header__menu {
   display: inline-block;
@@ -112,31 +113,66 @@ body {
 
 
 /* ------ Browse ------ */
+.footer {
+  /* Pimp */
+  background-color: #2a2a2b;
+}
+
+
+/* ------ Browse ------ */
 .game-browser {
   width: 100%;
   height: 100%;
 }
 
-.game_list {
-  
+/* GameList */
+.game-list {
+  background-color: #1b1b1c;
 }
-.game_list__item {
+/* GameList Item */
+.game-list__item {
+  display: flex;
   height: 50px;
   /* Pimp */
+  list-style: none;
   background-color: #1b1b1c;
   color: #aaa;
 }
-.game_list__item img {
-  display: inline-block;
-  width: 3em;
-  height: 3em;
-}
-.game_list__item--hidden {
-  display: none;  
-}
-.game_list__item--even {
+.game-list__item--even {
   /* Pimp */
   background-color: #1e1e1f
+}
+/* GameList Item Thumb */
+.game-list__item__thumb__border,
+.game-list__item__thumb__wrapper,
+.game-list__item__thumb__image {
+	width: 50px;
+	height: 50px;
+}
+.game-list__item__thumb__border {
+	overflow: hidden;
+}
+.game-list__item__thumb__image {
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+.game-list__item__thumb__wrapper {
+}
+/* GameList Item Title */
+.game-list__item__right {
+  flex: 1;
+  overflow: hidden;
+  padding: 5px;
+}
+.game-list__item__right__title {
+  font-size: 1.2rem;
+  white-space: nowrap;
+  /* Pimp */
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.list__item__right__genre {
+  font-size: 0.8rem;
 }
 
 

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export const Footer: React.StatelessComponent<{}> = () => {
   return (
-    <div id="footer">
+    <div className="footer">
       footer
     </div>
   );

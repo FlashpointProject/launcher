@@ -1,6 +1,7 @@
 import { app, session, BrowserWindow, WebContents, PermissionRequestHandlerDetails } from 'electron';
 import * as path from 'path';
 import { MainWindow } from './MainWindow';
+import * as Util from './Util';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow();
@@ -13,9 +14,10 @@ export class Main {
   }
 
   private onAppReady() {
-    const defaultSession: Electron.Session = session.fromPartition('');
     // Create the main window
     this._mainWindow.createWindow();
+    //
+    const defaultSession: Electron.Session = session.fromPartition('');
     //
     defaultSession.webRequest.onHeadersReceived(onHeaderReceived);
     function onHeaderReceived() {

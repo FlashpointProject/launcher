@@ -19,11 +19,11 @@ export interface IThumbnailProps extends IDefaultProps {
 export interface IThumbnailState {
   paddingLeft?: string;
   paddingTop?: string;
+  isImageLoaded: boolean;
 }
 
 export class Thumbnail extends React.Component<IThumbnailProps, IThumbnailState> {
   private isUnmounted: boolean = false;
-  private isImageLoaded: boolean = false;
   private currentlyLoadingSrc: string|null = null; // URL of the image that is currently being loaded (null if not loading)
 
   constructor(props: IThumbnailProps) {
@@ -31,6 +31,7 @@ export class Thumbnail extends React.Component<IThumbnailProps, IThumbnailState>
     this.state = {
       paddingLeft: '',
       paddingTop: '',
+      isImageLoaded: false,
     };
   }
 
@@ -42,10 +43,11 @@ export class Thumbnail extends React.Component<IThumbnailProps, IThumbnailState>
     let { outerProps, wrapperProps, imageProps, src = '' } = this.props;
     let { paddingLeft, paddingTop } = this.state;
     this.tryLoadingImage();
+    const srcUrl: string = 'url("'+encodeURI(src)+'")';
     return (
-      <div {...(outerProps || {})}>
+      <div {...(outerProps || {})} id={srcUrl}>
         <div {...(wrapperProps || {})} style={{paddingLeft, paddingTop}}>
-          <div {...(imageProps || {})} style={this.isImageLoaded ? {backgroundImage:'url('+src+')'} : undefined} />
+          <div {...(imageProps || {})} style={this.state.isImageLoaded ? {backgroundImage: srcUrl} : undefined} />
         </div>
       </div>
     );
@@ -68,6 +70,7 @@ export class Thumbnail extends React.Component<IThumbnailProps, IThumbnailState>
   onImageLoaded(img: HTMLImageElement, event: Event) {
     const { parentWidth, parentHeight, imageWidth, imageHeight } = this.props;
     // Contants
+    debugger;
     const paw = parentWidth  || 48; // Parent Width (size of the box around the thumb)
     const pah = parentHeight || 43; // Parent Height
     const iw  = imageWidth   || 40; // Image Width (maximum size of the thumb)
@@ -94,12 +97,12 @@ export class Thumbnail extends React.Component<IThumbnailProps, IThumbnailState>
     //  And by deviding that by two, we know how much space we need on each side to center it)
     ph = Math.round((paw - img.width  * scale) / 2);
     pv = Math.round((pah - img.height * scale) / 2);
-
+    
     // Update state
-    this.isImageLoaded = true;
     this.setState({
       paddingLeft: ph+'px',
       paddingTop:  pv+'px',
+      isImageLoaded: true,
     });
   }
 }

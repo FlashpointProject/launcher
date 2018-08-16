@@ -21,6 +21,7 @@ module.exports = {
   externals: {
     "react": "React",
     "react-dom": "ReactDOM",
+    "react-virtualized": "ReactVirtualized",
   },
   plugins: [
     new CheckerPlugin({

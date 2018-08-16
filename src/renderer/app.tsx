@@ -31,7 +31,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {/* "Header" stuff */}
         <Header onSearch={this.onSearch} />
         {/* "Main" / "Content" stuff */}
-        <div className="root__main">
+        <div className="main">
           <AppRouter platform={this.state.platform} search={this.state.search} />
           <noscript className="nojs">
             <div style={{textAlign:'center'}}>
@@ -55,7 +55,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.setState({
         platform: platform,
       });
-      console.log('woo', platform)
     })
     .catch(console.log);
   }
