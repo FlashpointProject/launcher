@@ -18,18 +18,17 @@ export class MainWindow {
       throw new Error('Window already created!');
     }
     // Create the browser window.
+    console.log(__dirname, path.resolve(__dirname, '../main/MainWindowPreload.js'))
     this._window = new BrowserWindow({
-      title: 'Flash Electron',
+      title: 'Library Thingie',
       height: 600,
       width: 800,
+      frame: false,
       webPreferences: {
+        preload: path.resolve(__dirname, '../main/MainWindowPreload.js'),
         // Security
         nodeIntegration: false,
-        contextIsolation: true,
-        // Enable flash player plugin
-        plugins: true,
-        // Misc
-        zoomFactor: 1,
+        contextIsolation: false,
       },
     });
     // and load the index.html of the app.

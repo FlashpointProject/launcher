@@ -8,3 +8,5 @@
 # Add:
 * Load games from all LaucnhBox Platform XML files instead of just the flash one
 * Make the games in the game list launchable (add a launch button? launch on double click?)
+* Make use of the tag capabilities of the search bar (for filtering genres, developers etc.)
+

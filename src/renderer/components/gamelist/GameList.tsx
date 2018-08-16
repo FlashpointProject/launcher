@@ -5,6 +5,7 @@ import { ISearchOnSearchEvent } from '../generic/search/Search';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { Thumbnail } from '../common/Thumbnail';
 import { LaunchBoxGame } from '../../../shared/launchbox/LaunchBoxGame';
+import { GameListItem } from './GameListItem';
 
 export interface IGameListProps extends IDefaultProps {
   games?: ILaunchBoxGame[];
@@ -51,30 +52,11 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
     );
   }
   
-  rowRenderer({index, isScrolling, key, style}: ListRowProps): React.ReactNode {
-    const game = (this.props.games as ILaunchBoxGame[])[index];
-    const title: string = game.title || '';
-    let className: string = 'game-list__item';
-    // Add class to all with an even index
-    if (index % 2 === 0) {
-      className += ' game-list__item--even';
-    }
+  rowRenderer(props: ListRowProps): React.ReactNode {
+    const game = (this.props.games as ILaunchBoxGame[])[props.index];
     // Render
     return (
-      <li key={key} style={style} className={className}>
-        <Thumbnail 
-          src={`../Data/Images/${LaunchBoxGame.generateImageFilename(title)}-01.png`}
-          parentWidth={50} parentHeight={50}
-          imageWidth={50} imageHeight={50}
-          outerProps={{className:"game-list__item__thumb__border"}}
-          wrapperProps={{className:"game-list__item__thumb__wrapper"}}
-          imageProps={{className:"game-list__item__thumb__image"}}
-          />
-        <div className="game-list__item__right">
-          <p className="game-list__item__right__title">{title}</p>
-          <p className="game-list__item__right__genre">{game.genre}</p>
-        </div>
-      </li>
+      <GameListItem key={props.key} {...props} game={game} />
     );
   }
 }
