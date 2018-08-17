@@ -1,13 +1,18 @@
+const fs = require('fs-extra');
+const path = require('path');
 const gulp = require('gulp');
 const gulpif = require('gulp-if');
 const uglify = require('gulp-uglify');
 const webpack = require('webpack-stream');
+const packager = require('electron-packager');
+const serialHooks = require('electron-packager/hooks').serialHooks;
 const typescript = require('gulp-typescript');
 const mainTsProject = typescript.createProject('tsconfig-main.json');
 
 gulp.task('default', ['build', 'watch']);
 gulp.task('watch', ['watch_main', 'watch_renderer', 'watch_static']);
 gulp.task('build', ['build_main', 'build_renderer', 'copy_static']);
+gulp.task('pack', pack);
 
 gulp.task('watch_main', watchMain);
 gulp.task('build_main', buildMain);
@@ -18,20 +23,21 @@ gulp.task('build_renderer', buildRenderer);
 gulp.task('watch_static', watchStatic);
 gulp.task('copy_static',  copyStatic);
 
+const appPath = './binaries/resources/app.asar/';
 const config = {
   isRelease: false,
   paths: {
     main: {
       src:  './src/main',
-      dest: './dist' // (It includes both /main/ and /shared/, so it is one folder higher than otherwise!)
+      dest: './build', // (It includes both /main/ and /shared/, so it is one folder higher than otherwise!)
     },
     renderer: {
       src:  './src/renderer',
-      dest: './dist/renderer'
+      dest: './build/renderer',
     },
     static: {
       src:  './static',
-      dest: './dist/renderer'
+      dest: './build'
     },
     shared: {
       src:  './src/shared',
@@ -75,4 +81,39 @@ function copyStatic() {
   // Copy files
   gulp.src(config.paths.static.src+'/**/*')
     .pipe(gulp.dest(config.paths.static.dest));
+}
+
+function pack() {
+  packager({
+    dir: './build/', 
+    out: './dist/',
+    // ...
+    prune: true,
+    packageManager: 'npm',
+    tmpdir: './temp/', // (Remove this to use the temp folder in appdata instead)
+    overwrite: true, // For debugging
+    // Build settings
+    executableName: 'LibraryThingie',
+    platform: 'win32',
+    arch: 'ia32',
+    // ...
+    afterCopy: [serialHooks([
+      function(buildPath, electronVersion, platform, arch) {
+        console.log('Pack - AfterCopy!', arguments)
+        //
+        fs.copy('./package.json', path.join(buildPath, './package.json'));
+        /*
+        return fs.copy('./node_modules', path.join(buildPath, './node_modules'), { overwrite: false })
+          .catch(console.log);
+        */
+      },
+    ])],
+    //asar: true,
+  })
+  .then((appPaths) => {
+    console.log('Pack - Done!', appPaths);
+  })
+  .catch((error) => {
+    console.log('Pack - Error!', error);
+  });
 }
