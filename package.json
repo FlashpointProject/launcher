@@ -12,9 +12,7 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/react": "16.4.10",
     "@types/react-dom": "16.0.7",
