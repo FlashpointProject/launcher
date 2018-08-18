@@ -107,12 +107,9 @@ body {
 
 /* ------ Header ------ */
 .header {
-  padding-bottom: 1em;
+  padding: 0.3em 0.3em 1em 0.3em;
   /* Pimp */
   background-color: #2d2d30;
-}
-.header__title {
-  padding: 0.2em 0 0.2em 0.3em;
 }
 .header__menu {
   display: inline-block;
@@ -247,16 +244,13 @@ body {
 .search {
   display: inline-flex;
   white-space: nowrap;
+  overflow: hidden;
   padding: 0.25em;
 }
 .search__input, .search__input:active {
+  width: 0;
   flex: 1;
   vertical-align: middle;
-  /* Pimp */
-  color: var(--theme__text-color);
-  background: none;
-  border: none;
-  outline: none;
 }
 .search__tag {
   display: inline-block;

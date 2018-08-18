@@ -28,21 +28,18 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     };
     return (
       <div className="header">
-        <h2 className="header__title">Library Thingie</h2>
-        <div>
-          <ul className="header__menu">
-            <li className="header__menu__item">
-              <Link to="/" className="header__menu__item__link">Home</Link>
-            </li>
-            <li className="header__menu__item">
-              <Link to="/browse" className="header__menu__item__link">Browse</Link>
-            </li>
-            <li className="header__menu__item">
-              <Link to="/about" className="header__menu__item__link">About</Link>
-            </li>
-          </ul>
-          <Search onSearch={this.onSearch} classNames={searchClassNames} />
-        </div>
+        <ul className="header__menu">
+          <li className="header__menu__item">
+            <Link to="/" className="header__menu__item__link">Home</Link>
+          </li>
+          <li className="header__menu__item">
+            <Link to="/browse" className="header__menu__item__link">Browse</Link>
+          </li>
+          <li className="header__menu__item">
+            <Link to="/about" className="header__menu__item__link">About</Link>
+          </li>
+        </ul>
+        <Search onSearch={this.onSearch} classNames={searchClassNames} />
       </div>
     );
   }
