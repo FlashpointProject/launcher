@@ -2,6 +2,7 @@ import { app, session, BrowserWindow, WebContents, PermissionRequestHandlerDetai
 import * as path from 'path';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { Main } from './Main';
+import * as Util from './Util';
 
 export class MainWindow {
   private _main: Main;
@@ -38,7 +39,9 @@ export class MainWindow {
     // and load the index.html of the app.
     this._window.loadFile(path.join(__dirname, '../renderer/index.html'));
     // Open the DevTools.
-    this._window.webContents.openDevTools();
+    if (Util.isDev) {
+      this._window.webContents.openDevTools();
+    }
     // Emitted when the window is closed.
     this._window.on('closed', () => {
       // Dereference the window object, usually you would store windows

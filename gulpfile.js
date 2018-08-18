@@ -102,23 +102,26 @@ function pack() {
     // ...
     afterCopy: [serialHooks([
       function(buildPath, electronVersion, platform, arch) {
-        console.log('Pack - AfterCopy!', arguments)
-        //
+        // Read the package.json file (it is requiered to run the electron app)
         const package = require('./package.json');
-        delete package.scripts;
-        delete package.devDependencies;
-        const data = JSON.stringify(package);
+        // Copy only some fields
+        // (I'm not really sure which are required or which serves any purpuse)
+        const data = JSON.stringify({
+          name: package.name,
+          version: package.version,
+          description: package.description,
+          main: package.main,
+          author: package.author,
+          license: package.license,
+          dependencies: package.dependencies
+        });
+        // Save file to the temporary folder (that gets moved or packed into the release)
         fs.writeFileSync(path.join(buildPath, './package.json'), data, 'utf8');
-        //fs.copy('./package.json', path.join(buildPath, './package.json'));
-        /*
-        return fs.copy('./node_modules', path.join(buildPath, './node_modules'), { overwrite: false })
-          .catch(console.log);
-        */
       },
     ])],
   })
   .then((appPaths) => {
-    console.log('Pack - Done!', appPaths);
+    console.log('Pack - Done!');
   })
   .catch((error) => {
     console.log('Pack - Error!', error);

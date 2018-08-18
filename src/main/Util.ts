@@ -3,6 +3,17 @@ import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { AppConfig } from '../shared/config/AppConfig';
 
 /**
+ * If Electron is in development mode (or in release mode)
+ * (This is copied straight out of the npm package 'electron-is-dev')
+ */
+export const isDev: boolean = (function() {
+  const getFromEnv = parseInt(process.env.ELECTRON_IS_DEV || '', 10) === 1;
+  const isEnvSet = 'ELECTRON_IS_DEV' in process.env;
+  return isEnvSet ? getFromEnv : (process.defaultApp || /node_modules[\\/]electron[\\/]/.test(process.execPath));
+})();
+
+
+/**
  * Call a function once the electron app is ready, or immediately if it is already ready
  */
 export function callIfOrOnceReady(func: () => void): void {

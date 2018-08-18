@@ -7,10 +7,11 @@
     "build": "gulp build",
     "watch": "gulp watch",
     "pack": "gulp pack",
+    "release": "gulp build --production & gulp pack --production",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "start": "electron ./build/main/index.js"
   },
-  "author": "",
+  "author": "https://bigbub.net",
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
