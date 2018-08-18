@@ -18,7 +18,6 @@ export class MainWindow {
       throw new Error('Window already created!');
     }
     // Create the browser window.
-    console.log(__dirname, path.resolve(__dirname, '../main/MainWindowPreload.js'))
     this._window = new BrowserWindow({
       title: 'Library Thingie',
       height: 600,

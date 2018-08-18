@@ -107,20 +107,22 @@ body {
 
 /* ------ Header ------ */
 .header {
-  padding: 0.3em 0.3em 1em 0.3em;
+  padding: 0.3em;
+  padding-bottom: 0.4em;
   /* Pimp */
   background-color: #2d2d30;
 }
 .header__menu {
   display: inline-block;
+  padding: 0.3em 0;
   margin-right: 1em;
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
 }
 .header__menu__item {
   display: inline-block;
 }
 .header__menu__item__link {
-  padding: 0.4em 0.7em;
+  padding: 0.3em 0.7em;
   border: 1px solid rgba(0,0,0,0);
   /* Pimp */
   cursor: pointer;
@@ -135,6 +137,7 @@ body {
 /* Header Search */
 .header__search {
   width: 25em;
+  height: 18px;
   padding: 0.25em;
   /* Pimp */
   border: 1px solid #47474d;
