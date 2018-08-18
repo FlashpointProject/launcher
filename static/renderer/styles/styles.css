@@ -16,7 +16,6 @@ body {
   --theme__background-color: #1b1b1c;
   /* Pimp */
   background-color: var(--theme__background-color);
-  font-size: 12px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
@@ -37,6 +36,7 @@ body {
 }
 .main {
   flex: 1;
+  overflow: hidden;
   /* Pimp */
   background-color: var(--theme__background-color);
 }
@@ -44,6 +44,7 @@ body {
 
 /* ------ TitleBar ------ */
 .title-bar {
+  display: flex;
   width: 100%;
   height: 18px;
   -webkit-app-region: drag; /* Dragging this moves the window */
@@ -54,12 +55,14 @@ body {
 /* Title */
 .title-bar__title {
   display: inline;
+  flex: 1;
   padding-left: 2px;
   font-size: 16px;
 }
 /* Button Bar */
 .title-bar__button-bar {
   height: 100%;
+  flex: 0 1 auto;
   display: block;
   float: right;
 }
@@ -107,6 +110,7 @@ body {
 
 /* ------ Header ------ */
 .header {
+  font-size: 0.75em;
   padding: 0.3em;
   padding-bottom: 0.4em;
   /* Pimp */
@@ -117,6 +121,8 @@ body {
   padding: 0.3em 0;
   margin-right: 1em;
   margin-bottom: 0.5em;
+  /* Pimp */
+  user-select: none;
 }
 .header__menu__item {
   display: inline-block;
@@ -137,7 +143,7 @@ body {
 /* Header Search */
 .header__search {
   width: 25em;
-  height: 18px;
+  height: 1.5em;
   padding: 0.25em;
   /* Pimp */
   border: 1px solid #47474d;
@@ -181,8 +187,46 @@ body {
 
 /* ------ Footer ------ */
 .footer {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
   /* Pimp */
+  user-select: none;
   background-color: #2a2a2b;
+}
+
+
+/* ------ Home ------ */
+.home {
+  width: 100%;
+  height: 100%;
+  padding: 1em;
+  text-align: center;
+  box-sizing: border-box;
+}
+.home__title {
+  font-size: 2.5em;
+}
+.home__subtitle {
+  font-size: 1.1em;
+  padding-bottom: 1em;
+}
+
+
+/* ------ Page-Not-Found (404) ------ */
+.page-not-found {
+  width: 100%;
+  height: 100%;
+  padding: 1em;
+  text-align: center;
+  box-sizing: border-box;
+}
+.page-not-found__error-number {
+  font-size: 8em;
+}
+.page-not-found__title {
+  font-size: 2em;
+  padding-bottom: 0.5em;
 }
 
 
@@ -238,7 +282,7 @@ body {
   text-overflow: ellipsis;
   overflow: hidden;
 }
-.list__item__right__genre {
+.game-list__item__right__genre {
   font-size: 0.8rem;
 }
 
@@ -253,16 +297,14 @@ body {
 .search__input, .search__input:active {
   width: 0;
   flex: 1;
-  vertical-align: middle;
 }
 .search__tag {
   display: inline-block;
   white-space: nowrap;
   text-align: center;
-  vertical-align: middle;
   flex: 0 1 auto;
-  margin-right: 0.5rem;
-  padding: 0.15rem 0.25rem;
+  margin-right: 0.5em;
+  padding: 0.15em 0.25em;
 }
 .search__tag__text,
 .search__tag__text:active {
@@ -272,13 +314,11 @@ body {
 .search__tag__remove {
   display: inline-block;
   text-align: center;
-  vertical-align: middle;
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-left: 0.25rem;
+  width: 0.5em;
+  height: 0.5em;
+  margin-left: 0.25em;
 }
 .search__tag__remove__inner {
-  display: inline-block;
-  vertical-align: middle;
-  margin-top: -0.9rem;
+  /* Pimp */
+  user-select: none;
 }
