@@ -1,19 +1,24 @@
 import { app, session, BrowserWindow, WebContents, PermissionRequestHandlerDetails } from 'electron';
 import * as path from 'path';
+import { IAppConfigData } from '../shared/config/IAppConfigData';
+import { Main } from './Main';
 
 export class MainWindow {
+  private _main: Main;
   private _window: Electron.BrowserWindow|null = null;
 
   public get window(): Electron.BrowserWindow|null {
     return this._window;
   }
 
-  constructor() {
+  constructor(main: Main) {
+    // Keep a reference to main
+    this._main = main;
     // Add app event listener(s)
     app.on('activate', this.onAppActivate.bind(this));
   }
 
-  public createWindow() {
+  public createWindow(): void {
     if (this._window) {
       throw new Error('Window already created!');
     }
@@ -43,11 +48,15 @@ export class MainWindow {
     });
   }
 
-  private onAppActivate() {
+  private onAppActivate(): void {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (this._window === null) {
       this.createWindow();
     }
+  }
+
+  public getConfig(): IAppConfigData {
+    return this._main.config;
   }
 }

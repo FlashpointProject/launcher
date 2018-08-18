@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { Route, Switch, HashRouter } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import { HomePage } from './components/pages/HomePage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import { BrowsePage } from './components/pages/BrowsePage';
-import { ILaunchBoxPlatform } from '../shared/launchbox/interfaces';
 import { ISearchOnSearchEvent } from './components/generic/search/Search';
+import { ICentralState } from './interfaces';
 
 export interface IAppRouterProps {
-  platform?: ILaunchBoxPlatform;
+  central?: ICentralState;
   search?: ISearchOnSearchEvent;
 }
 
@@ -24,7 +24,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
 
   render() {
     const props = {
-      platform: this.props.platform,
+      central: this.props.central,
       search: this.props.search,
     };
     return (

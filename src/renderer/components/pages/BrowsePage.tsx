@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { IDefaultProps } from '../../interfaces';
+import { IDefaultProps, ICentralState } from '../../interfaces';
 import { ILaunchBoxPlatform, ILaunchBoxGame } from '../../../shared/launchbox/interfaces';
 import { ISearchOnSearchEvent } from '../generic/search/Search';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameList } from '../gamelist/GameList';
 
 export interface IBrowsePageProps extends IDefaultProps {
-  platform: ILaunchBoxPlatform;
+  central: ICentralState;
   search?: ISearchOnSearchEvent;
 }
 export interface IBrowsePageState {
@@ -25,7 +25,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     // Render
     return (
       <div className="game-browser">
-        <GameList games={games} />
+        <GameList games={games} imageFolder={this.props.central.flashpointPath+'/Arcade/Images/Flash/Box - Front'} />
       </div>
     );
   }
@@ -33,7 +33,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   /** Order the games according to the current settings */
   private orderGames(): ILaunchBoxGame[] {
     // Get the array of games
-    const games = this.props.platform && this.props.platform.games;
+    const games = this.props.central && this.props.central.platform && this.props.central.platform.games;
     if (!games) { return []; } // (No games found)
     // Order games
     // @TODO order games

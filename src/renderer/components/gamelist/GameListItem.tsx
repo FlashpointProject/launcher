@@ -8,6 +8,7 @@ import { LaunchBoxGame } from '../../../shared/launchbox/LaunchBoxGame';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   game: ILaunchBoxGame;
+  imageFolder: string;
 }
 export interface IGameListItemState {
 }
@@ -32,7 +33,7 @@ export class GameListItem extends React.Component<IGameListItemProps, IGameListI
     return (
       <li style={this.props.style} className={className} onDoubleClick={this.onDoubleClick}>
         <Thumbnail 
-          src={`../Data/Images/${LaunchBoxGame.generateImageFilename(title)}-01.png`}
+          src={`${this.props.imageFolder}/${LaunchBoxGame.generateImageFilename(title)}-01.png`}
           parentWidth={50} parentHeight={50}
           imageWidth={50} imageHeight={50}
           outerProps={{className:"game-list__item__thumb__border"}}

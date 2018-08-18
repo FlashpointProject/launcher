@@ -1,4 +1,5 @@
 import { ILaunchBoxGame } from "./launchbox/interfaces";
+import { IAppConfigData } from "./config/IAppConfigData";
 
 export interface IMainWindowExternal {
   /**
@@ -7,6 +8,12 @@ export interface IMainWindowExternal {
    * @param game 
    */
   launchGame(game: ILaunchBoxGame): void;
+
+  /** Get the config object (async) */
+  getConfig(callback: (config: IAppConfigData) => void): void;
+
+  /** Get the config object (sync) */
+  getConfigSync(): IAppConfigData;
   
   // -- Window functions --
   

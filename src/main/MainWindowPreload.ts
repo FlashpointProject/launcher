@@ -1,22 +1,37 @@
-import * as child_process from 'child_process';
 import * as path from 'path';
 import { ILaunchBoxGame } from '../shared/launchbox/interfaces';
 import * as Electron from 'electron';
 import { IMainWindowExternal } from '../shared/interfaces';
+import { IAppConfigData } from '../shared/config/IAppConfigData';
+import { func } from 'prop-types';
+
+Electron.ipcRenderer.on('get-config-response', function(event: Electron.IpcMessageEvent, arg: IAppConfigData) {
+  console.log('renderer on get-config-response', arguments);
+});
 
 /**
- * 
+ * Object with functions that bridge between this and the Main processes
  */
 window.External = {
   /** @inheritDoc */
   launchGame(game: ILaunchBoxGame) {
-    //game.rootFolder;
-    throw new Error('Replace the hard-coded root path in src/main/MainWindowPreload.ts');
-    const root: string = '<Insert full path to ".../Flashpoint/Arcade" here>';
-    const filename: string = path.resolve(root, game.applicationPath || '');
-    const args: string[] = [game.commandLine || ''];
-    console.log(filename, args)
-    child_process.spawn(filename, args);
+    // Send a "Laucnh Game" event to the main process
+    Electron.ipcRenderer.send('launch-game', game.applicationPath || '', [game.commandLine || '']);
+  },
+
+  /** @inheritDoc */
+  getConfig(callback: (config: IAppConfigData) => void) {
+    throw new Error('Does not work yet!! :p');
+    // Send a "Get Config" event to the main process
+    Electron.ipcRenderer.send('get-config', (config: IAppConfigData) => {
+      callback(config);
+    });
+  },
+
+  /** @inheritDoc */
+  getConfigSync(): IAppConfigData {
+    // Send a "Get Config Sync" event to the main process
+    return Electron.ipcRenderer.sendSync('get-config-sync');
   },
 
   /** @inheritDoc */

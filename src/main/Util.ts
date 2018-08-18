@@ -1,4 +1,6 @@
 import * as fs from 'fs';
+import { IAppConfigData } from '../shared/config/IAppConfigData';
+import { AppConfig } from '../shared/config/AppConfig';
 
 /**
  * Call a function once the electron app is ready, or immediately if it is already ready
@@ -17,3 +19,71 @@ export function getLauncBoxImageNames(imageFolderPath: string, callback: (imageN
     callback(files);
   });
 }
+
+/** Parse a JSON string and return either the parsed */
+export function tryParseJSON(jsonString: string): any|Error {
+  let ret;
+  try {
+    ret = JSON.parse(jsonString);
+  } catch(errer) {
+    ret = errer;
+  }
+  return ret;
+}
+
+const configFilePath: string = './config.json';
+const configFileEncoding: string = 'utf8';
+export function readConfigFile(callback: (error?: Error, data?: IAppConfigData) => void): void {
+  readFile(configFilePath, (error, data) => {
+    // Check if reading file failed
+    if (error) {
+      callback(error);
+      return;
+    }
+    // Try to parse json (and callback error if it fails)
+    const jsonOrError = tryParseJSON(data as string);
+    if (jsonOrError instanceof Error) {
+      callback(jsonOrError);
+      return;
+    }
+    // Parse the JSON object as a config object
+    const parsed = AppConfig.parseData(jsonOrError);
+    // Success!
+    callback(undefined, parsed);
+  });
+  /** fs.readFileSync wrapped as if it were the async version (makes it easier to switch between them) */
+  function readFile(path: string, callback: (error?: Error, buffer?: string) => void): void {
+    let error: Error|undefined = undefined;
+    let buffer: string|undefined;
+    try {
+      buffer = fs.readFileSync(path, configFileEncoding);
+    } catch(err) {
+      error = err;
+    }
+    callback(error, buffer);
+  }
+}
+export function saveConfigFile(data: IAppConfigData, doItSync: boolean = false, callback?: (error?: Error, data?: IAppConfigData) => void): void {
+  // Convert settings to json string
+  const json = AppConfig.stringifyData(data);
+  // Save the settings file
+  writeFile(configFilePath, json, doItSync, function(error) {
+    callback && callback(error);
+  });
+  /** Does either fs.writeFile and fs.writeFileSync with callbacks for either */
+  function writeFile(path: string, data: any, doItSync: boolean, callback: (error?: Error) => void = noop): void {
+    let error: Error|undefined = undefined;
+    if (doItSync) {
+      try {
+        fs.writeFileSync(path, data, configFileEncoding);
+      } catch(err) {
+        error = err;
+      }
+      callback(error);
+    } else {
+      fs.writeFile(path, data, configFileEncoding, callback);
+    }
+  }
+}
+
+function noop() { /* Do Nothing */ };

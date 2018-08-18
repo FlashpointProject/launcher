@@ -46,7 +46,8 @@ const config = {
 }
 
 function watchMain() {
-  gulp.watch([config.paths.main.src+'/**/*'], ['build_main']);
+  gulp.watch([config.paths.main.src+'/**/*',
+              config.paths.shared.src+'/**/*'], ['build_main']);
 }
 function buildMain() {
   // Build source

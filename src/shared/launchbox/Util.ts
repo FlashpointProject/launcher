@@ -1,8 +1,9 @@
+import * as Util from '../Util';
 import { ILaunchBoxPlatform, ILaunchBoxGame } from "./interfaces";
 import { LaunchBoxGame } from "./LaunchBoxGame";
 
 export function createLaunchBoxGame(source?: any): ILaunchBoxGame {
-  const game = recursiveReplace({
+  const game = Util.recursiveReplace({
     applicationPath: undefined,
     commandLine: undefined,
     completed: undefined,
@@ -62,31 +63,4 @@ function deleteAllUndefined(target: any) {
       delete target[key];
     }
   }
-}
-
-/**
- * Recursively copy values from data to target (for every property of the same name)
- * @param target Target object to copy data to
- * @param source Source object to copy data from
- * @returns Target object
- */
-function recursiveReplace(target: any, source: any): any {
-  // Skip if either is missing
-  if (!target || !source) { return; }
-  // Go through all properties of target
-  for (let key in source) {
-    // Check if data has a property of the same name
-    if (key in target) {
-      let val = source[key];
-      // If the value is an object
-      if (val !== null && typeof val === 'object') {
-        // Go one object deeper and continue copying
-        recursiveReplace(target[key], val);
-      } else {
-        // Copy the value
-        target[key] = val;
-      }       
-    }
-  }
-  return target;
 }

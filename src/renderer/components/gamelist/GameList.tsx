@@ -8,6 +8,7 @@ import { LaunchBoxGame } from '../../../shared/launchbox/LaunchBoxGame';
 import { GameListItem } from './GameListItem';
 
 export interface IGameListProps extends IDefaultProps {
+  imageFolder?: string;
   games?: ILaunchBoxGame[];
 }
 export interface IGameListState {
@@ -56,7 +57,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
     const game = (this.props.games as ILaunchBoxGame[])[props.index];
     // Render
     return (
-      <GameListItem key={props.key} {...props} game={game} />
+      <GameListItem key={props.key} {...props} game={game} imageFolder={this.props.imageFolder||''} />
     );
   }
 }
