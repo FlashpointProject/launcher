@@ -1,8 +1,10 @@
 const fs = require('fs-extra');
 const path = require('path');
 const gulp = require('gulp');
+const argv = require('yargs').argv;
 const gulpif = require('gulp-if');
-const uglify = require('gulp-uglify');
+const gutil = require('gulp-util');
+const uglify = require('gulp-uglify-es').default;
 const webpack = require('webpack-stream');
 const packager = require('electron-packager');
 const serialHooks = require('electron-packager/hooks').serialHooks;
@@ -25,7 +27,7 @@ gulp.task('copy_static',  copyStatic);
 
 const appPath = './binaries/resources/app.asar/';
 const config = {
-  isRelease: false,
+  isRelease: argv.production !== undefined,
   paths: {
     main: {
       src:  './src/main',
@@ -96,19 +98,24 @@ function pack() {
     executableName: 'LibraryThingie',
     platform: 'win32',
     arch: 'ia32',
+    asar: config.isRelease,
     // ...
     afterCopy: [serialHooks([
       function(buildPath, electronVersion, platform, arch) {
         console.log('Pack - AfterCopy!', arguments)
         //
-        fs.copy('./package.json', path.join(buildPath, './package.json'));
+        const package = require('./package.json');
+        delete package.scripts;
+        delete package.devDependencies;
+        const data = JSON.stringify(package);
+        fs.writeFileSync(path.join(buildPath, './package.json'), data, 'utf8');
+        //fs.copy('./package.json', path.join(buildPath, './package.json'));
         /*
         return fs.copy('./node_modules', path.join(buildPath, './node_modules'), { overwrite: false })
           .catch(console.log);
         */
       },
     ])],
-    //asar: true,
   })
   .then((appPaths) => {
     console.log('Pack - Done!', appPaths);
