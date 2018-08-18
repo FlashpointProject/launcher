@@ -22,7 +22,7 @@ export class Main {
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
     app.on('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
-    ipcMain.on('launch-game', this.onLaunchGame.bind(this));
+    ipcMain.on('launch-game-sync', this.onLaunchGameSync.bind(this));
     ipcMain.on('get-config', this.onGetConfig.bind(this));
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
     // Load config file
@@ -93,13 +93,16 @@ export class Main {
   }
 
   /** Launch a game using some if its properties */
-  private onLaunchGame(applicationPath: string, args: string[]) {
-    console.log('launchGame', arguments);
+  private onLaunchGameSync(event: Electron.IpcMessageEvent, applicationPath: string, args: string[]) {
+    console.log('Launch game:', applicationPath, args);
+    // Launch the game
     //game.rootFolder;
     const root: string = this.config.flashpointPath + '/Arcade';
     const filename: string = path.resolve(root, applicationPath);
     console.log('child_process.spawn', filename, args);
     child_process.spawn(filename, args);
+    // Set return value (this makes the renderer process "unpause")
+    event.returnValue = null;
   }
   
   private onGetConfig(event: Electron.IpcMessageEvent, arg: any): void {

@@ -7,7 +7,7 @@ export interface IMainWindowExternal {
    * (WARNING: This will run an arbitrary program file with arbitrary arguments)
    * @param game 
    */
-  launchGame(game: ILaunchBoxGame): void;
+  launchGameSync(game: ILaunchBoxGame): void;
 
   /** Get the config object (async) */
   getConfig(callback: (config: IAppConfigData) => void): void;

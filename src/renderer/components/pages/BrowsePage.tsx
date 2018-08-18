@@ -6,7 +6,7 @@ import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameList } from '../gamelist/GameList';
 
 export interface IBrowsePageProps extends IDefaultProps {
-  central: ICentralState;
+  central?: ICentralState;
   search?: ISearchOnSearchEvent;
 }
 export interface IBrowsePageState {
@@ -20,12 +20,15 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
   
   render() {
+    // Path to game icons
+    let flashpointPath: string = (this.props.central && this.props.central.flashpointPath) || '';
+    if (flashpointPath) { flashpointPath += '/Arcade/Images/Flash/Box - Front'; }
     // Order games
     const games: ILaunchBoxGame[] = this.orderGames();
     // Render
     return (
       <div className="game-browser">
-        <GameList games={games} imageFolder={this.props.central.flashpointPath+'/Arcade/Images/Flash/Box - Front'} />
+        <GameList games={games} imageFolder={flashpointPath} />
       </div>
     );
   }

@@ -14,9 +14,9 @@ Electron.ipcRenderer.on('get-config-response', function(event: Electron.IpcMessa
  */
 window.External = {
   /** @inheritDoc */
-  launchGame(game: ILaunchBoxGame) {
+  launchGameSync(game: ILaunchBoxGame) {
     // Send a "Laucnh Game" event to the main process
-    Electron.ipcRenderer.send('launch-game', game.applicationPath || '', [game.commandLine || '']);
+    Electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.commandLine || '']);
   },
 
   /** @inheritDoc */

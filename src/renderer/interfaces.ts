@@ -24,6 +24,6 @@ export interface IDefaultProps {
  * (Replace this with something more thought out and maintainable once the project has more structure)
  */
 export interface ICentralState {
-  platform: ILaunchBoxPlatform;
-  flashpointPath: string;
+  platform?: ILaunchBoxPlatform;
+  flashpointPath?: string;
 }
