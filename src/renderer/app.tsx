@@ -6,6 +6,7 @@ import { LaunchBox } from '../shared/launchbox/LaunchBox';
 import { LaunchboxData } from './LaunchboxData';
 import { ILaunchBoxPlatform } from '../shared/launchbox/interfaces';
 import { ISearchOnSearchEvent } from './components/generic/search/Search';
+import { TitleBar } from './components/TitleBar';
 
 export interface IAppProps {
   history?: any;
@@ -28,6 +29,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   render() {
     return (
       <>
+        {/* "TitleBar" stuff */}
+        <TitleBar title="Library Thingie (alpha)" />
         {/* "Header" stuff */}
         <Header onSearch={this.onSearch} />
         {/* "Main" / "Content" stuff */}

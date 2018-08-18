@@ -49,7 +49,6 @@ function watchMain() {
   gulp.watch([config.paths.main.src+'/**/*'], ['build_main']);
 }
 function buildMain() {
-  const webpackConfig = require('./webpack.config.js');
   // Build source
   return mainTsProject.src()
     .pipe(mainTsProject()).js

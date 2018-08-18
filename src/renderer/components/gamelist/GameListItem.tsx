@@ -49,6 +49,6 @@ export class GameListItem extends React.Component<IGameListItemProps, IGameListI
 
   onDoubleClick(event: React.MouseEvent<HTMLLIElement>): void {
     const game = this.props.game;
-    (window as any).launchGame(game);
+    window.External.launchGame(game);
   }
 }
