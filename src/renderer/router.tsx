@@ -5,6 +5,7 @@ import { NotFoundPage } from './components/pages/NotFoundPage';
 import { BrowsePage } from './components/pages/BrowsePage';
 import { ISearchOnSearchEvent } from './components/generic/search/Search';
 import { ICentralState } from './interfaces';
+import { AboutPage } from './components/pages/AboutPage';
 
 export interface IAppRouterProps {
   central?: ICentralState;
@@ -31,6 +32,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       <Switch /*key={(this._key++ % 1000)}*/>
         <Route exact path="/" component={HomePage} />
         <PropsRoute exact path="/browse" component={BrowsePage} {...props} />
+        <Route exact path="/about" component={AboutPage} />
         <Route component={NotFoundPage} />
       </Switch>
     );

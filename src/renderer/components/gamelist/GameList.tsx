@@ -15,6 +15,8 @@ export interface IGameListState {
 }
 
 export class GameList extends React.Component<IGameListProps, IGameListState> {
+  private _list: React.RefObject<List> = React.createRef();
+
   constructor(props: IGameListProps) {
     super(props);
     this.state = {
@@ -31,7 +33,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
           {({width, height}) => {
             return (
               <List 
-                ref="List"
+                ref={this._list}
                 className="game-list"
                 width={width}
                 height={height}
@@ -49,7 +51,24 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
   
   noRowsRenderer() {
     return (
-      <div>No games found!</div>
+      <div className="game-list__no-games">
+        <h1 className="game-list__no-games__title">No Games Found!</h1>
+        <br/>
+        {(this.props.imageFolder === '') ? ( // Check if the "flashpointPath" setting in the config has been changed
+          <>
+            Have you set value of <i>"flashpointPath"</i> in <i>"config.json"</i>?<br/>
+            It should point at the top folder of FlashPoint (Example: "C:/downloads/FlashPoint")<br/>
+            <br/>
+            Tip: Don't use single back-slashes ("\") in the path because that won't work.
+            Use double back-slashes ("\\") or single forward-slashes ("/") instead.
+          </>
+        ):(
+          <>
+            No game title matched your search.<br/>
+            Try searching for something less restrictive.
+          </>
+        )}
+      </div>
     );
   }
   
