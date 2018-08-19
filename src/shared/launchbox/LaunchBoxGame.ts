@@ -18,7 +18,7 @@ export class LaunchBoxGame {
       // @TODO Convert the value to the correct type for that property!
       (parsed as any)[prop] = LaunchBoxGame.parseValue(prop, value);
     }
-    console.log(parsed);
+
     return parsed;
   }
 
