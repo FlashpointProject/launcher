@@ -8,7 +8,7 @@
 
 ## Linux
 
-* extract and use ./flashplayer instead of flashplayer.exe (see readme of Flashpoint)
+* automatically extract ./flashplayer from flash_player_sa_linux.x86_64.tar.gz
 * set the http_proxy env
 
 # Add:

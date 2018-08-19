@@ -15,6 +15,9 @@ export interface IMainWindowExternal {
   /** Get the config object (sync) */
   getConfigSync(): IAppConfigData;
   
+  /** Get the OS name */
+  getPlatform(): NodeJS.Platform;
+
   // -- Window functions --
   
   /** Minimize the window */
