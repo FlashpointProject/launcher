@@ -3,6 +3,7 @@ import * as path from 'path';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { Main } from './Main';
 import * as Util from './Util';
+import * as AppConstants from '../shared/AppConstants';
 
 export class MainWindow {
   private _main: Main;
@@ -25,7 +26,7 @@ export class MainWindow {
     }
     // Create the browser window.
     this._window = new BrowserWindow({
-      title: 'Library Thingie',
+      title: AppConstants.appTitle,
       height: 600,
       width: 800,
       frame: false,

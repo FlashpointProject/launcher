@@ -38,7 +38,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     super(props);
     this.state = {
       input: '',
-      tags: ['a', 'b', 'c'],
+      tags: [],
     };
     this.onChange = this.onChange.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);

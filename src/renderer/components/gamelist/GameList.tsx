@@ -57,7 +57,9 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
         {(this.props.imageFolder === '') ? ( // Check if the "flashpointPath" setting in the config has been changed
           <>
             Have you set value of <i>"flashpointPath"</i> in <i>"config.json"</i>?<br/>
-            It should point at the top folder of FlashPoint (Example: "C:/downloads/FlashPoint")<br/>
+            It should point at the top folder of FlashPoint (Example: "C:/Users/Adam/Downloads/Flashpoint Infinity 4.0").<br/>
+            <br/>
+            Note: You have to restart this application for the config file to reload.
             <br/>
             Tip: Don't use single back-slashes ("\") in the path because that won't work.
             Use double back-slashes ("\\") or single forward-slashes ("/") instead.

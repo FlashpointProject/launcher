@@ -4,6 +4,8 @@
   - Make the renderer try several indices (count up until found or gives up) instead of just 1
 * Make the games in the game list look better (pimp 'em boii - even more yo!)
 * Make the search bar scale down horizontally if it doesnt fit
+* Scroll the GameList to the top when a search is made
+* Switch to the BrowsePage when a search is made from another page
 
 # Add:
 * Load games from all LaucnhBox Platform XML files instead of just the flash one
@@ -12,3 +14,4 @@
   - One should select what to order after (Name alphabetically, Genre, ???)
   - One should select ascending / descending
 * Show the number of total games, and the number of games shown with the current filters
+* Add a way to scale the games in the game list up and down (maybe have a scale slider in the footer?)

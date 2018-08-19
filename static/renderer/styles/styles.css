@@ -211,6 +211,9 @@ body {
   font-size: 1.1em;
   padding-bottom: 1em;
 }
+.home__tutorial {
+  line-height: 1.35;
+}
 
 
 /* ------ Page-Not-Found (404) ------ */
