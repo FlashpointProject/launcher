@@ -17,6 +17,11 @@ export interface IGameOrderChangeEvent {
   orderReverse: GameOrderReverse;
 }
 
+interface IOptionalGameOrderState {
+  orderBy?: GameOrderBy;
+  orderReverse?: GameOrderReverse;
+}
+
 export type GameOrderBy = 'title'|'genre';
 export type GameOrderReverse = 'ascending'|'descending';
 
@@ -34,10 +39,12 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
   render() {
     return (
       <>
+        {/* Order By */}
         <select className="header__order-by" value={this.state.orderBy} onChange={this.onOrderByChange}>
           <option value="title">Title</option>
           <option value="genre">Genre</option>
         </select>
+        {/* Order Reverse */}
         <select className="header__order-reverse" value={this.state.orderReverse} onChange={this.onOrderReverseChange}>
           <option value="ascending">Ascending</option>
           <option value="descending">Descending</option>
@@ -47,37 +54,37 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
   }
   
   private onOrderByChange(event: React.ChangeEvent<HTMLSelectElement>): void {
-    const newState: IGameOrderState = {
+    this.updateState({
       orderBy: this.parseOrderBy(event.target.value),
-      orderReverse: this.state.orderReverse,
-    }
-    if (this.props.onChange) {
-      this.props.onChange(newState);
-    }
-    this.setState({
-      orderBy: newState.orderBy
     });
   }
 
   private onOrderReverseChange(event: React.ChangeEvent<HTMLSelectElement>): void {
-    const newState: IGameOrderState = {
-      orderBy: this.state.orderBy,
+    this.updateState({
       orderReverse: this.parseOrderReverse(event.target.value),
-    }
-    if (this.props.onChange) {
-      this.props.onChange(newState);
-    }
-    this.setState({
-      orderReverse: newState.orderReverse
     });
   }
+  
+  private updateState(data: IOptionalGameOrderState): void {
+    // (The state and event are currently identical, so if this uses just one of their interfaces)
+    const newStateAndEvent: IGameOrderChangeEvent = {
+      orderBy:      data.orderBy      || this.state.orderBy,
+      orderReverse: data.orderReverse || this.state.orderReverse,
+    }
+    if (this.props.onChange) {
+      this.props.onChange(newStateAndEvent);
+    }
+    this.setState(newStateAndEvent);
+  }
 
+  /** Parse GameOrderBy from a string (error if invalid) */
   private parseOrderBy(value: string): GameOrderBy {
     if (value === 'title') return 'title';
     if (value === 'genre') return 'genre';
     throw new Error(`"${value}" is not a valid GameOrderBy`);
   }
 
+  /** Parse GameOrderReverse from a string (error if invalid) */
   private parseOrderReverse(value: string): GameOrderReverse {
     if (value === 'ascending') return 'ascending';
     if (value === 'descending') return 'descending';
