@@ -6,9 +6,11 @@ import * as Util from './Util';
 import * as fs from 'fs';
 import { AppConfig } from '../shared/config/AppConfig';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
+import BackgroundServices from './BackgroundServices';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
+  private _backgroundServices = new BackgroundServices(this);
   private _confing: IAppConfigData|undefined;
 
   public get config(): IAppConfigData {
@@ -27,6 +29,7 @@ export class Main {
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
     // Load config file
     this.loadConfig();
+    this._backgroundServices.start();
   }
 
   private onAppReady() {
@@ -63,6 +66,7 @@ export class Main {
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
       app.quit();
+      this._backgroundServices.stop();
     }
   }
 
@@ -104,7 +108,7 @@ export class Main {
     // Set return value (this makes the renderer process "unpause")
     event.returnValue = null;
   }
-  
+
   private onGetConfig(event: Electron.IpcMessageEvent, arg: any): void {
     // WARNING: Maybe this should make sure that the config doesnt contain anything dangerous.
     // (Maybe convert it to a JSON string and back?)
