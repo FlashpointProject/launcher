@@ -104,7 +104,9 @@ export class Main {
     const root: string = this.config.flashpointPath + '/Arcade';
     const filename: string = path.resolve(root, applicationPath);
     console.log('child_process.spawn', filename, args);
-    child_process.spawn(filename, args);
+    child_process.spawn(filename, args, {
+      env: { ...process.env, http_proxy: 'http://localhost:22500/' },
+    });
     // Set return value (this makes the renderer process "unpause")
     event.returnValue = null;
   }
