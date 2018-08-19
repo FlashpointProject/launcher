@@ -1,17 +1,15 @@
 import * as path from 'path';
-import { Main } from './Main';
 import ManagedChildProcess from './ManagedChildProcess';
 
 export default class BackgroundServices {
 	private router?: ManagedChildProcess;
 
 	constructor(
-			private main: Main,
+		private flashpointPath: string,
 	) {};
 
 	start() {
-		const { flashpointPath } = this.main.config;
-		const serverPath = path.join(flashpointPath, './Arcade/Games/Flash');
+		const serverPath = path.join(this.flashpointPath, './Arcade/Games/Flash');
 
 		this.router = new ManagedChildProcess(
 			'router',

@@ -10,7 +10,7 @@ import BackgroundServices from './BackgroundServices';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
-  private _backgroundServices = new BackgroundServices(this);
+  private _backgroundServices: BackgroundServices;
   private _confing: IAppConfigData|undefined;
 
   public get config(): IAppConfigData {
@@ -29,6 +29,7 @@ export class Main {
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
     // Load config file
     this.loadConfig();
+    this._backgroundServices = new BackgroundServices(this.config.flashpointPath);
     this._backgroundServices.start();
   }
 
@@ -80,6 +81,11 @@ export class Main {
     });
   }
 
+  /**
+   * Load the application config in SYNC.
+   * 
+   * @TODO: Make this function more sync-like.
+   */
   private loadConfig() {
     Util.readConfigFile((err, data) => {
       // Check if config data failed to load
