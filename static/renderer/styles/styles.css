@@ -199,6 +199,7 @@ body {
 /* Header Order By / Reverse */
 .header__order-by,
 .header__order-reverse {
+  font-size: 1em;
   margin-right: 0.5em;
   border: 1px solid #47474d;
   overflow: hidden;
