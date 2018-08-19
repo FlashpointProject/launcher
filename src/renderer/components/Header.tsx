@@ -2,9 +2,11 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ISearchOnSearchEvent } from './generic/search/Search';
 import { IDefaultProps } from '../interfaces';
+import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
 
 export interface IHeaderProps extends IDefaultProps {
   onSearch?: (event: ISearchOnSearchEvent) => void;
+  onOrderChange?: (event: IGameOrderChangeEvent) => void;
 }
 export interface IHeaderState {
 
@@ -16,7 +18,9 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     this.state = {
     };
     this.onSearch = this.onSearch.bind(this);
+    this.onOrderChange = this.onOrderChange.bind(this);
   }
+
   render() {
     const searchClassNames = {
       search:         'header__search',
@@ -28,6 +32,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     };
     return (
       <div className="header">
+        {/* Header Menu */}
         <ul className="header__menu">
           <li className="header__menu__item">
             <Link to="/" className="header__menu__item__link">Home</Link>
@@ -39,13 +44,23 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
             <Link to="/about" className="header__menu__item__link">About</Link>
           </li>
         </ul>
+        {/* Header Search */}
         <Search onSearch={this.onSearch} classNames={searchClassNames} />
+        {/* Header Drop-downs */}
+        <GameOrder onChange={this.onOrderChange} />
       </div>
     );
   }
-  onSearch(event: ISearchOnSearchEvent): void {
+
+  private onSearch(event: ISearchOnSearchEvent): void {
     if (this.props.onSearch) {
       this.props.onSearch(event);
+    }
+  }
+
+  private onOrderChange(event: IGameOrderChangeEvent): void {
+    if (this.props.onOrderChange) {
+      this.props.onOrderChange(event);
     }
   }
 }

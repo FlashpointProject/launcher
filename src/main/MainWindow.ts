@@ -27,8 +27,8 @@ export class MainWindow {
     // Create the browser window.
     this._window = new BrowserWindow({
       title: AppConstants.appTitle,
-      height: 600,
-      width: 800,
+      height: 650,
+      width: 1000,
       frame: false,
       webPreferences: {
         preload: path.resolve(__dirname, '../main/MainWindowPreload.js'),

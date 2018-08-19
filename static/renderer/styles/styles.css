@@ -12,11 +12,13 @@ html, body {
 
 body {
   /* Vars */
+  --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   --theme__text-color: #f1f1f1;
   --theme__background-color: #1b1b1c;
+  --theme__title-bar__background-color: #141417;
   /* Pimp */
   background-color: var(--theme__background-color);
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-family: var(--theme__font-family);
 }
 
 :root {
@@ -33,6 +35,8 @@ body {
   flex-direction: column;
   width: 100%;
   height: 100%;
+  /* Pimp */
+  background-color: var(--theme__title-bar__background-color);
 }
 .main {
   flex: 1;
@@ -47,10 +51,11 @@ body {
   display: flex;
   width: 100%;
   height: 18px;
+  margin-top: 4px;
   -webkit-app-region: drag; /* Dragging this moves the window */
   -webkit-user-select: none; /* Disable text selection */
   /* Pimp */
-  background-color: #141417;
+  background-color: var(--theme__title-bar__background-color);
 }
 /* Title */
 .title-bar__title {
@@ -58,13 +63,20 @@ body {
   flex: 1;
   padding-left: 2px;
   font-size: 16px;
+  position: relative;
+  top: -2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 /* Button Bar */
 .title-bar__button-bar {
-  height: 100%;
+  height: 22px;
   flex: 0 1 auto;
   display: block;
   float: right;
+  position: relative;
+  top: -4px;
 }
 /* Button Bar Buttons */
 .title-bar__button-bar__min,
@@ -145,6 +157,7 @@ body {
   width: 25em;
   height: 1.5em;
   padding: 0.25em;
+  margin-right: 0.5em;
   /* Pimp */
   border: 1px solid #47474d;
   background-color: var(--theme__background-color);
@@ -182,6 +195,23 @@ body {
   /* Pimp */
   color: #c00;
   font-family: monospace, monospace;
+}
+/* Header Order By / Reverse */
+.header__order-by,
+.header__order-reverse {
+  margin-right: 0.5em;
+  border: 1px solid #47474d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Pimp */
+  font-family: var(--theme__font-family);
+  background-color: var(--theme__background-color);
+  color: var(--theme__text-color);
+}
+.header__order-by {
+}
+.header__order-reverse {
 }
 
 

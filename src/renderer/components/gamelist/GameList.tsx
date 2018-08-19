@@ -6,10 +6,14 @@ import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { Thumbnail } from '../common/Thumbnail';
 import { LaunchBoxGame } from '../../../shared/launchbox/LaunchBoxGame';
 import { GameListItem } from './GameListItem';
+import { GameOrderBy, GameOrderReverse } from '../GameOrder';
 
 export interface IGameListProps extends IDefaultProps {
   imageFolder?: string;
   games?: ILaunchBoxGame[];
+  // React-Virtualized Pass-through
+  orderBy?: GameOrderBy;
+  orderReverse?: GameOrderReverse;
 }
 export interface IGameListState {
 }
@@ -41,7 +45,12 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
                 rowCount={games.length}
                 overscanRowCount={8}
                 noRowsRenderer={this.noRowsRenderer}
-                rowRenderer={this.rowRenderer} />
+                rowRenderer={this.rowRenderer}
+                // Pass-through props (they have no direct effect on the list)
+                // (If any property is changed the list is re-rendered, even these)
+                orderBy={this.props.orderBy}
+                orderReverse={this.props.orderReverse}
+                />
             );
           }}
         </AutoSizer>

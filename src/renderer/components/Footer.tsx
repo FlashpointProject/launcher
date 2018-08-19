@@ -1,10 +1,19 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import { IDefaultProps } from '../interfaces';
 
-export const Footer: React.StatelessComponent<{}> = () => {
+export interface IFooterProps extends IDefaultProps {
+  gameCount?: number;
+}
+
+export const Footer: React.StatelessComponent<IFooterProps> = (props: IFooterProps) => {
   return (
     <div className="footer">
-      footer (i dont know what else to put here :p)
+      {(props.gameCount !== undefined) ? (
+        <>Games Total: {props.gameCount}</>
+      ) : (
+        <>No Games Found!</>
+      )}
     </div>
   );
 };

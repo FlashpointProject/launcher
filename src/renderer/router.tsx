@@ -6,10 +6,12 @@ import { BrowsePage } from './components/pages/BrowsePage';
 import { ISearchOnSearchEvent } from './components/generic/search/Search';
 import { ICentralState } from './interfaces';
 import { AboutPage } from './components/pages/AboutPage';
+import { IGameOrderChangeEvent } from './components/GameOrder';
 
 export interface IAppRouterProps {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
+  order?: IGameOrderChangeEvent;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
@@ -27,6 +29,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     const props = {
       central: this.props.central,
       search: this.props.search,
+      order: this.props.order,
     };
     return (
       <Switch /*key={(this._key++ % 1000)}*/>

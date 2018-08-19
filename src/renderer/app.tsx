@@ -10,6 +10,7 @@ import { ISearchOnSearchEvent } from './components/generic/search/Search';
 import { TitleBar } from './components/TitleBar';
 import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
+import { IGameOrderChangeEvent } from './components/GameOrder';
 
 export interface IAppProps {
   history?: any;
@@ -17,6 +18,7 @@ export interface IAppProps {
 export interface IAppState {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
+  order?: IGameOrderChangeEvent;
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
@@ -27,8 +29,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.state = {
       central: undefined,
       search: undefined,
+      order: undefined,
     };
     this.onSearch = this.onSearch.bind(this);
+    this.onOrderChange = this.onOrderChange.bind(this);
     // Start fetching data
     this.fetchStuff();
   }
@@ -40,6 +44,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       this._onSearch = false;
       redirect = <Redirect to="/browse" push={true} />;
     }
+    // Get game count (or undefined if no games are yet found)
+    let gameCount: number|undefined;
+    if (this.state.central && this.state.central.platform && this.state.central.platform.games) {
+      gameCount = this.state.central.platform.games.length;
+    }
+    // Props to set to the router
+    const routerProps = {
+      central: this.state.central,
+      search: this.state.search,
+      order: this.state.order,
+    };
     // Render
     return (
       <>
@@ -48,10 +63,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         {/* "TitleBar" stuff */}
         <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
         {/* "Header" stuff */}
-        <Header onSearch={this.onSearch} />
+        <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange} />
         {/* "Main" / "Content" stuff */}
         <div className="main">
-          <AppRouter central={this.state.central} search={this.state.search} />
+          <AppRouter {...routerProps} />
           <noscript className="nojs">
             <div style={{textAlign:'center'}}>
               This website requires JavaScript to be enabled.
@@ -59,7 +74,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           </noscript>
         </div>
         {/* "Footer" stuff */}
-        <Footer />
+        <Footer gameCount={gameCount} />
       </>
     );
   }
@@ -68,6 +83,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     this._onSearch = true;
     this.setState({
       search: event,
+    });
+  }
+
+  private onOrderChange(event: IGameOrderChangeEvent): void {
+    this.setState({
+      order: event,
     });
   }
 
