@@ -6,8 +6,14 @@
 * Make the search bar scale down horizontally if it doesnt fit
 * Scroll the GameList to the top when a search is made
 
+## Linux
+
+* extract and use ./flashplayer instead of flashplayer.exe (see readme of Flashpoint)
+* set the http_proxy env
+
 # Add:
 * Load games from all LaucnhBox Platform XML files instead of just the flash one
 * Make use of the tag capabilities of the search bar (for filtering genres, developers etc.)
 * Show the number of games shown with the current filters
 * Add a way to scale the games in the game list up and down (maybe have a scale slider in the footer?)
+* Make custom title bar optional
