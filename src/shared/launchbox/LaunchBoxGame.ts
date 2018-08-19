@@ -16,9 +16,52 @@ export class LaunchBoxGame {
       if (prop === null) { continue; }
       // Add the prop and value to the parsed object
       // @TODO Convert the value to the correct type for that property!
-      (parsed as any)[prop] = value;
+      (parsed as any)[prop] = LaunchBoxGame.parseValue(prop, value);
     }
+    console.log(parsed);
     return parsed;
+  }
+
+  /**
+   * Apply custom value parsing if required.
+   *
+   * @param prop The XML tag name
+   * @param value It's value
+   */
+  private static parseValue(prop: string, value: string) {
+    switch (prop) {
+      case 'applicationPath':
+        return LaunchBoxGame.parseApplicationPath(value);
+      default:
+        return value;
+    }
+  }
+
+  /**
+   * replace the application path with the platform spesific version is
+   * required.
+   * 
+   * The value provided in Flash.xml is only accurate in windows.
+   * We hardcode the value in linux.
+   *
+   * Note that this assumes that `flash_player_sa_linux.x86_64.tar.gz` has been
+   * extracted using:
+   *   $ cd Arcade/Games
+   *   $ tar xf flash_player_sa_linux.x86_64.tar.gz flashplayer
+   *
+   * @param value The value of the ApplicationPath XML node.
+   */
+  private static parseApplicationPath(value: string): string {
+    switch (window.External.getPlatform()) {
+      case 'win32':
+        return value;
+      case 'linux':
+        // TODO(nloomans): Automatically extract the flash_player tarball.
+        return 'Games/flashplayer';
+      default:
+        // TODO: Figure out the required path for other platforms.
+        return value;
+    }
   }
 
   /**

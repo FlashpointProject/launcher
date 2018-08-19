@@ -35,6 +35,11 @@ window.External = {
   },
 
   /** @inheritDoc */
+  getPlatform(): NodeJS.Platform {
+    return Electron.remote.process.platform as NodeJS.Platform;
+  },
+
+  /** @inheritDoc */
   minimize() {
     const currentWindow = Electron.remote.getCurrentWindow();
     currentWindow.minimize();
