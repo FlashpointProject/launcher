@@ -1,16 +1,15 @@
 import { ILaunchBoxGame } from "./interfaces";
 
 export class LaunchBoxGame {
-
+  /** Parse a <Game> tag element from a LaunchBox Platform XML Document */
   public static parse(gameElement: Element): ILaunchBoxGame {
     let parsed: ILaunchBoxGame = {};
     for (let i = 0; i < gameElement.children.length; i++) {
-      // Get tag & value
+      // Get tag name & value
       const element = gameElement.children[i];
       const tagName: string = element.tagName;
       const value: string|null = element.textContent;
-      // Skip tag if value is not set
-      if (value === null) { continue; }
+      if (value === null) { continue; } // (Tag has no value set)
       // Try getting the tag's property name
       const prop: string|null = LaunchBoxGame.tagNameToPropName(tagName);
       if (prop === null) { continue; }
@@ -18,7 +17,6 @@ export class LaunchBoxGame {
       // @TODO Convert the value to the correct type for that property!
       (parsed as any)[prop] = LaunchBoxGame.parseValue(prop, value);
     }
-
     return parsed;
   }
 
@@ -38,7 +36,7 @@ export class LaunchBoxGame {
   }
 
   /**
-   * replace the application path with the platform spesific version is
+   * Replace the application path with the platform specific version is
    * required.
    * 
    * The value provided in Flash.xml is only accurate in windows.
@@ -94,7 +92,12 @@ export class LaunchBoxGame {
     return tagName.charAt(0).toLowerCase() + tagName.slice(1);
   }
   
-  /** All valid tag names for children of <Game> */
+  /**
+   * ~All~ valid tag names for children of <Game> 
+   * (This is not all valid tags, but rather all valid tags found within
+   *  FlashPoint's Flash.xml file - there are plenty more in the you can
+   *  find in the ILaunchBoxGame interface)
+   */
   public static readonly xmlTags: string[] = [
     'ApplicationPath',
     'CommandLine',
