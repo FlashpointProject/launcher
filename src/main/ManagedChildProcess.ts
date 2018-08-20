@@ -1,5 +1,8 @@
 import { spawn, ChildProcess } from "child_process";
 
+/**
+ * A Child Process which automatically logs all output to the console
+ */
 export default class ManagedChildProcess {
   private process: ChildProcess;
 
@@ -10,6 +13,8 @@ export default class ManagedChildProcess {
     cwd: string
   ) {
     this.process = spawn(command, args, { cwd });
+
+    // @TODO: Make this output visible to the user
 
     this.process.stdout.on('data', (data: Buffer) => {
       const output = data.toString('utf8');
@@ -26,6 +31,9 @@ export default class ManagedChildProcess {
 		});
   }
 
+  /**
+   * Politely ask the child process to exit
+   */
   kill() {
     return this.process.kill();
   }
