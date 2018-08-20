@@ -12,6 +12,15 @@ export default class BackgroundServices {
 	 * Start all required background process for this platform
 	 */
 	start() {
+		switch (process.platform) {
+			case 'linux':
+				return this.startLinux();
+			default:
+				// @TODO: Add Windows support
+		}
+	}
+
+	private startLinux() {
 		const serverPath = path.join(this.flashpointPath, './Arcade/Games/Flash');
 
 		// @TODO: Figure out if this is the same for the regular Flashpoint
