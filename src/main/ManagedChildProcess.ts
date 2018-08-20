@@ -7,15 +7,15 @@ export default class ManagedChildProcess {
     this.process = spawn('php', ['-S', 'localhost:22500', 'router.php'], {
 			cwd,
     });
-    
+
     this.process.stdout.on('data', (data) => {
-			console.log(`${name}: ${data}`);
+			process.stdout.write(`${name}: ${data}`);
 		});
-		
+
 		this.process.stderr.on('data', (data) => {
-			console.error(`${name}: ${data}`);
+			process.stderr.write(`${name}: ${data}`);
 		});
-		
+
 		this.process.on('close', (code) => {
 			console.log(`${name} exited with code ${code}`);
 		});
