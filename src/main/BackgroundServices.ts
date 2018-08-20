@@ -8,6 +8,9 @@ export default class BackgroundServices {
 		private flashpointPath: string,
 	) {};
 
+	/**
+	 * Start all required background process for this platform
+	 */
 	start() {
 		const serverPath = path.join(this.flashpointPath, './Arcade/Games/Flash');
 
@@ -21,6 +24,9 @@ export default class BackgroundServices {
 		);
 	}
 
+	/**
+	 * Stop all currently active background processes
+	 */
 	stop() {
 		if (this.router) {
 			this.router.kill();
