@@ -19,6 +19,8 @@ export interface IAppState {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
+
+  useCustomTitlebar: boolean;
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
@@ -26,15 +28,28 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   constructor(props: IAppProps) {
     super(props);
+    // Get the config from the main process
+    const config = window.External.getConfigSync();
+    // Normal constructor stuff
     this.state = {
       central: undefined,
       search: undefined,
       order: undefined,
+      useCustomTitlebar: config.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
-    // Start fetching data
-    this.fetchStuff();
+    // Fetch LaunchBox game data from the xml
+    LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
+    .then((platform: ILaunchBoxPlatform) => {
+      this.setState({
+        central: {
+          platform: platform,
+          flashpointPath: config.flashpointPath,
+        }
+      });
+    })
+    .catch(console.log);
   }
 
   render() {
@@ -61,7 +76,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         {/* Redirect */}
         { redirect }
         {/* "TitleBar" stuff */}
-        <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
+        { this.state.useCustomTitlebar ? (
+          <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
+        ) : undefined }
         {/* "Header" stuff */}
         <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange} />
         {/* "Main" / "Content" stuff */}
@@ -90,21 +107,5 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setState({
       order: event,
     });
-  }
-
-  private fetchStuff() {
-    // Get the config from the main process
-    const config = window.External.getConfigSync();
-    // Fetch LaunchBox game data from the xml
-    LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
-    .then((platform: ILaunchBoxPlatform) => {
-      this.setState({
-        central: {
-          platform: platform,
-          flashpointPath: config.flashpointPath,
-        }
-      });
-    })
-    .catch(console.log);
   }
 }
