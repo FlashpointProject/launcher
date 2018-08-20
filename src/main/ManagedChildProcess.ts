@@ -17,9 +17,11 @@ export default class ManagedChildProcess {
     // @TODO: Make this output visible to the user
 
     this.process.stdout.on('data', (data: Buffer) => {
+      // BUG: This is only shows after the user presses CTRL+C. It does not
+      // show it any other circumstances.
       const output = data.toString('utf8');
       console.log(this.addNameToOutput(output));
-		});
+    });
 
 		this.process.stderr.on('data', (data: Buffer) => {
       const output = data.toString('utf8');
