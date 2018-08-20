@@ -6,9 +6,13 @@ import * as Util from './Util';
 import * as fs from 'fs';
 import { AppConfig } from '../shared/config/AppConfig';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
+import BackgroundServices from './BackgroundServices';
+import FlashPlayer from './FlashPlayer';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
+  private _backgroundServices: BackgroundServices;
+  private _flashPlayer: FlashPlayer;
   private _confing: IAppConfigData|undefined;
 
   public get config(): IAppConfigData {
@@ -27,6 +31,11 @@ export class Main {
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
     // Load config file
     this.loadConfig();
+    // Create FlashPlayer class
+    this._flashPlayer = new FlashPlayer(this.config.flashpointPath);
+    // Start background services
+    this._backgroundServices = new BackgroundServices(this.config.flashpointPath);
+    this._backgroundServices.start();
   }
 
   private onAppReady() {
@@ -63,6 +72,7 @@ export class Main {
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
       app.quit();
+      this._backgroundServices.stop();
     }
   }
 
@@ -76,6 +86,11 @@ export class Main {
     });
   }
 
+  /**
+   * Load the application config in SYNC.
+   * 
+   * @TODO: Make this function more sync-like.
+   */
   private loadConfig() {
     Util.readConfigFile((err, data) => {
       // Check if config data failed to load
@@ -95,16 +110,13 @@ export class Main {
   /** Launch a game using some if its properties */
   private onLaunchGameSync(event: Electron.IpcMessageEvent, applicationPath: string, args: string[]) {
     console.log('Launch game:', applicationPath, args);
-    // Launch the game
-    //game.rootFolder;
-    const root: string = this.config.flashpointPath + '/Arcade';
-    const filename: string = path.resolve(root, applicationPath);
-    console.log('child_process.spawn', filename, args);
-    child_process.spawn(filename, args);
+
+    this._flashPlayer.launch(applicationPath, args);
+
     // Set return value (this makes the renderer process "unpause")
     event.returnValue = null;
   }
-  
+
   private onGetConfig(event: Electron.IpcMessageEvent, arg: any): void {
     // WARNING: Maybe this should make sure that the config doesnt contain anything dangerous.
     // (Maybe convert it to a JSON string and back?)
