@@ -81,7 +81,7 @@ export class Main {
       // Check if config data failed to load
       if (err || !data) {
         // Set the config data to the default
-        data = AppConfig.createCopyOfDefaults();
+        data = AppConfig.createCopyOfDefaults(process.platform);
         // Create a new config file with the default configs
         Util.saveConfigFile(data, false);
       }

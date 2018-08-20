@@ -58,7 +58,7 @@ export function readConfigFile(callback: (error?: Error, data?: IAppConfigData) 
       return;
     }
     // Parse the JSON object as a config object
-    const parsed = AppConfig.parseData(jsonOrError);
+    const parsed = AppConfig.parseData(jsonOrError, AppConfig.getDefaults(process.platform));
     // Success!
     callback(undefined, parsed);
   });

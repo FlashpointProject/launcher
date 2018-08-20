@@ -95,7 +95,7 @@ function pack() {
     tmpdir: './temp/', // (Remove this to use the temp folder in appdata instead)
     overwrite: true, // For debugging
     // Build settings
-    executableName: 'LibraryThingie',
+    executableName: 'LunchBox',
     platform: 'win32',
     arch: 'ia32',
     asar: config.isRelease,
