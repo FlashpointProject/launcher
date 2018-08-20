@@ -4,9 +4,7 @@ export default class ManagedChildProcess {
   private process: ChildProcess;
 
   constructor(name: string, command: string, args: string[], cwd: string) {
-    this.process = spawn('php', ['-S', 'localhost:22500', 'router.php'], {
-			cwd,
-    });
+    this.process = spawn(command, args, { cwd });
 
     this.process.stdout.on('data', (data) => {
 			process.stdout.write(`${name}: ${data}`);
