@@ -3,23 +3,45 @@ import { spawn, ChildProcess } from "child_process";
 export default class ManagedChildProcess {
   private process: ChildProcess;
 
-  constructor(name: string, command: string, args: string[], cwd: string) {
+  constructor(
+    private name: string,
+    command: string,
+    args: string[],
+    cwd: string
+  ) {
     this.process = spawn(command, args, { cwd });
 
-    this.process.stdout.on('data', (data) => {
-			process.stdout.write(`${name}: ${data}`);
+    this.process.stdout.on('data', (data: Buffer) => {
+      const output = data.toString('utf8');
+      console.log(this.addNameToOutput(output));
 		});
 
-		this.process.stderr.on('data', (data) => {
-			process.stderr.write(`${name}: ${data}`);
+		this.process.stderr.on('data', (data: Buffer) => {
+      const output = data.toString('utf8');
+      console.error(this.addNameToOutput(output));
 		});
 
 		this.process.on('close', (code) => {
-			console.log(`${name} exited with code ${code}`);
+			console.log(`${this.name} exited with code ${code}`);
 		});
   }
 
   kill() {
     return this.process.kill();
+  }
+
+  /**
+   * Add `${this.name}:` before each line of the output
+   *
+   * @param output The std{out,err} of the process.
+   */
+  private addNameToOutput(output: string) {
+    return (
+      output
+        .replace(/\n$/, '')
+        .split('\n')
+        .map(line => `${this.name}: ${line}`)
+        .join('\n')
+    );
   }
 }
