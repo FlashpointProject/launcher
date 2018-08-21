@@ -8,7 +8,7 @@ import { IAppConfigData } from '../shared/config/IAppConfigData';
 window.External = Object.freeze({
   /** @inheritDoc */
   launchGameSync(game: ILaunchBoxGame) {
-    // Send a "Laucnh Game" event to the main process
+    // Send a "Launch Game" event to the main process
     Electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.commandLine || '']);
   },
 
