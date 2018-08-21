@@ -36,23 +36,25 @@ export class Main {
   }
 
   private onAppReady() {
-    if (session.defaultSession) {
-      // Reject all permission requests since we don't need any permissions.
-      session.defaultSession.setPermissionRequestHandler(
-        (webContents, permission, callback) => callback(false)
-      );
-
-      // Stop non-local resources from being fetched (as long as their response has at least one header?)
-      // Only allow local scripts to execute (Not sure what this allows? "file://"? "localhost"?)
-      // (TypeScript type information is missing, check the link below for the type info)
-      // https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
-      session.defaultSession.webRequest.onHeadersReceived(
-        (details: any, callback: Function) => callback({
-          responseHeaders: `script-src 'self'`,
-          cancel: true
-        })
-      );
+    if (!session.defaultSession) {
+      throw new Error('Default session is missing!');
     }
+
+    // Reject all permission requests since we don't need any permissions.
+    session.defaultSession.setPermissionRequestHandler(
+      (webContents, permission, callback) => callback(false)
+    );
+
+    // Stop non-local resources from being fetched (as long as their response has at least one header?)
+    // Only allow local scripts to execute (Not sure what this allows? "file://"? "localhost"?)
+    // (TypeScript type information is missing, check the link below for the type info)
+    // https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
+    session.defaultSession.webRequest.onHeadersReceived(
+      (details: any, callback: Function) => callback({
+        responseHeaders: `script-src 'self'`,
+        cancel: true
+      })
+    );
 
     this._mainWindow.createWindow();
   }
