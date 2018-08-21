@@ -1,7 +1,5 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
 import { IDefaultProps } from '../interfaces';
-import { IMainWindowExternal } from '../../shared/interfaces';
 
 export interface ITitleBarProps extends IDefaultProps {
   title?: string;

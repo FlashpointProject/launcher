@@ -11,15 +11,7 @@ export interface IPagination extends IDefaultProps {
   current?: number;
 }
 
-export interface IPaginationState {
-}
-
-export class Pagination extends React.Component<IPagination, IPaginationState> {
-  constructor(props: IPagination) {
-    super(props);
-    this.state = {};
-  }
-
+export class Pagination extends React.Component<IPagination, {}> {
   render() {
     const mp: number = 13; // Max Pages (shown at once)
     const gp: number = 2;  // Gap Pages (how many pages will be shown after the gap)

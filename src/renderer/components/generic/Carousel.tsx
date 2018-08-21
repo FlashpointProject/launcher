@@ -14,10 +14,8 @@ export interface ICarouselProps extends IDefaultProps {
   id?: string;
   className?: string;
 }
-export interface ICarouselState {
-}
 
-export class Carousel extends React.Component<ICarouselProps, ICarouselState> {
+export class Carousel extends React.Component<ICarouselProps, {}> {
   private _intervalId: number = -1;
   private _slideRef: React.RefObject<HTMLUListElement> = React.createRef();
   /** Time left before the sliding should be done (stars at props.animationTime and goes to 0) */
@@ -52,7 +50,7 @@ export class Carousel extends React.Component<ICarouselProps, ICarouselState> {
       this._startX = this.getX();
       this._endX = this.calcEndX();
     }
-    // 
+    //
     return (
       <div id={this.props.id} className={this.props.className} style={{visibility: 'visible'}}>
         <div className="carousel-clip-region viewport">

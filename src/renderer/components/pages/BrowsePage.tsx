@@ -11,16 +11,12 @@ export interface IBrowsePageProps extends IDefaultProps {
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
 }
-export interface IBrowsePageState {
-}
 
-export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
+export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
   constructor(props: IBrowsePageProps) {
     super(props);
-    this.state = {
-    };
   }
-  
+
   render() {
     // Path to game icons
     let flashpointPath: string = (this.props.central && this.props.central.flashpointPath) || '';

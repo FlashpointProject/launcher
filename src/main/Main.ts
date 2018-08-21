@@ -1,9 +1,6 @@
-import { app, session, BrowserWindow, WebContents, PermissionRequestHandlerDetails, ipcMain, ipcRenderer } from 'electron';
-import * as path from 'path';
-import * as child_process from 'child_process';
-import { MainWindow } from './MainWindow';
+import { app, ipcMain } from 'electron';
+import MainWindow from './MainWindow';
 import * as Util from './Util';
-import * as fs from 'fs';
 import { AppConfig } from '../shared/config/AppConfig';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import BackgroundServices from './BackgroundServices';
@@ -13,11 +10,11 @@ export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
   private _backgroundServices: BackgroundServices;
   private _flashPlayer: FlashPlayer;
-  private _confing: IAppConfigData|undefined;
+  private _config?: IAppConfigData;
 
   public get config(): IAppConfigData {
-    if (!this._confing) { throw new Error('You must not try to access config before it is loaded!'); }
-    return this._confing;
+    if (!this._config) { throw new Error('You must not try to access config before it is loaded!'); }
+    return this._config;
   }
 
   constructor() {
@@ -39,32 +36,7 @@ export class Main {
   }
 
   private onAppReady() {
-    // Create the main window
     this._mainWindow.createWindow();
-    //
-    const defaultSession: Electron.Session = session.fromPartition('');
-    //
-    defaultSession.webRequest.onHeadersReceived(onHeaderReceived);
-    function onHeaderReceived() {
-      console.log('Header Received:', arguments)
-    }
-    // Set permission request handler for the default partition
-    // (Renderer requests for things like webcam, microphone etc.)
-    defaultSession.setPermissionRequestHandler(onPermissionRequest);
-    function onPermissionRequest(webContents: WebContents, permission: string, callback: (permissionGranted: boolean) => void, details: PermissionRequestHandlerDetails): void | null {
-      console.log('Permission Request:', arguments);
-      // Disable all (other) permissions
-      return callback(false);
-      /*
-      const url = webContents.getURL();
-      if (!url.startsWith('https://my-website.com')) {
-        return callback(false); // Denies the permissions request
-      } 
-      if (permission === 'notifications') {
-        callback(true); // Approves the permissions request
-      }
-      */
-    }
   }
 
   private onAppWindowAllClosed() {
@@ -88,7 +60,7 @@ export class Main {
 
   /**
    * Load the application config in SYNC.
-   * 
+   *
    * @TODO: Make this function more sync-like.
    */
   private loadConfig() {
@@ -101,7 +73,7 @@ export class Main {
         Util.saveConfigFile(data, false);
       }
       // Set config data
-      this._confing = data;
+      this._config = data;
       //
       console.log('Configs:', data);
     });
@@ -122,7 +94,7 @@ export class Main {
     // (Maybe convert it to a JSON string and back?)
     event.sender.send('get-config-response', this.config);
   }
-  
+
   private onGetConfigSync(event: Electron.IpcMessageEvent, arg: any): void {
     // WARNING: Maybe this should make sure that the config doesnt contain anything dangerous.
     // (Maybe convert it to a JSON string and back?)

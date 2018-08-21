@@ -1,7 +1,7 @@
 /**
  * This interface represents a Game that is used in LaunchBox/Big Box.
  * (Data from a single <Game> tag in a LaunchBox Platform XML)
- * (NOTE: The property names are not necessarily the same as the XML node names, 
+ * (NOTE: The property names are not necessarily the same as the XML node names,
  *  so this might not be completely convertable by making the first character lower/upper case)
  * ( http://pluginapi.launchbox-app.com/html/b33d2055-e2be-3f42-12c6-adbc5668f454.htm )
  */
@@ -100,7 +100,7 @@ export interface ILaunchBoxGame {
 /**
  * This interface represents an Additional Application that is associated with an IGame in LaunchBox/Big Box.
  * (Data from a single <AdditionalApplication> tag in a LaunchBox Platform XML)
- * (NOTE: The property names are not necessarily the same as the XML node names, 
+ * (NOTE: The property names are not necessarily the same as the XML node names,
  *  so this might not be completely convertable by making the first character lower/upper case)
  * ( http://pluginapi.launchbox-app.com/html/866b513c-9bd8-0d1f-1568-45b3a3c24163.htm )
  */

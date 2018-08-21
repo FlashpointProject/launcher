@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export const AboutPage: React.StatelessComponent<{}> = (props: any) => {
+export const AboutPage: React.StatelessComponent<{}> = () => {
   return (
     <div className="about">
       <h1 className="about__title">About</h1>
