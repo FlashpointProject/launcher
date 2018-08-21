@@ -21,7 +21,6 @@ export class Main {
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
-    app.on('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
     ipcMain.on('launch-game-sync', this.onLaunchGameSync.bind(this));
     ipcMain.on('get-config', this.onGetConfig.bind(this));
@@ -46,16 +45,6 @@ export class Main {
       app.quit();
       this._backgroundServices.stop();
     }
-  }
-
-  private onAppWebContentsCreated(event: Electron.Event, contents: Electron.WebContents) {
-    contents.on('will-attach-webview', (event: Electron.Event, webPreferences: any, params: any) => {
-      // Remove preload scripts (if any)
-      delete webPreferences.preload;
-      delete webPreferences.preloadURL;
-      // Disable Node.js integration
-      webPreferences.nodeIntegration = false;
-    });
   }
 
   /**

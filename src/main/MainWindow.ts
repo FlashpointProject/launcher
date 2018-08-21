@@ -32,9 +32,6 @@ export default class MainWindow {
       frame: !this._main.config.useCustomTitlebar,
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
-        // Security
-        nodeIntegration: false,
-        contextIsolation: false,
       },
     });
     // Remove the menu bar
