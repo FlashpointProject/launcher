@@ -5,11 +5,11 @@ import { Main } from './Main';
 import * as Util from './Util';
 import * as AppConstants from '../shared/AppConstants';
 
-export class MainWindow {
+export default class MainWindow {
   private _main: Main;
-  private _window: Electron.BrowserWindow|null = null;
+  private _window?: Electron.BrowserWindow;
 
-  public get window(): Electron.BrowserWindow|null {
+  public get window(): Electron.BrowserWindow | undefined {
     return this._window;
   }
 
@@ -31,10 +31,7 @@ export class MainWindow {
       width: 1000,
       frame: !this._main.config.useCustomTitlebar,
       webPreferences: {
-        preload: path.resolve(__dirname, '../main/MainWindowPreload.js'),
-        // Security
-        nodeIntegration: false,
-        contextIsolation: false,
+        preload: path.resolve(__dirname, './MainWindowPreload.js'),
       },
     });
     // Remove the menu bar
@@ -50,14 +47,14 @@ export class MainWindow {
       // Dereference the window object, usually you would store windows
       // in an array if your app supports multi windows, this is the time
       // when you should delete the corresponding element.
-      this._window = null;
+      this._window = undefined;
     });
   }
 
   private onAppActivate(): void {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (this._window === null) {
+    if (this._window == null) {
       this.createWindow();
     }
   }

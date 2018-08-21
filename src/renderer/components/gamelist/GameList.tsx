@@ -1,10 +1,7 @@
 import * as React from 'react';
 import { IDefaultProps } from '../../interfaces';
-import { ILaunchBoxPlatform, ILaunchBoxGame } from '../../../shared/launchbox/interfaces';
-import { ISearchOnSearchEvent } from '../generic/search/Search';
+import { ILaunchBoxGame } from '../../../shared/launchbox/interfaces';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
-import { Thumbnail } from '../common/Thumbnail';
-import { LaunchBoxGame } from '../../../shared/launchbox/LaunchBoxGame';
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from '../GameOrder';
 
@@ -15,20 +12,16 @@ export interface IGameListProps extends IDefaultProps {
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
 }
-export interface IGameListState {
-}
 
-export class GameList extends React.Component<IGameListProps, IGameListState> {
+export class GameList extends React.Component<IGameListProps, {}> {
   private _list: React.RefObject<List> = React.createRef();
 
   constructor(props: IGameListProps) {
     super(props);
-    this.state = {
-    };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.rowRenderer = this.rowRenderer.bind(this);
   }
-  
+
   render() {
     const games = this.props.games || [];
     return (
@@ -36,7 +29,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
         <AutoSizer>
           {({width, height}) => {
             return (
-              <List 
+              <List
                 ref={this._list}
                 className="game-list"
                 width={width}
@@ -57,7 +50,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
       </div>
     );
   }
-  
+
   noRowsRenderer() {
     return (
       <div className="game-list__no-games">
@@ -82,7 +75,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
       </div>
     );
   }
-  
+
   rowRenderer(props: ListRowProps): React.ReactNode {
     const game = (this.props.games as ILaunchBoxGame[])[props.index];
     // Render

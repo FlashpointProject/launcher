@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { IDefaultProps } from '../../../interfaces';
 import { SearchTag, ISearchTagClickRemoveEvent } from './SearchTag';
-import { StaticRouter } from 'react-router';
-import { CANCELLED } from 'dns';
 
 export interface ISearchProps extends IDefaultProps {
   /** Called when enter is pressed in the input field */
@@ -53,7 +51,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
       <div className={search}>
         {tags.map((tag, i) => {
           return (
-            <SearchTag key={i} id={i} text={tag} 
+            <SearchTag key={i} id={i} text={tag}
                        onClickRemove={this.onClickRemoveTag}
                        classNames={this.props.classNames} />
           );
@@ -146,4 +144,3 @@ function matchAllTags(input: string) {
     input: cleanInput,
   };
 }
-

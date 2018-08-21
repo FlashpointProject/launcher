@@ -19,14 +19,15 @@ export function recursiveReplace(target: any, source: any): any {
       } else {
         // Copy the value
         target[key] = val;
-      }       
+      }
     }
   }
   return target;
 }
+
 /**
  * Recursively copy and object and its "sub-objects"
- * (WARRNING: This will overflow the stack if it tries to copy circular references)
+ * (WARNING: This will overflow the stack if it tries to copy circular references)
  * @param source Object to copy from
  * @returns New copy of source
  */

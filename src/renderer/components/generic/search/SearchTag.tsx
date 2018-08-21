@@ -12,9 +12,6 @@ export interface ISearchTagProps extends IDefaultProps {
   /** Additional class names (the original class names are still applied) */
   classNames?: ISearchClassNames;
 }
-export interface ISearchTagState {
-
-}
 
 export interface ISearchTagClickRemoveEvent {
   /** Identifier of the tag */
@@ -23,10 +20,9 @@ export interface ISearchTagClickRemoveEvent {
   text?: string;
 }
 
-export class SearchTag extends React.Component<ISearchTagProps, ISearchTagState> {
+export class SearchTag extends React.Component<ISearchTagProps, {}> {
   constructor(props: ISearchTagProps) {
     super(props);
-    this.state = {};
     this.onClickRemove = this.onClickRemove.bind(this);
   }
   render() {

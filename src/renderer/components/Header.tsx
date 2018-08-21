@@ -8,15 +8,10 @@ export interface IHeaderProps extends IDefaultProps {
   onSearch?: (event: ISearchOnSearchEvent) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
 }
-export interface IHeaderState {
 
-}
-
-export class Header extends React.Component<IHeaderProps, IHeaderState> {
+export class Header extends React.Component<IHeaderProps, {}> {
   constructor(props: IHeaderProps) {
     super(props);
-    this.state = {
-    };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
   }

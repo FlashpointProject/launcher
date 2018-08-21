@@ -15,16 +15,6 @@ export interface IAppRouterProps {
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
-  /**
-   * Some arbitrary key that changes between each render (that has a different url)
-   * (This makes the page "reload" (re-instanciate the route component(s)) if a page with the same path links to another page with the same path)
-   */
-  private _key: number = 0;
-
-  constructor(props: IAppRouterProps) {
-    super(props);
-  }
-
   render() {
     const props = {
       central: this.props.central,
@@ -32,7 +22,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       order: this.props.order,
     };
     return (
-      <Switch /*key={(this._key++ % 1000)}*/>
+      <Switch>
         <Route exact path="/" component={HomePage} />
         <PropsRoute exact path="/browse" component={BrowsePage} {...props} />
         <Route exact path="/about" component={AboutPage} />

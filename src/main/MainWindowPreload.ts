@@ -1,15 +1,6 @@
-import * as path from 'path';
 import { ILaunchBoxGame } from '../shared/launchbox/interfaces';
 import * as Electron from 'electron';
-import { IMainWindowExternal } from '../shared/interfaces';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
-import { func } from 'prop-types';
-
-/*
-Electron.ipcRenderer.on('get-config-response', function(event: Electron.IpcMessageEvent, arg: IAppConfigData) {
-  console.log('renderer on get-config-response', arguments);
-});
-*/
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -17,7 +8,7 @@ Electron.ipcRenderer.on('get-config-response', function(event: Electron.IpcMessa
 window.External = Object.freeze({
   /** @inheritDoc */
   launchGameSync(game: ILaunchBoxGame) {
-    // Send a "Laucnh Game" event to the main process
+    // Send a "Launch Game" event to the main process
     Electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.commandLine || '']);
   },
 
@@ -56,7 +47,7 @@ window.External = Object.freeze({
       currentWindow.maximize();
     }
   },
-  
+
   /** @inheritDoc */
   close() {
     const currentWindow = Electron.remote.getCurrentWindow();

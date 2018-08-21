@@ -10,17 +10,13 @@ export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   game: ILaunchBoxGame;
   imageFolder: string;
 }
-export interface IGameListItemState {
-}
 
-export class GameListItem extends React.Component<IGameListItemProps, IGameListItemState> {
+export class GameListItem extends React.Component<IGameListItemProps, {}> {
   constructor(props: IGameListItemProps) {
     super(props);
-    this.state = {
-    };
     this.onDoubleClick = this.onDoubleClick.bind(this);
   }
-  
+
   render() {
     const game = this.props.game;
     const title: string = game.title || '';
@@ -32,7 +28,7 @@ export class GameListItem extends React.Component<IGameListItemProps, IGameListI
     // Render
     return (
       <li style={this.props.style} className={className} onDoubleClick={this.onDoubleClick}>
-        <Thumbnail 
+        <Thumbnail
           src={`${this.props.imageFolder}/${LaunchBoxGame.generateImageFilename(title)}-01.png`}
           parentWidth={50} parentHeight={50}
           imageWidth={50} imageHeight={50}

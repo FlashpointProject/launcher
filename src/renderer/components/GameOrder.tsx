@@ -1,8 +1,5 @@
 import * as React from 'react';
 import { IDefaultProps } from '../interfaces';
-import { ILaunchBoxGame } from '../../shared/launchbox/interfaces';
-import { List, AutoSizer, ListRowProps } from 'react-virtualized';
-import { LaunchBoxGame } from '../../shared/launchbox/LaunchBoxGame';
 
 export interface IGameOrderProps extends IDefaultProps {
   onChange: (event: IGameOrderChangeEvent) => void;
@@ -35,7 +32,7 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
     this.onOrderByChange = this.onOrderByChange.bind(this);
     this.onOrderReverseChange = this.onOrderReverseChange.bind(this);
   }
-  
+
   render() {
     return (
       <>
@@ -52,7 +49,7 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
       </>
     );
   }
-  
+
   private onOrderByChange(event: React.ChangeEvent<HTMLSelectElement>): void {
     this.updateState({
       orderBy: this.parseOrderBy(event.target.value),
@@ -64,7 +61,7 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
       orderReverse: this.parseOrderReverse(event.target.value),
     });
   }
-  
+
   private updateState(data: IOptionalGameOrderState): void {
     // (The state and event are currently identical, so if this uses just one of their interfaces)
     const newStateAndEvent: IGameOrderChangeEvent = {

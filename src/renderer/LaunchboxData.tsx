@@ -2,11 +2,6 @@ import { LaunchBoxPlatform } from "../shared/launchbox/LaunchBoxPlatform";
 import { ILaunchBoxPlatform } from "../shared/launchbox/interfaces";
 
 export class LaunchboxData {
-  private _data: any;
-  
-  constructor() {
-  }
-
   public static fetch(url: string): Promise<ILaunchBoxPlatform> {
     return new Promise((resolve, reject) => {
       fetch(url, {

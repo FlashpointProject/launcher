@@ -1,30 +1,27 @@
-import { app, session, BrowserWindow, WebContents, PermissionRequestHandlerDetails, ipcMain, ipcRenderer } from 'electron';
-import * as path from 'path';
-import * as child_process from 'child_process';
-import { MainWindow } from './MainWindow';
+import { app, session, ipcMain } from 'electron';
+import MainWindow from './MainWindow';
 import * as Util from './Util';
-import * as fs from 'fs';
 import { AppConfig } from '../shared/config/AppConfig';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import BackgroundServices from './BackgroundServices';
 import FlashPlayer from './FlashPlayer';
+import { Session } from 'inspector';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
   private _backgroundServices: BackgroundServices;
   private _flashPlayer: FlashPlayer;
-  private _confing: IAppConfigData|undefined;
+  private _config?: IAppConfigData;
 
   public get config(): IAppConfigData {
-    if (!this._confing) { throw new Error('You must not try to access config before it is loaded!'); }
-    return this._confing;
+    if (!this._config) { throw new Error('You must not try to access config before it is loaded!'); }
+    return this._config;
   }
 
   constructor() {
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
-    app.on('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
     ipcMain.on('launch-game-sync', this.onLaunchGameSync.bind(this));
     ipcMain.on('get-config', this.onGetConfig.bind(this));
@@ -39,32 +36,27 @@ export class Main {
   }
 
   private onAppReady() {
-    // Create the main window
+    if (!session.defaultSession) {
+      throw new Error('Default session is missing!');
+    }
+
+    // Reject all permission requests since we don't need any permissions.
+    session.defaultSession.setPermissionRequestHandler(
+      (webContents, permission, callback) => callback(false)
+    );
+
+    // Stop non-local resources from being fetched (as long as their response has at least one header?)
+    // Only allow local scripts to execute (Not sure what this allows? "file://"? "localhost"?)
+    // (TypeScript type information is missing, check the link below for the type info)
+    // https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
+    session.defaultSession.webRequest.onHeadersReceived(
+      (details: any, callback: Function) => callback({
+        responseHeaders: `script-src 'self'`,
+        cancel: true
+      })
+    );
+
     this._mainWindow.createWindow();
-    //
-    const defaultSession: Electron.Session = session.fromPartition('');
-    //
-    defaultSession.webRequest.onHeadersReceived(onHeaderReceived);
-    function onHeaderReceived() {
-      console.log('Header Received:', arguments)
-    }
-    // Set permission request handler for the default partition
-    // (Renderer requests for things like webcam, microphone etc.)
-    defaultSession.setPermissionRequestHandler(onPermissionRequest);
-    function onPermissionRequest(webContents: WebContents, permission: string, callback: (permissionGranted: boolean) => void, details: PermissionRequestHandlerDetails): void | null {
-      console.log('Permission Request:', arguments);
-      // Disable all (other) permissions
-      return callback(false);
-      /*
-      const url = webContents.getURL();
-      if (!url.startsWith('https://my-website.com')) {
-        return callback(false); // Denies the permissions request
-      } 
-      if (permission === 'notifications') {
-        callback(true); // Approves the permissions request
-      }
-      */
-    }
   }
 
   private onAppWindowAllClosed() {
@@ -76,19 +68,9 @@ export class Main {
     }
   }
 
-  private onAppWebContentsCreated(event: Electron.Event, contents: Electron.WebContents) {
-    contents.on('will-attach-webview', (event: Electron.Event, webPreferences: any, params: any) => {
-      // Remove preload scripts (if any)
-      delete webPreferences.preload;
-      delete webPreferences.preloadURL;
-      // Disable Node.js integration
-      webPreferences.nodeIntegration = false;
-    });
-  }
-
   /**
    * Load the application config in SYNC.
-   * 
+   *
    * @TODO: Make this function more sync-like.
    */
   private loadConfig() {
@@ -101,7 +83,7 @@ export class Main {
         Util.saveConfigFile(data, false);
       }
       // Set config data
-      this._confing = data;
+      this._config = data;
       //
       console.log('Configs:', data);
     });
@@ -118,13 +100,13 @@ export class Main {
   }
 
   private onGetConfig(event: Electron.IpcMessageEvent, arg: any): void {
-    // WARNING: Maybe this should make sure that the config doesnt contain anything dangerous.
+    // WARNING: Maybe this should make sure that the config doesn't contain anything dangerous.
     // (Maybe convert it to a JSON string and back?)
     event.sender.send('get-config-response', this.config);
   }
-  
+
   private onGetConfigSync(event: Electron.IpcMessageEvent, arg: any): void {
-    // WARNING: Maybe this should make sure that the config doesnt contain anything dangerous.
+    // WARNING: Maybe this should make sure that the config doesn't contain anything dangerous.
     // (Maybe convert it to a JSON string and back?)
     event.returnValue = this.config;
   }
