@@ -14,6 +14,7 @@
 # Add:
 * Load games from all LaucnhBox Platform XML files instead of just the flash one
 * Make use of the tag capabilities of the search bar (for filtering genres, developers etc.)
+* Make the application fully controllable using the keyboard only (set tab indices, select borders etc.)
 * Show the number of games shown with the current filters
 * Add a way to scale the games in the game list up and down (maybe have a scale slider in the footer?)
 * Add an icon to use for the executable (other than the default Electron one)?
