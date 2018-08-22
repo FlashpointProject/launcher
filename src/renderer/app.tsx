@@ -5,12 +5,12 @@ import { Redirect } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LaunchboxData } from './LaunchboxData';
-import { ILaunchBoxPlatform } from '../shared/launchbox/interfaces';
 import { ISearchOnSearchEvent } from './components/generic/search/Search';
 import { TitleBar } from './components/TitleBar';
 import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
+import { IGameCollection } from '../shared/game/interfaces';
 
 export interface IAppProps {
   history?: any;
@@ -41,10 +41,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onOrderChange = this.onOrderChange.bind(this);
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
-    .then((platform: ILaunchBoxPlatform) => {
+    .then((collection: IGameCollection) => {
       this.setState({
         central: {
-          platform: platform,
+          collection: collection,
           flashpointPath: config.flashpointPath,
         }
       });
@@ -61,8 +61,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
-    if (this.state.central && this.state.central.platform && this.state.central.platform.games) {
-      gameCount = this.state.central.platform.games.length;
+    if (this.state.central && this.state.central.collection && this.state.central.collection.games) {
+      gameCount = this.state.central.collection.games.length;
     }
     // Props to set to the router
     const routerProps = {
