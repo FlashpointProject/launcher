@@ -24,7 +24,7 @@ export function callIfOrOnceReady(func: () => void): void {
   }
 }
 
-export function getLauncBoxImageNames(imageFolderPath: string, callback: (imageNames: string[]) => void) {
+export function getLaunchBoxImageNames(imageFolderPath: string, callback: (imageNames: string[]) => void) {
   fs.readdir(imageFolderPath, (err, files) => {
     if (err) { throw new Error('wat'); }
     callback(files);
@@ -36,8 +36,8 @@ export function tryParseJSON(jsonString: string): any|Error {
   let ret;
   try {
     ret = JSON.parse(jsonString);
-  } catch(errer) {
-    ret = errer;
+  } catch(error) {
+    ret = error;
   }
   return ret;
 }
