@@ -27,7 +27,7 @@ export class GameParser {
     return {
       title: data.Title + '',
       genre: data.Genre + '',
-      platform2: data.Platform + '',
+      platform: data.Platform + '',
       applicationPath: GameParser.parseApplicationPath(data.ApplicationPath + ''),
       commandLine: data.CommandLine + '',
     };

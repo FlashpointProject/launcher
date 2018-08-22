@@ -7,7 +7,9 @@ export interface IGameCollection {
 export interface IGameInfo {
   title: string;
   genre: string;
-  platform2: string;
+  platform: string;
   applicationPath: string;
   commandLine: string;
 }
+
+
