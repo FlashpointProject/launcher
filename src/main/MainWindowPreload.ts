@@ -9,7 +9,7 @@ window.External = Object.freeze({
   /** @inheritDoc */
   launchGameSync(game: IGameInfo) {
     // Send a "Launch Game" event to the main process
-    Electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.commandLine || '']);
+    Electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.launchCommand || '']);
   },
 
   /** @inheritDoc */

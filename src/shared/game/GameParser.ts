@@ -1,5 +1,5 @@
 import { IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from "../launchbox/interfaces";
-import { IGameCollection, IGameInfo } from "./interfaces";
+import { IGameCollection, IGameInfo, GameInfoStatus } from "./interfaces";
 
 export class GameParser {
   public static parse(data: IRawLaunchBoxPlatformRoot): IGameCollection {
@@ -26,10 +26,13 @@ export class GameParser {
   private static parseGame(data: IRawLaunchBoxGame): IGameInfo {
     return {
       title: data.Title + '',
+      series: data.Series + '',
+      developer: data.Developer + '',
+      extreme: !!data.Hide,
       genre: data.Genre + '',
-      platform: data.Platform + '',
+      source: data.Source + '',
       applicationPath: GameParser.parseApplicationPath(data.ApplicationPath + ''),
-      commandLine: data.CommandLine + '',
+      launchCommand: data.CommandLine + '',
     };
   }
 
