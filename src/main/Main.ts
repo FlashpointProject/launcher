@@ -5,7 +5,7 @@ import { AppConfig } from '../shared/config/AppConfig';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import BackgroundServices from './BackgroundServices';
 import FlashPlayer from './FlashPlayer';
-import { Session } from 'inspector';
+import checkSanity from './checkSanity';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
@@ -22,14 +22,22 @@ export class Main {
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
+
     // Add IPC event listeners
     ipcMain.on('launch-game-sync', this.onLaunchGameSync.bind(this));
     ipcMain.on('get-config', this.onGetConfig.bind(this));
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
+
     // Load config file
     this.loadConfig();
+
+    // Check if we are ready to launch or not.
+    // TODO: Launch the setup wizard when a check failed.
+    checkSanity(this.config).then(console.log, console.error);
+
     // Create FlashPlayer class
     this._flashPlayer = new FlashPlayer(this.config.flashpointPath);
+
     // Start background services
     this._backgroundServices = new BackgroundServices(this.config.flashpointPath);
     this._backgroundServices.start();
