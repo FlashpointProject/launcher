@@ -1,6 +1,27 @@
 import * as fs from 'fs';
+import * as util from 'util';
+import * as child_process from 'child_process';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { AppConfig } from '../shared/config/AppConfig';
+
+const execFile = util.promisify(child_process.execFile);
+
+/**
+ * Check is an application is installed
+ *
+ * @param binaryName The command you would use the run an application command
+ * @param argument An argument to pass the command. This argument should not
+ *   cause any side effects. By default --version
+ */
+export async function isInstalled(binaryName: string, argument = '--version') {
+  try {
+    await execFile(binaryName, [argument]);
+  } catch (e) {
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * If Electron is in development mode (or in release mode)
