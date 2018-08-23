@@ -351,6 +351,17 @@ body {
   font-size: 2em;
 }
 
+/** ------ Config ------ */
+.config-page {
+  text-align: center;
+}
+.config-page p {
+  display: inline-block;
+}
+.config-page__row {
+  
+}
+
 /* ------ Search & SearchTag Components ------ */
 .search {
   display: inline-flex;
