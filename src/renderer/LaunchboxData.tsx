@@ -1,8 +1,10 @@
-import { LaunchBoxPlatform } from "../shared/launchbox/LaunchBoxPlatform";
-import { ILaunchBoxPlatform } from "../shared/launchbox/interfaces";
+import { IRawLaunchBoxPlatformRoot } from "../shared/launchbox/interfaces";
+import { IGameCollection } from "../shared/game/interfaces";
+import * as fastXmlParser from 'fast-xml-parser';
+import { GameParser } from "../shared/game/GameParser";
 
 export class LaunchboxData {
-  public static fetch(url: string): Promise<ILaunchBoxPlatform> {
+  public static fetch(url: string): Promise<IGameCollection> {
     return new Promise((resolve, reject) => {
       fetch(url, {
         headers: {
@@ -10,12 +12,28 @@ export class LaunchboxData {
         }
       })
       .then((response?: Response) => {
-        if (!response) { return; }
+        if (!response) {
+          reject(new Error('No response'));
+          return;
+        }
         response.text()
         .then((text: string) => {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(text, 'text/xml');
-          const parsed = LaunchBoxPlatform.parse(xmlDoc);
+          // Parse XML text to objects
+          let a = performance.now();
+          const data: IRawLaunchBoxPlatformRoot|undefined = fastXmlParser.parse(text, {
+            ignoreAttributes: true,
+            ignoreNameSpace: true,
+            parseNodeValue: true,
+            parseAttributeValue: false,
+            // @TODO Look into which settings are most appropriate
+          });
+          if (!data) {
+            reject(new Error('Failed to parse XML'));
+            return;
+          }
+          // Format objects to desired format (IGameCollection)
+          const parsed = GameParser.parse(data);
+          // Done
           resolve(parsed);
         })
         .catch(reject);

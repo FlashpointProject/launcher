@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { ILaunchBoxPlatform } from '../shared/launchbox/interfaces';
+import { IRawLaunchBoxPlatform } from '../shared/launchbox/interfaces';
+import { IGameCollection } from '../shared/game/interfaces';
 
 /**
  * "match" object from 'react-router' and 'history' npm packages
@@ -19,11 +20,11 @@ export interface IDefaultProps {
   children?: ReactNode;
 }
 
-/** An object that contains usefull stuff and is passed throughout the react app as a prop/state
- * (This should be temporary and used for quick and direty testing and implementation)
+/** An object that contains useful stuff and is passed throughout the react app as a prop/state
+ * (This should be temporary and used for quick and dirty testing and implementation)
  * (Replace this with something more thought out and maintainable once the project has more structure)
  */
 export interface ICentralState {
-  platform?: ILaunchBoxPlatform;
+  collection?: IGameCollection;
   flashpointPath?: string;
 }

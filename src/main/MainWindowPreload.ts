@@ -1,24 +1,15 @@
-import { ILaunchBoxGame } from '../shared/launchbox/interfaces';
 import * as Electron from 'electron';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
+import { IGameInfo } from '../shared/game/interfaces';
 
 /**
  * Object with functions that bridge between this and the Main processes
  */
 window.External = Object.freeze({
   /** @inheritDoc */
-  launchGameSync(game: ILaunchBoxGame) {
+  launchGameSync(game: IGameInfo) {
     // Send a "Launch Game" event to the main process
-    Electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.commandLine || '']);
-  },
-
-  /** @inheritDoc */
-  getConfig(callback: (config: IAppConfigData) => void) {
-    throw new Error('Does not work yet!! :p');
-    // Send a "Get Config" event to the main process
-    Electron.ipcRenderer.send('get-config', (config: IAppConfigData) => {
-      callback(config);
-    });
+    Electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.launchCommand || '']);
   },
 
   /** @inheritDoc */
@@ -28,9 +19,7 @@ window.External = Object.freeze({
   },
 
   /** @inheritDoc */
-  getPlatform(): NodeJS.Platform {
-    return Electron.remote.process.platform as NodeJS.Platform;
-  },
+  platform: Electron.remote.process.platform+'' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
 
   /** @inheritDoc */
   minimize() {

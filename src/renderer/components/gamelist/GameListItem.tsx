@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { IDefaultProps } from '../../interfaces';
-import { ILaunchBoxPlatform, ILaunchBoxGame } from '../../../shared/launchbox/interfaces';
+import { IRawLaunchBoxPlatform, IRawLaunchBoxGame } from '../../../shared/launchbox/interfaces';
 import { ISearchOnSearchEvent } from '../generic/search/Search';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { Thumbnail } from '../common/Thumbnail';
+import { IGameInfo } from '../../../shared/game/interfaces';
 import { LaunchBoxGame } from '../../../shared/launchbox/LaunchBoxGame';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
-  game: ILaunchBoxGame;
+  game: IGameInfo;
   imageFolder: string;
 }
 

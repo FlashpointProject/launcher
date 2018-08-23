@@ -31,7 +31,14 @@
     * Edit (opens a menu where the game's properties can be edited)
 
 ## New Format
+### Why:
+* Increased parsing performance
+  - Even if importing games form LaunchBox, the games can be cached for better performance
+* Smaller file-size (the XMLs are very bloated)
+* Can be easily converted to and from the "CurationFormat"
 ### Goals:
-* Make it easily convertible from both the "CurationFormat" and LaunchBox XMLs
+* Make it convertible to and from:
+  - the "CurationFormat"
+  - Launchbox XMLs
 * Split "static" and "private" information into separate files (Don't store a games _Title_ and _Developer_ in the same file as _Favorite_ and _Rating_)
 

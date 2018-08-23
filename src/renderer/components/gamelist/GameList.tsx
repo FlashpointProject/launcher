@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { IDefaultProps } from '../../interfaces';
-import { ILaunchBoxGame } from '../../../shared/launchbox/interfaces';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from '../GameOrder';
+import { IGameInfo } from '../../../shared/game/interfaces';
 
 export interface IGameListProps extends IDefaultProps {
   imageFolder?: string;
-  games?: ILaunchBoxGame[];
+  games?: IGameInfo[];
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -77,7 +77,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
   }
 
   rowRenderer(props: ListRowProps): React.ReactNode {
-    const game = (this.props.games as ILaunchBoxGame[])[props.index];
+    const game = (this.props.games as IGameInfo[])[props.index];
     // Render
     return (
       <GameListItem key={props.key} {...props} game={game} imageFolder={this.props.imageFolder||''} />

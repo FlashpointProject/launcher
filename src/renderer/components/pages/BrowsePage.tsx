@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { IDefaultProps, ICentralState } from '../../interfaces';
-import { ILaunchBoxPlatform, ILaunchBoxGame } from '../../../shared/launchbox/interfaces';
 import { ISearchOnSearchEvent } from '../generic/search/Search';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameList } from '../gamelist/GameList';
 import { IGameOrderChangeEvent, GameOrderBy, GameOrderReverse } from '../GameOrder';
+import { IGameInfo } from '../../../shared/game/interfaces';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
@@ -22,7 +22,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
     let flashpointPath: string = (this.props.central && this.props.central.flashpointPath) || '';
     if (flashpointPath) { flashpointPath += '/Arcade/Images/Flash/Box - Front'; }
     // Order games
-    const games: ILaunchBoxGame[] = this.orderGames();
+    const games: IGameInfo[] = this.orderGames();
     // Render
     const order = this.props.order || BrowsePage.defaultOrder;
     return (
@@ -37,9 +37,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
   }
 
   /** Order the games according to the current settings */
-  private orderGames(): ILaunchBoxGame[] {
+  private orderGames(): IGameInfo[] {
     // -- Get the array of games --
-    const games = this.props.central && this.props.central.platform && this.props.central.platform.games;
+    const games = this.props.central && this.props.central.collection && this.props.central.collection.games;
     if (!games) { return []; } // (No games found)
     // -- Filter games --
     const search = this.props.search;
@@ -76,17 +76,17 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
   }
 }
 
-type OrderFn = (a: ILaunchBoxGame, b: ILaunchBoxGame) => number;
+type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
 
 /** Order games by their title alphabetically (ascending) */
-function orderByTitle(a: ILaunchBoxGame, b: ILaunchBoxGame): number {
+function orderByTitle(a: IGameInfo, b: IGameInfo): number {
   if ((a.title||'') < (b.title||'')) { return -1; }
   if ((a.title||'') > (b.title||'')) { return  1; }
   return 0;
 }
 
 /** Order games by their genre alphabetically (ascending) */
-function orderByGenre(a: ILaunchBoxGame, b: ILaunchBoxGame): number {
+function orderByGenre(a: IGameInfo, b: IGameInfo): number {
   if ((a.genre||'') < (b.genre||'')) { return -1; }
   if ((a.genre||'') > (b.genre||'')) { return  1; }
   return 0;
@@ -94,7 +94,7 @@ function orderByGenre(a: ILaunchBoxGame, b: ILaunchBoxGame): number {
 
 /** Reverse the order (makes an ascending order function descending instead) */
 function reverseOrder(compareFn: OrderFn): OrderFn {
-  return (a: ILaunchBoxGame, b: ILaunchBoxGame) => {
+  return (a: IGameInfo, b: IGameInfo) => {
     const ret: number = compareFn(a, b);
     if (ret ===  1) { return -1; }
     if (ret === -1) { return  1; }

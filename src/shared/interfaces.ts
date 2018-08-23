@@ -1,5 +1,5 @@
-import { ILaunchBoxGame } from "./launchbox/interfaces";
 import { IAppConfigData } from "./config/IAppConfigData";
+import { IGameInfo } from "./game/interfaces";
 
 export interface IMainWindowExternal {
   /**
@@ -7,16 +7,13 @@ export interface IMainWindowExternal {
    * (WARNING: This will run an arbitrary program file with arbitrary arguments)
    * @param game 
    */
-  launchGameSync(game: ILaunchBoxGame): void;
-
-  /** Get the config object (async) */
-  getConfig(callback: (config: IAppConfigData) => void): void;
+  launchGameSync(game: IGameInfo): void;
 
   /** Get the config object (sync) */
   getConfigSync(): IAppConfigData;
   
   /** Get the OS name */
-  getPlatform(): NodeJS.Platform;
+  platform: NodeJS.Platform;
 
   // -- Window functions --
   
