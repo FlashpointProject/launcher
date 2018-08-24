@@ -1,9 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const gulp = require('gulp');
-const argv = require('yargs').argv;
 const gulpif = require('gulp-if');
-const gutil = require('gulp-util');
 const uglify = require('gulp-uglify-es').default;
 const webpack = require('webpack-stream');
 const packager = require('electron-packager');
@@ -25,9 +23,8 @@ gulp.task('build_renderer', buildRenderer);
 gulp.task('watch_static', watchStatic);
 gulp.task('copy_static',  copyStatic);
 
-const appPath = './binaries/resources/app.asar/';
 const config = {
-  isRelease: argv.production !== undefined,
+  isRelease: process.env.NODE_ENV === 'production',
   paths: {
     main: {
       src:  './src/main',
@@ -87,7 +84,7 @@ function copyStatic() {
 
 function pack() {
   packager({
-    dir: './build/', 
+    dir: './build/',
     out: './dist/',
     // ...
     prune: true,
@@ -96,8 +93,8 @@ function pack() {
     overwrite: true, // For debugging
     // Build settings
     executableName: 'LunchBox',
-    platform: 'win32',
-    arch: 'ia32',
+    platform: process.env.PACK_PLATFORM,
+    arch: process.env.PACK_ARCH,
     asar: config.isRelease,
     // ...
     afterCopy: [serialHooks([
