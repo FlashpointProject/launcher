@@ -40,12 +40,26 @@ async function doFilesExistCheck(files: string[]): Promise<boolean> {
   return true;
 }
 
+/**
+ * Check if the Flashpoint installation that the given path is valid.
+ *
+ * @param flashpointPath The path where flashpoint is stored, can be relative.
+ * @returns true if the Flashpoint installation is valid, false it it's not.
+ */
+export async function isFlashpointValidCheck(flashpointPath: string): Promise<boolean> {
+  const importantFiles = getImportantFiles(flashpointPath);
+
+  return await doFilesExistCheck(importantFiles);
+}
 
 /**
  * Check if php is installed on the current system. This is always true on
  * Windows since php is bundled with Flashpoint.
+ *
+ * @returns true if php is installed, false if it's not. Always returns true on
+ *   Windows.
  */
-async function isPhpInstalledCheck() {
+export async function isPhpInstalledCheck(): Promise<boolean> {
   if (process.platform === 'win32') {
     // Flashpoint bundles php on windows.
     return true;
@@ -97,10 +111,8 @@ export enum FailedCheck {
  *   all tests passed.
  */
 export default async function checkSanity(config: IAppConfigData) {
-  const importantFiles = getImportantFiles(config.flashpointPath);
-
   const promiseArray = [
-    doFilesExistCheck(importantFiles),
+    isFlashpointValidCheck(config.flashpointPath),
     isPhpInstalledCheck(),
   ];
 
