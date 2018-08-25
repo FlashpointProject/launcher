@@ -1,12 +1,24 @@
 import * as path from 'path';
+import { EventEmitter } from 'events';
 import ManagedChildProcess from './ManagedChildProcess';
 
-export default class BackgroundServices {
+declare interface BackgroundServices {
+  /**
+   * Fires when any background service prints to std{out,err}. Every line is
+   * prefixed with the name of the process and the output is guaranteed to end
+   * with a new line.
+   */
+  on(event: 'output', handler: (output: string) => void): this;
+}
+
+class BackgroundServices extends EventEmitter {
   private router?: ManagedChildProcess;
 
   constructor(
     private flashpointPath: string,
-  ) {};
+  ) {
+    super();
+  };
 
   /**
    * Start all required background process for this platform
@@ -31,6 +43,11 @@ export default class BackgroundServices {
       ['-S', 'localhost:22500', 'router.php'],
       serverPath,
     );
+
+    // Send back the output of all individual child processes. These will be
+    // displayed in the GUI. The child process will prefix everything with
+    // `${this.name}:` so we don't have to worry about that here.
+    this.router.on('output', output => this.emit('output', output));
   }
 
   /**
@@ -42,3 +59,5 @@ export default class BackgroundServices {
     }
   }
 }
+
+export default BackgroundServices;

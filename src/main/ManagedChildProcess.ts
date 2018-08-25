@@ -1,9 +1,10 @@
 import { spawn, ChildProcess } from "child_process";
+import { EventEmitter } from "events";
 
 /**
  * A Child Process which automatically logs all output to the console
  */
-export default class ManagedChildProcess {
+export default class ManagedChildProcess extends EventEmitter {
   private process: ChildProcess;
 
   constructor(
@@ -12,6 +13,7 @@ export default class ManagedChildProcess {
     args: string[],
     cwd: string
   ) {
+    super();
     this.process = spawn(command, args, { cwd });
 
     // @TODO: Make this output visible to the user
@@ -20,12 +22,16 @@ export default class ManagedChildProcess {
       // BUG: This is only shows after the user presses CTRL+C. It does not
       // show it any other circumstances.
       const output = data.toString('utf8');
-      console.log(this.addNameToOutput(output));
+      const namedOutput = this.addNameToOutput(output);
+      this.emit('output', namedOutput);
+      process.stdout.write(namedOutput);
     });
 
 		this.process.stderr.on('data', (data: Buffer) => {
       const output = data.toString('utf8');
-      console.error(this.addNameToOutput(output));
+      const namedOutput = this.addNameToOutput(output);
+      this.emit('output', namedOutput);
+      process.stderr.write(namedOutput);
 		});
 
 		this.process.on('close', (code) => {
@@ -52,6 +58,7 @@ export default class ManagedChildProcess {
         .split('\n')
         .map(line => `${this.name}: ${line}`)
         .join('\n')
+        + '\n'
     );
   }
 }
