@@ -10,7 +10,7 @@ export interface IThumbnailProps extends IDefaultProps {
   // Size of the image inside the div (in pixels)
   imageWidth?: number;
   imageHeight?: number;
-  // 
+  //
   outerProps?: object;
   wrapperProps?: object;
   imageProps?: object;
@@ -70,7 +70,6 @@ export class Thumbnail extends React.Component<IThumbnailProps, IThumbnailState>
   onImageLoaded(img: HTMLImageElement, event: Event) {
     const { parentWidth, parentHeight, imageWidth, imageHeight } = this.props;
     // Contants
-    debugger;
     const paw = parentWidth  || 48; // Parent Width (size of the box around the thumb)
     const pah = parentHeight || 43; // Parent Height
     const iw  = imageWidth   || 40; // Image Width (maximum size of the thumb)
@@ -92,12 +91,12 @@ export class Thumbnail extends React.Component<IThumbnailProps, IThumbnailState>
     else         { scale = ws; }
 
     // Calculate how much padding is needed to center the image (vertically and horizontally)
-    // (By calculating the images "scaled size" (width|height * scale) and by detracting it 
+    // (By calculating the images "scaled size" (width|height * scale) and by detracting it
     //  from the "parents size" (width|height), we know how much "empty space" there is left.
     //  And by deviding that by two, we know how much space we need on each side to center it)
     ph = Math.round((paw - img.width  * scale) / 2);
     pv = Math.round((pah - img.height * scale) / 2);
-    
+
     // Update state
     this.setState({
       paddingLeft: ph+'px',
