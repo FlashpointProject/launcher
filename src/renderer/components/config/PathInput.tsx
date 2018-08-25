@@ -3,7 +3,7 @@ import * as React from 'react';
 export interface IPathInputProps {
   /** Default value of the file path input element */
   defaultInput?: string;
-  /** */
+  /** When the input value is changed */
   onInputChange?: (input: string) => void;
   /** If the current input is valid */
   isValid?: boolean;
@@ -22,6 +22,7 @@ export class PathInput extends React.Component<IPathInputProps, IPathInputState>
     }
     this.onInputChange = this.onInputChange.bind(this);
     this.onBrowseClick = this.onBrowseClick.bind(this);
+    if (this.props.onInputChange) { this.props.onInputChange(this.state.input); }
   }
 
   render() {
@@ -39,9 +40,7 @@ export class PathInput extends React.Component<IPathInputProps, IPathInputState>
   }
 
   onInputChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    const input = cleanFilePath(event.target.value);
-    this.setState({ input: input });
-    if (this.props.onInputChange) { this.props.onInputChange(input); }
+    this.setInput(cleanFilePath(event.target.value));
   }
 
   onBrowseClick(event: React.MouseEvent<HTMLInputElement>): void {
@@ -51,8 +50,13 @@ export class PathInput extends React.Component<IPathInputProps, IPathInputState>
       properties: ['openDirectory'],
     });
     if (filePaths) {
-      this.setState({ input: cleanFilePath(filePaths[0]) });
+      this.setInput(cleanFilePath(filePaths[0]));
     }
+  }
+
+  setInput(input: string): void {
+    this.setState({ input: input });
+    if (this.props.onInputChange) { this.props.onInputChange(input); }
   }
 }
 

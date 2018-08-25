@@ -360,8 +360,15 @@ body {
 .config-page {
   text-align: center;
 }
+/* ... */
 .config-page p {
   display: inline-block;
+}
+.config-page input[type="button"] {
+  padding: 0 0.2em;
+}
+.config-page input[type="checkbox"] {
+  vertical-align: middle;
 }
 /* Setting */
 .config-page .setting {
@@ -380,12 +387,6 @@ body {
 }
 .config-page .setting__row :not(:last-child) {
   margin-right: 0.3em;
-}
-.config-page .setting__row input[type="button"] {
-  padding: 0 0.2em;
-}
-.config-page .setting__row input[type="checkbox"] {
-  vertical-align: middle;
 }
 /* Row - FlashPoint Path */
 .config-page .flashpoint-path {
