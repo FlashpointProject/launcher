@@ -26,10 +26,10 @@ export interface IMainWindowExternal {
   /** Close the window */
   close(): void;
 
-  /** Mirror of Electron.dialog.showOpenDialog() */
+  /** Wrapper of Electron.dialog.showOpenDialog() */
   showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined;
   
-  /** Mirror of fs.existsSync() */
+  /** Wrapper of fs.existsSync() */
   existsSync(path: string): boolean;
 }
 
