@@ -3,6 +3,7 @@ import * as path from 'path';
 import { IAppConfigData } from '../../../shared/config/IAppConfigData';
 import { PathInput } from '../config/PathInput';
 import { Toggle } from '../config/Toggle';
+import { isFlashpointValidCheck } from '../../../main/checkSanity';
 
 export interface IConfigPageProps {
   config: IAppConfigData;
@@ -31,8 +32,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
             <p className="setting__title"><b>FlashPoint Path:</b></p>
           </div>
           <div className="setting__row flashpoint-path">
-            <PathInput defaultInput={config.flashpointPath} 
-                       onInputChange={this.onFlashpointPathChange} 
+            <PathInput defaultInput={config.flashpointPath}
+                       onInputChange={this.onFlashpointPathChange}
                        isValid={this.state.isFlashpointPathValid} />
           </div>
         </div>
@@ -48,10 +49,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     );
   }
 
-  onFlashpointPathChange(filePath: string): void {
-    // Check if the filepath points to a valid FlashPoint folder
-    const xmlPath = path.join(filePath, './Arcade/Data/Platforms/Flash.xml');
-    const isValid = window.External.existsSync(xmlPath);
+  async onFlashpointPathChange(filePath: string) {
+    const isValid = await isFlashpointValidCheck(filePath);
     this.setState({ isFlashpointPathValid: isValid });
   }
 }
