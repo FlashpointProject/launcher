@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
-import { isInstalled } from './Util';
-import { IAppConfigData } from "../shared/config/IAppConfigData";
+import { isInstalled } from '../main/Util';
+import { IAppConfigData } from "./config/IAppConfigData";
 
 const stat = util.promisify(fs.stat);
 

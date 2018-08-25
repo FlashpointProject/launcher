@@ -50,9 +50,9 @@ window.External = Object.freeze({
     // (Slicing a "remote object" array will make a local copy of it - i think)
     if (callback) {
       // (Returns undefined if a callback is passed)
-      Electron.remote.dialog.showOpenDialog(options, 
+      Electron.remote.dialog.showOpenDialog(options,
         (filePaths: string[], bookmarks: string[]) => {
-          callback(filePaths && filePaths.slice(), 
+          callback(filePaths && filePaths.slice(),
                    bookmarks && bookmarks.slice());
         }
       );

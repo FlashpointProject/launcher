@@ -3,7 +3,7 @@ import * as path from 'path';
 import { IAppConfigData } from '../../../shared/config/IAppConfigData';
 import { PathInput } from '../config/PathInput';
 import { Toggle } from '../config/Toggle';
-import { isFlashpointValidCheck } from '../../../main/checkSanity';
+import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 
 export interface IConfigPageProps {
   config: IAppConfigData;

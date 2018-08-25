@@ -5,7 +5,7 @@ import { AppConfig } from '../shared/config/AppConfig';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import BackgroundServices from './BackgroundServices';
 import FlashPlayer from './FlashPlayer';
-import checkSanity from './checkSanity';
+import checkSanity from '../shared/checkSanity';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
