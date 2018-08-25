@@ -10,22 +10,31 @@ html, body {
   outline: none;
 }
 
-body {
-  /* Vars */
+:root {
+  /* Root font size (Scales most stuff) */
+  font-size: 1em;
+  /* Variables */
   --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   --theme__text-color: #f1f1f1;
   --theme__background-color: #1b1b1c;
   --theme__title-bar__background-color: #141417;
   /* Pimp */
+  color: #f1f1f1;
+}
+
+body {
+  overflow: hidden;
+  /* Pimp */
   background-color: var(--theme__background-color);
   font-family: var(--theme__font-family);
 }
 
+/* Measure elements by the outline of their border instaed of by their content */
 :root {
-  font-size: 1em;
-  overflow: hidden;
-  /* Pimp */
-  color: #f1f1f1;
+  box-sizing: border-box;
+}
+*, ::before, ::after {
+  box-sizing: inherit;
 }
 
 
@@ -155,7 +164,6 @@ body {
 /* Header Search */
 .header__search {
   width: 25em;
-  height: 1.5em;
   padding: 0.25em;
   margin-right: 0.5em;
   /* Pimp */
@@ -163,6 +171,7 @@ body {
   background-color: var(--theme__background-color);
 }
 .header__search__input, .header__search__input:active {
+  font-size: 1em;
   /* Pimp */
   color: var(--theme__text-color);
   background: none;
@@ -233,7 +242,6 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
-  box-sizing: border-box;
 }
 .home__title {
   font-size: 2.5em;
@@ -253,7 +261,6 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
-  box-sizing: border-box;
 }
 .page-not-found__error-number {
   font-size: 8em;
@@ -270,7 +277,6 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
-  box-sizing: border-box;
 }
 .about__title {
   font-size: 2.5em;
@@ -345,7 +351,6 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
-  box-sizing: border-box;
 }
 .game-list__no-games__title {
   font-size: 2em;
@@ -358,8 +363,20 @@ body {
 .config-page p {
   display: inline-block;
 }
-.config-page__row {
-  
+.config-page__setting {
+  margin-top: 0.5em;
+}
+.config-page__setting__row {
+  display: block;
+}
+.config-page__setting__row:nth-child(n+1) {
+  margin-top: 0.5em;
+}
+.config-page__setting__row :not(:last-child) {
+  margin-right: 0.5em;
+}
+.config-page__setting__row input[type="button"] {
+  padding: 0 0.2em;
 }
 
 /* ------ Search & SearchTag Components ------ */
