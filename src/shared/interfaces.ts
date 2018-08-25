@@ -25,4 +25,9 @@ export interface IMainWindowExternal {
 
   /** Close the window */
   close(): void;
+
+  /** Mirror of Electron.dialog.showOpenDialog() */
+  showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined;
 }
+
+export type ElectronOpenDialogCallback = (filePaths?: string[], bookmarks?: string[]) => void;

@@ -1,6 +1,7 @@
 import * as Electron from 'electron';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { IGameInfo } from '../shared/game/interfaces';
+import { ElectronOpenDialogCallback } from '../shared/interfaces';
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -41,5 +42,19 @@ window.External = Object.freeze({
   close() {
     const currentWindow = Electron.remote.getCurrentWindow();
     currentWindow.close();
+  },
+
+  /** @inheritDoc */
+  showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined {
+    if (callback) {
+      return Electron.remote.dialog.showOpenDialog(options, 
+        (filePaths: string[], bookmarks: string[]) => {
+          callback(filePaths && filePaths.slice(), 
+                   bookmarks && bookmarks.slice());
+        }
+      );
+    } else {
+      return Electron.remote.dialog.showOpenDialog(options).slice();
+    }
   },
 });
