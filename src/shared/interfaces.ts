@@ -28,6 +28,10 @@ export interface IMainWindowExternal {
 
   /** Mirror of Electron.dialog.showOpenDialog() */
   showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined;
+  
+  /** Mirror of fs.existsSync() */
+  existsSync(path: string): boolean;
 }
 
+/** Callback for Electron.dialog.showOpenDialog */
 export type ElectronOpenDialogCallback = (filePaths?: string[], bookmarks?: string[]) => void;

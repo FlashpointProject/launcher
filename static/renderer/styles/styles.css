@@ -163,7 +163,7 @@ body {
 }
 /* Header Search */
 .header__search {
-  width: 25em;
+  width: 12em;
   padding: 0.25em;
   margin-right: 0.5em;
   /* Pimp */
@@ -363,21 +363,44 @@ body {
 .config-page p {
   display: inline-block;
 }
-.config-page__setting {
-  margin-top: 0.5em;
+/* Setting */
+.config-page .setting {
+  margin-top: 1.5em;
 }
-.config-page__setting__row {
+/* Setting */
+.config-page .setting__title {
+  font-size: 1.15em;
+}
+/* Row */
+.config-page .setting__row {
   display: block;
 }
-.config-page__setting__row:nth-child(n+1) {
+.config-page .setting__row:nth-child(n+1) {
   margin-top: 0.5em;
 }
-.config-page__setting__row :not(:last-child) {
-  margin-right: 0.5em;
+.config-page .setting__row :not(:last-child) {
+  margin-right: 0.3em;
 }
-.config-page__setting__row input[type="button"] {
+.config-page .setting__row input[type="button"] {
   padding: 0 0.2em;
 }
+.config-page .setting__row input[type="checkbox"] {
+  vertical-align: middle;
+}
+/* Row - FlashPoint Path */
+.config-page .flashpoint-path {
+
+}
+.config-page .flashpoint-path__input {
+
+}
+.config-page .flashpoint-path__input--valid {
+  background-color: green;
+}
+.config-page .flashpoint-path__input--invalid {
+  background-color: red;
+}
+
 
 /* ------ Search & SearchTag Components ------ */
 .search {
