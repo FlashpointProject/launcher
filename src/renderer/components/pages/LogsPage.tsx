@@ -1,5 +1,5 @@
 import * as React from 'react';
-import LogData from '../generic/search/LogData';
+import LogData from '../LogData';
 
 interface ILogsPageProps {
   logData: string;
