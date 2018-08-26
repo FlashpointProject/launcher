@@ -1,11 +1,52 @@
+import * as fs from "fs";
 import { IAppConfigData } from "./IAppConfigData";
 import * as Util from "../Util";
+import { rejects } from "assert";
 
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;
 }
 
 export class AppConfig {
+  /** Path to the config file */
+  private static configFilePath: string = './config.json';
+  /** Encoding used by config file */
+  private static configFileEncoding: string = 'utf8';
+
+  /** Read and parse the config file asynchronously */
+  public static readConfigFile(): Promise<IAppConfigData> {
+    return new Promise<IAppConfigData>((resolve, reject) => {
+      fs.readFile(AppConfig.configFilePath, AppConfig.configFileEncoding, (error, data) => {
+        // Check if reading file failed
+        if (error) {
+          return reject(error);
+        }
+        // Try to parse json (and callback error if it fails)
+        const jsonOrError: string|Error = Util.tryParseJSON(data as string);
+        if (jsonOrError instanceof Error) {
+          return reject(jsonOrError);
+        }
+        // Parse the JSON object as a config object
+        const parsed: IAppConfigData = AppConfig.parseData(jsonOrError, AppConfig.getDefaults(process.platform));
+        // Success!
+        return resolve(parsed);
+      });
+    });
+  }
+
+  /** Stringify and save the config file asynchronously */
+  public static saveConfigFile(data: IAppConfigData, doItSync: boolean = false): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Convert config to json string
+      const json: string = AppConfig.stringifyData(data);
+      // Save the config file
+      fs.writeFile(AppConfig.configFilePath, json, function(error) {
+        if (error) { return reject(error); }
+        else       { return resolve();     }
+      });
+    });
+  }
+
   /** Parse and object as an app config data object
    * (Extract the valid settings, and use the default values for everything else, then return a new object with these settings combined)
    */

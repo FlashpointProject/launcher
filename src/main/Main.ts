@@ -9,8 +9,8 @@ import checkSanity from '../shared/checkSanity';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
-  private _backgroundServices: BackgroundServices;
-  private _flashPlayer: FlashPlayer;
+  private _backgroundServices?: BackgroundServices;
+  private _flashPlayer?: FlashPlayer;
   private _config?: IAppConfigData;
 
   public get config(): IAppConfigData {
@@ -29,18 +29,26 @@ export class Main {
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
 
     // Load config file
-    this.loadConfig();
+    this.loadConfig()
+    .then(() => {
+      // Check if we are ready to launch or not.
+      // TODO: Launch the setup wizard when a check failed.
+      checkSanity(this.config)
+      .then(console.log, console.error);
 
-    // Check if we are ready to launch or not.
-    // TODO: Launch the setup wizard when a check failed.
-    checkSanity(this.config).then(console.log, console.error);
+      // Create FlashPlayer class
+      this._flashPlayer = new FlashPlayer(this.config.flashpointPath);
 
-    // Create FlashPlayer class
-    this._flashPlayer = new FlashPlayer(this.config.flashpointPath);
+      // Start background services
+      this._backgroundServices = new BackgroundServices(this.config.flashpointPath);
+      this._backgroundServices.start();
 
-    // Start background services
-    this._backgroundServices = new BackgroundServices(this.config.flashpointPath);
-    this._backgroundServices.start();
+      // Create main window as soon as possible
+      Util.callIfOrOnceReady(() => {
+        this._mainWindow.createWindow();
+      });
+    })
+    .catch(console.error);
   }
 
   private onAppReady() {
@@ -63,8 +71,6 @@ export class Main {
         cancel: true
       })
     );
-
-    this._mainWindow.createWindow();
   }
 
   private onAppWindowAllClosed() {
@@ -72,37 +78,39 @@ export class Main {
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
       app.quit();
-      this._backgroundServices.stop();
+      if (this._backgroundServices) {
+        this._backgroundServices.stop();
+      }
     }
   }
 
-  /**
-   * Load the application config in SYNC.
-   *
-   * @TODO: Make this function more sync-like.
-   */
-  private loadConfig() {
-    Util.readConfigFile((err, data) => {
-      // Check if config data failed to load
-      if (err || !data) {
-        // Set the config data to the default
-        data = AppConfig.createCopyOfDefaults(process.platform);
-        // Create a new config file with the default configs
-        Util.saveConfigFile(data, false);
-      }
-      // Set config data
-      this._config = data;
-      //
-      console.log('Configs:', data);
-    });
+  /** Load the application config asynchronously */
+  private async loadConfig() {
+    let error: Error|undefined, 
+        data: IAppConfigData|undefined;
+    try {
+      data = await AppConfig.readConfigFile();
+    } catch(e) {
+      error = e;
+    }
+    // Check if config data failed to load
+    if (error || !data) {
+      // Set the config data to the default
+      data = AppConfig.createCopyOfDefaults(process.platform);
+      // Create a new config file with the default configs
+      AppConfig.saveConfigFile(data, false);
+    }
+    // Set config data
+    this._config = data;
+    //
+    console.log('Configs:', data);
   }
 
   /** Launch a game using some if its properties */
   private onLaunchGameSync(event: Electron.IpcMessageEvent, applicationPath: string, args: string[]) {
     console.log('Launch game:', applicationPath, args);
-
+    if (!this._flashPlayer) { throw new Error('FlashPlayer wrapper is not constructed'); }
     this._flashPlayer.launch(applicationPath, args);
-
     // Set return value (this makes the renderer process "unpause")
     event.returnValue = null;
   }
