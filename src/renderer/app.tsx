@@ -31,8 +31,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   constructor(props: IAppProps) {
     super(props);
 
-    console.log('Hey all!')
-
     // Get the config from the main process
     const config = window.External.getConfigSync();
     // Normal constructor stuff
@@ -62,6 +60,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   componentDidMount() {
     ipcRenderer.on('log-data-update', this.onLogDataUpdate);
+
+    // Ask main to send us our first log-data-update msg.
+    window.External.resendLogDataUpdate();
   }
 
   componentWillUnmount() {

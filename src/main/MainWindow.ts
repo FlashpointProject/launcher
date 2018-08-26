@@ -19,6 +19,7 @@ export default class MainWindow {
     this._main = main;
     // Add app event listener(s)
     app.on('activate', this.onAppActivate.bind(this));
+    this.sendLogDataToWindow =this.sendLogDataToWindow.bind(this);
   }
 
   public createWindow(): void {
@@ -43,8 +44,7 @@ export default class MainWindow {
     if (Util.isDev) {
       this._window.webContents.openDevTools();
     }
-    // Send the window all of the log data that was emitted before its creation
-    this.sendLogDataToWindow();
+
     // Emitted when the window is closed.
     this._window.on('closed', () => {
       // Dereference the window object, usually you would store windows

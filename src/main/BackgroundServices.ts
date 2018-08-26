@@ -48,6 +48,8 @@ class BackgroundServices extends EventEmitter {
     // displayed in the GUI. The child process will prefix everything with
     // `${this.name}:` so we don't have to worry about that here.
     this.router.on('output', output => this.emit('output', output));
+
+    this.router.spawn();
   }
 
   /**
