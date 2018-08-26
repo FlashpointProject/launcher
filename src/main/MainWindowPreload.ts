@@ -20,6 +20,11 @@ window.External = Object.freeze({
     return Electron.ipcRenderer.sendSync('get-config-sync');
   },
 
+  /** @inheritdoc */
+  resendLogDataUpdate() {
+    Electron.ipcRenderer.send('resend-log-data-update');
+  },
+
   /** @inheritDoc */
   platform: Electron.remote.process.platform+'' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
 

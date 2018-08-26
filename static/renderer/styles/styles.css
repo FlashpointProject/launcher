@@ -438,3 +438,9 @@ body {
   /* Pimp */
   user-select: none;
 }
+
+/* ------ Logs ------ */
+.logs__log-data {
+  height: 100%;
+  overflow: scroll;
+}

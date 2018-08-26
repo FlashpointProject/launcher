@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
 import { AppRouter } from './router';
@@ -20,6 +21,7 @@ export interface IAppState {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
+  logData: string;
   config: IAppConfigData;
 
   useCustomTitlebar: boolean;
@@ -30,6 +32,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   constructor(props: IAppProps) {
     super(props);
+
     // Get the config from the main process
     const config = window.External.getConfigSync();
     // Normal constructor stuff
@@ -37,11 +40,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       central: undefined,
       search: undefined,
       order: undefined,
+      logData: '',
+
       config: config,
       useCustomTitlebar: config.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
+    this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
     .then((collection: IGameCollection) => {
@@ -53,6 +59,23 @@ export class App extends React.Component<IAppProps, IAppState> {
       });
     })
     .catch(console.log);
+  }
+
+  componentDidMount() {
+    ipcRenderer.on('log-data-update', this.onLogDataUpdate);
+
+    // Ask main to send us our first log-data-update msg.
+    window.External.resendLogDataUpdate();
+  }
+
+  componentWillUnmount() {
+    ipcRenderer.removeListener('log-data-update', this.onLogDataUpdate);
+  }
+
+  private onLogDataUpdate(event: any, fullLog: string) {
+    this.setState({
+      logData: fullLog,
+    });
   }
 
   render() {
@@ -72,6 +95,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       central: this.state.central,
       search: this.state.search,
       order: this.state.order,
+      logData: this.state.logData,
       config: this.state.config,
     };
     // Render

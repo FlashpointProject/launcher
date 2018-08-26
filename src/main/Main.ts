@@ -12,6 +12,7 @@ export class Main {
   private _backgroundServices?: BackgroundServices;
   private _flashPlayer?: FlashPlayer;
   private _config?: IAppConfigData;
+  private _logData: string = '';
 
   public get config(): IAppConfigData {
     if (!this._config) { throw new Error('You must not try to access config before it is loaded!'); }
@@ -19,6 +20,9 @@ export class Main {
   }
 
   constructor() {
+    // Bind functions
+    this.pushLogData = this.pushLogData.bind(this);
+
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
@@ -27,6 +31,7 @@ export class Main {
     ipcMain.on('launch-game-sync', this.onLaunchGameSync.bind(this));
     ipcMain.on('get-config', this.onGetConfig.bind(this));
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
+    ipcMain.on('resend-log-data-update', this.sendLogData.bind(this));
 
     // Load config file
     this.loadConfig()
@@ -41,6 +46,7 @@ export class Main {
 
       // Start background services
       this._backgroundServices = new BackgroundServices(this.config.flashpointPath);
+      this._backgroundServices.on('output', this.pushLogData);
       this._backgroundServices.start();
 
       // Create main window as soon as possible
@@ -84,9 +90,26 @@ export class Main {
     }
   }
 
+  /**
+   * Append the output to the internal log data object and tell the main window
+   * about the updated log data. The main window will display the log data in
+   * the "Logs" tab. Also print the output to stdout.
+   *
+   * @param output The log entry to be added. Must end with a new line.
+   */
+  private pushLogData(output: string) {
+    process.stdout.write(output);
+    this._logData += output;
+    this.sendLogData();
+  }
+
+  private sendLogData() {
+    this._mainWindow.updateLogData(this._logData);
+  }
+
   /** Load the application config asynchronously */
   private async loadConfig() {
-    let error: Error|undefined, 
+    let error: Error|undefined,
         data: IAppConfigData|undefined;
     try {
       data = await AppConfig.readConfigFile();

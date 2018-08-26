@@ -5,18 +5,21 @@ export interface IMainWindowExternal {
   /**
    * Launch a LaunchBox Game (using its settings)
    * (WARNING: This will run an arbitrary program file with arbitrary arguments)
-   * @param game 
+   * @param game
    */
   launchGameSync(game: IGameInfo): void;
 
   /** Get the config object (sync) */
   getConfigSync(): IAppConfigData;
-  
+
+  /** ask the main to resend the log-data-update event */
+  resendLogDataUpdate(): void;
+
   /** Get the OS name */
   platform: NodeJS.Platform;
 
   // -- Window functions --
-  
+
   /** Minimize the window */
   minimize(): void;
 
