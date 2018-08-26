@@ -11,6 +11,7 @@ import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { IGameCollection } from '../shared/game/interfaces';
+import { ipcRenderer } from 'electron';
 
 export interface IAppProps {
   history?: any;
@@ -19,6 +20,7 @@ export interface IAppState {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
+  logData: string;
 
   useCustomTitlebar: boolean;
 }
@@ -28,6 +30,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   constructor(props: IAppProps) {
     super(props);
+
+    console.log('Hey all!')
+
     // Get the config from the main process
     const config = window.External.getConfigSync();
     // Normal constructor stuff
@@ -35,10 +40,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       central: undefined,
       search: undefined,
       order: undefined,
+      logData: '',
+
       useCustomTitlebar: config.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
+    this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
     .then((collection: IGameCollection) => {
@@ -50,6 +58,20 @@ export class App extends React.Component<IAppProps, IAppState> {
       });
     })
     .catch(console.log);
+  }
+
+  componentDidMount() {
+    ipcRenderer.on('log-data-update', this.onLogDataUpdate);
+  }
+
+  componentWillUnmount() {
+    ipcRenderer.removeListener('log-data-update', this.onLogDataUpdate);
+  }
+
+  private onLogDataUpdate(event: any, fullLog: string) {
+    this.setState({
+      logData: fullLog,
+    });
   }
 
   render() {

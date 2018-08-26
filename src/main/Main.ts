@@ -12,6 +12,7 @@ export class Main {
   private _backgroundServices: BackgroundServices;
   private _flashPlayer: FlashPlayer;
   private _config?: IAppConfigData;
+  private _logData: string = '';
 
   public get config(): IAppConfigData {
     if (!this._config) { throw new Error('You must not try to access config before it is loaded!'); }
@@ -41,6 +42,7 @@ export class Main {
     // Start background services
     this._backgroundServices = new BackgroundServices(this.config.flashpointPath);
     this._backgroundServices.start();
+    this._backgroundServices.on('output', this.pushLogData);
   }
 
   private onAppReady() {
@@ -74,6 +76,18 @@ export class Main {
       app.quit();
       this._backgroundServices.stop();
     }
+  }
+
+  /**
+   * Append the output to the internal log data object and tell the main window
+   * about the updated log data. The main window will display the log data in
+   * the "Logs" tab.
+   *
+   * @param output The log entry to be added. Must end with a new line.
+   */
+  private pushLogData(output: string) {
+    this._logData += output;
+    this._mainWindow.updateLogData(this._logData);
   }
 
   /**

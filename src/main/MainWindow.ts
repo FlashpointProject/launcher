@@ -8,6 +8,7 @@ import * as AppConstants from '../shared/AppConstants';
 export default class MainWindow {
   private _main: Main;
   private _window?: Electron.BrowserWindow;
+  private _logData: string = '';
 
   public get window(): Electron.BrowserWindow | undefined {
     return this._window;
@@ -42,6 +43,8 @@ export default class MainWindow {
     if (Util.isDev) {
       this._window.webContents.openDevTools();
     }
+    // Send the window all of the log data that was emitted before its creation
+    this.sendLogDataToWindow();
     // Emitted when the window is closed.
     this._window.on('closed', () => {
       // Dereference the window object, usually you would store windows
@@ -61,5 +64,26 @@ export default class MainWindow {
 
   public getConfig(): IAppConfigData {
     return this._main.config;
+  }
+
+  /**
+   * Store the updated log data and send it to the window if it's created.
+   *
+   * @param fullLog The full log data from start to finish. Lines are separated
+   * with a new line.
+   */
+  public updateLogData(fullLog: string) {
+    this._logData = fullLog;
+    this.sendLogDataToWindow();
+  }
+
+  /**
+   * Send the log data to the window. Will do nothing if the window is not
+   * created. This function is safe to call at all times.
+   */
+  private sendLogDataToWindow() {
+    if (this._window) {
+      this._window.webContents.send('log-data-update', this._logData);
+    }
   }
 }
