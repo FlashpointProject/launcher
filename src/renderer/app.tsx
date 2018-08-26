@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
 import { AppRouter } from './router';
@@ -11,7 +12,7 @@ import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { IGameCollection } from '../shared/game/interfaces';
-import { ipcRenderer } from 'electron';
+import { IAppConfigData } from '../shared/config/IAppConfigData';
 
 export interface IAppProps {
   history?: any;
@@ -21,6 +22,7 @@ export interface IAppState {
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
   logData: string;
+  config: IAppConfigData;
 
   useCustomTitlebar: boolean;
 }
@@ -40,6 +42,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       order: undefined,
       logData: '',
 
+      config: config,
       useCustomTitlebar: config.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
@@ -93,6 +96,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       search: this.state.search,
       order: this.state.order,
       logData: this.state.logData,
+      config: this.state.config,
     };
     // Render
     return (

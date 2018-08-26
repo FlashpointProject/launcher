@@ -14,6 +14,7 @@
 # Add:
 
 * Load games from all LaunchBox Platform XML files instead of just the flash one
+* A "Random Game" button that takes you to a random game in the games list
 * Make use of the tag capabilities of the search bar (for filtering genres, developers etc.)
 * Make the application fully controllable using the keyboard only (set tab indices, select borders etc.)
 * Show the number of games shown with the current filters

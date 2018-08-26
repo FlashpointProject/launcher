@@ -8,12 +8,15 @@ import { ICentralState } from './interfaces';
 import { AboutPage } from './components/pages/AboutPage';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import LogsPage from './components/pages/LogsPage';
+import { ConfigPage } from './components/pages/ConfigPage';
+import { IAppConfigData } from '../shared/config/IAppConfigData';
 
 export interface IAppRouterProps {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
   logData: string;
+  config: IAppConfigData;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
@@ -27,8 +30,9 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     return (
       <Switch>
         <Route exact path="/" component={HomePage} />
-        <PropsRoute exact path="/browse" component={BrowsePage} {...props} />
+        <PropsRoute path="/browse" component={BrowsePage} {...props} />
         <PropsRoute path="/logs" component={LogsPage} logData={this.props.logData} />
+        <PropsRoute path="/config" component={ConfigPage} config={this.props.config} />
         <Route path="/about" component={AboutPage} />
         <Route component={NotFoundPage} />
       </Switch>

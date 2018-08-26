@@ -10,22 +10,31 @@ html, body {
   outline: none;
 }
 
-body {
-  /* Vars */
+:root {
+  /* Root font size (Scales most stuff) */
+  font-size: 1em;
+  /* Variables */
   --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   --theme__text-color: #f1f1f1;
   --theme__background-color: #1b1b1c;
   --theme__title-bar__background-color: #141417;
   /* Pimp */
+  color: #f1f1f1;
+}
+
+body {
+  overflow: hidden;
+  /* Pimp */
   background-color: var(--theme__background-color);
   font-family: var(--theme__font-family);
 }
 
+/* Measure elements by the outline of their border instaed of by their content */
 :root {
-  font-size: 1em;
-  overflow: hidden;
-  /* Pimp */
-  color: #f1f1f1;
+  box-sizing: border-box;
+}
+*, ::before, ::after {
+  box-sizing: inherit;
 }
 
 
@@ -138,24 +147,23 @@ body {
 }
 .header__menu__item {
   display: inline-block;
-}
-.header__menu__item__link {
   padding: 0.3em 0.7em;
   border: 1px solid rgba(0,0,0,0);
+}
+.header__menu__item:hover {
+  /* Pimp */
+  background-color: #3c2d4b;
+  border-color: #d33682;
+}
+.header__menu__item__link {
   /* Pimp */
   cursor: pointer;
   text-decoration: none;
   color: var(--theme__text-color);
 }
-.header__menu__item__link:hover {
-  /* Pimp */
-  background-color: #3c2d4b;
-  border-color: #d33682;
-}
 /* Header Search */
 .header__search {
-  width: 25em;
-  height: 1.5em;
+  width: 12em;
   padding: 0.25em;
   margin-right: 0.5em;
   /* Pimp */
@@ -163,6 +171,7 @@ body {
   background-color: var(--theme__background-color);
 }
 .header__search__input, .header__search__input:active {
+  font-size: 1em;
   /* Pimp */
   color: var(--theme__text-color);
   background: none;
@@ -233,7 +242,6 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
-  box-sizing: border-box;
 }
 .home__title {
   font-size: 2.5em;
@@ -253,7 +261,6 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
-  box-sizing: border-box;
 }
 .page-not-found__error-number {
   font-size: 8em;
@@ -270,7 +277,6 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
-  box-sizing: border-box;
 }
 .about__title {
   font-size: 2.5em;
@@ -345,11 +351,57 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
-  box-sizing: border-box;
 }
 .game-list__no-games__title {
   font-size: 2em;
 }
+
+/** ------ Config ------ */
+.config-page {
+  text-align: center;
+}
+/* ... */
+.config-page p {
+  display: inline-block;
+}
+.config-page input[type="button"] {
+  padding: 0 0.2em;
+}
+.config-page input[type="checkbox"] {
+  vertical-align: middle;
+}
+/* Setting */
+.config-page .setting {
+  margin-top: 1.5em;
+}
+/* Setting */
+.config-page .setting__title {
+  font-size: 1.15em;
+}
+/* Row */
+.config-page .setting__row {
+  display: block;
+}
+.config-page .setting__row:nth-child(n+1) {
+  margin-top: 0.5em;
+}
+.config-page .setting__row :not(:last-child) {
+  margin-right: 0.3em;
+}
+/* Row - FlashPoint Path */
+.config-page .flashpoint-path {
+
+}
+.config-page .flashpoint-path__input {
+
+}
+.config-page .flashpoint-path__input--valid {
+  background-color: green;
+}
+.config-page .flashpoint-path__input--invalid {
+  background-color: red;
+}
+
 
 /* ------ Search & SearchTag Components ------ */
 .search {

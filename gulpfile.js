@@ -67,9 +67,15 @@ function buildRenderer() {
     delete webpackConfig.devtool;
   }
   // Build source
-  gulp.src(webpackConfig.entry)
-    .pipe(webpack(webpackConfig))
-    .pipe(gulpif(config.isRelease, uglify()))
+  return gulp.src(webpackConfig.entry)
+    .pipe(webpack({
+      ...webpackConfig,
+      mode: process.env.NODE_ENV || 'development',
+    })
+    // Listening for errors ensures that gulp doesn't exist when an error
+    // happens. webpack already logs the errors to the console so we'll just
+    // use a no-op function here.
+    .on('error', () => {}))
     .pipe(gulp.dest(config.paths.renderer.dest));
 }
 

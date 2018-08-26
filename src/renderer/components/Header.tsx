@@ -39,6 +39,9 @@ export class Header extends React.Component<IHeaderProps, {}> {
             <Link to="/logs" className="header__menu__item__link">Logs</Link>
           </li>
           <li className="header__menu__item">
+            <Link to="/config" className="header__menu__item__link">Config</Link>
+          </li>
+          <li className="header__menu__item">
             <Link to="/about" className="header__menu__item__link">About</Link>
           </li>
         </ul>

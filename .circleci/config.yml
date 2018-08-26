@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8
+    steps:
+      - checkout
+
+      # Install deps
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Installing Dependencies
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+
+      # Make production build
+      - run:
+          name: Building for production
+          command: npm run build:prod
+
+      # Package it up for Linux
+      - run:
+          name: Packing for Linux
+          environment:
+            PACK_PLATFORM: win32
+            PACK_ARCH: x64
+          command: npm run pack:prod
+
+      # Store the build result
+      - store_artifacts:
+          path: ./dist
+          destination: dist
