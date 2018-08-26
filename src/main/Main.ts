@@ -98,7 +98,7 @@ export class Main {
       // Set the config data to the default
       data = AppConfig.createCopyOfDefaults(process.platform);
       // Create a new config file with the default configs
-      AppConfig.saveConfigFile(data, false);
+      AppConfig.saveConfigFile(data);
     }
     // Set config data
     this._config = data;

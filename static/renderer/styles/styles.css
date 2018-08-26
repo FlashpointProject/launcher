@@ -377,6 +377,7 @@ body {
 /* Setting */
 .config-page .setting__title {
   font-size: 1.15em;
+  font-weight: bold;
 }
 /* Row */
 .config-page .setting__row {
