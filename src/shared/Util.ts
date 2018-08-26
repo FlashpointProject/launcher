@@ -42,3 +42,14 @@ export function deepCopy(source: any): any {
   }
   return copy;
 }
+
+/** Try parsing a JSON string into an object and return that object, or an error if one occurred */
+export function tryParseJSON(jsonString: string): any|Error {
+  let ret: any|Error;
+  try {
+    ret = JSON.parse(jsonString);
+  } catch(error) {
+    ret = error;
+  }
+  return ret;
+}

@@ -1,12 +1,14 @@
 const path = require('path');
-const { CheckerPlugin } = require('awesome-typescript-loader');
+
 module.exports = {
   entry: './src/renderer/index.tsx',
   output: {
     filename: 'main.bundle.js',
     path: path.resolve(__dirname, './dist/renderer/'),
   },
-  //devtool: 'source-map',
+  // Allows importing build-in node modules in electron render.
+  // https://stackoverflow.com/questions/39417628/how-to-reference-node-fs-api-with-electron-in-typescript
+  target: 'electron-renderer',
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx'],
   },
@@ -18,15 +20,4 @@ module.exports = {
       },
     ]
   },
-  externals: {
-    "react": "React",
-    "react-dom": "ReactDOM",
-    "react-virtualized": "ReactVirtualized",
-  },
-  plugins: [
-    new CheckerPlugin({
-      //configFileName: './tsconfig-renderer.json',
-      // compiler: ???,
-    })
-  ],
 };

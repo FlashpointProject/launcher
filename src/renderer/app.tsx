@@ -11,6 +11,7 @@ import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { IGameCollection } from '../shared/game/interfaces';
+import { IAppConfigData } from '../shared/config/IAppConfigData';
 
 export interface IAppProps {
   history?: any;
@@ -19,6 +20,7 @@ export interface IAppState {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
+  config: IAppConfigData;
 
   useCustomTitlebar: boolean;
 }
@@ -35,6 +37,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       central: undefined,
       search: undefined,
       order: undefined,
+      config: config,
       useCustomTitlebar: config.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
@@ -69,6 +72,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       central: this.state.central,
       search: this.state.search,
       order: this.state.order,
+      config: this.state.config,
     };
     // Render
     return (
