@@ -17,9 +17,11 @@ html, body {
   --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   --theme__text-color: #f1f1f1;
   --theme__background-color: #1b1b1c;
+  --theme__search-bar__background-color: #1b1b1d;
+  --theme__search-bar__outline-color: #47474d;
   --theme__title-bar__background-color: #141417;
   /* Pimp */
-  color: #f1f1f1;
+  color: var(--theme__text-color);
 }
 
 body {
@@ -167,7 +169,7 @@ body {
   padding: 0.25em;
   margin-right: 0.5em;
   /* Pimp */
-  border: 1px solid #47474d;
+  border: 1px solid var(--theme__search-bar__outline-color);
   background-color: var(--theme__background-color);
 }
 .header__search__input, .header__search__input:active {
@@ -210,7 +212,7 @@ body {
 .header__order-reverse {
   font-size: 1em;
   margin-right: 0.5em;
-  border: 1px solid #47474d;
+  border: 1px solid var(--theme__search-bar__outline-color);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -358,21 +360,26 @@ body {
 
 /** ------ Config ------ */
 .config-page {
+  width: 100%;
+  height: 100%;
+  padding: 1em;
   text-align: center;
+}
+.config-page__title {
+  font-size: 2.5em;
 }
 /* ... */
 .config-page p {
   display: inline-block;
 }
 .config-page input[type="button"] {
-  padding: 0 0.2em;
 }
 .config-page input[type="checkbox"] {
   vertical-align: middle;
 }
 /* Setting */
 .config-page .setting {
-  margin-top: 1.5em;
+  margin-top: 1.75em;
 }
 /* Setting */
 .config-page .setting__title {
@@ -380,27 +387,56 @@ body {
   font-weight: bold;
 }
 /* Row */
-.config-page .setting__row {
+/*.config-page*/ .setting__row {
   display: block;
 }
-.config-page .setting__row:nth-child(n+1) {
+/*.config-page*/ .setting__row:nth-child(n+1) {
   margin-top: 0.5em;
 }
-.config-page .setting__row :not(:last-child) {
+/*.config-page*/ .setting__row :not(:last-child) {
   margin-right: 0.3em;
 }
 /* Row - FlashPoint Path */
 .config-page .flashpoint-path {
-
+  display: flex;
+  max-width: 24em;
+  margin-left: auto;
+  margin-right: auto;
 }
 .config-page .flashpoint-path__input {
-
+  flex: 1;
+  border: 1px solid var(--theme__search-bar__outline-color);
 }
 .config-page .flashpoint-path__input--valid {
-  background-color: green;
+  background-color: #009600;
 }
 .config-page .flashpoint-path__input--invalid {
-  background-color: red;
+  background-color: #840000;
+}
+.config-page .flashpoint-path__input input[type="text"] {
+  width: 100%;
+  font-size: 1em;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--theme__text-color);
+}
+/* Row - SaveAndExit */
+.config-page .save-and-exit input[type="button"] {
+  font-size: 1.075em;
+}
+
+/* ------ Generic & Re-usable ------ */
+/* Simple Button */
+.simple-button {
+  padding: 0 0.2em;
+  background-color: #2d2d30;
+  border: 1px solid var(--theme__search-bar__outline-color);
+  color: var(--theme__text-color);
+}
+.simple-button:hover {
+  background-color: #434346;
+  border-color: #6f6f75;
 }
 
 

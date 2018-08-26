@@ -25,8 +25,10 @@ export class PathInput extends React.Component<IPathInputProps, {}> {
     }
     return (
       <>
-        <input type="text" value={this.props.input} onChange={this.onInputChange} className={className} />
-        <input type="button" value="Browse" onClick={this.onBrowseClick} />
+        <div className={className}>
+          <input type="text" onChange={this.onInputChange} value={this.props.input} />
+        </div>
+        <input type="button" value="Browse" className="simple-button" onClick={this.onBrowseClick} />
       </>
     );
   }

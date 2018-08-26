@@ -35,7 +35,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
   render() {
     return (
       <div className="config-page">
-        <h1>Config</h1>
+        <h1 className="config-page__title">Config</h1>
+        <i>(You must press "Save & Exit" for changes to take effect)</i>
         <div className="setting">
           <div className="setting__row">
             <p className="setting__title">FlashPoint Path:</p>
@@ -54,8 +55,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
           </div>
         </div>
         <div className="setting">
-          <div className="setting__row">
-            <input type="button" value="Save & Exit" onClick={this.onSaveAndExitClick} />
+          <div className="setting__row save-and-exit">
+            <input type="button" value="Save & Exit" className="simple-button" onClick={this.onSaveAndExitClick} />
           </div>
         </div>
       </div>
