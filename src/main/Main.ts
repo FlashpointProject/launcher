@@ -20,6 +20,9 @@ export class Main {
   }
 
   constructor() {
+    // Bind functions
+    this.pushLogData = this.pushLogData.bind(this);
+
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));

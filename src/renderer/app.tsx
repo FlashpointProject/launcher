@@ -91,6 +91,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       central: this.state.central,
       search: this.state.search,
       order: this.state.order,
+      logData: this.state.logData,
     };
     // Render
     return (

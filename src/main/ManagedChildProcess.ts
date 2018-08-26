@@ -16,8 +16,6 @@ export default class ManagedChildProcess extends EventEmitter {
     super();
     this.process = spawn(command, args, { cwd });
 
-    // @TODO: Make this output visible to the user
-
     this.process.stdout.on('data', (data: Buffer) => {
       // BUG: This is only shows after the user presses CTRL+C. It does not
       // show it any other circumstances.
