@@ -1,28 +1,20 @@
 import * as React from 'react';
 
 export interface IPathInputProps {
-  /** Default value of the file path input element */
-  defaultInput?: string;
-  /** When the input value is changed */
-  onInputChange?: (input: string) => void;
+  /** Value of the input field */
+  input?: string;
   /** If the current input is valid */
   isValid?: boolean;
+  /** Called when the input is changed */
+  onInputChange?: (input: string) => void;
 }
 
-export interface IPathInputState {
-  /** Value of the text input element */
-  input: string;
-}
-
-export class PathInput extends React.Component<IPathInputProps, IPathInputState> {
+export class PathInput extends React.Component<IPathInputProps, {}> {
   constructor(props: IPathInputProps) {
     super(props);
-    this.state = {
-      input: this.props.defaultInput || '',
-    }
     this.onInputChange = this.onInputChange.bind(this);
     this.onBrowseClick = this.onBrowseClick.bind(this);
-    if (this.props.onInputChange) { this.props.onInputChange(this.state.input); }
+    if (props.onInputChange) { props.onInputChange(this.props.input || ''); }
   }
 
   render() {
@@ -33,14 +25,16 @@ export class PathInput extends React.Component<IPathInputProps, IPathInputState>
     }
     return (
       <>
-        <input type="text" value={this.state.input} onChange={this.onInputChange} className={className} />
-        <input type="button" value="Browse" onClick={this.onBrowseClick} />
+        <div className={className}>
+          <input type="text" onChange={this.onInputChange} value={this.props.input} />
+        </div>
+        <input type="button" value="Browse" className="simple-button" onClick={this.onBrowseClick} />
       </>
     );
   }
 
   onInputChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    this.setInput(cleanFilePath(event.target.value));
+    this.setInput(event.target.value);
   }
 
   onBrowseClick(event: React.MouseEvent<HTMLInputElement>): void {
@@ -50,16 +44,11 @@ export class PathInput extends React.Component<IPathInputProps, IPathInputState>
       properties: ['openDirectory'],
     });
     if (filePaths) {
-      this.setInput(cleanFilePath(filePaths[0]));
+      this.setInput(filePaths[0]);
     }
   }
 
   setInput(input: string): void {
-    this.setState({ input: input });
-    if (this.props.onInputChange) { this.props.onInputChange(input); }
+    if (this.props.onInputChange) { this.props.onInputChange(input || ''); }
   }
-}
-
-function cleanFilePath(filePath: string): string {
-  return filePath.replace(/\\/g, '/');
 }

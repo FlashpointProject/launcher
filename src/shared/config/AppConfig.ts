@@ -35,7 +35,7 @@ export class AppConfig {
   }
 
   /** Stringify and save the config file asynchronously */
-  public static saveConfigFile(data: IAppConfigData, doItSync: boolean = false): Promise<void> {
+  public static saveConfigFile(data: IAppConfigData): Promise<void> {
     return new Promise((resolve, reject) => {
       // Convert config to json string
       const json: string = AppConfig.stringifyData(data);
