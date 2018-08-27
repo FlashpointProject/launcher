@@ -8,7 +8,7 @@ export class LaunchBoxGame {
    */
   public static generateImageFilename(title: string, index?: number): string {
     // Replace all invalid filename characters (and some additional ones) with underscores
-    const cleanTitle = title.replace(/[/\\?%*:|"<>']/g, '_');
+    const cleanTitle = title.replace(/[/\\?*:|"<>']/g, '_');
     if (index === undefined) {
       return cleanTitle;
     } else {
