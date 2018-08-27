@@ -25,6 +25,7 @@ export class LaunchboxData {
             ignoreNameSpace: true,
             parseNodeValue: true,
             parseAttributeValue: false,
+            parseTrueNumberOnly: true,
             // @TODO Look into which settings are most appropriate
           });
           if (!data) {
