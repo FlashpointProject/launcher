@@ -25,7 +25,7 @@ export class GameParser {
 
   private static parseGame(data: IRawLaunchBoxGame): IGameInfo {
     return {
-      title: data.Title + '',
+      title: GameParser.decodeString(data.Title + ''),
       series: data.Series + '',
       developer: data.Developer + '',
       extreme: !!data.Hide,
@@ -61,5 +61,9 @@ export class GameParser {
         // TODO: Figure out the required path for other platforms.
         return value;
     }
+  }
+
+  private static decodeString(str: string): string {
+    return str.replace(/&amp;/g, '&');
   }
 }
