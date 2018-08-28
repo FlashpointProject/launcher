@@ -79,8 +79,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
 
   rowRenderer(props: ListRowProps): React.ReactNode {
     const game = (this.props.games as IGameInfo[])[props.index];
-    let thumbnail = this.props.gameThumbnails && 
-                    this.props.gameThumbnails.getFilePath(game.title);
+    let thumbnail = (this.props.gameThumbnails as GameThumbnailCollection).getFilePath(game.title);
     // Render
     return (
       <GameListItem key={props.key} {...props} game={game} thumbnail={thumbnail||''} />

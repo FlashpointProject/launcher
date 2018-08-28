@@ -31,10 +31,10 @@ export class GameThumbnailCollection {
    * Get the path to the thumbnail for a given game title
    * @param gameTitle Title of game
    */
-  public getFilePath(gameTitle: string): string {
+  public getFilePath(gameTitle: string): string|undefined {
     // Try getting the filename from the "cache"
     const filename = this._thumbnails[gameTitle];
-    if (filename) { return this._folderPath + filename; }
+    if (filename) { return this._folderPath + filename; } // Don't use path.join
     // Try getting the filename from the thumbnail folder
     const regex = GameThumbnailCollection.createRegex(gameTitle);
     const filenames = this._filenames.match(regex);
@@ -42,12 +42,10 @@ export class GameThumbnailCollection {
       // @TODO If there are multiple filenames found, maybe we should figure
       //       out which is most suitable (lowest index, shortest name, etc.)
       this._thumbnails[gameTitle] = filenames[0];
-      return this._folderPath + filenames[0];
-    } else { // No thumbnail found
-      console.error(`Thumbnail was not found for game: ${gameTitle}`);
-      this._thumbnails[gameTitle] = '';
-      return this._folderPath;
+      return this._folderPath + filenames[0]; // Don't use path.join
     }
+    // No thumbnail found
+    console.error(`Thumbnail was not found for game: ${gameTitle}`);
   }
 
   /**
