@@ -5,11 +5,11 @@ import { ISearchOnSearchEvent } from '../generic/search/Search';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { Thumbnail } from '../common/Thumbnail';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { LaunchBoxGame } from '../../../shared/launchbox/LaunchBoxGame';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   game: IGameInfo;
-  imageFolder: string;
+  /** Filename of games thumbnail */
+  thumbnail: string;
 }
 
 export class GameListItem extends React.Component<IGameListItemProps, {}> {
@@ -30,7 +30,7 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     return (
       <li style={this.props.style} className={className} onDoubleClick={this.onDoubleClick}>
         <Thumbnail
-          src={`${this.props.imageFolder}/${LaunchBoxGame.generateImageFilename(title)}-01.png`}
+          src={this.props.thumbnail}
           parentWidth={50} parentHeight={50}
           imageWidth={50} imageHeight={50}
           outerProps={{className:"game-list__item__thumb__border"}}

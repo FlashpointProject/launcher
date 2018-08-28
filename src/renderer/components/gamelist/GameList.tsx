@@ -1,12 +1,14 @@
 import * as React from 'react';
+import * as path from 'path';
 import { IDefaultProps } from '../../interfaces';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
+import { GameThumbnailCollection } from '../../GameThumbnailCollection';
 
 export interface IGameListProps extends IDefaultProps {
-  imageFolder?: string;
+  gameThumbnails?: GameThumbnailCollection;
   games?: IGameInfo[];
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
@@ -56,7 +58,12 @@ export class GameList extends React.Component<IGameListProps, {}> {
       <div className="game-list__no-games">
         <h1 className="game-list__no-games__title">No Games Found!</h1>
         <br/>
-        {(this.props.imageFolder === '') ? ( // Check if the "flashpointPath" setting in the config has been changed
+        {(this.props.gameThumbnails) ? ( // (If the flashpoint folder has been found)
+          <>
+            No game title matched your search.<br/>
+            Try searching for something less restrictive.
+          </>
+        ):(
           <>
             Have you set value of <i>"flashpointPath"</i> in <i>"config.json"</i>?<br/>
             It should point at the top folder of FlashPoint (Example: "C:/Users/Adam/Downloads/Flashpoint Infinity 4.0").<br/>
@@ -66,11 +73,6 @@ export class GameList extends React.Component<IGameListProps, {}> {
             Tip: Don't use single back-slashes ("\") in the path because that won't work.
             Use double back-slashes ("\\") or single forward-slashes ("/") instead.
           </>
-        ):(
-          <>
-            No game title matched your search.<br/>
-            Try searching for something less restrictive.
-          </>
         )}
       </div>
     );
@@ -78,9 +80,16 @@ export class GameList extends React.Component<IGameListProps, {}> {
 
   rowRenderer(props: ListRowProps): React.ReactNode {
     const game = (this.props.games as IGameInfo[])[props.index];
+    // Get path to thumbnail
+    let thumbnail: string = '';
+    if (this.props.gameThumbnails) {
+      thumbnail = path.join(this.props.gameThumbnails.folderPath,
+                            this.props.gameThumbnails.getFilename(game.title));
+      thumbnail = thumbnail.replace(/\\/g, '/');
+    }
     // Render
     return (
-      <GameListItem key={props.key} {...props} game={game} imageFolder={this.props.imageFolder||''} />
+      <GameListItem key={props.key} {...props} game={game} thumbnail={thumbnail} />
     );
   }
 }

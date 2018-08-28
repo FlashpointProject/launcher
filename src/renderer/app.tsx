@@ -13,6 +13,7 @@ import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { IGameCollection } from '../shared/game/interfaces';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
+import { GameThumbnailCollection } from './GameThumbnailCollection';
 
 export interface IAppProps {
   history?: any;
@@ -48,6 +49,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
+    // Load the filenames of all game thumbnails
+    const gameThumbnails = new GameThumbnailCollection();
+    gameThumbnails.loadFilenames(path.join(config.flashpointPath, './Arcade/Images/Flash/Box - Front'));
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
     .then((collection: IGameCollection) => {
@@ -55,6 +59,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         central: {
           collection: collection,
           flashpointPath: config.flashpointPath,
+          gameThumbnails: gameThumbnails,
         }
       });
     })

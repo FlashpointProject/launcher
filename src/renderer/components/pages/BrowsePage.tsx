@@ -18,9 +18,6 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
   }
 
   render() {
-    // Path to game icons
-    let flashpointPath: string = (this.props.central && this.props.central.flashpointPath) || '';
-    if (flashpointPath) { flashpointPath += '/Arcade/Images/Flash/Box - Front'; }
     // Order games
     const games: IGameInfo[] = this.orderGames();
     // Render
@@ -28,7 +25,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
     return (
       <div className="game-browser">
         <GameList games={games}
-                  imageFolder={flashpointPath}
+                  gameThumbnails={this.props.central && this.props.central.gameThumbnails}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   />

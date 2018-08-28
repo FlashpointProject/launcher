@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { IRawLaunchBoxPlatform } from '../shared/launchbox/interfaces';
 import { IGameCollection } from '../shared/game/interfaces';
+import { GameThumbnailCollection } from './GameThumbnailCollection';
 
 /**
  * "match" object from 'react-router' and 'history' npm packages
@@ -25,6 +26,10 @@ export interface IDefaultProps {
  * (Replace this with something more thought out and maintainable once the project has more structure)
  */
 export interface ICentralState {
+  /** All games that can be browsed and launched */
   collection?: IGameCollection;
+  /** Path to the root folder of FlashPoint */
   flashpointPath?: string;
+  /** Lookup table for all games thumbnail filenames */
+  gameThumbnails: GameThumbnailCollection;
 }
