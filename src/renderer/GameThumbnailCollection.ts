@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 
 interface IThumbnails {
   [key: string]: string|undefined;
@@ -12,40 +13,41 @@ export class GameThumbnailCollection {
   /** Path to the folder where the thumbnails are loaded from */
   private _folderPath: string = '';
 
-  public get folderPath(): string {
-    return this._folderPath;
-  }
-
   /**
    * Load the filenames of all (potential) thumbnails within a folder and store them
    * @param thumbnailDirPath Path to the folder
    */
   public loadFilenames(thumbnailDirPath: string): void {
-    this._folderPath = thumbnailDirPath;
-    fs.readdir(thumbnailDirPath, (error, files) => {
+    // (Make sure it ends with '/', and that all slashes are forward-slashes)
+    this._folderPath = path.normalize(thumbnailDirPath+'/').replace(/\\/g, '/');
+    // Get the filenames of all files in the thumbnail folder
+    fs.readdir(this._folderPath, (error, files) => {
       if (error) { throw error; }
       this._filenames = files.join('\n');
     });
   }
 
   /**
-   * Get the thumbnail filename for a given game title
+   * Get the path to the thumbnail for a given game title
    * @param gameTitle Title of game
-   * @return Filename of thumbnail
    */
-  public getFilename(gameTitle: string): string {
+  public getFilePath(gameTitle: string): string {
     // Try getting the filename from the "cache"
     const filename = this._thumbnails[gameTitle];
-    if (filename) { return filename; }
+    if (filename) { return this._folderPath + filename; }
     // Try getting the filename from the thumbnail folder
     const regex = GameThumbnailCollection.createRegex(gameTitle);
     const filenames = this._filenames.match(regex);
-    if (filenames) {
+    if (filenames) { // Thumbnail found
       // @TODO If there are multiple filenames found, maybe we should figure
       //       out which is most suitable (lowest index, shortest name, etc.)
-      return this._thumbnails[gameTitle] = filenames[0]; // Thumbnail found
+      this._thumbnails[gameTitle] = filenames[0];
+      return this._folderPath + filenames[0];
+    } else { // No thumbnail found
+      console.error(`Thumbnail was not found for game: ${gameTitle}`);
+      this._thumbnails[gameTitle] = '';
+      return this._folderPath;
     }
-    return this._thumbnails[gameTitle] = ''; // No thumbnail found
   }
 
   /**
@@ -73,13 +75,14 @@ export class GameThumbnailCollection {
 
   /** Create a regex that will find the thumbnail filename for a game */
   private static createRegex(title: string) {
-    title = GameThumbnailCollection.cleanTitle(title);
-    title = escapeRegExp(title);
-    title = title.replace(/ /g, ' +'); // (Allow any number of spaces)
-    return new RegExp(`^${title} *(?:\\..+)?-[0-9]{2}\\..+$`, 'm');
+    let cleanTitle = GameThumbnailCollection.cleanTitle(title);
+    cleanTitle = escapeRegExp(cleanTitle);
+    cleanTitle = cleanTitle.replace(/ /g, ' +'); // (Allow any number of spaces)
+    return new RegExp(`^${cleanTitle} *(?:\\..+)?-[0-9]{2}\\..+$`, 'm');
   }
 }
 
+/** Escape all special regex characters from a string */
 function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }

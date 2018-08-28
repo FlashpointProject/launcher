@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as path from 'path';
 import { IDefaultProps } from '../../interfaces';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameListItem } from './GameListItem';
@@ -80,16 +79,11 @@ export class GameList extends React.Component<IGameListProps, {}> {
 
   rowRenderer(props: ListRowProps): React.ReactNode {
     const game = (this.props.games as IGameInfo[])[props.index];
-    // Get path to thumbnail
-    let thumbnail: string = '';
-    if (this.props.gameThumbnails) {
-      thumbnail = path.join(this.props.gameThumbnails.folderPath,
-                            this.props.gameThumbnails.getFilename(game.title));
-      thumbnail = thumbnail.replace(/\\/g, '/');
-    }
+    let thumbnail = this.props.gameThumbnails && 
+                    this.props.gameThumbnails.getFilePath(game.title);
     // Render
     return (
-      <GameListItem key={props.key} {...props} game={game} thumbnail={thumbnail} />
+      <GameListItem key={props.key} {...props} game={game} thumbnail={thumbnail||''} />
     );
   }
 }
