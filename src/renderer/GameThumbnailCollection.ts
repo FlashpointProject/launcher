@@ -65,7 +65,7 @@ export class GameThumbnailCollection {
       return cleanTitle+'-'+((index<10)?'0':'')+index; // Add index (and pad it if only one digit)
     }
   }
-    
+
   /** Replace all invalid filesystem characters with underscores */
   private static cleanTitle(title: string): string {
     return title.replace(/[/\\?*:|"<>']/g, '_');
@@ -75,8 +75,8 @@ export class GameThumbnailCollection {
   private static createRegex(title: string) {
     title = GameThumbnailCollection.cleanTitle(title);
     title = escapeRegExp(title);
-    title = title.replace(/ /g, '(?: *)'); // (Allow any number of spaces)
-    return new RegExp(`^${title}(?:.*)-[0-9]{2}(?:\..+)?\..+$`, 'm');
+    title = title.replace(/ /g, ' +'); // (Allow any number of spaces)
+    return new RegExp(`^${title} *(?:\\..+)?-[0-9]{2}\\..+$`, 'm');
   }
 }
 
