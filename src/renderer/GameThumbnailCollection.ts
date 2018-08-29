@@ -18,8 +18,8 @@ export class GameThumbnailCollection {
    * @param thumbnailDirPath Path to the folder
    */
   public loadFilenames(thumbnailDirPath: string): void {
-    // (Make sure it ends with '/', and that all slashes are forward-slashes)
-    this._folderPath = path.normalize(thumbnailDirPath+'/').replace(/\\/g, '/');
+    // (Make sure that all slashes are forward-slashes)
+    this._folderPath = path.posix.normalize(thumbnailDirPath).replace(/\\/g, '/');
     // Get the filenames of all files in the thumbnail folder
     fs.readdir(this._folderPath, (error, files) => {
       if (error) { throw error; }
@@ -34,7 +34,7 @@ export class GameThumbnailCollection {
   public getFilePath(gameTitle: string): string|undefined {
     // Try getting the filename from the "cache"
     const filename = this._thumbnails[gameTitle];
-    if (filename) { return this._folderPath + filename; } // Don't use path.join
+    if (filename) { return path.posix.join(this._folderPath, filename); }
     // Try getting the filename from the thumbnail folder
     const regex = GameThumbnailCollection.createRegex(gameTitle);
     const filenames = this._filenames.match(regex);
@@ -42,7 +42,7 @@ export class GameThumbnailCollection {
       // @TODO If there are multiple filenames found, maybe we should figure
       //       out which is most suitable (lowest index, shortest name, etc.)
       this._thumbnails[gameTitle] = filenames[0];
-      return this._folderPath + filenames[0]; // Don't use path.join
+      return path.posix.join(this._folderPath, filenames[0]);
     }
     // No thumbnail found
     console.error(`Thumbnail was not found for game: ${gameTitle}`);
