@@ -12,11 +12,16 @@ export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   thumbnail: string;
   /** Height of the list item (in pixels) */
   height: number;
+  /** Called when the item is clicked */
+  onClick?: (index: number) => void;
+  /** If the list item is selected */
+  isSelected: boolean;
 }
 
 export class GameListItem extends React.Component<IGameListItemProps, {}> {
   constructor(props: IGameListItemProps) {
     super(props);
+    this.onClick = this.onClick.bind(this);
     this.onDoubleClick = this.onDoubleClick.bind(this);
   }
 
@@ -29,9 +34,14 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     if (this.props.index % 2 === 0) {
       className += ' game-list__item--even';
     }
+    // Add class if selected
+    if (this.props.isSelected) {
+      className += ' game-list__item--selected';
+    }
     // Render
     return (
-      <li style={this.props.style} className={className} onDoubleClick={this.onDoubleClick}>
+      <li style={this.props.style} className={className} 
+          onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
         <div className="game-list__item__thumb" style={{
           backgroundImage: `url("${this.props.thumbnail}")`,
           width: size,
@@ -43,6 +53,12 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
         </div>
       </li>
     );
+  }
+
+  onClick(event: React.MouseEvent<HTMLLIElement>): void {
+    if (this.props.onClick) {
+      this.props.onClick(this.props.index);
+    }
   }
 
   onDoubleClick(event: React.MouseEvent<HTMLLIElement>): void {

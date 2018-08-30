@@ -305,15 +305,25 @@ body {
   background-color: var(--theme__background-color);
   color: #aaa;
 }
+.game-list__item--even {
+  /* Pimp */
+  background-color: #1e1e1f
+}
 .game-list__item:hover {
   /* Pimp */
   background-color: #3c3c41;
   color: #e6e6e6;
   cursor: pointer;
 }
-.game-list__item--even {
+.game-list__item--selected {
   /* Pimp */
-  background-color: #1e1e1f
+  background-color: #791c76;
+  color: #cecece;
+}
+.game-list__item--selected:hover {
+  /* Pimp */
+  background-color: #a72aa2;
+  color: #e6e6e6;
 }
 /* GameList Item Thumb */
 .game-list__item__thumb {
