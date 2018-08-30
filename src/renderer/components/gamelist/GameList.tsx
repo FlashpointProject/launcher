@@ -38,7 +38,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
                 height={height}
                 rowHeight={this.props.rowHeight}
                 rowCount={games.length}
-                overscanRowCount={8}
+                overscanRowCount={15}
                 noRowsRenderer={this.noRowsRenderer}
                 rowRenderer={this.rowRenderer}
                 // Pass-through props (they have no direct effect on the list)
