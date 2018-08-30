@@ -316,20 +316,10 @@ body {
   background-color: #1e1e1f
 }
 /* GameList Item Thumb */
-.game-list__item__thumb__border,
-.game-list__item__thumb__wrapper,
-.game-list__item__thumb__image {
-	width: 50px;
-	height: 50px;
-}
-.game-list__item__thumb__border {
-	overflow: hidden;
-}
-.game-list__item__thumb__image {
-	background-repeat: no-repeat;
-	background-size: contain;
-}
-.game-list__item__thumb__wrapper {
+.game-list__item__thumb {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 /* GameList Item Title */
 .game-list__item__right {

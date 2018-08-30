@@ -3,7 +3,6 @@ import { IDefaultProps } from '../../interfaces';
 import { IRawLaunchBoxPlatform, IRawLaunchBoxGame } from '../../../shared/launchbox/interfaces';
 import { ISearchOnSearchEvent } from '../generic/search/Search';
 import { List, AutoSizer, ListRowProps } from 'react-virtualized';
-import { Thumbnail } from '../common/Thumbnail';
 import { IGameInfo } from '../../../shared/game/interfaces';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
@@ -29,14 +28,11 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     // Render
     return (
       <li style={this.props.style} className={className} onDoubleClick={this.onDoubleClick}>
-        <Thumbnail
-          src={this.props.thumbnail}
-          parentWidth={50} parentHeight={50}
-          imageWidth={50} imageHeight={50}
-          outerProps={{className:"game-list__item__thumb__border"}}
-          wrapperProps={{className:"game-list__item__thumb__wrapper"}}
-          imageProps={{className:"game-list__item__thumb__image"}}
-          />
+        <div className="game-list__item__thumb" style={{
+          backgroundImage: `url("${this.props.thumbnail}")`,
+          width: '50px',
+          height: '50px',
+        }} />
         <div className="game-list__item__right">
           <p className="game-list__item__right__title">{title}</p>
           <p className="game-list__item__right__genre">{game.genre}</p>
