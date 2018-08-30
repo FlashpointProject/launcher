@@ -105,15 +105,15 @@ type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
 
 /** Order games by their title alphabetically (ascending) */
 function orderByTitle(a: IGameInfo, b: IGameInfo): number {
-  if ((a.title||'') < (b.title||'')) { return -1; }
-  if ((a.title||'') > (b.title||'')) { return  1; }
+  if (a.title < b.title) { return -1; }
+  if (a.title > b.title) { return  1; }
   return 0;
 }
 
 /** Order games by their genre alphabetically (ascending) */
 function orderByGenre(a: IGameInfo, b: IGameInfo): number {
-  if ((a.genre||'') < (b.genre||'')) { return -1; }
-  if ((a.genre||'') > (b.genre||'')) { return  1; }
+  if (a.genre < b.genre) { return -1; }
+  if (a.genre > b.genre) { return  1; }
   return 0;
 }
 
