@@ -28,6 +28,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
                   gameThumbnails={this.props.central && this.props.central.gameThumbnails}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
+                  rowHeight={50}
                   />
       </div>
     );

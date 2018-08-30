@@ -6,9 +6,12 @@ import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { IGameInfo } from '../../../shared/game/interfaces';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
+  /** Game to show */
   game: IGameInfo;
-  /** Filename of games thumbnail */
+  /** Path to the games thumbnail */
   thumbnail: string;
+  /** Height of the list item (in pixels) */
+  height: number;
 }
 
 export class GameListItem extends React.Component<IGameListItemProps, {}> {
@@ -20,6 +23,7 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
   render() {
     const game = this.props.game;
     const title: string = game.title || '';
+    const size: string = (this.props.height || 0)+'px';
     let className: string = 'game-list__item';
     // Add class to all with an even index
     if (this.props.index % 2 === 0) {
@@ -30,8 +34,8 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
       <li style={this.props.style} className={className} onDoubleClick={this.onDoubleClick}>
         <div className="game-list__item__thumb" style={{
           backgroundImage: `url("${this.props.thumbnail}")`,
-          width: '50px',
-          height: '50px',
+          width: size,
+          height: size,
         }} />
         <div className="game-list__item__right">
           <p className="game-list__item__right__title">{title}</p>

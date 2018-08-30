@@ -9,6 +9,7 @@ import { GameThumbnailCollection } from '../../GameThumbnailCollection';
 export interface IGameListProps extends IDefaultProps {
   gameThumbnails?: GameThumbnailCollection;
   games?: IGameInfo[];
+  rowHeight: number;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -35,7 +36,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
                 className="game-list"
                 width={width}
                 height={height}
-                rowHeight={50}
+                rowHeight={this.props.rowHeight}
                 rowCount={games.length}
                 overscanRowCount={8}
                 noRowsRenderer={this.noRowsRenderer}
@@ -82,7 +83,10 @@ export class GameList extends React.Component<IGameListProps, {}> {
     let thumbnail = (this.props.gameThumbnails as GameThumbnailCollection).getFilePath(game.title);
     // Render
     return (
-      <GameListItem key={props.key} {...props} game={game} thumbnail={thumbnail||''} />
+      <GameListItem key={props.key} {...props} 
+                    game={game} 
+                    thumbnail={thumbnail||''} 
+                    height={this.props.rowHeight} />
     );
   }
 }
