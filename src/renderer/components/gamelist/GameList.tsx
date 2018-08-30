@@ -10,6 +10,7 @@ export interface IGameListProps extends IDefaultProps {
   gameThumbnails?: GameThumbnailCollection;
   games?: IGameInfo[];
   rowHeight: number;
+  noRowsRenderer?: () => JSX.Element;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -20,7 +21,6 @@ export class GameList extends React.Component<IGameListProps, {}> {
 
   constructor(props: IGameListProps) {
     super(props);
-    this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.rowRenderer = this.rowRenderer.bind(this);
   }
 
@@ -39,7 +39,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
                 rowHeight={this.props.rowHeight}
                 rowCount={games.length}
                 overscanRowCount={15}
-                noRowsRenderer={this.noRowsRenderer}
+                noRowsRenderer={this.props.noRowsRenderer}
                 rowRenderer={this.rowRenderer}
                 // Pass-through props (they have no direct effect on the list)
                 // (If any property is changed the list is re-rendered, even these)
@@ -49,31 +49,6 @@ export class GameList extends React.Component<IGameListProps, {}> {
             );
           }}
         </AutoSizer>
-      </div>
-    );
-  }
-
-  noRowsRenderer() {
-    return (
-      <div className="game-list__no-games">
-        <h1 className="game-list__no-games__title">No Games Found!</h1>
-        <br/>
-        {(this.props.gameThumbnails) ? ( // (If the flashpoint folder has been found)
-          <>
-            No game title matched your search.<br/>
-            Try searching for something less restrictive.
-          </>
-        ):(
-          <>
-            Have you set value of <i>"flashpointPath"</i> in <i>"config.json"</i>?<br/>
-            It should point at the top folder of FlashPoint (Example: "C:/Users/Adam/Downloads/Flashpoint Infinity 4.0").<br/>
-            <br/>
-            Note: You have to restart this application for the config file to reload.
-            <br/>
-            Tip: Don't use single back-slashes ("\") in the path because that won't work.
-            Use double back-slashes ("\\") or single forward-slashes ("/") instead.
-          </>
-        )}
       </div>
     );
   }

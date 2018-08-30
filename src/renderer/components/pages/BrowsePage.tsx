@@ -15,6 +15,7 @@ export interface IBrowsePageProps extends IDefaultProps {
 export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
   constructor(props: IBrowsePageProps) {
     super(props);
+    this.noRowsRenderer = this.noRowsRenderer.bind(this);
   }
 
   render() {
@@ -26,10 +27,36 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
       <div className="game-browser">
         <GameList games={games}
                   gameThumbnails={this.props.central && this.props.central.gameThumbnails}
+                  noRowsRenderer={this.noRowsRenderer}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   rowHeight={50}
                   />
+      </div>
+    );
+  }
+
+  private noRowsRenderer() {
+    return (
+      <div className="game-list__no-games">
+        <h1 className="game-list__no-games__title">No Games Found!</h1>
+        <br/>
+        {(this.props.central && this.props.central.collection) ? ( // (If the flashpoint folder has been found)
+          <>
+            No game title matched your search.<br/>
+            Try searching for something less restrictive.
+          </>
+        ):(
+          <>
+            Have you set value of <i>"flashpointPath"</i> in <i>"config.json"</i>?<br/>
+            It should point at the top folder of FlashPoint (Example: "C:/Users/Adam/Downloads/Flashpoint Infinity 4.0").<br/>
+            <br/>
+            Note: You have to restart this application for the config file to reload.
+            <br/>
+            Tip: Don't use single back-slashes ("\") in the path because that won't work.
+            Use double back-slashes ("\\") or single forward-slashes ("/") instead.
+          </>
+        )}
       </div>
     );
   }
