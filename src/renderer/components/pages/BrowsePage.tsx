@@ -5,11 +5,13 @@ import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameList } from '../gamelist/GameList';
 import { IGameOrderChangeEvent, GameOrderBy, GameOrderReverse } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
+import { lerp } from '../../Util';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
+  gameScale: number;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
@@ -19,10 +21,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
   }
 
   render() {
-    // Order games
     const games: IGameInfo[] = this.orderGames();
-    // Render
     const order = this.props.order || BrowsePage.defaultOrder;
+    const height: number = lerp(30, 175, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
     return (
       <div className="game-browser">
         <GameList games={games}
@@ -30,7 +31,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
                   noRowsRenderer={this.noRowsRenderer}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
-                  rowHeight={50}
+                  rowHeight={height}
                   />
       </div>
     );

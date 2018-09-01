@@ -13,3 +13,8 @@ export function forEach<T, U>(source: any, callbackfn: (value: T, key: string) =
   }
   return array;
 };
+
+/** Linear Interpolation */
+export function lerp(from: number, to: number, value: number) {
+  return from + (to - from) * value;
+}

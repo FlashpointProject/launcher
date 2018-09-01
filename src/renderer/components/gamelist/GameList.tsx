@@ -6,10 +6,13 @@ import { GameOrderBy, GameOrderReverse } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { GameThumbnailCollection } from '../../GameThumbnailCollection';
 import { RenderedSection } from 'react-virtualized/dist/es/Grid';
+import { findDOMNode } from 'react-dom';
 
 export interface IGameListProps extends IDefaultProps {
   gameThumbnails?: GameThumbnailCollection;
+  /** All games that will be shown in the list */
   games?: IGameInfo[];
+  /** Height of each row/item in the list (in pixels) */
   rowHeight: number;
   noRowsRenderer?: () => JSX.Element;
   // React-Virtualized Pass-through
@@ -22,6 +25,8 @@ export interface IGameListState {
 }
 
 export class GameList extends React.Component<IGameListProps, IGameListState> {
+  private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
+
   constructor(props: IGameListProps) {
     super(props);
     this.state = {
@@ -35,11 +40,19 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
     this.onRowsRendered = this.onRowsRendered.bind(this);
   }
 
+  componentDidMount(): void {
+    this.updateCssVars();
+  }
+
+  componentDidUpdate(): void {
+    this.updateCssVars();
+  }
+
   render() {
     const games = this.props.games || [];
     const rowCount = games.length;
     return (
-      <div className="game-browser" onKeyPress={this.onKeyPress}>
+      <div className="game-browser" ref={this._wrapper} onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => (
             <ArrowKeyStepper
@@ -52,6 +65,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
               {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
                 <List
                   className="game-list"
+                  styles={{ '--height': this.props.rowHeight }}
                   width={width}
                   height={height}
                   rowHeight={this.props.rowHeight}
@@ -94,7 +108,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
     );
   }
 
-  /** */
+  /** When a key is pressed (while the list, or one of its children, is selected) */
   onKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
     if (event.key === 'Enter') {
       if (!this.props.games) { throw new Error('Can not start game because the game list is empty.'); }
@@ -143,6 +157,13 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
   /** Start a game */
   startGame(game: IGameInfo): void {
     window.External.launchGameSync(game);
+  }
+
+  /** Update CSS Variables */
+  updateCssVars() {
+    const wrapper = this._wrapper.current;
+    if (!wrapper) { throw new Error('Browse Page wrapper div not found'); }
+    wrapper.style.setProperty('--height', this.props.rowHeight+'');
   }
 }
 
