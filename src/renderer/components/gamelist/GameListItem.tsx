@@ -14,6 +14,8 @@ export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   height: number;
   /** Called when the item is clicked */
   onClick?: (index: number) => void;
+  /** Called when the item is double clicked */
+  onDoubleClick?: (game: IGameInfo) => void;
   /** If the list item is selected */
   isSelected: boolean;
 }
@@ -62,6 +64,8 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
   }
 
   onDoubleClick(event: React.MouseEvent<HTMLLIElement>): void {
-    window.External.launchGameSync(this.props.game);
+    if (this.props.onDoubleClick) {
+      this.props.onDoubleClick(this.props.game);
+    }
   }
 }
