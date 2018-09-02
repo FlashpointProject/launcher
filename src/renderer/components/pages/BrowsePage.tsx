@@ -11,13 +11,21 @@ export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
+  /** Scale of the games */
   gameScale: number;
 }
 
-export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
+export interface IBrowsePageState {
+  /** Currently selected game (if any) */
+  selectedGame?: IGameInfo;
+}
+
+export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
   constructor(props: IBrowsePageProps) {
     super(props);
+    this.state = {};
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
+    this.onGameSelect = this.onGameSelect.bind(this);
   }
 
   render() {
@@ -26,13 +34,27 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
     const height: number = lerp(30, 175, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
     return (
       <div className="game-browser">
-        <GameList games={games}
-                  gameThumbnails={this.props.central && this.props.central.gameThumbnails}
-                  noRowsRenderer={this.noRowsRenderer}
-                  orderBy={order.orderBy}
-                  orderReverse={order.orderReverse}
-                  rowHeight={height}
-                  />
+        <div className="game-browser__left">
+          <GameList games={games}
+                    gameThumbnails={this.props.central && this.props.central.gameThumbnails}
+                    noRowsRenderer={this.noRowsRenderer}
+                    onGameSelect={this.onGameSelect}
+                    orderBy={order.orderBy}
+                    orderReverse={order.orderReverse}
+                    rowHeight={height}
+                    />
+        </div>
+        <div className="game-browser__right">
+          {(this.state.selectedGame) ? (
+            <>
+              <textarea readOnly style={{width:'30em',height:'100%'}} value={JSON.stringify(this.state.selectedGame, null, 2)} />
+            </>
+          ) : (
+            <>
+              Ooopsie
+            </>
+          )}
+        </div>
       </div>
     );
   }
@@ -60,6 +82,12 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
         )}
       </div>
     );
+  }
+
+  private onGameSelect(game?: IGameInfo): void {
+    if (this.state.selectedGame !== game) {
+      this.setState({ selectedGame: game });
+    }
   }
 
   /** Order the games according to the current settings */

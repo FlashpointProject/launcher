@@ -14,18 +14,24 @@ export interface IGameListProps extends IDefaultProps {
   games?: IGameInfo[];
   /** Height of each row/item in the list (in pixels) */
   rowHeight: number;
+  /** Renders instead of list items when it is empty */
   noRowsRenderer?: () => JSX.Element;
+  /** Called when a game is selected */
+  onGameSelect?: (game?: IGameInfo) => void;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
 }
 
 export interface IGameListState {
+  /** Index of the selected game (in the games props array) */
   scrollToIndex: number;
 }
 
 export class GameList extends React.Component<IGameListProps, IGameListState> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
+  /** Game that was selected on the previous update */
+  private _prevGameSelection: IGameInfo|undefined;
 
   constructor(props: IGameListProps) {
     super(props);
@@ -36,7 +42,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
     this.onItemClick = this.onItemClick.bind(this);
     this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
     this.onKeyPress = this.onKeyPress.bind(this);
-    this.selectIndex = this.selectIndex.bind(this);
+    this.onScrollToChange = this.onScrollToChange.bind(this);
     this.onRowsRendered = this.onRowsRendered.bind(this);
   }
 
@@ -46,6 +52,15 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
 
   componentDidUpdate(): void {
     this.updateCssVars();
+    // Check if the game selection has been changed
+    let game: IGameInfo|undefined;
+    if (this.props.games) {
+      game = this.props.games[this.state.scrollToIndex];
+    }
+    if (game !== this._prevGameSelection) {
+      if (this.props.onGameSelect) { this.props.onGameSelect(game); }
+      this._prevGameSelection = game;
+    }
   }
 
   render() {
@@ -56,7 +71,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
         <AutoSizer>
           {({ width, height }) => (
             <ArrowKeyStepper
-              onScrollToChange={this.selectIndex}
+              onScrollToChange={this.onScrollToChange}
               mode='cells'
               isControlled={true}
               columnCount={1}
@@ -116,27 +131,26 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
       if (index >= 0 && index < this.props.games.length) {
         const game = this.props.games[index];
         if (!game) { throw new Error('Can not start game because game is not in game list.'); }
-        this.startGame(game);        
+        this.startGame(game);
       }
     }
   }
 
   /** When a list item is clicked */
-  onItemClick(index: number): void {
+  onItemClick(game: IGameInfo, index: number): void {
     this.setState({ scrollToIndex: index });
   }
   
   /** When a list item is double clicked */
-  onItemDoubleClick(game: IGameInfo): void {
+  onItemDoubleClick(game: IGameInfo, index: number): void {
     this.startGame(game);
   }
 
-  /** Select a row / list item */
-  selectIndex(params: Partial<ScrollIndices>): void {
+  /** When a row/item is selected */
+  onScrollToChange(params: Partial<ScrollIndices>): void {
     this.setState({
-      scrollToIndex: params.scrollToRow === undefined ? 
-                   this.state.scrollToIndex :
-                   params.scrollToRow
+      scrollToIndex: params.scrollToRow !== undefined ? params.scrollToRow :
+                                                        this.state.scrollToIndex
     });
   }
 
