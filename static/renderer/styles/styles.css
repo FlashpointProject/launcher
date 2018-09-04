@@ -330,7 +330,11 @@ body {
   flex: 1 0 auto;
 }
 .game-browser__right {
+  width: 20em;
   padding: 0.25em;
+}
+.game-browser__right p {
+  display: inline;
 }
 
 /* GameList */

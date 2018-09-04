@@ -6,6 +6,7 @@ import { GameList } from '../gamelist/GameList';
 import { IGameOrderChangeEvent, GameOrderBy, GameOrderReverse } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { lerp } from '../../Util';
+import { EditableTextWrap } from '../generic/EditableTextWrap';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
@@ -32,6 +33,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const games: IGameInfo[] = this.orderGames();
     const order = this.props.order || BrowsePage.defaultOrder;
     const height: number = lerp(30, 175, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+    const selectedGame = this.state.selectedGame;
     return (
       <div className="game-browser">
         <div className="game-browser__left">
@@ -45,9 +47,38 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                     />
         </div>
         <div className="game-browser__right">
-          {(this.state.selectedGame) ? (
+          {(selectedGame) ? (
             <>
-              <textarea readOnly style={{width:'30em',height:'100%'}} value={JSON.stringify(this.state.selectedGame, null, 2)} />
+              <b><EditableTextWrap text={selectedGame.title} target={selectedGame}
+                                   onEditDone={this.wrapOnEditDone((game, text) => { game.title = text; })}/></b>
+              <div>
+                by <EditableTextWrap text={selectedGame.developer} target={selectedGame}
+                                     onEditDone={this.wrapOnEditDone((game, text) => { game.developer = text; })}/>
+              </div>
+              <br/>
+              <div>
+                Genre: <EditableTextWrap text={selectedGame.genre} target={selectedGame}
+                                         onEditDone={this.wrapOnEditDone((game, text) => { game.genre = text; })}/>
+              </div>
+              <div>
+                Extreme: <EditableTextWrap text={selectedGame.extreme ? 'Yes' : 'No'} target={selectedGame}/>
+              </div>
+              <div>
+                Series: <EditableTextWrap text={selectedGame.series || 'N/A'} target={selectedGame}
+                                          onEditDone={this.wrapOnEditDone((game, text) => { game.series = text; })}/>
+              </div>
+              <div>
+                Source: <EditableTextWrap text={selectedGame.source} target={selectedGame}
+                                          onEditDone={this.wrapOnEditDone((game, text) => { game.source = text; })}/>
+              </div>
+              <div>
+                Launch Command: <EditableTextWrap text={selectedGame.launchCommand} target={selectedGame}
+                                                  onEditDone={this.wrapOnEditDone((game, text) => { game.launchCommand = text; })}/>
+              </div>
+              <div>
+                Application Path: <EditableTextWrap text={selectedGame.applicationPath} target={selectedGame}
+                                                    onEditDone={this.wrapOnEditDone((game, text) => { game.applicationPath = text; })}/>
+              </div>
             </>
           ) : (
             <>
@@ -87,6 +118,19 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private onGameSelect(game?: IGameInfo): void {
     if (this.state.selectedGame !== game) {
       this.setState({ selectedGame: game });
+    }
+  }
+
+  /** Create a wrapper for a onEditDone calllback (this is to reduce redundancy) */
+  private wrapOnEditDone(func: (game: IGameInfo, text: string) => void) {
+    const selected = this.state.selectedGame;
+    if (selected) {
+      return (text: string) => {
+        func(selected, text);
+        this.setState({ selectedGame: selected });
+      }
+    } else {
+      return () => { /* Do Nothing */ }; // (Return no-op)
     }
   }
 
