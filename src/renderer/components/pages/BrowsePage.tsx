@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { IDefaultProps, ICentralState } from '../../interfaces';
 import { ISearchOnSearchEvent } from '../generic/search/Search';
-import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameList } from '../gamelist/GameList';
-import { IGameOrderChangeEvent, GameOrderBy, GameOrderReverse } from '../GameOrder';
+import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { lerp } from '../../Util';
 import { EditableTextWrap } from '../generic/EditableTextWrap';
+import { CheckBox } from '../generic/CheckBox';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
@@ -61,7 +61,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                          onEditDone={this.wrapOnEditDone((game, text) => { game.genre = text; })}/>
               </div>
               <div>
-                Extreme: <EditableTextWrap text={selectedGame.extreme ? 'Yes' : 'No'} target={selectedGame}/>
+                Extreme: <CheckBox checked={selectedGame.extreme} 
+                                   onChange={this.wrapOnCheckBoxChange((game, isChecked) => { game.extreme = isChecked; })}/>
               </div>
               <div>
                 Series: <EditableTextWrap text={selectedGame.series || 'N/A'} target={selectedGame}
@@ -121,7 +122,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     }
   }
 
-  /** Create a wrapper for a onEditDone calllback (this is to reduce redundancy) */
+  /** Create a wrapper for a EditableTextWrap's onEditDone calllback (this is to reduce redundancy) */
   private wrapOnEditDone(func: (game: IGameInfo, text: string) => void) {
     const selected = this.state.selectedGame;
     if (selected) {
@@ -129,9 +130,22 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
         func(selected, text);
         this.setState({ selectedGame: selected });
       }
-    } else {
-      return () => { /* Do Nothing */ }; // (Return no-op)
     }
+    return undefined;
+  }
+
+  /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
+  private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void) {
+    const selected = this.state.selectedGame;
+    console.log(selected);
+    if (selected) {
+      return (isChecked: boolean) => {
+        func(selected, isChecked);
+        console.log(selected);
+        this.setState({ selectedGame: selected });
+      }
+    }
+    return undefined;
   }
 
   /** Order the games according to the current settings */
