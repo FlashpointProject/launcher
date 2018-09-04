@@ -137,11 +137,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void) {
     const selected = this.state.selectedGame;
-    console.log(selected);
     if (selected) {
       return (isChecked: boolean) => {
         func(selected, isChecked);
-        console.log(selected);
         this.setState({ selectedGame: selected });
       }
     }
