@@ -17,20 +17,21 @@ export interface IAppRouterProps {
   order?: IGameOrderChangeEvent;
   logData: string;
   config: IAppConfigData;
+  gameScale: number;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
   render() {
-    const props = {
+    const browseProps = {
       central: this.props.central,
       search: this.props.search,
       order: this.props.order,
+      gameScale: this.props.gameScale,
     };
-
     return (
       <Switch>
         <Route exact path="/" component={HomePage} />
-        <PropsRoute path="/browse" component={BrowsePage} {...props} />
+        <PropsRoute path="/browse" component={BrowsePage} {...browseProps} />
         <PropsRoute path="/logs" component={LogsPage} logData={this.props.logData} />
         <PropsRoute path="/config" component={ConfigPage} config={this.props.config} />
         <Route path="/about" component={AboutPage} />

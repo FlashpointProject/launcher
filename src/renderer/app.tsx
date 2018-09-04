@@ -24,6 +24,8 @@ export interface IAppState {
   order?: IGameOrderChangeEvent;
   logData: string;
   config: IAppConfigData;
+  /** Scale of games at the browse page */
+  gameScale: number;
 
   useCustomTitlebar: boolean;
 }
@@ -33,7 +35,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   constructor(props: IAppProps) {
     super(props);
-
     // Get the config from the main process
     const config = window.External.getConfigSync();
     // Normal constructor stuff
@@ -42,12 +43,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       search: undefined,
       order: undefined,
       logData: '',
-
       config: config,
+      gameScale: 0.5,
       useCustomTitlebar: config.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
+    this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     // Load the filenames of all game thumbnails
     const gameThumbnails = new GameThumbnailCollection();
@@ -102,6 +104,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       order: this.state.order,
       logData: this.state.logData,
       config: this.state.config,
+      gameScale: this.state.gameScale,
     };
     // Render
     return (
@@ -124,7 +127,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           </noscript>
         </div>
         {/* "Footer" stuff */}
-        <Footer gameCount={gameCount} />
+        <Footer gameCount={gameCount} onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale} />
       </>
     );
   }
@@ -139,6 +142,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onOrderChange(event: IGameOrderChangeEvent): void {
     this.setState({
       order: event,
+    });
+  }
+
+  private onScaleSliderChange(value: number): void {
+    this.setState({
+      gameScale: value,
     });
   }
 }
