@@ -20,7 +20,6 @@ export class CheckBox extends React.Component<ICheckBoxProps, {}> {
   }
 
   onChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    console.log('onChange', event.target.checked);
     if (this.props.onChange) { this.props.onChange(event.target.checked); }
   }
 }
