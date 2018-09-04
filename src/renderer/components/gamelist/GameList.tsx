@@ -6,7 +6,6 @@ import { GameOrderBy, GameOrderReverse } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { GameThumbnailCollection } from '../../GameThumbnailCollection';
 import { RenderedSection } from 'react-virtualized/dist/es/Grid';
-import { findDOMNode } from 'react-dom';
 
 export interface IGameListProps extends IDefaultProps {
   gameThumbnails?: GameThumbnailCollection;
@@ -14,7 +13,7 @@ export interface IGameListProps extends IDefaultProps {
   games?: IGameInfo[];
   /** Height of each row/item in the list (in pixels) */
   rowHeight: number;
-  /** Renders instead of list items when it is empty */
+  /** Function that renders the child(ren) of the game list when it is empty */
   noRowsRenderer?: () => JSX.Element;
   /** Called when a game is selected */
   onGameSelect?: (game?: IGameInfo) => void;
@@ -24,7 +23,7 @@ export interface IGameListProps extends IDefaultProps {
 }
 
 export interface IGameListState {
-  /** Index of the selected game (in the games props array) */
+  /** Index of the currently selected row */
   scrollToIndex: number;
 }
 
@@ -80,7 +79,6 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
               {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
                 <List
                   className="game-list"
-                  styles={{ '--height': this.props.rowHeight }}
                   width={width}
                   height={height}
                   rowHeight={this.props.rowHeight}
@@ -124,7 +122,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
   }
 
   /** When a key is pressed (while the list, or one of its children, is selected) */
-  onKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
+  onKeyPress(event: React.KeyboardEvent): void {
     if (event.key === 'Enter') {
       if (!this.props.games) { throw new Error('Can not start game because the game list is empty.'); }
       const index: number = this.state.scrollToIndex;
@@ -138,7 +136,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
 
   /** When a list item is clicked */
   onItemClick(game: IGameInfo, index: number): void {
-    this.setState({ scrollToIndex: index });
+    this.setState({ scrollToIndex: index }); // Select that row / list item
   }
   
   /** When a list item is double clicked */
