@@ -336,6 +336,14 @@ body {
 .game-browser__right p {
   display: inline;
 }
+.game-browser__right--none { /* No Game Selected */
+  padding: 1em 0;
+  text-align: center;
+}
+.game-browser__right--none p {
+  font-size: 1.5em;
+  font-weight: bold;
+}
 
 /* GameList */
 .game-list {

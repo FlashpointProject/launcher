@@ -46,7 +46,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                     rowHeight={height}
                     />
         </div>
-        <div className="game-browser__right">
+        <div className={'game-browser__right'+(selectedGame?'':' game-browser__right--none')}>
           {(selectedGame) ? (
             <>
               <b><EditableTextWrap text={selectedGame.title} target={selectedGame}
@@ -82,9 +82,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               </div>
             </>
           ) : (
-            <>
-              Ooopsie
-            </>
+            <p>No game selected.</p>
           )}
         </div>
       </div>
