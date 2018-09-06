@@ -7,7 +7,7 @@ export interface IEditableTextProps {
   isEditing?: boolean;
   /** When the "edit text" is changed */
   onTextChange?: (text: string) => void;
-  /**  */
+  /** When a key is pressed down while in edit mode (if edit element has focus) */
   onKeyDown?: (event: React.KeyboardEvent) => void;
   /** When the normal text is clicked (this is NOT in edit mode) */
   onTextClick?: (event: React.MouseEvent<HTMLParagraphElement>) => void;
@@ -15,6 +15,10 @@ export interface IEditableTextProps {
   onEditClick?: (event: React.MouseEvent<HTMLInputElement>) => void;
   /** When the edit is complete */
   onEditDone?: (text: string) => void;
+  /** Style to forward to the text element (when not editing) */
+  textStyle?: React.CSSProperties;
+  /** Style to forward to the edit element (when editing) */
+  editStyle?: React.CSSProperties;
 }
 
 export interface IEditableTextState {
@@ -50,9 +54,9 @@ export class EditableText extends React.Component<IEditableTextProps, IEditableT
     return (
       this.props.isEditing ? (
         <input value={this.state.editText} onChange={this.onInputChange} onClick={this.props.onEditClick}
-               onKeyDown={this.onKeyDown} ref={this._edit} />
+               onKeyDown={this.onKeyDown} style={this.props.editStyle} ref={this._edit} />
       ) : (
-        <p onClick={this.props.onTextClick}>
+        <p onClick={this.props.onTextClick} style={this.props.textStyle}>
           {this.props.text}
         </p>
       )

@@ -4,6 +4,10 @@ import { EditableText } from './EditableText';
 export interface IEditableTextWrapProps {
   /** Text to show (while not editing and the default when editing) */
   text: string;
+  /** Style to forward to the text element (when not editing) */
+  textStyle?: React.CSSProperties;
+  /** Style to forward to the edit element (when editing) */
+  editStyle?: React.CSSProperties;
   /** When the edit is complete */
   onEditDone?: (text: string) => void;
   /** When the value of this is changed, this component's state is "reset" */
