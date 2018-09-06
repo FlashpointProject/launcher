@@ -45,9 +45,11 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                     rowHeight={height}
                     />
         </div>
-        <div className={'game-browser__right'+(selectedGame?'':' game-browser__right--none')}>
-          <BrowseSidebar selectedGame={this.state.selectedGame} />
-        </div>
+        {(games.length > 0)?(
+          <div className={'game-browser__right'+(selectedGame?'':' game-browser__right--none')}>
+            <BrowseSidebar selectedGame={this.state.selectedGame} />
+          </div>
+        ):undefined}
       </div>
     );
   }
@@ -64,13 +66,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           </>
         ):(
           <>
-            Have you set value of <i>"flashpointPath"</i> in <i>"config.json"</i>?<br/>
-            It should point at the top folder of FlashPoint (Example: "C:/Users/Adam/Downloads/Flashpoint Infinity 4.0").<br/>
+            Have you set the path to the <b>Flashpoint directory</b> at the <i>Config</i> page?<br/>
             <br/>
-            Note: You have to restart this application for the config file to reload.
-            <br/>
-            Tip: Don't use single back-slashes ("\") in the path because that won't work.
-            Use double back-slashes ("\\") or single forward-slashes ("/") instead.
+            Note: You have to press <b>"Save & Exit"</b> and restart the application for the games to load.
           </>
         )}
       </div>
