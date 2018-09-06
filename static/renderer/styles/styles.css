@@ -501,7 +501,7 @@ body {
   color: var(--theme__text-color);
 }
 /* Row - SaveAndExit */
-.config-page .save-and-exit input[type="button"] {
+.config-page .save-and-restart input[type="button"] {
   font-size: 1.075em;
 }
 

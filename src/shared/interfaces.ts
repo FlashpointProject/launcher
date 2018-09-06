@@ -29,6 +29,9 @@ export interface IMainWindowExternal {
   /** Close the window */
   close(): void;
 
+  /** Restart the application (closes all windows) */
+  restart(): void;
+
   /** Wrapper of Electron.dialog.showOpenDialog() */
   showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined;
   

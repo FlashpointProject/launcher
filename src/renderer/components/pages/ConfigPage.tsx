@@ -29,14 +29,14 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     };
     this.onFlashpointPathChange = this.onFlashpointPathChange.bind(this);
     this.onUseCustomTitlebarChange = this.onUseCustomTitlebarChange.bind(this);
-    this.onSaveAndExitClick = this.onSaveAndExitClick.bind(this);
+    this.onSaveAndRestartClick = this.onSaveAndRestartClick.bind(this);
   }
 
   render() {
     return (
       <div className="config-page">
         <h1 className="config-page__title">Config</h1>
-        <i>(You must press "Save & Exit" for changes to take effect)</i>
+        <i>(You must press "Save & Restart" for changes to take effect)</i>
         <div className="setting">
           <div className="setting__row">
             <p className="setting__title">FlashPoint Path:</p>
@@ -55,8 +55,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
           </div>
         </div>
         <div className="setting">
-          <div className="setting__row save-and-exit">
-            <input type="button" value="Save & Exit" className="simple-button" onClick={this.onSaveAndExitClick} />
+          <div className="setting__row save-and-restart">
+            <input type="button" value="Save & Restart" className="simple-button" onClick={this.onSaveAndRestartClick} />
           </div>
         </div>
       </div>
@@ -76,16 +76,16 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     this.setState({ useCustomTitlebar: isChecked });
   }
 
-  /** When the "Save & Exit" button is clicked */
-  onSaveAndExitClick(event: React.MouseEvent<HTMLInputElement>) {
+  /** When the "Save & Restart" button is clicked */
+  onSaveAndRestartClick(event: React.MouseEvent<HTMLInputElement>) {
     // Create new config
     let newConfig = recursiveReplace(deepCopy(this.props.config), {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
     });
-    // Save new config to file, then exit the app
+    // Save new config to file, then restart the app
     AppConfig.saveConfigFile(newConfig)
-    .then(() => { window.External.close(); })
+    .then(() => { window.External.restart(); })
     .catch((error: Error) => { console.log(error); });
   }
 }

@@ -70,7 +70,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               <>
                 Have you set the path to the <b>Flashpoint directory</b> at the <i>Config</i> page?<br/>
                 <br/>
-                Note: You have to press <b>"Save & Exit"</b> and restart the application for the games to load.
+                Note: You have to press <b>"Save & Restart"</b> for the games to load.
               </>
             )}
           </>

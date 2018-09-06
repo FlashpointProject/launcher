@@ -1,4 +1,4 @@
-import * as Electron from 'electron';
+import * as electron from 'electron';
 import * as fs from 'fs';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { IGameInfo } from '../shared/game/interfaces';
@@ -11,32 +11,32 @@ window.External = Object.freeze({
   /** @inheritDoc */
   launchGameSync(game: IGameInfo) {
     // Send a "Launch Game" event to the main process
-    Electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.launchCommand || '']);
+    electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.launchCommand || '']);
   },
 
   /** @inheritDoc */
   getConfigSync(): IAppConfigData {
     // Send a "Get Config Sync" event to the main process
-    return Electron.ipcRenderer.sendSync('get-config-sync');
+    return electron.ipcRenderer.sendSync('get-config-sync');
   },
 
   /** @inheritdoc */
   resendLogDataUpdate() {
-    Electron.ipcRenderer.send('resend-log-data-update');
+    electron.ipcRenderer.send('resend-log-data-update');
   },
 
   /** @inheritDoc */
-  platform: Electron.remote.process.platform+'' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
+  platform: electron.remote.process.platform+'' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
 
   /** @inheritDoc */
   minimize() {
-    const currentWindow = Electron.remote.getCurrentWindow();
+    const currentWindow = electron.remote.getCurrentWindow();
     currentWindow.minimize();
   },
 
   /** @inheritDoc */
   maximize() {
-    const currentWindow = Electron.remote.getCurrentWindow();
+    const currentWindow = electron.remote.getCurrentWindow();
     if(currentWindow.isMaximized()) {
       currentWindow.unmaximize();
     } else {
@@ -46,16 +46,22 @@ window.External = Object.freeze({
 
   /** @inheritDoc */
   close() {
-    const currentWindow = Electron.remote.getCurrentWindow();
+    const currentWindow = electron.remote.getCurrentWindow();
     currentWindow.close();
   },
 
   /** @inheritDoc */
-  showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined {
+  restart() {
+    electron.remote.app.relaunch();
+    electron.remote.app.quit();
+  },
+
+  /** @inheritDoc */
+  showOpenDialog(options: electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined {
     // (Slicing a "remote object" array will make a local copy of it - i think)
     if (callback) {
       // (Returns undefined if a callback is passed)
-      Electron.remote.dialog.showOpenDialog(options,
+      electron.remote.dialog.showOpenDialog(options,
         (filePaths: string[], bookmarks: string[]) => {
           callback(filePaths && filePaths.slice(),
                    bookmarks && bookmarks.slice());
@@ -63,7 +69,7 @@ window.External = Object.freeze({
       );
     } else {
       // (Returns either undefined or string[] if no callback is passed)
-      const val = Electron.remote.dialog.showOpenDialog(options);
+      const val = electron.remote.dialog.showOpenDialog(options);
       return val && val.slice();
     }
   },
