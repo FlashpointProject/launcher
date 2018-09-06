@@ -324,6 +324,51 @@ body {
 .game-browser {
   width: 100%;
   height: 100%;
+  display: flex;
+}
+.game-browser__left {
+  flex: 1 0 auto;
+}
+.game-browser__right {
+  width: 20em;
+}
+.game-browser__right p {
+  display: inline;
+}
+.game-browser__right--none { /* No Game Selected */
+  padding: 1em 0;
+  text-align: center;
+}
+.game-browser__right--none p {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+/* BrowserSidebar */
+.browse-sidebar {
+  width: 100%;
+  height: 100%;
+  padding: 0.5em 0.8em;
+}
+/* BrowserSidebar Section */
+.browse-sidebar__section {
+  margin-bottom: 1.2rem;
+}
+.browse-sidebar__section:last-child {
+  margin-bottom: 0;
+}
+/* BrowserSidebar Row */
+.browse-sidebar__row {
+  margin-bottom: 0.2rem;
+}
+.browse-sidebar__row p {
+  user-select: none;
+  cursor: default;
+}
+.browse-sidebar__row--title {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 0;
 }
 
 /* GameList */

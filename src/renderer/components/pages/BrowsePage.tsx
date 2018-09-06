@@ -1,38 +1,53 @@
 import * as React from 'react';
 import { IDefaultProps, ICentralState } from '../../interfaces';
 import { ISearchOnSearchEvent } from '../generic/search/Search';
-import { List, AutoSizer, ListRowProps } from 'react-virtualized';
 import { GameList } from '../gamelist/GameList';
-import { IGameOrderChangeEvent, GameOrderBy, GameOrderReverse } from '../GameOrder';
+import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { lerp } from '../../Util';
+import { BrowseSidebar } from '../browse/BrowseSidebar';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
+  /** Scale of the games */
   gameScale: number;
 }
 
-export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
+export interface IBrowsePageState {
+  /** Currently selected game (if any) */
+  selectedGame?: IGameInfo;
+}
+
+export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
   constructor(props: IBrowsePageProps) {
     super(props);
+    this.state = {};
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
+    this.onGameSelect = this.onGameSelect.bind(this);
   }
 
   render() {
     const games: IGameInfo[] = this.orderGames();
     const order = this.props.order || BrowsePage.defaultOrder;
     const height: number = lerp(30, 175, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+    const selectedGame = this.state.selectedGame;
     return (
       <div className="game-browser">
-        <GameList games={games}
-                  gameThumbnails={this.props.central && this.props.central.gameThumbnails}
-                  noRowsRenderer={this.noRowsRenderer}
-                  orderBy={order.orderBy}
-                  orderReverse={order.orderReverse}
-                  rowHeight={height}
-                  />
+        <div className="game-browser__left">
+          <GameList games={games}
+                    gameThumbnails={this.props.central && this.props.central.gameThumbnails}
+                    noRowsRenderer={this.noRowsRenderer}
+                    onGameSelect={this.onGameSelect}
+                    orderBy={order.orderBy}
+                    orderReverse={order.orderReverse}
+                    rowHeight={height}
+                    />
+        </div>
+        <div className={'game-browser__right'+(selectedGame?'':' game-browser__right--none')}>
+          <BrowseSidebar selectedGame={this.state.selectedGame} />
+        </div>
       </div>
     );
   }
@@ -60,6 +75,12 @@ export class BrowsePage extends React.Component<IBrowsePageProps, {}> {
         )}
       </div>
     );
+  }
+
+  private onGameSelect(game?: IGameInfo): void {
+    if (this.state.selectedGame !== game) {
+      this.setState({ selectedGame: game });
+    }
   }
 
   /** Order the games according to the current settings */
