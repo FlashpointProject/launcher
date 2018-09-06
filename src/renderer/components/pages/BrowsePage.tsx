@@ -57,18 +57,26 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private noRowsRenderer() {
     return (
       <div className="game-list__no-games">
-        <h1 className="game-list__no-games__title">No Games Found!</h1>
-        <br/>
-        {(this.props.central && this.props.central.collection) ? ( // (If the flashpoint folder has been found)
+        {this.props.central?( // (Game loading complete - kind of a hacky way to check)
           <>
-            No game title matched your search.<br/>
-            Try searching for something less restrictive.
+            <h1 className="game-list__no-games__title">No Games Found!</h1>
+            <br/>
+            {(this.props.central.collection && this.props.central.collection.games.length > 0)?(
+              <>
+                No game title matched your search.<br/>
+                Try searching for something less restrictive.
+              </>
+            ):(
+              <>
+                Have you set the path to the <b>Flashpoint directory</b> at the <i>Config</i> page?<br/>
+                <br/>
+                Note: You have to press <b>"Save & Exit"</b> and restart the application for the games to load.
+              </>
+            )}
           </>
         ):(
           <>
-            Have you set the path to the <b>Flashpoint directory</b> at the <i>Config</i> page?<br/>
-            <br/>
-            Note: You have to press <b>"Save & Exit"</b> and restart the application for the games to load.
+            Loading...
           </>
         )}
       </div>

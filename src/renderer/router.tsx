@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { HomePage } from './components/pages/HomePage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import { BrowsePage } from './components/pages/BrowsePage';
 import { ISearchOnSearchEvent } from './components/generic/search/Search';
@@ -10,6 +9,7 @@ import { IGameOrderChangeEvent } from './components/GameOrder';
 import LogsPage from './components/pages/LogsPage';
 import { ConfigPage } from './components/pages/ConfigPage';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
+import { Paths } from './Paths';
 
 export interface IAppRouterProps {
   central?: ICentralState;
@@ -30,11 +30,10 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     };
     return (
       <Switch>
-        <Route exact path="/" component={HomePage} />
-        <PropsRoute path="/browse" component={BrowsePage} {...browseProps} />
-        <PropsRoute path="/logs" component={LogsPage} logData={this.props.logData} />
-        <PropsRoute path="/config" component={ConfigPage} config={this.props.config} />
-        <Route path="/about" component={AboutPage} />
+        <PropsRoute exact path={Paths.browse} component={BrowsePage} {...browseProps} />
+        <PropsRoute path={Paths.logs} component={LogsPage} logData={this.props.logData} />
+        <PropsRoute path={Paths.config} component={ConfigPage} config={this.props.config} />
+        <Route path={Paths.about} component={AboutPage} />
         <Route component={NotFoundPage} />
       </Switch>
     );

@@ -14,6 +14,7 @@ import { IGameOrderChangeEvent } from './components/GameOrder';
 import { IGameCollection } from '../shared/game/interfaces';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { GameThumbnailCollection } from './GameThumbnailCollection';
+import { Paths } from './Paths';
 
 export interface IAppProps {
   history?: any;
@@ -57,15 +58,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
     .then((collection: IGameCollection) => {
-      this.setState({
-        central: {
-          collection: collection,
-          flashpointPath: config.flashpointPath,
-          gameThumbnails: gameThumbnails,
-        }
-      });
+      this.onDataLoaded(gameThumbnails, collection);
     })
-    .catch(console.log);
+    .catch((error) => {
+      console.error(error);
+      this.onDataLoaded(gameThumbnails);
+    });
   }
 
   componentDidMount() {
@@ -90,7 +88,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let redirect = null;
     if (this._onSearch) {
       this._onSearch = false;
-      redirect = <Redirect to="/browse" push={true} />;
+      redirect = <Redirect to={Paths.browse} push={true} />;
     }
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
@@ -130,6 +128,16 @@ export class App extends React.Component<IAppProps, IAppState> {
         <Footer gameCount={gameCount} onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale} />
       </>
     );
+  }
+
+  private onDataLoaded(gameThumbnails: GameThumbnailCollection, collection?: IGameCollection) {
+    this.setState({
+      central: {
+        collection: collection || { games: [] },
+        flashpointPath: this.state.config.flashpointPath,
+        gameThumbnails: gameThumbnails,
+      }
+    });
   }
 
   private onSearch(event: ISearchOnSearchEvent): void {

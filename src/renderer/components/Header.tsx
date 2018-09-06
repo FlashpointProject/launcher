@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, ISearchOnSearchEvent } from './generic/search/Search';
 import { IDefaultProps } from '../interfaces';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
+import { Paths } from '../Paths';
 
 export interface IHeaderProps extends IDefaultProps {
   onSearch?: (event: ISearchOnSearchEvent) => void;
@@ -30,19 +31,16 @@ export class Header extends React.Component<IHeaderProps, {}> {
         {/* Header Menu */}
         <ul className="header__menu">
           <li className="header__menu__item">
-            <Link to="/" className="header__menu__item__link">Home</Link>
+            <Link to={Paths.browse} className="header__menu__item__link">Browse</Link>
           </li>
           <li className="header__menu__item">
-            <Link to="/browse" className="header__menu__item__link">Browse</Link>
+            <Link to={Paths.logs} className="header__menu__item__link">Logs</Link>
           </li>
           <li className="header__menu__item">
-            <Link to="/logs" className="header__menu__item__link">Logs</Link>
+            <Link to={Paths.config} className="header__menu__item__link">Config</Link>
           </li>
           <li className="header__menu__item">
-            <Link to="/config" className="header__menu__item__link">Config</Link>
-          </li>
-          <li className="header__menu__item">
-            <Link to="/about" className="header__menu__item__link">About</Link>
+            <Link to={Paths.about} className="header__menu__item__link">About</Link>
           </li>
         </ul>
         {/* Header Search */}
