@@ -10,6 +10,15 @@ export interface IBrowseSidebarProps {
 
 /** Sidebar for BrowsePage */
 export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
+  private onTitleEditDone           = this.wrapOnEditDone((game, text) => { game.title = text; });
+  private onDeveloperEditDone       = this.wrapOnEditDone((game, text) => { game.developer = text; });
+  private onGenreEditDone           = this.wrapOnEditDone((game, text) => { game.genre = text; });
+  private onSeriesEditDone          = this.wrapOnEditDone((game, text) => { game.series = text; });
+  private onSourceEditDone          = this.wrapOnEditDone((game, text) => { game.source = text; });
+  private onLaunchCommandEditDone   = this.wrapOnEditDone((game, text) => { game.launchCommand = text; });
+  private onApplicationPathEditDone = this.wrapOnEditDone((game, text) => { game.applicationPath = text; });
+  private onExtremeChange           = this.wrapOnCheckBoxChange((game, isChecked) => { game.extreme = isChecked; });
+
   constructor(props: IBrowseSidebarProps) {
     super(props);
   }
@@ -18,39 +27,59 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
     const selectedGame = this.props.selectedGame;
     if (selectedGame) {
       return (
-        <>
-          <b><EditableTextWrap text={selectedGame.title} target={selectedGame}
-                               onEditDone={this.wrapOnEditDone((game, text) => { game.title = text; })}/></b>
-          <div>
-            by <EditableTextWrap text={selectedGame.developer} target={selectedGame}
-                                 onEditDone={this.wrapOnEditDone((game, text) => { game.developer = text; })}/>
+        <div className="browse-sidebar">
+          <div className="browse-sidebar__section">
+            <div className="browse-sidebar__row browse-sidebar__row--title">
+              <b>
+                <EditableTextWrap text={selectedGame.title} target={selectedGame} onEditDone={this.onTitleEditDone}/>
+              </b>
+            </div>
+            <div className="browse-sidebar__row">
+              <p>by  </p>
+              <EditableTextWrap text={selectedGame.developer} target={selectedGame} onEditDone={this.onDeveloperEditDone}/>
+            </div>
           </div>
-          <br/>
-          <div>
-            Genre: <EditableTextWrap text={selectedGame.genre} target={selectedGame}
-                                     onEditDone={this.wrapOnEditDone((game, text) => { game.genre = text; })}/>
+          <div className="browse-sidebar__section">
+            <div className="browse-sidebar__row">
+              <p>Genre: </p>
+              <EditableTextWrap text={selectedGame.genre} target={selectedGame} onEditDone={this.onGenreEditDone}/>
+            </div>
+            <div className="browse-sidebar__row">
+              <p>Series: </p>
+              <EditableTextWrap text={selectedGame.series || 'N/A'} target={selectedGame} onEditDone={this.onSeriesEditDone}/>
+            </div>
+            <div className="browse-sidebar__row">
+              <p>Source: </p>
+              <EditableTextWrap text={selectedGame.source} target={selectedGame} onEditDone={this.onSourceEditDone}/>
+            </div>
+            <div className="browse-sidebar__row">
+              <p>Play Mode: </p>
+              <EditableTextWrap text={'TODO'/*selectedGame.playMode*/} target={selectedGame}/>
+            </div>
+            <div className="browse-sidebar__row">
+              <p>Status: </p>
+              <EditableTextWrap text={'TODO'/*selectedGame.status*/} target={selectedGame}/>
+            </div>
+            <div className="browse-sidebar__row">
+              <p>Broken: </p>
+              <CheckBox checked={true/*selectedGame.broken*/}/>
+            </div>
+            <div className="browse-sidebar__row">
+              <p>Extreme: </p>
+              <CheckBox checked={selectedGame.extreme} onChange={this.onExtremeChange}/>
+            </div>
           </div>
-          <div>
-            Extreme: <CheckBox checked={selectedGame.extreme} 
-                               onChange={this.wrapOnCheckBoxChange((game, isChecked) => { game.extreme = isChecked; })}/>
+          <div className="browse-sidebar__section">
+            <div className="browse-sidebar__row">
+              <p>Application Path: </p>
+              <EditableTextWrap text={selectedGame.applicationPath} target={selectedGame} onEditDone={this.onApplicationPathEditDone}/>
+            </div>
+            <div className="browse-sidebar__row">
+              <p>Launch Command: </p>
+              <EditableTextWrap text={selectedGame.launchCommand} target={selectedGame} onEditDone={this.onLaunchCommandEditDone}/>
+            </div>
           </div>
-          <div>
-            Series: <EditableTextWrap text={selectedGame.series || 'N/A'} target={selectedGame}
-                                      onEditDone={this.wrapOnEditDone((game, text) => { game.series = text; })}/>
-          </div>
-          <div>
-            Source: <EditableTextWrap text={selectedGame.source} target={selectedGame}
-                                      onEditDone={this.wrapOnEditDone((game, text) => { game.source = text; })}/>
-          </div>
-          <div>
-            Launch Command: <EditableTextWrap text={selectedGame.launchCommand} target={selectedGame}
-                                              onEditDone={this.wrapOnEditDone((game, text) => { game.launchCommand = text; })}/>
-          </div>
-          <div>
-            Application Path: <EditableTextWrap text={selectedGame.applicationPath} target={selectedGame}
-                                                onEditDone={this.wrapOnEditDone((game, text) => { game.applicationPath = text; })}/>
-          </div>
-        </>
+        </div>
       );
     } else {
       return (
@@ -61,25 +90,23 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
 
   /** Create a wrapper for a EditableTextWrap's onEditDone calllback (this is to reduce redundancy) */
   private wrapOnEditDone(func: (game: IGameInfo, text: string) => void) {
-    const selected = this.props.selectedGame;
-    if (selected) {
-      return (text: string) => {
-        func(selected, text);
-        this.setState({ selectedGame: selected });
+    return (text: string) => {
+      const game = this.props.selectedGame;
+      if (game) {
+        func(game, text);
+        this.setState({ selectedGame: game });
       }
     }
-    return undefined;
   }
 
   /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void) {
-    const selected = this.props.selectedGame;
-    if (selected) {
-      return (isChecked: boolean) => {
-        func(selected, isChecked);
-        this.setState({ selectedGame: selected });
+    return (isChecked: boolean) => {
+      const game = this.props.selectedGame;
+      if (game) {
+        func(game, isChecked);
+        this.setState({ selectedGame: game });
       }
     }
-    return undefined;
   }
 }
