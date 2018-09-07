@@ -45,9 +45,9 @@ export class Main {
       this._flashPlayer = new FlashPlayer(this.config.flashpointPath);
 
       // Start background services
-      this._backgroundServices = new BackgroundServices(this.config.flashpointPath);
+      this._backgroundServices = new BackgroundServices();
       this._backgroundServices.on('output', this.pushLogData);
-      this._backgroundServices.start();
+      this._backgroundServices.start(this.config);
 
       // Create main window as soon as possible
       Util.callIfOrOnceReady(() => {

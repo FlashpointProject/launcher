@@ -82,6 +82,9 @@ export class AppConfig {
   private static readonly configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
     flashpointPath: '',
     useCustomTitlebar: false,
+    startRouter: true,
+    startRedirector: true,
+    useFiddler: false,
   })
 
   /** 
