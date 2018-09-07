@@ -441,8 +441,13 @@ body {
 .config-page {
   width: 100%;
   height: 100%;
-  padding: 1em;
+  overflow: auto;
+}
+.config-page__inner {
+  padding: 1em 10px;
+  min-width: 40em;
   text-align: center;
+  overflow: visible;
 }
 .config-page__title {
   font-size: 2.5em;
