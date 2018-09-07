@@ -17,6 +17,9 @@ export interface IConfigPageState {
   // -- Configs --
   flashpointPath: string;
   useCustomTitlebar: boolean;
+  startRouter: boolean;
+  startRedirector: boolean;
+  useFiddler: boolean;
 }
 
 export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageState> {
@@ -26,9 +29,15 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
       isFlashpointPathValid: undefined,
       flashpointPath: props.config.flashpointPath,
       useCustomTitlebar: props.config.useCustomTitlebar,
+      startRouter: props.config.startRouter,
+      startRedirector: props.config.startRedirector,
+      useFiddler: props.config.useFiddler,
     };
     this.onFlashpointPathChange = this.onFlashpointPathChange.bind(this);
     this.onUseCustomTitlebarChange = this.onUseCustomTitlebarChange.bind(this);
+    this.onStartRouterOnChange = this.onStartRouterOnChange.bind(this);
+    this.onStartRedirectorOnChange = this.onStartRedirectorOnChange.bind(this);
+    this.onUseFiddlerOnChange = this.onUseFiddlerOnChange.bind(this);
     this.onSaveAndRestartClick = this.onSaveAndRestartClick.bind(this);
   }
 
@@ -48,6 +57,39 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
               <PathInput input={this.state.flashpointPath}
                         onInputChange={this.onFlashpointPathChange}
                         isValid={this.state.isFlashpointPathValid} />
+            </div>
+          </div>
+          <div className="setting__row">
+            <div className="setting__row__title">
+              <p>Start Router</p>
+            </div>
+            <div className="setting__row__content setting__row__content--toggle">
+              <div>
+                <Toggle checked={this.state.startRouter} 
+                        onChange={this.onStartRouterOnChange} />
+              </div>
+            </div>
+          </div>
+          <div className="setting__row">
+            <div className="setting__row__title">
+              <p>Start Redirector (Windows only)</p>
+            </div>
+            <div className="setting__row__content setting__row__content--toggle">
+              <div>
+                <Toggle checked={this.state.startRedirector} 
+                        onChange={this.onStartRedirectorOnChange} />
+              </div>
+            </div>
+          </div>
+          <div className="setting__row">
+            <div className="setting__row__title">
+              <p>Use Fiddler instead of Redirector (Windows only)</p>
+            </div>
+            <div className="setting__row__content setting__row__content--toggle">
+              <div>
+                <Toggle checked={this.state.useFiddler} 
+                        onChange={this.onUseFiddlerOnChange} />
+              </div>
             </div>
           </div>
         </div>
@@ -84,9 +126,18 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     this.setState({ isFlashpointPathValid: isValid });
   }
   
-  /** When the "Use Custom Titlebar" checkbox is (un)checked */
+  // When the different toggles are checked/unchecked
   onUseCustomTitlebarChange(isChecked: boolean): void {
     this.setState({ useCustomTitlebar: isChecked });
+  }
+  onStartRouterOnChange(isChecked: boolean): void {
+    this.setState({ startRouter: isChecked });
+  }
+  onStartRedirectorOnChange(isChecked: boolean): void {
+    this.setState({ startRedirector: isChecked });
+  }
+  onUseFiddlerOnChange(isChecked: boolean): void {
+    this.setState({ useFiddler: isChecked });
   }
 
   /** When the "Save & Restart" button is clicked */
@@ -95,6 +146,9 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     let newConfig = recursiveReplace(deepCopy(this.props.config), {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
+      startRouter: this.state.startRouter,
+      startRedirector: this.state.startRedirector,
+      useFiddler: this.state.useFiddler,
     });
     // Save new config to file, then restart the app
     AppConfig.saveConfigFile(newConfig)

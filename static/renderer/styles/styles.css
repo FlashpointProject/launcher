@@ -459,6 +459,10 @@ body {
   margin: 0 auto;
   margin-top: 1.75em;
   max-width: 40em;
+  /* Pimp */
+  border-radius: 0.2em;
+  background-color: #242428;
+  border: 1px solid #141417;
 }
 .setting__title {
   font-size: 1.15em;
@@ -469,9 +473,7 @@ body {
   display: flex;
   padding: 0.75em;
   /* Pimp */
-  border-radius: 0.2em;
-  background-color: #242428;
-  border: 1px solid #141417;
+  border-top: 1px solid #141417;
 }
 .setting__row__title {
   flex: 0 1 auto;
