@@ -37,26 +37,39 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
       <div className="config-page">
         <h1 className="config-page__title">Config</h1>
         <i>(You must press "Save & Restart" for changes to take effect)</i>
+
         <div className="setting">
+          <p className="setting__title">Flashpoint</p>
           <div className="setting__row">
-            <p className="setting__title">FlashPoint Path:</p>
-          </div>
-          <div className="setting__row flashpoint-path">
-            <PathInput input={this.state.flashpointPath}
-                       onInputChange={this.onFlashpointPathChange}
-                       isValid={this.state.isFlashpointPathValid} />
+            <div className="setting__row__title">
+              <p>FlashPoint Path</p>
+            </div>
+            <div className="setting__row__content setting__row__content--flashpoint-path">
+              <PathInput input={this.state.flashpointPath}
+                        onInputChange={this.onFlashpointPathChange}
+                        isValid={this.state.isFlashpointPathValid} />
+            </div>
           </div>
         </div>
+
         <div className="setting">
+          <p className="setting__title">Window</p>
           <div className="setting__row">
-            <p className="setting__title">Use Custom Toolbar:</p>
-            <Toggle checked={this.state.useCustomTitlebar} 
-                    onChange={this.onUseCustomTitlebarChange} />
+            <div className="setting__row__title">
+              <p>Use Custom Toolbar</p>
+            </div>
+            <div className="setting__row__content setting__row__content--toggle">
+              <div>
+                <Toggle checked={this.state.useCustomTitlebar} 
+                        onChange={this.onUseCustomTitlebarChange} />
+              </div>
+            </div>
           </div>
         </div>
+
         <div className="setting">
-          <div className="setting__row save-and-restart">
-            <input type="button" value="Save & Restart" className="simple-button" onClick={this.onSaveAndRestartClick} />
+          <div className="setting__row">
+            <input type="button" value="Save & Restart" className="simple-button save-and-restart" onClick={this.onSaveAndRestartClick} />
           </div>
         </div>
       </div>

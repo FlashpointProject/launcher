@@ -451,48 +451,53 @@ body {
 .config-page p {
   display: inline-block;
 }
-.config-page input[type="button"] {
-}
 .config-page input[type="checkbox"] {
   vertical-align: middle;
 }
 /* Setting */
-.config-page .setting {
+.setting {
+  margin: 0 auto;
   margin-top: 1.75em;
+  max-width: 40em;
 }
-/* Setting */
-.config-page .setting__title {
+.setting__title {
   font-size: 1.15em;
   font-weight: bold;
 }
-/* Row */
-/*.config-page*/ .setting__row {
-  display: block;
+/* Setting Row */
+.setting__row {
+  display: flex;
+  padding: 0.75em;
+  /* Pimp */
+  border-radius: 0.2em;
+  background-color: #242428;
+  border: 1px solid #141417;
 }
-/*.config-page*/ .setting__row:nth-child(n+1) {
-  margin-top: 0.5em;
+.setting__row__title {
+  flex: 0 1 auto;
+  font-size: 1.15em;
+  font-weight: bold;
 }
-/*.config-page*/ .setting__row :not(:last-child) {
-  margin-right: 0.3em;
+.setting__row__content {
+  flex: 1 1 auto;
 }
-/* Row - FlashPoint Path */
-.config-page .flashpoint-path {
+/* Setting Row Content - FlashPoint Path */
+.setting__row__content--flashpoint-path {
   display: flex;
   max-width: 24em;
   margin-left: auto;
-  margin-right: auto;
 }
-.config-page .flashpoint-path__input {
+.setting__row__content--flashpoint-path .flashpoint-path__input {
   flex: 1;
   border: 1px solid var(--theme__search-bar__outline-color);
 }
-.config-page .flashpoint-path__input--valid {
+.setting__row__content--flashpoint-path .flashpoint-path__input--valid {
   background-color: #009600;
 }
-.config-page .flashpoint-path__input--invalid {
+.setting__row__content--flashpoint-path .flashpoint-path__input--invalid {
   background-color: #840000;
 }
-.config-page .flashpoint-path__input input[type="text"] {
+.setting__row__content--flashpoint-path .flashpoint-path__input input[type="text"] {
   width: 100%;
   font-size: 1em;
   background: none;
@@ -500,9 +505,14 @@ body {
   outline: none;
   color: var(--theme__text-color);
 }
-/* Row - SaveAndExit */
-.config-page .save-and-restart input[type="button"] {
+/* Setting Row Content - Toggle */
+.setting__row__content--toggle > div {
+  float: right;
+}
+/* SaveAndRestart */
+.config-page input[type="button"].save-and-restart {
   font-size: 1.075em;
+  margin: 0 auto;
 }
 
 /* ------ Generic & Re-usable ------ */
