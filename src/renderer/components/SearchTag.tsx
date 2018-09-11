@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IDefaultProps } from '../../../interfaces';
+import { IDefaultProps } from '../interfaces';
 import { ISearchClassNames } from './Search';
 
 export interface ISearchTagProps extends IDefaultProps {

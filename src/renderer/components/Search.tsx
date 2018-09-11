@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IDefaultProps } from '../../../interfaces';
+import { IDefaultProps } from '../interfaces';
 import { SearchTag, ISearchTagClickRemoveEvent } from './SearchTag';
 
 export interface ISearchProps extends IDefaultProps {

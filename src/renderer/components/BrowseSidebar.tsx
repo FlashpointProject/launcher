@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { IGameInfo } from '../../../shared/game/interfaces';
-import { EditableTextWrap } from '../generic/EditableTextWrap';
-import { CheckBox } from '../generic/CheckBox';
+import { IGameInfo } from '../../shared/game/interfaces';
+import { EditableTextWrap } from './EditableTextWrap';
+import { CheckBox } from './CheckBox';
 
 export interface IBrowseSidebarProps {
   /** Currently selected game (if any) */

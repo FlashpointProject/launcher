@@ -6,7 +6,7 @@ import { Redirect } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LaunchboxData } from './LaunchboxData';
-import { ISearchOnSearchEvent } from './components/generic/search/Search';
+import { ISearchOnSearchEvent } from './components/Search';
 import { TitleBar } from './components/TitleBar';
 import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';

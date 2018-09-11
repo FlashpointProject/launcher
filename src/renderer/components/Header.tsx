@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ISearchOnSearchEvent } from './generic/search/Search';
+import { Search, ISearchOnSearchEvent } from './Search';
 import { IDefaultProps } from '../interfaces';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
 import { Paths } from '../Paths';

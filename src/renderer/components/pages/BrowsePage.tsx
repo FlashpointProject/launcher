@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { IDefaultProps, ICentralState } from '../../interfaces';
-import { ISearchOnSearchEvent } from '../generic/search/Search';
-import { GameList } from '../gamelist/GameList';
+import { ISearchOnSearchEvent } from '../Search';
+import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { lerp } from '../../Util';
-import { BrowseSidebar } from '../browse/BrowseSidebar';
+import { BrowseSidebar } from '../BrowseSidebar';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;

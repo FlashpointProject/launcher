@@ -1,9 +1,7 @@
 import * as React from 'react';
-import { IDefaultProps } from '../../interfaces';
-import { IRawLaunchBoxPlatform, IRawLaunchBoxGame } from '../../../shared/launchbox/interfaces';
-import { ISearchOnSearchEvent } from '../generic/search/Search';
-import { List, AutoSizer, ListRowProps } from 'react-virtualized';
-import { IGameInfo } from '../../../shared/game/interfaces';
+import { IDefaultProps } from '../interfaces';
+import { ListRowProps } from 'react-virtualized';
+import { IGameInfo } from '../../shared/game/interfaces';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   /** Game to show */

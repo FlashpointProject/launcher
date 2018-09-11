@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import { BrowsePage } from './components/pages/BrowsePage';
-import { ISearchOnSearchEvent } from './components/generic/search/Search';
+import { ISearchOnSearchEvent } from './components/Search';
 import { ICentralState } from './interfaces';
 import { AboutPage } from './components/pages/AboutPage';
 import { IGameOrderChangeEvent } from './components/GameOrder';
