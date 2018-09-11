@@ -3,6 +3,11 @@ import * as fs from 'fs';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { IGameInfo } from '../shared/game/interfaces';
 import { ElectronOpenDialogCallback } from '../shared/interfaces';
+import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
+
+//
+const preferences = new AppPreferencesApi();
+preferences.initialize();
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -37,7 +42,7 @@ window.External = Object.freeze({
   /** @inheritDoc */
   maximize() {
     const currentWindow = electron.remote.getCurrentWindow();
-    if(currentWindow.isMaximized()) {
+    if (currentWindow.isMaximized()) {
       currentWindow.unmaximize();
     } else {
       currentWindow.maximize();
@@ -77,5 +82,8 @@ window.External = Object.freeze({
   /** @inheritDoc */
   existsSync(path: string): boolean {
     return fs.existsSync(path);
-  }
+  },
+
+  /** @inheritDoc */
+  preferences: preferences,
 });

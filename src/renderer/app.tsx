@@ -57,11 +57,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     gameThumbnails.loadFilenames(path.join(config.flashpointPath, './Arcade/Images/Flash/Box - Front'));
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
-    .then((collection: IGameCollection) => {
+    .then((collection?: IGameCollection) => {
       this.onDataLoaded(gameThumbnails, collection);
     })
-    .catch((error) => {
-      console.error(error);
+    .catch((err) => {
+      console.error(err);
       this.onDataLoaded(gameThumbnails);
     });
   }
@@ -130,7 +130,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     );
   }
 
-  private onDataLoaded(gameThumbnails: GameThumbnailCollection, collection?: IGameCollection) {
+  /** Called when the Game Info has been fetched */
+  private async onDataLoaded(gameThumbnails: GameThumbnailCollection, collection?: IGameCollection) {
+    // Wait for the preferences to initialize
+    await window.External.preferences.waitUtilInitialized();
+    // Set the state
     this.setState({
       central: {
         collection: collection || { games: [] },

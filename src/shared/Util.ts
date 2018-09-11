@@ -31,7 +31,7 @@ export function recursiveReplace(target: any, source: any): any {
  * @param source Object to copy from
  * @returns New copy of source
  */
-export function deepCopy(source: any): any {
+export function deepCopy<T = any>(source: T): T {
   const copy: any = {};
   for (let key in source) {
     let val = source[key];

@@ -1,7 +1,6 @@
 import * as fs from "fs";
-import { IAppPreferencesData } from "./IAppPreferencesData";
-import * as Util from "../Util";
-import { AppPreferences } from "./AppPreferences";
+import * as Util from "../../shared/Util";
+import { IAppPreferencesData } from "../../shared/preferences/IAppPreferencesData";
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export class AppPreferencesFile {

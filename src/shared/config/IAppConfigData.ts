@@ -1,3 +1,4 @@
+/** Data contained in the Config file. */
 export interface IAppConfigData {
   /** Path to the FlashPoint root folder (relative or absolute) */
   flashpointPath: string;

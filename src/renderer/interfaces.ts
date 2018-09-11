@@ -1,5 +1,5 @@
+import { WebContents } from 'electron';
 import { ReactNode } from 'react';
-import { IRawLaunchBoxPlatform } from '../shared/launchbox/interfaces';
 import { IGameCollection } from '../shared/game/interfaces';
 import { GameThumbnailCollection } from './GameThumbnailCollection';
 
@@ -32,4 +32,8 @@ export interface ICentralState {
   flashpointPath?: string;
   /** Lookup table for all games thumbnail filenames */
   gameThumbnails: GameThumbnailCollection;
+}
+
+export interface ElectronEvent {
+  sender: WebContents;
 }
