@@ -1,7 +1,7 @@
-import { ipcRenderer, IpcMessageEvent } from "electron";
+import { ipcRenderer } from "electron";
 import { EventEmitter } from "events";
 import { IAppPreferencesData } from "./IAppPreferencesData";
-import * as Util from "../Util";
+import { deepCopy } from "../Util";
 
 /**
  * Bridge between the Renderer and "AppPreferencesMain" (which then accesses the Preferences file).
@@ -38,7 +38,7 @@ export class AppPreferencesApi extends EventEmitter {
       // Fetch initial preferenses data from main
       const data = await this.fetch();
       // Keep data
-      this._dataCache = Util.deepCopy<IAppPreferencesData>(data);
+      this._dataCache = deepCopy<IAppPreferencesData>(data);
       // Create proxy for data object
       this._dataProxy = new Proxy(this._dataCache, {
         // Whenever the value of a data property is set
@@ -58,6 +58,10 @@ export class AppPreferencesApi extends EventEmitter {
           this.send();
         }
       }, AppPreferencesApi.sendDataInterval);
+      // Send data when windiw is closing
+      window.addEventListener('unload', () => {
+        this.send();
+      });
       // Done
       this._isInit = true; // Update Flag
       this.emit('init'); // Emit event

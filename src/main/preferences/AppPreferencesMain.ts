@@ -1,8 +1,8 @@
-import { ipcMain, BrowserWindow, IpcMessageEvent } from "electron";
+import { ipcMain, IpcMessageEvent, remote } from "electron";
 import { AppPreferencesFile } from "./AppPreferencesFile";
 import { IAppPreferencesData } from "../../shared/preferences/IAppPreferencesData";
 import { AppPreferencesApi } from "../../shared/preferences/AppPreferencesApi";
-import { recursiveReplace, deepCopy } from "../../shared/Util";
+import { recursiveReplace } from "../../shared/Util";
 
 /**
  * Manager of the Preferences Data.
