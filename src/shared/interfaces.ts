@@ -1,5 +1,6 @@
 import { IAppConfigData } from "./config/IAppConfigData";
 import { IGameInfo } from "./game/interfaces";
+import { AppPreferencesApi } from "./preferences/AppPreferencesApi";
 
 export interface IMainWindowExternal {
   /**
@@ -37,6 +38,9 @@ export interface IMainWindowExternal {
   
   /** Wrapper of fs.existsSync() */
   existsSync(path: string): boolean;
+
+  /** Renderer's interface for the Preferences data */
+  preferences: AppPreferencesApi;
 }
 
 /** Callback for Electron.dialog.showOpenDialog */

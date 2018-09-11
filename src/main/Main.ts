@@ -6,12 +6,14 @@ import { IAppConfigData } from '../shared/config/IAppConfigData';
 import BackgroundServices from './BackgroundServices';
 import FlashPlayer from './FlashPlayer';
 import checkSanity from '../shared/checkSanity';
+import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
   private _backgroundServices?: BackgroundServices;
   private _flashPlayer?: FlashPlayer;
   private _config?: IAppConfigData;
+  private _preferences: AppPreferencesMain = new AppPreferencesMain();
   private _logData: string = '';
 
   public get config(): IAppConfigData {
@@ -29,12 +31,14 @@ export class Main {
 
     // Add IPC event listeners
     ipcMain.on('launch-game-sync', this.onLaunchGameSync.bind(this));
-    ipcMain.on('get-config', this.onGetConfig.bind(this));
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
     ipcMain.on('resend-log-data-update', this.sendLogData.bind(this));
 
-    // Load config file
+    // Load config and preferences
     this.loadConfig()
+    .then(async () => {
+      await this._preferences.load();
+    })
     .then(() => {
       // Check if we are ready to launch or not.
       // TODO: Launch the setup wizard when a check failed.
@@ -125,7 +129,6 @@ export class Main {
     }
     // Set config data
     this._config = data;
-    //
     console.log('Configs:', data);
   }
 
@@ -138,15 +141,7 @@ export class Main {
     event.returnValue = null;
   }
 
-  private onGetConfig(event: Electron.IpcMessageEvent, arg: any): void {
-    // WARNING: Maybe this should make sure that the config doesn't contain anything dangerous.
-    // (Maybe convert it to a JSON string and back?)
-    event.sender.send('get-config-response', this.config);
-  }
-
   private onGetConfigSync(event: Electron.IpcMessageEvent, arg: any): void {
-    // WARNING: Maybe this should make sure that the config doesn't contain anything dangerous.
-    // (Maybe convert it to a JSON string and back?)
     event.returnValue = this.config;
   }
 }

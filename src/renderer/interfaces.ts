@@ -1,5 +1,5 @@
+import { WebContents } from 'electron';
 import { ReactNode } from 'react';
-import { IRawLaunchBoxPlatform } from '../shared/launchbox/interfaces';
 import { IGameCollection } from '../shared/game/interfaces';
 import { GameThumbnailCollection } from './GameThumbnailCollection';
 

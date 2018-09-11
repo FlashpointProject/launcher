@@ -4,9 +4,9 @@
  * @param source Source object to copy data from
  * @returns Target object
  */
-export function recursiveReplace(target: any, source: any): any {
-  // Skip if either is missing
-  if (!target || !source) { return; }
+export function recursiveReplace<T = any>(target: T, source: any): T {
+  // Skip if source is missing
+  if (!source) { return target; }
   // Go through all properties of target
   for (let key in source) {
     // Check if data has a property of the same name
@@ -15,10 +15,10 @@ export function recursiveReplace(target: any, source: any): any {
       // If the value is an object
       if (val !== null && typeof val === 'object') {
         // Go one object deeper and continue copying
-        recursiveReplace(target[key], val);
+        recursiveReplace((target as any)[key], val);
       } else {
         // Copy the value
-        target[key] = val;
+        (target as any)[key] = val;
       }
     }
   }
@@ -31,7 +31,7 @@ export function recursiveReplace(target: any, source: any): any {
  * @param source Object to copy from
  * @returns New copy of source
  */
-export function deepCopy(source: any): any {
+export function deepCopy<T = any>(source: T): T {
   const copy: any = {};
   for (let key in source) {
     let val = source[key];

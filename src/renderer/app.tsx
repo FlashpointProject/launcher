@@ -45,7 +45,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       order: undefined,
       logData: '',
       config: config,
-      gameScale: 0.5,
+      gameScale: window.External.preferences.data.browsePageGameScale,
       useCustomTitlebar: config.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
@@ -130,7 +130,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     );
   }
 
+  /** Called when the Game Info has been fetched */
   private onDataLoaded(gameThumbnails: GameThumbnailCollection, collection?: IGameCollection) {
+    // Set the state
     this.setState({
       central: {
         collection: collection || { games: [] },
@@ -154,8 +156,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onScaleSliderChange(value: number): void {
-    this.setState({
-      gameScale: value,
-    });
+    this.setState({ gameScale: value });
+    // Update Preferences Data (this is to make it get saved on disk)
+    window.External.preferences.data.browsePageGameScale = value;
   }
 }

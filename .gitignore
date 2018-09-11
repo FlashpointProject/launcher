@@ -12,5 +12,6 @@ package-lock.json
 # Temp
 /temp
 
-# Config (created during testing)
+# Config & Preferences (created during testing)
 /config.json
+/preferences.json
