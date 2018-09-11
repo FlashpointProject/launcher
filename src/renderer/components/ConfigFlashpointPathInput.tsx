@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export interface IPathInputProps {
+export interface IConfigFlashpointPathInputProps {
   /** Value of the input field */
   input?: string;
   /** If the current input is valid */
@@ -9,8 +9,8 @@ export interface IPathInputProps {
   onInputChange?: (input: string) => void;
 }
 
-export class PathInput extends React.Component<IPathInputProps, {}> {
-  constructor(props: IPathInputProps) {
+export class ConfigFlashpointPathInput extends React.Component<IConfigFlashpointPathInputProps, {}> {
+  constructor(props: IConfigFlashpointPathInputProps) {
     super(props);
     this.onInputChange = this.onInputChange.bind(this);
     this.onBrowseClick = this.onBrowseClick.bind(this);

@@ -1,7 +1,6 @@
 import * as React from 'react';
-import * as path from 'path';
 import { IAppConfigData } from '../../../shared/config/IAppConfigData';
-import { PathInput } from '../config/PathInput';
+import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { AppConfig } from '../../../shared/config/AppConfig';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
@@ -55,7 +54,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                 <p>FlashPoint Path</p>
               </div>
               <div className="setting__row__content setting__row__content--flashpoint-path">
-                <PathInput input={this.state.flashpointPath}
+                <ConfigFlashpointPathInput input={this.state.flashpointPath}
                           onInputChange={this.onFlashpointPathChange}
                           isValid={this.state.isFlashpointPathValid} />
               </div>
