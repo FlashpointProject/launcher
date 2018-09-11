@@ -57,11 +57,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     gameThumbnails.loadFilenames(path.join(config.flashpointPath, './Arcade/Images/Flash/Box - Front'));
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
-    .then((collection?: IGameCollection) => {
+    .then((collection: IGameCollection) => {
       this.onDataLoaded(gameThumbnails, collection);
     })
-    .catch((err) => {
-      console.error(err);
+    .catch((error) => {
+      console.error(error);
       this.onDataLoaded(gameThumbnails);
     });
   }
@@ -131,7 +131,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /** Called when the Game Info has been fetched */
-  private async onDataLoaded(gameThumbnails: GameThumbnailCollection, collection?: IGameCollection) {
+  private onDataLoaded(gameThumbnails: GameThumbnailCollection, collection?: IGameCollection) {
     // Set the state
     this.setState({
       central: {
