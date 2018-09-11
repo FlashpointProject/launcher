@@ -3,10 +3,15 @@ import * as ReactDOM from 'react-dom';
 import { App } from './app';
 import { MemoryRouter } from 'react-router-dom';
 
-ReactDOM.render((
-    <MemoryRouter>
-      <App />
-    </MemoryRouter>
-  ),
-  document.getElementById('root')
-);
+(async () => {
+  // Wait for the preferences to initialize
+  await window.External.preferences.waitUtilInitialized();
+  // Render the application
+  ReactDOM.render((
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
+    ),
+    document.getElementById('root')
+  );
+})();

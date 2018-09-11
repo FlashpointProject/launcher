@@ -33,7 +33,3 @@ export interface ICentralState {
   /** Lookup table for all games thumbnail filenames */
   gameThumbnails: GameThumbnailCollection;
 }
-
-export interface ElectronEvent {
-  sender: WebContents;
-}

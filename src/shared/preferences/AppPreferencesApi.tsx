@@ -1,8 +1,7 @@
-import { ipcRenderer } from "electron";
+import { ipcRenderer, IpcMessageEvent } from "electron";
 import { EventEmitter } from "events";
 import { IAppPreferencesData } from "./IAppPreferencesData";
 import * as Util from "../Util";
-import { ElectronEvent } from "../../renderer/interfaces";
 
 /**
  * Bridge between the Renderer and "AppPreferencesMain" (which then accesses the Preferences file).
@@ -28,7 +27,7 @@ export class AppPreferencesApi extends EventEmitter {
   }
 
   /** How often the data should be sent to the main (in miliseconds) */
-  private static sendDataInterval: number = 5 * 1000;
+  private static sendDataInterval: number = 2 * 1000;
   
   /**
    * Initialize (this should be called after construction, and before accessing the data object)
@@ -36,7 +35,6 @@ export class AppPreferencesApi extends EventEmitter {
   public async initialize() {
     return new Promise(async () => {
       if (this._isInit) { throw new Error('You can only initialize this once'); }
-      this._isInit = true;
       // Fetch initial preferenses data from main
       const data = await this.fetch();
       // Keep data
@@ -45,22 +43,24 @@ export class AppPreferencesApi extends EventEmitter {
       this._dataProxy = new Proxy(this._dataCache, {
         // Whenever the value of a data property is set
         set: (target, p, value, receiver) => {
-          // Set the value of the property (as if this wasnt a proxy)
-          const ret = Reflect.set(target, p, value, receiver);
-          // Check if the property's value was changed (if it hasn't been changed since last send already)
-          if (!this._dataChanged && (target as any)[p] !== value) {
-            this._dataChanged = true; // Flag the data as changed
+          // Check if the property's value was changed
+          if ((target as any)[p] !== value) {
+            this._dataChanged = true;
           }
-          // Return as normal (as if this wasn't a proxy)
-          return ret;
+          // Set property's value as normal
+          return Reflect.set(target, p, value, receiver);
         },
       });
       // Start send loop
       setInterval(() => {
-        this.send();
+        if (this._dataChanged) {
+          this._dataChanged = false;
+          this.send();
+        }
       }, AppPreferencesApi.sendDataInterval);
-      // Emit event
-      this.emit('init');
+      // Done
+      this._isInit = true; // Update Flag
+      this.emit('init'); // Emit event
     });
   }
 
@@ -73,17 +73,20 @@ export class AppPreferencesApi extends EventEmitter {
       this.once('init', () => { resolve(); });
     });
   }
-
-  /** Send the current preference data to the main process */
-  private async send() {
-    if (this._isSending) { return; }
+  
+  /**
+   * Send the current preference data to the main process
+   * @returns If the send was successful
+   */
+  public async send(): Promise<boolean> {
+    if (this._isSending) { return false; }
     this._isSending = true;
     // Send data and wait for response
-    return new Promise((resolve, reject) => {
+    return new Promise<boolean>((resolve, reject) => {
       // @TODO Add a timeout check (reject if it hasnt responded for something like 15 sec)
       ipcRenderer.once(AppPreferencesApi.ipcSendResponse, () => {
         this._isSending = false; // Update flag
-        resolve();
+        resolve(true);
       });
       ipcRenderer.send(AppPreferencesApi.ipcSend, this._dataCache);
     });
@@ -93,21 +96,18 @@ export class AppPreferencesApi extends EventEmitter {
   private async fetch(): Promise<IAppPreferencesData> {
     // Send data and wait for response
     return new Promise<IAppPreferencesData>((resolve, reject) => {
-      // @TODO Add a timeout check (reject if it hasnt responded for something like 15 sec)
-      ipcRenderer.once(AppPreferencesApi.ipcRequestResponse, (event: ElectronEvent, data?: IAppPreferencesData) => {
-        if (data) { resolve(data); }
-        else      { reject(new Error('No data received from preference data fetch request')); }
-      });
-      ipcRenderer.send(AppPreferencesApi.ipcRequest);
+      const data = ipcRenderer.sendSync(AppPreferencesApi.ipcRequestSync);
+      if (data) { resolve(data); }
+      else      { reject(new Error('No data received from preference data fetch request')); }
     });
   }
 
-  /** Name of event for "sending Preferences Data from renderer to main" */
+  /** Send Preferences Data (renderer -> main) (IPC Event Name) */
   public static readonly ipcSend: string = 'app-preferences-api-send';
-  /** Name of event for responding to the event that "sends Preferences Data from renderer to main" */
+  /** Response to sent Preferences Data (main -> renderer) (IPC Event Name) */
   public static readonly ipcSendResponse: string = 'app-preferences-api-send-response';
-
-  public static readonly ipcRequest: string = 'app-preferences-api-request';
-  public static readonly ipcRequestResponse: string = 'app-preferences-api-request-response';
+  
+  /** Request Preferences Data (renderer -> main) (IPC Event Name) */
+  public static readonly ipcRequestSync: string = 'app-preferences-api-request-sync';
 
 }
