@@ -2,10 +2,10 @@ import * as React from 'react';
 import * as path from 'path';
 import { IAppConfigData } from '../../../shared/config/IAppConfigData';
 import { PathInput } from '../config/PathInput';
-import { Toggle } from '../config/Toggle';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { AppConfig } from '../../../shared/config/AppConfig';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
+import { CheckBox } from '../CheckBox';
 
 export interface IConfigPageProps {
   /** Application config (the one currently is place) */
@@ -66,8 +66,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
               </div>
               <div className="setting__row__content setting__row__content--toggle">
                 <div>
-                  <Toggle checked={this.state.startRouter} 
-                          onChange={this.onStartRouterOnChange} />
+                  <CheckBox checked={this.state.startRouter} 
+                            onChange={this.onStartRouterOnChange} />
                 </div>
               </div>
             </div>
@@ -77,8 +77,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
               </div>
               <div className="setting__row__content setting__row__content--toggle">
                 <div>
-                  <Toggle checked={this.state.startRedirector} 
-                          onChange={this.onStartRedirectorOnChange} />
+                  <CheckBox checked={this.state.startRedirector} 
+                            onChange={this.onStartRedirectorOnChange} />
                 </div>
               </div>
             </div>
@@ -88,8 +88,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
               </div>
               <div className="setting__row__content setting__row__content--toggle">
                 <div>
-                  <Toggle checked={this.state.useFiddler} 
-                          onChange={this.onUseFiddlerOnChange} />
+                  <CheckBox checked={this.state.useFiddler} 
+                            onChange={this.onUseFiddlerOnChange} />
                 </div>
               </div>
             </div>
@@ -103,8 +103,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
               </div>
               <div className="setting__row__content setting__row__content--toggle">
                 <div>
-                  <Toggle checked={this.state.useCustomTitlebar} 
-                          onChange={this.onUseCustomTitlebarChange} />
+                  <CheckBox checked={this.state.useCustomTitlebar} 
+                            onChange={this.onUseCustomTitlebarChange} />
                 </div>
               </div>
             </div>
