@@ -1,3 +1,5 @@
+import { BrowsePageLayout } from "../BrowsePageLayout";
+
 /**
  * Contains state of all non-config settings the user can change in the application.
  * This is the data contained in the Prefererences file.
@@ -7,4 +9,6 @@ export interface IAppPreferencesData {
   browsePageGameScale: number;
   /** If "Extreme" games should be shown at the BrowsePage */
   browsePageShowExtreme: boolean;
+  /** Layout of game collection at BrowsePage */
+  browsePageLayout: BrowsePageLayout;
 }

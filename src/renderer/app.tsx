@@ -15,6 +15,7 @@ import { IGameCollection } from '../shared/game/interfaces';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { GameThumbnailCollection } from './GameThumbnailCollection';
 import { Paths } from './Paths';
+import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 
 export interface IAppProps {
   history?: any;
@@ -27,6 +28,8 @@ export interface IAppState {
   config: IAppConfigData;
   /** Scale of games at the browse page */
   gameScale: number;
+  /** Layout of the browse page */
+  gameLayout: BrowsePageLayout;
 
   useCustomTitlebar: boolean;
 }
@@ -46,11 +49,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       logData: '',
       config: config,
       gameScale: window.External.preferences.data.browsePageGameScale,
+      gameLayout: window.External.preferences.data.browsePageLayout,
       useCustomTitlebar: config.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
+    this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     // Load the filenames of all game thumbnails
     const gameThumbnails = new GameThumbnailCollection();
@@ -103,6 +108,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       logData: this.state.logData,
       config: this.state.config,
       gameScale: this.state.gameScale,
+      gameLayout: this.state.gameLayout,
     };
     // Render
     return (
@@ -125,7 +131,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           </noscript>
         </div>
         {/* "Footer" stuff */}
-        <Footer gameCount={gameCount} onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale} />
+        <Footer gameCount={gameCount}
+                onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+                onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout} />
       </>
     );
   }
@@ -159,5 +167,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setState({ gameScale: value });
     // Update Preferences Data (this is to make it get saved on disk)
     window.External.preferences.data.browsePageGameScale = value;
+  }
+
+  private onLayoutSelectorChange(value: BrowsePageLayout): void {
+    this.setState({ gameLayout: value });
+    // Update Preferences Data (this is to make it get saved on disk)
+    window.External.preferences.data.browsePageLayout = value;
   }
 }

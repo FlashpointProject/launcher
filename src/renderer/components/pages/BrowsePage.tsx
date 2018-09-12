@@ -7,8 +7,7 @@ import { IGameInfo } from '../../../shared/game/interfaces';
 import { lerp } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
-
-export type BrowsePageDisplayMode = 'list'|'grid';
+import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
@@ -16,21 +15,19 @@ export interface IBrowsePageProps extends IDefaultProps {
   order?: IGameOrderChangeEvent;
   /** Scale of the games */
   gameScale: number;
+  /** Layout of the games */
+  gameLayout: BrowsePageLayout;
 }
 
 export interface IBrowsePageState {
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
-  /** */
-  displayMode: BrowsePageDisplayMode;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
   constructor(props: IBrowsePageProps) {
     super(props);
-    this.state = {
-      displayMode: 'grid'
-    };
+    this.state = {};
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
   }
@@ -43,7 +40,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       <div className="game-browser">
         <div className="game-browser__left">
           {(() => {
-            if (this.state.displayMode === 'grid') {
+            if (this.props.gameLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
               const height: number = lerp(188, 691, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
               const width: number = (height * 0.666) | 0;
