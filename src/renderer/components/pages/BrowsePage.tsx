@@ -6,6 +6,9 @@ import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { lerp } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
+import { GameGrid } from '../GameGrid';
+
+export type BrowsePageDisplayMode = 'list'|'grid';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
@@ -18,12 +21,16 @@ export interface IBrowsePageProps extends IDefaultProps {
 export interface IBrowsePageState {
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
+  /** */
+  displayMode: BrowsePageDisplayMode;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
   constructor(props: IBrowsePageProps) {
     super(props);
-    this.state = {};
+    this.state = {
+      displayMode: 'grid'
+    };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
   }
@@ -31,19 +38,38 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   render() {
     const games: IGameInfo[] = this.orderGames();
     const order = this.props.order || BrowsePage.defaultOrder;
-    const height: number = lerp(30, 175, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
     const selectedGame = this.state.selectedGame;
     return (
       <div className="game-browser">
         <div className="game-browser__left">
-          <GameList games={games}
-                    gameThumbnails={this.props.central && this.props.central.gameThumbnails}
-                    noRowsRenderer={this.noRowsRenderer}
-                    onGameSelect={this.onGameSelect}
-                    orderBy={order.orderBy}
-                    orderReverse={order.orderReverse}
-                    rowHeight={height}
-                    />
+          {(() => {
+            if (this.state.displayMode === 'grid') {
+              const width: number = lerp(100, 350, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+              const height: number = lerp(100, 350, this.props.gameScale) | 0;
+              return (
+                <GameGrid games={games}
+                          gameThumbnails={this.props.central && this.props.central.gameThumbnails}
+                          noRowsRenderer={this.noRowsRenderer}
+                          onGameSelect={this.onGameSelect}
+                          orderBy={order.orderBy}
+                          orderReverse={order.orderReverse}
+                          cellWidth={width}
+                          cellHeight={height} />
+              );
+            } else {
+              const height: number = lerp(30, 175, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+              return (
+                <GameList games={games}
+                          gameThumbnails={this.props.central && this.props.central.gameThumbnails}
+                          noRowsRenderer={this.noRowsRenderer}
+                          onGameSelect={this.onGameSelect}
+                          orderBy={order.orderBy}
+                          orderReverse={order.orderReverse}
+                          rowHeight={height}
+                          />
+              );
+            }
+          })()}
         </div>
         {(games.length > 0)?(
           <div className={'game-browser__right'+(selectedGame?'':' game-browser__right--none')}>

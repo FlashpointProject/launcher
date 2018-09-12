@@ -437,6 +437,58 @@ body {
   font-size: 2em;
 }
 
+/* GameList */
+.game-grid {
+  background-color: var(--theme__background-color);
+  /* --height | Height of list items (in pixels) */
+}
+/* GameList Item */
+.game-grid__item {
+  display: flex;
+  /* Pimp */
+  list-style: none;
+  background-color: var(--theme__background-color);
+  color: #aaa;
+}
+.game-grid__item--even {
+  /* Pimp */
+  background-color: #1e1e1f
+}
+.game-grid__item:hover {
+  /* Pimp */
+  background-color: #3c3c41;
+  color: #e6e6e6;
+  cursor: pointer;
+}
+.game-grid__item--selected {
+  /* Pimp */
+  background-color: #791c76;
+  color: #cecece;
+}
+.game-grid__item--selected:hover {
+  /* Pimp */
+  background-color: #a72aa2;
+  color: #e6e6e6;
+}
+/* GameList Item Thumb */
+.game-grid__item__thumb {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+/* GameList NoGames */
+.game-grid__no-games {
+  width: 100%;
+  height: 100%;
+  padding: 1em;
+  text-align: center;
+}
+.game-grid__no-games__title {
+  font-size: 2em;
+}
+
+
+
 /** ------ Config ------ */
 .config-page {
   width: 100%;
