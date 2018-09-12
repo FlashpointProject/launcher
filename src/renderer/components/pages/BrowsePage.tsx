@@ -55,7 +55,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           cellHeight={height} />
               );
             } else {
-              const height: number = lerp(30, 175, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+              const height: number = lerp(50, 225, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
               return (
                 <GameList games={games}
                           gameThumbnails={this.props.central && this.props.central.gameThumbnails}
