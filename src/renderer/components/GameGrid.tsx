@@ -76,7 +76,8 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
         <AutoSizer>
           {({ width, height }) => {
             // Calculate and set column/row count
-            const columnCount = Math.max(1, (width / this.props.cellHeight) | 0); // ("x|0" is the same as Math.floor(x))
+            // (16 is the width of a scrollbar in pixels - at least on windows)
+            const columnCount = Math.max(1, ((width - 16) / this.props.cellWidth) | 0); // ("x|0" is the same as Math.floor(x))
             const rowCount = Math.ceil(games.length / columnCount);
             this.columns = columnCount;
             this.rows = rowCount;
@@ -98,7 +99,7 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
                     // Grid stuff
                     width={width}
                     height={height}
-                    columnWidth={this.props.cellHeight}
+                    columnWidth={this.props.cellWidth}
                     rowHeight={this.props.cellHeight}
                     columnCount={columnCount}
                     rowCount={rowCount}
@@ -138,13 +139,12 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
       <GameGridItem key={props.key} {...props} 
                     game={game} 
                     thumbnail={thumbnail||''} 
-                    width={this.props.cellHeight}
+                    width={this.props.cellWidth}
                     height={this.props.cellHeight}
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
                     isSelected={isSelected}
                     index={index}
-                    isEven={(props.columnIndex + props.rowIndex % 2) % 2 === 0}
                     />
     );
   }

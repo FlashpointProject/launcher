@@ -44,8 +44,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
         <div className="game-browser__left">
           {(() => {
             if (this.state.displayMode === 'grid') {
-              const width: number = lerp(100, 350, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
-              const height: number = lerp(100, 350, this.props.gameScale) | 0;
+              // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
+              const height: number = lerp(188, 691, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+              const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid games={games}
                           gameThumbnails={this.props.central && this.props.central.gameThumbnails}

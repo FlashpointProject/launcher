@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { IDefaultProps } from '../interfaces';
 import { ListRowProps } from 'react-virtualized';
+import { IDefaultProps } from '../interfaces';
 import { IGameInfo } from '../../shared/game/interfaces';
 
 export interface IGameGridItemProps extends ListRowProps, IDefaultProps {
@@ -18,8 +18,6 @@ export interface IGameGridItemProps extends ListRowProps, IDefaultProps {
   onDoubleClick?: (game: IGameInfo, index: number) => void;
   /** If the grid item is selected */
   isSelected: boolean;
-  /** If the grid item is "even" */
-  isEven: boolean;
 }
 
 export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
@@ -31,14 +29,9 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
 
   render() {
     const game = this.props.game;
-    const title: string = game.title || '';
-    const width: string = (this.props.width || 0)+'px';
-    const height: string = (this.props.height || 0)+'px';
+    const width: number = this.props.width || 0;
+    const height: number = this.props.height || 0;
     let className: string = 'game-grid__item';
-    // Add class to all with an even index
-    if (this.props.isEven) {
-      className += ' game-grid__item--even';
-    }
     // Add class if selected
     if (this.props.isSelected) {
       className += ' game-grid__item--selected';
@@ -47,11 +40,19 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     return (
       <li style={this.props.style} className={className} 
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
-        <div className="game-grid__item__thumb" style={{
-          backgroundImage: `url("${this.props.thumbnail}")`,
-          width: width,
-          height: height,
-        }} />
+        <div className="game-grid__item__thumb"style={{
+          width: width+'px',
+          height: width+'px',
+        }}>
+          <div className="game-grid__item__thumb__image" style={{
+            backgroundImage: `url("${this.props.thumbnail}")`
+          }}/>
+        </div>
+        <div className="game-grid__item__title" style={{
+          height: (height - width) + 'px',
+        }}>
+        <p className="game-grid__item__title__text">{game.title || ''}</p>
+        </div>
       </li>
     );
   }
