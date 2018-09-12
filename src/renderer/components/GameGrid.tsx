@@ -77,8 +77,12 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
           {({ width, height }) => {
             // Calculate and set column/row count
             // (16 is the width of a scrollbar in pixels - at least on windows)
-            const columnCount = Math.max(1, ((width - 16) / this.props.cellWidth) | 0); // ("x|0" is the same as Math.floor(x))
-            const rowCount = Math.ceil(games.length / columnCount);
+            let columnCount: number = 0;
+            let rowCount: number = 0;
+            if (games.length > 0) {
+              columnCount = Math.max(1, ((width - 16) / this.props.cellWidth) | 0); // ("x|0" is the same as Math.floor(x))
+              rowCount = Math.ceil(games.length / columnCount);
+            }
             this.columns = columnCount;
             this.rows = rowCount;
             // Calculate overscan
@@ -106,7 +110,7 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
                     overscanColumnCount={0}
                     overscanRowCount={overscan}
                     cellRenderer={this.cellRenderer}
-                    noRowsRenderer={this.props.noRowsRenderer}
+                    noContentRenderer={this.props.noRowsRenderer}
                     // ArrowKeyStepper props
                     scrollToColumn={scrollToColumn}
                     scrollToRow={scrollToRow}
@@ -115,6 +119,7 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
                     // (If any property is changed the list is re-rendered, even these)
                     orderBy={this.props.orderBy}
                     orderReverse={this.props.orderReverse}
+                    justDoIt={()=>{}} // (This makes it re-render each time - workaround)
                     />
                 )}
               </ArrowKeyStepper>
