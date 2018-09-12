@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as Util from "../../shared/Util";
 import { IAppPreferencesData } from "../../shared/preferences/IAppPreferencesData";
+import { BrowsePageLayout } from "../../shared/BrowsePageLayout";
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export class AppPreferencesFile {
@@ -11,8 +12,9 @@ export class AppPreferencesFile {
 
   /** Default Preferences Data used for values that are not found in the file */
   private static readonly defaultData: Readonly<IAppPreferencesData> = Object.freeze({
-    browsePageGameScale: 0.5,
+    browsePageGameScale: 0.29,
     browsePageShowExtreme: false,
+    browsePageLayout: BrowsePageLayout.grid,
   });
 
   /** Read the file, or create a new one using the defaults, and return the preferences */

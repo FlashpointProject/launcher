@@ -10,6 +10,7 @@ import LogsPage from './components/pages/LogsPage';
 import { ConfigPage } from './components/pages/ConfigPage';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { Paths } from './Paths';
+import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 
 export interface IAppRouterProps {
   central?: ICentralState;
@@ -18,6 +19,7 @@ export interface IAppRouterProps {
   logData: string;
   config: IAppConfigData;
   gameScale: number;
+  gameLayout: BrowsePageLayout;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
@@ -27,6 +29,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       search: this.props.search,
       order: this.props.order,
       gameScale: this.props.gameScale,
+      gameLayout: this.props.gameLayout,
     };
     return (
       <Switch>

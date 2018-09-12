@@ -129,7 +129,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
       if (index >= 0 && index < this.props.games.length) {
         const game = this.props.games[index];
         if (!game) { throw new Error('Can not start game because game is not in game list.'); }
-        this.startGame(game);
+        window.External.launchGameSync(game);
       }
     }
   }
@@ -141,7 +141,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
   
   /** When a list item is double clicked */
   onItemDoubleClick(game: IGameInfo, index: number): void {
-    this.startGame(game);
+    window.External.launchGameSync(game);
   }
 
   /** When a row/item is selected */
@@ -164,11 +164,6 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
       rowStartIndex: info.startIndex,
       rowStopIndex: info.stopIndex,
     });
-  }
-
-  /** Start a game */
-  startGame(game: IGameInfo): void {
-    window.External.launchGameSync(game);
   }
 
   /** Update CSS Variables */
