@@ -11,13 +11,16 @@ export interface IGameInfo {
   series: string;
   /** Name of the developer(s) of the game (developer names are separated by ',') */
   developer: string;
-  /** How playable the game is
-   *  (Game Status seems to be the same on all games in the XML)
-   *  (@TODO Figure out a way to get the game status)
-   */
-  //status: GameInfoStatus;
+  /** Platform the game runs on (Flash, HTML5, Shockwave etc.) */
+  platform: string;
+  /** If the game is "broken" or not */
+  broken: boolean;
   /** Game is not suitable for children */
   extreme: boolean;
+  /** If the game is single player or multiplayer, and if the multiplayer is cooperative or not */
+  playMode: string;
+  /** How playable the game is */
+  status: string;
   /** Main genre of the game */
   genre: string;
   /** Source if the game files, either full URL or the name of the website */
@@ -28,7 +31,7 @@ export interface IGameInfo {
   launchCommand: string;
 }
 
-/** Status of a games playability */
+/** Status of a games playability (Currently unused) */
 export enum GameInfoStatus {
   /** Fully playable from beginning to end */
   Playable,

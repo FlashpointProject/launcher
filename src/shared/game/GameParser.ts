@@ -9,11 +9,9 @@ export class GameParser {
     if (data.LaunchBox) {
       const games = data.LaunchBox.Game;
       if (Array.isArray(games)) {
-        //const parsedGames = Array(games.length);
         for (let i = games.length-1; i >= 0; i--) {
           collection.games[i] = GameParser.parseGame(games[i]);
         }
-        //collection.games = parsedGames;
       }
       const apps = data.LaunchBox.AdditionalApplication;
       if (Array.isArray(apps)) {
@@ -28,7 +26,11 @@ export class GameParser {
       title: GameParser.decodeString(data.Title + ''),
       series: data.Series + '',
       developer: data.Developer + '',
+      platform: data.Platform + '',
+      broken: !!data.Broken,
       extreme: !!data.Hide,
+      playMode: data.PlayMode + '',
+      status: data.Status + '',
       genre: data.Genre + '',
       source: data.Source + '',
       applicationPath: GameParser.parseApplicationPath(data.ApplicationPath + ''),

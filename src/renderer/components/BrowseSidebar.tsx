@@ -15,8 +15,12 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
   private onGenreEditDone           = this.wrapOnEditDone((game, text) => { game.genre = text; });
   private onSeriesEditDone          = this.wrapOnEditDone((game, text) => { game.series = text; });
   private onSourceEditDone          = this.wrapOnEditDone((game, text) => { game.source = text; });
+  private onPlatformEditDone        = this.wrapOnEditDone((game, text) => { game.platform = text; });
+  private onPlayModeEditDone        = this.wrapOnEditDone((game, text) => { game.playMode = text; });
+  private onStatusEditDone          = this.wrapOnEditDone((game, text) => { game.status = text; });
   private onLaunchCommandEditDone   = this.wrapOnEditDone((game, text) => { game.launchCommand = text; });
   private onApplicationPathEditDone = this.wrapOnEditDone((game, text) => { game.applicationPath = text; });
+  private onBrokenChange            = this.wrapOnCheckBoxChange((game, isChecked) => { game.broken = isChecked; });
   private onExtremeChange           = this.wrapOnCheckBoxChange((game, isChecked) => { game.extreme = isChecked; });
 
   constructor(props: IBrowseSidebarProps) {
@@ -46,23 +50,27 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
             </div>
             <div className="browse-sidebar__row">
               <p>Series: </p>
-              <EditableTextWrap text={selectedGame.series || 'N/A'} target={selectedGame} onEditDone={this.onSeriesEditDone}/>
+              <EditableTextWrap text={selectedGame.series} target={selectedGame} onEditDone={this.onSeriesEditDone}/>
             </div>
             <div className="browse-sidebar__row">
               <p>Source: </p>
               <EditableTextWrap text={selectedGame.source} target={selectedGame} onEditDone={this.onSourceEditDone}/>
             </div>
             <div className="browse-sidebar__row">
+              <p>Platform: </p>
+              <EditableTextWrap text={selectedGame.platform} target={selectedGame} onEditDone={this.onPlatformEditDone}/>
+            </div>
+            <div className="browse-sidebar__row">
               <p>Play Mode: </p>
-              <EditableTextWrap text={'TODO'/*selectedGame.playMode*/} target={selectedGame}/>
+              <EditableTextWrap text={selectedGame.playMode} target={selectedGame} onEditDone={this.onPlayModeEditDone}/>
             </div>
             <div className="browse-sidebar__row">
               <p>Status: </p>
-              <EditableTextWrap text={'TODO'/*selectedGame.status*/} target={selectedGame}/>
+              <EditableTextWrap text={selectedGame.status} target={selectedGame} onEditDone={this.onStatusEditDone}/>
             </div>
             <div className="browse-sidebar__row">
               <p>Broken: </p>
-              <CheckBox checked={true/*selectedGame.broken*/}/>
+              <CheckBox checked={selectedGame.broken} onChange={this.onBrokenChange}/>
             </div>
             <div className="browse-sidebar__row">
               <p>Extreme: </p>
