@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { IDefaultProps } from '../interfaces';
 import { IGameInfo } from '../../shared/game/interfaces';
+import { getPlatformIconPath } from '../Resources';
 
 export interface IGameGridItemProps extends ListRowProps, IDefaultProps {
   /** Game to show */
@@ -31,27 +32,36 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     const game = this.props.game;
     const width: number = this.props.width || 0;
     const height: number = this.props.height || 0;
-    let className: string = 'game-grid__item';
+    const platformIcon = getPlatformIconPath(game.platform.toLocaleLowerCase());
+    let className: string = 'game-grid-item';
     // Add class if selected
     if (this.props.isSelected) {
-      className += ' game-grid__item--selected';
+      className += ' game-grid-item--selected';
     }
     // Render
     return (
       <li style={this.props.style} className={className} 
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
-        <div className="game-grid__item__thumb"style={{
+        <div className="game-grid-item__thumb"style={{
           width: width+'px',
           height: width+'px',
         }}>
-          <div className="game-grid__item__thumb__image" style={{
+          <div className="game-grid-item__thumb__image" style={{
             backgroundImage: `url("${this.props.thumbnail}")`
-          }}/>
+          }}>
+            <div className="game-grid-item__thumb__icons">
+              {(platformIcon) ? (
+                <div className="game-grid-item__thumb__icons__icon" style={{
+                  backgroundImage: `url("${platformIcon}")`
+                }} />
+              ) : undefined }           
+            </div>
+          </div>
         </div>
-        <div className="game-grid__item__title" style={{
+        <div className="game-grid-item__title" style={{
           height: (height - width) + 'px',
         }}>
-        <p className="game-grid__item__title__text">{game.title || ''}</p>
+        <p className="game-grid-item__title__text">{game.title || ''}</p>
         </div>
       </li>
     );

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { IDefaultProps } from '../interfaces';
 import { ListRowProps } from 'react-virtualized';
 import { IGameInfo } from '../../shared/game/interfaces';
+import { getPlatformIconPath } from '../Resources';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   /** Game to show */
@@ -29,27 +30,35 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     const game = this.props.game;
     const title: string = game.title || '';
     const size: string = (this.props.height || 0)+'px';
-    let className: string = 'game-list__item';
+    const platformIcon = getPlatformIconPath(game.platform.toLocaleLowerCase());
+    let className: string = 'game-list-item';
     // Add class to all with an even index
     if (this.props.index % 2 === 0) {
-      className += ' game-list__item--even';
+      className += ' game-list-item--even';
     }
     // Add class if selected
     if (this.props.isSelected) {
-      className += ' game-list__item--selected';
+      className += ' game-list-item--selected';
     }
     // Render
     return (
       <li style={this.props.style} className={className} 
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
-        <div className="game-list__item__thumb" style={{
+        <div className="game-list-item__thumb" style={{
           backgroundImage: `url("${this.props.thumbnail}")`,
           width: size,
           height: size,
         }} />
-        <div className="game-list__item__right">
-          <p className="game-list__item__right__title">{title}</p>
-          <p className="game-list__item__right__genre">{game.genre}</p>
+        <div className="game-list-item__right">
+          <p className="game-list-item__right__title">{title}</p>
+          <p className="game-list-item__right__genre">{game.genre}</p>
+          <div className="game-list-item__right__icons">
+            {(platformIcon) ? (
+              <div className="game-list-item__right__icons__icon" style={{
+                backgroundImage: `url("${platformIcon}")`
+              }} />
+            ) : undefined }
+          </div>
         </div>
       </li>
     );
