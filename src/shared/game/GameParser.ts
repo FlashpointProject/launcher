@@ -23,6 +23,7 @@ export class GameParser {
 
   private static parseGame(data: IRawLaunchBoxGame): IGameInfo {
     return {
+      id: data.ID + '',
       title: GameParser.decodeString(data.Title + ''),
       series: data.Series + '',
       developer: data.Developer + '',
@@ -31,6 +32,7 @@ export class GameParser {
       extreme: !!data.Hide,
       playMode: data.PlayMode + '',
       status: data.Status + '',
+      notes: data.Notes + '',
       genre: data.Genre + '',
       source: data.Source + '',
       applicationPath: GameParser.parseApplicationPath(data.ApplicationPath + ''),

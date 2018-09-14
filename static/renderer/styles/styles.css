@@ -428,6 +428,9 @@ body {
   font-weight: bold;
   margin-bottom: 0;
 }
+.browse-sidebar__row__check-box {
+  vertical-align: middle;
+}
 
 /* GameList */
 .game-list {

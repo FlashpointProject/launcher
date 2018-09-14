@@ -5,6 +5,8 @@ export interface IGameCollection {
 
 /** Represents the meta data for a single Game */
 export interface IGameInfo {
+  /** ID of the game (unique identifier) */
+  id: string;
   /** Full title of the game */
   title: string;
   /** Game series the game belongs to (empty string if none) */
@@ -21,6 +23,8 @@ export interface IGameInfo {
   playMode: string;
   /** How playable the game is */
   status: string;
+  /** Information that could be useful for the player (of varying importance) */
+  notes: string;
   /** Main genre of the game */
   genre: string;
   /** Source if the game files, either full URL or the name of the website */
