@@ -289,6 +289,19 @@ body {
   color: #c00;
   font-family: monospace, monospace;
 }
+/** */
+.header__extreme {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 0.6em;
+  padding-top: 0;
+}
+.header__extreme__text {
+  display: inline;
+}
+.header__extreme__toggle {
+  vertical-align: middle;
+}
 
 
 /* ------ Footer ------ */

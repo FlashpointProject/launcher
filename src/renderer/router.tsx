@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { NotFoundPage } from './components/pages/NotFoundPage';
-import { BrowsePage } from './components/pages/BrowsePage';
+import { BrowsePage, IBrowsePageProps } from './components/pages/BrowsePage';
 import { ISearchOnSearchEvent } from './components/Search';
 import { ICentralState } from './interfaces';
 import { AboutPage } from './components/pages/AboutPage';
@@ -20,16 +20,18 @@ export interface IAppRouterProps {
   config: IAppConfigData;
   gameScale: number;
   gameLayout: BrowsePageLayout;
+  showExtreme: boolean;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
   render() {
-    const browseProps = {
+    const browseProps: IBrowsePageProps = {
       central: this.props.central,
       search: this.props.search,
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
+      showExtreme: this.props.showExtreme,
     };
     return (
       <Switch>
