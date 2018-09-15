@@ -56,7 +56,6 @@ export class Header extends React.Component<IHeaderProps, {}> {
           <p className="header__extreme__text">Show Extreme: </p>
           <CheckBox className="header__extreme__toggle" checked={this.props.extremeToggle} onChange={this.onExtremeChange}/>
         </div>
-        
       </div>
     );
   }

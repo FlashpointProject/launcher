@@ -45,7 +45,8 @@ export class GameThumbnailCollection {
       return path.posix.join(this._folderPath, filenames[0]);
     }
     // No thumbnail found
-    console.error(`Thumbnail was not found for game: ${gameTitle}`);
+    console.error(`Thumbnail was not found for game: ${gameTitle} ` +
+                  `(FolderPath: ${this._folderPath}, Regex: ${regex})`);
   }
 
   /**
