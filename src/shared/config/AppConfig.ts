@@ -1,7 +1,7 @@
 import * as fs from "fs";
+import * as path from "path";
 import { IAppConfigData } from "./IAppConfigData";
 import * as Util from "../Util";
-import { rejects } from "assert";
 
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;
@@ -55,7 +55,7 @@ export class AppConfig {
     // And that the missing ones are set to their default value
     const parsed: IAppConfigData = Util.recursiveReplace(Util.deepCopy(defaultData), data);
     // Do some alterations
-    parsed.flashpointPath = parsed.flashpointPath.replace(/\\/g, '/'); // (Replace all backslashes with forward slashes)
+    parsed.flashpointPath = path.posix.resolve(parsed.flashpointPath).replace(/\\/g, '/'); // (Clean path)
     // Return
     return parsed;
   }

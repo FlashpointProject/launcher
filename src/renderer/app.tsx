@@ -13,9 +13,9 @@ import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { IGameCollection } from '../shared/game/interfaces';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
-import { GameThumbnailCollection } from './GameThumbnailCollection';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
+import { GameThumbnailCollection } from './thumbnail/GameThumbnailCollection';
 
 export interface IAppProps {
   history?: any;
@@ -62,16 +62,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onExtremeChange = this.onExtremeChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     // Load the filenames of all game thumbnails
-    const gameThumbnails = new GameThumbnailCollection();
-    gameThumbnails.loadFilenames(path.join(config.flashpointPath, './Arcade/Images/Flash/Box - Front'));
+    const gameThumbnails = new GameThumbnailCollection(config.flashpointPath);
     // Fetch LaunchBox game data from the xml
-    LaunchboxData.fetch(path.resolve(config.flashpointPath, './Arcade/Data/Platforms/Flash.xml'))
-    .then((collection: IGameCollection) => {
-      this.onDataLoaded(gameThumbnails, collection);
-    })
-    .catch((error) => {
-      console.error(error);
-      this.onDataLoaded(gameThumbnails);
+    LaunchboxData.fetchPlatformFilenames(config.flashpointPath)
+    .then((platformFilenames: string[]) => {
+      const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]);
+      gameThumbnails.addPlatforms(platforms);
+      LaunchboxData.fetchPlatforms(config.flashpointPath, platformFilenames)
+      .then((collection: IGameCollection) => {
+        this.onDataLoaded(gameThumbnails, collection);
+      })
+      .catch((error) => {
+        console.error(error);
+        this.onDataLoaded(gameThumbnails);
+      });
     });
   }
 

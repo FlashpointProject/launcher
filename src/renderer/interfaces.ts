@@ -1,7 +1,7 @@
 import { WebContents } from 'electron';
 import { ReactNode } from 'react';
 import { IGameCollection } from '../shared/game/interfaces';
-import { GameThumbnailCollection } from './GameThumbnailCollection';
+import { GameThumbnailCollection } from './thumbnail/GameThumbnailCollection';
 
 /**
  * "match" object from 'react-router' and 'history' npm packages

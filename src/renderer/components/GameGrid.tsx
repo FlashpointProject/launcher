@@ -3,9 +3,9 @@ import { IDefaultProps } from '../interfaces';
 import { AutoSizer, ArrowKeyStepper, ScrollIndices } from 'react-virtualized';
 import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { GameThumbnailCollection } from '../GameThumbnailCollection';
 import { RenderedSection, Grid, GridCellProps } from 'react-virtualized/dist/es/Grid';
 import { GameGridItem } from './GameGridItem';
+import { GameThumbnailCollection } from '../thumbnail/GameThumbnailCollection';
 
 export interface IGameGridProps extends IDefaultProps {
   gameThumbnails?: GameThumbnailCollection;
@@ -137,7 +137,7 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
     const index: number = props.rowIndex * this.columns + props.columnIndex;
     const game = this.props.games[index];
     if (!game) { return; }
-    let thumbnail = this.props.gameThumbnails.getFilePath(game.title);
+    let thumbnail = this.props.gameThumbnails.getFilePath(game.title, game.platform);
     const isSelected: boolean = (this.state.scrollToColumn === props.columnIndex &&
                                  this.state.scrollToRow    === props.rowIndex);
     return (

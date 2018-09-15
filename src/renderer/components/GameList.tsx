@@ -4,8 +4,8 @@ import { List, AutoSizer, ListRowProps, ArrowKeyStepper, ScrollIndices } from 'r
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { GameThumbnailCollection } from '../GameThumbnailCollection';
 import { RenderedSection } from 'react-virtualized/dist/es/Grid';
+import { GameThumbnailCollection } from '../thumbnail/GameThumbnailCollection';
 
 export interface IGameListProps extends IDefaultProps {
   gameThumbnails?: GameThumbnailCollection;
@@ -107,7 +107,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
     if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     if (!this.props.gameThumbnails) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
     const game = this.props.games[props.index];
-    let thumbnail = this.props.gameThumbnails.getFilePath(game.title);
+    let thumbnail = this.props.gameThumbnails.getFilePath(game.title, game.platform);
     const isSelected: boolean = (this.state.scrollToIndex === props.index);
     return (
       <GameListItem key={props.key} {...props} 
