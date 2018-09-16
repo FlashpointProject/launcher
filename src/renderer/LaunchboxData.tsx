@@ -18,7 +18,7 @@ export class LaunchboxData {
     return new Promise((resolve, reject) => {
       // Get the filenames of all files in the thumbnail folder
       fs.readdir(folderPath, (error: NodeJS.ErrnoException, files: string[]): void => {
-        if (error) { reject(); }
+        if (error) { reject(error); }
         else { resolve(files); }
       });
     });

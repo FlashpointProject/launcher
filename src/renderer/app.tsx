@@ -66,8 +66,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetchPlatformFilenames(config.flashpointPath)
     .then((platformFilenames: string[]) => {
+      // Prepare thumnbails
       const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]);
       gameThumbnails.addPlatforms(platforms);
+      // Fetch games
       LaunchboxData.fetchPlatforms(config.flashpointPath, platformFilenames)
       .then((collection: IGameCollection) => {
         this.onDataLoaded(gameThumbnails, collection);
@@ -76,6 +78,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         console.error(error);
         this.onDataLoaded(gameThumbnails);
       });
+    })
+    .catch((error) => {
+      console.error(error);
+      this.onDataLoaded(gameThumbnails);
     });
   }
 
