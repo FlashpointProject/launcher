@@ -55,7 +55,7 @@ export class AppConfig {
     // And that the missing ones are set to their default value
     const parsed: IAppConfigData = Util.recursiveReplace(Util.deepCopy(defaultData), data);
     // Do some alterations
-    parsed.flashpointPath = path.posix.resolve(parsed.flashpointPath).replace(/\\/g, '/'); // (Clean path)
+    parsed.flashpointPath = parsed.flashpointPath.replace(/\\/g, '/'); // (Clean path)
     // Return
     return parsed;
   }
