@@ -25,23 +25,48 @@ export interface IBrowsePageProps extends IDefaultProps {
 export interface IBrowsePageState {
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
+  /** Currnt quick search string (used to jump to a game in the list, not to filter the list) */
+  quickSearch: string;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
+  /** A timestamp of the previous the the quick search string was updated */
+  private _prevQuickSearchUpdate: number = 0;
+
+  private static readonly quickSearchTimeout: number = 1500;
+
   constructor(props: IBrowsePageProps) {
     super(props);
-    this.state = {};
+    this.state = {
+      quickSearch: '',
+    };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
+  }
+
+  componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
+    // Check if quick search string changed, and if it isnt empty
+    if (prevState.quickSearch !== this.state.quickSearch && this.state.quickSearch !== '') {
+      console.log(`Try quick search (search: "${this.state.quickSearch}")`);
+      const games: IGameInfo[] = this.orderGames();
+      for (let index = 0; index < games.length; index++) {
+        const game: IGameInfo = games[index];
+        if (game.title.toLocaleLowerCase().startsWith(this.state.quickSearch)) {
+          this.setState({ selectedGame: game });
+          console.log(`Select: "${game.title}" (search: "${this.state.quickSearch}")`);
+          break;
+        }
+      }
+    }
   }
 
   render() {
     const games: IGameInfo[] = this.orderGames();
     const order = this.props.order || BrowsePage.defaultOrder;
-    const selectedGame = this.state.selectedGame;
     return (
       <div className="game-browser">
-        <div className="game-browser__left">
+        <div className="game-browser__left" onKeyDown={this.onKeyDown}>
           {(() => {
             if (this.props.gameLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
@@ -49,31 +74,32 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid games={games}
+                          selectedGame={this.state.selectedGame}
                           gameThumbnails={this.props.central && this.props.central.gameThumbnails}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
                           cellWidth={width}
-                          cellHeight={height} />
+                          cellHeight={height}/>
               );
             } else {
               const height: number = lerp(50, 225, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
               return (
                 <GameList games={games}
+                          selectedGame={this.state.selectedGame}
                           gameThumbnails={this.props.central && this.props.central.gameThumbnails}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
-                          rowHeight={height}
-                          />
+                          rowHeight={height}/>
               );
             }
           })()}
         </div>
         {(games.length > 0)?(
-          <div className={'game-browser__right'+(selectedGame?'':' game-browser__right--none')}>
+          <div className={'game-browser__right'+(this.state.selectedGame?'':' game-browser__right--none')}>
             <BrowseSidebar selectedGame={this.state.selectedGame} />
           </div>
         ):undefined}
@@ -113,6 +139,29 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private onGameSelect(game?: IGameInfo): void {
     if (this.state.selectedGame !== game) {
       this.setState({ selectedGame: game });
+    }
+  }
+
+  private onKeyDown(event: React.KeyboardEvent): void {
+    const key: string = event.key.toLocaleLowerCase();
+    if (key === 'backspace') { // (Backspace - Remove a character)
+      const timedOut = updateTime.call(this);
+      let newString: string = (timedOut ? '' : this.state.quickSearch);
+      newString = newString.substr(0, newString.length - 1);
+      console.log(newString);
+      this.setState({ quickSearch: newString });
+    } else if (key.length === 1) { // (Single character - add it to the search string)
+      const timedOut = updateTime.call(this);
+      let newString: string = (timedOut ? '' : this.state.quickSearch) + key;
+      console.log(newString);
+      this.setState({ quickSearch: newString });
+    }
+
+    function updateTime(this: BrowsePage): boolean {
+      const now: number = Date.now();
+      const timedOut: boolean = (now - this._prevQuickSearchUpdate > BrowsePage.quickSearchTimeout);
+      this._prevQuickSearchUpdate = now;
+      return timedOut;
     }
   }
 

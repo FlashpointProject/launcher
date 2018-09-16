@@ -11,6 +11,8 @@ export interface IGameGridProps extends IDefaultProps {
   gameThumbnails?: GameThumbnailCollection;
   /** All games that will be shown in the list */
   games?: IGameInfo[];
+  /** Selected game (if any) */
+  selectedGame?: IGameInfo;
   /** Width of each cell/item in the list (in pixels) */
   cellWidth: number;
   /** Height of each cell/item in the list (in pixels) */
@@ -24,27 +26,14 @@ export interface IGameGridProps extends IDefaultProps {
   orderReverse?: GameOrderReverse;
 }
 
-export interface IGameGridState {
-  /** Index of the currently selected row */
-  scrollToRow: number;
-  /** Index of the currently selected column */
-  scrollToColumn: number;
-}
-
-export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
+export class GameGrid extends React.Component<IGameGridProps, {}> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
-  /** Game that was selected on the previous update */
-  private _prevGameSelection: IGameInfo|undefined;
-  // Current number of rows and columns
+  /** Number of columns from the most recent render */
   private columns: number = 0;
-  private rows: number = 0;
 
   constructor(props: IGameGridProps) {
     super(props);
-    this.state = {
-      scrollToRow: -1,
-      scrollToColumn: -1,
-    }
+    this.state = {};
     this.cellRenderer = this.cellRenderer.bind(this);
     this.onItemClick = this.onItemClick.bind(this);
     this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
@@ -58,15 +47,6 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
 
   componentDidUpdate(): void {
     this.updateCssVars();
-    // Check if the game selection has been changed
-    let game: IGameInfo|undefined;
-    if (this.props.games) {
-      game = this.props.games[this.state.scrollToRow * this.columns + this.state.scrollToColumn];
-    }
-    if (game !== this._prevGameSelection) {
-      if (this.props.onGameSelect) { this.props.onGameSelect(game); }
-      this._prevGameSelection = game;
-    }
   }
 
   render() {
@@ -84,9 +64,18 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
               rowCount = Math.ceil(games.length / columnCount);
             }
             this.columns = columnCount;
-            this.rows = rowCount;
             // Calculate overscan
             const overscan: number = Math.min(Math.max(1, (60 / columnCount) | 0), 15);
+            // Calculate column and row of selected item
+            let scrollToColumn: number = -1;
+            let scrollToRow: number = -1;
+            if (this.props.selectedGame) {
+              const index: number = games.indexOf(this.props.selectedGame);
+              if (index >= 0) {
+                scrollToColumn = index % this.columns;
+                scrollToRow = (index / this.columns) | 0;
+              }
+            }
             // Render
             return (
               <ArrowKeyStepper
@@ -95,8 +84,8 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
                 isControlled={true}
                 columnCount={columnCount}
                 rowCount={rowCount}
-                scrollToColumn={this.state.scrollToColumn}
-                scrollToRow={this.state.scrollToRow}>
+                scrollToColumn={scrollToColumn}
+                scrollToRow={scrollToRow}>
                 {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
                   <Grid
                     className="game-grid"
@@ -138,8 +127,6 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
     const game = this.props.games[index];
     if (!game) { return; }
     let thumbnail = this.props.gameThumbnails.getFilePath(game.title, game.platform);
-    const isSelected: boolean = (this.state.scrollToColumn === props.columnIndex &&
-                                 this.state.scrollToRow    === props.rowIndex);
     return (
       <GameGridItem key={props.key} {...props} 
                     game={game} 
@@ -148,32 +135,23 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
                     height={this.props.cellHeight}
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
-                    isSelected={isSelected}
-                    index={index}
-                    />
+                    isSelected={game === this.props.selectedGame}
+                    index={index} />
     );
   }
 
   /** When a key is pressed (while the list, or one of its children, is selected) */
   onKeyPress(event: React.KeyboardEvent): void {
     if (event.key === 'Enter') {
-      if (!this.props.games) { throw new Error('Can not start game because the game list is empty.'); }
-      const index: number = this.state.scrollToRow * this.columns + this.state.scrollToColumn;
-      if (index >= 0 && index < this.props.games.length) {
-        const game = this.props.games[index];
-        if (!game) { throw new Error('Can not start game because game is not in game list.'); }
-        window.External.launchGameSync(game);
+      if (this.props.selectedGame) {
+        window.External.launchGameSync(this.props.selectedGame);
       }
     }
   }
 
   /** When a list item is clicked */
   onItemClick(game: IGameInfo, index: number): void {
-    // Select the clicked item
-    this.setState({
-      scrollToColumn: index % this.columns,
-      scrollToRow: (index / this.columns) | 0, // ("x|0" is the same as Math.floor(x))
-    }); 
+    this.onGameSelect(game);
   }
   
   /** When a list item is double clicked */
@@ -182,23 +160,22 @@ export class GameGrid extends React.Component<IGameGridProps, IGameGridState> {
   }
 
   /** When a row/item is selected */
-  onScrollToChange(params: Partial<ScrollIndices>): void {
+  onScrollToChange(params: ScrollIndices): void {
     if (!this.props.games) { throw new Error('Games array is missing.'); }
-    // Get column
-    let column = params.scrollToColumn;
-    if (column === undefined) { column = this.state.scrollToColumn; }
-    // Get row
-    let row = params.scrollToRow;
-    if (row === undefined) { row = this.state.scrollToRow; }
-    // Cap column if it tries to select a cell after the limit
-    if (row * this.columns + column >= this.props.games.length) {
-      column = (this.props.games.length - 1) % this.columns;
+    if (params.scrollToColumn === -1 || params.scrollToRow === -1) {
+      this.onGameSelect(undefined);
+    } else {
+      const game = this.props.games[params.scrollToRow * this.columns + params.scrollToColumn];
+      if (game) {
+        this.onGameSelect(game);
+      }
     }
-    // Update state
-    this.setState({
-      scrollToColumn: column,
-      scrollToRow: row,
-    });
+  }
+
+  onGameSelect(game?: IGameInfo): void {
+    if (this.props.onGameSelect) {
+      this.props.onGameSelect(game);
+    }
   }
 
   /** Update CSS Variables */

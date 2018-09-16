@@ -11,6 +11,8 @@ export interface IGameListProps extends IDefaultProps {
   gameThumbnails?: GameThumbnailCollection;
   /** All games that will be shown in the list */
   games?: IGameInfo[];
+  /** Selected game (if any) */
+  selectedGame?: IGameInfo;
   /** Height of each row/item in the list (in pixels) */
   rowHeight: number;
   /** Function that renders the child(ren) of the game list when it is empty */
@@ -22,21 +24,12 @@ export interface IGameListProps extends IDefaultProps {
   orderReverse?: GameOrderReverse;
 }
 
-export interface IGameListState {
-  /** Index of the currently selected row */
-  scrollToIndex: number;
-}
-
-export class GameList extends React.Component<IGameListProps, IGameListState> {
+export class GameList extends React.Component<IGameListProps, {}> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
-  /** Game that was selected on the previous update */
-  private _prevGameSelection: IGameInfo|undefined;
 
   constructor(props: IGameListProps) {
     super(props);
-    this.state = {
-      scrollToIndex: -1,
-    }
+    this.state = {};
     this.rowRenderer = this.rowRenderer.bind(this);
     this.onItemClick = this.onItemClick.bind(this);
     this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
@@ -51,20 +44,17 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
 
   componentDidUpdate(): void {
     this.updateCssVars();
-    // Check if the game selection has been changed
-    let game: IGameInfo|undefined;
-    if (this.props.games) {
-      game = this.props.games[this.state.scrollToIndex];
-    }
-    if (game !== this._prevGameSelection) {
-      if (this.props.onGameSelect) { this.props.onGameSelect(game); }
-      this._prevGameSelection = game;
-    }
   }
 
   render() {
     const games = this.props.games || [];
     const rowCount = games.length;
+    // Calculate column and row of selected item
+    let scrollToIndex: number = -1;
+    if (this.props.selectedGame) {
+      scrollToIndex = games.indexOf(this.props.selectedGame);
+    }
+    // Render
     return (
       <div className="game-browser" ref={this._wrapper} onKeyPress={this.onKeyPress}>
         <AutoSizer>
@@ -75,7 +65,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
               isControlled={true}
               columnCount={1}
               rowCount={rowCount}
-              scrollToRow={this.state.scrollToIndex}>
+              scrollToRow={scrollToIndex}>
               {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
                 <List
                   className="game-list"
@@ -108,7 +98,6 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
     if (!this.props.gameThumbnails) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
     const game = this.props.games[props.index];
     let thumbnail = this.props.gameThumbnails.getFilePath(game.title, game.platform);
-    const isSelected: boolean = (this.state.scrollToIndex === props.index);
     return (
       <GameListItem key={props.key} {...props} 
                     game={game} 
@@ -116,7 +105,7 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
                     height={this.props.rowHeight} 
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
-                    isSelected={isSelected}
+                    isSelected={game === this.props.selectedGame}
                     />
     );
   }
@@ -124,19 +113,15 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
   /** When a key is pressed (while the list, or one of its children, is selected) */
   onKeyPress(event: React.KeyboardEvent): void {
     if (event.key === 'Enter') {
-      if (!this.props.games) { throw new Error('Can not start game because the game list is empty.'); }
-      const index: number = this.state.scrollToIndex;
-      if (index >= 0 && index < this.props.games.length) {
-        const game = this.props.games[index];
-        if (!game) { throw new Error('Can not start game because game is not in game list.'); }
-        window.External.launchGameSync(game);
+      if (this.props.selectedGame) {
+        window.External.launchGameSync(this.props.selectedGame);
       }
     }
   }
 
   /** When a list item is clicked */
   onItemClick(game: IGameInfo, index: number): void {
-    this.setState({ scrollToIndex: index }); // Select that row / list item
+    this.onGameSelect(game);
   }
   
   /** When a list item is double clicked */
@@ -145,11 +130,16 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
   }
 
   /** When a row/item is selected */
-  onScrollToChange(params: Partial<ScrollIndices>): void {
-    this.setState({
-      scrollToIndex: params.scrollToRow !== undefined ? params.scrollToRow :
-                                                        this.state.scrollToIndex
-    });
+  onScrollToChange(params: ScrollIndices): void {
+    if (!this.props.games) { throw new Error('Games array is missing.'); }
+    if (params.scrollToRow === -1) {
+      this.onGameSelect(undefined);
+    } else {
+      const game = this.props.games[params.scrollToRow];
+      if (game) {
+        this.onGameSelect(game);
+      }
+    }
   }
 
   /** When the game list renders - argument contains the indices of first/last rows rendered */
@@ -164,6 +154,12 @@ export class GameList extends React.Component<IGameListProps, IGameListState> {
       rowStartIndex: info.startIndex,
       rowStopIndex: info.stopIndex,
     });
+  }
+
+  onGameSelect(game?: IGameInfo): void {
+    if (this.props.onGameSelect) {
+      this.props.onGameSelect(game);
+    }
   }
 
   /** Update CSS Variables */
