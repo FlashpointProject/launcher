@@ -48,13 +48,11 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
     // Check if quick search string changed, and if it isnt empty
     if (prevState.quickSearch !== this.state.quickSearch && this.state.quickSearch !== '') {
-      console.log(`Try quick search (search: "${this.state.quickSearch}")`);
       const games: IGameInfo[] = this.orderGames();
       for (let index = 0; index < games.length; index++) {
         const game: IGameInfo = games[index];
         if (game.title.toLocaleLowerCase().startsWith(this.state.quickSearch)) {
           this.setState({ selectedGame: game });
-          console.log(`Select: "${game.title}" (search: "${this.state.quickSearch}")`);
           break;
         }
       }
@@ -148,12 +146,10 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       const timedOut = updateTime.call(this);
       let newString: string = (timedOut ? '' : this.state.quickSearch);
       newString = newString.substr(0, newString.length - 1);
-      console.log(newString);
       this.setState({ quickSearch: newString });
     } else if (key.length === 1) { // (Single character - add it to the search string)
       const timedOut = updateTime.call(this);
       let newString: string = (timedOut ? '' : this.state.quickSearch) + key;
-      console.log(newString);
       this.setState({ quickSearch: newString });
     }
 
