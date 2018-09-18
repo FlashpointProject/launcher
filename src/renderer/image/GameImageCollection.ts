@@ -3,7 +3,8 @@ import { ImageFolderCache } from './ImageFolderCache';
 
 export class GameImageCollection {
   private _flashpointPath: string;
-  private _folders: { [key: string]: ImageFolderCache|undefined; } = {};
+  private _thumbnails: { [key: string]: ImageFolderCache|undefined; } = {};
+  private _screenshots: { [key: string]: ImageFolderCache|undefined; } = {};
 
   constructor(flashpointPath: string) {
     this._flashpointPath = flashpointPath;
@@ -11,7 +12,7 @@ export class GameImageCollection {
  
   /**
    * Add multiple platforms to the image collection
-   * (This is required for the images for that platform to be found)
+   * (This is required for the images of games for that platform to be found)
    * @param platforms Names of the platforms (NOT their filenames or paths)
    */
   public addPlatforms(platforms: string[]): void {
@@ -22,21 +23,39 @@ export class GameImageCollection {
   
   private addPlatform(platform: string): void {
     platform = platform.toLocaleLowerCase();
-    if (this._folders[platform]) { throw new Error(`Platform with the same name has already been added (${platform})`); }
-    const folder = new ImageFolderCache();
-    this._folders[platform] = folder;
-    folder.loadFilenames(path.posix.join(this._flashpointPath, `./Arcade/Images/${platform}/Box - Front`));
+    if (this._thumbnails[platform]) { throw new Error(`Platform with the same name has already been added (${platform})`); }
+    // Add thumbnail folder
+    const thumbnailFolder = new ImageFolderCache();
+    this._thumbnails[platform] = thumbnailFolder;
+    thumbnailFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Arcade/Images/${platform}/Box - Front`));
+    // Add screenshot folder
+    const screenshotFolder = new ImageFolderCache();
+    this._screenshots[platform] = screenshotFolder;
+    screenshotFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Arcade/Images/${platform}/Screenshot - Gameplay`));
   }
   
   /**
-   * Get the path to the image for a given title and platform (returns undefined if not found)
+   * Get the path to the thumbnail for a given title and platform (returns undefined if not found)
    * @param gameTitle Title of game
    * @param platform Platform of game
-   * @returns Path to image for that game, or undefined if not found
+   * @returns Path to thumbnail for that game, or undefined if not found
    */
-  public getFilePath(gameTitle: string, platform: string): string|undefined {
+  public getThumbnailPath(gameTitle: string, platform: string): string|undefined {
     platform = platform.toLocaleLowerCase();
-    const cache = this._folders[platform];
+    const cache = this._thumbnails[platform];
+    if (!cache) { throw new Error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`); }
+    return cache.getFilePath(gameTitle);
+  }
+  
+  /**
+   * Get the path to the screenshot for a given title and platform (returns undefined if not found)
+   * @param gameTitle Title of game
+   * @param platform Platform of game
+   * @returns Path to screenshot for that game, or undefined if not found
+   */
+  public getScreenshotPath(gameTitle: string, platform: string): string|undefined {
+    platform = platform.toLocaleLowerCase();
+    const cache = this._screenshots[platform];
     if (!cache) { throw new Error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`); }
     return cache.getFilePath(gameTitle);
   }

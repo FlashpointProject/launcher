@@ -418,9 +418,13 @@ body {
 
 /* BrowserSidebar */
 .browse-sidebar {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 0.5em 0.8em;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 /* BrowserSidebar Section */
 .browse-sidebar__section {
@@ -428,6 +432,11 @@ body {
 }
 .browse-sidebar__section:last-child {
   margin-bottom: 0;
+}
+.browse-sidebar__section__bottom {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
 }
 /* BrowserSidebar Row */
 .browse-sidebar__row {
@@ -444,6 +453,12 @@ body {
 }
 .browse-sidebar__row__check-box {
   vertical-align: middle;
+}
+.browse-sidebar__row__screenshot {
+  width: 100%;
+}
+.browse-sidebar__row__spacer {
+  flex: 1 0 auto;
 }
 
 /* GameList */

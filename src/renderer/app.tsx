@@ -61,12 +61,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
     this.onExtremeChange = this.onExtremeChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
-    // Load the filenames of all game thumbnails
+    // Load the filenames of all game images
     const gameImages = new GameImageCollection(config.flashpointPath);
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetchPlatformFilenames(config.flashpointPath)
     .then((platformFilenames: string[]) => {
-      // Prepare thumbnails
+      // Prepare images
       const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]);
       gameImages.addPlatforms(platforms);
       // Fetch games

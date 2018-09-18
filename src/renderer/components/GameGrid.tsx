@@ -8,7 +8,7 @@ import { GameGridItem } from './GameGridItem';
 import { GameImageCollection } from '../image/GameImageCollection';
 
 export interface IGameGridProps extends IDefaultProps {
-  gameThumbnails?: GameImageCollection;
+  gameImages?: GameImageCollection;
   /** All games that will be shown in the list */
   games?: IGameInfo[];
   /** Selected game (if any) */
@@ -122,11 +122,11 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   /** Renders a single row / list item */
   cellRenderer(props: GridCellProps): React.ReactNode {
     if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
-    if (!this.props.gameThumbnails) { throw new Error('Trying to render a row in game list, but game image loader is not found?'); }
+    if (!this.props.gameImages) { throw new Error('Trying to render a row in game list, but game image loader is not found?'); }
     const index: number = props.rowIndex * this.columns + props.columnIndex;
     const game = this.props.games[index];
     if (!game) { return; }
-    let thumbnail = this.props.gameThumbnails.getFilePath(game.title, game.platform);
+    let thumbnail = this.props.gameImages.getThumbnailPath(game.title, game.platform);
     return (
       <GameGridItem key={props.key} {...props} 
                     game={game} 

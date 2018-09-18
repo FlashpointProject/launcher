@@ -73,7 +73,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               return (
                 <GameGrid games={games}
                           selectedGame={this.state.selectedGame}
-                          gameThumbnails={this.props.central && this.props.central.gameImages}
+                          gameImages={this.props.central && this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           orderBy={order.orderBy}
@@ -98,7 +98,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
         </div>
         {(games.length > 0)?(
           <div className={'game-browser__right'+(this.state.selectedGame?'':' game-browser__right--none')}>
-            <BrowseSidebar selectedGame={this.state.selectedGame} />
+            <BrowseSidebar selectedGame={this.state.selectedGame} gameImages={this.props.central && this.props.central.gameImages} />
           </div>
         ):undefined}
       </div>

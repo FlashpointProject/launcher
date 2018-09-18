@@ -2,10 +2,14 @@ import * as React from 'react';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { EditableTextWrap } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
+import { GameImageCollection } from '../image/GameImageCollection';
 
 export interface IBrowseSidebarProps {
+  gameImages?: GameImageCollection;
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
+  /** Currently selected game (if any) */
+  image?: IGameInfo;
 }
 
 /** Sidebar for BrowsePage */
@@ -39,7 +43,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
               </b>
             </div>
             <div className="browse-sidebar__row">
-              <p>by  </p>
+              <p>by </p>
               <EditableTextWrap text={selectedGame.developer} target={selectedGame} onEditDone={this.onDeveloperEditDone}/>
             </div>
           </div>
@@ -87,6 +91,15 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
               <EditableTextWrap text={selectedGame.launchCommand} target={selectedGame} onEditDone={this.onLaunchCommandEditDone}/>
             </div>
           </div>
+          {(this.props.gameImages && this.props.selectedGame) ? (
+            <div className="browse-sidebar__section browse-sidebar__section__bottom">
+              <div className="browse-sidebar__row browse-sidebar__row__spacer" />
+              <div className="browse-sidebar__row">
+                <img className="browse-sidebar__row__screenshot" 
+                     src={this.props.gameImages.getScreenshotPath(this.props.selectedGame.title, this.props.selectedGame.platform)}/>
+              </div>
+            </div>
+          ) : undefined}
         </div>
       );
     } else {
