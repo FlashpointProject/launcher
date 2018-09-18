@@ -5,7 +5,7 @@ interface ICache {
   [key: string]: string|undefined;
 }
 
-export class ThumbnailFolderCache {
+export class ImageFolderCache {
   /** Key-Value pair of titles and filenames */
   private _cache: ICache = {};
   /** Names of all files in the folder, separated by a newline */
@@ -24,25 +24,25 @@ export class ThumbnailFolderCache {
   }
   
   /**
-   * Get the path to the thumbnail for a given title (returns undefined if not found)
+   * Get the path to the image for a given title (returns undefined if not found)
    * @param title Title of game
-   * @returns Path to thumbnail for that game, or undefined if not found
+   * @returns Path to image for that game, or undefined if not found
    */
   public getFilePath(title: string): string|undefined {
     // Try getting the filename from the "cache"
     const filename = this._cache[title];
     if (filename) { return path.posix.join(this._folderPath, filename); }
     // Try getting the filename from the filename list
-    const regex = ThumbnailFolderCache.createRegex(title);
+    const regex = ImageFolderCache.createRegex(title);
     const filenames = this._filenames.match(regex);
-    if (filenames) { // Thumbnail found
+    if (filenames) { // image found
       // @TODO If there are multiple filenames found, maybe we should figure
       //       out which is most suitable (lowest index, shortest name, etc.)
       this._cache[title] = filenames[0];
       return path.posix.join(this._folderPath, filenames[0]);
     }
-    // No thumbnail found
-    console.error(`Thumbnail was not found for game: ${title} ` +
+    // No image found
+    console.error(`image was not found for game: ${title} ` +
                   `(FolderPath: ${this._folderPath}, Regex: ${regex})`);
   }
 

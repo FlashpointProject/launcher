@@ -11,5 +11,4 @@
 
  - Proper .deb/.exe for users to install
  - Improve tooling
- - Grid based layout
  - Mirror required files from Flashpoint Infinity on github repo

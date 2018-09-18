@@ -5,10 +5,10 @@ import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { RenderedSection } from 'react-virtualized/dist/es/Grid';
-import { GameThumbnailCollection } from '../thumbnail/GameThumbnailCollection';
+import { GameImageCollection } from '../image/GameImageCollection';
 
 export interface IGameListProps extends IDefaultProps {
-  gameThumbnails?: GameThumbnailCollection;
+  gameImages?: GameImageCollection;
   /** All games that will be shown in the list */
   games?: IGameInfo[];
   /** Selected game (if any) */
@@ -95,9 +95,9 @@ export class GameList extends React.Component<IGameListProps, {}> {
   /** Renders a single row / list item */
   rowRenderer(props: ListRowProps): React.ReactNode {
     if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
-    if (!this.props.gameThumbnails) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
+    if (!this.props.gameImages) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
     const game = this.props.games[props.index];
-    let thumbnail = this.props.gameThumbnails.getFilePath(game.title, game.platform);
+    let thumbnail = this.props.gameImages.getFilePath(game.title, game.platform);
     return (
       <GameListItem key={props.key} {...props} 
                     game={game} 

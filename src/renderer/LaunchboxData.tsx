@@ -16,7 +16,7 @@ export class LaunchboxData {
   public static fetchPlatformFilenames(flashpointPath: string): Promise<string[]> {
     const folderPath = path.posix.join(flashpointPath, platformsPath);
     return new Promise((resolve, reject) => {
-      // Get the filenames of all files in the thumbnail folder
+      // Get the filenames of all files in the platforms folder
       fs.readdir(folderPath, (error: NodeJS.ErrnoException, files: string[]): void => {
         if (error) { reject(error); }
         else { resolve(files); }

@@ -1,7 +1,7 @@
 import { WebContents } from 'electron';
 import { ReactNode } from 'react';
 import { IGameCollection } from '../shared/game/interfaces';
-import { GameThumbnailCollection } from './thumbnail/GameThumbnailCollection';
+import { GameImageCollection } from './image/GameImageCollection';
 
 /**
  * "match" object from 'react-router' and 'history' npm packages
@@ -30,6 +30,6 @@ export interface ICentralState {
   collection?: IGameCollection;
   /** Path to the root folder of FlashPoint */
   flashpointPath?: string;
-  /** Lookup table for all games thumbnail filenames */
-  gameThumbnails: GameThumbnailCollection;
+  /** Lookup table for all games images filenames */
+  gameImages: GameImageCollection;
 }

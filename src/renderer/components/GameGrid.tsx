@@ -5,10 +5,10 @@ import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { RenderedSection, Grid, GridCellProps } from 'react-virtualized/dist/es/Grid';
 import { GameGridItem } from './GameGridItem';
-import { GameThumbnailCollection } from '../thumbnail/GameThumbnailCollection';
+import { GameImageCollection } from '../image/GameImageCollection';
 
 export interface IGameGridProps extends IDefaultProps {
-  gameThumbnails?: GameThumbnailCollection;
+  gameThumbnails?: GameImageCollection;
   /** All games that will be shown in the list */
   games?: IGameInfo[];
   /** Selected game (if any) */
@@ -122,7 +122,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   /** Renders a single row / list item */
   cellRenderer(props: GridCellProps): React.ReactNode {
     if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
-    if (!this.props.gameThumbnails) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
+    if (!this.props.gameThumbnails) { throw new Error('Trying to render a row in game list, but game image loader is not found?'); }
     const index: number = props.rowIndex * this.columns + props.columnIndex;
     const game = this.props.games[index];
     if (!game) { return; }

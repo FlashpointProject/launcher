@@ -15,7 +15,7 @@ import { IGameCollection } from '../shared/game/interfaces';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { GameThumbnailCollection } from './thumbnail/GameThumbnailCollection';
+import { GameImageCollection } from './image/GameImageCollection';
 
 export interface IAppProps {
   history?: any;
@@ -62,26 +62,26 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onExtremeChange = this.onExtremeChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     // Load the filenames of all game thumbnails
-    const gameThumbnails = new GameThumbnailCollection(config.flashpointPath);
+    const gameImages = new GameImageCollection(config.flashpointPath);
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetchPlatformFilenames(config.flashpointPath)
     .then((platformFilenames: string[]) => {
-      // Prepare thumnbails
+      // Prepare thumbnails
       const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]);
-      gameThumbnails.addPlatforms(platforms);
+      gameImages.addPlatforms(platforms);
       // Fetch games
       LaunchboxData.fetchPlatforms(config.flashpointPath, platformFilenames)
       .then((collection: IGameCollection) => {
-        this.onDataLoaded(gameThumbnails, collection);
+        this.onDataLoaded(gameImages, collection);
       })
       .catch((error) => {
         console.error(error);
-        this.onDataLoaded(gameThumbnails);
+        this.onDataLoaded(gameImages);
       });
     })
     .catch((error) => {
       console.error(error);
-      this.onDataLoaded(gameThumbnails);
+      this.onDataLoaded(gameImages);
     });
   }
 
@@ -155,13 +155,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /** Called when the Game Info has been fetched */
-  private onDataLoaded(gameThumbnails: GameThumbnailCollection, collection?: IGameCollection) {
+  private onDataLoaded(gameImages: GameImageCollection, collection?: IGameCollection) {
     // Set the state
     this.setState({
       central: {
         collection: collection || { games: [] },
         flashpointPath: this.state.config.flashpointPath,
-        gameThumbnails: gameThumbnails,
+        gameImages: gameImages,
       }
     });
   }
