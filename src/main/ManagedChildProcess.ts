@@ -6,54 +6,42 @@ import { EventEmitter } from "events";
  */
 export default class ManagedChildProcess extends EventEmitter {
   private process?: ChildProcess;
+  private name: string;
+  private command: string;
+  private args: string[];
+  private cwd: string;
 
-  constructor(
-    private name: string,
-    private command: string,
-    private args: string[],
-    private cwd: string
-  ) {
+  constructor(name: string, command: string, args: string[], cwd: string) {
     super();
+    this.name = name;
+    this.command = command;
+    this.args = args;
+    this.cwd = cwd;
   }
 
-  spawn() {
-    if (this.process) {
-      throw Error('Cannot spawn already spawned process');
-    }
-
+  /** Spawn process and keep track of its output */
+  spawn(): void {
+    if (this.process) { throw Error('You must not spawn the same ManagedChildProcess multiple times.'); }
     this.process = spawn(this.command, this.args, { cwd: this.cwd });
-
     this.emit('output', `${this.name} has been started\n`);
-
+    // Add event listeners to process
     this.process.stdout.on('data', (data: Buffer) => {
-      // BUG: This is only shows after the user presses CTRL+C. It does not
-      // show it any other circumstances.
-      const output = data.toString('utf8');
-      const namedOutput = this.addNameToOutput(output);
-      this.emit('output', namedOutput);
+      // @BUG: This is only shows after the user presses CTRL+C.
+      //       It does not show it any other circumstances.
+      this.emit('output', this.addNameToOutput(data.toString('utf8')));
     });
-
     this.process.stderr.on('data', (data: Buffer) => {
-      const output = data.toString('utf8');
-      const namedOutput = this.addNameToOutput(output);
-      this.emit('output', namedOutput);
+      this.emit('output', this.addNameToOutput(data.toString('utf8')));
     });
-
     this.process.on('exit', (code, signal) => {
-      if (code) {
-        this.emit('output', `${this.name} exited with code ${code}\n`);
-      } else {
-        this.emit('output', `${this.name} exited with signal ${signal}\n`);
-      }
-
+      if (code) { this.emit('output', `${this.name} exited with code ${code}\n`);     } 
+      else      { this.emit('output', `${this.name} exited with signal ${signal}\n`); }
       this.process = undefined;
     });
   }
 
-  /**
-   * Politely ask the child process to exit
-   */
-  kill() {
+  /** Politely ask the child process to exit */
+  kill(): void {
     if (this.process) {
       this.process.kill();
     }
@@ -61,10 +49,9 @@ export default class ManagedChildProcess extends EventEmitter {
 
   /**
    * Add `${this.name}:` before each line of the output
-   *
    * @param output The std{out,err} of the process.
    */
-  private addNameToOutput(output: string) {
+  private addNameToOutput(output: string): string {
     return (
       output
         .replace(/\n$/, '')

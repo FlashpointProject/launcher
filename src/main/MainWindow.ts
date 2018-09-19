@@ -19,7 +19,7 @@ export default class MainWindow {
     this._main = main;
     // Add app event listener(s)
     app.on('activate', this.onAppActivate.bind(this));
-    this.sendLogDataToWindow =this.sendLogDataToWindow.bind(this);
+    this.sendLogDataToRenderer =this.sendLogDataToRenderer.bind(this);
   }
 
   public createWindow(): void {
@@ -64,20 +64,25 @@ export default class MainWindow {
 
   /**
    * Store the updated log data and send it to the window if it's created.
-   *
    * @param fullLog The full log data from start to finish. Lines are separated
    * with a new line.
    */
   public updateLogData(fullLog: string) {
     this._logData = fullLog;
-    this.sendLogDataToWindow();
+    this.sendLogDataToRenderer();
+  }
+  
+  /**
+   * Add data to the log and send the full log to the window (if it is created)
+   * @param data Text to add to the end of the log
+   */
+  public appendLogData(data: string): void {
+    this._logData += data;
+    this.sendLogDataToRenderer();
   }
 
-  /**
-   * Send the log data to the window. Will do nothing if the window is not
-   * created. This function is safe to call at all times.
-   */
-  private sendLogDataToWindow() {
+  /** Send the log data to the renderer (this silently fails if the window is missing) */
+  public sendLogDataToRenderer() {
     if (this._window) {
       this._window.webContents.send('log-data-update', this._logData);
     }

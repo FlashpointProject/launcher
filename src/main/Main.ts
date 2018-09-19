@@ -14,7 +14,6 @@ export class Main {
   private _backgroundServices?: BackgroundServices;
   private _config?: IAppConfigData;
   private _preferences: AppPreferencesMain = new AppPreferencesMain();
-  private _logData: string = '';
 
   public get config(): IAppConfigData {
     if (!this._config) { throw new Error('You must not try to access config before it is loaded!'); }
@@ -22,8 +21,6 @@ export class Main {
   }
 
   constructor() {
-    // Bind functions
-    this.pushLogData = this.pushLogData.bind(this);
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
@@ -38,12 +35,12 @@ export class Main {
     })
     .then(() => {
       // Check if we are ready to launch or not.
-      // TODO: Launch the setup wizard when a check failed.
+      // @TODO Launch the setup wizard when a check failed.
       checkSanity(this.config)
       .then(console.log, console.error);
       // Start background services
       this._backgroundServices = new BackgroundServices();
-      this._backgroundServices.on('output', this.pushLogData);
+      this._backgroundServices.on('output', this.pushLogData.bind(this));
       this._backgroundServices.start(this.config);
       // Create main window as soon as possible
       Util.callIfOrOnceReady(() => {
@@ -92,18 +89,18 @@ export class Main {
    */
   private pushLogData(output: string): void {
     process.stdout.write(output);
-    this._logData += output;
-    this.sendLogData();
+    this._mainWindow.appendLogData(output);
   }
 
-  private sendLogData() {
-    this._mainWindow.updateLogData(this._logData);
+  /** Send the main windows log to its renderer */
+  private sendLogData(): void {
+    this._mainWindow.sendLogDataToRenderer();
   }
 
   /** Load the application config asynchronously */
   private async loadConfig(): Promise<void> {
-    let error: Error|undefined,
-        data: IAppConfigData|undefined;
+    let error: Error|undefined;
+    let data: IAppConfigData|undefined;
     try {
       data = await AppConfig.readConfigFile();
     } catch(e) {
