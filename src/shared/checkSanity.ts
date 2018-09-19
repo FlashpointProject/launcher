@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 import { isInstalled } from '../main/Util';
-import { IAppConfigData } from "./config/IAppConfigData";
+import { IAppConfigData } from './config/IAppConfigData';
 
 const stat = util.promisify(fs.stat);
 

@@ -1,5 +1,4 @@
 import { ipcRenderer } from 'electron';
-import * as path from 'path';
 import * as React from 'react';
 import { AppRouter } from './router';
 import { Redirect } from 'react-router-dom';

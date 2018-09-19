@@ -1,7 +1,6 @@
-import * as fs from "fs";
-import * as path from "path";
-import { IAppConfigData } from "./IAppConfigData";
-import * as Util from "../Util";
+import * as fs from 'fs';
+import { IAppConfigData } from './IAppConfigData';
+import * as Util from '../Util';
 
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;

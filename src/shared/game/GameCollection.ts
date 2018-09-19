@@ -1,4 +1,4 @@
-import { IGameCollection, IGameInfo } from "./interfaces";
+import { IGameCollection, IGameInfo } from './interfaces';
 
 export class GameCollection implements IGameCollection {
   public games: IGameInfo[] = [];

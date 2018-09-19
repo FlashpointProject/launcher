@@ -1,7 +1,7 @@
-import * as fs from "fs";
-import * as Util from "../../shared/Util";
-import { IAppPreferencesData } from "../../shared/preferences/IAppPreferencesData";
-import { BrowsePageLayout } from "../../shared/BrowsePageLayout";
+import * as fs from 'fs';
+import * as Util from '../../shared/Util';
+import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
+import { BrowsePageLayout } from '../../shared/BrowsePageLayout';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export class AppPreferencesFile {

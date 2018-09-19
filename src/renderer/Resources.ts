@@ -1,4 +1,5 @@
 const platformIconsPath = './images/platforms/';
+
 /** Contains paths to the icon images of all platforms */
 export const platformIcons = Object.freeze({
   flash:     platformIconsPath + 'flash.png',

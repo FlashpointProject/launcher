@@ -1,6 +1,6 @@
-import { IAppConfigData } from "./config/IAppConfigData";
-import { IGameInfo } from "./game/interfaces";
-import { AppPreferencesApi } from "./preferences/AppPreferencesApi";
+import { IAppConfigData } from './config/IAppConfigData';
+import { IGameInfo } from './game/interfaces';
+import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 
 export interface IMainWindowExternal {
   /**

@@ -1,7 +1,7 @@
-import { ipcRenderer } from "electron";
-import { EventEmitter } from "events";
-import { IAppPreferencesData } from "./IAppPreferencesData";
-import { deepCopy } from "../Util";
+import { ipcRenderer } from 'electron';
+import { EventEmitter } from 'events';
+import { IAppPreferencesData } from './IAppPreferencesData';
+import { deepCopy } from '../Util';
 
 /**
  * Bridge between the Renderer and "AppPreferencesMain" (which then accesses the Preferences file).

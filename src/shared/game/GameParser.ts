@@ -1,5 +1,5 @@
-import { IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from "../launchbox/interfaces";
-import { IGameCollection, IGameInfo, GameInfoStatus } from "./interfaces";
+import { IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from '../launchbox/interfaces';
+import { IGameCollection, IGameInfo } from './interfaces';
 
 export class GameParser {
   public static parse(data: IRawLaunchBoxPlatformRoot): IGameCollection {

@@ -1,5 +1,5 @@
-import { spawn, ChildProcess } from "child_process";
-import { EventEmitter } from "events";
+import { spawn, ChildProcess } from 'child_process';
+import { EventEmitter } from 'events';
 
 /**
  * A Child Process which automatically logs all output to the console

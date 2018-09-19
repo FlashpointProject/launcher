@@ -1,4 +1,4 @@
-import { BrowsePageLayout } from "../BrowsePageLayout";
+import { BrowsePageLayout } from '../BrowsePageLayout';
 
 /**
  * Contains state of all non-config settings the user can change in the application.

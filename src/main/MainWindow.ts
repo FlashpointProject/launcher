@@ -1,6 +1,5 @@
-import { app, session, BrowserWindow, WebContents, PermissionRequestHandlerDetails } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
-import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { Main } from './Main';
 import * as Util from './Util';
 import * as AppConstants from '../shared/AppConstants';
@@ -22,6 +21,7 @@ export default class MainWindow {
     this.sendLogDataToRenderer =this.sendLogDataToRenderer.bind(this);
   }
 
+  /** Create the window */
   public createWindow(): void {
     if (this._window) {
       throw new Error('Window already created!');
@@ -56,20 +56,6 @@ export default class MainWindow {
     if (this._window == null) {
       this.createWindow();
     }
-  }
-
-  public getConfig(): IAppConfigData {
-    return this._main.config;
-  }
-
-  /**
-   * Store the updated log data and send it to the window if it's created.
-   * @param fullLog The full log data from start to finish. Lines are separated
-   * with a new line.
-   */
-  public updateLogData(fullLog: string) {
-    this._logData = fullLog;
-    this.sendLogDataToRenderer();
   }
   
   /**

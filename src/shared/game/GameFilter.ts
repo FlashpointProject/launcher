@@ -1,5 +1,5 @@
-import { IGameInfo } from "./interfaces";
-import { IGameOrderChangeEvent } from "../../renderer/components/GameOrder";
+import { IGameInfo } from './interfaces';
+import { IGameOrderChangeEvent } from '../../renderer/components/GameOrder';
 
 export type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
 

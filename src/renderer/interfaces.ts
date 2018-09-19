@@ -1,4 +1,3 @@
-import { WebContents } from 'electron';
 import { ReactNode } from 'react';
 import { IGameCollection } from '../shared/game/interfaces';
 import { GameImageCollection } from './image/GameImageCollection';

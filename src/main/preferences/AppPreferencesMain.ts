@@ -1,8 +1,8 @@
-import { ipcMain, IpcMessageEvent, remote } from "electron";
-import { AppPreferencesFile } from "./AppPreferencesFile";
-import { IAppPreferencesData } from "../../shared/preferences/IAppPreferencesData";
-import { AppPreferencesApi } from "../../shared/preferences/AppPreferencesApi";
-import { recursiveReplace } from "../../shared/Util";
+import { ipcMain, IpcMessageEvent } from 'electron';
+import { AppPreferencesFile } from './AppPreferencesFile';
+import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
+import { AppPreferencesApi } from '../../shared/preferences/AppPreferencesApi';
+import { recursiveReplace } from '../../shared/Util';
 
 /**
  * Manager of the Preferences Data.

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { EditableTextWrap, IEditableTextWrapProps } from './EditableTextWrap';
+import { EditableTextWrap } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
