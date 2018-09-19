@@ -1,24 +1,44 @@
 import * as React from 'react';
 
+/** Props that are the same across both the text and edit elements */
+export interface IEditableTextBaseProps {
+  style?: React.CSSProperties;
+  className?: string;
+}
+
+/** Props for the edit element (used when in edit mode) */
+export interface IEditableTextTextProps extends IEditableTextBaseProps {
+}
+
+/** Props for the text element (used when NOT in edit mode) */
+export interface IEditableTextEditProps extends IEditableTextBaseProps{
+  width?: number;
+  height?: number;
+}
+
 export interface IEditableTextProps {
   /** Text to show (while not editing and the default when editing) */
   text: string;
+  /** Placeholder text to show while no text is entered */
+  placeholder?: string;
   /** If the text is in "edit mode" */
   isEditing?: boolean;
+  /** If the edit text field is multiline (its single line by default) */
+  isMultiline?: boolean;
   /** When the "edit text" is changed */
   onTextChange?: (text: string) => void;
   /** When a key is pressed down while in edit mode (if edit element has focus) */
   onKeyDown?: (event: React.KeyboardEvent) => void;
   /** When the normal text is clicked (this is NOT in edit mode) */
-  onTextClick?: (event: React.MouseEvent<HTMLParagraphElement>) => void;
+  onTextClick?: (event: React.MouseEvent) => void;
   /** When this edit text is clicked (this is in edit mode) */
-  onEditClick?: (event: React.MouseEvent<HTMLInputElement>) => void;
+  onEditClick?: (event: React.MouseEvent) => void;
   /** When the edit is complete */
   onEditDone?: (text: string) => void;
-  /** Style to forward to the text element (when not editing) */
-  textStyle?: React.CSSProperties;
-  /** Style to forward to the edit element (when editing) */
-  editStyle?: React.CSSProperties;
+  /** Props to forward to the text element (when not editing) */
+  textProps?: IEditableTextTextProps;
+  /** Props to forward to the edit element (when editing) */
+  editProps?: IEditableTextEditProps;
 }
 
 export interface IEditableTextState {
@@ -28,7 +48,7 @@ export interface IEditableTextState {
 
 export class EditableText extends React.Component<IEditableTextProps, IEditableTextState> {
   /** Reference to the edit input element (if in editing mode) */
-  private _edit: React.RefObject<HTMLInputElement> = React.createRef();
+  private _edit: React.RefObject<any> = React.createRef();
 
   constructor(props: IEditableTextProps) {
     super(props);
@@ -53,11 +73,18 @@ export class EditableText extends React.Component<IEditableTextProps, IEditableT
   render() {
     return (
       this.props.isEditing ? (
-        <input value={this.state.editText} onChange={this.onInputChange} onClick={this.props.onEditClick}
-               onKeyDown={this.onKeyDown} style={this.props.editStyle} ref={this._edit} />
-      ) : (
-        <p onClick={this.props.onTextClick} style={this.props.textStyle}>
-          {this.props.text}
+        this.props.isMultiline ? ( // Multi-line edit
+          <textarea value={this.state.editText} placeholder={this.props.placeholder}
+                    onChange={this.onInputChange} onClick={this.props.onEditClick}
+                    onKeyDown={this.onKeyDown} ref={this._edit} {...this.props.editProps} />
+        ) : ( // Single-line edit
+          <input value={this.state.editText} placeholder={this.props.placeholder}
+                 onChange={this.onInputChange} onClick={this.props.onEditClick}
+                 onKeyDown={this.onKeyDown} ref={this._edit} {...this.props.editProps} />
+        )
+      ) : ( // Normal text
+        <p onClick={this.props.onTextClick} {...this.props.textProps}>
+          {this.props.text || this.props.placeholder}
         </p>
       )
     );
@@ -70,11 +97,11 @@ export class EditableText extends React.Component<IEditableTextProps, IEditableT
     }
   }
 
-  onInputChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  onInputChange(event: React.ChangeEvent<{ value: string; }>): void {
     this.setState({ editText: event.target.value });
   }
 
-  onKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
+  onKeyDown(event: React.KeyboardEvent): void {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(event);
     }

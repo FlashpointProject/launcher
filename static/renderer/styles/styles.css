@@ -451,6 +451,30 @@ body {
   font-weight: bold;
   margin-bottom: 0;
 }
+.browse-sidebar__row--one-line {
+  display: flex;
+}
+.browse-sidebar__row--one-line :first-child {
+  flex: 0 0 auto;
+  white-space: pre;
+}
+.browse-sidebar__row--one-line :last-child {
+  flex: 1 0 auto;
+}
+.browse-sidebar__row  .browse-sidebar__row__editable-text {
+  display: block;
+  font-size: 0.9em;
+}
+.browse-sidebar__row  .browse-sidebar__row__editable-text--text-multi-line {
+  width: 100%;
+  min-height: 1rem;
+  white-space: pre-wrap;
+}
+.browse-sidebar__row  .browse-sidebar__row__editable-text--edit-multi-line {
+  width: 100%;
+  height: 16em;
+  resize: vertical;
+}
 .browse-sidebar__row__check-box {
   vertical-align: middle;
 }

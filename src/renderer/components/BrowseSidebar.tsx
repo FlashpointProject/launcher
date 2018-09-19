@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { EditableTextWrap } from './EditableTextWrap';
+import { EditableTextWrap, IEditableTextWrapProps } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
 import { GameImageCollection } from '../image/GameImageCollection';
 
@@ -24,6 +24,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
   private onStatusEditDone          = this.wrapOnEditDone((game, text) => { game.status = text; });
   private onLaunchCommandEditDone   = this.wrapOnEditDone((game, text) => { game.launchCommand = text; });
   private onApplicationPathEditDone = this.wrapOnEditDone((game, text) => { game.applicationPath = text; });
+  private onNotesEditDone           = this.wrapOnEditDone((game, text) => { game.notes = text; });
   private onBrokenChange            = this.wrapOnCheckBoxChange((game, isChecked) => { game.broken = isChecked; });
   private onExtremeChange           = this.wrapOnCheckBoxChange((game, isChecked) => { game.extreme = isChecked; });
 
@@ -37,40 +38,46 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
       return (
         <div className="browse-sidebar">
           <div className="browse-sidebar__section">
-            <div className="browse-sidebar__row browse-sidebar__row--title">
-              <b>
-                <EditableTextWrap text={selectedGame.title} target={selectedGame} onEditDone={this.onTitleEditDone}/>
-              </b>
+            <div className="browse-sidebar__row browse-sidebar__row--title browse-sidebar__row--one-line">
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.title} onEditDone={this.onTitleEditDone}/>
             </div>
-            <div className="browse-sidebar__row">
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
               <p>by </p>
-              <EditableTextWrap text={selectedGame.developer} target={selectedGame} onEditDone={this.onDeveloperEditDone}/>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.developer} onEditDone={this.onDeveloperEditDone}/>
             </div>
           </div>
           <div className="browse-sidebar__section">
-            <div className="browse-sidebar__row">
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
               <p>Genre: </p>
-              <EditableTextWrap text={selectedGame.genre} target={selectedGame} onEditDone={this.onGenreEditDone}/>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.genre} onEditDone={this.onGenreEditDone}/>
             </div>
-            <div className="browse-sidebar__row">
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
               <p>Series: </p>
-              <EditableTextWrap text={selectedGame.series} target={selectedGame} onEditDone={this.onSeriesEditDone}/>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.series} onEditDone={this.onSeriesEditDone}/>
             </div>
-            <div className="browse-sidebar__row">
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
               <p>Source: </p>
-              <EditableTextWrap text={selectedGame.source} target={selectedGame} onEditDone={this.onSourceEditDone}/>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.source} onEditDone={this.onSourceEditDone}/>
             </div>
-            <div className="browse-sidebar__row">
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
               <p>Platform: </p>
-              <EditableTextWrap text={selectedGame.platform} target={selectedGame} onEditDone={this.onPlatformEditDone}/>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.platform} onEditDone={this.onPlatformEditDone}/>
             </div>
-            <div className="browse-sidebar__row">
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
               <p>Play Mode: </p>
-              <EditableTextWrap text={selectedGame.playMode} target={selectedGame} onEditDone={this.onPlayModeEditDone}/>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.playMode} onEditDone={this.onPlayModeEditDone}/>
             </div>
-            <div className="browse-sidebar__row">
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
               <p>Status: </p>
-              <EditableTextWrap text={selectedGame.status} target={selectedGame} onEditDone={this.onStatusEditDone}/>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.status} onEditDone={this.onStatusEditDone}/>
             </div>
             <div className="browse-sidebar__row">
               <p>Broken: </p>
@@ -83,12 +90,23 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, {}> {
           </div>
           <div className="browse-sidebar__section">
             <div className="browse-sidebar__row">
-              <p>Application Path: </p>
-              <EditableTextWrap text={selectedGame.applicationPath} target={selectedGame} onEditDone={this.onApplicationPathEditDone}/>
+              <p>Notes: </p>
+              <EditableTextWrap target={selectedGame} isMultiline={true} placeholder='[N/A]'
+                                textProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--text-multi-line'}}
+                                editProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--edit-multi-line'}}
+                                text={selectedGame.notes} onEditDone={this.onNotesEditDone}/>
             </div>
-            <div className="browse-sidebar__row">
+          </div>
+          <div className="browse-sidebar__section">
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
+              <p>Application Path: </p>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.applicationPath} onEditDone={this.onApplicationPathEditDone}/>
+            </div>
+            <div className="browse-sidebar__row browse-sidebar__row--one-line">
               <p>Launch Command: </p>
-              <EditableTextWrap text={selectedGame.launchCommand} target={selectedGame} onEditDone={this.onLaunchCommandEditDone}/>
+              <EditableTextWrap target={selectedGame}
+                                text={selectedGame.launchCommand} onEditDone={this.onLaunchCommandEditDone}/>
             </div>
           </div>
           {(this.props.gameImages && this.props.selectedGame) ? (
