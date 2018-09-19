@@ -35,9 +35,6 @@ export interface IMainWindowExternal {
 
   /** Wrapper of Electron.dialog.showOpenDialog() */
   showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined;
-  
-  /** Wrapper of fs.existsSync() */
-  existsSync(path: string): boolean;
 
   /** Renderer's interface for the Preferences data */
   preferences: AppPreferencesApi;

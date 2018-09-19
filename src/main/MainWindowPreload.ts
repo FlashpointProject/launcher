@@ -1,16 +1,17 @@
 import * as electron from 'electron';
-import * as fs from 'fs';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { IGameInfo } from '../shared/game/interfaces';
 import { ElectronOpenDialogCallback } from '../shared/interfaces';
 import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
 
-//
+// Set up Preferences API
 const preferences = new AppPreferencesApi();
 preferences.initialize();
 
 /**
  * Object with functions that bridge between this and the Main processes
+ * (Note: This is mostly a left-over from when "node intergration" was disabled.
+ *        It might be a good idea to move this to the Renderer?)
  */
 window.External = Object.freeze({
   /** @inheritDoc */
@@ -77,11 +78,6 @@ window.External = Object.freeze({
       const val = electron.remote.dialog.showOpenDialog(options);
       return val && val.slice();
     }
-  },
-
-  /** @inheritDoc */
-  existsSync(path: string): boolean {
-    return fs.existsSync(path);
   },
 
   /** @inheritDoc */

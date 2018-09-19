@@ -1,18 +1,13 @@
-import * as fs from 'fs';
 import * as util from 'util';
 import * as child_process from 'child_process';
 import { app } from 'electron';
-import { IAppConfigData } from '../shared/config/IAppConfigData';
-import { AppConfig } from '../shared/config/AppConfig';
 
 const execFile = util.promisify(child_process.execFile);
 
 /**
- * Check is an application is installed
- *
+ * Check if an application is installed
  * @param binaryName The command you would use the run an application command
- * @param argument An argument to pass the command. This argument should not
- *   cause any side effects. By default --version
+ * @param argument An argument to pass the command. This argument should not cause any side effects. By default --version
  */
 export async function isInstalled(binaryName: string, argument = '--version') {
   try {
@@ -34,21 +29,11 @@ export const isDev: boolean = (function() {
   return isEnvSet ? getFromEnv : (process.defaultApp || /node_modules[\\/]electron[\\/]/.test(process.execPath));
 })();
 
-
-/**
- * Call a function once the electron app is ready, or immediately if it is already ready
- */
+/** Call a function once the electron app is ready, or immediately if it is already ready */
 export function callIfOrOnceReady(func: () => void): void {
   if (app.isReady()) {
     func();
   } else {
     app.once('ready', func);
   }
-}
-
-export function getLaunchBoxImageNames(imageFolderPath: string, callback: (imageNames: string[]) => void) {
-  fs.readdir(imageFolderPath, (err, files) => {
-    if (err) { throw new Error('wat'); }
-    callback(files);
-  });
 }

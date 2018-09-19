@@ -1,17 +1,17 @@
+import * as path from 'path';
+import { spawn } from 'child_process';
 import { app, session, ipcMain } from 'electron';
 import MainWindow from './MainWindow';
 import * as Util from './Util';
 import { AppConfig } from '../shared/config/AppConfig';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import BackgroundServices from './BackgroundServices';
-import FlashPlayer from './FlashPlayer';
 import checkSanity from '../shared/checkSanity';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
   private _backgroundServices?: BackgroundServices;
-  private _flashPlayer?: FlashPlayer;
   private _config?: IAppConfigData;
   private _preferences: AppPreferencesMain = new AppPreferencesMain();
   private _logData: string = '';
@@ -24,16 +24,13 @@ export class Main {
   constructor() {
     // Bind functions
     this.pushLogData = this.pushLogData.bind(this);
-
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
-
     // Add IPC event listeners
     ipcMain.on('launch-game-sync', this.onLaunchGameSync.bind(this));
     ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
     ipcMain.on('resend-log-data-update', this.sendLogData.bind(this));
-
     // Load config and preferences
     this.loadConfig()
     .then(async () => {
@@ -44,15 +41,10 @@ export class Main {
       // TODO: Launch the setup wizard when a check failed.
       checkSanity(this.config)
       .then(console.log, console.error);
-
-      // Create FlashPlayer class
-      this._flashPlayer = new FlashPlayer(this.config.flashpointPath);
-
       // Start background services
       this._backgroundServices = new BackgroundServices();
       this._backgroundServices.on('output', this.pushLogData);
       this._backgroundServices.start(this.config);
-
       // Create main window as soon as possible
       Util.callIfOrOnceReady(() => {
         this._mainWindow.createWindow();
@@ -61,16 +53,14 @@ export class Main {
     .catch(console.error);
   }
 
-  private onAppReady() {
+  private onAppReady(): void {
     if (!session.defaultSession) {
       throw new Error('Default session is missing!');
     }
-
     // Reject all permission requests since we don't need any permissions.
     session.defaultSession.setPermissionRequestHandler(
       (webContents, permission, callback) => callback(false)
     );
-
     // Stop non-local resources from being fetched (as long as their response has at least one header?)
     // Only allow local scripts to execute (Not sure what this allows? "file://"? "localhost"?)
     // (TypeScript type information is missing, check the link below for the type info)
@@ -83,7 +73,7 @@ export class Main {
     );
   }
 
-  private onAppWindowAllClosed() {
+  private onAppWindowAllClosed(): void {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -98,10 +88,9 @@ export class Main {
    * Append the output to the internal log data object and tell the main window
    * about the updated log data. The main window will display the log data in
    * the "Logs" tab. Also print the output to stdout.
-   *
    * @param output The log entry to be added. Must end with a new line.
    */
-  private pushLogData(output: string) {
+  private pushLogData(output: string): void {
     process.stdout.write(output);
     this._logData += output;
     this.sendLogData();
@@ -112,7 +101,7 @@ export class Main {
   }
 
   /** Load the application config asynchronously */
-  private async loadConfig() {
+  private async loadConfig(): Promise<void> {
     let error: Error|undefined,
         data: IAppConfigData|undefined;
     try {
@@ -132,16 +121,29 @@ export class Main {
     console.log('Configs:', data);
   }
 
-  /** Launch a game using some if its properties */
-  private onLaunchGameSync(event: Electron.IpcMessageEvent, applicationPath: string, args: string[]) {
-    console.log('Launch game:', applicationPath, args);
-    if (!this._flashPlayer) { throw new Error('FlashPlayer wrapper is not constructed'); }
-    this._flashPlayer.launch(applicationPath, args);
+  /**
+   * Launch a game (by using some of its game info properties)
+   * @param event Event from the IPC
+   * @param applicationPath Path of the application (relative to Flashpoint's Arcade folder)
+   * @param args Arguments to run the application with (usually the path to the game file)
+   */
+  private onLaunchGameSync(event: Electron.IpcMessageEvent, applicationPath: string, args: string[]): void {
+    const filePath: string = path.posix.join(this.config.flashpointPath, '/Arcade', applicationPath);
+    // When using Linux, use the proxy created in BackgroundServices.ts
+    // This is only needed on Linux because the proxy is installed on system
+    // level entire system when using Windows.
+    const env = process.platform === 'linux'
+      ? { ...process.env, http_proxy: 'http://localhost:22500/' }
+      : process.env;
+    // Launch game
+    console.log('Launch game:', filePath, args);
+    spawn(filePath, args, { env });
     // Set return value (this makes the renderer process "unpause")
     event.returnValue = null;
   }
 
-  private onGetConfigSync(event: Electron.IpcMessageEvent, arg: any): void {
+  /** Get the config object synchronously */
+  private onGetConfigSync(event: Electron.IpcMessageEvent): void {
     event.returnValue = this.config;
   }
 }
