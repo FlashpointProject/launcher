@@ -1,4 +1,24 @@
 /**
+ * Check if all properties of both arguments have strictly equals values,
+ * and if both objects have identical properties (same number of props with the same names)
+ * @param first 
+ * @param second 
+ */
+export function shallowStrictEquals(first: any, second: any): boolean {
+  for (let key in first) {
+    if (!(key in second) || first[key] !== second[key]) {
+      return false;
+    }
+  }
+  for (let key in second) {
+    if (!(key in first) || first[key] !== second[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Recursively copy values from data to target (for every property of the same name)
  * @param target Target object to copy data to
  * @param source Source object to copy data from

@@ -433,7 +433,7 @@ body {
 .browse-sidebar__section:last-child {
   margin-bottom: 0;
 }
-.browse-sidebar__section__bottom {
+.browse-sidebar__section--below-gap {
   display: flex;
   flex-direction: column;
   flex: 1 0 auto;
@@ -441,6 +441,9 @@ body {
 /* BrowserSidebar Row */
 .browse-sidebar__row {
   margin-bottom: 0.2rem;
+}
+.browse-sidebar__row:last-child {
+  margin-bottom: 0;
 }
 .browse-sidebar__row p {
   user-select: none;
@@ -460,6 +463,13 @@ body {
 }
 .browse-sidebar__row--one-line :last-child {
   flex: 1 0 auto;
+}
+.browse-sidebar__row--save {
+  background-color: #09090a;
+  padding: 0.5rem;
+}
+.browse-sidebar__row--save :last-child {
+  float: right;
 }
 .browse-sidebar__row  .browse-sidebar__row__editable-text {
   display: block;
