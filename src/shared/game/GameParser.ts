@@ -25,18 +25,18 @@ export class GameParser {
     return {
       id: data.ID + '',
       title: GameParser.decodeString(data.Title + ''),
-      series: data.Series + '',
-      developer: data.Developer + '',
-      platform: data.Platform + '',
+      series: GameParser.decodeString(data.Series + ''),
+      developer: GameParser.decodeString(data.Developer + ''),
+      platform: GameParser.decodeString(data.Platform + ''),
       broken: !!data.Broken,
       extreme: !!data.Hide,
-      playMode: data.PlayMode + '',
-      status: data.Status + '',
-      notes: data.Notes + '',
-      genre: data.Genre + '',
-      source: data.Source + '',
+      playMode: GameParser.decodeString(data.PlayMode + ''),
+      status: GameParser.decodeString(data.Status + ''),
+      notes: GameParser.decodeString(data.Notes + ''),
+      genre: GameParser.decodeString(data.Genre + ''),
+      source: GameParser.decodeString(data.Source + ''),
       applicationPath: GameParser.parseApplicationPath(data.ApplicationPath + ''),
-      launchCommand: data.CommandLine + '',
+      launchCommand: GameParser.decodeString(data.CommandLine + ''),
     };
   }
 

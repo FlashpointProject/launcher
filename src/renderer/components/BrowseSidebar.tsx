@@ -103,12 +103,12 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
                                 text={game.status} onEditDone={this.onStatusEditDone}/>
             </div>
             <div className='browse-sidebar__row'>
-              <p>Broken: </p>
               <CheckBox checked={game.broken} onChange={this.onBrokenChange} className='browse-sidebar__row__check-box'/>
+              <p> Broken</p>
             </div>
             <div className='browse-sidebar__row'>
-              <p>Extreme: </p>
               <CheckBox checked={game.extreme} onChange={this.onExtremeChange} className='browse-sidebar__row__check-box'/>
+              <p> Extreme</p>
             </div>
           </div>
           <div className='browse-sidebar__section'>
