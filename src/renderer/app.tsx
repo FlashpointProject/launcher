@@ -137,9 +137,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange} 
                 extremeToggle={this.state.showExtreme} onExtremeChange={this.onExtremeChange}/>
         {/* "Main" / "Content" stuff */}
-        <div className="main">
+        <div className='main'>
           <AppRouter {...routerProps} />
-          <noscript className="nojs">
+          <noscript className='nojs'>
             <div style={{textAlign:'center'}}>
               This website requires JavaScript to be enabled.
             </div>

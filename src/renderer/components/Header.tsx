@@ -31,20 +31,20 @@ export class Header extends React.Component<IHeaderProps, {}> {
       tagRemoveInner: 'header__search__tag__remove__inner',
     };
     return (
-      <div className="header">
+      <div className='header'>
         {/* Header Menu */}
-        <ul className="header__menu">
-          <li className="header__menu__item">
-            <Link to={Paths.browse} className="header__menu__item__link">Browse</Link>
+        <ul className='header__menu'>
+          <li className='header__menu__item'>
+            <Link to={Paths.browse} className='header__menu__item__link'>Browse</Link>
           </li>
-          <li className="header__menu__item">
-            <Link to={Paths.logs} className="header__menu__item__link">Logs</Link>
+          <li className='header__menu__item'>
+            <Link to={Paths.logs} className='header__menu__item__link'>Logs</Link>
           </li>
-          <li className="header__menu__item">
-            <Link to={Paths.config} className="header__menu__item__link">Config</Link>
+          <li className='header__menu__item'>
+            <Link to={Paths.config} className='header__menu__item__link'>Config</Link>
           </li>
-          <li className="header__menu__item">
-            <Link to={Paths.about} className="header__menu__item__link">About</Link>
+          <li className='header__menu__item'>
+            <Link to={Paths.about} className='header__menu__item__link'>About</Link>
           </li>
         </ul>
         {/* Header Search */}
@@ -52,9 +52,9 @@ export class Header extends React.Component<IHeaderProps, {}> {
         {/* Header Drop-downs */}
         <GameOrder onChange={this.onOrderChange}/>
         {/* Toggle Extreme */}
-        <div className="header__extreme" title="If games not suitable for children should be shown">
-          <p className="header__extreme__text">Show Extreme: </p>
-          <CheckBox className="header__extreme__toggle" checked={this.props.extremeToggle} onChange={this.onExtremeChange}/>
+        <div className='header__extreme' title='If games not suitable for children should be shown'>
+          <p className='header__extreme__text'>Show Extreme: </p>
+          <CheckBox className='header__extreme__toggle' checked={this.props.extremeToggle} onChange={this.onExtremeChange}/>
         </div>
       </div>
     );

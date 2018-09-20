@@ -42,50 +42,50 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
 
   render() {
     return (
-      <div className="config-page">
-        <div className="config-page__inner">
-          <h1 className="config-page__title">Config</h1>
-          <i>(You must press "Save & Restart" for changes to take effect)</i>
+      <div className='config-page'>
+        <div className='config-page__inner'>
+          <h1 className='config-page__title'>Config</h1>
+          <i>(You must press 'Save & Restart' for changes to take effect)</i>
 
-          <div className="setting">
-            <p className="setting__title">Flashpoint</p>
-            <div className="setting__row">
-              <div className="setting__row__title">
+          <div className='setting'>
+            <p className='setting__title'>Flashpoint</p>
+            <div className='setting__row'>
+              <div className='setting__row__title'>
                 <p>FlashPoint Path</p>
               </div>
-              <div className="setting__row__content setting__row__content--flashpoint-path">
+              <div className='setting__row__content setting__row__content--flashpoint-path'>
                 <ConfigFlashpointPathInput input={this.state.flashpointPath}
                           onInputChange={this.onFlashpointPathChange}
                           isValid={this.state.isFlashpointPathValid} />
               </div>
             </div>
-            <div className="setting__row">
-              <div className="setting__row__title">
+            <div className='setting__row'>
+              <div className='setting__row__title'>
                 <p>Start Router</p>
               </div>
-              <div className="setting__row__content setting__row__content--toggle">
+              <div className='setting__row__content setting__row__content--toggle'>
                 <div>
                   <CheckBox checked={this.state.startRouter} 
                             onChange={this.onStartRouterOnChange} />
                 </div>
               </div>
             </div>
-            <div className="setting__row">
-              <div className="setting__row__title">
+            <div className='setting__row'>
+              <div className='setting__row__title'>
                 <p>Start Redirector (Windows only)</p>
               </div>
-              <div className="setting__row__content setting__row__content--toggle">
+              <div className='setting__row__content setting__row__content--toggle'>
                 <div>
                   <CheckBox checked={this.state.startRedirector} 
                             onChange={this.onStartRedirectorOnChange} />
                 </div>
               </div>
             </div>
-            <div className="setting__row">
-              <div className="setting__row__title">
+            <div className='setting__row'>
+              <div className='setting__row__title'>
                 <p>Use Fiddler instead of Redirector (Windows only)</p>
               </div>
-              <div className="setting__row__content setting__row__content--toggle">
+              <div className='setting__row__content setting__row__content--toggle'>
                 <div>
                   <CheckBox checked={this.state.useFiddler} 
                             onChange={this.onUseFiddlerOnChange} />
@@ -94,13 +94,13 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
             </div>
           </div>
 
-          <div className="setting">
-            <p className="setting__title">Window</p>
-            <div className="setting__row">
-              <div className="setting__row__title">
+          <div className='setting'>
+            <p className='setting__title'>Window</p>
+            <div className='setting__row'>
+              <div className='setting__row__title'>
                 <p>Use Custom Toolbar</p>
               </div>
-              <div className="setting__row__content setting__row__content--toggle">
+              <div className='setting__row__content setting__row__content--toggle'>
                 <div>
                   <CheckBox checked={this.state.useCustomTitlebar} 
                             onChange={this.onUseCustomTitlebarChange} />
@@ -109,9 +109,9 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
             </div>
           </div>
 
-          <div className="setting">
-            <div className="setting__row">
-              <input type="button" value="Save & Restart" className="simple-button save-and-restart" onClick={this.onSaveAndRestartClick} />
+          <div className='setting'>
+            <div className='setting__row'>
+              <input type='button' value='Save & Restart' className='simple-button save-and-restart' onClick={this.onSaveAndRestartClick} />
             </div>
           </div>
         </div>

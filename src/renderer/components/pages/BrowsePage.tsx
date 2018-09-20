@@ -63,8 +63,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const games: IGameInfo[] = this.orderGames();
     const order = this.props.order || BrowsePage.defaultOrder;
     return (
-      <div className="game-browser">
-        <div className="game-browser__left" onKeyDown={this.onKeyDown}>
+      <div className='game-browser'>
+        <div className='game-browser__left' onKeyDown={this.onKeyDown}>
           {(() => {
             if (this.props.gameLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
@@ -107,10 +107,10 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   private noRowsRenderer() {
     return (
-      <div className="game-list__no-games">
+      <div className='game-list__no-games'>
         {this.props.central?( // (Game loading complete - kind of a hacky way to check)
           <>
-            <h1 className="game-list__no-games__title">No Games Found!</h1>
+            <h1 className='game-list__no-games__title'>No Games Found!</h1>
             <br/>
             {(this.props.central.collection && this.props.central.collection.games.length > 0)?(
               <>

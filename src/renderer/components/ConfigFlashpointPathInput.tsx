@@ -26,9 +26,9 @@ export class ConfigFlashpointPathInput extends React.Component<IConfigFlashpoint
     return (
       <>
         <div className={className}>
-          <input type="text" onChange={this.onInputChange} value={this.props.input} />
+          <input type='text' onChange={this.onInputChange} value={this.props.input} />
         </div>
-        <input type="button" value="Browse" className="simple-button" onClick={this.onBrowseClick} />
+        <input type='button' value='Browse' className='simple-button' onClick={this.onBrowseClick} />
       </>
     );
   }

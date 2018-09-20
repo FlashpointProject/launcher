@@ -24,7 +24,7 @@ export default class LogData extends React.Component<ILogDataProps> {
    */
   getSnapshotBeforeUpdate(): ILogDataSnapshot | null {
     const preNode = this.preNodeRef.current;
-    if (!preNode) throw Error("<pre> is not mounted");
+    if (!preNode) throw Error('<pre> is not mounted');
 
     const scrolledToBottom = (
       preNode.scrollHeight - preNode.scrollTop === preNode.clientHeight
@@ -57,7 +57,7 @@ export default class LogData extends React.Component<ILogDataProps> {
 
   private scrollAllTheDown() {
     const preNode = this.preNodeRef.current;
-    if (!preNode) throw Error("<pre> is not mounted");
+    if (!preNode) throw Error('<pre> is not mounted');
 
     preNode.scrollTop = preNode.scrollHeight;
   }
@@ -66,7 +66,7 @@ export default class LogData extends React.Component<ILogDataProps> {
     const { logData } = this.props;
 
     return (
-      <pre className="logs__log-data" ref={this.preNodeRef}>
+      <pre className='logs__log-data' ref={this.preNodeRef}>
         {logData}
       </pre>
     )

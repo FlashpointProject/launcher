@@ -37,14 +37,14 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
     return (
       <>
         {/* Order By */}
-        <select className="simple-selector" value={this.state.orderBy} onChange={this.onOrderByChange}>
-          <option value="title">Title</option>
-          <option value="genre">Genre</option>
+        <select className='simple-selector' value={this.state.orderBy} onChange={this.onOrderByChange}>
+          <option value='title'>Title</option>
+          <option value='genre'>Genre</option>
         </select>
         {/* Order Reverse */}
-        <select className="simple-selector" value={this.state.orderReverse} onChange={this.onOrderReverseChange}>
-          <option value="ascending">Ascending</option>
-          <option value="descending">Descending</option>
+        <select className='simple-selector' value={this.state.orderReverse} onChange={this.onOrderReverseChange}>
+          <option value='ascending'>Ascending</option>
+          <option value='descending'>Descending</option>
         </select>
       </>
     );

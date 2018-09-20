@@ -56,7 +56,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
     }
     // Render
     return (
-      <div className="game-browser" ref={this._wrapper} onKeyPress={this.onKeyPress}>
+      <div className='game-browser' ref={this._wrapper} onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => (
             <ArrowKeyStepper
@@ -68,7 +68,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
               scrollToRow={scrollToIndex}>
               {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
                 <List
-                  className="game-list"
+                  className='game-list'
                   width={width}
                   height={height}
                   rowHeight={this.props.rowHeight}

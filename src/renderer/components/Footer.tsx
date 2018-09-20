@@ -26,22 +26,22 @@ export class Footer extends React.Component<IFooterProps, {}> {
   render() {
     let scale: number = Math.min(Math.max(0, this.props.scaleSliderValue), 1) * Footer.scaleSliderMax;
     return (
-      <div className="footer">
-        <div className="footer__game-count">
+      <div className='footer'>
+        <div className='footer__game-count'>
           {(this.props.gameCount !== undefined) ? (
             <>Games Total: {this.props.gameCount}</>
           ) : (
             <>No Games Found!</>
           )}
         </div>
-        <div className="footer__right">
-          <select className="footer__layout-selector simple-selector" value={stringifyBrowsePageLayout(this.props.layout)} onChange={this.onLayoutChange}>
+        <div className='footer__right'>
+          <select className='footer__layout-selector simple-selector' value={stringifyBrowsePageLayout(this.props.layout)} onChange={this.onLayoutChange}>
             <option value='list'>List</option>
             <option value='grid'>Grid</option>
           </select>
-          <div className="footer__scale-slider">
-            <input className="footer__scale-slider__inner simple-slider" type="range" onChange={this.onScaleSliderChange}
-                   min="0" max={Footer.scaleSliderMax} value={scale}/>
+          <div className='footer__scale-slider'>
+            <input className='footer__scale-slider__inner simple-slider' type='range' onChange={this.onScaleSliderChange}
+                   min='0' max={Footer.scaleSliderMax} value={scale}/>
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ export class CheckBox extends React.Component<ICheckBoxProps, {}> {
 
   render() {
     return (
-      <input type="checkbox" checked={this.props.checked} onChange={this.onChange}
+      <input type='checkbox' checked={this.props.checked} onChange={this.onChange}
              className={this.props.className} style={this.props.style} />
     );
   }

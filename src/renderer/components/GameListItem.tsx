@@ -44,17 +44,17 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     return (
       <li style={this.props.style} className={className} 
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
-        <div className="game-list-item__thumb" style={{
+        <div className='game-list-item__thumb' style={{
           backgroundImage: `url("${this.props.thumbnail}")`,
           width: size,
           height: size,
         }} />
-        <div className="game-list-item__right">
-          <p className="game-list-item__right__title">{title}</p>
-          <p className="game-list-item__right__genre">{game.genre}</p>
-          <div className="game-list-item__right__icons">
+        <div className='game-list-item__right'>
+          <p className='game-list-item__right__title'>{title}</p>
+          <p className='game-list-item__right__genre'>{game.genre}</p>
+          <div className='game-list-item__right__icons'>
             {(platformIcon) ? (
-              <div className="game-list-item__right__icons__icon" style={{
+              <div className='game-list-item__right__icons__icon' style={{
                 backgroundImage: `url("${platformIcon}")`
               }} />
             ) : undefined }

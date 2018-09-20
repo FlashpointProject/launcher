@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { IRawLaunchBoxPlatformRoot } from "../shared/launchbox/interfaces";
-import { IGameCollection } from "../shared/game/interfaces";
+import { IRawLaunchBoxPlatformRoot } from '../shared/launchbox/interfaces';
+import { IGameCollection } from '../shared/game/interfaces';
 import * as fastXmlParser from 'fast-xml-parser';
-import { GameParser } from "../shared/game/GameParser";
+import { GameParser } from '../shared/game/GameParser';
 import { GameCollection } from '../shared/game/GameCollection';
 
 const platformsPath: string = './Arcade/Data/Platforms';

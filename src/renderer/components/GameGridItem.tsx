@@ -42,26 +42,26 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     return (
       <li style={this.props.style} className={className} 
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
-        <div className="game-grid-item__thumb"style={{
+        <div className='game-grid-item__thumb'style={{
           width: width+'px',
           height: width+'px',
         }}>
-          <div className="game-grid-item__thumb__image" style={{
-            backgroundImage: `url("${this.props.thumbnail}")`
+          <div className='game-grid-item__thumb__image' style={{
+            backgroundImage: `url('${this.props.thumbnail}')`
           }}>
-            <div className="game-grid-item__thumb__icons">
+            <div className='game-grid-item__thumb__icons'>
               {(platformIcon) ? (
-                <div className="game-grid-item__thumb__icons__icon" style={{
-                  backgroundImage: `url("${platformIcon}")`
+                <div className='game-grid-item__thumb__icons__icon' style={{
+                  backgroundImage: `url('${platformIcon}')`
                 }} />
               ) : undefined }           
             </div>
           </div>
         </div>
-        <div className="game-grid-item__title" style={{
+        <div className='game-grid-item__title' style={{
           height: (height - width) + 'px',
         }}>
-        <p className="game-grid-item__title__text">{game.title || ''}</p>
+        <p className='game-grid-item__title__text'>{game.title || ''}</p>
         </div>
       </li>
     );
