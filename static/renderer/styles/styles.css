@@ -232,19 +232,20 @@ body {
 }
 .header__menu__item {
   display: inline-block;
-  padding: 0.3em 0.7em;
-  border: 1px solid rgba(0,0,0,0);
-}
-.header__menu__item:hover {
-  /* Pimp */
-  background-color: #3c2d4b;
-  border-color: #d33682;
 }
 .header__menu__item__link {
+  display: inline-block;
+  padding: 0.3em 0.7em;
+  border: 1px solid rgba(0,0,0,0);
   /* Pimp */
   cursor: pointer;
   text-decoration: none;
   color: var(--theme__text-color);
+}
+.header__menu__item__link:hover {
+  /* Pimp */
+  background-color: #3c2d4b;
+  border-color: #d33682;
 }
 /* Header Search */
 .header__search {

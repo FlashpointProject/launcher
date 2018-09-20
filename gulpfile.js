@@ -98,7 +98,7 @@ function pack() {
     tmpdir: './temp/', // (Remove this to use the temp folder in appdata instead)
     overwrite: true, // For debugging
     // Build settings
-    executableName: 'LunchBox',
+    executableName: 'FlashpointLauncher',
     platform: process.env.PACK_PLATFORM,
     arch: process.env.PACK_ARCH,
     asar: config.isRelease,

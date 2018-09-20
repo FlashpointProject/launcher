@@ -103,7 +103,7 @@ export enum FailedCheck {
 }
 
 /**
- * Check if LunchBox is ready to launch or not. The setup wizard will be
+ * Check if the application is ready to launch or not. The setup wizard will be
  * launched if some of the tests fail (TODO).
  *
  * @param config The application config
