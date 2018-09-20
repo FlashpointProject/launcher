@@ -38,8 +38,9 @@ export class ImageFolderCache {
     if (filenames) { // image found
       // @TODO If there are multiple filenames found, maybe we should figure
       //       out which is most suitable (lowest index, shortest name, etc.)
-      this._cache[title] = filenames[0];
-      return path.posix.join(this._folderPath, filenames[0]);
+      const str: string = encodeURIComponent(filenames[0]); // (Makes # in filenames work)
+      this._cache[title] = str;
+      return path.posix.join(this._folderPath, str);
     }
     // No image found
     console.error(`image was not found for game: ${title} ` +

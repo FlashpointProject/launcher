@@ -136,7 +136,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
             <div className='browse-sidebar__section browse-sidebar__section--below-gap'>
               <div className='browse-sidebar__row browse-sidebar__row__spacer' />
               <div className='browse-sidebar__row'>
-                <img className='browse-sidebar__row__screenshot' 
+                <img className='browse-sidebar__row__screenshot'
                      src={this.props.gameImages.getScreenshotPath(game.title, game.platform)}/>
               </div>
             </div>
