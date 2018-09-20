@@ -15,9 +15,24 @@ preferences.initialize();
  */
 window.External = Object.freeze({
   /** @inheritDoc */
-  launchGameSync(game: IGameInfo) {
+    launchGameSync(game: IGameInfo) {
+    // Get the path of the application (that runs the game)
+    let applicationPath: string = game.applicationPath;
+    if (game.platform === 'Flash' && window.External.platform === 'linux') {
+      // The value provided in Flash.xml is only accurate in windows.
+      // We hardcode the value in linux.
+
+      // Note that this assumes that `flash_player_sa_linux.x86_64.tar.gz`
+      // has been extracted using:
+      //   $ cd Arcade/Games
+      //   $ tar xf flash_player_sa_linux.x86_64.tar.gz flashplayer
+
+      // @TODO Figure out a way to let Linux users change this path
+      //       and potential paths for other applications
+      applicationPath = 'Games/flashplayer';
+    }
     // Send a "Launch Game" event to the main process
-    electron.ipcRenderer.sendSync('launch-game-sync', game.applicationPath || '', [game.launchCommand || '']);
+    electron.ipcRenderer.sendSync('launch-game-sync', applicationPath, [game.launchCommand || '']);
   },
 
   /** @inheritDoc */

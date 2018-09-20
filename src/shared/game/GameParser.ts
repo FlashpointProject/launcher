@@ -35,36 +35,9 @@ export class GameParser {
       notes: GameParser.decodeString(data.Notes + ''),
       genre: GameParser.decodeString(data.Genre + ''),
       source: GameParser.decodeString(data.Source + ''),
-      applicationPath: GameParser.parseApplicationPath(data.ApplicationPath + ''),
+      applicationPath: GameParser.decodeString(data.ApplicationPath + ''),
       launchCommand: GameParser.decodeString(data.CommandLine + ''),
     };
-  }
-
-  /**
-   * Replace the application path with the platform specific version is
-   * required.
-   * 
-   * The value provided in Flash.xml is only accurate in windows.
-   * We hardcode the value in linux.
-   *
-   * Note that this assumes that `flash_player_sa_linux.x86_64.tar.gz` has been
-   * extracted using:
-   *   $ cd Arcade/Games
-   *   $ tar xf flash_player_sa_linux.x86_64.tar.gz flashplayer
-   *
-   * @param value The value of the ApplicationPath XML node.
-   */
-  private static parseApplicationPath(value: string): string {
-    switch (window.External.platform) {
-      case 'win32':
-        return value;
-      case 'linux':
-        // TODO(nloomans): Automatically extract the flash_player tarball.
-        return 'Games/flashplayer';
-      default:
-        // TODO: Figure out the required path for other platforms.
-        return value;
-    }
   }
 
   private static decodeString(str: string): string {
