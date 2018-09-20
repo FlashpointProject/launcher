@@ -422,13 +422,14 @@ body {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 0.5em 0.8em;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.9rem;
   overflow-x: hidden;
   overflow-y: auto;
 }
 /* BrowserSidebar Section */
 .browse-sidebar__section {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.1em;
 }
 .browse-sidebar__section:last-child {
   margin-bottom: 0;
@@ -450,7 +451,7 @@ body {
   cursor: default;
 }
 .browse-sidebar__row--title {
-  font-size: 1.2em;
+  font-size: 1.2rem;
   font-weight: bold;
   margin-bottom: 0;
 }
@@ -462,7 +463,10 @@ body {
   white-space: pre;
 }
 .browse-sidebar__row--one-line :last-child {
-  flex: 1 0 auto;
+  flex: 1 1 auto;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .browse-sidebar__row--save {
   background-color: #09090a;
