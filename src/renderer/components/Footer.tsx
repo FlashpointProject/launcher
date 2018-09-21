@@ -15,7 +15,7 @@ export interface IFooterProps extends IDefaultProps {
 }
 
 export class Footer extends React.Component<IFooterProps, {}> {
-  private static scaleSliderMax: number = 100;
+  private static scaleSliderMax: number = 1000;
 
   constructor(props: IFooterProps) {
     super(props);
