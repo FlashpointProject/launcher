@@ -19,6 +19,8 @@ export interface IGameListProps extends IDefaultProps {
   noRowsRenderer?: () => JSX.Element;
   /** Called when a game is selected */
   onGameSelect?: (game?: IGameInfo) => void;
+  /** Called when a game is launched */
+  onGameLaunch: (game: IGameInfo) => void;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -114,7 +116,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
   onKeyPress(event: React.KeyboardEvent): void {
     if (event.key === 'Enter') {
       if (this.props.selectedGame) {
-        window.External.launchGameSync(this.props.selectedGame);
+        this.props.onGameLaunch(this.props.selectedGame);
       }
     }
   }
@@ -126,7 +128,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
   
   /** When a list item is double clicked */
   onItemDoubleClick(game: IGameInfo, index: number): void {
-    window.External.launchGameSync(game);
+    this.props.onGameLaunch(game);
   }
 
   /** When a row/item is selected */

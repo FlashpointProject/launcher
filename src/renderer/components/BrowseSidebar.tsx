@@ -6,6 +6,7 @@ import { GameImageCollection } from '../image/GameImageCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { BrowseSidebarAddApp } from './BrowseSidebarAddApp';
+import { GameLauncher } from '../../shared/game/GameLauncher';
 
 export interface IBrowseSidebarProps {
   gameImages?: GameImageCollection;
@@ -134,7 +135,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               <input type="button" value="New" className="simple-button"/>
             </div>
             {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
-              return <BrowseSidebarAddApp addApp={addApp} onEdit={this.onAddAppEdit} key={addApp.id}/>;
+              return <BrowseSidebarAddApp key={addApp.id} addApp={addApp} onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}/>;
             })}
           </div>
           <div className='browse-sidebar__section'>
@@ -173,6 +174,10 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
         <p>No game selected.</p>
       );
     }
+  }
+
+  private onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
+    GameLauncher.launchAdditionalApplication(addApp);
   }
 
   private updateEditGame(): void {

@@ -8,6 +8,8 @@ export interface IBrowseSidebarAddAppProps {
   addApp: IAdditionalApplicationInfo;
   /** Called when a field is edited */
   onEdit?: () => void;
+  /** Called when the launch button is clicked */
+  onLaunch?: (addApp: IAdditionalApplicationInfo) => void;
 }
 
 export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppProps, {}> {
@@ -19,6 +21,7 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
 
   constructor(props: IBrowseSidebarAddAppProps) {
     super(props);
+    this.onLaunchClick = this.onLaunchClick.bind(this);
   }
 
   render() {
@@ -28,7 +31,7 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
         <div className='browse-sidebar__row browse-sidebar__row--additional-applications-name'>
           <EditableTextWrap target={addApp} 
                             text={addApp.name} onEditDone={this.onNameEditDone}/>
-          <input type="button" className="simple-button" value="Launch"/>
+          <input type="button" className="simple-button" value="Launch" onClick={this.onLaunchClick}/>
         </div>
         <div className='browse-sidebar__row browse-sidebar__row--one-line'>
           <p>Application Path: </p>
@@ -52,6 +55,12 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
         </div>
       </div>
     );
+  }
+
+  private onLaunchClick(): void {
+    if (this.props.onLaunch) {
+      this.props.onLaunch(this.props.addApp);
+    }
   }
 
   private onEdit(): void {

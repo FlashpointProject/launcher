@@ -10,6 +10,7 @@ import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { filterSearch, filterExtreme, getOrderFunction } from '../../../shared/game/GameFilter';
 import { GameCollection } from '../../../shared/game/GameCollection';
+import { GameLauncher } from '../../../shared/game/GameLauncher';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
@@ -43,6 +44,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
+    this.onGameLaunch = this.onGameLaunch.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
   }
 
@@ -83,6 +85,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           gameImages={this.props.central && this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
+                          onGameLaunch={this.onGameLaunch}
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
                           cellWidth={width}
@@ -96,6 +99,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           gameImages={this.props.central && this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
+                          onGameLaunch={this.onGameLaunch}
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
                           rowHeight={height}/>
@@ -147,6 +151,12 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     if (this.state.selectedGame !== game) {
       this.setState({ selectedGame: game });
     }
+  }
+
+  private onGameLaunch(game: IGameInfo): void {
+    if (!this.props.central || !this.props.central.collection) { throw new Error('oopsie'); }
+    const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.collection, game.id);
+    GameLauncher.launchGame(game, addApps);
   }
 
   private onKeyDown(event: React.KeyboardEvent): void {

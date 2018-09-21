@@ -22,11 +22,6 @@ config.initialize();
  *        It might be a good idea to move this to the Renderer?)
  */
 window.External = Object.freeze({
-  /** @inheritDoc */
-  launchGameSync(game: IGameInfo) {
-    GameLauncher.launchGame(game);
-  },
-
   /** @inheritdoc */
   resendLogDataUpdate() {
     electron.ipcRenderer.send('resend-log-data-update');

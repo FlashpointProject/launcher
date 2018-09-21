@@ -21,6 +21,8 @@ export interface IGameGridProps extends IDefaultProps {
   noRowsRenderer?: () => JSX.Element;
   /** Called when a game is selected */
   onGameSelect?: (game?: IGameInfo) => void;
+  /** Called when a game is launched */
+  onGameLaunch: (game: IGameInfo) => void;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -144,7 +146,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   onKeyPress(event: React.KeyboardEvent): void {
     if (event.key === 'Enter') {
       if (this.props.selectedGame) {
-        window.External.launchGameSync(this.props.selectedGame);
+        this.props.onGameLaunch(this.props.selectedGame);
       }
     }
   }
@@ -156,7 +158,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   
   /** When a list item is double clicked */
   onItemDoubleClick(game: IGameInfo, index: number): void {
-    window.External.launchGameSync(game);
+    this.props.onGameLaunch(game);
   }
 
   /** When a row/item is selected */

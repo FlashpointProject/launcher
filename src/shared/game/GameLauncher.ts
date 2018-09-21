@@ -1,24 +1,33 @@
 import * as path from 'path';
 import { spawn } from 'child_process';
-import { IGameInfo } from './interfaces';
+import { IGameInfo, IAdditionalApplicationInfo } from './interfaces';
 
 export class GameLauncher {
+  public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
+    const appPath: string = path.posix.join(window.External.config.data.flashpointPath, 
+                                             '/Arcade', addApp.applicationPath);
+    const appArgs: string[] = [addApp.commandLine || ''];
+    const env = GameLauncher.getEnvironment();
+    console.log('Launch AddApp:', appPath, appArgs);
+    spawn(appPath, appArgs, { env });
+  }
+
   /**
    * Launch a game
    * @param game Game to launch
    */
-  public static launchGame(game: IGameInfo): void {
-    const config = window.External.config.data;
-    //
-    const gamePath: string = path.posix.join(config.flashpointPath, '/Arcade', GameLauncher.getApplicationPath(game));
-    const gameArgs: string[] = [game.launchCommand || ''];
-    // When using Linux, use the proxy created in BackgroundServices.ts
-    // This is only needed on Linux because the proxy is installed on system
-    // level entire system when using Windows.
-    const env = process.platform === 'linux'
-      ? { ...process.env, http_proxy: 'http://localhost:22500/' }
-      : process.env;
+  public static launchGame(game: IGameInfo, addApps?: IAdditionalApplicationInfo[]): void {
+    // Run all provided additional applications with "AutoRunBefore" enabled
+    addApps && addApps.forEach((addApp) => {
+      if (addApp.autoRunBefore) {
+        GameLauncher.launchAdditionalApplication(addApp);
+      }
+    });
     // Launch game
+    const gamePath: string = path.posix.join(window.External.config.data.flashpointPath, 
+                                             '/Arcade', GameLauncher.getApplicationPath(game));
+    const gameArgs: string[] = [game.launchCommand || ''];
+    const env = GameLauncher.getEnvironment();
     console.log('Launch game:', gamePath, gameArgs);
     spawn(gamePath, gameArgs, { env });
   }
@@ -38,5 +47,14 @@ export class GameLauncher {
       return 'Games/flashplayer';
     }
     return game.applicationPath;
+  }
+
+  private static getEnvironment(): NodeJS.ProcessEnv {
+    // When using Linux, use the proxy created in BackgroundServices.ts
+    // This is only needed on Linux because the proxy is installed on system
+    // level entire system when using Windows.
+    return process.platform === 'linux'
+      ? { ...process.env, http_proxy: 'http://localhost:22500/' }
+      : process.env;
   }
 }

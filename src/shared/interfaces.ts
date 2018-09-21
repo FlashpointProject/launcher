@@ -1,15 +1,7 @@
-import { IGameInfo } from './game/interfaces';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 import { AppConfigApi } from './config/AppConfigApi';
 
 export interface IMainWindowExternal {
-  /**
-   * Launch a LaunchBox Game (using its settings)
-   * (WARNING: This will run an arbitrary program file with arbitrary arguments)
-   * @param game
-   */
-  launchGameSync(game: IGameInfo): void;
-
   /** ask the main to resend the log-data-update event */
   resendLogDataUpdate(): void;
 
