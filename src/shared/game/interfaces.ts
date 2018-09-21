@@ -44,7 +44,11 @@ export interface IAdditionalApplicationInfo {
   gameId: string;
   /** Path to the application that runs the additional application */
   applicationPath: string;
-  /** @TODO Write this comment */
+  /**
+   * If the additional application should run before the game.
+   * (If true, this will always run when the game is launched)
+   * (If false, this will only run when specifically launched)
+   */
   autoRunBefore: boolean;
   /** Command line argument(s) used when launching the additional application */
   commandLine: string;

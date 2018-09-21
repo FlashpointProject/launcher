@@ -1,13 +1,12 @@
-import * as path from 'path';
-import { spawn } from 'child_process';
 import { app, session, ipcMain } from 'electron';
 import MainWindow from './MainWindow';
 import * as Util from './Util';
-import { AppConfig } from '../shared/config/AppConfig';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import BackgroundServices from './BackgroundServices';
 import checkSanity from '../shared/checkSanity';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
+import { AppConfig } from '../shared/config/AppConfigFile';
+import { AppConfigApi } from '../shared/config/AppConfigApi';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
@@ -25,8 +24,7 @@ export class Main {
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
     // Add IPC event listeners
-    ipcMain.on('launch-game-sync', this.onLaunchGameSync.bind(this));
-    ipcMain.on('get-config-sync', this.onGetConfigSync.bind(this));
+    ipcMain.on(AppConfigApi.ipcRequestSync, this.onGetConfigSync.bind(this));
     ipcMain.on('resend-log-data-update', this.sendLogData.bind(this));
     // Load config and preferences
     this.loadConfig()
@@ -116,27 +114,6 @@ export class Main {
     // Set config data
     this._config = data;
     console.log('Configs:', data);
-  }
-
-  /**
-   * Launch a game (by using some of its game info properties)
-   * @param event Event from the IPC
-   * @param applicationPath Path of the application (relative to Flashpoint's Arcade folder)
-   * @param args Arguments to run the application with (usually the path to the game file)
-   */
-  private onLaunchGameSync(event: Electron.IpcMessageEvent, applicationPath: string, args: string[]): void {
-    const filePath: string = path.posix.join(this.config.flashpointPath, '/Arcade', applicationPath);
-    // When using Linux, use the proxy created in BackgroundServices.ts
-    // This is only needed on Linux because the proxy is installed on system
-    // level entire system when using Windows.
-    const env = process.platform === 'linux'
-      ? { ...process.env, http_proxy: 'http://localhost:22500/' }
-      : process.env;
-    // Launch game
-    console.log('Launch game:', filePath, args);
-    spawn(filePath, args, { env });
-    // Set return value (this makes the renderer process "unpause")
-    event.returnValue = null;
   }
 
   /** Get the config object synchronously */

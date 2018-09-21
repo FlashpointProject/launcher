@@ -40,9 +40,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   constructor(props: IAppProps) {
     super(props);
-    // Get the config from the main process
-    const config = window.External.getConfigSync();
     // Normal constructor stuff
+    const config = window.External.config.data;
     this.state = {
       central: undefined,
       search: undefined,

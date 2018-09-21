@@ -9,6 +9,7 @@ import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { filterSearch, filterExtreme, getOrderFunction } from '../../../shared/game/GameFilter';
+import { GameCollection } from '../../../shared/game/GameCollection';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;
@@ -65,14 +66,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     // Find additional applications for the selected game (if any)
     let selectedAddApps: IAdditionalApplicationInfo[]|undefined;
     if (this.state.selectedGame && this.props.central && this.props.central.collection) {
-      const selectedGameId: string = this.state.selectedGame.id;
-      const addApps = this.props.central.collection.additionalApplications;
-      for (let i = addApps.length - 1; i >= 0; i--) {
-        if (addApps[i].gameId === selectedGameId) {
-          if (!selectedAddApps) { selectedAddApps = []; }
-          selectedAddApps.push(addApps[i]);
-        }
-      }
+      selectedAddApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.collection, this.state.selectedGame.id);
     }
     // Render
     return (

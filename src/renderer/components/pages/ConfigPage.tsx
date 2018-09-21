@@ -2,9 +2,9 @@ import * as React from 'react';
 import { IAppConfigData } from '../../../shared/config/IAppConfigData';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
-import { AppConfig } from '../../../shared/config/AppConfig';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { CheckBox } from '../CheckBox';
+import { AppConfig } from '../../../shared/config/AppConfigFile';
 
 export interface IConfigPageProps {
   /** Application config (the one currently is place) */

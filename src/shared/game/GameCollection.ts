@@ -16,4 +16,19 @@ export class GameCollection implements IGameCollection {
     // Add additional applications
     Array.prototype.push.apply(this.additionalApplications, collection.additionalApplications);
   }
+  
+  /**
+   * Find all additional applications with a given gameId
+   * @param collection Collection to get additional applications from
+   * @param gameId gameId to find all additional applications with
+   */
+  public static findAdditionalApplicationsByGameId(collection: IGameCollection, gameId: string): IAdditionalApplicationInfo[] {
+    const addApps: IAdditionalApplicationInfo[] = [];
+    for (let i = collection.additionalApplications.length - 1; i >= 0; i--) {
+      if (collection.additionalApplications[i].gameId === gameId) {
+        addApps.push(collection.additionalApplications[i]);
+      }
+    }
+    return addApps;
+  }
 }

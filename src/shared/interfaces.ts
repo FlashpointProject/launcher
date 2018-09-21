@@ -1,6 +1,6 @@
-import { IAppConfigData } from './config/IAppConfigData';
 import { IGameInfo } from './game/interfaces';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
+import { AppConfigApi } from './config/AppConfigApi';
 
 export interface IMainWindowExternal {
   /**
@@ -9,9 +9,6 @@ export interface IMainWindowExternal {
    * @param game
    */
   launchGameSync(game: IGameInfo): void;
-
-  /** Get the config object (sync) */
-  getConfigSync(): IAppConfigData;
 
   /** ask the main to resend the log-data-update event */
   resendLogDataUpdate(): void;
@@ -38,6 +35,9 @@ export interface IMainWindowExternal {
 
   /** Renderer's interface for the Preferences data */
   preferences: AppPreferencesApi;
+
+  /** Renderer's interface for the Config data */
+  config: AppConfigApi;
 }
 
 /** Callback for Electron.dialog.showOpenDialog */

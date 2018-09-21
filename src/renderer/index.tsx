@@ -4,7 +4,8 @@ import { App } from './app';
 import { MemoryRouter } from 'react-router-dom';
 
 (async () => {
-  // Wait for the preferences to initialize
+  // Wait for the preferences and config to initialize
+  await window.External.config.waitUtilInitialized();
   await window.External.preferences.waitUtilInitialized();
   // Render the application
   ReactDOM.render((

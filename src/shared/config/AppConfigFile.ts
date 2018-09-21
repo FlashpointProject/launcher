@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { IAppConfigData } from './IAppConfigData';
-import * as Util from '../Util';
+import { tryParseJSON, recursiveReplace, deepCopy } from '../Util';
 
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;
@@ -21,7 +21,7 @@ export class AppConfig {
           return reject(error);
         }
         // Try to parse json (and callback error if it fails)
-        const jsonOrError: string|Error = Util.tryParseJSON(data as string);
+        const jsonOrError: string|Error = tryParseJSON(data as string);
         if (jsonOrError instanceof Error) {
           return reject(jsonOrError);
         }
@@ -52,7 +52,7 @@ export class AppConfig {
   public static parseData(data: any, defaultData: IAppConfigData): IAppConfigData {
     // This makes sure that only the necessary properties are copied
     // And that the missing ones are set to their default value
-    const parsed: IAppConfigData = Util.recursiveReplace(Util.deepCopy(defaultData), data);
+    const parsed: IAppConfigData = recursiveReplace(deepCopy(defaultData), data);
     // Do some alterations
     parsed.flashpointPath = parsed.flashpointPath.replace(/\\/g, '/'); // (Clean path)
     // Return
@@ -71,7 +71,7 @@ export class AppConfig {
   
   /** Create and return a copy of the default config data for a specified platform */
   public static createCopyOfDefaults(platform: NodeJS.Platform): IAppConfigData {
-    return Util.deepCopy(AppConfig.getDefaults(platform));
+    return deepCopy(AppConfig.getDefaults(platform));
   }
 
   /**

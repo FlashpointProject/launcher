@@ -1,12 +1,20 @@
 import * as electron from 'electron';
+import * as path from 'path';
+import { spawn } from 'child_process';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { IGameInfo } from '../shared/game/interfaces';
 import { ElectronOpenDialogCallback } from '../shared/interfaces';
 import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
+import { AppConfigApi } from '../shared/config/AppConfigApi';
+import { GameLauncher } from '../shared/game/GameLauncher';
 
 // Set up Preferences API
 const preferences = new AppPreferencesApi();
 preferences.initialize();
+
+// Set up Config API
+const config = new AppConfigApi();
+config.initialize();
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -15,30 +23,8 @@ preferences.initialize();
  */
 window.External = Object.freeze({
   /** @inheritDoc */
-    launchGameSync(game: IGameInfo) {
-    // Get the path of the application (that runs the game)
-    let applicationPath: string = game.applicationPath;
-    if (game.platform === 'Flash' && window.External.platform === 'linux') {
-      // The value provided in Flash.xml is only accurate in windows.
-      // We hardcode the value in linux.
-
-      // Note that this assumes that `flash_player_sa_linux.x86_64.tar.gz`
-      // has been extracted using:
-      //   $ cd Arcade/Games
-      //   $ tar xf flash_player_sa_linux.x86_64.tar.gz flashplayer
-
-      // @TODO Figure out a way to let Linux users change this path
-      //       and potential paths for other applications
-      applicationPath = 'Games/flashplayer';
-    }
-    // Send a "Launch Game" event to the main process
-    electron.ipcRenderer.sendSync('launch-game-sync', applicationPath, [game.launchCommand || '']);
-  },
-
-  /** @inheritDoc */
-  getConfigSync(): IAppConfigData {
-    // Send a "Get Config Sync" event to the main process
-    return electron.ipcRenderer.sendSync('get-config-sync');
+  launchGameSync(game: IGameInfo) {
+    GameLauncher.launchGame(game);
   },
 
   /** @inheritdoc */
@@ -97,4 +83,7 @@ window.External = Object.freeze({
 
   /** @inheritDoc */
   preferences: preferences,
+
+  /** @inheritDoc */
+  config: config,
 });
