@@ -1,6 +1,7 @@
 /** Represents a collection of games */
 export interface IGameCollection {
   games: IGameInfo[];
+  additionalApplications: IAdditionalApplicationInfo[];
 }
 
 /** Represents the meta data for a single Game */
@@ -33,6 +34,24 @@ export interface IGameInfo {
   applicationPath: string;
   /** Command line argument(s) passed to the application to launch the game */
   launchCommand: string;
+}
+
+/** Represents the meta data for a single additional application */
+export interface IAdditionalApplicationInfo {
+  /** ID of the additional application (unique identifier) */
+  id: string;
+  /** ID of the game this additional application is for */
+  gameId: string;
+  /** Path to the application that runs the additional application */
+  applicationPath: string;
+  /** @TODO Write this comment */
+  autoRunBefore: boolean;
+  /** Command line argument(s) used when launching the additional application */
+  commandLine: string;
+  /** Name of the additional application */
+  name: string;
+  /** @TODO Write this comment */
+  waitForExit: boolean;
 }
 
 /** Status of a games playability (Currently unused) */

@@ -1,21 +1,26 @@
 import * as React from 'react';
-import { IGameInfo } from '../../shared/game/interfaces';
+import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { EditableTextWrap } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
+import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 
 export interface IBrowseSidebarProps {
   gameImages?: GameImageCollection;
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
+  /** Additional Applications of the currently selected game (if any) */
+  selectedAddApps?: IAdditionalApplicationInfo[];
 }
 
 export interface IBrowseSidebarState {
   /** If any unsaved changes has been made to the selected game (the buffer) */
   hasChanged: boolean;
-  /** Buffer for the selected game (all changes are made to this until saved) */
-  edit?: IGameInfo;
+  /** Buffer for the selected game (all changes are made to the game until saved) */
+  editGame?: IGameInfo;
+  /** Buffer for the selected games additional applications (all changes are made to this until saved) */
+  editAddApps?: IAdditionalApplicationInfo[];
 }
 
 /** Sidebar for BrowsePage */
@@ -38,24 +43,25 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     super(props);
     this.state = {
       hasChanged: false,
-      edit: undefined,
+      editGame: undefined,
+      editAddApps: undefined,
     };
     this.onSaveClick = this.onSaveClick.bind(this);
   }
 
   componentDidMount(): void {
-    this.updateEdit();
+    this.updateEditGame();
   }
 
   componentDidUpdate(prevProps: IBrowseSidebarProps, prevState: IBrowseSidebarState) {
     if (this.props.selectedGame !== prevProps.selectedGame) {
-      this.updateEdit();
+      this.updateEditGame();
       this.setState({ hasChanged: false });
     }
   }
 
   render() {
-    const game: IGameInfo|undefined = this.state.edit;
+    const game: IGameInfo|undefined = this.state.editGame;
     const isEditing: boolean = this.state.hasChanged;
     if (game) {
       return (
@@ -121,6 +127,40 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
             </div>
           </div>
           <div className='browse-sidebar__section'>
+            <div className='browse-sidebar__row browse-sidebar__row--additional-applications-header'>
+              <p>Additional Applications:</p>
+              <input type="button" value="New" className="simple-button"/>
+            </div>
+            {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
+              return (
+                <div key={addApp.id} className='browse-sidebar__additional-application'>
+                  <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+                    <p>Name: </p>
+                    <EditableTextWrap target={game} text={addApp.name}/>
+                  </div>
+                  <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+                    <p>Application Path: </p>
+                    <EditableTextWrap target={game}
+                                      text={addApp.applicationPath}/>
+                  </div>
+                  <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+                    <p>Command Line: </p>
+                    <EditableTextWrap target={game}
+                                      text={addApp.commandLine}/>
+                  </div>
+                  <div className='browse-sidebar__row'>
+                    <CheckBox checked={addApp.autoRunBefore} className='browse-sidebar__row__check-box'/>
+                    <p> Auto Run Before</p>
+                  </div>
+                  <div className='browse-sidebar__row'>
+                    <CheckBox checked={addApp.waitForExit} className='browse-sidebar__row__check-box'/>
+                    <p> Wait for Exit</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Application Path: </p>
               <EditableTextWrap target={game}
@@ -158,16 +198,26 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     }
   }
 
-  private updateEdit(): void {
-    const game: IGameInfo|undefined = this.props.selectedGame ? GameInfo.duplicate(this.props.selectedGame) : undefined;
-    this.setState({ edit: game });
+  private updateEditGame(): void {
+    this.setState({
+      editGame: this.props.selectedGame && GameInfo.duplicate(this.props.selectedGame),
+      editAddApps: this.props.selectedAddApps && this.props.selectedAddApps.map(AdditionalApplicationInfo.duplicate),
+    });
   }
 
   private onSaveClick(): void {
-    if (this.props.selectedGame && this.state.edit) {
-      // Save changes to the selected game
+    if (this.props.selectedGame && this.state.editGame) {
+      // Save changes to the selected game and additional applications
       // (@HACK This should probably be sent up the the app - which then does the override)
-      GameInfo.override(this.props.selectedGame, this.state.edit);
+      GameInfo.override(this.props.selectedGame, this.state.editGame);
+      if (this.props.selectedAddApps) {
+        if (!this.state.editAddApps) { throw new Error('Edit versions of the additional applications are missing?'); }
+        for (let i = this.props.selectedAddApps.length - 1; i >= 0; i--) {
+          AdditionalApplicationInfo.override(this.props.selectedAddApps[i], 
+                                             this.state.editAddApps[i]);
+        }
+        // @TODO Add a way to add newly created additional applications?
+      }
       this.setState({ hasChanged: false });
     }
   }
@@ -175,7 +225,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   /** Create a wrapper for a EditableTextWrap's onEditDone calllback (this is to reduce redundancy) */
   private wrapOnEditDone(func: (game: IGameInfo, text: string) => void) {
     return (text: string) => {
-      const game = this.state.edit;
+      const game = this.state.editGame;
       if (game) {
         func(game, text);
         this.setState({ hasChanged: true });
@@ -186,7 +236,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void) {
     return (isChecked: boolean) => {
-      const game = this.state.edit;
+      const game = this.state.editGame;
       if (game) {
         func(game, isChecked);
         this.setState({ hasChanged: true });

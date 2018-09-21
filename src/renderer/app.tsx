@@ -158,7 +158,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // Set the state
     this.setState({
       central: {
-        collection: collection || { games: [] },
+        collection: collection || { games: [], additionalApplications: [] },
         flashpointPath: this.state.config.flashpointPath,
         gameImages: gameImages,
       }

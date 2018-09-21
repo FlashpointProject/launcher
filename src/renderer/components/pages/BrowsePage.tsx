@@ -3,7 +3,7 @@ import { IDefaultProps, ICentralState } from '../../interfaces';
 import { ISearchOnSearchEvent } from '../Search';
 import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
-import { IGameInfo } from '../../../shared/game/interfaces';
+import { IGameInfo, IAdditionalApplicationInfo } from '../../../shared/game/interfaces';
 import { lerp } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
@@ -62,6 +62,19 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   render() {
     const games: IGameInfo[] = this.orderGames();
     const order = this.props.order || BrowsePage.defaultOrder;
+    // Find additional applications for the selected game (if any)
+    let selectedAddApps: IAdditionalApplicationInfo[]|undefined;
+    if (this.state.selectedGame && this.props.central && this.props.central.collection) {
+      const selectedGameId: string = this.state.selectedGame.id;
+      const addApps = this.props.central.collection.additionalApplications;
+      for (let i = addApps.length - 1; i >= 0; i--) {
+        if (addApps[i].gameId === selectedGameId) {
+          if (!selectedAddApps) { selectedAddApps = []; }
+          selectedAddApps.push(addApps[i]);
+        }
+      }
+    }
+    // Render
     return (
       <div className='game-browser'>
         <div className='game-browser__left' onKeyDown={this.onKeyDown}>
@@ -96,11 +109,13 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             }
           })()}
         </div>
-        {(games.length > 0)?(
+        {(games.length > 0) ? (
           <div className={'game-browser__right'+(this.state.selectedGame?'':' game-browser__right--none')}>
-            <BrowseSidebar selectedGame={this.state.selectedGame} gameImages={this.props.central && this.props.central.gameImages} />
+            <BrowseSidebar selectedGame={this.state.selectedGame} 
+                           selectedAddApps={selectedAddApps}
+                           gameImages={this.props.central && this.props.central.gameImages}/>
           </div>
-        ):undefined}
+        ) : undefined}
       </div>
     );
   }

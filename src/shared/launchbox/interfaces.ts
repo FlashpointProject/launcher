@@ -133,7 +133,7 @@ export interface IRawLaunchBoxAdditionalApplication {
   /** The ID of the game that is associated with this Additional Application. Maps up directly to the game's Id property. */
   GameID: string; // (String)
   /** The ID of the Additional Application. This ID is automatically generated when a new Additional Application is created. */
-  ID: string; // (String)
+  Id: string; // (String)
   // /** A value specifying the ID of the emulator used for the Additional Application. Maps up directly to the emulator's Id property. */
   // lastPlayed: DateTime; // (DateTime) (Missing?)
   /** The Name of this Additional Application. */

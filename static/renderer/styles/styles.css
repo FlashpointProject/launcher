@@ -440,6 +440,13 @@ body {
   flex-direction: column;
   flex: 1 0 auto;
 }
+/* BrowserSidebar  */
+.browse-sidebar__additional-application {
+  padding: 0.5rem;
+}
+.browse-sidebar__additional-application:nth-child(2n) {
+  background-color: #141417;
+}
 /* BrowserSidebar Row */
 .browse-sidebar__row {
   margin-bottom: 0.2rem;
@@ -469,6 +476,11 @@ body {
   overflow: hidden;
   white-space: nowrap;
 }
+.browse-sidebar__row--additional-applications-header {
+}
+.browse-sidebar__row--additional-applications-header :last-child {
+  float: right;
+}
 .browse-sidebar__row--save {
   background-color: #09090a;
   padding: 0.5rem;
@@ -476,16 +488,17 @@ body {
 .browse-sidebar__row--save :last-child {
   float: right;
 }
-.browse-sidebar__row  .browse-sidebar__row__editable-text {
+/* BrowserSidebar Row - Sub Elements */
+.browse-sidebar__row .browse-sidebar__row__editable-text {
   display: block;
   font-size: 0.9em;
 }
-.browse-sidebar__row  .browse-sidebar__row__editable-text--text-multi-line {
+.browse-sidebar__row .browse-sidebar__row__editable-text--text-multi-line {
   width: 100%;
   min-height: 1rem;
   white-space: pre-wrap;
 }
-.browse-sidebar__row  .browse-sidebar__row__editable-text--edit-multi-line {
+.browse-sidebar__row .browse-sidebar__row__editable-text--edit-multi-line {
   width: 100%;
   height: 16em;
   resize: vertical;
