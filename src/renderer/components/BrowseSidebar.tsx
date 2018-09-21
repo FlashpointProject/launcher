@@ -5,6 +5,7 @@ import { CheckBox } from './CheckBox';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
+import { BrowseSidebarAddApp } from './BrowseSidebarAddApp';
 
 export interface IBrowseSidebarProps {
   gameImages?: GameImageCollection;
@@ -47,6 +48,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       editAddApps: undefined,
     };
     this.onSaveClick = this.onSaveClick.bind(this);
+    this.onAddAppEdit = this.onAddAppEdit.bind(this);
   }
 
   componentDidMount(): void {
@@ -132,32 +134,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               <input type="button" value="New" className="simple-button"/>
             </div>
             {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
-              return (
-                <div key={addApp.id} className='browse-sidebar__additional-application'>
-                  <div className='browse-sidebar__row browse-sidebar__row--one-line'>
-                    <p>Name: </p>
-                    <EditableTextWrap target={game} text={addApp.name}/>
-                  </div>
-                  <div className='browse-sidebar__row browse-sidebar__row--one-line'>
-                    <p>Application Path: </p>
-                    <EditableTextWrap target={game}
-                                      text={addApp.applicationPath}/>
-                  </div>
-                  <div className='browse-sidebar__row browse-sidebar__row--one-line'>
-                    <p>Command Line: </p>
-                    <EditableTextWrap target={game}
-                                      text={addApp.commandLine}/>
-                  </div>
-                  <div className='browse-sidebar__row'>
-                    <CheckBox checked={addApp.autoRunBefore} className='browse-sidebar__row__check-box'/>
-                    <p> Auto Run Before</p>
-                  </div>
-                  <div className='browse-sidebar__row'>
-                    <CheckBox checked={addApp.waitForExit} className='browse-sidebar__row__check-box'/>
-                    <p> Wait for Exit</p>
-                  </div>
-                </div>
-              );
+              return <BrowseSidebarAddApp addApp={addApp} onEdit={this.onAddAppEdit} key={addApp.id}/>;
             })}
           </div>
           <div className='browse-sidebar__section'>
@@ -174,7 +151,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
           </div>
           {(this.props.gameImages && game) ? (
             <div className='browse-sidebar__section browse-sidebar__section--below-gap'>
-              <div className='browse-sidebar__row browse-sidebar__row__spacer' />
+              <div className='browse-sidebar__row browse-sidebar__row__spacer'/>
               <div className='browse-sidebar__row'>
                 <img className='browse-sidebar__row__screenshot'
                      src={this.props.gameImages.getScreenshotPath(game.title, game.platform)}/>
@@ -185,7 +162,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
             <div className='browse-sidebar__section'>
               <div className='browse-sidebar__row browse-sidebar__row--save'>
                 <p>Changes have been made.</p>
-                <input type='button' value='Save Changes' className='simple-button' onClick={this.onSaveClick} />
+                <input type='button' value='Save Changes' className='simple-button' onClick={this.onSaveClick}/>
               </div>
             </div>
           ) : undefined}
@@ -221,9 +198,14 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       this.setState({ hasChanged: false });
     }
   }
+  
+  /** Called when an additional application is edited */
+  private onAddAppEdit(): void {
+    this.setState({ hasChanged: true });
+  }
 
   /** Create a wrapper for a EditableTextWrap's onEditDone calllback (this is to reduce redundancy) */
-  private wrapOnEditDone(func: (game: IGameInfo, text: string) => void) {
+  private wrapOnEditDone(func: (game: IGameInfo, text: string) => void): (text: string) => void {
     return (text: string) => {
       const game = this.state.editGame;
       if (game) {
@@ -234,7 +216,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   }
 
   /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
-  private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void) {
+  private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void): (isChecked: boolean) => void {
     return (isChecked: boolean) => {
       const game = this.state.editGame;
       if (game) {

@@ -476,10 +476,21 @@ body {
   overflow: hidden;
   white-space: nowrap;
 }
-.browse-sidebar__row--additional-applications-header {
-}
 .browse-sidebar__row--additional-applications-header :last-child {
   float: right;
+}
+.browse-sidebar__row--additional-applications-name {
+  display: flex;
+}
+.browse-sidebar__row--additional-applications-name :first-child {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: bold;
+}
+.browse-sidebar__row--additional-applications-name :last-child {
+  flex: 0 0 auto;
 }
 .browse-sidebar__row--save {
   background-color: #09090a;
