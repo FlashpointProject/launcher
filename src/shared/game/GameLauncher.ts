@@ -9,7 +9,7 @@ export class GameLauncher {
     const appArgs: string[] = [addApp.commandLine || ''];
     const env = GameLauncher.getEnvironment();
     console.log('Launch AddApp:', appPath, appArgs);
-    spawn(appPath, appArgs, { env });
+    spawn(appPath, appArgs, { env, detached: true });
   }
 
   /**
@@ -29,7 +29,7 @@ export class GameLauncher {
     const gameArgs: string[] = [game.launchCommand || ''];
     const env = GameLauncher.getEnvironment();
     console.log('Launch game:', gamePath, gameArgs);
-    spawn(gamePath, gameArgs, { env });
+    spawn(gamePath, gameArgs, { env, detached: true });
   }
 
   private static getApplicationPath(game: IGameInfo): string {
