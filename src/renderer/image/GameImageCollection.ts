@@ -22,15 +22,15 @@ export class GameImageCollection {
   }
   
   private addPlatform(platform: string): void {
-    platform = platform.toLocaleLowerCase();
-    if (this._thumbnails[platform]) { throw new Error(`Platform with the same name has already been added (${platform})`); }
+    const lowerPlatform: string = platform.toLocaleLowerCase();
+    if (this._thumbnails[lowerPlatform]) { throw new Error(`Platform with the same name has already been added (${platform})`); }
     // Add thumbnail folder
     const thumbnailFolder = new ImageFolderCache();
-    this._thumbnails[platform] = thumbnailFolder;
+    this._thumbnails[lowerPlatform] = thumbnailFolder;
     thumbnailFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Arcade/Images/${platform}/Box - Front`));
     // Add screenshot folder
     const screenshotFolder = new ImageFolderCache();
-    this._screenshots[platform] = screenshotFolder;
+    this._screenshots[lowerPlatform] = screenshotFolder;
     screenshotFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Arcade/Images/${platform}/Screenshot - Gameplay`));
   }
   

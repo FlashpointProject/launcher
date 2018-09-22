@@ -65,7 +65,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     LaunchboxData.fetchPlatformFilenames(config.flashpointPath)
     .then((platformFilenames: string[]) => {
       // Prepare images
-      const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]);
+      const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
       gameImages.addPlatforms(platforms);
       // Fetch games
       LaunchboxData.fetchPlatforms(config.flashpointPath, platformFilenames)

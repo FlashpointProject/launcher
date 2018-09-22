@@ -16,10 +16,30 @@ export class LaunchboxData {
   public static fetchPlatformFilenames(flashpointPath: string): Promise<string[]> {
     const folderPath = path.posix.join(flashpointPath, platformsPath);
     return new Promise((resolve, reject) => {
-      // Get the filenames of all files in the platforms folder
+      // Get the names of all files and folders in the platforms folder
       fs.readdir(folderPath, (error: NodeJS.ErrnoException, files: string[]): void => {
         if (error) { reject(error); }
-        else { resolve(files); }
+        else {
+          // Filter out all folders
+          const fileNames: string[] = [];
+          let filesLeft: number = files.length;
+          files.forEach((fileName) => {
+            fs.stat(path.posix.join(folderPath, fileName), (err: NodeJS.ErrnoException, stats: fs.Stats) => {
+              if (err) { reject(err); }
+              else {
+                // Add to aray if it is a file
+                if (stats.isFile()) {
+                  fileNames.push(fileName);
+                }
+                // Decrement counter and check if this was the last file
+                filesLeft -= 1;
+                if (filesLeft === 0) {
+                  resolve(fileNames);
+                }
+              }
+            });
+          });
+        }
       });
     });
   }
