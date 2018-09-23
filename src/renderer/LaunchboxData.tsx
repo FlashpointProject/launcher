@@ -27,7 +27,7 @@ export class LaunchboxData {
             fs.stat(path.posix.join(folderPath, fileName), (err: NodeJS.ErrnoException, stats: fs.Stats) => {
               if (err) { reject(err); }
               else {
-                // Add to aray if it is a file
+                // Add to array if it is a file
                 if (stats.isFile()) {
                   fileNames.push(fileName);
                 }
