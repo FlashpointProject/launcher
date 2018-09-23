@@ -1,7 +1,7 @@
 {
-  "name": "electron-library",
+  "name": "flashpoint-launcher",
   "version": "0.0.1",
-  "description": "",
+  "description": "A desktop application used to browse, manage and play games from the Flashpoint project",
   "main": "main/index.js",
   "scripts": {
     "build": "gulp build",
@@ -13,7 +13,7 @@
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "start": "electron ./build/main/index.js"
   },
-  "author": "https://bigbub.net",
+  "author": "Jesper Gustafsson",
   "license": "MIT",
   "dependencies": {
     "fast-xml-parser": "3.12.0"
