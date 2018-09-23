@@ -13,7 +13,7 @@ export const AboutPage: React.StatelessComponent<{}> = () => {
               An open-source desktop application used to browse, manage and play games from the Flashpoint project.
             </p>
             <p><b>Version:</b> {appVersionString}</p>
-            <p><b>License:</b> MIT (Read the file "LICENSE" for more information)</p>
+            <p><b>License:</b> MIT (Read the file named "LICENSE" for more information)</p>
             <div className='about-page__section__links'>
               {link('Github', 'https://github.com/FlashpointLauncher')}
             </div>
