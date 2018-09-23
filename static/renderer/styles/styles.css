@@ -39,6 +39,10 @@ body {
   box-sizing: inherit;
 }
 
+:link {
+  color: #FFFFFF;
+}
+
 /* ------ Generic & Re-usable ------ */
 /* Simple Button */
 .simple-button {
@@ -379,15 +383,41 @@ body {
 
 
 /* ------ About ------ */
-.about {
+.about-page {
   width: 100%;
   height: 100%;
-  padding: 1em;
+  overflow: auto;
+}
+.about-page__inner {
+  width: 35em;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.about-page__title {
+  font-size: 2.5em;
+  margin-bottom: 1.5rem;
   text-align: center;
 }
-.about__title {
-  font-size: 2.5em;
-  padding-bottom: 0.5em;
+.about-page__section {
+  margin-bottom: 2rem
+}
+.about-page__section__title {
+  font-size: 1.4rem;
+  padding-left: 0.4rem;
+  background-color: #141417;
+}
+.about-page__section__content {
+  padding-left: 0.4rem;
+}
+.about-page__section__content__description {
+  margin-bottom: 0.26rem;
+}
+.about-page__section__links * {
+  display: inline-block;
+  margin-top: 0.2rem;
+}
+.about-page__section__links :not(:last-child) {
+  margin-right: 1rem;
 }
 
 

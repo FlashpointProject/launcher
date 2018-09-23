@@ -1,12 +1,7 @@
 import * as electron from 'electron';
-import * as path from 'path';
-import { spawn } from 'child_process';
-import { IAppConfigData } from '../shared/config/IAppConfigData';
-import { IGameInfo } from '../shared/game/interfaces';
 import { ElectronOpenDialogCallback } from '../shared/interfaces';
 import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
-import { GameLauncher } from '../shared/game/GameLauncher';
 
 // Set up Preferences API
 const preferences = new AppPreferencesApi();

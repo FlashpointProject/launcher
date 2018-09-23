@@ -2,13 +2,11 @@ import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 import { AppConfigApi } from './config/AppConfigApi';
 
 export interface IMainWindowExternal {
-  /** ask the main to resend the log-data-update event */
+  /** Ask the main to resend the log-data-update event */
   resendLogDataUpdate(): void;
 
   /** Get the OS name */
   platform: NodeJS.Platform;
-
-  // -- Window functions --
 
   /** Minimize the window */
   minimize(): void;
