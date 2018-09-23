@@ -1,4 +1,4 @@
-import { app, session, ipcMain } from 'electron';
+import { app, session, ipcMain, shell } from 'electron';
 import MainWindow from './MainWindow';
 import * as Util from './Util';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
@@ -23,6 +23,7 @@ export class Main {
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
+    app.once('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
     ipcMain.on(AppConfigApi.ipcRequestSync, this.onGetConfigSync.bind(this));
     ipcMain.on('resend-log-data-update', this.sendLogData.bind(this));
@@ -77,6 +78,15 @@ export class Main {
         this._backgroundServices.stop();
       }
     }
+  }
+  
+  private onAppWebContentsCreated(event: Electron.Event, webContents: Electron.WebContents): void {
+    // Open links to web pages in the OS-es default browser
+    // (instead of navigating to it with the electron window that opened it)
+    webContents.on('will-navigate', (event, navigationUrl) => {
+      event.preventDefault();
+      shell.openExternal(navigationUrl);
+    });
   }
 
   /**
