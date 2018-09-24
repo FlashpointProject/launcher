@@ -1,12 +1,13 @@
 import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
+import { IBackProcessInfo } from './background/interfaces';
 
 /**
  * A Child Process which automatically logs all output to the console
  */
 export default class ManagedChildProcess extends EventEmitter {
   private process?: ChildProcess;
-  private name: string;
+  public readonly name: string;
   private command: string;
   private args: string[];
   private cwd: string;
@@ -20,7 +21,7 @@ export default class ManagedChildProcess extends EventEmitter {
   }
 
   /** Spawn process and keep track of its output */
-  spawn(): void {
+  public spawn(): void {
     if (this.process) { throw Error('You must not spawn the same ManagedChildProcess multiple times.'); }
     this.process = spawn(this.command, this.args, { cwd: this.cwd });
     this.emit('output', `${this.name} has been started\n`);
@@ -41,7 +42,7 @@ export default class ManagedChildProcess extends EventEmitter {
   }
 
   /** Politely ask the child process to exit */
-  kill(): void {
+  public kill(): void {
     if (this.process) {
       this.process.kill();
     }

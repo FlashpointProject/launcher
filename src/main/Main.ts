@@ -2,7 +2,7 @@ import { app, session, ipcMain, shell } from 'electron';
 import MainWindow from './MainWindow';
 import * as Util from './Util';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
-import BackgroundServices from './BackgroundServices';
+import BackgroundServices from './background/BackgroundServices';
 import checkSanity from '../shared/checkSanity';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 import { AppConfig } from '../shared/config/AppConfigFile';
@@ -29,10 +29,8 @@ export class Main {
     ipcMain.on('resend-log-data-update', this.sendLogData.bind(this));
     // Load config and preferences
     this.loadConfig()
+    .then(async () => { await this._preferences.load(); })
     .then(async () => {
-      await this._preferences.load();
-    })
-    .then(() => {
       // Check if we are ready to launch or not.
       // @TODO Launch the setup wizard when a check failed.
       checkSanity(this.config)
@@ -41,10 +39,10 @@ export class Main {
       this._backgroundServices = new BackgroundServices();
       this._backgroundServices.on('output', this.pushLogData.bind(this));
       this._backgroundServices.start(this.config);
-      // Create main window as soon as possible
-      Util.callIfOrOnceReady(() => {
-        this._mainWindow.createWindow();
-      });
+      // Create main window when ready
+      this._backgroundServices.waitUntilDoneStarting()
+      .then(Util.waitUntilReady)
+      .then(() => { this._mainWindow.createWindow(); });
     })
     .catch(console.error);
   }

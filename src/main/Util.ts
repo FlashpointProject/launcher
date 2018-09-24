@@ -28,11 +28,13 @@ export const isDev: boolean = (function() {
   return isEnvSet ? getFromEnv : (process.defaultApp || /node_modules[\\/]electron[\\/]/.test(process.execPath));
 })();
 
-/** Call a function once the electron app is ready, or immediately if it is already ready */
-export function callIfOrOnceReady(func: () => void): void {
-  if (app.isReady()) {
-    func();
-  } else {
-    app.once('ready', func);
-  }
+/** Wait until electron app is ready (doesn't wait if already ready) */
+export function waitUntilReady(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (app.isReady()) {
+      resolve();
+    } else {
+      app.once('ready', () => { resolve(); });
+    }
+  });
 }
