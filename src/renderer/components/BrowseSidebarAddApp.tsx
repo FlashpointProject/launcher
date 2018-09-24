@@ -10,6 +10,8 @@ export interface IBrowseSidebarAddAppProps {
   onEdit?: () => void;
   /** Called when the launch button is clicked */
   onLaunch?: (addApp: IAdditionalApplicationInfo) => void;
+  /** If the editing is disabled (it cant go into "edit mode") */
+  editDisabled?: boolean;
 }
 
 export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppProps, {}> {
@@ -25,22 +27,22 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
   }
 
   render() {
-    const addApp = this.props.addApp;
+    const { addApp, editDisabled } = this.props;
     return (
       <div className='browse-sidebar__additional-application'>
         <div className='browse-sidebar__row browse-sidebar__row--additional-applications-name'>
-          <EditableTextWrap target={addApp} 
+          <EditableTextWrap target={addApp} editDisabled={editDisabled}
                             text={addApp.name} onEditDone={this.onNameEditDone}/>
           <input type="button" className="simple-button" value="Launch" onClick={this.onLaunchClick}/>
         </div>
         <div className='browse-sidebar__row browse-sidebar__row--one-line'>
           <p>Application Path: </p>
-          <EditableTextWrap target={addApp} 
+          <EditableTextWrap target={addApp} editDisabled={editDisabled}
                             text={addApp.applicationPath} onEditDone={this.onApplicationPathEditDone}/>
         </div>
         <div className='browse-sidebar__row browse-sidebar__row--one-line'>
           <p>Command Line: </p>
-          <EditableTextWrap target={addApp}
+          <EditableTextWrap target={addApp} editDisabled={editDisabled}
                             text={addApp.commandLine} onEditDone={this.onCommandLineEditDone}/>
         </div>
         <div className='browse-sidebar__row'>
@@ -80,8 +82,10 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
   /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (addApp: IAdditionalApplicationInfo, isChecked: boolean) => void) {
     return (isChecked: boolean) => {
-      func(this.props.addApp, isChecked);
-      this.onEdit();
+      if (!this.props.editDisabled) {
+        func(this.props.addApp, isChecked);
+        this.onEdit();
+      }
     }
   }
 }

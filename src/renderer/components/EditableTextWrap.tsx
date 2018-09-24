@@ -16,6 +16,8 @@ export interface IEditableTextWrapProps {
   onEditDone?: (text: string) => void;
   /** When the value of this is changed, this component's state is "reset" */
   target?: any;
+  /** If the editing is disabled (it cant go into "edit mode") */
+  editDisabled?: boolean;
 }
 
 export interface IEditableTextWrapState {
@@ -48,6 +50,10 @@ export class EditableTextWrap extends React.Component<IEditableTextWrapProps, IE
     if (prevProps.target !== this.props.target) {
       this.setState({ isEditing: false });
     }
+    // End editing if it was disabled
+    if (this.state.isEditing && this.props.editDisabled && !prevProps.editDisabled) {
+      this.setState({ isEditing: false });
+    }
   }
 
   render() {
@@ -61,7 +67,7 @@ export class EditableTextWrap extends React.Component<IEditableTextWrapProps, IE
   }
   
   onTextClick(event: React.MouseEvent): void {
-    if (!this.state.isEditing) {
+    if (!this.props.editDisabled && !this.state.isEditing) {
       this.setState({ isEditing: true });
       this._wasClicked = true;
     }

@@ -506,7 +506,7 @@ body {
   overflow: hidden;
   white-space: nowrap;
 }
-.browse-sidebar__row--additional-applications-header :last-child {
+.browse-sidebar__row--additional-applications-header :not(:first-child) {
   float: right;
 }
 .browse-sidebar__row--additional-applications-name {

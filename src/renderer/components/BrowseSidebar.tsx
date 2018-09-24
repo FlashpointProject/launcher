@@ -17,6 +17,8 @@ export interface IBrowseSidebarProps {
 }
 
 export interface IBrowseSidebarState {
+  /** If editing the currently selected game / additional application(s) is disabled */
+  editDisabled: boolean;
   /** If any unsaved changes has been made to the selected game (the buffer) */
   hasChanged: boolean;
   /** Buffer for the selected game (all changes are made to the game until saved) */
@@ -44,6 +46,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   constructor(props: IBrowseSidebarProps) {
     super(props);
     this.state = {
+      editDisabled: false,
       hasChanged: false,
       editGame: undefined,
       editAddApps: undefined,
@@ -66,49 +69,50 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   render() {
     const game: IGameInfo|undefined = this.state.editGame;
     const isEditing: boolean = this.state.hasChanged;
+    const editDisabled = this.state.editDisabled;
     if (game) {
       return (
         <div className='browse-sidebar'>
           <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row browse-sidebar__row--title browse-sidebar__row--one-line'>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.title} onEditDone={this.onTitleEditDone}/>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>by </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.developer} onEditDone={this.onDeveloperEditDone}/>
             </div>
           </div>
           <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Genre: </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.genre} onEditDone={this.onGenreEditDone}/>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Series: </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.series} onEditDone={this.onSeriesEditDone}/>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Source: </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.source} onEditDone={this.onSourceEditDone}/>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Platform: </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.platform} onEditDone={this.onPlatformEditDone}/>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Play Mode: </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.playMode} onEditDone={this.onPlayModeEditDone}/>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Status: </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.status} onEditDone={this.onStatusEditDone}/>
             </div>
             <div className='browse-sidebar__row'>
@@ -123,7 +127,8 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
           <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row'>
               <p>Notes: </p>
-              <EditableTextWrap target={game} isMultiline={true} placeholder='[N/A]'
+              <EditableTextWrap target={game} editDisabled={editDisabled}
+                                isMultiline={true} placeholder='[N/A]'
                                 textProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--text-multi-line'}}
                                 editProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--edit-multi-line'}}
                                 text={game.notes} onEditDone={this.onNotesEditDone}/>
@@ -132,21 +137,24 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
           <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row browse-sidebar__row--additional-applications-header'>
               <p>Additional Applications:</p>
-              <input type="button" value="New" className="simple-button"/>
+              { !editDisabled ? (
+                <input type="button" value="New" className="simple-button"/>
+              ) : undefined }
             </div>
             {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
-              return <BrowseSidebarAddApp key={addApp.id} addApp={addApp} onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}/>;
+              return <BrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
+                                          onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}/>;
             })}
           </div>
           <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Application Path: </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.applicationPath} onEditDone={this.onApplicationPathEditDone}/>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Launch Command: </p>
-              <EditableTextWrap target={game}
+              <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.launchCommand} onEditDone={this.onLaunchCommandEditDone}/>
             </div>
           </div>
@@ -223,9 +231,9 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void): (isChecked: boolean) => void {
     return (isChecked: boolean) => {
-      const game = this.state.editGame;
-      if (game) {
-        func(game, isChecked);
+      const { editGame, editDisabled } = this.state;
+      if (editGame && !editDisabled) {
+        func(editGame, isChecked);
         this.setState({ hasChanged: true });
       }
     }
