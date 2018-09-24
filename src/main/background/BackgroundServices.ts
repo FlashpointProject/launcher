@@ -125,7 +125,7 @@ class BackgroundServices extends EventEmitter {
     if (this.serviceInfo) {
       const stop = this.serviceInfo.stop;
       for (let i = 0; i < stop.length; i++) {
-        await this.execProcess(stop[i]);
+        await this.execProcess(stop[i], true);
       }  
     }
   }
@@ -141,11 +141,16 @@ class BackgroundServices extends EventEmitter {
   }
 
   /** Execute a process and wait for it to finish */
-  private async execProcess(proc: IBackProcessInfo): Promise<void> {
+  private async execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void> {
     if (this.flashpointPath === undefined) { throw new Error('BackgroundServices#flashpointPath must not be undefined when executing a process'); }
     const cwd: string = path.join(this.flashpointPath, proc.path);
-    this.outputLine(`Executing "${proc.filename}" [${proc.arguments.toString()}] in "${cwd}"`);
-    await execFile(proc.filename, proc.arguments, { cwd: cwd });
+    this.outputLine(`Executing "${proc.filename}" [${proc.arguments.toString()}] in "${proc.path}"`);
+    try {
+      if (sync) { child_process.execFileSync(proc.filename, proc.arguments, { cwd: cwd }); }
+      else      { await execFile(            proc.filename, proc.arguments, { cwd: cwd }); }
+    } catch(error) {
+      this.outputLine(`An unexpected error occurred while executing a command:\n  "${error}"`);
+    }
   }
 
   private outputLine(text: string): void {
