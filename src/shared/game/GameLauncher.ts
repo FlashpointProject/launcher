@@ -4,12 +4,12 @@ import { IGameInfo, IAdditionalApplicationInfo } from './interfaces';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
-    const appPath: string = path.posix.join(window.External.config.data.flashpointPath, 
+    const appPath: string = path.posix.join(window.External.config.data.flashpointPath,
                                             addApp.applicationPath);
     const appArgs: string[] = [addApp.commandLine || ''];
     const env = GameLauncher.getEnvironment();
     console.log('Launch AddApp:', appPath, appArgs);
-    spawn(appPath, appArgs, { env, detached: true });
+    spawn(appPath, appArgs, { env, detached: true, shell: true });
   }
 
   /**
@@ -24,12 +24,12 @@ export class GameLauncher {
       }
     });
     // Launch game
-    const gamePath: string = path.posix.join(window.External.config.data.flashpointPath, 
+    const gamePath: string = path.posix.join(window.External.config.data.flashpointPath,
                                              GameLauncher.getApplicationPath(game));
     const gameArgs: string[] = [game.launchCommand || ''];
     const env = GameLauncher.getEnvironment();
     console.log('Launch game:', gamePath, gameArgs);
-    spawn(gamePath, gameArgs, { env, detached: true });
+    spawn(gamePath, gameArgs, { env, detached: true, shell: true });
   }
 
   private static getApplicationPath(game: IGameInfo): string {
