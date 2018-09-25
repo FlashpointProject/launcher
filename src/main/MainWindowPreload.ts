@@ -70,6 +70,11 @@ window.External = Object.freeze({
       return val && val.slice();
     }
   },
+  
+  /** @inheritDoc */
+  toggleDevtools(): void {
+    electron.remote.getCurrentWindow().webContents.toggleDevTools();
+  },
 
   /** @inheritDoc */
   preferences: preferences,

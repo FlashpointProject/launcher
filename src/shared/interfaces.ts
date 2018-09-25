@@ -23,6 +23,9 @@ export interface IMainWindowExternal {
   /** Wrapper of Electron.dialog.showOpenDialog() */
   showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined;
 
+  /** Open/Close the DevTools for this window */
+  toggleDevtools(): void;
+
   /** Renderer's interface for the Preferences data */
   preferences: AppPreferencesApi;
 
