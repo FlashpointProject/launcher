@@ -3,10 +3,10 @@ import { EventEmitter } from 'events';
 import * as path from 'path';
 import { promisify } from 'util';
 import ManagedChildProcess from '../ManagedChildProcess';
-import { IAppConfigData } from '../../shared/config/IAppConfigData';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
 import { BackgroundServicesFile } from './BackgroundServicesFile';
 import { IBackProcessInfoFile, IBackProcessInfo } from './interfaces';
+import { IAppConfigData } from '../../shared/config/interfaces';
 
 const execFile = promisify(child_process.execFile);
 

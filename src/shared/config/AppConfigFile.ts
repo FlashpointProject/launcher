@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { IAppConfigData } from './IAppConfigData';
 import { tryParseJSON, recursiveReplace, deepCopy } from '../Util';
+import { IAppConfigData } from './interfaces';
 
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;

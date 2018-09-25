@@ -1,12 +1,13 @@
 import { app, session, ipcMain, shell } from 'electron';
+import * as path from 'path';
 import MainWindow from './MainWindow';
 import * as Util from './Util';
-import { IAppConfigData } from '../shared/config/IAppConfigData';
 import BackgroundServices from './background/BackgroundServices';
 import checkSanity from '../shared/checkSanity';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 import { AppConfig } from '../shared/config/AppConfigFile';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
+import { IAppConfigData, IAppConfigApiFetchData } from '../shared/config/interfaces';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
@@ -130,6 +131,10 @@ export class Main {
 
   /** Get the config object synchronously */
   private onGetConfigSync(event: Electron.IpcMessageEvent): void {
-    event.returnValue = this.config;
+    const data: IAppConfigApiFetchData = {
+      data: this.config,
+      fullFlashpointPath: path.resolve(this.config.flashpointPath),
+    };
+    event.returnValue = data;
   }
 }

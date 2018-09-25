@@ -1,4 +1,4 @@
-/** Data contained in the Config file. */
+/** Data contained in the Config file */
 export interface IAppConfigData {
   /** Path to the FlashPoint root folder (relative or absolute) */
   flashpointPath: string;
@@ -11,3 +11,12 @@ export interface IAppConfigData {
   /** If Fiddler should be used instead of the Redirector (Windows only) */
   useFiddler: boolean;
 }
+
+/** Data fetched from the Main by the Renderer */
+export interface IAppConfigApiFetchData {
+  /** Raw config data from the config file */
+  data: IAppConfigData;
+  /** Full path to the flashpoint folder */
+  fullFlashpointPath: string;
+}
+

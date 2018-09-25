@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { IAppConfigData } from '../../../shared/config/IAppConfigData';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
@@ -7,8 +6,6 @@ import { CheckBox } from '../CheckBox';
 import { AppConfig } from '../../../shared/config/AppConfigFile';
 
 export interface IConfigPageProps {
-  /** Application config (the one currently is place) */
-  config: IAppConfigData;
 }
 
 export interface IConfigPageState {
@@ -24,13 +21,14 @@ export interface IConfigPageState {
 export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageState> {
   constructor(props: IConfigPageProps) {
     super(props);
+    const configData = window.External.config.data;
     this.state = {
       isFlashpointPathValid: undefined,
-      flashpointPath: props.config.flashpointPath,
-      useCustomTitlebar: props.config.useCustomTitlebar,
-      startRouter: props.config.startRouter,
-      startRedirector: props.config.startRedirector,
-      useFiddler: props.config.useFiddler,
+      flashpointPath: configData.flashpointPath,
+      useCustomTitlebar: configData.useCustomTitlebar,
+      startRouter: configData.startRouter,
+      startRedirector: configData.startRedirector,
+      useFiddler: configData.useFiddler,
     };
     this.onFlashpointPathChange = this.onFlashpointPathChange.bind(this);
     this.onUseCustomTitlebarChange = this.onUseCustomTitlebarChange.bind(this);
@@ -144,7 +142,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
   /** When the "Save & Restart" button is clicked */
   onSaveAndRestartClick(event: React.MouseEvent<HTMLInputElement>) {
     // Create new config
-    let newConfig = recursiveReplace(deepCopy(this.props.config), {
+    let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
       startRouter: this.state.startRouter,

@@ -4,7 +4,7 @@ import { IGameInfo, IAdditionalApplicationInfo } from './interfaces';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
-    const appPath: string = path.posix.join(window.External.config.data.flashpointPath,
+    const appPath: string = path.posix.join(window.External.config.fullFlashpointPath,
                                             addApp.applicationPath);
     const appArgs: string[] = [addApp.commandLine || ''];
     const env = GameLauncher.getEnvironment();
@@ -24,7 +24,7 @@ export class GameLauncher {
       }
     });
     // Launch game
-    const gamePath: string = path.posix.join(window.External.config.data.flashpointPath,
+    const gamePath: string = path.posix.join(window.External.config.fullFlashpointPath,
                                              GameLauncher.getApplicationPath(game));
     const gameArgs: string[] = [game.launchCommand || ''];
     const env = GameLauncher.getEnvironment();

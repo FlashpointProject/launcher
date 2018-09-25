@@ -11,7 +11,6 @@ import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { IGameCollection } from '../shared/game/interfaces';
-import { IAppConfigData } from '../shared/config/IAppConfigData';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { GameImageCollection } from './image/GameImageCollection';
@@ -24,7 +23,6 @@ export interface IAppState {
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
   logData: string;
-  config: IAppConfigData;
   /** Scale of games at the browse page */
   gameScale: number;
   /** Layout of the browse page */
@@ -41,17 +39,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   constructor(props: IAppProps) {
     super(props);
     // Normal constructor stuff
-    const config = window.External.config.data;
+    const config = window.External.config;
     this.state = {
       central: undefined,
       search: undefined,
       order: undefined,
       logData: '',
-      config: config,
       gameScale: window.External.preferences.data.browsePageGameScale,
       gameLayout: window.External.preferences.data.browsePageLayout,
       showExtreme: window.External.preferences.data.browsePageShowExtreme,
-      useCustomTitlebar: config.useCustomTitlebar,
+      useCustomTitlebar: config.data.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
@@ -60,15 +57,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onExtremeChange = this.onExtremeChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     // Load the filenames of all game images
-    const gameImages = new GameImageCollection(config.flashpointPath);
+    const gameImages = new GameImageCollection(config.fullFlashpointPath);
     // Fetch LaunchBox game data from the xml
-    LaunchboxData.fetchPlatformFilenames(config.flashpointPath)
+    LaunchboxData.fetchPlatformFilenames(config.fullFlashpointPath)
     .then((platformFilenames: string[]) => {
       // Prepare images
       const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
       gameImages.addPlatforms(platforms);
       // Fetch games
-      LaunchboxData.fetchPlatforms(config.flashpointPath, platformFilenames)
+      LaunchboxData.fetchPlatforms(config.fullFlashpointPath, platformFilenames)
       .then((collection: IGameCollection) => {
         this.onDataLoaded(gameImages, collection);
       })
@@ -118,7 +115,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       search: this.state.search,
       order: this.state.order,
       logData: this.state.logData,
-      config: this.state.config,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
       showExtreme: this.state.showExtreme,
@@ -158,7 +154,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setState({
       central: {
         collection: collection || { games: [], additionalApplications: [] },
-        flashpointPath: this.state.config.flashpointPath,
+        flashpointPath: window.External.config.fullFlashpointPath,
         gameImages: gameImages,
       }
     });

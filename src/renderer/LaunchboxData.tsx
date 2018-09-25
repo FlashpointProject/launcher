@@ -51,11 +51,11 @@ export class LaunchboxData {
    */
   public static fetchPlatforms(flashpointPath: string, platforms: string[]): Promise<IGameCollection> {
     return new Promise((resolve, reject) => {
-      const folderPath: string = path.posix.join(flashpointPath, platformsPath);
+      const folderPath: string = path.resolve(flashpointPath, platformsPath);
       const combinedCollection: GameCollection = new GameCollection();
       let done: number = 0;
       for (let i = 0; i < platforms.length; i++) {
-        LaunchboxData.fetchPlatform(path.posix.join(folderPath, platforms[i]))
+        LaunchboxData.fetchPlatform(path.join(folderPath, platforms[i]))
         .then((collection) => {
           combinedCollection.push(collection);
           done++;
