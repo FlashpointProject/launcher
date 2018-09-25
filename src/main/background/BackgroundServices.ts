@@ -25,10 +25,10 @@ class BackgroundServices extends EventEmitter {
   private flashpointPath?: string;
   /** If the .start() method has been called and is done */
   private isStartDone: boolean = false;
-  /** Information about how to run the background services */
+  /** Information about how to run the background services (loaded from the services.json file) */
   private serviceInfo?: IBackProcessInfoFile;
-  /** Local web-server that serves games */
-  private router?: ManagedChildProcess;
+  /** Local web-server that serves games (this is the Router for Flashpoint Infinity) */
+  private server?: ManagedChildProcess;
   /* Program that redirects some out-going traffic to the local web-server (Windows only) */
   private redirector?: ManagedChildProcess;
 
@@ -68,9 +68,9 @@ class BackgroundServices extends EventEmitter {
     // Start router
     if (config.startRouter) {
       if (!serviceInfo.server) { throw new Error('Server process information not found.'); }
-      this.router = createManagedChildProcess('Router', serviceInfo.server);
-      this.router.on('output', logOutput);
-      spawnProc(this.router);
+      this.server = createManagedChildProcess('Router', serviceInfo.server);
+      this.server.on('output', logOutput);
+      spawnProc(this.server);
     }
 
     // Start redirector
@@ -115,8 +115,8 @@ class BackgroundServices extends EventEmitter {
   public async stop(): Promise<void> {
     if (!this.startDone) { throw new Error('You must not stop the background services befor they are done starting.'); }
     // Kill processes
-    if (this.router) {
-      this.router.kill();
+    if (this.server) {
+      this.server.kill();
     }
     if (this.redirector) {
       this.redirector.kill();
