@@ -23,6 +23,7 @@ declare interface BackgroundServices {
 
 class BackgroundServices extends EventEmitter {
   private flashpointPath?: string;
+  private useFiddler?: boolean;
   /** If the .start() method has been called and is done */
   private isStartDone: boolean = false;
   /** Information about how to run the background services (loaded from the services.json file) */
@@ -36,8 +37,9 @@ class BackgroundServices extends EventEmitter {
   public async start(config: IAppConfigData): Promise<void> {
     const logOutput = (output: string) => { this.emit('output', output); };
 
-    // Keep the flashpoint path
+    // Keep some configs
     this.flashpointPath = config.flashpointPath;
+    this.useFiddler = config.useFiddler;
 
     // Abort if Flashpoint path is not valid
     const valid = await isFlashpointValidCheck(config.flashpointPath);
@@ -78,7 +80,7 @@ class BackgroundServices extends EventEmitter {
     if (config.startRedirector && process.platform !== 'linux') {
       const redirectorInfo = config.useFiddler ? serviceInfo.fiddler : serviceInfo.redirector;
       if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${config.useFiddler?'Fiddler':'Redirector'})`); }
-      this.redirector = createManagedChildProcess('Redirector', redirectorInfo);
+      this.redirector = createManagedChildProcess('Redirector', redirectorInfo, config.useFiddler);
       this.redirector.on('output', logOutput);
       spawnProc(this.redirector);
     }
@@ -87,12 +89,13 @@ class BackgroundServices extends EventEmitter {
 
     // -- Functions --
     // Wrapper for ManagedChildProcess's constructor
-    function createManagedChildProcess(name: string, info: IBackProcessInfo): ManagedChildProcess {
+    function createManagedChildProcess(name: string, info: IBackProcessInfo, detached?: boolean): ManagedChildProcess {
       return new ManagedChildProcess(
         name, 
         info.filename, 
         info.arguments, 
-        path.join(config.flashpointPath, info.path));
+        path.join(config.flashpointPath, info.path),
+        !!detached);
     }
     // Try to spawn a ManagedChildProcess, and log error if it fails
     function spawnProc(proc: ManagedChildProcess): void {
@@ -118,7 +121,7 @@ class BackgroundServices extends EventEmitter {
     if (this.server) {
       this.server.kill();
     }
-    if (this.redirector) {
+    if (this.redirector && !this.useFiddler) { // (Fiddler should be manually shut down in the stop array)
       this.redirector.kill();
     }
     // Run stop commands

@@ -1,6 +1,5 @@
 import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
-import { IBackProcessInfo } from './background/interfaces';
 
 /**
  * A Child Process which automatically logs all output to the console
@@ -11,19 +10,21 @@ export default class ManagedChildProcess extends EventEmitter {
   private command: string;
   private args: string[];
   private cwd: string;
+  private detached: boolean;
 
-  constructor(name: string, command: string, args: string[], cwd: string) {
+  constructor(name: string, command: string, args: string[], cwd: string, detached: boolean) {
     super();
     this.name = name;
     this.command = command;
     this.args = args;
     this.cwd = cwd;
+    this.detached = detached;
   }
 
   /** Spawn process and keep track of its output */
   public spawn(): void {
     if (this.process) { throw Error('You must not spawn the same ManagedChildProcess multiple times.'); }
-    this.process = spawn(this.command, this.args, { cwd: this.cwd });
+    this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
     this.emit('output', `${this.name} has been started\n`);
     // Add event listeners to process
     this.process.stdout.on('data', (data: Buffer) => {
