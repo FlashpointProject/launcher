@@ -27,11 +27,11 @@ export class GameImageCollection {
     // Add thumbnail folder
     const thumbnailFolder = new ImageFolderCache();
     this._thumbnails[lowerPlatform] = thumbnailFolder;
-    thumbnailFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Arcade/Images/${platform}/Box - Front`));
+    thumbnailFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Images/${platform}/Box - Front`));
     // Add screenshot folder
     const screenshotFolder = new ImageFolderCache();
     this._screenshots[lowerPlatform] = screenshotFolder;
-    screenshotFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Arcade/Images/${platform}/Screenshot - Gameplay`));
+    screenshotFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Images/${platform}/Screenshot - Gameplay`));
   }
   
   /**

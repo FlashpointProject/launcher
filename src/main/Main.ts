@@ -2,7 +2,7 @@ import { app, session, ipcMain, shell } from 'electron';
 import MainWindow from './MainWindow';
 import * as Util from './Util';
 import { IAppConfigData } from '../shared/config/IAppConfigData';
-import BackgroundServices from './BackgroundServices';
+import BackgroundServices from './background/BackgroundServices';
 import checkSanity from '../shared/checkSanity';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 import { AppConfig } from '../shared/config/AppConfigFile';
@@ -23,16 +23,15 @@ export class Main {
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
+    app.once('will-quit', this.onAppWillQuit.bind(this));
     app.once('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
     ipcMain.on(AppConfigApi.ipcRequestSync, this.onGetConfigSync.bind(this));
     ipcMain.on('resend-log-data-update', this.sendLogData.bind(this));
     // Load config and preferences
     this.loadConfig()
+    .then(async () => { await this._preferences.load(); })
     .then(async () => {
-      await this._preferences.load();
-    })
-    .then(() => {
       // Check if we are ready to launch or not.
       // @TODO Launch the setup wizard when a check failed.
       checkSanity(this.config)
@@ -41,10 +40,10 @@ export class Main {
       this._backgroundServices = new BackgroundServices();
       this._backgroundServices.on('output', this.pushLogData.bind(this));
       this._backgroundServices.start(this.config);
-      // Create main window as soon as possible
-      Util.callIfOrOnceReady(() => {
-        this._mainWindow.createWindow();
-      });
+      // Create main window when ready
+      this._backgroundServices.waitUntilDoneStarting()
+      .then(Util.waitUntilReady)
+      .then(() => { this._mainWindow.createWindow(); });
     })
     .catch(console.error);
   }
@@ -74,9 +73,12 @@ export class Main {
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
       app.quit();
-      if (this._backgroundServices) {
-        this._backgroundServices.stop();
-      }
+    }
+  }
+
+  private onAppWillQuit(): void {
+    if (this._backgroundServices) {
+      this._backgroundServices.stop();
     }
   }
   

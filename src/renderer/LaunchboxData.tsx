@@ -6,7 +6,7 @@ import * as fastXmlParser from 'fast-xml-parser';
 import { GameParser } from '../shared/game/GameParser';
 import { GameCollection } from '../shared/game/GameCollection';
 
-const platformsPath: string = './Arcade/Data/Platforms';
+const platformsPath: string = './Data/Platforms';
 
 export class LaunchboxData {
   /**

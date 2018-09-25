@@ -5,7 +5,7 @@ import { IGameInfo, IAdditionalApplicationInfo } from './interfaces';
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
     const appPath: string = path.posix.join(window.External.config.data.flashpointPath, 
-                                             '/Arcade', addApp.applicationPath);
+                                            addApp.applicationPath);
     const appArgs: string[] = [addApp.commandLine || ''];
     const env = GameLauncher.getEnvironment();
     console.log('Launch AddApp:', appPath, appArgs);
@@ -25,7 +25,7 @@ export class GameLauncher {
     });
     // Launch game
     const gamePath: string = path.posix.join(window.External.config.data.flashpointPath, 
-                                             '/Arcade', GameLauncher.getApplicationPath(game));
+                                             GameLauncher.getApplicationPath(game));
     const gameArgs: string[] = [game.launchCommand || ''];
     const env = GameLauncher.getEnvironment();
     console.log('Launch game:', gamePath, gameArgs);
