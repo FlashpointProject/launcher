@@ -15,8 +15,7 @@ const stat = promisify(fs.stat);
  */
 function getImportantFiles(flashpointPath: string) {
   return [
-    path.join(flashpointPath, './Data/Platforms/Flash.xml'),
-    path.join(flashpointPath, './Games/Flash/router.php'),
+    path.join(flashpointPath, './Data/Platforms'),
   ];
 }
 
