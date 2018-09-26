@@ -6,7 +6,8 @@ export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
     const appPath: string = relativeToFlashpoint(addApp.applicationPath);
     const appArgs: string = addApp.commandLine;
-    console.log('Launch AddApp:', appPath, appArgs);
+    console.log(`Launch AddApp: "${addApp.name}" `+
+                `(applicationPath: "${addApp.applicationPath}", commandLine: "${addApp.commandLine}")`);
     GameLauncher.launch(appPath, appArgs, { env: GameLauncher.getEnvironment() });
   }
 
@@ -23,24 +24,24 @@ export class GameLauncher {
     });
     // Launch game
     const gamePath: string = relativeToFlashpoint(GameLauncher.getApplicationPath(game));
-    const gameArgs: string = game.launchCommand;
-    console.log('Launch game:', gamePath, gameArgs);
+    let gameArgs: string = game.launchCommand;
+    console.log(`Launch Game: "${game.title}" `+
+                `(applicationPath: "${game.applicationPath}", launchCommand: "${game.launchCommand}")`);
     GameLauncher.launch(gamePath, gameArgs, { env: GameLauncher.getEnvironment() });
   }
 
+  /**
+    * The paths provided in the Game/AdditionalApplication XMLs are only accurate
+    * on Windows. So we replace them with other hard-coded paths here.
+   */
   private static getApplicationPath(game: IGameInfo): string {
+    // @TODO Let the user change these paths from a file or something (services.json?).
     if (window.External.platform === 'linux')  {
-      // The value provided in Flash.xml is only accurate in windows.
-      // We hardcode the value in linux.
-
-      // Note that this assumes that `flash_player_sa_linux.x86_64.tar.gz`
-      // has been extracted using:
-      //   $ cd Arcade/Games
-      //   $ tar xf flash_player_sa_linux.x86_64.tar.gz flashplayer
-
-      // @TODO Figure out a way to let Linux users change this path
-      //       and potential paths for other applications
       if (game.platform === 'Flash') {
+        // Note that this assumes that `flash_player_sa_linux.x86_64.tar.gz`
+        // has been extracted using:
+        //   $ cd Arcade/Games
+        //   $ tar xf flash_player_sa_linux.x86_64.tar.gz flashplayer
         return 'Games/flashplayer';
       }
       if (game.platform === 'Java') {
@@ -60,7 +61,23 @@ export class GameLauncher {
   }
 
   private static launch(filename: string, args: string, opts: ExecOptions): void {
-    const proc = exec(`"${escapeShell(filename)}" ${escapeShell(args)}`, opts);
+    // Escape filename and args
+    let escFilename: string = filename;
+    let escArgs: string = args;
+    switch (window.External.platform) {
+      case 'win32':
+        escFilename = escapeWin(filename);
+        escArgs = escapeWin(args);
+        break;
+      case 'linux':
+        escFilename = filename;
+        escArgs = escapeLinuxArgs(args);
+        break;
+    }
+    // Run
+    const str: string = `"${escFilename}" ${escArgs}`;
+    console.log(`Run: ${str}`);
+    const proc = exec(str, opts);
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     logStuffs(proc, ['close', 'disconnect', 'error', 'exit', 'message']);
@@ -83,11 +100,18 @@ function logStuffs(emitter: any, events: string[]) {
 }
 
 /**
- * Escape a string that will be used in a shell (command line)
+ * Escape a string that will be used in a Windows shell (command line)
  * ( According to this: http://www.robvanderwoude.com/escapechars.php )
  */
-function escapeShell(str: string): string {
-  // $& means the whole matched string
-  return str.replace(/[\^\&\<\>\|]/g, '^$&')
+function escapeWin(str: string): string {
+  return str.replace(/[\^\&\<\>\|]/g, '^$&') // $& means the whole matched string
             .replace(/%/g, '%%');
+}
+
+/**
+ * Escape a the arguments that will be used in a Linux shell (command line)
+ * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
+ */
+function escapeLinuxArgs(str: string): string {
+  return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
 }
