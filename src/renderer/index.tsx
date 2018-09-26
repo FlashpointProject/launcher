@@ -8,6 +8,7 @@ import { MemoryRouter } from 'react-router-dom';
   window.addEventListener('keypress', (event) => {
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyI') {
       window.External.toggleDevtools();
+      event.preventDefault();
     }
   });
   // Wait for the preferences and config to initialize
