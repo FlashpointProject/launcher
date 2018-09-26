@@ -29,7 +29,7 @@ export class GameLauncher {
   }
 
   private static getApplicationPath(game: IGameInfo): string {
-    if (game.platform === 'Flash' && window.External.platform === 'linux') {
+    if (window.External.platform === 'linux')  {
       // The value provided in Flash.xml is only accurate in windows.
       // We hardcode the value in linux.
 
@@ -40,7 +40,12 @@ export class GameLauncher {
 
       // @TODO Figure out a way to let Linux users change this path
       //       and potential paths for other applications
-      return 'Games/flashplayer';
+      if (game.platform === 'Flash') {
+        return 'Games/flashplayer';
+      }
+      if (game.platform === 'Java') {
+        return 'Games/startJava.sh';
+      }
     }
     return game.applicationPath;
   }
