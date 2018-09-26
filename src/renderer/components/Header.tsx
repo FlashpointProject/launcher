@@ -17,6 +17,7 @@ export class Header extends React.Component<IHeaderProps, {}> {
   constructor(props: IHeaderProps) {
     super(props);
     this.onSearch = this.onSearch.bind(this);
+    this.onCleared = this.onCleared.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
     this.onExtremeChange = this.onExtremeChange.bind(this);
   }
@@ -48,7 +49,7 @@ export class Header extends React.Component<IHeaderProps, {}> {
           </li>
         </ul>
         {/* Header Search */}
-        <Search onSearch={this.onSearch} classNames={searchClassNames}/>
+        <Search onSearch={this.onSearch} onCleared={this.onCleared} classNames={searchClassNames}/>
         {/* Header Drop-downs */}
         <GameOrder onChange={this.onOrderChange}/>
         {/* Toggle Extreme */}
@@ -63,6 +64,12 @@ export class Header extends React.Component<IHeaderProps, {}> {
   private onSearch(event: ISearchOnSearchEvent): void {
     if (this.props.onSearch) {
       this.props.onSearch(event);
+    }
+  }
+
+  private onCleared(): void {
+    if (this.props.onSearch) {
+      this.props.onSearch({ input: '', tags: [] });
     }
   }
 

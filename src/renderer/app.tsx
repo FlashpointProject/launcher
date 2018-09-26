@@ -161,7 +161,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onSearch(event: ISearchOnSearchEvent): void {
-    this._onSearch = true;
+    if (event.input || event.tags.length > 0) {
+      this._onSearch = true;
+    }
     this.setState({
       search: event,
     });

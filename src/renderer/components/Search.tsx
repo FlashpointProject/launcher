@@ -5,6 +5,8 @@ import { SearchTag, ISearchTagClickRemoveEvent } from './SearchTag';
 export interface ISearchProps extends IDefaultProps {
   /** Called when enter is pressed in the input field */
   onSearch?: (event: ISearchOnSearchEvent) => void;
+  /** Called when the  */
+  onCleared?: () => void;
   /** Additional class names (the original class names are still applied) */
   classNames?: ISearchClassNames;
 }
@@ -71,6 +73,12 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     if (match.tags.length > 0) {
       state.tags = this.state.tags.slice();
       Array.prototype.push.apply(state.tags, match.tags);
+    }
+    // Check if search is completely empty
+    if (!state.input && !state.tags) {
+      if (this.props.onCleared) {
+        this.props.onCleared();
+      }
     }
     // Update the state
     this.setState(state);
