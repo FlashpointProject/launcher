@@ -55,7 +55,7 @@ export class GameLauncher {
   }
 
   private static launch(filename: string, args: string, opts: ExecOptions): void {
-    const proc = exec(`"${filename}" ${args}`, opts);
+    const proc = exec(`"${escapeShell(filename)}" ${escapeShell(args)}`, opts);
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     logStuffs(proc, ['close', 'disconnect', 'error', 'exit', 'message']);
@@ -75,4 +75,14 @@ function logStuffs(emitter: any, events: string[]) {
       console.log.call(console, e, ...args);
     });
   }
+}
+
+/**
+ * Escape a string that will be used in a shell (command line)
+ * ( According to this: http://www.robvanderwoude.com/escapechars.php )
+ */
+function escapeShell(str: string): string {
+  // $& means the whole matched string
+  return str.replace(/[\^\&\<\>\|]/g, '^$&')
+            .replace(/%/g, '%%');
 }
