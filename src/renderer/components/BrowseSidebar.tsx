@@ -17,8 +17,6 @@ export interface IBrowseSidebarProps {
 }
 
 export interface IBrowseSidebarState {
-  /** If editing the currently selected game / additional application(s) is disabled */
-  editDisabled: boolean;
   /** If any unsaved changes has been made to the selected game (the buffer) */
   hasChanged: boolean;
   /** Buffer for the selected game (all changes are made to the game until saved) */
@@ -46,7 +44,6 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   constructor(props: IBrowseSidebarProps) {
     super(props);
     this.state = {
-      editDisabled: false,
       hasChanged: false,
       editGame: undefined,
       editAddApps: undefined,
@@ -68,9 +65,9 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
 
   render() {
     const game: IGameInfo|undefined = this.state.editGame;
-    const isEditing: boolean = this.state.hasChanged;
-    const editDisabled = this.state.editDisabled;
     if (game) {
+      const isEditing: boolean = this.state.hasChanged;
+      const editDisabled = window.External.config.data.disableEditing;
       return (
         <div className='browse-sidebar'>
           <div className='browse-sidebar__section'>
@@ -231,9 +228,9 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void): (isChecked: boolean) => void {
     return (isChecked: boolean) => {
-      const { editGame, editDisabled } = this.state;
-      if (editGame && !editDisabled) {
-        func(editGame, isChecked);
+      const game = this.state.editGame;
+      if (game && !window.External.config.data.disableEditing) {
+        func(game, isChecked);
         this.setState({ hasChanged: true });
       }
     }

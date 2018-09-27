@@ -86,6 +86,7 @@ export class AppConfig {
     useFiddler: false,
     disableExtremeGames: false,
     showBrokenGames: false,
+    disableEditing: true,
   })
 
   /** 
