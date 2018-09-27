@@ -33,7 +33,6 @@ export default class MainWindow {
       width += 8;  // Add the width of the window-grab-things,
       height += 8; // they arre 4 pixels wide each (at least for me)
     }
-    console.log(width, height)
     this._window = new BrowserWindow({
       title: AppConstants.appTitle,
       width: width,
