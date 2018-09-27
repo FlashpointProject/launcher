@@ -27,10 +27,17 @@ export default class MainWindow {
       throw new Error('Window already created!');
     }
     // Create the browser window.
+    let width: number = 1000;
+    let height: number = 650;
+    if (!this._main.config.useCustomTitlebar) {
+      width += 8;  // Add the width of the window-grab-things,
+      height += 8; // they arre 4 pixels wide each (at least for me)
+    }
+    console.log(width, height)
     this._window = new BrowserWindow({
       title: AppConstants.appTitle,
-      height: 650,
-      width: 1000,
+      width: width,
+      height: height,
       frame: !this._main.config.useCustomTitlebar,
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
