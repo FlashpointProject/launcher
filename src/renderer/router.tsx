@@ -19,7 +19,6 @@ export interface IAppRouterProps {
   logData: string;
   gameScale: number;
   gameLayout: BrowsePageLayout;
-  showExtreme: boolean;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
@@ -30,7 +29,6 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
-      showExtreme: this.props.showExtreme,
     };
     return (
       <Switch>

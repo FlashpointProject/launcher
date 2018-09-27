@@ -30,6 +30,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
       startRedirector: configData.startRedirector,
       useFiddler: configData.useFiddler,
     };
+    this.onShowExtremeChange = this.onShowExtremeChange.bind(this);
     this.onFlashpointPathChange = this.onFlashpointPathChange.bind(this);
     this.onUseCustomTitlebarChange = this.onUseCustomTitlebarChange.bind(this);
     this.onStartRouterOnChange = this.onStartRouterOnChange.bind(this);
@@ -43,70 +44,128 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
       <div className='config-page'>
         <div className='config-page__inner'>
           <h1 className='config-page__title'>Config</h1>
-          <i>(You must press 'Save & Restart' for changes to take effect)</i>
+          <i>(You must press 'Save & Restart' for some changes to take effect)</i>
 
+          {/* -- Preferences -- */}
+          {((!window.External.config.data.disableExtremeGames)) ? (
+            <div className='setting'>
+              <p className='setting__title'>Preferences</p>
+              <div className='setting__body'>
+                <div className='setting__row'>
+                  <div className='setting__row__top'>
+                    <div className='setting__row__title'>
+                      <p>Show Extreme Games</p>
+                    </div>
+                    <div className='setting__row__content setting__row__content--toggle'>
+                      <div>
+                        <CheckBox checked={window.External.preferences.data.browsePageShowExtreme} 
+                                  onChange={this.onShowExtremeChange} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className='setting__row__bottom'>
+                    <p>Show games with sexual, violent or other content unsuitable for children.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : undefined }
+
+          {/* -- Flashpoint -- */}
           <div className='setting'>
             <p className='setting__title'>Flashpoint</p>
-            <div className='setting__row'>
-              <div className='setting__row__title'>
-                <p>FlashPoint Path</p>
-              </div>
-              <div className='setting__row__content setting__row__content--flashpoint-path'>
-                <ConfigFlashpointPathInput input={this.state.flashpointPath}
-                          onInputChange={this.onFlashpointPathChange}
-                          isValid={this.state.isFlashpointPathValid} />
-              </div>
-            </div>
-            <div className='setting__row'>
-              <div className='setting__row__title'>
-                <p>Start Router</p>
-              </div>
-              <div className='setting__row__content setting__row__content--toggle'>
-                <div>
-                  <CheckBox checked={this.state.startRouter} 
-                            onChange={this.onStartRouterOnChange} />
+            <div className='setting__body'>
+              {/* Flashpoint Path */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <p className='setting__row__title'>Flashpoint Path</p>
+                  <div className='setting__row__content setting__row__content--flashpoint-path'>
+                    <ConfigFlashpointPathInput input={this.state.flashpointPath}
+                                               onInputChange={this.onFlashpointPathChange}
+                                               isValid={this.state.isFlashpointPathValid} />
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>Path to the Flashpoint folder (can be relative)</p>
                 </div>
               </div>
-            </div>
-            <div className='setting__row'>
-              <div className='setting__row__title'>
-                <p>Start Redirector (Windows only)</p>
-              </div>
-              <div className='setting__row__content setting__row__content--toggle'>
-                <div>
-                  <CheckBox checked={this.state.startRedirector} 
-                            onChange={this.onStartRedirectorOnChange} />
+              {/* Router */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <p className='setting__row__title'>Start Router</p>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <CheckBox checked={this.state.startRouter} 
+                                onChange={this.onStartRouterOnChange} />
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>Start the local webserver (and Router) on startup.</p>
                 </div>
               </div>
-            </div>
-            <div className='setting__row'>
-              <div className='setting__row__title'>
-                <p>Use Fiddler instead of Redirector (Windows only)</p>
+              {/* Redirector */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>Start Redirector</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <CheckBox checked={this.state.startRedirector} 
+                                onChange={this.onStartRedirectorOnChange} />
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>Start the Redirector on startup. Linux does not need or use it.</p>
+                </div>
               </div>
-              <div className='setting__row__content setting__row__content--toggle'>
-                <div>
-                  <CheckBox checked={this.state.useFiddler} 
-                            onChange={this.onUseFiddlerOnChange} />
+              {/* Fiddler */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>Use Fiddler (instead of Redirector)</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <CheckBox checked={this.state.useFiddler} 
+                                onChange={this.onUseFiddlerOnChange} />
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>Fiddler will be started instead of the Redirector. Try this if the Redirector doesn't work.</p>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* -- Window -- */}
           <div className='setting'>
             <p className='setting__title'>Window</p>
-            <div className='setting__row'>
-              <div className='setting__row__title'>
-                <p>Use Custom Toolbar</p>
-              </div>
-              <div className='setting__row__content setting__row__content--toggle'>
-                <div>
-                  <CheckBox checked={this.state.useCustomTitlebar} 
-                            onChange={this.onUseCustomTitlebarChange} />
+            <div className='setting__body'>
+              {/* -- Custom Title Bar -- */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>Use Custom Title Bar</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <CheckBox checked={this.state.useCustomTitlebar} 
+                                onChange={this.onUseCustomTitlebarChange} />
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>Use a custom title bar at the top of this window.</p>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* -- Save & Restart -- */}
           <div className='setting'>
             <div className='setting__row'>
               <input type='button' value='Save & Restart' className='simple-button save-and-restart' onClick={this.onSaveAndRestartClick} />
@@ -117,8 +176,13 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     );
   }
   
+  onShowExtremeChange(isChecked: boolean): void {
+    window.External.preferences.data.browsePageShowExtreme = isChecked;
+    this.forceUpdate();
+  }
+
   /** When the "FlashPoint Folder Path" input text is changed */
-  async onFlashpointPathChange(filePath: string) {
+  async onFlashpointPathChange(filePath: string): Promise<void> {
     this.setState({ flashpointPath: filePath });
     // Check if the fileepath points at a valid FlashPoint folder
     const isValid = await isFlashpointValidCheck(filePath);

@@ -22,7 +22,7 @@ export class AppPreferencesApi extends EventEmitter {
   private _isSending: boolean = false;
 
   public get data(): IAppPreferencesData {
-    if (!this._dataProxy) { throw new Error('Yo must not access AppPreferencesApi.data before it has loaded'); }
+    if (!this._dataProxy) { throw new Error('You must not access AppPreferencesApi.data before it has loaded'); }
     return this._dataProxy;
   }
 

@@ -8,7 +8,7 @@ import { lerp } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
-import { filterSearch, filterExtreme, getOrderFunction } from '../../../shared/game/GameFilter';
+import { filterSearch, filterExtreme, getOrderFunction, filterBroken } from '../../../shared/game/GameFilter';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { GameLauncher } from '../../../shared/game/GameLauncher';
 
@@ -20,8 +20,6 @@ export interface IBrowsePageProps extends IDefaultProps {
   gameScale: number;
   /** Layout of the games */
   gameLayout: BrowsePageLayout;
-  /** Show extreme games */
-  showExtreme: boolean;
 }
 
 export interface IBrowsePageState {
@@ -132,9 +130,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               </>
             ):(
               <>
-                Have you set the path to the <b>Flashpoint directory</b> at the <i>Config</i> page?<br/>
+                Have you set the path to the <b>Flashpoint path</b> at the <i>Config</i> page?<br/>
                 <br/>
-                Note: You have to press <b>"Save & Restart"</b> for the games to load.
+                Note: You have to press <b>"Save & Restart"</b> for the change to take effect.
               </>
             )}
           </>
@@ -188,8 +186,10 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     games = games.slice(); // (Copy array)
     // -- Filter games --
     const searchText: string|undefined = this.props.search && this.props.search.input.toLocaleLowerCase();
-    const extreme: boolean = this.props.showExtreme;
-    const filteredGames = filterSearch(filterExtreme(games, extreme), searchText);
+    const extreme: boolean = !window.External.config.data.disableExtremeGames &&
+                             window.External.preferences.data.browsePageShowExtreme;
+    const broken: boolean = window.External.config.data.showBrokenGames;
+    const filteredGames = filterSearch(filterBroken(filterExtreme(games, extreme), broken), searchText);
     // -- Order games --
     const order = this.props.order || BrowsePage.defaultOrder;
     const orderedGames = filteredGames.sort(getOrderFunction(order));

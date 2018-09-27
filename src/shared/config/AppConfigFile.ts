@@ -84,6 +84,8 @@ export class AppConfig {
     startRouter: true,
     startRedirector: true,
     useFiddler: false,
+    disableExtremeGames: false,
+    showBrokenGames: false,
   })
 
   /** 

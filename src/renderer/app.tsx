@@ -27,8 +27,6 @@ export interface IAppState {
   gameScale: number;
   /** Layout of the browse page */
   gameLayout: BrowsePageLayout;
-  /** If extreme games are shown at the browse page */
-  showExtreme: boolean;
   /** If the custom titlebar is used */
   useCustomTitlebar: boolean;
 }
@@ -47,14 +45,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       logData: '',
       gameScale: window.External.preferences.data.browsePageGameScale,
       gameLayout: window.External.preferences.data.browsePageLayout,
-      showExtreme: window.External.preferences.data.browsePageShowExtreme,
       useCustomTitlebar: config.data.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
-    this.onExtremeChange = this.onExtremeChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     // Load the filenames of all game images
     const gameImages = new GameImageCollection(config.fullFlashpointPath);
@@ -117,7 +113,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       logData: this.state.logData,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
-      showExtreme: this.state.showExtreme,
     };
     // Render
     return (
@@ -129,8 +124,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
         ) : undefined }
         {/* "Header" stuff */}
-        <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange} 
-                extremeToggle={this.state.showExtreme} onExtremeChange={this.onExtremeChange}/>
+        <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange} />
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter {...routerProps} />
@@ -185,11 +179,5 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setState({ gameLayout: value });
     // Update Preferences Data (this is to make it get saved on disk)
     window.External.preferences.data.browsePageLayout = value;
-  }
-
-  private onExtremeChange(isChecked: boolean): void {
-    this.setState({ showExtreme: isChecked });
-    // Update Preferences Data (this is to make it get saved on disk)
-    window.External.preferences.data.browsePageShowExtreme = isChecked;
   }
 }

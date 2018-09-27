@@ -731,8 +731,8 @@ body {
   overflow: auto;
 }
 .config-page__inner {
-  padding: 1em 10px;
-  min-width: 40em;
+  padding: 0.1rem 0.5rem;
+  min-width: 30em;
   text-align: center;
   overflow: visible;
 }
@@ -747,16 +747,16 @@ body {
   vertical-align: middle;
   transform: scale(1.25);
 }
+/* SaveAndRestart */
+.config-page input[type="button"].save-and-restart {
+  font-size: 1.075em;
+  margin: 0 auto;
+}
 /* Setting */
 .setting {
   margin: 0 auto;
-  margin-top: 1.75em;
+  margin-top: 1em;
   max-width: 40em;
-  /* Pimp */
-  border-radius: 0.2em;
-  background-color: #242428;
-  border: 1px solid #141417;
-  box-shadow: 0px 2px 4px 0px #09090a;
 }
 .setting > :first-child {
   border-top: 0;
@@ -766,12 +766,28 @@ body {
   font-size: 1.2em;
   font-weight: bold;
 }
+.setting__body {
+  /* Pimp */
+  border-radius: 0.2em;
+  background-color: #242428;
+  border: 1px solid #141417;
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
 /* Setting Row */
 .setting__row {
-  display: flex;
   padding: 0.75em;
   /* Pimp */
   border-top: 1px solid #141417;
+}
+.setting__row__top {
+  display: flex;
+}
+.setting__row__bottom {
+  padding: 0;
+  border-top: 0;
+  font-size: 0.8em;
+  font-style: italic;
+  text-align: left;
 }
 .setting__row__title {
   flex: 0 1 auto;
@@ -784,8 +800,8 @@ body {
 /* Setting Row Content - FlashPoint Path */
 .setting__row__content--flashpoint-path {
   display: flex;
-  max-width: 24em;
-  margin-left: auto;
+  height: fit-content;
+  margin-left: 0.5rem;
 }
 .setting__row__content--flashpoint-path .flashpoint-path__input {
   flex: 1;
@@ -808,11 +824,6 @@ body {
 /* Setting Row Content - Toggle */
 .setting__row__content--toggle > div {
   float: right;
-}
-/* SaveAndRestart */
-.config-page input[type="button"].save-and-restart {
-  font-size: 1.075em;
-  margin: 0 auto;
 }
 
 

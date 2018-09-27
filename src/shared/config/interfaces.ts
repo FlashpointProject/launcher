@@ -10,6 +10,10 @@ export interface IAppConfigData {
   startRedirector: boolean;
   /** If Fiddler should be used instead of the Redirector (Windows only) */
   useFiddler: boolean;
+  /** If games flagged as "extreme" should be hidden (mainly for parental control) */
+  disableExtremeGames: boolean;
+  /** If games flagged as "broken" should be hidden */
+  showBrokenGames: boolean;
 }
 
 /** Data fetched from the Main by the Renderer */

@@ -44,6 +44,18 @@ export function getOrderFunction(order: IGameOrderChangeEvent): OrderFn {
   return orderFn;
 }
 
+/** Return a new array with all broken games removed (if showBroken is false) */
+export function filterBroken(games: IGameInfo[], showBroken: boolean): IGameInfo[] {
+  if (showBroken) { return games; }
+  const filteredGames: IGameInfo[] = [];
+  for (let game of games) {
+    if (!game.broken) {
+      filteredGames.push(game);
+    }
+  }
+  return filteredGames;
+}
+
 /** Return a new array with all extreme games removed (if showExtreme is false) */
 export function filterExtreme(games: IGameInfo[], showExtreme: boolean): IGameInfo[] {
   if (showExtreme) { return games; }
