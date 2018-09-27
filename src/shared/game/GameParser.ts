@@ -26,36 +26,63 @@ export class GameParser {
 
   private static parseGame(data: IRawLaunchBoxGame): IGameInfo {
     return {
-      id: GameParser.decodeString(data.ID),
-      title: GameParser.decodeString(data.Title),
-      series: GameParser.decodeString(data.Series),
-      developer: GameParser.decodeString(data.Developer),
-      platform: GameParser.decodeString(data.Platform),
+      id: unescapeHTML(data.ID),
+      title: unescapeHTML(data.Title),
+      series: unescapeHTML(data.Series),
+      developer: unescapeHTML(data.Developer),
+      platform: unescapeHTML(data.Platform),
       broken: !!data.Broken,
       extreme: !!data.Hide,
-      playMode: GameParser.decodeString(data.PlayMode),
-      status: GameParser.decodeString(data.Status),
-      notes: GameParser.decodeString(data.Notes),
-      genre: GameParser.decodeString(data.Genre),
-      source: GameParser.decodeString(data.Source),
-      applicationPath: GameParser.decodeString(data.ApplicationPath),
-      launchCommand: GameParser.decodeString(data.CommandLine),
+      playMode: unescapeHTML(data.PlayMode),
+      status: unescapeHTML(data.Status),
+      notes: unescapeHTML(data.Notes),
+      genre: unescapeHTML(data.Genre),
+      source: unescapeHTML(data.Source),
+      applicationPath: unescapeHTML(data.ApplicationPath),
+      launchCommand: unescapeHTML(data.CommandLine),
     };
   }
 
   private static parseAdditionalApplication(data: IRawLaunchBoxAdditionalApplication): IAdditionalApplicationInfo {
     return {
-      id: GameParser.decodeString(data.Id),
-      gameId: GameParser.decodeString(data.GameID),
-      applicationPath: GameParser.decodeString(data.ApplicationPath),
+      id: unescapeHTML(data.Id),
+      gameId: unescapeHTML(data.GameID),
+      applicationPath: unescapeHTML(data.ApplicationPath),
       autoRunBefore: !!data.AutoRunBefore,
-      commandLine: GameParser.decodeString(data.CommandLine),
-      name: GameParser.decodeString(data.Name),
+      commandLine: unescapeHTML(data.CommandLine),
+      name: unescapeHTML(data.Name),
       waitForExit: !!data.WaitForExit,
     };
   }
-
-  private static decodeString(str?: string): string {
-    return (str + '').replace(/&amp;/g, '&');
-  }
 }
+
+// Unescape some HTML characters
+// ( From: https://stackoverflow.com/questions/18749591/encode-html-entities-in-javascript/39243641#39243641 )
+const htmlEntities: any = Object.freeze({
+  nbsp: ' ',
+  cent: '¢',
+  pound: '£',
+  yen: '¥',
+  euro: '€',
+  copy: '©',
+  reg: '®',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  amp: '&',
+  apos: '\''
+});
+function unescapeHTML(str?: string): string {
+  return (str+'').replace(/\&([^;]+);/g, function (entity: string, entityCode: string): string {
+    let match;
+    if (entityCode in htmlEntities) {
+      return htmlEntities[entityCode];
+    } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
+      return String.fromCharCode(parseInt(match[1], 16));
+    } else if (match = entityCode.match(/^#(\d+)$/)) {
+      return String.fromCharCode(~~match[1]);
+    } else {
+      return entity;
+    }
+  });
+};
