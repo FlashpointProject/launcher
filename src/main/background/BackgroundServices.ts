@@ -61,7 +61,7 @@ class BackgroundServices extends EventEmitter {
     //console.log('Services:', serviceInfo);
     this.serviceInfo = serviceInfo;
 
-    //
+    // Run start commands
     const start = serviceInfo.start;
     for (let i = 0; i < start.length; i++) {
       await this.execProcess(start[i]);

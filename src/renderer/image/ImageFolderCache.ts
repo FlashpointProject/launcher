@@ -43,8 +43,8 @@ export class ImageFolderCache {
       return path.posix.join(this._folderPath, str);
     }
     // No image found
-    console.error(`image was not found for game: ${title} ` +
-                  `(FolderPath: ${this._folderPath}, Regex: ${regex})`);
+    console.error(`Image was not found for game: "${title}" ` +
+                  `(FolderPath: "${this._folderPath}", Regex: "${regex}")`);
   }
 
   /** Create a regex that will find the filename for a title */
