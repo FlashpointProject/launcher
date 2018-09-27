@@ -2,7 +2,7 @@ import * as React from 'react';
 import { IDefaultProps } from '../interfaces';
 import { ListRowProps } from 'react-virtualized';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { getPlatformIconPath } from '../Resources';
+import { getPlatformIconPath } from '../Util';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   /** Game to show */
@@ -30,7 +30,7 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     const game = this.props.game;
     const title: string = game.title || '';
     const size: string = (this.props.height || 0)+'px';
-    const platformIcon = getPlatformIconPath(game.platform.toLocaleLowerCase());
+    const platformIcon = getPlatformIconPath(game.platform);
     let className: string = 'game-list-item';
     // Add class to all with an even index
     if (this.props.index % 2 === 0) {

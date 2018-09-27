@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 /**
  * Calls a defined callback function on each property of an object, and returns an array that contains the results.
  * Similar to Array#map but iterates over the properties of an object.
@@ -17,4 +19,12 @@ export function forEach<T, U>(source: any, callbackfn: (value: T, key: string) =
 /** Linear interpolation between (and beyond) two values */
 export function lerp(from: number, to: number, value: number): number {
   return from + (to - from) * value;
+}
+
+/**
+ * Get the path of the icon for a given platform (could point to a non-existing file)
+ * @param platform Platform to get icon of (case sensitive)
+ */
+export function getPlatformIconPath(platform: string): string {
+  return path.join(window.External.config.fullFlashpointPath, '/Logos/', platform+'.png').replace(/\\/g, '/');
 }

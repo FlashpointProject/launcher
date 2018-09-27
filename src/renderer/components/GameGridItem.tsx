@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { IDefaultProps } from '../interfaces';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { getPlatformIconPath } from '../Resources';
+import { getPlatformIconPath } from '../Util';
 
 export interface IGameGridItemProps extends ListRowProps, IDefaultProps {
   /** Game to show */
@@ -32,7 +32,7 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     const game = this.props.game;
     const width: number = this.props.width || 0;
     const height: number = this.props.height || 0;
-    const platformIcon = getPlatformIconPath(game.platform.toLocaleLowerCase());
+    const platformIcon = getPlatformIconPath(game.platform);
     let className: string = 'game-grid-item';
     // Add class if selected
     if (this.props.isSelected) {
