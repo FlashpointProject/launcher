@@ -61,7 +61,11 @@ function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-/** Replace all invalid filesystem characters with underscores */
+/**
+ * Replace all invalid filesystem characters with underscores.
+ * If they are next to each other, turn the entire group into one underscore.
+ * (Example: "Te?<|:st" => "Te_st")
+ */
 function replaceInvalidFilesystemChars(title: string): string {
-  return title.replace(/[/\\?*:|"<>']/g, '_');
+  return title.replace(/[/\\?*:|"<>']+/g, '_');
 }
