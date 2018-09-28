@@ -218,7 +218,6 @@ function parseFilters(input: string): IGameSearchQuery {
   if (!input) { return filter; }
   // Do filtering
   const splits = input.replace(/  +/g, ' ').split(' ');
-  console.log(splits);
   let str = ''; // Current string that is being built
   let mode = 0; // What "mode" the string current is in (Normal, Platform, Genre etc.)
   for (let i = 0; i < splits.length; i++) {

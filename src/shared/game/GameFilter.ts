@@ -70,7 +70,6 @@ export function filterExtreme(games: IGameInfo[], showExtreme: boolean): IGameIn
 
 /** Return a new array with all games that doesn't match the search removed (if there is a search) */
 export function filterSearch(games: IGameInfo[], search: IGameSearchQuery): IGameInfo[] {
-  console.log(search);
   const filteredGames: Array<IGameInfo|undefined> = games.slice();
   if (search.text) {
     const title = search.text;
