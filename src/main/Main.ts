@@ -106,7 +106,6 @@ export class Main {
 
   /** Send the main windows log to its renderer */
   private onAppendLogData(event: Electron.IpcMessageEvent, data?: string): void {
-    console.dir(data);
     this._mainWindow.appendLogData(data+'');
   }
 
