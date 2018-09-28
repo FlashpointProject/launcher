@@ -12,7 +12,7 @@ export class AppPreferencesFile {
 
   /** Default Preferences Data used for values that are not found in the file */
   private static readonly defaultData: Readonly<IAppPreferencesData> = Object.freeze({
-    browsePageGameScale: 0.121,
+    browsePageGameScale: 0.023,
     browsePageShowExtreme: false,
     browsePageLayout: BrowsePageLayout.grid,
   });
