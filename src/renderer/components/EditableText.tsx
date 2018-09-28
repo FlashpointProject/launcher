@@ -4,6 +4,7 @@ import * as React from 'react';
 export interface IEditableTextBaseProps {
   style?: React.CSSProperties;
   className?: string;
+  title?: string;
 }
 
 /** Props for the edit element (used when in edit mode) */

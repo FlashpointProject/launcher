@@ -8,9 +8,9 @@ export interface IEditableTextWrapProps {
   placeholder?: string;
   /** If the edit text field is multiline (its single line by default) */
   isMultiline?: boolean;
-  /** Style to forward to the text element (when not editing) */
+  /** Props to forward to the text element (when not editing) */
   textProps?: IEditableTextTextProps;
-  /** Style to forward to the edit element (when editing) */
+  /** Props to forward to the edit element (when editing) */
   editProps?: IEditableTextEditProps;
   /** When the edit is complete */
   onEditDone?: (text: string) => void;
