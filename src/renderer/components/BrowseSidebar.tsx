@@ -70,6 +70,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       const editDisabled = window.External.config.data.disableEditing;
       return (
         <div className={'browse-sidebar'+(!editDisabled?' browse-sidebar--edit-enabled':'')}>
+          {/* -- Title & Developer(s) -- */}
           <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row browse-sidebar__row--title browse-sidebar__row--one-line'>
               <EditableTextWrap target={game} editDisabled={editDisabled}
@@ -83,6 +84,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
                                 textProps={{title: game.developer}}/>
             </div>
           </div>
+          {/* -- Most Fields -- */}
           <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Genre: </p>
@@ -129,42 +131,52 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               <p> Extreme</p>
             </div>
           </div>
-          <div className='browse-sidebar__section'>
-            <div className='browse-sidebar__row'>
-              <p>Notes: </p>
-              <EditableTextWrap target={game} editDisabled={editDisabled}
-                                isMultiline={true} placeholder='[N/A]'
-                                textProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--text-multi-line'}}
-                                editProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--edit-multi-line'}}
-                                text={game.notes} onEditDone={this.onNotesEditDone}/>
+          {/* -- Notes -- */}
+          { !editDisabled || game.notes ? (
+            <div className='browse-sidebar__section'>
+              <div className='browse-sidebar__row'>
+                <p>Notes: </p>
+                <EditableTextWrap target={game} editDisabled={editDisabled}
+                                  isMultiline={true} placeholder='[N/A]'
+                                  textProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--text-multi-line'}}
+                                  editProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--edit-multi-line'}}
+                                  text={game.notes} onEditDone={this.onNotesEditDone}/>
+              </div>
             </div>
-          </div>
-          <div className='browse-sidebar__section'>
-            <div className='browse-sidebar__row browse-sidebar__row--additional-applications-header'>
-              <p>Additional Applications:</p>
-              { !editDisabled ? (
-                <input type="button" value="New" className="simple-button"/>
-              ) : undefined }
+          ) : undefined }
+          {/* -- Additional Applications -- */}
+          { !editDisabled || (this.state.editAddApps && this.state.editAddApps.length > 0) ? (
+            <div className='browse-sidebar__section'>
+              <div className='browse-sidebar__row browse-sidebar__row--additional-applications-header'>
+                <p>Additional Applications:</p>
+                { !editDisabled ? (
+                  <input type="button" value="New" className="simple-button"/>
+                ) : undefined }
+              </div>
+              {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
+                return <BrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
+                                            onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}/>;
+              })}
             </div>
-            {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
-              return <BrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
-                                          onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}/>;
-            })}
-          </div>
-          <div className='browse-sidebar__section'>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
-              <p>Application Path: </p>
-              <EditableTextWrap target={game} editDisabled={editDisabled}
-                                text={game.applicationPath} onEditDone={this.onApplicationPathEditDone}
-                                textProps={{title: game.applicationPath}}/>
+          ) : undefined }
+          {/* -- Application Path & Launch Command -- */}
+          { !editDisabled ? (
+            <div className='browse-sidebar__section'>
+              <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+                <p>Application Path: </p>
+                <EditableTextWrap target={game} editDisabled={editDisabled}
+                                  text={game.applicationPath} onEditDone={this.onApplicationPathEditDone}
+                                  textProps={{title: game.applicationPath}}/>
+              </div>
+              <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+                <p>Launch Command: </p>
+                <EditableTextWrap target={game} editDisabled={editDisabled}
+                                  text={game.launchCommand} onEditDone={this.onLaunchCommandEditDone}
+                                  textProps={{title: game.launchCommand}}/>
+              </div>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
-              <p>Launch Command: </p>
-              <EditableTextWrap target={game} editDisabled={editDisabled}
-                                text={game.launchCommand} onEditDone={this.onLaunchCommandEditDone}
-                                textProps={{title: game.launchCommand}}/>
-            </div>
-          </div>
+          ) : undefined }
+          {/* -- Screenshot -- */}
           {(this.props.gameImages && game) ? (
             <div className='browse-sidebar__section browse-sidebar__section--below-gap'>
               <div className='browse-sidebar__row browse-sidebar__row__spacer'/>
@@ -174,6 +186,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               </div>
             </div>
           ) : undefined}
+          {/* -- Save Changes -- */}
           {isEditing ? (
             <div className='browse-sidebar__section'>
               <div className='browse-sidebar__row browse-sidebar__row--save'>
