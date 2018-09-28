@@ -14,7 +14,7 @@ export function orderByTitle(a: IGameInfo, b: IGameInfo): number {
 export function orderByGenre(a: IGameInfo, b: IGameInfo): number {
   if (a.genre < b.genre) { return -1; }
   if (a.genre > b.genre) { return  1; }
-  return 0;
+  return orderByTitle(a, b);
 }
 
 /** Reverse the order (makes an ascending order function descending instead) */
