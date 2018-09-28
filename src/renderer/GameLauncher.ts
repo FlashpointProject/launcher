@@ -74,9 +74,13 @@ export class GameLauncher {
             title: 'Start Unity - Browser Already Open',
             message: 'You must close the K-Meleon browser to continue.\n'+
                      'If you have already closed K-Meleon, please wait a moment...',
-            buttons: ['Ok'],
+            buttons: ['Ok', 'Cancel'],
             defaultId: 0,
-            cancelId: 0,
+            cancelId: 1,
+          }, function(response: number): void {
+            if (response === 1) {
+              proc.kill();
+            }
           });
           // Clear text buffer
           textBuffer = '';
