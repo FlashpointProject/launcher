@@ -46,7 +46,8 @@ export class Header extends React.Component<IHeaderProps, {}> {
           </li>
         </ul>
         {/* Header Search */}
-        <Search onSearch={this.onSearch} onCleared={this.onCleared} classNames={searchClassNames}/>
+        <Search onSearch={this.onSearch} onCleared={this.onCleared} classNames={searchClassNames}
+                disableTags={true}/>
         {/* Header Drop-downs */}
         <GameOrder onChange={this.onOrderChange}/>
       </div>

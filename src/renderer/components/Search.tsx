@@ -9,6 +9,8 @@ export interface ISearchProps extends IDefaultProps {
   onCleared?: () => void;
   /** Additional class names (the original class names are still applied) */
   classNames?: ISearchClassNames;
+  /** If tags should be disabled (defaults to false) */
+  disableTags?: boolean;
 }
 export interface ISearchState {
   /** Search text currently in the search bar */
@@ -65,7 +67,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   onChange(e: React.ChangeEvent<HTMLInputElement>) {
     // Get the new input string and check it for any new input tags
-    const match = matchAllTags(e.target.value);
+    const match = this.matchAllTags(e.target.value);
     const state: any = {
       input: match.input
     };
@@ -132,23 +134,24 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     }
     return className;
   }
-}
 
-/** Get all tags (and the input string without the tags) from an input string */
-function matchAllTags(input: string) {
-  const reg: RegExp = /#.*?(\ )/g;
-  const tags: string[] = [];
-  let cleanInput: string = input;
-  //
-  let m;
-  while (m = reg.exec(input)) {
-    const match: string = m[0];
-    tags.push(match.substr(1, match.length - 2));
-    cleanInput = cleanInput.replace(match, '');
+
+  /** Get all tags (and the input string without the tags) from an input string */
+  matchAllTags(input: string) {
+    const tags: string[] = [];
+    let cleanInput: string = input;
+    if (!this.props.disableTags) {
+      const reg = (/#.*?(\ )/g);
+      let m;
+      while (m = reg.exec(input)) {
+        const match: string = m[0];
+        tags.push(match.substr(1, match.length - 2));
+        cleanInput = cleanInput.replace(match, '');
+      }
+    }
+    return {
+      tags: tags,
+      input: cleanInput,
+    };
   }
-  //
-  return {
-    tags: tags,
-    input: cleanInput,
-  };
 }
