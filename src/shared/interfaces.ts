@@ -2,6 +2,9 @@ import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 import { AppConfigApi } from './config/AppConfigApi';
 
 export interface IMainWindowExternal {
+  /** Append a string to the end of the log */
+  appendLogData(data: string): void;
+
   /** Ask the main to resend the log-data-update event */
   resendLogDataUpdate(): void;
 

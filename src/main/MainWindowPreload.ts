@@ -18,6 +18,11 @@ config.initialize();
  */
 window.External = Object.freeze({
   /** @inheritdoc */
+  appendLogData(data: string): void {
+    electron.ipcRenderer.send('append-log-data', data);
+  },
+
+  /** @inheritdoc */
   resendLogDataUpdate() {
     electron.ipcRenderer.send('resend-log-data-update');
   },

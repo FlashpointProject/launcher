@@ -28,7 +28,8 @@ export class Main {
     app.once('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
     ipcMain.on(AppConfigApi.ipcRequestSync, this.onGetConfigSync.bind(this));
-    ipcMain.on('resend-log-data-update', this.sendLogData.bind(this));
+    ipcMain.on('append-log-data', this.onAppendLogData.bind(this));
+    ipcMain.on('resend-log-data-update', this.onSendLogData.bind(this));
     // Load config and preferences
     this.loadConfig()
     .then(async () => { await this._preferences.load(); })
@@ -104,7 +105,13 @@ export class Main {
   }
 
   /** Send the main windows log to its renderer */
-  private sendLogData(): void {
+  private onAppendLogData(event: Electron.IpcMessageEvent, data?: string): void {
+    console.dir(data);
+    this._mainWindow.appendLogData(data+'');
+  }
+
+  /** Send the main windows log to its renderer */
+  private onSendLogData(): void {
     this._mainWindow.sendLogDataToRenderer();
   }
 
