@@ -3,7 +3,7 @@ import { IDefaultProps, ICentralState } from '../../interfaces';
 import { ISearchOnSearchEvent } from '../Search';
 import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
-import { IGameInfo, IAdditionalApplicationInfo } from '../../../shared/game/interfaces';
+import { IGameInfo, IAdditionalApplicationInfo, IGameSearchQuery } from '../../../shared/game/interfaces';
 import { lerp } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
@@ -185,11 +185,11 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     if (!games) { return []; } // (No games found)
     games = games.slice(); // (Copy array)
     // -- Filter games --
-    const searchText: string|undefined = this.props.search && this.props.search.input.toLowerCase();
+    const filters = parseFilters(this.props.search && this.props.search.input || '');
     const extreme: boolean = !window.External.config.data.disableExtremeGames &&
                              window.External.preferences.data.browsePageShowExtreme;
     const broken: boolean = window.External.config.data.showBrokenGames;
-    const filteredGames = filterSearch(filterBroken(filterExtreme(games, extreme), broken), searchText);
+    const filteredGames = filterSearch(filterBroken(filterExtreme(games, extreme), broken), filters);
     // -- Order games --
     const order = this.props.order || BrowsePage.defaultOrder;
     const orderedGames = filteredGames.sort(getOrderFunction(order));
@@ -200,5 +200,75 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private static defaultOrder: Readonly<IGameOrderChangeEvent> = {
     orderBy: 'title',
     orderReverse: 'ascending',
+  }
+}
+
+/**
+ * Parse a search string into an object with the different search "types" separated
+ * @param input Search string
+ */
+function parseFilters(input: string): IGameSearchQuery {
+  const filter: IGameSearchQuery = {
+    text: '',
+    platforms: undefined,
+    developers: undefined,
+    genres: undefined,
+  };
+  // Abort if string is empty
+  if (!input) { return filter; }
+  // Do filtering
+  const splits = input.replace(/  +/g, ' ').split(' ');
+  console.log(splits);
+  let str = ''; // Current string that is being built
+  let mode = 0; // What "mode" the string current is in (Normal, Platform, Genre etc.)
+  for (let i = 0; i < splits.length; i++) {
+    const split = splits[i];
+    if (!split) { continue; } // Skip if split is empty
+    switch(split[0]) {
+      case '!': // Platform (1)
+        startNewString(split, 1);
+        break;
+      case '@': // Developer (2)
+        startNewString(split, 2);
+        break;
+      case '#': // Genre (3)
+        startNewString(split, 3);
+        break;
+      default:
+        str += split+' ';
+        break;
+    }
+  }
+  finishPreviousString();
+  return filter;
+  // -- Functions --
+  /** Start a new string with a given mode */
+  function startNewString(split: string, newMode: number) {
+    finishPreviousString();
+    str = split.substr(1)+' '; // Remove first character and add a space to the end
+    mode = newMode;
+  }
+  /** Add the current string to the filter object where it belongs (depending on its mode) */
+  function finishPreviousString() {
+    // Clean string up (remove last character which is a space, and turn into lower case)
+    let cleanStr = str.substr(0, str.length-1).toLowerCase();
+    // Add string at the correct place
+    switch (mode) {
+      case 0:
+        filter.text = cleanStr;
+        break;
+      case 1:
+        if (!filter.platforms) { filter.platforms = []; }
+        filter.platforms.push(cleanStr);
+        break;
+      case 2:
+        if (!filter.developers) { filter.developers = []; }
+        filter.developers.push(cleanStr);
+        break;
+      case 3:
+        if (!filter.genres) { filter.genres = []; }
+        filter.genres.push(cleanStr);
+        break;
+    }
   }
 }

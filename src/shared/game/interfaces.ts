@@ -71,3 +71,15 @@ export enum GameInfoStatus {
   /** Game cannot be finished due to missing files */
   PlayablePartial,
 }
+
+/** A game search query, contains the information needed to make a search */
+export interface IGameSearchQuery {
+  /** Text to filter game titles with */
+  text: string;
+  /** Allowed platforms (if empty show all, otherwise show only the ones in the array) */
+  platforms?: string[];
+  /** Allowed developers (if empty show all, otherwise show only the ones in the array) */
+  developers?: string[];
+  /** Allowed genres (if empty show all, otherwise show only the ones in the array) */
+  genres?: string[];
+}

@@ -1,4 +1,4 @@
-import { IGameInfo } from './interfaces';
+import { IGameInfo, IGameSearchQuery } from './interfaces';
 import { IGameOrderChangeEvent } from '../../renderer/components/GameOrder';
 
 export type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
@@ -69,14 +69,51 @@ export function filterExtreme(games: IGameInfo[], showExtreme: boolean): IGameIn
 }
 
 /** Return a new array with all games that doesn't match the search removed (if there is a search) */
-export function filterSearch(games: IGameInfo[], searchText?: string): IGameInfo[] {
-  if (!searchText) { return games; }
-  const filteredGames: IGameInfo[] = [];
-  for (let game of games) {
-    if (game.title !== undefined &&
-        game.title.toLowerCase().indexOf(searchText) !== -1) {
-      filteredGames.push(game);
+export function filterSearch(games: IGameInfo[], search: IGameSearchQuery): IGameInfo[] {
+  console.log(search);
+  const filteredGames: Array<IGameInfo|undefined> = games.slice();
+  if (search.text) {
+    const title = search.text;
+    for (let i = filteredGames.length - 1; i >= 0; i--) {
+      const game = filteredGames[i];
+      if (game && game.title.toLowerCase().indexOf(title) === -1) {
+        filteredGames[i] = undefined;
+      }
     }
   }
-  return filteredGames;
+  if (search.developers) {
+    for (let developer of search.developers) {
+      for (let i = filteredGames.length - 1; i >= 0; i--) {
+        const game = filteredGames[i];
+        if (game && game.developer.toLowerCase().indexOf(developer) === -1) {
+          filteredGames[i] = undefined;
+        }
+      }
+    }
+  }
+  if (search.platforms) {
+    for (let platform of search.platforms) {
+      for (let i = filteredGames.length - 1; i >= 0; i--) {
+        const game = filteredGames[i];
+        if (game && game.platform.toLowerCase().indexOf(platform) === -1) {
+          filteredGames[i] = undefined;
+        }
+      }
+    }
+  }
+  if (search.genres) {
+    for (let genre of search.genres) {
+      for (let i = filteredGames.length - 1; i >= 0; i--) {
+        const game = filteredGames[i];
+        if (game && game.genre.toLowerCase().indexOf(genre) === -1) {
+          filteredGames[i] = undefined;
+        }
+      }
+    }
+  }
+  const finalFilteredGames = [];
+  for (let game of filteredGames) {
+    if (game) { finalFilteredGames.push(game); }
+  }
+  return finalFilteredGames;
 }
