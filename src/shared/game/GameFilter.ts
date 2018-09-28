@@ -3,10 +3,10 @@ import { IGameOrderChangeEvent } from '../../renderer/components/GameOrder';
 
 export type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
 
-/** Order games by their title alphabetically (ascending) */
+/** Order games by their order title alphabetically (ascending) */
 export function orderByTitle(a: IGameInfo, b: IGameInfo): number {
-  if (a.title < b.title) { return -1; }
-  if (a.title > b.title) { return  1; }
+  if (a.orderTitle < b.orderTitle) { return -1; }
+  if (a.orderTitle > b.orderTitle) { return  1; }
   return 0;
 }
 

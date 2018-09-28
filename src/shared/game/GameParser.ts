@@ -25,9 +25,10 @@ export class GameParser {
   }
 
   private static parseGame(data: IRawLaunchBoxGame): IGameInfo {
+    const title: string = unescapeHTML(data.Title);
     return {
       id: unescapeHTML(data.ID),
-      title: unescapeHTML(data.Title),
+      title: title,
       series: unescapeHTML(data.Series),
       developer: unescapeHTML(data.Developer),
       platform: unescapeHTML(data.Platform),
@@ -40,6 +41,7 @@ export class GameParser {
       source: unescapeHTML(data.Source),
       applicationPath: unescapeHTML(data.ApplicationPath),
       launchCommand: unescapeHTML(data.CommandLine),
+      orderTitle: generateOrderTitle(title),
     };
   }
 
@@ -54,6 +56,11 @@ export class GameParser {
       waitForExit: !!data.WaitForExit,
     };
   }
+}
+
+/** Generate a title suitable for ordering (only used for ordering and sorting, not visual) */
+function generateOrderTitle(title: string): string {
+  return title.toLowerCase();
 }
 
 // Unescape some HTML characters

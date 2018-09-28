@@ -22,7 +22,7 @@ export class GameImageCollection {
   }
   
   private addPlatform(platform: string): void {
-    const lowerPlatform: string = platform.toLocaleLowerCase();
+    const lowerPlatform: string = platform.toLowerCase();
     if (this._thumbnails[lowerPlatform]) { throw new Error(`Platform with the same name has already been added (${platform})`); }
     // Add thumbnail folder
     const thumbnailFolder = new ImageFolderCache();
@@ -41,7 +41,7 @@ export class GameImageCollection {
    * @returns Path to thumbnail for that game, or undefined if not found
    */
   public getThumbnailPath(gameTitle: string, platform: string): string|undefined {
-    platform = platform.toLocaleLowerCase();
+    platform = platform.toLowerCase();
     const cache = this._thumbnails[platform];
     if (!cache) { throw new Error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`); }
     return cache.getFilePath(gameTitle);
@@ -54,7 +54,7 @@ export class GameImageCollection {
    * @returns Path to screenshot for that game, or undefined if not found
    */
   public getScreenshotPath(gameTitle: string, platform: string): string|undefined {
-    platform = platform.toLocaleLowerCase();
+    platform = platform.toLowerCase();
     const cache = this._screenshots[platform];
     if (!cache) { throw new Error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`); }
     return cache.getFilePath(gameTitle);

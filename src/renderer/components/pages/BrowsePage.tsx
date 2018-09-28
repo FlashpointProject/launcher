@@ -52,7 +52,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       const games: IGameInfo[] = this.orderGames();
       for (let index = 0; index < games.length; index++) {
         const game: IGameInfo = games[index];
-        if (game.title.toLocaleLowerCase().startsWith(this.state.quickSearch)) {
+        if (game.title.toLowerCase().startsWith(this.state.quickSearch)) {
           this.setState({ selectedGame: game });
           break;
         }
@@ -158,7 +158,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onKeyDown(event: React.KeyboardEvent): void {
-    const key: string = event.key.toLocaleLowerCase();
+    const key: string = event.key.toLowerCase();
     if (key === 'backspace') { // (Backspace - Remove a character)
       const timedOut = updateTime.call(this);
       let newString: string = (timedOut ? '' : this.state.quickSearch);
@@ -185,7 +185,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     if (!games) { return []; } // (No games found)
     games = games.slice(); // (Copy array)
     // -- Filter games --
-    const searchText: string|undefined = this.props.search && this.props.search.input.toLocaleLowerCase();
+    const searchText: string|undefined = this.props.search && this.props.search.input.toLowerCase();
     const extreme: boolean = !window.External.config.data.disableExtremeGames &&
                              window.External.preferences.data.browsePageShowExtreme;
     const broken: boolean = window.External.config.data.showBrokenGames;

@@ -34,6 +34,8 @@ export interface IGameInfo {
   applicationPath: string;
   /** Command line argument(s) passed to the application to launch the game */
   launchCommand: string;
+  /** The title but reconstructed to be sutitable for sorting and ordering (and not be shown visually) */
+  orderTitle: string;
 }
 
 /** Represents the meta data for a single additional application */
