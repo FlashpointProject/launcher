@@ -6,7 +6,7 @@ import { GameImageCollection } from '../image/GameImageCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { BrowseSidebarAddApp } from './BrowseSidebarAddApp';
-import { GameLauncher } from '../../shared/game/GameLauncher';
+import { GameLauncher } from '../GameLauncher';
 
 export interface IBrowseSidebarProps {
   gameImages?: GameImageCollection;

@@ -10,7 +10,7 @@ import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { filterSearch, filterExtreme, getOrderFunction, filterBroken } from '../../../shared/game/GameFilter';
 import { GameCollection } from '../../../shared/game/GameCollection';
-import { GameLauncher } from '../../../shared/game/GameLauncher';
+import { GameLauncher } from '../../GameLauncher';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central?: ICentralState;

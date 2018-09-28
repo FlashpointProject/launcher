@@ -1,6 +1,7 @@
+import * as electron from 'electron';
 import * as path from 'path';
-import { exec, ExecOptions } from 'child_process';
-import { IGameInfo, IAdditionalApplicationInfo } from './interfaces';
+import { exec, ExecOptions, ChildProcess } from 'child_process';
+import { IGameInfo, IAdditionalApplicationInfo } from '../shared/game/interfaces';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
@@ -27,7 +28,61 @@ export class GameLauncher {
     let gameArgs: string = game.launchCommand;
     console.log(`Launch Game: "${game.title}" `+
                 `(applicationPath: "${game.applicationPath}", launchCommand: "${game.launchCommand}")`);
-    GameLauncher.launch(gamePath, gameArgs, { env: GameLauncher.getEnvironment() });
+    const proc = GameLauncher.launch(gamePath, gameArgs, { env: GameLauncher.getEnvironment() });
+    // Show popups for Unity games
+    // (This is written specifically for the "startUniity.bat" batch file)
+    if (game.platform === 'Unity') {
+      let textBuffer: string = ''; // (Buffer of text, if its multi-line)
+      proc.stdout.on('data', function(text: string): void {
+        // Add text to buffer
+        textBuffer += text;
+        // Check for exact messages and show the appropriate popup
+        if (textBuffer === 'Failed to set registry keys!\r\nRetry? (Y/n): ') {
+          electron.remote.dialog.showMessageBox({
+            type: 'warning',
+            title: 'Start Unity - Registry Key Warning',
+            message: 'Failed to set registry keys!'+
+                     '\nRetry?',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
+            cancelId: 1,
+          }, function(response: number): void {
+            if (response === 0) {
+              proc.stdin.write('Y');
+            } else {
+              proc.stdin.write('n');
+            }
+          });
+          // Clear text buffer
+          textBuffer = '';
+        } else if (textBuffer === 'Invalid parameters!\r\nCorrect usage: startUnity 2.x|5.x URL\r\nIf you need to undo registry changes made by this script, run unityRestoreRegistry.bat. \r\nPress any key to continue . . . ') {
+          electron.remote.dialog.showMessageBox({
+            type: 'warning',
+            title: 'Start Unity - Invalid Parameters',
+            message: 'Invalid parameters!\n'+
+                     'Correct usage: startUnity 2.x|5.x URL\n'+
+                     'If you need to undo registry changes made by this script, run unityRestoreRegistry.bat.',
+            buttons: ['Ok'],
+            defaultId: 0,
+            cancelId: 0,
+          });
+          // Clear text buffer
+          textBuffer = '';
+        } else if (textBuffer === 'You must close the K-Meleon browser to continue.\r\nIf you have already closed K-Meleon, please wait a moment...\r\n') {
+          electron.remote.dialog.showMessageBox({
+            type: 'info',
+            title: 'Start Unity - Browser Already Open',
+            message: 'You must close the K-Meleon browser to continue.\n'+
+                     'If you have already closed K-Meleon, please wait a moment...',
+            buttons: ['Ok'],
+            defaultId: 0,
+            cancelId: 0,
+          });
+          // Clear text buffer
+          textBuffer = '';
+        }
+      });
+    }
   }
 
   /**
@@ -60,7 +115,7 @@ export class GameLauncher {
       : process.env;
   }
 
-  private static launch(filename: string, args: string, opts: ExecOptions): void {
+  private static launch(filename: string, args: string, opts: ExecOptions): ChildProcess {
     // Escape filename and args
     let escFilename: string = filename;
     let escArgs: string = args;
@@ -83,6 +138,8 @@ export class GameLauncher {
     logStuffs(proc, ['close', 'disconnect', 'error', 'exit', 'message']);
     proc.stdout.on('data', (data) => { console.log('stdout', data.toString('utf8')); });
     proc.stderr.on('data', (data) => { console.log('stderr', data.toString('utf8')); });
+    // Return process
+    return proc;
   }
 }
 
