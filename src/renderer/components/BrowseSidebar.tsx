@@ -69,7 +69,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       const isEditing: boolean = this.state.hasChanged;
       const editDisabled = window.External.config.data.disableEditing;
       return (
-        <div className='browse-sidebar'>
+        <div className={'browse-sidebar'+(!editDisabled?' browse-sidebar--edit-enabled':'')}>
           <div className='browse-sidebar__section'>
             <div className='browse-sidebar__row browse-sidebar__row--title browse-sidebar__row--one-line'>
               <EditableTextWrap target={game} editDisabled={editDisabled}

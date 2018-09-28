@@ -507,8 +507,10 @@ body {
   margin-bottom: 0;
 }
 .browse-sidebar__row p {
-  user-select: none;
   cursor: default;
+}
+.browse-sidebar--edit-enabled .browse-sidebar__row p {
+  user-select: none; /* Can not select text while editing is enabled */
 }
 .browse-sidebar__row--title {
   font-size: 1.2rem;
@@ -608,6 +610,9 @@ body {
   /* Pimp */
   background-color: #a72aa2;
   color: #e6e6e6;
+}
+.game-list-item p {
+  user-select: none;
 }
 /* GameList Item Thumb */
 .game-list-item__thumb {
@@ -720,8 +725,6 @@ body {
 .game-grid-item__title {
   padding: calc(var(--width) * 0.001rem);
   text-align: center;
-  /* Pimp */
-  font-weight: bold;
 }
 .game-grid-item__title__text {
   display: -webkit-box;
@@ -732,6 +735,7 @@ body {
   font-size: calc((16 / 188) * var(--height) * 1px);
   /* Pimp */
   font-weight: bold;
+  user-select: none;
 }
 /* GameList NoGames */
 .game-grid__no-games {
