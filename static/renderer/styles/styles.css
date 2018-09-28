@@ -851,6 +851,19 @@ body {
 .setting__row__content--toggle > div {
   float: right;
 }
+/* Setting Row Content - Redirector */
+.setting__row__content--redirector {
+  text-align: right;
+}
+.setting__row__content--redirector > div {
+  display: inline;
+}
+.setting__row__content--redirector > div:not(:last-child) {
+  margin-right: 1rem;
+}
+.setting__row__content--redirector input {
+  margin-right: 0.2rem;
+}
 
 
 /* ------ Logs ------ */

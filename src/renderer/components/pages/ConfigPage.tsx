@@ -13,8 +13,6 @@ export interface IConfigPageState {
   // -- Configs --
   flashpointPath: string;
   useCustomTitlebar: boolean;
-  startRouter: boolean;
-  startRedirector: boolean;
   useFiddler: boolean;
 }
 
@@ -26,16 +24,13 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
       isFlashpointPathValid: undefined,
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
-      startRouter: configData.startRouter,
-      startRedirector: configData.startRedirector,
       useFiddler: configData.useFiddler,
     };
     this.onShowExtremeChange = this.onShowExtremeChange.bind(this);
     this.onFlashpointPathChange = this.onFlashpointPathChange.bind(this);
     this.onUseCustomTitlebarChange = this.onUseCustomTitlebarChange.bind(this);
-    this.onStartRouterOnChange = this.onStartRouterOnChange.bind(this);
-    this.onStartRedirectorOnChange = this.onStartRedirectorOnChange.bind(this);
-    this.onUseFiddlerOnChange = this.onUseFiddlerOnChange.bind(this);
+    this.onRedirectorRedirectorChange = this.onRedirectorRedirectorChange.bind(this);
+    this.onRedirectorFiddlerChange = this.onRedirectorFiddlerChange.bind(this);
     this.onSaveAndRestartClick = this.onSaveAndRestartClick.bind(this);
   }
 
@@ -89,53 +84,25 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                   <p>Path to the Flashpoint folder (can be relative)</p>
                 </div>
               </div>
-              {/* Router */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <p className='setting__row__title'>Start Router</p>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <CheckBox checked={this.state.startRouter} 
-                                onChange={this.onStartRouterOnChange} />
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>Start the local webserver (and Router) on startup.</p>
-                </div>
-              </div>
-              {/* Redirector */}
+              {/* Redirector / Fiddler */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Start Redirector</p>
+                    <p>Redirector</p>
                   </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
+                  <div className='setting__row__content setting__row__content--redirector'>
                     <div>
-                      <CheckBox checked={this.state.startRedirector} 
-                                onChange={this.onStartRedirectorOnChange} />
+                      <input type="radio" checked={!this.state.useFiddler} onChange={this.onRedirectorRedirectorChange}/>
+                      <p>Redirector</p>
+                    </div>
+                    <div>
+                      <input type="radio" checked={this.state.useFiddler} onChange={this.onRedirectorFiddlerChange}/>
+                      <p>Fiddler</p>
                     </div>
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Start the Redirector on startup. Linux does not need or use it.</p>
-                </div>
-              </div>
-              {/* Fiddler */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>Use Fiddler (instead of Redirector)</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <CheckBox checked={this.state.useFiddler} 
-                                onChange={this.onUseFiddlerOnChange} />
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>Fiddler will be started instead of the Redirector. Try this if the Redirector doesn't work.</p>
+                  <p>Which software to use for redirecting the game traffic to the local web server. Neither is used on Linux.</p>
                 </div>
               </div>
             </div>
@@ -181,6 +148,13 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     this.forceUpdate();
   }
 
+  onRedirectorRedirectorChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    this.setState({ useFiddler: !event.target.checked });
+  }
+  onRedirectorFiddlerChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    this.setState({ useFiddler: event.target.checked });
+  }
+
   /** When the "FlashPoint Folder Path" input text is changed */
   async onFlashpointPathChange(filePath: string): Promise<void> {
     this.setState({ flashpointPath: filePath });
@@ -193,15 +167,6 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
   onUseCustomTitlebarChange(isChecked: boolean): void {
     this.setState({ useCustomTitlebar: isChecked });
   }
-  onStartRouterOnChange(isChecked: boolean): void {
-    this.setState({ startRouter: isChecked });
-  }
-  onStartRedirectorOnChange(isChecked: boolean): void {
-    this.setState({ startRedirector: isChecked });
-  }
-  onUseFiddlerOnChange(isChecked: boolean): void {
-    this.setState({ useFiddler: isChecked });
-  }
 
   /** When the "Save & Restart" button is clicked */
   onSaveAndRestartClick(event: React.MouseEvent<HTMLInputElement>) {
@@ -209,8 +174,6 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
-      startRouter: this.state.startRouter,
-      startRedirector: this.state.startRedirector,
       useFiddler: this.state.useFiddler,
     });
     // Save new config to file, then restart the app
