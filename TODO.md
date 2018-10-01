@@ -1,36 +1,48 @@
 # Fix:
-* Make the search bar scale down horizontally if it doesnt fit
-* This file and the goal file should be merged or something
-## Linux
-* automatically extract ./flashplayer from flash_player_sa_linux.x86_64.tar.gz
-* set the http_proxy env
+* Make the search bar scale down horizontally if it doesn't fit the screen
+* Hide overflow of .root (CSS)
 
-# Add:
-* A "Random Game" button that takes you to a random game in the games list
-* Make use of the tag capabilities of the search bar (for filtering genres, developers etc.)
-* Make the application fully controllable using the keyboard only (set tab indices, select borders etc.)
-* Show the number of games shown with the current filters
-* Add an icon to use for the executable (other than the default Electron one)?
-* Favorite Games (Maybe not?)
-  - Add the ability to flag and un-flag games as Favorite
-  - Add a way to filter out all non-favorites in the games list (Maybe?)
-  - Display a "Favorite" icon next to all favorite games in the games list (A small star?)
-* Game List Context Menu
-  - Show a context menu when right clicking a game in the games list
-  - The context menu should contain:
+# Todo:
+* Add a game playlist/collection system
+  - Playlists should have these things:
+    * Title
+    * Description
+    * Author
+    * Banner / Icon
+    * Array of games
+    * ... (more stuff?)
+  - Each game in a playlist should have:
+    * Notes (Why the game is in the playlist?)
+    * ... (more stuff?)
+  - Each game can belong to any number of collections
+  - All collections a game belongs to should be visible in the sidebar (if any)
+  - Add a way to show only the games of a playlist at the browse page
+* An option to show screenshots instead of logos (just a toggle at the settings page)
+* Remember the scroll position and selected game of the BrowsePage when changing page
+* Remember the windows previous size and position between sessions
+* A visual divider between categories (when ordering by Genre, Developer etc.)
+  - Some visual indicator should remain on the screen after scrolling past a divider 
+    (since some categories are way taller than the window)
+* A way to toggle the sidebar at BrowsePage (a button in the header, and a keyboard shortcut?)
+* More ways to order games by (Developer, Series etc.)
+* A button that selects a random game when pressed (an maybe a keyboard shortcut?)
+* Replace the Icon of the application (with the Flashpoint icon?)
+* Context Menu (Right-click menu)
+  - Game List/Grid Item:
     * Launch (normal launch - same as double click)
-    * Additional launches (all Additional Applications for that game)
-    * Favorite / Un-favorite (toggles the games favorite flag)
-    * Remove game
+    * Additional launches (list all Additional Applications for that game)
+    * Remove Game
+  - Logs:
+    * Clear (remove everything from the log)
+    * Copy (to clipboard)
+* Make the launcher fully controllable using only the keyboard
+  - Move selection with TAB and the arrow keys
+  - Enter to "press" selected element
+  - etc.
+* Add a HelpPage (or show how to do this stuff somewhere else?)
+  - How to filter by Platform (!), Developer (@) and Genre (#) with special characters
+  - Show keyboard shortcuts (once there are more - there's currently only ``CTRL+SHIT+I`` for toggling DevTools)
 
-## New Format
-### Why:
-* Increased parsing performance
-  - Even if importing games form LaunchBox, the games can be cached for better performance
-* Smaller file-size (the XMLs are very bloated)
-* Can be easily converted to and from the "CurationFormat"
-### Goals:
-* Make it convertible to and from:
-  - the "CurationFormat"
-  - Launchbox XMLs
-* Split "static" and "private" information into separate files (Don't store a games _Title_ and _Developer_ in the same file as _Favorite_ and _Rating_)
+# Pimp:
+* Rework the AboutPage
+* Custom scroll-bars (Maybe?)

@@ -1,18 +1,22 @@
-# Electron Library
+# Flashpoint Launcher
 
 ## Setup
-Run ``npm install`` then ``npm run build``.
+1. Download the project (and extract it, if it was downloaded as an archive).
+2. Open a command prompt and navigate it to the projects root folder.
+3. Run ``npm install``
 
-## Debugging
-Open two terminals and run ``npm run watch`` in one of them and ``npm run build`` in the other.
+## Development
+1. Open a command prompt and run ``npm run build`` then ``npm run watch``
+2. Open another command prompt and wait for ``build`` to complete, then run ``npm run start``
 
-Note: The first time the app is run it will create a config file (``config.json``), open it and set the ``flashpointPath`` to the root of a FlashPoint folder.
+The ``build`` command compiles the source code, and copies the resources, to the ``build`` folder.
+
+The ``watch`` command runs a piece of software that detects changes made to the source code and resources, and re-builds the application whenever a change is detected. Highly recommended to leave running while you are developing (and preferably within sight, since it shows compilation errors - also because it crashes sometimes).
+
+The ``start`` command launches the current build of the application. This will <u>not</u> automatically update when you change the source code or resources, you have to restart it manually.
 
 ## Release
-1. Delete the ``build`` and ``dist`` folders.
-2. Run ``npm run release``.
-
-The release can then be found in the ``dist`` folder.
+Run ``npm run release:PLATFORM`` where ``PLATFORM`` is either ``win32`` or ``linux``.
 
 ## Troubleshooting
 
