@@ -8,15 +8,17 @@ export class GameParser {
       additionalApplications: [],
     };
     if (data.LaunchBox) {
-      const games = data.LaunchBox.Game;
-      if (Array.isArray(games)) {
-        for (let i = games.length-1; i >= 0; i--) {
+      let games = data.LaunchBox.Game;
+      if (games) {
+        if (!Array.isArray(games)) { games = [ games ]; }
+        for (let i = games.length - 1; i >= 0; i--) {
           collection.games[i] = GameParser.parseGame(games[i]);
         }
       }
-      const apps = data.LaunchBox.AdditionalApplication;
-      if (Array.isArray(apps)) {
-        for (let i = apps.length-1; i >= 0; i--) {
+      let apps = data.LaunchBox.AdditionalApplication;
+      if (apps) {
+        if (!Array.isArray(apps)) { apps = [ apps ]; }
+        for (let i = apps.length - 1; i >= 0; i--) {
           collection.additionalApplications[i] = GameParser.parseAdditionalApplication(apps[i]);
         }
       }

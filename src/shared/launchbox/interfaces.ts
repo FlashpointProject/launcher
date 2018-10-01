@@ -5,8 +5,8 @@ export interface IRawLaunchBoxPlatformRoot {
 
 /** Only child of the root object in a LaunchBox Platform XML */
 export interface IRawLaunchBoxPlatform {
-  Game?: IRawLaunchBoxGame[];
-  AdditionalApplication?: IRawLaunchBoxAdditionalApplication[];
+  Game?: IRawLaunchBoxGame|IRawLaunchBoxGame[];
+  AdditionalApplication?: IRawLaunchBoxAdditionalApplication|IRawLaunchBoxAdditionalApplication[];
 }
 
 /**
