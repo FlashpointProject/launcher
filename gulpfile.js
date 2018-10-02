@@ -1,8 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
 const gulp = require('gulp');
-const gulpif = require('gulp-if');
-const uglify = require('gulp-uglify-es').default;
 const webpack = require('webpack-stream');
 const packager = require('electron-packager');
 const serialHooks = require('electron-packager/hooks').serialHooks;
@@ -23,7 +21,7 @@ gulp.task('build_renderer', buildRenderer);
 gulp.task('watch_static', watchStatic);
 gulp.task('copy_static',  copyStatic);
 
-const config = {
+const config = Object.freeze({
   isRelease: process.env.NODE_ENV === 'production',
   paths: {
     main: {
@@ -42,18 +40,19 @@ const config = {
       src:  './src/shared',
     },
   }
-}
+});
 
 function watchMain() {
   gulp.watch([config.paths.main.src+'/**/*',
               config.paths.shared.src+'/**/*'], ['build_main']);
 }
 function buildMain() {
-  // Build source
-  return mainTsProject.src()
-    .pipe(mainTsProject()).js
-    .pipe(gulpif(config.isRelease, uglify()))
+  const stream = mainTsProject
+    .src()
+    .pipe(mainTsProject())
+    .on('error', function() { stream.end(); })
     .pipe(gulp.dest(config.paths.main.dest));
+  return stream;
 }
 
 function watchRenderer() {
@@ -67,24 +66,23 @@ function buildRenderer() {
     delete webpackConfig.devtool;
   }
   // Build source
-  return gulp.src(webpackConfig.entry)
+  const stream = gulp
+    .src(webpackConfig.entry)
     .pipe(webpack({
       ...webpackConfig,
       mode: process.env.NODE_ENV || 'development',
-    })
-    // Listening for errors ensures that gulp doesn't exist when an error
-    // happens. webpack already logs the errors to the console so we'll just
-    // use a no-op function here.
-    .on('error', () => {}))
+    }))
+    .on('error', function() { stream.end(); })
     .pipe(gulp.dest(config.paths.renderer.dest));
+  return stream;
 }
 
 function watchStatic() {
   gulp.watch([config.paths.static.src+'/**/*'], ['copy_static']);
 }
 function copyStatic() {
-  // Copy files
-  gulp.src(config.paths.static.src+'/**/*')
+  return gulp
+    .src(config.paths.static.src+'/**/*')
     .pipe(gulp.dest(config.paths.static.dest));
 }
 
@@ -95,8 +93,8 @@ function pack() {
     // ...
     prune: true,
     packageManager: 'npm',
-    tmpdir: './temp/', // (Remove this to use the temp folder in appdata instead)
-    overwrite: true, // For debugging
+    tmpdir: './temp/',
+    overwrite: true,
     // Build settings
     executableName: 'FlashpointLauncher',
     platform: process.env.PACK_PLATFORM,
@@ -105,10 +103,10 @@ function pack() {
     // ...
     afterCopy: [serialHooks([
       function(buildPath, electronVersion, platform, arch) {
-        // Read the package.json file (it is requiered to run the electron app)
+        // Read the package.json file (it is required to run the electron app)
         const package = require('./package.json');
         // Copy only some fields
-        // (I'm not really sure which are required or which serves any purpuse)
+        // (I'm not really sure which are required or serves any purpose - but these have been enough thus far)
         const data = JSON.stringify({
           name: package.name,
           version: package.version,
@@ -123,10 +121,6 @@ function pack() {
       },
     ])],
   })
-  .then((appPaths) => {
-    console.log('Pack - Done!');
-  })
-  .catch((error) => {
-    console.log('Pack - Error!', error);
-  });
+  .then((appPaths) => { console.log('Pack - Done!');         })
+  .catch((error)   => { console.log('Pack - Error!', error); });
 }
