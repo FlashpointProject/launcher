@@ -37,7 +37,7 @@ export class GameLauncher {
         // Add text to buffer
         textBuffer += text;
         // Check for exact messages and show the appropriate popup
-        if (textBuffer === 'Failed to set registry keys!\r\nRetry? (Y/n): ') {
+        if (textBuffer.endsWith('Failed to set registry keys!\r\nRetry? (Y/n): ')) {
           electron.remote.dialog.showMessageBox({
             type: 'warning',
             title: 'Start Unity - Registry Key Warning',
@@ -55,7 +55,7 @@ export class GameLauncher {
           });
           // Clear text buffer
           textBuffer = '';
-        } else if (textBuffer === 'Invalid parameters!\r\nCorrect usage: startUnity 2.x|5.x URL\r\nIf you need to undo registry changes made by this script, run unityRestoreRegistry.bat. \r\nPress any key to continue . . . ') {
+        } else if (textBuffer.endsWith('Invalid parameters!\r\nCorrect usage: startUnity 2.x|5.x URL\r\nIf you need to undo registry changes made by this script, run unityRestoreRegistry.bat. \r\nPress any key to continue . . . ')) {
           electron.remote.dialog.showMessageBox({
             type: 'warning',
             title: 'Start Unity - Invalid Parameters',
@@ -68,7 +68,7 @@ export class GameLauncher {
           });
           // Clear text buffer
           textBuffer = '';
-        } else if (textBuffer === 'You must close the K-Meleon browser to continue.\r\nIf you have already closed K-Meleon, please wait a moment...\r\n') {
+        } else if (textBuffer.endsWith('You must close the K-Meleon browser to continue.\r\nIf you have already closed K-Meleon, please wait a moment...\r\n')) {
           electron.remote.dialog.showMessageBox({
             type: 'info',
             title: 'Start Unity - Browser Already Open',
