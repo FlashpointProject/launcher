@@ -25,4 +25,3 @@ export interface IAppConfigApiFetchData {
   /** Full path to the flashpoint folder */
   fullFlashpointPath: string;
 }
-

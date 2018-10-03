@@ -77,7 +77,7 @@ export class EditableTextWrap extends React.Component<IEditableTextWrapProps, IE
     if (event.key === 'Enter' && !event.shiftKey) { // (Allow shift + enter to make a new line)
       this.setState({ isEditing: false });
       if (this.props.onEditDone) {
-        if (!this._text.current) { throw new Error('EditableText ref doeesnt point at a Component.'); }
+        if (!this._text.current) { throw new Error('EditableText ref doesn\'t point at a Component.'); }
         this.props.onEditDone(this._text.current.state.editText);
       }
     }

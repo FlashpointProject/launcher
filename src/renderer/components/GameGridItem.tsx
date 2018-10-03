@@ -42,7 +42,7 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     return (
       <li style={this.props.style} className={className} 
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
-        <div className='game-grid-item__thumb'style={{
+        <div className='game-grid-item__thumb' style={{
           width: width+'px',
           height: width+'px',
         }}>

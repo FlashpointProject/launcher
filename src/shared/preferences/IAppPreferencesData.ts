@@ -2,7 +2,7 @@ import { BrowsePageLayout } from '../BrowsePageLayout';
 
 /**
  * Contains state of all non-config settings the user can change in the application.
- * This is the data contained in the Prefererences file.
+ * This is the data contained in the Preferences file.
  */
 export interface IAppPreferencesData {
   /** Scale of the games at the BrowsePage */

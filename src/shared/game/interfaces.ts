@@ -34,7 +34,7 @@ export interface IGameInfo {
   applicationPath: string;
   /** Command line argument(s) passed to the application to launch the game */
   launchCommand: string;
-  /** The title but reconstructed to be sutitable for sorting and ordering (and not be shown visually) */
+  /** The title but reconstructed to be suitable for sorting and ordering (and not be shown visually) */
   orderTitle: string;
 }
 

@@ -58,7 +58,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
         <AutoSizer>
           {({ width, height }) => {
             // Calculate and set column/row count
-            // (16 is the width of a scrollbar in pixels - at least on windows)
+            // (16 is the width of a scroll-bar in pixels - at least on windows)
             let columnCount: number = 0;
             let rowCount: number = 0;
             if (games.length > 0) {

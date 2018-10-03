@@ -237,7 +237,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     this.setState({ hasChanged: true });
   }
 
-  /** Create a wrapper for a EditableTextWrap's onEditDone calllback (this is to reduce redundancy) */
+  /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
   private wrapOnEditDone(func: (game: IGameInfo, text: string) => void): (text: string) => void {
     return (text: string) => {
       const game = this.state.editGame;
@@ -248,7 +248,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     }
   }
 
-  /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
+  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void): (isChecked: boolean) => void {
     return (isChecked: boolean) => {
       const game = this.state.editGame;

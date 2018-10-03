@@ -31,7 +31,7 @@ export default class MainWindow {
     let height: number = 650;
     if (!this._main.config.useCustomTitlebar) {
       width += 8;  // Add the width of the window-grab-things,
-      height += 8; // they arre 4 pixels wide each (at least for me)
+      height += 8; // they are 4 pixels wide each (at least for me @TBubba)
     }
     this._window = new BrowserWindow({
       title: AppConstants.appTitle,

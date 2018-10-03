@@ -67,6 +67,7 @@ function generateOrderTitle(title: string): string {
 
 // Unescape some HTML characters
 // ( From: https://stackoverflow.com/questions/18749591/encode-html-entities-in-javascript/39243641#39243641 )
+// spell-checker: disable
 const htmlEntities: any = Object.freeze({
   nbsp: ' ',
   cent: '¢',

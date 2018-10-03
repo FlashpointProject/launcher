@@ -25,7 +25,7 @@ export class AppConfigApi extends EventEmitter {
   public async initialize() {
     return new Promise(async () => {
       if (this._isInit) { throw new Error('You can only initialize this once'); }
-      // Fetch initial preferenses data from main
+      // Fetch initial preferences data from main
       const data = await this.fetch();
       // Keep data
       this._dataCache = deepCopy<IAppConfigData>(data.data);

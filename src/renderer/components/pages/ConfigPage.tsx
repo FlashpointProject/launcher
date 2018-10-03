@@ -158,7 +158,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
   /** When the "FlashPoint Folder Path" input text is changed */
   async onFlashpointPathChange(filePath: string): Promise<void> {
     this.setState({ flashpointPath: filePath });
-    // Check if the fileepath points at a valid FlashPoint folder
+    // Check if the file-path points at a valid FlashPoint folder
     const isValid = await isFlashpointValidCheck(filePath);
     this.setState({ isFlashpointPathValid: isValid });
   }

@@ -13,7 +13,7 @@ config.initialize();
 
 /**
  * Object with functions that bridge between this and the Main processes
- * (Note: This is mostly a left-over from when "node intergration" was disabled.
+ * (Note: This is mostly a left-over from when "node integration" was disabled.
  *        It might be a good idea to move this to the Renderer?)
  */
 window.External = Object.freeze({

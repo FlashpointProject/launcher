@@ -1,8 +1,16 @@
 # Fix:
 * Make the search bar scale down horizontally if it doesn't fit the screen
 * Hide overflow of .root (CSS)
+* Fix bug where the thumbnails/screenshots are fetched before the ImageCollections are set up (and therefore dont find any images)
 
 # Todo:
+* Add more fields to GameInfo / BrowseSidebar
+  - Publisher
+  - DateAdded (Date-time-stamp of when the game was added to the collection)
+* Add drop-down menus for filtering Genre(s) and Platform(s) next to the search-bar
+  - The drop-down menus should have all Genres/Platforms listed
+  - They should be "multi-select" so you can pick any number of them
+  - By default none should be selected (which has the same filtering properties as selecting all)
 * Add a game playlist/collection system
   - Playlists should have these things:
     * Title
@@ -42,6 +50,7 @@
 * Add a HelpPage (or show how to do this stuff somewhere else?)
   - How to filter by Platform (!), Developer (@) and Genre (#) with special characters
   - Show keyboard shortcuts (once there are more - there's currently only ``CTRL+SHIT+I`` for toggling DevTools)
+* Make changes to the GameCollection savable to the XML it was loaded from
 
 # Pimp:
 * Rework the AboutPage

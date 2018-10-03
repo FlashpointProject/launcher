@@ -26,7 +26,7 @@ export class AppPreferencesApi extends EventEmitter {
     return this._dataProxy;
   }
 
-  /** How often the data should be sent to the main (in miliseconds) */
+  /** How often the data should be sent to the main (in milliseconds) */
   private static sendDataInterval: number = 2 * 1000;
   
   /**
@@ -35,7 +35,7 @@ export class AppPreferencesApi extends EventEmitter {
   public async initialize() {
     return new Promise(async () => {
       if (this._isInit) { throw new Error('You can only initialize this once'); }
-      // Fetch initial preferenses data from main
+      // Fetch initial preferences data from main
       const data = await this.fetch();
       // Keep data
       this._dataCache = deepCopy<IAppPreferencesData>(data);
@@ -58,7 +58,7 @@ export class AppPreferencesApi extends EventEmitter {
           this.send();
         }
       }, AppPreferencesApi.sendDataInterval);
-      // Send data when windiw is closing
+      // Send data when window is closing
       window.addEventListener('unload', () => {
         this.send();
       });
@@ -87,7 +87,7 @@ export class AppPreferencesApi extends EventEmitter {
     this._isSending = true;
     // Send data and wait for response
     return new Promise<boolean>((resolve, reject) => {
-      // @TODO Add a timeout check (reject if it hasnt responded for something like 15 sec)
+      // @TODO Add a timeout check (reject if it hasn't responded for something like 15 sec)
       ipcRenderer.once(AppPreferencesApi.ipcSendResponse, () => {
         this._isSending = false; // Update flag
         resolve(true);

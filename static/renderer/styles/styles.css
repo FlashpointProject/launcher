@@ -31,7 +31,7 @@ body {
   font-family: var(--theme__font-family);
 }
 
-/* Measure elements by the outline of their border instaed of by their content */
+/* Measure elements by the outline of their border instead of by their content */
 :root {
   box-sizing: border-box;
 }

@@ -116,7 +116,7 @@ class BackgroundServices extends EventEmitter {
 
   /** Stop all currently active background processes */
   public async stop(): Promise<void> {
-    if (!this.startDone) { throw new Error('You must not stop the background services befor they are done starting.'); }
+    if (!this.startDone) { throw new Error('You must not stop the background services before they are done starting.'); }
     // Kill processes
     if (this.server) {
       this.server.kill();

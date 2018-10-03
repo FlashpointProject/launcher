@@ -30,7 +30,7 @@ export class GameLauncher {
                 `(applicationPath: "${game.applicationPath}", launchCommand: "${game.launchCommand}")`);
     const proc = GameLauncher.launch(gamePath, gameArgs, { env: GameLauncher.getEnvironment() });
     // Show popups for Unity games
-    // (This is written specifically for the "startUniity.bat" batch file)
+    // (This is written specifically for the "startUnity.bat" batch file)
     if (game.platform === 'Unity') {
       let textBuffer: string = ''; // (Buffer of text, if its multi-line)
       proc.stdout.on('data', function(text: string): void {

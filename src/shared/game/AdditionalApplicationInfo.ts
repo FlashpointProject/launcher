@@ -5,7 +5,7 @@ export class AdditionalApplicationInfo {
   /**
    * Override the properties of an additional application info object with those of another
    * @param target Object to override property values of
-   * @param source Object to copy prroperty values from
+   * @param source Object to copy property values from
    */
   public static override(target: IAdditionalApplicationInfo, source: Partial<IAdditionalApplicationInfo>): void {
     Object.assign(target, source);

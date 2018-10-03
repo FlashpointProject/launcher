@@ -10,7 +10,7 @@ import { recursiveReplace } from '../../shared/Util';
  * This is the bridge between "AppPreferencesApi" and the Preferences file.
  */
 export class AppPreferencesMain {
-  /** Current prefereces data */
+  /** Current preferences data */
   private _data?: IAppPreferencesData;
 
   constructor() {

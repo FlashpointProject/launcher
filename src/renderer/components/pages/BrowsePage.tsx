@@ -25,7 +25,7 @@ export interface IBrowsePageProps extends IDefaultProps {
 export interface IBrowsePageState {
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
-  /** Currnt quick search string (used to jump to a game in the list, not to filter the list) */
+  /** Current quick search string (used to jump to a game in the list, not to filter the list) */
   quickSearch: string;
 }
 
@@ -47,7 +47,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
-    // Check if quick search string changed, and if it isnt empty
+    // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== this.state.quickSearch && this.state.quickSearch !== '') {
       const games: IGameInfo[] = this.orderGames();
       for (let index = 0; index < games.length; index++) {
@@ -152,7 +152,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onGameLaunch(game: IGameInfo): void {
-    if (!this.props.central || !this.props.central.collection) { throw new Error('oopsie'); }
+    if (!this.props.central || !this.props.central.collection) { throw new Error('Central Prop or Game Collection is missing. Can\'t launch game.'); }
     const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.collection, game.id);
     GameLauncher.launchGame(game, addApps);
   }

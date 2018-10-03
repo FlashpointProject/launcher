@@ -74,7 +74,7 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
     }
   }
 
-  /** Create a wrapper for a EditableTextWrap's onEditDone calllback (this is to reduce redundancy) */
+  /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
   private wrapOnEditDone(func: (addApp: IAdditionalApplicationInfo, text: string) => void) {
     return (text: string) => {
       func(this.props.addApp, text);
@@ -82,7 +82,7 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
     }
   }
 
-  /** Create a wrapper for a CheckBox's onChange calllback (this is to reduce redundancy) */
+  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (addApp: IAdditionalApplicationInfo, isChecked: boolean) => void) {
     return (isChecked: boolean) => {
       if (!this.props.editDisabled) {
