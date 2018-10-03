@@ -4,6 +4,14 @@
 * Fix bug where the thumbnails/screenshots are fetched before the ImageCollections are set up (and therefore dont find any images)
 
 # Todo:
+* Add support for custom themes
+  - A new JSON file should contain colors, font names, font sizes etc. to be used in the launcher
+  - A new page / popup window should let the user easily change these values in real time
+* Add Wine support for Linux
+  - Use wine automatically for Shockwave (since it has no official linux support) 
+  - Make using Wine for Flash optional (the linux projector is apparently notably buggy)
+  - Find out other things that could run with Wine (?)
+  - Wine respects the ``http_proxy`` environment variable just like the Flash projector for Linux
 * Add more fields to GameInfo / BrowseSidebar
   - Publisher
   - DateAdded (Date-time-stamp of when the game was added to the collection)
