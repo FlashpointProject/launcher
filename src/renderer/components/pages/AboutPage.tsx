@@ -16,7 +16,7 @@ export const AboutPage: React.StatelessComponent<{}> = () => {
               <p><b>Version:</b> {appVersionString}</p>
               <p><b>License:</b> MIT (Read the file named "LICENSE" for more information)</p>
               <div className='about-page__section__links'>
-                {link('Github', 'https://github.com/FlashpointLauncher')}
+                {link('Github', 'https://github.com/FlashpointProject/launcher')}
               </div>
             </div>
           </div>
