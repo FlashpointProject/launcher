@@ -5,6 +5,7 @@ import { IDefaultProps } from '../interfaces';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
 import { Paths } from '../Paths';
 import { easterEgg } from '../Util';
+import * as Util from '../Util';
 
 export interface IHeaderProps extends IDefaultProps {
   onSearch?: (event: ISearchOnSearchEvent) => void;
@@ -58,7 +59,7 @@ export class Header extends React.Component<IHeaderProps, {}> {
     if (this.props.onSearch) {
       this.props.onSearch(event);
     }
-    easterEgg(event.input);
+    Util.easterEgg(event.input);
   }
 
   private onCleared(): void {
