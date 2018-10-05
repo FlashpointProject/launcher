@@ -8,7 +8,7 @@ import { RenderedSection } from 'react-virtualized/dist/es/Grid';
 import { GameImageCollection } from '../image/GameImageCollection';
 
 export interface IGameListProps extends IDefaultProps {
-  gameImages?: GameImageCollection;
+  gameImages: GameImageCollection;
   /** All games that will be shown in the list */
   games?: IGameInfo[];
   /** Selected game (if any) */

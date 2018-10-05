@@ -4,7 +4,6 @@ import { Search, ISearchOnSearchEvent } from './Search';
 import { IDefaultProps } from '../interfaces';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
 import { Paths } from '../Paths';
-import { easterEgg } from '../Util';
 import * as Util from '../Util';
 
 export interface IHeaderProps extends IDefaultProps {
@@ -33,6 +32,9 @@ export class Header extends React.Component<IHeaderProps, {}> {
       <div className='header'>
         {/* Header Menu */}
         <ul className='header__menu'>
+          <li className='header__menu__item'>
+            <Link to={Paths.playlists} className='header__menu__item__link'>Playlists</Link>
+          </li>
           <li className='header__menu__item'>
             <Link to={Paths.browse} className='header__menu__item__link'>Browse</Link>
           </li>
