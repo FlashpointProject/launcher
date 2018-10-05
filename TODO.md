@@ -4,6 +4,8 @@
 * Fix bug where the thumbnails/screenshots are fetched before the ImageCollections are set up (and therefore dont find any images)
 
 # Todo:
+* Improve game searching and filtering
+  - Make the game title searching part of the search string also search for the developer, publisher and series
 * Add support for custom themes
   - A new JSON file should contain colors, font names, font sizes etc. to be used in the launcher
   - A new page / popup window should let the user easily change these values in real time
