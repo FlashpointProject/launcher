@@ -1,7 +1,7 @@
 import * as path from 'path';
-import { IGamePlaylist } from "./interfaces";
-import { loadGamePlaylists, loadGamePlaylist, createGamePlaylist, LoadGamePlaylistError, getPlaylistFolder, saveGamePlaylist } from "./GamePlaylist";
-import { recursiveDirectory } from "../../shared/Util";
+import { IGamePlaylist } from './interfaces';
+import { loadGamePlaylists, loadGamePlaylist, createGamePlaylist, LoadGamePlaylistError, getPlaylistFolder, saveGamePlaylist } from './GamePlaylist';
+import { recursiveDirectory } from '../../shared/Util';
 
 interface IPlaylistIdToFilenameMap {
   [playlistId: string]: string|undefined;
