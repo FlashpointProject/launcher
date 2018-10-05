@@ -165,8 +165,7 @@ function logStuffs(emitter: any, events: string[]) {
  * ( According to this: http://www.robvanderwoude.com/escapechars.php )
  */
 function escapeWin(str: string): string {
-  return str.replace(/[\^\&\<\>\|]/g, '^$&') // $& means the whole matched string
-            .replace(/%/g, '%%');
+  return str.replace(/[\^\&\<\>\|]/g, '^$&'); // $& means the whole matched string
 }
 
 /**
