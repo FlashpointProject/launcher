@@ -61,6 +61,8 @@
   - How to filter by Platform (!), Developer (@) and Genre (#) with special characters
   - Show keyboard shortcuts (once there are more - there's currently only ``CTRL+SHIT+I`` for toggling DevTools)
 * Make changes to the GameCollection savable to the XML it was loaded from
+* Make the BrowseSidebar capable of displaying multiple screenshots per game
+  - Add thin and tall buttons to the left and right of the screenshot that scrolls between them?
 
 # Pimp:
 * Rework the AboutPage
