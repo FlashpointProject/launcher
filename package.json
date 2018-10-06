@@ -27,7 +27,7 @@
     "awesome-typescript-loader": "5.2.0",
     "copy-webpack-plugin": "4.5.2",
     "cross-env": "^5.2.0",
-    "electron": "2.0.6",
+    "electron": "2.0.8",
     "electron-packager": "12.1.0",
     "fs-extra": "7.0.0",
     "gulp": "3.9.1",
