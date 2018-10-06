@@ -150,16 +150,13 @@ export class GamePlaylistManager {
   }
 
   /**
-   * Create a new playlist (then add it to this's collection and save it in a new file) then return it
+   * Create a new playlist and add it to this manager then return it
    * @returns Newly created playlist
    */
-  public create(): Promise<IGamePlaylist> {
-    return new Promise<IGamePlaylist>(async (resolve, reject) => {
-      const playlist = createGamePlaylist();
-      this.playlists.push(playlist);
-      this.save(playlist);
-      resolve(playlist);
-    });
+  public create(): IGamePlaylist {
+    const playlist = createGamePlaylist();
+    this.playlists.push(playlist);
+    return playlist;
   }
 }
 

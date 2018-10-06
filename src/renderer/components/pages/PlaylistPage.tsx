@@ -77,8 +77,14 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
 
   private onCreatePlaylistClick(event: React.MouseEvent): void {
     if (this.props.central.playlistsDoneLoading) {
-      this.props.central.playlists.create();
+      // Create and save a new playlist
+      const playlist = this.props.central.playlists.create();
+      this.props.central.playlists.save(playlist);
+      // Select the new playlist
       this.forceUpdate();
+      setTimeout(() => { // (Give the playlist list item some time to be created before selecting it)
+        this.setState({ expandedPlaylistID: playlist.id });
+      }, 1);
     }
   }
 }

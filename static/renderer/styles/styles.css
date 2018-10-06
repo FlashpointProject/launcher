@@ -761,6 +761,15 @@ body {
   cursor: pointer;
   user-select: none;
 }
+.playlist-list__create-playlist {
+  padding: 0.1rem;
+  padding-left: 0.5rem;
+  color: #aaaaaa;
+}
+.playlist-list__create-playlist:hover {
+  background-color: #3c3c41;
+  color: #ffffff;
+}
 
 /* PlaylistList */
 .playlist-list {
