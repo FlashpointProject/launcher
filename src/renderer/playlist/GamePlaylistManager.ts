@@ -1,7 +1,11 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { IGamePlaylist } from './interfaces';
 import { loadGamePlaylists, loadGamePlaylist, createGamePlaylist, LoadGamePlaylistError, getPlaylistFolder, saveGamePlaylist } from './GamePlaylist';
 import { recursiveDirectory } from '../../shared/Util';
+import { promisify } from 'util';
+
+const unlink = promisify(fs.unlink);
 
 interface IPlaylistIdToFilenameMap {
   [playlistId: string]: string|undefined;
@@ -13,9 +17,9 @@ export class GamePlaylistManager {
   public playlists: IGamePlaylist[] = [];
   /** Map of playlist IDs to the file they were loaded from */
   private fileMap: IPlaylistIdToFilenameMap = {};
-
   private hasStartedLoading: boolean = false;
 
+  /** Load all playlists in the playlist folder */
   public load(): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       if (this.hasStartedLoading) { throw new Error('This has already loaded the playlists.'); }
@@ -31,6 +35,10 @@ export class GamePlaylistManager {
     });
   }
 
+  /**
+   * Save a playlist to a file
+   * @param playlistId ID of playlist to save
+   */
   public async save(playlist: IGamePlaylist): Promise<void> {
     // Check if the file the playlist was loaded from still exists and has the same id
     // (This is only to save performance by not having to recurse through the entire folder)
@@ -63,7 +71,69 @@ export class GamePlaylistManager {
     await saveGamePlaylist(path.join(getPlaylistFolder(), playlist.id+'.json'), playlist);
   }
 
-  /** Create a new playlist (then add it to this's collection and save it in a new file) then return it */
+  /**
+   * Delete the file of a playlist (does NOT remove it from this manager)
+   * @param playlistId ID of playlist to delete file of
+   * @returns If the playlist file was found and deleted
+   */
+  public async delete(playlistId: string): Promise<boolean> {
+    // Check if the file the playlist was loaded from still exists and has the same id
+    // (This is only to save performance by not having to recurse through the entire folder)
+    let fullPath = this.fileMap[playlistId];
+    if (fullPath) {
+      switch(await checkIfSame(fullPath, playlistId)) {
+        case CheckIfSameResult.SameID:
+          await unlink(fullPath);
+          return true;
+      }
+    }
+    // Check all other files in the playlists folder (and sub-folders)
+    // (This should find it if it exists - unless something else is editing the folder at the same time)
+    let wasFound = false;
+    await recursiveDirectory({
+      directoryPath: getPlaylistFolder(),
+      fileCallback: async (obj) => {
+        const fullPath = path.join(obj.shared.options.directoryPath, obj.relativePath, obj.filename);
+        const result = await checkIfSame(fullPath, playlistId);
+        if (result === CheckIfSameResult.SameID) {
+          await unlink(fullPath);
+          obj.shared.abort = true;
+          wasFound = true;
+        }
+      }
+    });
+    if (wasFound) { return true; }
+    // Playlist not found
+    return false;
+  }
+
+  /**
+   * Remove a playlist from this manager (does NOT delete the playlist file)
+   * @param playlistId ID of playlist to remove
+   * @returns If the playlist was found and removed
+   */
+  public remove(playlistId: string): boolean {
+    // Try to find the playlist in the 
+    for (let i = this.playlists.length - 1; i >= 0; i--) {
+      const playlist = this.playlists[i];
+      if (playlist.id === playlistId) {
+        // Remove playlist from array
+        this.playlists.splice(i, 1);
+        // Remove playlist from filemap
+        if (this.fileMap[playlistId]) {
+          delete this.fileMap[playlistId];
+        }
+        return true;
+      }
+    }
+    // Playlist not found
+    return false;
+  }
+
+  /**
+   * Create a new playlist (then add it to this's collection and save it in a new file) then return it
+   * @returns Newly created playlist
+   */
   public create(): Promise<IGamePlaylist> {
     return new Promise<IGamePlaylist>(async (resolve, reject) => {
       const playlist = createGamePlaylist();
