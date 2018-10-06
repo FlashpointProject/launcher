@@ -71,38 +71,6 @@ export function loadGamePlaylist(filename: string): Promise<IGamePlaylist|LoadGa
   });
 }
 
-export type ILoadGamePlaylistsObj = {
-  playlist: IGamePlaylist;
-  filename: string;
-};
-
-export function loadGamePlaylists(flashpointPath?: string): Promise<ILoadGamePlaylistsObj[]> {
-  let vals: ILoadGamePlaylistsObj[] = [];
-  return recursiveDirectory(
-    getPlaylistFolder(flashpointPath),
-    function(dirPath: string, filename: string) {
-      return new Promise<void>(function(resolve, reject) {
-        const fullPath = path.join(dirPath, filename);
-        fs.readFile(fullPath, 'utf8', function(error, data) {
-          if (error) { return reject(error); }
-          // Try to parse json (and callback error if it fails)
-          const jsonOrError: string|Error = tryParseJSON(data as string);
-          if (jsonOrError instanceof Error) { return reject(jsonOrError); }
-          // Parse the JSON object
-          const parsed = parseGamePlaylist(jsonOrError);
-          vals.push({
-            playlist: parsed,
-            filename: fullPath,
-          });
-          resolve();
-        });
-      });
-    }
-  )
-  .catch(function(reason) { console.log(reason); })
-  .then(async function(): Promise<ILoadGamePlaylistsObj[]> { return vals; });
-}
-
 /**
  * Save a game playlist to a file
  * @param filePath Path to file

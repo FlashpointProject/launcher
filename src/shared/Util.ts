@@ -99,6 +99,8 @@ async function innerRecursiveDirectory(shared: IRecursiveDirectorySharedObject, 
       if (shared.abort) { return resolve(); } // (Abort exit point)
       if (err) { reject(err); }
       else {
+        // Resolve if folder is empty
+        if (files.length === 0) { return resolve(); }
         // Get the stats of each folder/file to verify if they are a folder or file
         // (And wait for every single one to complete before resolving the promise)
         let filesOrFoldersLeft: number = files.length;
@@ -106,7 +108,6 @@ async function innerRecursiveDirectory(shared: IRecursiveDirectorySharedObject, 
           const filename = files[i];
           fs.stat(path.join(fullDirPath, filename), async function(err, stats) {
             if (shared.abort) { return resolve(); } // (Abort exit point)
-            //
             if (err) { reject(err); }
             else {
               if (stats.isFile()) {

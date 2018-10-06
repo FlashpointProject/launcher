@@ -68,7 +68,6 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
   }
 
   private onPlaylistItemRemoveClick(playlist: IGamePlaylist): void {
-    console.log('remove me pls', playlist);
     if (this.props.central.playlistsDoneLoading) {
       this.props.central.playlists.delete(playlist.id);
       this.props.central.playlists.remove(playlist.id);
@@ -77,7 +76,6 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
   }
 
   private onCreatePlaylistClick(event: React.MouseEvent): void {
-    console.log('create a new playlist pls');
     if (this.props.central.playlistsDoneLoading) {
       this.props.central.playlists.create();
       this.forceUpdate();

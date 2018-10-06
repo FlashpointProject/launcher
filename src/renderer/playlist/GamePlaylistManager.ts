@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { IGamePlaylist } from './interfaces';
-import { loadGamePlaylists, loadGamePlaylist, createGamePlaylist, LoadGamePlaylistError, getPlaylistFolder, saveGamePlaylist } from './GamePlaylist';
+import { loadGamePlaylist, createGamePlaylist, LoadGamePlaylistError, getPlaylistFolder, saveGamePlaylist } from './GamePlaylist';
 import { recursiveDirectory } from '../../shared/Util';
 import { promisify } from 'util';
 
@@ -24,13 +24,32 @@ export class GamePlaylistManager {
     return new Promise<void>(async (resolve, reject) => {
       if (this.hasStartedLoading) { throw new Error('This has already loaded the playlists.'); }
       this.hasStartedLoading = true;
-      // Load playlists
-      const vals = await loadGamePlaylists();
+      // Load and parse all playlist files
+      const vals: Array<{
+        playlist: IGamePlaylist;
+        filename: string;
+      }> = [];
+      await recursiveDirectory({
+        directoryPath: getPlaylistFolder(),
+        fileCallback: async (obj) => {
+          const fullPath = path.join(obj.shared.options.directoryPath, obj.relativePath, obj.filename);
+          const result = await loadGamePlaylist(fullPath);
+          if (result !== LoadGamePlaylistError.FileNotFound &&
+              result !== LoadGamePlaylistError.JSONError) {
+            vals.push({
+              playlist: result,
+              filename: fullPath,
+            });
+          }
+        }
+      });
+      // Add playlists and paths to this
       for (let i = vals.length-1; i >= 0; i--) {
         const item = vals[i];
         this.playlists[i] = item.playlist;
         this.fileMap[item.playlist.id] = item.filename;
       }
+      // Done!
       resolve();
     });
   }
