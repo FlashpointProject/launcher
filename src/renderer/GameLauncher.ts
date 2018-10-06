@@ -106,6 +106,9 @@ export class GameLauncher {
       if (game.platform === 'Java') {
         return 'Games/startJava.sh';
       }
+      if (game.platform === 'Unity') {
+        return 'Games/startUnity.sh';
+      }
     }
     return game.applicationPath;
   }
