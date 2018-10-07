@@ -99,6 +99,28 @@ body {
 .simple-slider:focus::-webkit-slider-runnable-track {
   background: #545a5a;
 }
+/* Simple Vertical Shake */
+.simple-vertical-shake {
+  animation: simple-vertical-shake 0.7s ease-in-out both;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  --vertical-shake-amount: 0.125rem;
+}
+@keyframes simple-vertical-shake {
+  20% {
+    transform: translate3d(0, -calc(3 * var(--vertical-shake-amount)), 0);
+  }
+  40% {
+    transform: translate3d(0, calc(1 * var(--vertical-shake-amount)), 0);
+  }
+  60% {
+    transform: translate3d(0, -calc(1 * var(--vertical-shake-amount)), 0);
+  }
+  80% {
+    transform: translate3d(0, calc(1 * var(--vertical-shake-amount)), 0);
+  }
+}
 
 
 /* ------ Search & SearchTag Components ------ */
@@ -860,7 +882,7 @@ body {
   float: right;
 }
 .playlist-list-item__content__buttons > *{
-  margin-left: 0.2rem;
+  margin-left: 0.3rem;
 }
 
 

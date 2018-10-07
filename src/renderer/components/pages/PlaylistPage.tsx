@@ -3,6 +3,7 @@ import { ICentralState } from '../../interfaces';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { EditableTextWrap } from '../EditableTextWrap';
 import { deepCopy } from '../../../shared/Util';
+import { ConfirmButton } from '../ConfirmButton';
 
 export interface IPlaylistPageProps {
   central: ICentralState;
@@ -109,7 +110,10 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
       // Select the new playlist
       this.forceUpdate();
       setTimeout(() => { // (Give the playlist list item some time to be created before selecting it)
-        this.setState({ expandedPlaylistID: playlist.id });
+        this.setState({
+          expandedPlaylistID: playlist.id,
+          editingPlaylistID: '',
+        });
       }, 1);
     }
   }
@@ -175,6 +179,7 @@ class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistItemStat
     const authorProps = { className: 'playlist-list-item__head__author' };
     return (
       <div className={className}>
+        {/* Head */}
         <div className='playlist-list-item__head' onClick={(!editing)?this.onHeadClick:undefined}>
           <EditableTextWrap textProps={titleProps} editProps={titleProps}
                             editDisabled={!editing}
@@ -186,6 +191,7 @@ class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistItemStat
                             text={playlist.author} placeholder={'No Author'}
                             onEditDone={this.onAuthorEditDone} />
         </div>
+        {/* Content */}
         <div className='playlist-list-item__content' ref={this.contentRef} style={{maxHeight}}>
           <div className='playlist-list-item__content__inner'>
             <div style={{ display: 'block' }}>
@@ -199,25 +205,28 @@ class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistItemStat
                 ) : undefined }
                 {/* Edit / Discard Button */}
                 { editing ? (
-                  <input type='button' value='Discard' className='simple-button simple-button--red'
-                         title='Discard the changes made and stop editing'
-                         onClick={this.onEditClick} />
+                  <ConfirmButton props={{ value: 'Discard', title: 'Discard the changes made and stop editing',
+                                          className: 'simple-button', }}
+                                 confirm={{ value: 'Are you sure?',
+                                            className: 'simple-button simple-button--red simple-vertical-shake', }}
+                                 onConfirm={this.onEditClick} />
                 ) : (
                   <input type='button' value='Edit' className='simple-button'
                          title='Start editing this playlist'
                          onClick={this.onEditClick} />
                 ) }
                 {/* Delete Button */}
-                <input type='button' value='Delete' className='simple-button'
-                       title='Delete this playlist'
-                       onClick={this.onDeleteClick} />
+                <ConfirmButton props={{ value: 'Delete', title: 'Delete this playlist', className: 'simple-button', }}
+                               confirm={{ value: 'Are you sure?',
+                                          className: 'simple-button simple-button--red simple-vertical-shake', }}
+                               onConfirm={this.onDeleteClick} />
               </div>
             </div>
             <p>Description:</p>
             <EditableTextWrap editDisabled={!editing}
-                            text={playlist.description} placeholder={'No description'}
-                            isMultiline={true}
-                            onEditDone={this.onDescriptionEditDone} />
+                              text={playlist.description} placeholder={'No description'}
+                              isMultiline={true}
+                              onEditDone={this.onDescriptionEditDone} />
           </div>
         </div>
       </div>
