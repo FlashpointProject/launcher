@@ -16,6 +16,7 @@ html, body {
   /* Variables */
   --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   --theme__text-color: #f1f1f1;
+  --theme__text-disabled-color: #9b9b9b;
   --theme__background-color: #1b1b1c;
   --theme__search-bar__background-color: #1b1b1d;
   --theme__search-bar__outline-color: #47474d;
@@ -54,6 +55,17 @@ body {
 .simple-button:hover {
   background-color: #434346;
   border-color: #6f6f75;
+}
+.simple-button:disabled {
+  color: var(--theme__text-disabled-color);
+}
+.simple-button--red {
+  background-color: #5a1010;
+  border-color: #731919;
+}
+.simple-button--red:hover {
+  background-color: #731616;
+  border-color: #a22020;
 }
 /* Simple Selector */
 .simple-selector {
@@ -778,28 +790,27 @@ body {
 }
 /* Playlist-List-Item */
 .playlist-list-item {
-  /* Pimp */
   list-style: none;
   background-color: var(--theme__background-color);
   color: #aaa;
 }
 .playlist-list-item:nth-child(2n) {
-  /* Pimp */
   background-color: #1e1e1f;
 }
 .playlist-list-item:hover {
-  /* Pimp */
   background-color: #3c3c41;
 }
-.playlist-list-item--selected {
-  /* Pimp */
-  background-color: #791c76;
-  color: #cecece;
+.playlist-list-item--editing {
+  background-color: #151f14;
 }
-.playlist-list-item--selected:hover {
-  /* Pimp */
-  background-color: #a72aa2;
-  color: #e6e6e6;
+.playlist-list-item--editing:nth-child(2n) {
+  background-color: #192519;
+}
+.playlist-list-item--editing:hover {
+  background-color: #20301f;
+}
+.playlist-list-item--editing p {
+  user-select: none; /* Can not select text while editing is enabled */
 }
 /* Playlist-List-Item Head */
 .playlist-list-item__head {
@@ -832,8 +843,24 @@ body {
   /* Pimp */
   background-color: #242425;
 }
+.playlist-list-item--editing .playlist-list-item__content {
+  background-color: #1c291b;
+  color: #cecece;
+}
 .playlist-list-item__content__inner {
   padding: 0.4rem;
+}
+.playlist-list-item__content__id {
+  display: inline-block;
+  font-size: 0.9rem; 
+  font-weight: 100;
+  opacity: 0.3;
+}
+.playlist-list-item__content__buttons {
+  float: right;
+}
+.playlist-list-item__content__buttons > *{
+  margin-left: 0.2rem;
 }
 
 

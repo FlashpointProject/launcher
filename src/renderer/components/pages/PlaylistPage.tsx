@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { ICentralState } from '../../interfaces';
 import { IGamePlaylist } from '../../playlist/interfaces';
+import { EditableTextWrap } from '../EditableTextWrap';
+import { deepCopy } from '../../../shared/Util';
 
 export interface IPlaylistPageProps {
   central: ICentralState;
@@ -9,6 +11,8 @@ export interface IPlaylistPageProps {
 export interface IPlaylistPageState {
   /** ID of the playlist that is expanded (empty string if none) */
   expandedPlaylistID: string;
+  /** ID of the playlist that is being edited (empty string if none) */
+  editingPlaylistID: string;
 }
 
 export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistPageState> {
@@ -16,10 +20,12 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
     super(props);
     this.state = {
       expandedPlaylistID: '',
+      editingPlaylistID: '',
     };
     this.onPlaylistItemHeadClick = this.onPlaylistItemHeadClick.bind(this);
     this.onPlaylistItemEditClick = this.onPlaylistItemEditClick.bind(this);
-    this.onPlaylistItemRemoveClick = this.onPlaylistItemRemoveClick.bind(this);
+    this.onPlaylistItemDeleteClick = this.onPlaylistItemDeleteClick.bind(this);
+    this.onPlaylistItemSaveClick = this.onPlaylistItemSaveClick.bind(this);
     this.onCreatePlaylistClick = this.onCreatePlaylistClick.bind(this);
   }
 
@@ -36,9 +42,11 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
                 <PlaylistItem key={playlist.id} 
                               playlist={playlist}
                               expanded={anySelected && playlist.id === this.state.expandedPlaylistID}
+                              editing={playlist.id === this.state.editingPlaylistID}
                               onHeadClick={this.onPlaylistItemHeadClick}
                               onEditClick={this.onPlaylistItemEditClick}
-                              onRemoveClick={this.onPlaylistItemRemoveClick} />
+                              onDeleteClick={this.onPlaylistItemDeleteClick}
+                              onSaveClick={this.onPlaylistItemSaveClick} />
               );
             })}
             {/* Create New Playlist */}
@@ -56,23 +64,41 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
   }
 
   private onPlaylistItemHeadClick(playlist: IGamePlaylist): void {
-    if (this.state.expandedPlaylistID === playlist.id) {
-      this.setState({ expandedPlaylistID: '' });
-    } else {
-      this.setState({ expandedPlaylistID: playlist.id });
+    let expandedID: string = '';
+    if (this.state.expandedPlaylistID !== playlist.id) {
+      expandedID = playlist.id;
     }
+    this.setState({
+      expandedPlaylistID: expandedID,
+      editingPlaylistID: '',
+    });
   }
 
   private onPlaylistItemEditClick(playlist: IGamePlaylist): void {
-    console.log('edit me pls', playlist);
+    if (this.state.editingPlaylistID === playlist.id) {
+      this.setState({ editingPlaylistID: '' });
+    } else {
+      this.setState({ editingPlaylistID: playlist.id });
+    }
   }
 
-  private onPlaylistItemRemoveClick(playlist: IGamePlaylist): void {
+  private onPlaylistItemDeleteClick(playlist: IGamePlaylist): void {
     if (this.props.central.playlistsDoneLoading) {
       this.props.central.playlists.delete(playlist.id);
       this.props.central.playlists.remove(playlist.id);
       this.forceUpdate();
     }
+  }
+
+  private onPlaylistItemSaveClick(playlist: IGamePlaylist, edit: IGamePlaylist): void {
+    console.log('save me', playlist);
+    // Overwrite the playlist with the new one
+    const arr = this.props.central.playlists.playlists;
+    arr.splice(arr.indexOf(playlist), 1, edit);
+    // Save playlist
+    this.props.central.playlists.save(edit);
+    // Stop editing
+    this.setState({ editingPlaylistID: '' });
   }
 
   private onCreatePlaylistClick(event: React.MouseEvent): void {
@@ -89,62 +115,109 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
   }
 }
 
-export interface IPlaylistItemProps {
+interface IPlaylistItemProps {
   playlist: IGamePlaylist;
   expanded?: boolean;
+  editing?: boolean;
   onHeadClick?: (playlist: IGamePlaylist) => void;
   onEditClick?: (playlist: IGamePlaylist) => void;
-  onRemoveClick?: (playlist: IGamePlaylist) => void;
+  onDeleteClick?: (playlist: IGamePlaylist) => void;
+  onSaveClick?: (playlist: IGamePlaylist, edit: IGamePlaylist) => void;
 }
 
-export interface IPlaylistItemState {  
+interface IPlaylistItemState {
+  /** If any unsaved changes has been made to the playlist (the buffer) */
+  hasChanged: boolean;
+  /** Buffer for the playlist (stores all changes are made to it until edit is saved) */
+  editPlaylist?: IGamePlaylist;
 }
 
-export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistItemState> {
+class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistItemState> {
+  //
+  private onTitleEditDone        = this.wrapOnEditDone((edit, text) => { edit.title = text; });
+  private onAuthorEditDone       = this.wrapOnEditDone((edit, text) => { edit.author = text; });
+  private onDescriptionEditDone  = this.wrapOnEditDone((edit, text) => { edit.description = text; });
+  //
   private contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   private contentHeight: number = 0;
 
   constructor(props: IPlaylistItemProps) {
     super(props);
-    this.state = {};
+    this.state = {
+      hasChanged: false,
+    };
     this.onHeadClick = this.onHeadClick.bind(this);
     this.onEditClick = this.onEditClick.bind(this);
-    this.onRemoveClick = this.onRemoveClick.bind(this);
+    this.onDeleteClick = this.onDeleteClick.bind(this);
+    this.onSaveClick = this.onSaveClick.bind(this);
   }
 
   componentDidMount() {
     this.updateContentHeight();
+    this.updateEdit();
+  }
+
+  componentDidUpdate(prevProps: IPlaylistItemProps, prevState: IPlaylistItemState) {
+    this.updateEdit();
   }
 
   render() {
     this.updateContentHeight();
     // Normal rendering stuff
-    const playlist = this.props.playlist;
+    const playlist = this.state.editPlaylist || this.props.playlist;
+    const expanded = !!this.props.expanded;
+    const editing = !!this.props.editing;
     let className = 'playlist-list-item';
-    if (this.props.expanded) { className += ' playlist-list-item--expanded' }
+    if (expanded) { className += ' playlist-list-item--expanded' }
+    if (editing)  { className += ' playlist-list-item--editing' }
     const maxHeight = this.props.expanded && this.contentHeight || undefined;
+    const titleProps = { className: 'playlist-list-item__head__title' };
+    const authorProps = { className: 'playlist-list-item__head__author' };
     return (
       <div className={className}>
-        <div className='playlist-list-item__head' onClick={this.onHeadClick}>
-          <p className='playlist-list-item__head__title'>{playlist.title || 'No Title set'}</p>
+        <div className='playlist-list-item__head' onClick={(!editing)?this.onHeadClick:undefined}>
+          <EditableTextWrap textProps={titleProps} editProps={titleProps}
+                            editDisabled={!editing}
+                            text={playlist.title} placeholder={'No Title'}
+                            onEditDone={this.onTitleEditDone} />
           <p className='playlist-list-item__head__divider'>by</p>
-          <p className='playlist-list-item__head__author'>{playlist.author || 'No Author set'}</p>
+          <EditableTextWrap textProps={authorProps} editProps={authorProps}
+                            editDisabled={!editing}
+                            text={playlist.author} placeholder={'No Author'}
+                            onEditDone={this.onAuthorEditDone} />
         </div>
         <div className='playlist-list-item__content' ref={this.contentRef} style={{maxHeight}}>
           <div className='playlist-list-item__content__inner'>
             <div style={{ display: 'block' }}>
-              <p style={{ display: 'inline-block', 
-                          fontSize: '0.9rem', 
-                          fontWeight: 100,
-                          color: '#6b6b73' }}>(ID: {playlist.id})</p>
-              <div style={{ float: 'right' }}>
-                <input type='button' value='Edit' className='simple-button'
-                      onClick={this.onEditClick} />
-                <input type='button' value='Remove' className='simple-button'
-                      onClick={this.onRemoveClick} />
+              <p className='playlist-list-item__content__id'>(ID: {playlist.id})</p>
+              <div className='playlist-list-item__content__buttons'>
+                {/* Save Button */}
+                { editing ? (
+                  <input type='button' value='Save' className='simple-button'
+                         title='Save changes made and stop editing'
+                         onClick={this.onSaveClick} disabled={!this.state.hasChanged} />
+                ) : undefined }
+                {/* Edit / Discard Button */}
+                { editing ? (
+                  <input type='button' value='Discard' className='simple-button simple-button--red'
+                         title='Discard the changes made and stop editing'
+                         onClick={this.onEditClick} />
+                ) : (
+                  <input type='button' value='Edit' className='simple-button'
+                         title='Start editing this playlist'
+                         onClick={this.onEditClick} />
+                ) }
+                {/* Delete Button */}
+                <input type='button' value='Delete' className='simple-button'
+                       title='Delete this playlist'
+                       onClick={this.onDeleteClick} />
               </div>
             </div>
-            <p>Description: {playlist.description || 'No description set'}</p>
+            <p>Description:</p>
+            <EditableTextWrap editDisabled={!editing}
+                            text={playlist.description} placeholder={'No description'}
+                            isMultiline={true}
+                            onEditDone={this.onDescriptionEditDone} />
           </div>
         </div>
       </div>
@@ -154,6 +227,21 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
   private updateContentHeight() {
     if (this.contentRef.current) {
       this.contentHeight = this.contentRef.current.scrollHeight;
+    }
+  }
+
+  private updateEdit() {
+    if (this.props.editing) {
+      if (!this.state.editPlaylist) {
+        this.setState({ editPlaylist: deepCopy(this.props.playlist) });
+      }
+    } else {
+      if (this.state.editPlaylist) {
+        this.setState({
+          editPlaylist: undefined,
+          hasChanged: false,
+        });
+      }
     }
   }
 
@@ -170,9 +258,27 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     
   }
 
-  private onRemoveClick() {
-    if (this.props.onRemoveClick) {
-      this.props.onRemoveClick(this.props.playlist);
+  private onDeleteClick() {
+    if (this.props.onDeleteClick) {
+      this.props.onDeleteClick(this.props.playlist);
+    }
+  }
+
+  private onSaveClick() {
+    if (this.props.onSaveClick) {
+      if (!this.state.editPlaylist) { throw new Error('editPlaylist is missing wtf?'); }
+      this.props.onSaveClick(this.props.playlist, this.state.editPlaylist);
+    }
+  }
+
+  /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
+  private wrapOnEditDone(func: (edit: IGamePlaylist, text: string) => void): (text: string) => void {
+    return (text: string) => {
+      const edit = this.state.editPlaylist;
+      if (edit) {
+        func(edit, text);
+        this.setState({ hasChanged: true });
+      }
     }
   }
 }
