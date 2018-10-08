@@ -838,15 +838,17 @@ body {
 .playlist-list-item__head {
   padding: 0.1rem;
   padding-left: 0.5rem;
+  cursor: pointer;
+}
+.playlist-list-item--editing .playlist-list-item__head {
+  cursor: default;
+}
+.playlist-list-item__head:hover {
+  color: #e6e6e6;
 }
 .playlist-list-item__head > * {
   display: inline-block;
   user-select: none;
-}
-.playlist-list-item__head:hover {
-  /* Pimp */
-  color: #e6e6e6;
-  cursor: pointer;
 }
 .playlist-list-item__head__title {
   font-weight: bold;
@@ -856,6 +858,10 @@ body {
 }
 .playlist-list-item__head__author {
   font-style: italic;
+}
+.playlist-list-item--editing .playlist-list-item__head__title, 
+.playlist-list-item--editing .playlist-list-item__head__author {
+  cursor: pointer;
 }
 /* Playlist-List-Item Content */
 .playlist-list-item__content {

@@ -209,6 +209,7 @@ class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistItemStat
                                           className: 'simple-button', }}
                                  confirm={{ value: 'Are you sure?',
                                             className: 'simple-button simple-button--red simple-vertical-shake', }}
+                                 skipConfirm={!this.state.hasChanged}
                                  onConfirm={this.onEditClick} />
                 ) : (
                   <input type='button' value='Edit' className='simple-button'
