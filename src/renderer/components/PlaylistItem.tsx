@@ -1,10 +1,14 @@
 import * as React from 'react';
-import { IGamePlaylist } from '../playlist/interfaces';
+import { IGamePlaylist, IGamePlaylistEntry } from '../playlist/interfaces';
 import { EditableTextWrap } from './EditableTextWrap';
 import { deepCopy } from '../../shared/Util';
 import { ConfirmButton } from './ConfirmButton';
-import { PlaylistItemGames } from './PlaylistItemGames';
 import { ICentralState } from '../interfaces';
+import { IGameInfo } from '../../shared/game/interfaces';
+import { lerp } from '../Util';
+import { GameGridItem } from './GameGridItem';
+import { GameCollection } from '../../shared/game/GameCollection';
+import { GameLauncher } from '../GameLauncher';
 
 export interface IPlaylistItemProps {
   playlist: IGamePlaylist;
@@ -33,6 +37,10 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
   //
   private contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   private contentHeight: number = 0;
+  //
+  private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
+  private width: number = 0;
+  private height: number = 0;
 
   constructor(props: IPlaylistItemProps) {
     super(props);
@@ -43,19 +51,30 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.onEditClick = this.onEditClick.bind(this);
     this.onDeleteClick = this.onDeleteClick.bind(this);
     this.onSaveClick = this.onSaveClick.bind(this);
+    this.onDoubleClickGame = this.onDoubleClickGame.bind(this);
   }
 
   componentDidMount() {
     this.updateContentHeight();
     this.updateEdit();
+    this.updateCssVars();
   }
 
   componentDidUpdate(prevProps: IPlaylistItemProps, prevState: IPlaylistItemState) {
     this.updateEdit();
+    this.updateCssVars();
   }
 
   render() {
     this.updateContentHeight();
+    // Calculate height and width
+    const min = 188 * 0.785;
+    const max = 691 * 0.5;
+    this.height = lerp(min, max, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+    this.width = (this.height * 0.666) | 0;
+    //
+    const gameInfos = this.getGames();
+    const gameEntries = this.props.playlist.games;
     // Normal rendering stuff
     const playlist = this.state.editPlaylist || this.props.playlist;
     const expanded = !!this.props.expanded;
@@ -113,10 +132,20 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
               </div>
             </div>
             {/* Games */}
-            <PlaylistItemGames playlist={playlist}
-                               collection={this.props.central.collection}
-                               gameImages={this.props.central.gameImages} 
-                               gameScale={this.props.gameScale} />
+            <div className='playlist-list-item__games' ref={this._wrapper}>
+              {gameEntries.map((gameEntry, index) => this.renderGame(gameEntry, gameInfos[index], index))}
+              {/*<div className='playlist-list-item__games__game'>
+                <div className='playlist-list-item__games__show-all'>
+                  <div className='playlist-list-item__games__show-all__inner'>
+                    <div className='playlist-list-item__games__show-all__inner__box'>
+                      <p className='playlist-list-item__games__show-all__text'>
+                        Show All
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>*/}
+            </div>
             {/* Description */}
             <p>Description:</p>
             <EditableTextWrap editDisabled={!editing}
@@ -125,6 +154,23 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
                               onEditDone={this.onDescriptionEditDone} />
           </div>
         </div>
+      </div>
+    );
+  }
+
+  private renderGame(gameEntry: IGamePlaylistEntry, gameInfo: IGameInfo|undefined, index: number): JSX.Element {
+    return (
+      <div className='playlist-list-item__games__game' key={index}>
+        { gameInfo ? (
+          <GameGridItem 
+            game={gameInfo}
+            thumbnail={this.props.central.gameImages.getThumbnailPath(gameInfo.title, gameInfo.platform)||''} 
+            isSelected={false}
+            index={index}
+            onDoubleClick={this.onDoubleClickGame} />
+        ) : (
+          <>No game with that ID was found.</>
+        ) }
       </div>
     );
   }
@@ -184,6 +230,43 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
         func(edit, text);
         this.setState({ hasChanged: true });
       }
+    }
+  }
+
+  onDoubleClickGame(game: IGameInfo, index: number): void {
+    const collection = this.props.central.collection;
+    if (!collection) { throw new Error('"this.props.collection" not found in PlaylistItemGames. Can\'t start game.'); }
+    const addApps = GameCollection.findAdditionalApplicationsByGameId(collection, game.id);
+    GameLauncher.launchGame(game, addApps);
+  }
+
+  /**
+   * Get all games in the playlists from 
+   */
+  private getGames(): (IGameInfo|undefined)[] {
+    if (!this.props.central.collection) { return []; }
+    const games: (IGameInfo|undefined)[] = [];
+    let collectionGames = this.props.central.collection.games;
+    let gameEntries = this.props.playlist.games;
+    for (let i = 0; i < gameEntries.length; i++) {
+      const game2 = gameEntries[i];
+      for (let j = collectionGames.length-1; j >= 0; j--) {
+        const game = collectionGames[j];
+        if (game2.id === game.id) {
+          games[i] = game;
+        }
+      }
+    }
+    return games;
+  }
+  
+  /** Update CSS Variables */
+  updateCssVars() {
+    // Set CCS vars
+    const wrapper = this._wrapper.current;
+    if (wrapper) {
+      wrapper.style.setProperty('--width', this.width+'');
+      wrapper.style.setProperty('--height', this.height+'');
     }
   }
 }
