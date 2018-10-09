@@ -704,6 +704,8 @@ body {
 }
 /* GameList Item */
 .game-grid-item {
+  width: calc(1px * var(--width));
+  height: calc(1px * var(--height));
   /* Pimp */
   list-style: none;
   color: #aaa;
@@ -727,6 +729,8 @@ body {
 /* GameList Item Thumb */
 .game-grid-item__thumb {
   padding: calc(var(--width) * 0.0025rem);
+  width: calc(var(--width) * 1px);
+  height: calc(var(--width) * 1px);
 }
 .game-grid-item__thumb__image {
   width: 100%;
@@ -758,6 +762,7 @@ body {
 /* GameList Item Title */
 .game-grid-item__title {
   padding: calc(var(--width) * 0.001rem);
+  height: calc((var(--height) - var(--width)) * 0.001rem);
   text-align: center;
 }
 .game-grid-item__title__text {
@@ -887,8 +892,45 @@ body {
 .playlist-list-item__content__buttons {
   float: right;
 }
-.playlist-list-item__content__buttons > *{
+.playlist-list-item__content__buttons > * {
   margin-left: 0.3rem;
+}
+.playlist-list-item__games {
+}
+.playlist-list-item__games__game {
+  display: inline-block;
+  overflow: hidden;
+}
+.playlist-list-item__games__show-all {
+  width: calc(var(--width) * 1px);
+  height: calc(var(--height) * 1px);
+}
+.playlist-list-item__games__show-all:hover {
+  color: #e6e6e6;
+  cursor: pointer;
+}
+.playlist-list-item__games__show-all__inner {
+  padding: calc(var(--width) * 0.0025rem);
+  width: 100%;
+  height: calc(var(--width) * 1px);
+}
+.playlist-list-item__games__show-all__inner__box {
+  width: 100%;
+  height: 100%;
+  /* Center text */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Pimp */
+  border-radius: 0.2em;
+  background-color: #242428;
+  border: 1px solid #141417;
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
+.playlist-list-item__games__show-all__text {
+  font-weight: bold;
+  user-select: none;
 }
 
 

@@ -132,9 +132,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
     return (
       <GameGridItem key={props.key} {...props} 
                     game={game} 
-                    thumbnail={thumbnail||''} 
-                    width={this.props.cellWidth}
-                    height={this.props.cellHeight}
+                    thumbnail={thumbnail||''}
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
                     isSelected={game === this.props.selectedGame}

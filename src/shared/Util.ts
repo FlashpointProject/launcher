@@ -55,7 +55,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
  * @returns New copy of source
  */
 export function deepCopy<T = any>(source: T): T {
-  const copy: any = {};
+  const copy: any = Array.isArray(source) ? [] : {};
   for (let key in source) {
     let val = source[key];
     if (val !== null && typeof val === 'object') {
