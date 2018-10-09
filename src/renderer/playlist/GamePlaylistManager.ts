@@ -6,6 +6,8 @@ import { recursiveDirectory } from '../../shared/Util';
 import { promisify } from 'util';
 
 const unlink = promisify(fs.unlink);
+const stat = promisify(fs.stat);
+const mkdir = promisify(fs.mkdir);
 
 interface IPlaylistIdToFilenameMap {
   [playlistId: string]: string|undefined;
@@ -24,25 +26,49 @@ export class GamePlaylistManager {
     return new Promise<void>(async (resolve, reject) => {
       if (this.hasStartedLoading) { throw new Error('This has already loaded the playlists.'); }
       this.hasStartedLoading = true;
+      // Make sure the flashpoint folder exists
+      const fpRes = await checkFolder(window.External.config.fullFlashpointPath);
+      if (fpRes !== CheckFolderResult.IsFolder) {
+        return reject(`The Flashpoint folder was not found.`);
+      }
+      // Make sure the playlists folder exists (and create one if it doesnt)
+      const playlistFolderPath = getPlaylistFolder();
+      const res = await checkFolder(playlistFolderPath);
+      switch (res) {
+        case CheckFolderResult.NotFound:
+          try {
+            await mkdir(playlistFolderPath);
+          } catch(error) {
+            return reject(`Failed to create playlist folder. (Error: "${error.toString()}")`);
+          }
+          break;
+        case CheckFolderResult.IsFile:
+          return reject(`The Playlist folder's name is already in use by a file. `+
+                        `Please delete or rename the file. (Path: "${playlistFolderPath}")`);
+      }
       // Load and parse all playlist files
       const vals: Array<{
         playlist: IGamePlaylist;
         filename: string;
       }> = [];
-      await recursiveDirectory({
-        directoryPath: getPlaylistFolder(),
-        fileCallback: async (obj) => {
-          const fullPath = path.join(obj.shared.options.directoryPath, obj.relativePath, obj.filename);
-          const result = await loadGamePlaylist(fullPath);
-          if (result !== LoadGamePlaylistError.FileNotFound &&
-              result !== LoadGamePlaylistError.JSONError) {
-            vals.push({
-              playlist: result,
-              filename: fullPath,
-            });
+      try {
+        await recursiveDirectory({
+          directoryPath: playlistFolderPath,
+          fileCallback: async (obj) => {
+            const fullPath = path.join(obj.shared.options.directoryPath, obj.relativePath, obj.filename);
+            const result = await loadGamePlaylist(fullPath);
+            if (result !== LoadGamePlaylistError.FileNotFound &&
+                result !== LoadGamePlaylistError.JSONError) {
+              vals.push({
+                playlist: result,
+                filename: fullPath,
+              });
+            }
           }
-        }
-      });
+        });
+      } catch(error) {
+        console.log(error);
+      }
       // Add playlists and paths to this
       for (let i = vals.length-1; i >= 0; i--) {
         const item = vals[i];
@@ -158,6 +184,27 @@ export class GamePlaylistManager {
     this.playlists.push(playlist);
     return playlist;
   }
+}
+
+async function checkFolder(folderPath: string): Promise<CheckFolderResult> {
+  try {
+    const stats = await stat(folderPath);
+    if (stats.isFile()) {
+      return CheckFolderResult.IsFile;
+    } else {
+      return CheckFolderResult.IsFolder;
+    }
+  }
+  catch(error) {
+    return CheckFolderResult.NotFound;
+  }
+}
+
+/** Results for the function "checkFolder" */
+enum CheckFolderResult {
+  NotFound,
+  IsFile,
+  IsFolder,
 }
 
 /**

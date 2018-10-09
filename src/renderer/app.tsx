@@ -46,6 +46,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         playlists: new GamePlaylistManager(),
         gamesDoneLoading: false,
         playlistsDoneLoading: false,
+        playlistsFailedLoading: false,
       },
       search: undefined,
       order: undefined,
@@ -67,7 +68,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     const config = window.External.config;
     // Load Playlists
     this.state.central.playlists.load()
-    .catch((err) => { throw err; })
+    .catch((err) => {
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          playlistsDoneLoading: true,
+          playlistsFailedLoading: true,
+        })
+      });
+      window.External.appendLogData(err.toString());
+      throw err;
+    })
     .then(() => {
       this.setState({
         central: Object.assign({}, this.state.central, {

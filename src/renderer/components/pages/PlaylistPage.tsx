@@ -35,29 +35,36 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
     return (
       <div className='playlist-page'>
         {central.playlistsDoneLoading ? (
-          <div className='playlist-list'>
-            {/* List all playlists */}
-            {this.props.central.playlists.playlists.map((playlist) => {
-              return (
-                <PlaylistItem key={playlist.id} 
-                              playlist={playlist}
-                              expanded={anySelected && playlist.id === this.state.expandedPlaylistID}
-                              editing={playlist.id === this.state.editingPlaylistID}
-                              central={this.props.central}
-                              gameScale={this.props.gameScale}
-                              onHeadClick={this.onPlaylistItemHeadClick}
-                              onEditClick={this.onPlaylistItemEditClick}
-                              onDeleteClick={this.onPlaylistItemDeleteClick}
-                              onSaveClick={this.onPlaylistItemSaveClick} />
-              );
-            })}
-            {/* Create New Playlist */}
-            <div className='playlist-list__create-playlist' onClick={this.onCreatePlaylistClick}>
-              Create new playlist
+          !central.playlistsFailedLoading ? (
+            <div className='playlist-list'>
+              {/* List all playlists */}
+              {this.props.central.playlists.playlists.map((playlist) => {
+                return (
+                  <PlaylistItem key={playlist.id} 
+                                playlist={playlist}
+                                expanded={anySelected && playlist.id === this.state.expandedPlaylistID}
+                                editing={playlist.id === this.state.editingPlaylistID}
+                                central={this.props.central}
+                                gameScale={this.props.gameScale}
+                                onHeadClick={this.onPlaylistItemHeadClick}
+                                onEditClick={this.onPlaylistItemEditClick}
+                                onDeleteClick={this.onPlaylistItemDeleteClick}
+                                onSaveClick={this.onPlaylistItemSaveClick} />
+                );
+              })}
+              {/* Create New Playlist */}
+              <div className='playlist-list__create-playlist' onClick={this.onCreatePlaylistClick}>
+                Create new playlist
+              </div>
             </div>
-          </div>
-        ) : (
-          <div>
+          ) : ( // Failed to load
+            <div className='playlist-page__message'>
+              <h2>Failed to load playlist folder.</h2>
+              <p>Check the log for more information.</p>
+            </div>
+          )
+        ) : ( // Loading
+          <div className='playlist-page__message'>
             <p>Loading Playlists...</p>
           </div>
         ) }

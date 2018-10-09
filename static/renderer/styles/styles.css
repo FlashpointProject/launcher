@@ -795,6 +795,13 @@ body {
   height: 100%;
   overflow: auto;
 }
+.playlist-page__message {
+  padding: 1rem;
+  text-align: center;
+}
+.playlist-page__message h2 {
+  margin-bottom: 0.2rem;
+}
 .playlist-list__create-playlist,
 .playlist-list__create-playlist * {
   cursor: pointer;

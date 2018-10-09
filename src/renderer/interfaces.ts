@@ -35,4 +35,6 @@ export interface ICentralState {
   gamesDoneLoading: boolean;
   /** If the playlist collection is done loading */
   playlistsDoneLoading: boolean;
+  /** If the playlist failed to load */
+  playlistsFailedLoading: boolean;
 }
