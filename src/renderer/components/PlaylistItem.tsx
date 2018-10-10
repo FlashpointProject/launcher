@@ -48,6 +48,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
       hasChanged: false,
     };
     this.onHeadClick = this.onHeadClick.bind(this);
+    this.onIconClick = this.onIconClick.bind(this);
     this.onEditClick = this.onEditClick.bind(this);
     this.onDeleteClick = this.onDeleteClick.bind(this);
     this.onSaveClick = this.onSaveClick.bind(this);
@@ -83,21 +84,27 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     if (expanded) { className += ' playlist-list-item--expanded' }
     if (editing)  { className += ' playlist-list-item--editing' }
     const maxHeight = this.props.expanded && this.contentHeight || undefined;
-    const titleProps = { className: 'playlist-list-item__head__title' };
-    const authorProps = { className: 'playlist-list-item__head__author' };
     return (
       <div className={className}>
         {/* Head */}
         <div className='playlist-list-item__head' onClick={(!editing)?this.onHeadClick:undefined}>
-          <EditableTextWrap textProps={titleProps} editProps={titleProps}
-                            editDisabled={!editing}
-                            text={playlist.title} placeholder={'No Title'}
-                            onEditDone={this.onTitleEditDone} />
-          <p className='playlist-list-item__head__divider'>by</p>
-          <EditableTextWrap textProps={authorProps} editProps={authorProps}
-                            editDisabled={!editing}
-                            text={playlist.author} placeholder={'No Author'}
-                            onEditDone={this.onAuthorEditDone} />
+          <div className='playlist-list-item__head__icon'
+               style={{ backgroundImage: playlist.icon ? `url('${playlist.icon}')` : undefined }}
+               onClick={this.onIconClick}
+               />
+          <div className='playlist-list-item__head__title'>
+            <EditableTextWrap editDisabled={!editing}
+                              text={playlist.title} placeholder={'No Title'}
+                              onEditDone={this.onTitleEditDone} />
+          </div>
+          <div className='playlist-list-item__head__divider'>
+            <p>by</p>
+          </div>
+          <div className='playlist-list-item__head__author'>
+            <EditableTextWrap editDisabled={!editing}
+                              text={playlist.author} placeholder={'No Author'}
+                              onEditDone={this.onAuthorEditDone} />
+          </div>
         </div>
         {/* Content */}
         <div className='playlist-list-item__content' ref={this.contentRef} style={{maxHeight}}>
@@ -134,7 +141,21 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
             {/* Games */}
             <div className='playlist-list-item__games' ref={this._wrapper}>
               {gameEntries.map((gameEntry, index) => this.renderGame(gameEntry, gameInfos[index], index))}
-              {/*<div className='playlist-list-item__games__game'>
+              {/* editing ? ( // "Add Game" button
+                <div className='playlist-list-item__games__game'>
+                  <div className='playlist-list-item__games__show-all'>
+                    <div className='playlist-list-item__games__show-all__inner'>
+                      <div className='playlist-list-item__games__show-all__inner__box'>
+                        <p className='playlist-list-item__games__show-all__text'>
+                          Add Game
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                ) : undefined */}
+              {/* (!editing && (gameEntries.length > 0)) ? ( // "Show All" button
+                <div className='playlist-list-item__games__game'>
                 <div className='playlist-list-item__games__show-all'>
                   <div className='playlist-list-item__games__show-all__inner'>
                     <div className='playlist-list-item__games__show-all__inner__box'>
@@ -144,7 +165,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
                     </div>
                   </div>
                 </div>
-              </div>*/}
+              </div>
+              ) : undefined */}
             </div>
             {/* Description */}
             <p>Description:</p>
@@ -222,6 +244,24 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
+  private onIconClick() {
+    const edit = this.state.editPlaylist;
+    if (this.props.editing && edit) {
+      // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
+      const filePaths = window.External.showOpenDialog({
+        title: 'Select a new icon for the playlist',
+        properties: ['openFile'],
+      });
+      if (filePaths) {
+        toDataURL(filePaths[0])
+        .then(dataUrl => {
+          edit.icon = dataUrl+'';
+          this.setState({ hasChanged: true });
+        })
+      }
+    }
+  }
+
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
   private wrapOnEditDone(func: (edit: IGamePlaylist, text: string) => void): (text: string) => void {
     return (text: string) => {
@@ -269,4 +309,15 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
       wrapper.style.setProperty('--height', this.height+'');
     }
   }
+}
+
+function toDataURL(url: string) {
+  return fetch(url)
+  .then(response => response.blob())
+  .then(blob => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as any);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  }))          
 }
