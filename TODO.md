@@ -21,20 +21,6 @@
   - The drop-down menus should have all Genres/Platforms listed
   - They should be "multi-select" so you can pick any number of them
   - By default none should be selected (which has the same filtering properties as selecting all)
-* Add a game playlist/collection system
-  - Playlists should have these things:
-    * Title
-    * Description
-    * Author
-    * Banner / Icon
-    * Array of games
-    * ... (more stuff?)
-  - Each game in a playlist should have:
-    * Notes (Why the game is in the playlist?)
-    * ... (more stuff?)
-  - Each game can belong to any number of collections
-  - All collections a game belongs to should be visible in the sidebar (if any)
-  - Add a way to show only the games of a playlist at the browse page
 * An option to show screenshots instead of logos (just a toggle at the settings page)
 * Remember the scroll position and selected game of the BrowsePage when changing page
 * Remember the windows previous size and position between sessions
