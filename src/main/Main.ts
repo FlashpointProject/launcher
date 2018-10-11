@@ -139,7 +139,7 @@ export class Main {
   private onGetConfigSync(event: Electron.IpcMessageEvent): void {
     const data: IAppConfigApiFetchData = {
       data: this.config,
-      fullFlashpointPath: path.resolve(this.config.flashpointPath),
+      fullFlashpointPath: this.config.flashpointPath ? path.resolve(this.config.flashpointPath) : '',
     };
     event.returnValue = data;
   }
