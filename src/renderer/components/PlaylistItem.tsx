@@ -9,6 +9,7 @@ import { lerp } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameCollection } from '../../shared/game/GameCollection';
 import { GameLauncher } from '../GameLauncher';
+import { OpenIcon } from './OpenIcon';
 
 export interface IPlaylistItemProps {
   playlist: IGamePlaylist;
@@ -88,10 +89,20 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
       <div className={className}>
         {/* Head */}
         <div className='playlist-list-item__head' onClick={(!editing)?this.onHeadClick:undefined}>
-          <div className='playlist-list-item__head__icon'
-               style={{ backgroundImage: playlist.icon ? `url('${playlist.icon}')` : undefined }}
-               onClick={this.onIconClick}
-               />
+          {(playlist.icon) ? (
+            <div className='playlist-list-item__head__icon'>
+              <div className='playlist-list-item__head__icon__image'
+                  style={{ backgroundImage: playlist.icon ? `url('${playlist.icon}')` : undefined }}
+                    onClick={this.onIconClick} />
+            </div>
+          ) : (
+            <div className='playlist-list-item__head__icon simple-center'>
+              <div className='playlist-list-item__head__icon__no-image simple-center__inner'>
+                <OpenIcon icon='question-mark' className='playlist-list-item__head__icon__no-image__icon' />
+              </div>
+            </div>
+          )}
+
           <div className='playlist-list-item__head__title'>
             <EditableTextWrap editDisabled={!editing}
                               text={playlist.title} placeholder={'No Title'}

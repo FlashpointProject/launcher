@@ -2,21 +2,20 @@ import * as React from 'react';
 
 export interface IIconProps {
   icon: OpenIconType;
+  className?: string;
+  useClassName?: string;
 };
 
 /** A SVG Icon from the "Open Iconic" collection */
 export const OpenIcon = function(props: IIconProps) {
   return (
     <svg viewBox='0 0 8 8' shapeRendering='crispEdges'
-         className={`icon icon--${props.icon}`} >
-      <use xlinkHref={`${svgUrl}#${props.icon}`}
-           className={`icon__use icon__use--${props.icon}`} />
+         className={`icon icon--${props.icon} ${props.className||''}`}>
+      <use xlinkHref={`svg/open-iconic.svg#${props.icon}`}
+           className={`icon__use icon__use--${props.icon} ${props.useClassName||''}`} />
     </svg>
   );
 }
-
-/* Location of the "Open Iconic" SVG sprite file */
-const svgUrl = 'svg/open-iconic.svg';
 
 /** An icon from the "Open Iconic" collection */
 export type OpenIconType =
