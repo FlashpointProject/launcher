@@ -1,24 +1,21 @@
 import * as React from 'react';
-import { ListRowProps } from 'react-virtualized';
+import { ListRowProps, GridCellProps } from 'react-virtualized';
 import { IDefaultProps } from '../interfaces';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { getPlatformIconPath } from '../Util';
 
-export interface IGameGridItemProps extends ListRowProps, IDefaultProps {
+export interface IGameGridItemProps extends Partial<GridCellProps>, IDefaultProps {
   /** Game to show */
   game: IGameInfo;
   /** Path to the games thumbnail */
   thumbnail: string;
-  /** Height of the grid item (in pixels) */
-  width: number;
-  /** Height of the grid item (in pixels) */
-  height: number;
   /** Called when the item is clicked */
   onClick?: (game: IGameInfo, index: number) => void;
   /** Called when the item is double clicked */
   onDoubleClick?: (game: IGameInfo, index: number) => void;
   /** If the grid item is selected */
   isSelected: boolean;
+  index: number;
 }
 
 export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
@@ -30,8 +27,6 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
 
   render() {
     const game = this.props.game;
-    const width: number = this.props.width || 0;
-    const height: number = this.props.height || 0;
     const platformIcon = getPlatformIconPath(game.platform);
     let className: string = 'game-grid-item';
     // Add class if selected
@@ -42,10 +37,7 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     return (
       <li style={this.props.style} className={className} 
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
-        <div className='game-grid-item__thumb' style={{
-          width: width+'px',
-          height: width+'px',
-        }}>
+        <div className='game-grid-item__thumb'>
           <div className='game-grid-item__thumb__image' style={{
             backgroundImage: `url('${this.props.thumbnail}')`
           }}>
@@ -58,9 +50,7 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
             </div>
           </div>
         </div>
-        <div className='game-grid-item__title' style={{
-          height: (height - width) + 'px',
-        }}>
+        <div className='game-grid-item__title'>
         <p className='game-grid-item__title__text'>{game.title || ''}</p>
         </div>
       </li>

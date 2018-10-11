@@ -14,12 +14,13 @@ import { IGameCollection } from '../shared/game/interfaces';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { GameImageCollection } from './image/GameImageCollection';
+import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 
 export interface IAppProps {
   history?: any;
 }
 export interface IAppState {
-  central?: ICentralState;
+  central: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
   logData: string;
@@ -37,14 +38,21 @@ export class App extends React.Component<IAppProps, IAppState> {
   constructor(props: IAppProps) {
     super(props);
     // Normal constructor stuff
+    const preferences = window.External.preferences;
     const config = window.External.config;
     this.state = {
-      central: undefined,
+      central: {
+        gameImages: new GameImageCollection(config.fullFlashpointPath),
+        playlists: new GamePlaylistManager(),
+        gamesDoneLoading: false,
+        playlistsDoneLoading: false,
+        playlistsFailedLoading: false,
+      },
       search: undefined,
       order: undefined,
       logData: '',
-      gameScale: window.External.preferences.data.browsePageGameScale,
-      gameLayout: window.External.preferences.data.browsePageLayout,
+      gameScale: preferences.data.browsePageGameScale,
+      gameLayout: preferences.data.browsePageLayout,
       useCustomTitlebar: config.data.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
@@ -52,27 +60,50 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
-    // Load the filenames of all game images
-    const gameImages = new GameImageCollection(config.fullFlashpointPath);
+    // Initialize app
+    this.init();
+  }
+
+  init() {
+    const config = window.External.config;
+    // Load Playlists
+    this.state.central.playlists.load()
+    .catch((err) => {
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          playlistsDoneLoading: true,
+          playlistsFailedLoading: true,
+        })
+      });
+      window.External.appendLogData(err.toString());
+      throw err;
+    })
+    .then(() => {
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          playlistsDoneLoading: true,
+        })
+      });
+    });
     // Fetch LaunchBox game data from the xml
     LaunchboxData.fetchPlatformFilenames(config.fullFlashpointPath)
     .then((platformFilenames: string[]) => {
       // Prepare images
       const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
-      gameImages.addPlatforms(platforms);
+      this.state.central.gameImages.addPlatforms(platforms);
       // Fetch games
       LaunchboxData.fetchPlatforms(config.fullFlashpointPath, platformFilenames)
       .then((collection: IGameCollection) => {
-        this.onDataLoaded(gameImages, collection);
+        this.onDataLoaded(collection);
       })
       .catch((error) => {
         console.error(error);
-        this.onDataLoaded(gameImages);
+        this.onDataLoaded();
       });
     })
     .catch((error) => {
       console.error(error);
-      this.onDataLoaded(gameImages);
+      this.onDataLoaded();
     });
   }
 
@@ -102,7 +133,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
-    if (this.state.central && this.state.central.collection && this.state.central.collection.games) {
+    if (this.state.central.collection && this.state.central.collection.games) {
       gameCount = this.state.central.collection.games.length;
     }
     // Props to set to the router
@@ -143,14 +174,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /** Called when the Game Info has been fetched */
-  private onDataLoaded(gameImages: GameImageCollection, collection?: IGameCollection) {
+  private onDataLoaded(collection?: IGameCollection) {
     // Set the state
     this.setState({
-      central: {
+      central: Object.assign({}, this.state.central, {
         collection: collection || { games: [], additionalApplications: [] },
-        flashpointPath: window.External.config.fullFlashpointPath,
-        gameImages: gameImages,
-      }
+        gamesDoneLoading: true,
+      })
     });
   }
 

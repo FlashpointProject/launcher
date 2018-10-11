@@ -10,10 +10,10 @@ import LogsPage from './components/pages/LogsPage';
 import { ConfigPage } from './components/pages/ConfigPage';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { IAppConfigData } from '../shared/config/interfaces';
+import { PlaylistPage } from './components/pages/PlaylistPage';
 
 export interface IAppRouterProps {
-  central?: ICentralState;
+  central: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
   logData: string;
@@ -32,8 +32,12 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     };
     return (
       <Switch>
-        <PropsRoute exact path={Paths.browse} component={BrowsePage} {...browseProps} />
-        <PropsRoute path={Paths.logs} component={LogsPage} logData={this.props.logData} />
+        <PropsRoute exact path={Paths.playlists} component={PlaylistPage}
+                    central={this.props.central} gameScale={this.props.gameScale} />
+        <PropsRoute path={Paths.browse} component={BrowsePage}
+                    {...browseProps} />
+        <PropsRoute path={Paths.logs} component={LogsPage}
+                    logData={this.props.logData} />
         <PropsRoute path={Paths.config} component={ConfigPage} />
         <Route path={Paths.about} component={AboutPage} />
         <Route component={NotFoundPage} />

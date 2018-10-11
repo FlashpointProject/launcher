@@ -16,6 +16,7 @@ html, body {
   /* Variables */
   --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   --theme__text-color: #f1f1f1;
+  --theme__text-disabled-color: #9b9b9b;
   --theme__background-color: #1b1b1c;
   --theme__search-bar__background-color: #1b1b1d;
   --theme__search-bar__outline-color: #47474d;
@@ -43,6 +44,18 @@ body {
   color: #FFFFFF;
 }
 
+
+/* ------ Icons ------ */
+.icon {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+}
+.icon__use {
+  fill: #ffffff;
+}
+
+
 /* ------ Generic & Re-usable ------ */
 /* Simple Button */
 .simple-button {
@@ -54,6 +67,17 @@ body {
 .simple-button:hover {
   background-color: #434346;
   border-color: #6f6f75;
+}
+.simple-button:disabled {
+  color: var(--theme__text-disabled-color);
+}
+.simple-button--red {
+  background-color: #5a1010;
+  border-color: #731919;
+}
+.simple-button--red:hover {
+  background-color: #731616;
+  border-color: #a22020;
 }
 /* Simple Selector */
 .simple-selector {
@@ -86,6 +110,28 @@ body {
 }
 .simple-slider:focus::-webkit-slider-runnable-track {
   background: #545a5a;
+}
+/* Simple Vertical Shake */
+.simple-vertical-shake {
+  animation: simple-vertical-shake 0.7s ease-in-out both;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  --vertical-shake-amount: 0.125rem;
+}
+@keyframes simple-vertical-shake {
+  20% {
+    transform: translate3d(0, -calc(3 * var(--vertical-shake-amount)), 0);
+  }
+  40% {
+    transform: translate3d(0, calc(1 * var(--vertical-shake-amount)), 0);
+  }
+  60% {
+    transform: translate3d(0, -calc(1 * var(--vertical-shake-amount)), 0);
+  }
+  80% {
+    transform: translate3d(0, calc(1 * var(--vertical-shake-amount)), 0);
+  }
 }
 
 
@@ -670,6 +716,8 @@ body {
 }
 /* GameList Item */
 .game-grid-item {
+  width: calc(1px * var(--width));
+  height: calc(1px * var(--height));
   /* Pimp */
   list-style: none;
   color: #aaa;
@@ -693,6 +741,8 @@ body {
 /* GameList Item Thumb */
 .game-grid-item__thumb {
   padding: calc(var(--width) * 0.0025rem);
+  width: calc(var(--width) * 1px);
+  height: calc(var(--width) * 1px);
 }
 .game-grid-item__thumb__image {
   width: 100%;
@@ -724,6 +774,7 @@ body {
 /* GameList Item Title */
 .game-grid-item__title {
   padding: calc(var(--width) * 0.001rem);
+  height: calc((var(--height) - var(--width)) * 0.001rem);
   text-align: center;
 }
 .game-grid-item__title__text {
@@ -748,6 +799,203 @@ body {
   font-size: 2em;
 }
 
+
+
+/* ------ Playlist ------ */
+.playlist-page {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+.playlist-page__message {
+  padding: 1rem;
+  text-align: center;
+}
+.playlist-page__message h2 {
+  margin-bottom: 0.2rem;
+}
+.playlist-list__create-playlist {
+  padding: 0.1rem;
+  padding-left: 0.5rem;
+  color: #aaaaaa;
+}
+.playlist-list__create-playlist:hover {
+  background-color: #3c3c41;
+  color: #ffffff;
+}
+.playlist-list__create-playlist,
+.playlist-list__create-playlist * {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* PlaylistList */
+.playlist-list {
+  background-color: var(--theme__background-color);
+  --image-size: 2rem; /* Width0 & Height of thee icon in the playlist item head */
+  --image-padding: 0.15rem; /* Padding of the playlist item head */
+}
+/* Playlist-List-Item */
+.playlist-list-item {
+  list-style: none;
+  background-color: var(--theme__background-color);
+  color: #aaa;
+}
+.playlist-list-item:nth-child(2n) {
+  background-color: #1e1e1f;
+}
+.playlist-list-item:hover {
+  background-color: #3c3c41;
+}
+.playlist-list-item--editing {
+  background-color: #151f14;
+}
+.playlist-list-item--editing:nth-child(2n) {
+  background-color: #192519;
+}
+.playlist-list-item--editing:hover {
+  background-color: #20301f;
+}
+.playlist-list-item--editing p {
+  user-select: none; /* Can not select text while editing is enabled */
+}
+/* Playlist-List-Item Head */
+.playlist-list-item__head {
+  display: flex;
+  height: calc(var(--image-size) + var(--image-padding) * 2);
+  padding: var(--image-padding);
+  padding-left: 0.3rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.playlist-list-item--editing .playlist-list-item__head {
+  cursor: default;
+}
+.playlist-list-item__head:hover {
+  color: #e6e6e6;
+}
+.playlist-list-item__head > * {
+  flex: 0 0 auto;
+  display: inline-block;
+  user-select: none;
+}
+.playlist-list-item__head__icon {
+  width: var(--image-size);
+  height: var(--image-size);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.playlist-list-item__head__title {
+  font-weight: bold;
+  padding-left: 0.5rem;
+}
+.playlist-list-item__head__divider {
+  padding: 0 0.2rem;
+}
+.playlist-list-item__head__author {
+  font-style: italic;
+}
+.playlist-list-item--editing .playlist-list-item__head__title, 
+.playlist-list-item--editing .playlist-list-item__head__author,
+.playlist-list-item--editing .playlist-list-item__head__icon {
+  cursor: pointer;
+}
+/* Playlist-List-Item Content */
+.playlist-list-item__content {
+  max-height: 0; /* Overriden with JavaScript when expanded */
+  overflow: hidden;
+  transition: max-height 0.2s ease-in-out;
+  /* Pimp */
+  background-color: #242425;
+}
+.playlist-list-item--editing .playlist-list-item__content {
+  background-color: #1c291b;
+  color: #cecece;
+}
+.playlist-list-item__content__inner {
+  padding: 0.4rem;
+}
+.playlist-list-item__content__id {
+  display: inline-block;
+  font-size: 0.9rem; 
+  font-weight: 100;
+  opacity: 0.3;
+}
+.playlist-list-item__content__buttons {
+  float: right;
+}
+.playlist-list-item__content__buttons > * {
+  margin-left: 0.3rem;
+}
+.playlist-list-item__games {
+}
+.playlist-list-item__games__game {
+  display: inline-block;
+  overflow: hidden;
+}
+.playlist-list-item__games__show-all {
+  width: calc(var(--width) * 1px);
+  height: calc(var(--height) * 1px);
+}
+.playlist-list-item__games__show-all:hover {
+  color: #e6e6e6;
+  cursor: pointer;
+}
+.playlist-list-item__games__show-all__inner {
+  padding: calc(var(--width) * 0.0025rem);
+  width: 100%;
+  height: calc(var(--width) * 1px);
+}
+.playlist-list-item__games__show-all__inner__box {
+  width: 100%;
+  height: 100%;
+  /* Center text */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Pimp */
+  border-radius: 0.2em;
+  background-color: #242428;
+  border: 1px solid #141417;
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
+.playlist-list-item__games__show-all__text {
+  font-weight: bold;
+  user-select: none;
+}
+/* Playlist-List Create-Playlist */
+.playlist-list__create-playlist {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: calc(var(--image-size) + var(--image-padding) * 2);
+  padding: var(--image-padding);
+  padding-left: 0.5rem;
+  background-color: #161617;
+  --color: #aaaaaa;
+}
+.playlist-list__create-playlist:hover {
+  background-color: #28282c;
+  --color: #ffffff;
+}
+.playlist-list__create-playlist,
+.playlist-list__create-playlist * {
+  cursor: pointer;
+  user-select: none;
+}
+.playlist-list__create-playlist__inner > * {
+  display: inline-block;
+}
+.playlist-list__create-playlist__inner .icon__use {
+  fill: var(--color);
+}
+.playlist-list__create-playlist__inner__title {
+  font-size: 1.3rem;
+  padding-left: 0.5rem;
+  color: var(--color);
+}
 
 
 /** ------ Config ------ */

@@ -13,7 +13,7 @@ import { GameCollection } from '../../../shared/game/GameCollection';
 import { GameLauncher } from '../../GameLauncher';
 
 export interface IBrowsePageProps extends IDefaultProps {
-  central?: ICentralState;
+  central: ICentralState;
   search?: ISearchOnSearchEvent;
   order?: IGameOrderChangeEvent;
   /** Scale of the games */
@@ -65,7 +65,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const order = this.props.order || BrowsePage.defaultOrder;
     // Find additional applications for the selected game (if any)
     let selectedAddApps: IAdditionalApplicationInfo[]|undefined;
-    if (this.state.selectedGame && this.props.central && this.props.central.collection) {
+    if (this.state.selectedGame && this.props.central.collection) {
       selectedAddApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.collection, this.state.selectedGame.id);
     }
     // Render
@@ -80,7 +80,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               return (
                 <GameGrid games={games}
                           selectedGame={this.state.selectedGame}
-                          gameImages={this.props.central && this.props.central.gameImages}
+                          gameImages={this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           onGameLaunch={this.onGameLaunch}
@@ -94,7 +94,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               return (
                 <GameList games={games}
                           selectedGame={this.state.selectedGame}
-                          gameImages={this.props.central && this.props.central.gameImages}
+                          gameImages={this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           onGameLaunch={this.onGameLaunch}
@@ -109,7 +109,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           <div className={'game-browser__right'+(this.state.selectedGame?'':' game-browser__right--none')}>
             <BrowseSidebar selectedGame={this.state.selectedGame} 
                            selectedAddApps={selectedAddApps}
-                           gameImages={this.props.central && this.props.central.gameImages}/>
+                           gameImages={this.props.central.gameImages}/>
           </div>
         ) : undefined}
       </div>
@@ -119,7 +119,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private noRowsRenderer() {
     return (
       <div className='game-list__no-games'>
-        {this.props.central?( // (Game loading complete - kind of a hacky way to check)
+        {this.props.central.gamesDoneLoading?(
           <>
             <h1 className='game-list__no-games__title'>No Games Found!</h1>
             <br/>
@@ -137,9 +137,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             )}
           </>
         ):(
-          <>
-            Loading...
-          </>
+          <p>
+            Loading Games...
+          </p>
         )}
       </div>
     );
@@ -152,7 +152,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onGameLaunch(game: IGameInfo): void {
-    if (!this.props.central || !this.props.central.collection) { throw new Error('Central Prop or Game Collection is missing. Can\'t launch game.'); }
+    if (!this.props.central.collection) { throw new Error('Central Prop or Game Collection is missing. Can\'t launch game.'); }
     const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.collection, game.id);
     GameLauncher.launchGame(game, addApps);
   }
@@ -181,7 +181,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   /** Order the games according to the current settings */
   private orderGames(): IGameInfo[] {
     // -- Get the array of games --
-    let games = this.props.central && this.props.central.collection && this.props.central.collection.games;
+    let games = this.props.central.collection && this.props.central.collection.games;
     if (!games) { return []; } // (No games found)
     games = games.slice(); // (Copy array)
     // -- Filter games --
