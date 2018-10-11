@@ -35,43 +35,47 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
     const anySelected = (this.state.expandedPlaylistID !== '');
     return (
       <div className='playlist-page'>
-        {central.playlistsDoneLoading ? (
-          !central.playlistsFailedLoading ? (
-            <div className='playlist-list'>
-              {/* List all playlists */}
-              {this.props.central.playlists.playlists.map((playlist) => {
-                return (
-                  <PlaylistItem key={playlist.id} 
-                                playlist={playlist}
-                                expanded={anySelected && playlist.id === this.state.expandedPlaylistID}
-                                editing={playlist.id === this.state.editingPlaylistID}
-                                central={this.props.central}
-                                gameScale={this.props.gameScale}
-                                onHeadClick={this.onPlaylistItemHeadClick}
-                                onEditClick={this.onPlaylistItemEditClick}
-                                onDeleteClick={this.onPlaylistItemDeleteClick}
-                                onSaveClick={this.onPlaylistItemSaveClick} />
-                );
-              })}
-              {/* Create New Playlist */}
-              <div className='playlist-list__create-playlist' onClick={this.onCreatePlaylistClick}>
-                <div className='playlist-list__create-playlist__inner'>
-                  <OpenIcon icon='plus' />
-                  <p className='playlist-list__create-playlist__inner__title'>Create new playlist</p>
+        <div className='playlist-page__inner'>
+          {central.playlistsDoneLoading ? (
+            !central.playlistsFailedLoading ? (
+              <div className='playlist-list'>
+                {/* List all playlists */}
+                {this.props.central.playlists.playlists.map((playlist) => {
+                  return (
+                    <PlaylistItem key={playlist.id} 
+                                  playlist={playlist}
+                                  expanded={anySelected && playlist.id === this.state.expandedPlaylistID}
+                                  editing={playlist.id === this.state.editingPlaylistID}
+                                  central={this.props.central}
+                                  gameScale={this.props.gameScale}
+                                  onHeadClick={this.onPlaylistItemHeadClick}
+                                  onEditClick={this.onPlaylistItemEditClick}
+                                  onDeleteClick={this.onPlaylistItemDeleteClick}
+                                  onSaveClick={this.onPlaylistItemSaveClick} />
+                  );
+                })}
+                {/* Create New Playlist */}
+                <div className='playlist-list__create-playlist' onClick={this.onCreatePlaylistClick}>
+                  <div className='playlist-list__create-playlist__inner'>
+                    <OpenIcon icon='plus' />
+                  </div>
+                  <div className='playlist-list__create-playlist__inner'>
+                    <p className='playlist-list__create-playlist__inner__title'>New Playlist</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : ( // Failed to load
+            ) : ( // Failed to load
+              <div className='playlist-page__message'>
+                <h2>Failed to load playlist folder.</h2>
+                <p>Check the log for more information.</p>
+              </div>
+            )
+          ) : ( // Loading
             <div className='playlist-page__message'>
-              <h2>Failed to load playlist folder.</h2>
-              <p>Check the log for more information.</p>
+              <p>Loading Playlists...</p>
             </div>
-          )
-        ) : ( // Loading
-          <div className='playlist-page__message'>
-            <p>Loading Playlists...</p>
-          </div>
-        ) }
+          ) }
+        </div>
       </div>
     );
   }

@@ -807,6 +807,10 @@ body {
   height: 100%;
   overflow: auto;
 }
+.playlist-page__inner {
+  min-width: 30em;
+  overflow: visible;
+}
 .playlist-page__message {
   padding: 1rem;
   text-align: center;
@@ -832,7 +836,7 @@ body {
 /* PlaylistList */
 .playlist-list {
   background-color: var(--theme__background-color);
-  --image-size: 2rem; /* Width0 & Height of thee icon in the playlist item head */
+  --image-size: 1.5rem; /* Width & Height of the icon in the playlist item head */
   --image-padding: 0.15rem; /* Padding of the playlist item head */
 }
 /* Playlist-List-Item */
@@ -968,25 +972,31 @@ body {
 /* Playlist-List Create-Playlist */
 .playlist-list__create-playlist {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  overflow: hidden;
   height: calc(var(--image-size) + var(--image-padding) * 2);
   padding: var(--image-padding);
   padding-left: 0.5rem;
+  /* Pimp */
   background-color: #161617;
   --color: #aaaaaa;
 }
+
 .playlist-list__create-playlist:hover {
   background-color: #28282c;
   --color: #ffffff;
 }
-.playlist-list__create-playlist,
-.playlist-list__create-playlist * {
-  cursor: pointer;
-  user-select: none;
+.playlist-list__create-playlist__inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .playlist-list__create-playlist__inner > * {
   display: inline-block;
+}
+.playlist-list__create-playlist__inner .icon {
+  --icon-size: calc(var(--image-size) * 0.65);
+  width: var(--icon-size);
+  height: var(--icon-size);
 }
 .playlist-list__create-playlist__inner .icon__use {
   fill: var(--color);

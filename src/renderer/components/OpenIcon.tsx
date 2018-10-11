@@ -7,9 +7,10 @@ export interface IIconProps {
 /** A SVG Icon from the "Open Iconic" collection */
 export const OpenIcon = function(props: IIconProps) {
   return (
-    <svg viewBox='0 0 8 8' className={`icon icon--${props.icon}`}>
+    <svg viewBox='0 0 8 8' shapeRendering='crispEdges'
+         className={`icon icon--${props.icon}`} >
       <use xlinkHref={`${svgUrl}#${props.icon}`}
-          className={`icon__use icon__use--${props.icon}`} />
+           className={`icon__use icon__use--${props.icon}`} />
     </svg>
   );
 }
