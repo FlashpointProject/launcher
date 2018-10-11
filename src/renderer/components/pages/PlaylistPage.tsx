@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ICentralState } from '../../interfaces';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { PlaylistItem } from '../PlaylistItem';
+import { OpenIcon } from '../OpenIcon';
 
 export interface IPlaylistPageProps {
   central: ICentralState;
@@ -54,7 +55,10 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
               })}
               {/* Create New Playlist */}
               <div className='playlist-list__create-playlist' onClick={this.onCreatePlaylistClick}>
-                Create new playlist
+                <div className='playlist-list__create-playlist__inner'>
+                  <OpenIcon icon='plus' />
+                  <p className='playlist-list__create-playlist__inner__title'>Create new playlist</p>
+                </div>
               </div>
             </div>
           ) : ( // Failed to load

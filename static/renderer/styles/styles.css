@@ -44,6 +44,18 @@ body {
   color: #FFFFFF;
 }
 
+
+/* ------ Icons ------ */
+.icon {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+}
+.icon__use {
+  fill: #ffffff;
+}
+
+
 /* ------ Generic & Re-usable ------ */
 /* Simple Button */
 .simple-button {
@@ -802,11 +814,6 @@ body {
 .playlist-page__message h2 {
   margin-bottom: 0.2rem;
 }
-.playlist-list__create-playlist,
-.playlist-list__create-playlist * {
-  cursor: pointer;
-  user-select: none;
-}
 .playlist-list__create-playlist {
   padding: 0.1rem;
   padding-left: 0.5rem;
@@ -816,11 +823,17 @@ body {
   background-color: #3c3c41;
   color: #ffffff;
 }
+.playlist-list__create-playlist,
+.playlist-list__create-playlist * {
+  cursor: pointer;
+  user-select: none;
+}
 
 /* PlaylistList */
 .playlist-list {
   background-color: var(--theme__background-color);
-  /* --height | Height of list items (in pixels) */
+  --image-size: 2rem; /* Width0 & Height of thee icon in the playlist item head */
+  --image-padding: 0.15rem; /* Padding of the playlist item head */
 }
 /* Playlist-List-Item */
 .playlist-list-item {
@@ -848,11 +861,9 @@ body {
 }
 /* Playlist-List-Item Head */
 .playlist-list-item__head {
-  --image-size: 2rem;
-  --padding: 0.15rem;
   display: flex;
-  height: calc(var(--image-size) + var(--padding) * 2);
-  padding: var(--padding);
+  height: calc(var(--image-size) + var(--image-padding) * 2);
+  padding: var(--image-padding);
   padding-left: 0.3rem;
   font-size: 1.1rem;
   cursor: pointer;
@@ -953,6 +964,37 @@ body {
 .playlist-list-item__games__show-all__text {
   font-weight: bold;
   user-select: none;
+}
+/* Playlist-List Create-Playlist */
+.playlist-list__create-playlist {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: calc(var(--image-size) + var(--image-padding) * 2);
+  padding: var(--image-padding);
+  padding-left: 0.5rem;
+  background-color: #161617;
+  --color: #aaaaaa;
+}
+.playlist-list__create-playlist:hover {
+  background-color: #28282c;
+  --color: #ffffff;
+}
+.playlist-list__create-playlist,
+.playlist-list__create-playlist * {
+  cursor: pointer;
+  user-select: none;
+}
+.playlist-list__create-playlist__inner > * {
+  display: inline-block;
+}
+.playlist-list__create-playlist__inner .icon__use {
+  fill: var(--color);
+}
+.playlist-list__create-playlist__inner__title {
+  font-size: 1.3rem;
+  padding-left: 0.5rem;
+  color: var(--color);
 }
 
 
