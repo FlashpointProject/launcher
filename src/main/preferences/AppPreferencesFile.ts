@@ -15,6 +15,7 @@ export class AppPreferencesFile {
     browsePageGameScale: 0.023,
     browsePageShowExtreme: false,
     browsePageLayout: BrowsePageLayout.grid,
+    browsePageShowSidebar: true,
     mainWindow: Object.freeze({
       x: undefined,
       y: undefined,

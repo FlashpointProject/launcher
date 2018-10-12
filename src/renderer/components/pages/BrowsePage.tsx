@@ -106,7 +106,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           })()}
         </div>
         {(games.length > 0) ? (
-          <div className={'game-browser__right'+(this.state.selectedGame?'':' game-browser__right--none')}>
+          <div className={'game-browser__right'+
+                          (this.state.selectedGame?'':' game-browser__right--none')+
+                          (window.External.preferences.data.browsePageShowSidebar?'':' game-browser__right--hidden')}>
             <BrowseSidebar selectedGame={this.state.selectedGame} 
                            selectedAddApps={selectedAddApps}
                            gameImages={this.props.central.gameImages}/>

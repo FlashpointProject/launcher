@@ -5,10 +5,12 @@ import { IDefaultProps } from '../interfaces';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
 import { Paths } from '../Paths';
 import * as Util from '../Util';
+import { OpenIcon } from './OpenIcon';
 
 export interface IHeaderProps extends IDefaultProps {
   onSearch?: (event: ISearchOnSearchEvent) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
+  onToggleSidebarClick?: () => void;
 }
 
 export class Header extends React.Component<IHeaderProps, {}> {
@@ -17,6 +19,7 @@ export class Header extends React.Component<IHeaderProps, {}> {
     this.onSearch = this.onSearch.bind(this);
     this.onCleared = this.onCleared.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
+    this.onToggleSidebarClick = this.onToggleSidebarClick.bind(this);
   }
 
   render() {
@@ -28,6 +31,7 @@ export class Header extends React.Component<IHeaderProps, {}> {
       tagRemove:      'header__search__tag__remove',
       tagRemoveInner: 'header__search__tag__remove__inner',
     };
+    const showSidebar = window.External.preferences.data.browsePageShowSidebar;
     return (
       <div className='header'>
         {/* Header Menu */}
@@ -63,6 +67,16 @@ export class Header extends React.Component<IHeaderProps, {}> {
             <GameOrder onChange={this.onOrderChange}/>
           </div>
         </div>
+        {/*  */}
+        <div className='header__wrap header__right'>
+          <div>
+            <div className='header__toggle-sidebar'
+                 title={showSidebar ? 'Hide sidebar' : 'Show sidebar'}
+                 onClick={this.onToggleSidebarClick}>
+              <OpenIcon icon={showSidebar ? 'collapse-right' : 'collapse-left'} />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -83,6 +97,12 @@ export class Header extends React.Component<IHeaderProps, {}> {
   private onOrderChange(event: IGameOrderChangeEvent): void {
     if (this.props.onOrderChange) {
       this.props.onOrderChange(event);
+    }
+  }
+
+  private onToggleSidebarClick(event: React.MouseEvent): void {
+    if (this.props.onToggleSidebarClick) {
+      this.props.onToggleSidebarClick();
     }
   }
 }

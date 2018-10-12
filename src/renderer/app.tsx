@@ -60,6 +60,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
+    this.onToggleSidebarClick = this.onToggleSidebarClick.bind(this);
     // Initialize app
     this.init();
   }
@@ -166,7 +167,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
         ) : undefined }
         {/* "Header" stuff */}
-        <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange} />
+        <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange} 
+                onToggleSidebarClick={this.onToggleSidebarClick} />
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter {...routerProps} />
@@ -220,5 +222,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setState({ gameLayout: value });
     // Update Preferences Data (this is to make it get saved on disk)
     window.External.preferences.data.browsePageLayout = value;
+  }
+
+  private onToggleSidebarClick(): void {
+    const pref = window.External.preferences.data;
+    pref.browsePageShowSidebar = !pref.browsePageShowSidebar;
+    this.forceUpdate();
   }
 }

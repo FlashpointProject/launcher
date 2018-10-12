@@ -11,6 +11,8 @@ export interface IAppPreferencesData {
   browsePageShowExtreme: boolean;
   /** Layout of game collection at BrowsePage */
   browsePageLayout: BrowsePageLayout;
+  /** If the sidebar at the BrowsePage should be visible */
+  browsePageShowSidebar: boolean;
   /** Position and size of the main window */
   mainWindow: {
     x?: number;
