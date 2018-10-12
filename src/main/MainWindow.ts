@@ -27,14 +27,18 @@ export default class MainWindow {
       throw new Error('Window already created!');
     }
     // Create the browser window.
-    let width: number = 1000;
-    let height: number = 650;
-    if (!this._main.config.useCustomTitlebar) {
+    const mw = this._main.preferences.data.mainWindow;
+    let width:  number = (mw.width  !== undefined) ? mw.width  : 1000;
+    let height: number = (mw.height !== undefined) ? mw.height :  650;
+    if (mw.width === undefined && mw.height === undefined &&
+        !this._main.config.useCustomTitlebar) {
       width += 8;  // Add the width of the window-grab-things,
       height += 8; // they are 4 pixels wide each (at least for me @TBubba)
     }
     this._window = new BrowserWindow({
       title: AppConstants.appTitle,
+      x: mw.x,
+      y: mw.y,
       width: width,
       height: height,
       frame: !this._main.config.useCustomTitlebar,
@@ -50,6 +54,18 @@ export default class MainWindow {
     if (Util.isDev) {
       this._window.webContents.openDevTools();
     }
+    // Replay window's move event to the renderer
+    this._window.on('move', () => {
+      if (!this._window) { throw new Error(); }
+      const pos = this._window.getPosition();
+      this._window.webContents.send('window-move', pos[0], pos[1]);
+    });
+    // Replay window's move event to the renderer
+    this._window.on('resize', () => {
+      if (!this._window) { throw new Error(); }
+      const size = this._window.getSize();
+      this._window.webContents.send('window-resize', size[0], size[1]);
+    });
     // Emitted when the window is closed.
     this._window.on('closed', () => {
       this._window = undefined; // (Dereference the window object)

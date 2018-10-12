@@ -66,6 +66,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   init() {
     const config = window.External.config;
+    // Listen for the window to move or resize (and update the preferences when it does)
+    ipcRenderer.on('window-move', function(sender: any, x: number, y: number) {
+      const mw = window.External.preferences.data.mainWindow;
+      mw.x = x | 0;
+      mw.y = y | 0;
+    });
+    ipcRenderer.on('window-resize', function(sender: any, width: number, height: number) {
+      const mw = window.External.preferences.data.mainWindow;
+      mw.width  = width  | 0;
+      mw.height = height | 0;
+    });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {

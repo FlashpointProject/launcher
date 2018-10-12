@@ -20,6 +20,10 @@ export class Main {
     return this._config;
   }
 
+  public get preferences(): AppPreferencesMain {
+    return this._preferences;
+  }
+
   constructor() {
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));

@@ -13,6 +13,11 @@ export class AppPreferencesMain {
   /** Current preferences data */
   private _data?: IAppPreferencesData;
 
+  public get data(): IAppPreferencesData {
+    if (!this._data) { throw new Error('You must not try to access the preferences data before it is loaded!'); }
+    return this._data;
+  }
+
   constructor() {
     // Add IPC event listeners
     ipcMain

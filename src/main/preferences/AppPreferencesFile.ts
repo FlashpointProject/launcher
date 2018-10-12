@@ -15,6 +15,12 @@ export class AppPreferencesFile {
     browsePageGameScale: 0.023,
     browsePageShowExtreme: false,
     browsePageLayout: BrowsePageLayout.grid,
+    mainWindow: Object.freeze({
+      x: undefined,
+      y: undefined,
+      width: undefined,
+      height: undefined,
+    }),
   });
 
   /** Read the file, or create a new one using the defaults, and return the preferences */
