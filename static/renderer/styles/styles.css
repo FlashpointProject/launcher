@@ -276,17 +276,25 @@ body {
 
 /* ------ Header ------ */
 .header {
+  display: inline-flex;
+  flex-flow: wrap;
   font-size: 0.75em;
   padding: 0.3em;
   padding-bottom: 0.4em;
   /* Pimp */
   background-color: #2d2d30;
 }
+.header__wrap {
+  min-height: 2rem;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+}
+/* Header Menu */
 .header__menu {
-  display: inline-block;
+  
   padding: 0.3em 0;
   margin-right: 1em;
-  margin-bottom: 0.5em;
   /* Pimp */
   user-select: none;
 }

@@ -31,28 +31,38 @@ export class Header extends React.Component<IHeaderProps, {}> {
     return (
       <div className='header'>
         {/* Header Menu */}
-        <ul className='header__menu'>
-          <li className='header__menu__item'>
-            <Link to={Paths.playlists} className='header__menu__item__link'>Playlists</Link>
-          </li>
-          <li className='header__menu__item'>
-            <Link to={Paths.browse} className='header__menu__item__link'>Browse</Link>
-          </li>
-          <li className='header__menu__item'>
-            <Link to={Paths.logs} className='header__menu__item__link'>Logs</Link>
-          </li>
-          <li className='header__menu__item'>
-            <Link to={Paths.config} className='header__menu__item__link'>Config</Link>
-          </li>
-          <li className='header__menu__item'>
-            <Link to={Paths.about} className='header__menu__item__link'>About</Link>
-          </li>
-        </ul>
+        <div className='header__wrap'>
+          <ul className='header__menu'>
+            <li className='header__menu__item'>
+              <Link to={Paths.playlists} className='header__menu__item__link'>Playlists</Link>
+            </li>
+            <li className='header__menu__item'>
+              <Link to={Paths.browse} className='header__menu__item__link'>Browse</Link>
+            </li>
+            <li className='header__menu__item'>
+              <Link to={Paths.logs} className='header__menu__item__link'>Logs</Link>
+            </li>
+            <li className='header__menu__item'>
+              <Link to={Paths.config} className='header__menu__item__link'>Config</Link>
+            </li>
+            <li className='header__menu__item'>
+              <Link to={Paths.about} className='header__menu__item__link'>About</Link>
+            </li>
+          </ul>
+        </div>
         {/* Header Search */}
-        <Search onSearch={this.onSearch} onCleared={this.onCleared} classNames={searchClassNames}
-                disableTags={true}/>
+        <div className='header__wrap'>
+          <div>
+            <Search onSearch={this.onSearch} onCleared={this.onCleared} classNames={searchClassNames}
+                    disableTags={true}/>
+          </div>
+        </div>
         {/* Header Drop-downs */}
-        <GameOrder onChange={this.onOrderChange}/>
+        <div className='header__wrap'>
+          <div>
+            <GameOrder onChange={this.onOrderChange}/>
+          </div>
+        </div>
       </div>
     );
   }
