@@ -4,6 +4,7 @@ import { IGamePlaylist } from './interfaces';
 import { loadGamePlaylist, createGamePlaylist, LoadGamePlaylistError, getPlaylistFolder, saveGamePlaylist } from './GamePlaylist';
 import { recursiveDirectory } from '../../shared/Util';
 import { promisify } from 'util';
+import { isFlashpointValidCheck } from '../../shared/checkSanity';
 
 const unlink = promisify(fs.unlink);
 const stat = promisify(fs.stat);
@@ -27,8 +28,8 @@ export class GamePlaylistManager {
       if (this.hasStartedLoading) { throw new Error('This has already loaded the playlists.'); }
       this.hasStartedLoading = true;
       // Make sure the flashpoint folder exists
-      const fpRes = await checkFolder(window.External.config.fullFlashpointPath);
-      if (fpRes !== CheckFolderResult.IsFolder) {
+      const validFpPath = await isFlashpointValidCheck(window.External.config.fullFlashpointPath);
+      if (!validFpPath) {
         return reject(`The Flashpoint folder was not found.`);
       }
       // Make sure the playlists folder exists (and create one if it doesnt)
