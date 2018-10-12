@@ -23,11 +23,9 @@
   - By default none should be selected (which has the same filtering properties as selecting all)
 * An option to show screenshots instead of logos (just a toggle at the settings page)
 * Remember the scroll position and selected game of the BrowsePage when changing page
-* Remember the windows previous size and position between sessions
 * A visual divider between categories (when ordering by Genre, Developer etc.)
   - Some visual indicator should remain on the screen after scrolling past a divider 
     (since some categories are way taller than the window)
-* A way to toggle the sidebar at BrowsePage (a button in the header, and a keyboard shortcut?)
 * More ways to order games by (Developer, Series etc.)
 * A button that selects a random game when pressed (an maybe a keyboard shortcut?)
 * Replace the Icon of the application (with the Flashpoint icon?)
