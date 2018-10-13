@@ -92,11 +92,11 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
           {(playlist.icon) ? (
             <div className='playlist-list-item__head__icon'>
               <div className='playlist-list-item__head__icon__image'
-                  style={{ backgroundImage: playlist.icon ? `url('${playlist.icon}')` : undefined }}
-                    onClick={this.onIconClick} />
+                   style={{ backgroundImage: playlist.icon ? `url('${playlist.icon}')` : undefined }}
+                   onClick={this.onIconClick} />
             </div>
           ) : (
-            <div className='playlist-list-item__head__icon simple-center'>
+            <div className='playlist-list-item__head__icon simple-center' onClick={this.onIconClick}>
               <div className='playlist-list-item__head__icon__no-image simple-center__inner'>
                 <OpenIcon icon='question-mark' className='playlist-list-item__head__icon__no-image__icon' />
               </div>
@@ -193,7 +193,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
 
   private renderGame(gameEntry: IGamePlaylistEntry, gameInfo: IGameInfo|undefined, index: number): JSX.Element {
     return (
-      <div className='playlist-list-item__games__game' key={index}>
+      <div className='playlist-list-item__games__game' key={index} title={gameEntry.notes}>
         { gameInfo ? (
           <GameGridItem 
             game={gameInfo}
