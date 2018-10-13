@@ -70,6 +70,7 @@ body {
 /* Simple Button */
 .simple-button {
   padding: 0 0.2em;
+  font-size: 1rem;
   background-color: #2d2d30;
   border: 1px solid var(--theme__search-bar__outline-color);
   color: var(--theme__text-color);
@@ -92,6 +93,7 @@ body {
 /* Simple Selector */
 .simple-selector {
   margin-right: 0.5em;
+  font-size: 1em;
   border: 1px solid var(--theme__search-bar__outline-color);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -104,6 +106,7 @@ body {
 /* Simple Slider */
 .simple-slider {
   -webkit-appearance: none;
+  font-size: 1em;
 }
 .simple-slider::-webkit-slider-runnable-track {
   height: 100%;
@@ -112,7 +115,7 @@ body {
 }
 .simple-slider::-webkit-slider-thumb {
   height: 100%;
-  width: 1.1rem;
+  width: 1.1em;
   margin-top: -0.7px;
   -webkit-appearance: none;
   cursor: pointer;
@@ -805,8 +808,8 @@ body {
   bottom: 0;
 }
 .game-grid-item__thumb__icons__icon {
-  width: calc(0.009rem * var(--width));
-  height: calc(0.009rem * var(--width));
+  width: calc(0.144px * var(--width));
+  height: calc(0.144px * var(--width));
   float: right;
   background-size: contain;
   background-repeat: no-repeat;
