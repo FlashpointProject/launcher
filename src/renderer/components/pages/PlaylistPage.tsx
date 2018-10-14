@@ -34,7 +34,7 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
     const central = this.props.central;
     const anySelected = (this.state.expandedPlaylistID !== '');
     return (
-      <div className='playlist-page'>
+      <div className='playlist-page simple-scroll'>
         <div className='playlist-page__inner'>
           {central.playlistsDoneLoading ? (
             !central.playlistsFailedLoading ? (

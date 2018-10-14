@@ -66,7 +66,7 @@ export default class LogData extends React.Component<ILogDataProps> {
     const { logData } = this.props;
 
     return (
-      <pre className='logs__log-data' ref={this.preNodeRef}>
+      <pre className='logs__log-data simple-scroll' ref={this.preNodeRef}>
         {logData}
       </pre>
     )

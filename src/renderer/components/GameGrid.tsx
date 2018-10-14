@@ -90,7 +90,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
                 scrollToRow={scrollToRow}>
                 {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
                   <Grid
-                    className='game-grid'
+                    className='game-grid simple-scroll'
                     // Grid stuff
                     width={width}
                     height={height}

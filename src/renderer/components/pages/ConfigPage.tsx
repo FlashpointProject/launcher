@@ -36,7 +36,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
 
   render() {
     return (
-      <div className='config-page'>
+      <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
           <h1 className='config-page__title'>Config</h1>
           <i>(You must press 'Save & Restart' for some changes to take effect)</i>

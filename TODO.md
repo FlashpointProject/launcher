@@ -50,4 +50,3 @@
 
 # Pimp:
 * Rework the AboutPage
-* Custom scroll-bars (Maybe?)

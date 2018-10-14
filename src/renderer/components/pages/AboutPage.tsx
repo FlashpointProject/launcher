@@ -3,7 +3,7 @@ import { appVersionString } from '../../../shared/AppConstants';
 
 export const AboutPage: React.StatelessComponent<{}> = () => {
   return (
-    <div className='about-page'>
+    <div className='about-page simple-scroll'>
       <div className='about-page__inner'>
         <div className="about-page__top">
           <h1 className='about-page__title'>About</h1>

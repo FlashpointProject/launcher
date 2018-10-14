@@ -70,7 +70,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
               scrollToRow={scrollToIndex}>
               {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
                 <List
-                  className='game-list'
+                  className='game-list simple-scroll'
                   width={width}
                   height={height}
                   rowHeight={this.props.rowHeight}
