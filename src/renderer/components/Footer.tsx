@@ -27,21 +27,33 @@ export class Footer extends React.Component<IFooterProps, {}> {
     let scale: number = Math.min(Math.max(0, this.props.scaleSliderValue), 1) * Footer.scaleSliderMax;
     return (
       <div className='footer'>
-        <div className='footer__game-count'>
-          {(this.props.gameCount !== undefined) ? (
-            <>Games Total: {this.props.gameCount}</>
-          ) : (
-            <>No Games Found!</>
-          )}
+        <div className='footer__wrap'>
+          <div className='footer__game-count'>
+            {(this.props.gameCount !== undefined) ? (
+              <>Games Total: {this.props.gameCount}</>
+            ) : (
+              <>No Games Found!</>
+            )}
+          </div>
         </div>
-        <div className='footer__right'>
-          <select className='footer__layout-selector simple-selector' value={stringifyBrowsePageLayout(this.props.layout)} onChange={this.onLayoutChange}>
-            <option value='list'>List</option>
-            <option value='grid'>Grid</option>
-          </select>
-          <div className='footer__scale-slider'>
-            <input className='footer__scale-slider__inner simple-slider' type='range' onChange={this.onScaleSliderChange}
-                   min='0' max={Footer.scaleSliderMax} value={scale}/>
+        <div className='footer__wrap footer__right'>
+          <div>
+            <div className='footer__right__inner'>
+              <div className='footer__wrap'>
+                <div>
+                  <select className='footer__layout-selector simple-selector' value={stringifyBrowsePageLayout(this.props.layout)} onChange={this.onLayoutChange}>
+                    <option value='list'>List</option>
+                    <option value='grid'>Grid</option>
+                  </select>
+                </div>
+              </div>
+              <div className='footer__wrap footer__scale-slider'>
+                <div className='footer__scale-slider__inner'>
+                  <input className='footer__scale-slider__input simple-slider' type='range' onChange={this.onScaleSliderChange}
+                        min='0' max={Footer.scaleSliderMax} value={scale}/>
+                </div>     
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -399,39 +399,49 @@ body {
 
 /* ------ Footer ------ */
 .footer {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  display: inline-flex;
+  flex-flow: wrap;
+  padding: 0.05rem 0.2rem;
+  font-size: 0.9rem;
   /* Pimp */
   user-select: none;
   background-color: #2a2a2b;
 }
+.footer__wrap {
+  padding: 0.025rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 .footer__right {
+  flex-grow: 1;
+}
+.footer__right__inner {
+  display: flex;
   float: right;
-  white-space: initial;
-  max-width: 100%;
+  width: 100%;
+  max-width: 18em;
 }
 /* Game Count */
 .footer__game-count {
-  float: left;
-  margin-left: 0.3em;
+  cursor: default;
 }
 /* Layout Selector */
 .footer__layout-selector {
   display: inline-block;
   margin: 0 0.3em;
-  font-size: 0.8rem;
+  font-size: 0.8em;
 }
 /* Scale Slider */
 .footer__scale-slider {
-  display: inline-block;
-  margin: 0 0.3em;
-  width: 12em;
-  max-width: calc(100% - 0.3em * 2); /* 100% - Horizontal margin */
+  flex: 1 1 auto;
 }
 .footer__scale-slider__inner {
-  width: 100%;
   height: 1em;
+}
+.footer__scale-slider__input {
+  width: 100%;
+  height: 100%;
 }
 
 /* ------ Home ------ */
