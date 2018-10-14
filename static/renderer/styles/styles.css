@@ -93,7 +93,7 @@ body {
 /* Simple Selector */
 .simple-selector {
   margin-right: 0.5em;
-  font-size: 1em;
+  font-size: 1rem;
   border: 1px solid var(--theme__search-bar__outline-color);
   overflow: hidden;
   text-overflow: ellipsis;
