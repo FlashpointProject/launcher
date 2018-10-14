@@ -2,14 +2,14 @@ import * as electron from 'electron';
 import * as path from 'path';
 import { exec, ExecOptions, ChildProcess } from 'child_process';
 import { IGameInfo, IAdditionalApplicationInfo } from '../shared/game/interfaces';
+import { EventEmitter } from 'events';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
     const appPath: string = relativeToFlashpoint(addApp.applicationPath);
     const appArgs: string = addApp.commandLine;
-    console.log(`Launch AddApp: "${addApp.name}" `+
-                `(applicationPath: "${addApp.applicationPath}", commandLine: "${addApp.commandLine}")`);
-    GameLauncher.launch(appPath, appArgs, { env: GameLauncher.getEnvironment() });
+    const proc = GameLauncher.launch(appPath, appArgs, { env: GameLauncher.getEnvironment() });
+    log(`launch add-app "${addApp.name}" (PID: ${proc.pid}) [path: "${addApp.applicationPath}", arg: "${addApp.commandLine}"]`);
   }
 
   /**
@@ -26,9 +26,8 @@ export class GameLauncher {
     // Launch game
     const gamePath: string = relativeToFlashpoint(GameLauncher.getApplicationPath(game));
     let gameArgs: string = game.launchCommand;
-    console.log(`Launch Game: "${game.title}" `+
-                `(applicationPath: "${game.applicationPath}", launchCommand: "${game.launchCommand}")`);
     const proc = GameLauncher.launch(gamePath, gameArgs, { env: GameLauncher.getEnvironment() });
+    log(`launch game "${game.title}" (PID: ${proc.pid}), [path: "${game.applicationPath}", arg: "${game.launchCommand}"]`);
     // Show popups for Unity games
     // (This is written specifically for the "startUnity.bat" batch file)
     if (game.platform === 'Unity') {
@@ -138,13 +137,22 @@ export class GameLauncher {
     }
     // Run
     const str: string = `"${escFilename}" ${escArgs}`;
-    console.log(`Run: ${str}`);
     const proc = exec(str, opts);
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
-    logStuffs(proc, ['close', 'disconnect', 'error', 'exit', 'message']);
-    proc.stdout.on('data', (data) => { console.log('stdout', data.toString('utf8')); });
-    proc.stderr.on('data', (data) => { console.log('stderr', data.toString('utf8')); });
+    const logStuff = (event: string, args: any[]): void => {
+      let str = `${event} (PID: ${proc.pid}) [ `;
+      for (let i = 0; i < args.length; i++) {
+        let element = args[i];
+        str += isString(element) ? `"${element}"` : element+'';
+        if (i !== args.length - 1) { str += ', '; }
+      }
+      str += ' ]';
+      log(str);
+    };
+    doStuffs(proc, ['close', 'disconnect', 'error', 'exit', 'message'], logStuff);
+    proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); });
+    proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); });
     // Return process
     return proc;
   }
@@ -154,13 +162,17 @@ function relativeToFlashpoint(filePath: string): string {
   return path.posix.join(window.External.config.fullFlashpointPath, filePath);
 }
 
-function logStuffs(emitter: any, events: string[]) {
+function doStuffs(emitter: EventEmitter, events: string[], callback: (event: string, args: any[]) => void): void {
   for (let i = 0; i < events.length; i++) {
     const e: string = events[i];
     emitter.on(e, (...args: any[]) => {
-      console.log.call(console, e, ...args);
+      callback(e, args);
     });
   }
+}
+
+function log(str: string): void {
+  window.External.appendLogData(`Game Launcher: ${str}\n`);
 }
 
 /**
@@ -177,4 +189,8 @@ function escapeWin(str: string): string {
  */
 function escapeLinuxArgs(str: string): string {
   return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
+}
+
+function isString(obj: any): boolean {
+  return typeof obj === 'string' || obj instanceof String;
 }
