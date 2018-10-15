@@ -640,7 +640,7 @@ body {
 .browse-sidebar__row p {
   cursor: default;
 }
-.browse-sidebar--edit-enabled .browse-sidebar__row p {
+.browse-sidebar--edit-enabled {
   user-select: none; /* Can not select text while editing is enabled */
 }
 .browse-sidebar__row--title {
@@ -707,6 +707,10 @@ body {
 }
 .browse-sidebar__row__spacer {
   flex: 1 0 auto;
+}
+.browse-sidebar__row__game-id {
+  user-select: text;
+  padding-left: 0.25rem;
 }
 
 /* GameList */

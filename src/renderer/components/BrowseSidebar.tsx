@@ -176,6 +176,15 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               </div>
             </div>
           ) : undefined }
+          {/* -- Game ID -- */}
+          { !editDisabled ? (
+            <div className='browse-sidebar__section'>
+              <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+                <p>ID: </p>
+                <p className='browse-sidebar__row__game-id'>{game.id}</p>
+              </div>
+            </div>
+          ) : undefined }
           {/* -- Screenshot -- */}
           {(this.props.gameImages && game) ? (
             <div className='browse-sidebar__section browse-sidebar__section--below-gap'>
