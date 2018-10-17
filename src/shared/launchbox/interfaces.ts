@@ -34,7 +34,7 @@ export interface IRawLaunchBoxGame {
   Completed?: boolean; // (Boolean)
   ConfigurationCommandLine?: string; // (String)
   ConfigurationPath?: string; // (String)
-  DateAdded?: Date; // (DateTime)
+  DateAdded?: string; // (DateTime)
   DateModified?: Date; // (DateTime)
   // DetailsWithoutPlatform?: string; // (String)
   // DetailsWithPlatform?: string; // (String)

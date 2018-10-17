@@ -32,6 +32,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   private onGenreEditDone           = this.wrapOnEditDone((game, text) => { game.genre = text; });
   private onSeriesEditDone          = this.wrapOnEditDone((game, text) => { game.series = text; });
   private onSourceEditDone          = this.wrapOnEditDone((game, text) => { game.source = text; });
+  private onPublisherEditDone       = this.wrapOnEditDone((game, text) => { game.publisher = text; });
   private onPlatformEditDone        = this.wrapOnEditDone((game, text) => { game.platform = text; });
   private onPlayModeEditDone        = this.wrapOnEditDone((game, text) => { game.playMode = text; });
   private onStatusEditDone          = this.wrapOnEditDone((game, text) => { game.status = text; });
@@ -68,6 +69,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     if (game) {
       const isEditing: boolean = this.state.hasChanged;
       const editDisabled = window.External.config.data.disableEditing;
+      const dateAdded = new Date(game.dateAdded).toUTCString();
       return (
         <div className={'browse-sidebar simple-scroll'+(!editDisabled?' browse-sidebar--edit-enabled':'')}>
           {/* -- Title & Developer(s) -- */}
@@ -99,6 +101,12 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
                                 textProps={{title: game.series}}/>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+              <p>Publisher: </p>
+              <EditableTextWrap target={game} editDisabled={editDisabled}
+                                text={game.publisher} onEditDone={this.onPublisherEditDone}
+                                textProps={{title: game.publisher}}/>
+            </div>
+            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>Source: </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.source} onEditDone={this.onSourceEditDone}
@@ -121,6 +129,10 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.status} onEditDone={this.onStatusEditDone}
                                 textProps={{title: game.status}}/>
+            </div>
+            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+              <p>Date Added: </p>
+              <p className='browse-sidebar__row__date-added' title={dateAdded}>{dateAdded}</p>
             </div>
             <div className='browse-sidebar__row'>
               <CheckBox checked={game.broken} onChange={this.onBrokenChange} className='browse-sidebar__row__check-box'/>

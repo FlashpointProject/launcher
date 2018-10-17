@@ -764,6 +764,10 @@ body {
   user-select: text;
   padding-left: 0.25rem;
 }
+.browse-sidebar__row__date-added {
+  user-select: text;
+  padding-left: 0.25rem;
+}
 
 /* GameList */
 .game-list {

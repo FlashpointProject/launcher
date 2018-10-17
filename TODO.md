@@ -14,9 +14,6 @@
   - Make using Wine for Flash optional (the linux projector is apparently notably buggy)
   - Find out other things that could run with Wine (?)
   - Wine respects the ``http_proxy`` environment variable just like the Flash projector for Linux
-* Add more fields to GameInfo / BrowseSidebar
-  - Publisher
-  - DateAdded (Date-time-stamp of when the game was added to the collection)
 * Add drop-down menus for filtering Genre(s) and Platform(s) next to the search-bar
   - The drop-down menus should have all Genres/Platforms listed
   - They should be "multi-select" so you can pick any number of them

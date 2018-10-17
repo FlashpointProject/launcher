@@ -14,6 +14,10 @@ export interface IGameInfo {
   series: string;
   /** Name of the developer(s) of the game (developer names are separated by ',') */
   developer: string;
+  /** Name of the publisher of the game */
+  publisher: string;
+  /** Date-time of when the game was added to collection */
+  dateAdded: number;
   /** Platform the game runs on (Flash, HTML5, Shockwave etc.) */
   platform: string;
   /** If the game is "broken" or not */
