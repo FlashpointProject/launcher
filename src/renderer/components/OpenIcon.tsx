@@ -4,12 +4,13 @@ export interface IIconProps {
   icon: OpenIconType;
   className?: string;
   useClassName?: string;
+  shapeRendering?: string|number;
 };
 
 /** A SVG Icon from the "Open Iconic" collection */
 export const OpenIcon = function(props: IIconProps) {
   return (
-    <svg viewBox='0 0 8 8' shapeRendering='crispEdges'
+    <svg viewBox='0 0 8 8' shapeRendering={props.shapeRendering}
          className={`icon icon--${props.icon} ${props.className||''}`}>
       <use xlinkHref={`svg/open-iconic.svg#${props.icon}`}
            className={`icon__use icon__use--${props.icon} ${props.useClassName||''}`} />

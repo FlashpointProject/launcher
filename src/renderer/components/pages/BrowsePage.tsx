@@ -4,7 +4,7 @@ import { ISearchOnSearchEvent } from '../Search';
 import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo, IAdditionalApplicationInfo, IGameSearchQuery } from '../../../shared/game/interfaces';
-import { lerp } from '../../Util';
+import { gameScaleSpan } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
@@ -75,7 +75,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           {(() => {
             if (this.props.gameLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-              const height: number = lerp(188, 691, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+              const height: number = calcScale(470, this.props.gameScale);
               const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid games={games}
@@ -90,7 +90,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           cellHeight={height}/>
               );
             } else {
-              const height: number = lerp(50, 225, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
+              const height: number = calcScale(137.5, this.props.gameScale);
               return (
                 <GameList games={games}
                           selectedGame={this.state.selectedGame}
@@ -272,4 +272,8 @@ function parseFilters(input: string): IGameSearchQuery {
         break;
     }
   }
+}
+
+function calcScale(defHeight: number, scale: number): number {
+  return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0
 }

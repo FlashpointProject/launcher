@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { IDefaultProps } from '../interfaces';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
+import { gameScaleSpan } from '../Util';
 
 export interface IFooterProps extends IDefaultProps {
   gameCount?: number;
@@ -24,7 +25,7 @@ export class Footer extends React.Component<IFooterProps, {}> {
   }
 
   render() {
-    let scale: number = Math.min(Math.max(0, this.props.scaleSliderValue), 1) * Footer.scaleSliderMax;
+    const scale = Math.min(Math.max(0, this.props.scaleSliderValue), 1);
     return (
       <div className='footer'>
         <div className='footer__wrap'>
@@ -39,6 +40,7 @@ export class Footer extends React.Component<IFooterProps, {}> {
         <div className='footer__wrap footer__right'>
           <div>
             <div className='footer__right__inner'>
+              {/* Layout Selector */}
               <div className='footer__wrap'>
                 <div>
                   <select className='footer__layout-selector simple-selector' value={stringifyBrowsePageLayout(this.props.layout)} onChange={this.onLayoutChange}>
@@ -47,11 +49,24 @@ export class Footer extends React.Component<IFooterProps, {}> {
                   </select>
                 </div>
               </div>
+              {/* Scale Slider */}
               <div className='footer__wrap footer__scale-slider'>
                 <div className='footer__scale-slider__inner'>
-                  <input className='footer__scale-slider__input simple-slider' type='range' onChange={this.onScaleSliderChange}
-                        min='0' max={Footer.scaleSliderMax} value={scale}/>
-                </div>     
+                  <div className='footer__scale-slider__icon footer__scale-slider__icon--left simple-center'>
+                    <div>-</div>
+                  </div>
+                  <div className='footer__scale-slider__icon footer__scale-slider__icon--center simple-center' />
+                  <div className='footer__scale-slider__icon footer__scale-slider__icon--right simple-center'>
+                    <div>+</div>
+                  </div>
+                  <input type='range' className='footer__scale-slider__input hidden-slider'
+                         value={scale * Footer.scaleSliderMax} min={0} max={Footer.scaleSliderMax}
+                         onChange={this.onScaleSliderChange} />
+                </div>
+              </div>
+              {/* Slider Percent */}
+              <div className='footer__wrap footer__scale-percent'>
+                <p>{Math.round(100 + (scale - 0.5) * 200 * gameScaleSpan)}%</p>
               </div>
             </div>
           </div>

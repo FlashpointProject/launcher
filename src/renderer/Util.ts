@@ -1,5 +1,8 @@
 import * as path from 'path';
 
+/** How much the maximum/minimum game scale will scale the games up/down */
+export const gameScaleSpan = 0.7;
+
 /**
  * Calls a defined callback function on each property of an object, and returns an array that contains the results.
  * Similar to Array#map but iterates over the properties of an object.
