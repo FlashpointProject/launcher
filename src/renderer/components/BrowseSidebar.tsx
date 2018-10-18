@@ -8,6 +8,7 @@ import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicati
 import { BrowseSidebarAddApp } from './BrowseSidebarAddApp';
 import { GameLauncher } from '../GameLauncher';
 import { GameManager } from '../game/GameManager';
+import { GameParser } from '../../shared/game/GameParser';
 
 export interface IBrowseSidebarProps {
   gameImages: GameImageCollection;
@@ -200,7 +201,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
             </div>
           ) : undefined }
           {/* -- Screenshot -- */}
-          {(game) ? (
+          {(this.props.gameImages && game) ? (
             <div className='browse-sidebar__section browse-sidebar__section--below-gap'>
               <div className='browse-sidebar__row browse-sidebar__row__spacer'/>
               <div className='browse-sidebar__row'>
@@ -239,19 +240,30 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   }
 
   private onSaveClick(): void {
+    // Overwrite the game and additional applications with the changes made
     if (this.props.selectedGame && this.state.editGame) {
-      // Save changes to the selected game and additional applications
-      // (@HACK This should probably be sent up the the app - which then does the override)
+      const gameId = this.state.editGame.id;
+      const platform = this.props.games.getPlatfromOfGameId(gameId);
+      if (!platform) { throw new Error('Platform not found?'); }
+      // Override the game
       GameInfo.override(this.props.selectedGame, this.state.editGame);
+      // Override the additional applications
       if (this.props.selectedAddApps) {
         if (!this.state.editAddApps) { throw new Error('Edit versions of the additional applications are missing?'); }
         for (let i = this.props.selectedAddApps.length - 1; i >= 0; i--) {
           AdditionalApplicationInfo.override(this.props.selectedAddApps[i], 
                                              this.state.editAddApps[i]);
         }
-        this.props.games.saveGame(this.state.editGame.id);
-        // @TODO Add a way to add newly created additional applications?
+        // @TODO Update raw additional applications
+        // @TODO Add a way to add newly created additional applications
       }
+      // Update raw game
+      const rawGame = platform.findRawGame(gameId);
+      if (!rawGame) { throw new Error('Raw game not found on platform the parsed game belongs to'); }
+      Object.assign(rawGame, GameParser.reverseParseGame(this.props.selectedGame));
+      // Save changes to file
+      platform.saveToFile();
+      // Update flag
       this.setState({ hasChanged: false });
     }
   }
