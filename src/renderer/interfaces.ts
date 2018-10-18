@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { IGameCollection } from '../shared/game/interfaces';
 import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
+import { GameManager } from './game/GameManager';
 
 /** "match" object from 'react-router' and 'history' npm packages */
 export interface IMatch {
@@ -25,14 +26,16 @@ export interface IDefaultProps {
  * (Replace this with something more thought out and maintainable once the project has more structure)
  */
 export interface ICentralState {
-  /** All games that can be browsed and launched */
-  collection?: IGameCollection;
+  /** All playlists */
+  games: GameManager;
   /** Lookup table for all games images filenames */
   gameImages: GameImageCollection;
   /** All playlists */
   playlists: GamePlaylistManager;
   /** If the game collection is done loading */
   gamesDoneLoading: boolean;
+  /** If the game collection failed to load */
+  gamesFailedLoading: boolean;
   /** If the playlist collection is done loading */
   playlistsDoneLoading: boolean;
   /** If the playlist failed to load */

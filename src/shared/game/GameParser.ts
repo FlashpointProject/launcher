@@ -60,6 +60,27 @@ export class GameParser {
       waitForExit: !!data.WaitForExit,
     };
   }
+
+  public static reverseParseGame(game: IGameInfo): IRawLaunchBoxGame {
+    return {
+      ID: escapeHTML(game.id),
+      Title: escapeHTML(game.title),
+      Series: escapeHTML(game.series),
+      Developer: escapeHTML(game.developer),
+      Publisher: escapeHTML(game.publisher),
+      Platform: escapeHTML(game.platform),
+      //DateAdded: formatDate(game.dateAdded),
+      Broken: !!game.broken,
+      Hide: !!game.extreme,
+      PlayMode: escapeHTML(game.playMode),
+      Status: escapeHTML(game.status),
+      Notes: escapeHTML(game.notes),
+      Genre: escapeHTML(game.genre),
+      Source: escapeHTML(game.source),
+      ApplicationPath: escapeHTML(game.applicationPath),
+      CommandLine: escapeHTML(game.launchCommand),
+    };
+  }
 }
 
 /** Generate a title suitable for ordering (only used for ordering and sorting, not visual) */
@@ -67,34 +88,68 @@ function generateOrderTitle(title: string): string {
   return title.toLowerCase();
 }
 
-// Unescape some HTML characters
+/** */
+function formatDate(date: number): string {
+
+  return '';
+}
+
+// Escape / Unescape some HTML characters
 // ( From: https://stackoverflow.com/questions/18749591/encode-html-entities-in-javascript/39243641#39243641 )
 // spell-checker: disable
-const htmlEntities: any = Object.freeze({
-  nbsp: ' ',
-  cent: '¢',
-  pound: '£',
-  yen: '¥',
-  euro: '€',
-  copy: '©',
-  reg: '®',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  amp: '&',
-  apos: '\''
-});
-function unescapeHTML(str?: string): string {
-  return (str+'').replace(/\&([^;]+);/g, function (entity: string, entityCode: string): string {
-    let match;
-    if (entityCode in htmlEntities) {
-      return htmlEntities[entityCode];
-    } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
-      return String.fromCharCode(parseInt(match[1], 16));
-    } else if (match = entityCode.match(/^#(\d+)$/)) {
-      return String.fromCharCode(~~match[1]);
-    } else {
-      return entity;
-    }
+const unescapeHTML = (function() {
+  const htmlEntities: any = Object.freeze({
+    nbsp: ' ',
+    cent: '¢',
+    pound: '£',
+    yen: '¥',
+    euro: '€',
+    copy: '©',
+    reg: '®',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    amp: '&',
+    apos: '\''
   });
-};
+  return function(str?: string): string {
+    return (str+'').replace(/\&([^;]+);/g, function (entity: string, entityCode: string): string {
+      let match;
+      if (entityCode in htmlEntities) {
+        return htmlEntities[entityCode];
+      } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
+        return String.fromCharCode(parseInt(match[1], 16));
+      } else if (match = entityCode.match(/^#(\d+)$/)) {
+        return String.fromCharCode(~~match[1]);
+      } else {
+        return entity;
+      }
+    });
+  };
+})();
+const escapeHTML = (function() {
+  const escapeChars = {
+    '¢' : 'cent',
+    '£' : 'pound',
+    '¥' : 'yen',
+    '€': 'euro',
+    '©' :'copy',
+    '®' : 'reg',
+    '<' : 'lt',
+    '>' : 'gt',
+    '"' : 'quot',
+    '&' : 'amp',
+    '\'' : '#39'
+  };
+  let regexString = '[';
+  for(let key in escapeChars) {
+    regexString += key;
+  }
+  regexString += ']';
+  const regex = new RegExp( regexString, 'g');
+  return function escapeHTML(str: string): string {
+    return str.replace(regex, function(m) {
+      return '&' + (escapeChars as any)[m] + ';';
+    });
+  };
+})();

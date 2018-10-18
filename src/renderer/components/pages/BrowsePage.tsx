@@ -65,8 +65,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const order = this.props.order || BrowsePage.defaultOrder;
     // Find additional applications for the selected game (if any)
     let selectedAddApps: IAdditionalApplicationInfo[]|undefined;
-    if (this.state.selectedGame && this.props.central.collection) {
-      selectedAddApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.collection, this.state.selectedGame.id);
+    if (this.state.selectedGame) {
+      selectedAddApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, this.state.selectedGame.id);
     }
     // Render
     return (
@@ -111,7 +111,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           (window.External.preferences.data.browsePageShowSidebar?'':' game-browser__right--hidden')}>
             <BrowseSidebar selectedGame={this.state.selectedGame} 
                            selectedAddApps={selectedAddApps}
-                           gameImages={this.props.central.gameImages}/>
+                           gameImages={this.props.central.gameImages}
+                           games={this.props.central.games} />
           </div>
         ) : undefined}
       </div>
@@ -121,24 +122,30 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private noRowsRenderer() {
     return (
       <div className='game-list__no-games'>
-        {this.props.central.gamesDoneLoading?(
+        {this.props.central.gamesDoneLoading ? (
           <>
             <h1 className='game-list__no-games__title'>No Games Found!</h1>
             <br/>
-            {(this.props.central.collection && this.props.central.collection.games.length > 0)?(
-              <>
-                No game title matched your search.<br/>
-                Try searching for something less restrictive.
-              </>
-            ):(
+            {(this.props.central.gamesFailedLoading) ? (
               <>
                 Have you set the path to the <b>Flashpoint path</b> at the <i>Config</i> page?<br/>
                 <br/>
                 Note: You have to press <b>"Save & Restart"</b> for the change to take effect.
               </>
+            ) : (
+              (this.props.central.games.collection.games.length > 0) ? (
+                <>
+                  No game title matched your search.<br/>
+                  Try searching for something less restrictive.
+                </>
+              ) : (
+                <>
+                  There are no games.
+                </>
+              )
             )}
           </>
-        ):(
+        ) : (
           <p>
             Loading Games...
           </p>
@@ -154,8 +161,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onGameLaunch(game: IGameInfo): void {
-    if (!this.props.central.collection) { throw new Error('Central Prop or Game Collection is missing. Can\'t launch game.'); }
-    const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.collection, game.id);
+    const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
     GameLauncher.launchGame(game, addApps);
   }
 
@@ -183,7 +189,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   /** Order the games according to the current settings */
   private orderGames(): IGameInfo[] {
     // -- Get the array of games --
-    let games = this.props.central.collection && this.props.central.collection.games;
+    let games = this.props.central.games.collection.games;
     if (!games) { return []; } // (No games found)
     games = games.slice(); // (Copy array)
     // -- Filter games --

@@ -4,17 +4,16 @@ import { AppRouter } from './router';
 import { Redirect } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { LaunchboxData } from './LaunchboxData';
 import { ISearchOnSearchEvent } from './components/Search';
 import { TitleBar } from './components/TitleBar';
 import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
-import { IGameCollection } from '../shared/game/interfaces';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
+import { GameManager } from './game/GameManager';
 
 export interface IAppProps {
   history?: any;
@@ -42,9 +41,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const config = window.External.config;
     this.state = {
       central: {
+        games: new GameManager(),
         gameImages: new GameImageCollection(config.fullFlashpointPath),
         playlists: new GamePlaylistManager(),
         gamesDoneLoading: false,
+        gamesFailedLoading: false,
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
@@ -98,24 +99,38 @@ export class App extends React.Component<IAppProps, IAppState> {
       });
     });
     // Fetch LaunchBox game data from the xml
-    LaunchboxData.fetchPlatformFilenames(config.fullFlashpointPath)
-    .then((platformFilenames: string[]) => {
+    this.state.central.games.findPlatforms()
+    .then((filenames) => {
       // Prepare images
-      const platforms: string[] = platformFilenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
+      const platforms: string[] = filenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
       this.state.central.gameImages.addPlatforms(platforms);
-      // Fetch games
-      LaunchboxData.fetchPlatforms(config.fullFlashpointPath, platformFilenames)
-      .then((collection: IGameCollection) => {
-        this.onDataLoaded(collection);
+      //
+      this.state.central.games.loadPlatforms()
+      .then(() => {
+        this.setState({
+          central: Object.assign({}, this.state.central, {
+            gamesDoneLoading: true,
+          })
+        });
       })
       .catch((error) => {
         console.error(error);
-        this.onDataLoaded();
+        this.setState({
+          central: Object.assign({}, this.state.central, {
+            gamesDoneLoading: true,
+            gamesFailedLoading: true,
+          })
+        });
       });
     })
     .catch((error) => {
       console.error(error);
-      this.onDataLoaded();
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          gamesDoneLoading: true,
+          gamesFailedLoading: true,
+        })
+      });
     });
   }
 
@@ -145,8 +160,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
-    if (this.state.central.collection && this.state.central.collection.games) {
-      gameCount = this.state.central.collection.games.length;
+    if (this.state.central.gamesDoneLoading) {
+      gameCount = this.state.central.games.collection.games.length;
     }
     // Props to set to the router
     const routerProps = {
@@ -184,17 +199,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                 onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout} />
       </>
     );
-  }
-
-  /** Called when the Game Info has been fetched */
-  private onDataLoaded(collection?: IGameCollection) {
-    // Set the state
-    this.setState({
-      central: Object.assign({}, this.state.central, {
-        collection: collection || { games: [], additionalApplications: [] },
-        gamesDoneLoading: true,
-      })
-    });
   }
 
   private onSearch(event: ISearchOnSearchEvent): void {

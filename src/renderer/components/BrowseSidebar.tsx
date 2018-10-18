@@ -7,9 +7,11 @@ import { GameInfo } from '../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { BrowseSidebarAddApp } from './BrowseSidebarAddApp';
 import { GameLauncher } from '../GameLauncher';
+import { GameManager } from '../game/GameManager';
 
 export interface IBrowseSidebarProps {
-  gameImages?: GameImageCollection;
+  gameImages: GameImageCollection;
+  games: GameManager;
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
   /** Additional Applications of the currently selected game (if any) */
@@ -198,7 +200,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
             </div>
           ) : undefined }
           {/* -- Screenshot -- */}
-          {(this.props.gameImages && game) ? (
+          {(game) ? (
             <div className='browse-sidebar__section browse-sidebar__section--below-gap'>
               <div className='browse-sidebar__row browse-sidebar__row__spacer'/>
               <div className='browse-sidebar__row'>
@@ -247,6 +249,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
           AdditionalApplicationInfo.override(this.props.selectedAddApps[i], 
                                              this.state.editAddApps[i]);
         }
+        this.props.games.saveGame(this.state.editGame.id);
         // @TODO Add a way to add newly created additional applications?
       }
       this.setState({ hasChanged: false });
