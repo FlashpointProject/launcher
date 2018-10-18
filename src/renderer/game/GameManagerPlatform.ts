@@ -24,8 +24,9 @@ export class GameManagerPlatform {
     // Save the platform to its file
     const flashpointPath = window.External.config.fullFlashpointPath;
     const parser = new fastXmlParser.j2xParser({
-      ignoreAttributes: true,
-      format: true,
+      ignoreAttributes: true,  // Attributes are never used, this might increase performance?
+      supressEmptyNode : true, // Empty tags are self closed ("<Tag />" instead of "<Tag></Tag>")
+      format: true,            // Breaks XML into multiple lines and indents it
     });
     await writeFile(
       path.join(flashpointPath, LaunchboxData.platformsPath, this.filename), 
