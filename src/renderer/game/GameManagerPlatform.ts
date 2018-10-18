@@ -25,6 +25,7 @@ export class GameManagerPlatform {
     const flashpointPath = window.External.config.fullFlashpointPath;
     const parser = new fastXmlParser.j2xParser({
       ignoreAttributes: true,
+      format: true,
     });
     await writeFile(
       path.join(flashpointPath, LaunchboxData.platformsPath, this.filename), 
