@@ -245,22 +245,27 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       const gameId = this.state.editGame.id;
       const platform = this.props.games.getPlatfromOfGameId(gameId);
       if (!platform) { throw new Error('Platform not found?'); }
-      // Override the game
+      // Update parsed game
       GameInfo.override(this.props.selectedGame, this.state.editGame);
-      // Override the additional applications
-      if (this.props.selectedAddApps) {
-        if (!this.state.editAddApps) { throw new Error('Edit versions of the additional applications are missing?'); }
-        for (let i = this.props.selectedAddApps.length - 1; i >= 0; i--) {
-          AdditionalApplicationInfo.override(this.props.selectedAddApps[i], 
-                                             this.state.editAddApps[i]);
-        }
-        // @TODO Update raw additional applications
-        // @TODO Add a way to add newly created additional applications
-      }
       // Update raw game
       const rawGame = platform.findRawGame(gameId);
       if (!rawGame) { throw new Error('Raw game not found on platform the parsed game belongs to'); }
       Object.assign(rawGame, GameParser.reverseParseGame(this.props.selectedGame));
+      // Override the additional applications
+      if (this.props.selectedAddApps) {
+        if (!this.state.editAddApps) { throw new Error('Edit versions of the additional applications are missing?'); }
+        for (let i = this.props.selectedAddApps.length - 1; i >= 0; i--) {
+          const addApp = this.props.selectedAddApps[i];
+          AdditionalApplicationInfo.override(this.props.selectedAddApps[i], 
+                                             this.state.editAddApps[i]);
+          // Update parsed add-app
+          const rawAddApp = platform.findRawAdditionalApplication(addApp.id);
+          // Update raw add-app
+          if (!rawAddApp) { throw new Error('Raw additional application not found on platform the parsed additional application belongs to'); }
+          Object.assign(rawAddApp, GameParser.reverseParseAdditionalApplication(addApp));
+        }
+        // @TODO Add a way to add newly created additional applications
+      }
       // Save changes to file
       platform.saveToFile();
       // Update flag

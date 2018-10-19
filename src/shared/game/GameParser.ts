@@ -81,6 +81,18 @@ export class GameParser {
       CommandLine: escapeHTML(game.launchCommand),
     };
   }
+
+  public static reverseParseAdditionalApplication(addapp: IAdditionalApplicationInfo): Partial<IRawLaunchBoxAdditionalApplication> {
+    return {
+      Id: escapeHTML(addapp.id),
+      GameID: escapeHTML(addapp.gameId),
+      ApplicationPath: escapeHTML(addapp.applicationPath),
+      AutoRunBefore: !!addapp.autoRunBefore,
+      CommandLine: escapeHTML(addapp.commandLine),
+      Name: escapeHTML(addapp.name),
+      WaitForExit: !!addapp.waitForExit,
+    };
+  }
 }
 
 /** Generate a title suitable for ordering (only used for ordering and sorting, not visual) */

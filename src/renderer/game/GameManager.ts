@@ -1,15 +1,8 @@
-import * as fs from 'fs';
 import * as path from 'path';
-import * as fastXmlParser from 'fast-xml-parser';
 import { LaunchboxData } from '../LaunchboxData';
-import { IRawLaunchBoxGame } from '../../shared/launchbox/interfaces';
-import { IGameInfo } from '../../shared/game/interfaces';
 import { GameParser } from '../../shared/game/GameParser';
 import { GameCollection } from '../../shared/game/GameCollection';
-import { promisify } from 'util';
 import { GameManagerPlatform } from './GameManagerPlatform';
-
-const writeFile = promisify(fs.writeFile);
 
 export class GameManager {
   /** All individual platforms */
@@ -49,6 +42,10 @@ export class GameManager {
     });
   }
 
+  /**
+   * Get the first platform that contains a game with the given id (if any)
+   * @param gameId ID of game
+   */
   public getPlatfromOfGameId(gameId: string): GameManagerPlatform|undefined {
     for (let i = this.platforms.length - 1; i >= 0; i--) {
       const platform = this.platforms[i];
@@ -56,6 +53,24 @@ export class GameManager {
         let games = platform.collection.games;
         for (let j = games.length - 1; j >= 0; j--) {
           if (games[j].id === gameId) {
+            return platform;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Get the first platform that contains an additional application with the given id (if any)
+   * @param addAppId ID of Additional Application
+   */
+  public getPlatfromOfAddAppId(addAppId: string): GameManagerPlatform|undefined {
+    for (let i = this.platforms.length - 1; i >= 0; i--) {
+      const platform = this.platforms[i];
+      if (platform.collection) {
+        let addApps = platform.collection.additionalApplications;
+        for (let j = addApps.length - 1; j >= 0; j--) {
+          if (addApps[j].id === addAppId) {
             return platform;
           }
         }

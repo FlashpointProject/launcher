@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as fastXmlParser from 'fast-xml-parser';
 import { promisify } from 'util';
-import { IRawLaunchBoxPlatformRoot, IRawLaunchBoxGame } from 'src/shared/launchbox/interfaces';
+import { IRawLaunchBoxPlatformRoot, IRawLaunchBoxGame, IRawLaunchBoxAdditionalApplication } from 'src/shared/launchbox/interfaces';
 import { IGameCollection, IGameInfo } from 'src/shared/game/interfaces';
 import { LaunchboxData } from '../LaunchboxData';
 
@@ -34,10 +34,18 @@ export class GameManagerPlatform {
     );
   }
 
+  /**
+   * Find the first parsed game with a given id (if any)
+   * @param gameId ID of game
+   */
   public findGame(gameId: string): IGameInfo|undefined {
     return this.collection && this.collection.games[this.indexOfGame(gameId)];
   }
 
+  /**
+   * Find the first raw game with a given id (if any)
+   * @param gameId ID of game
+   */
   public findRawGame(gameId: string): IRawLaunchBoxGame|undefined {
     if (this.data && this.data.LaunchBox && this.data.LaunchBox.Game) {
       let games = this.data.LaunchBox.Game;
@@ -45,6 +53,18 @@ export class GameManagerPlatform {
       for (let i = games.length - 1; i >= 0; i--) {
         if (games[i].ID === gameId) {
           return games[i];
+        }
+      }
+    }
+  }
+
+  public findRawAdditionalApplication(addAppId: string): IRawLaunchBoxAdditionalApplication|undefined {
+    if (this.data && this.data.LaunchBox && this.data.LaunchBox.AdditionalApplication) {
+      let addApps = this.data.LaunchBox.AdditionalApplication;
+      if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
+      for (let i = addApps.length - 1; i >= 0; i--) {
+        if (addApps[i].Id === addAppId) {
+          return addApps[i];
         }
       }
     }
