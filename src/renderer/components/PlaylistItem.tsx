@@ -285,9 +285,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
   }
 
   onDoubleClickGame(game: IGameInfo, index: number): void {
-    const collection = this.props.central.collection;
-    if (!collection) { throw new Error('"this.props.collection" not found in PlaylistItemGames. Can\'t start game.'); }
-    const addApps = GameCollection.findAdditionalApplicationsByGameId(collection, game.id);
+    const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
     GameLauncher.launchGame(game, addApps);
   }
 
@@ -295,9 +293,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
    * Get all games in the playlists from 
    */
   private getGames(): (IGameInfo|undefined)[] {
-    if (!this.props.central.collection) { return []; }
     const games: (IGameInfo|undefined)[] = [];
-    let collectionGames = this.props.central.collection.games;
+    let collectionGames = this.props.central.games.collection.games;
     let gameEntries = this.props.playlist.games;
     for (let i = 0; i < gameEntries.length; i++) {
       const game2 = gameEntries[i];

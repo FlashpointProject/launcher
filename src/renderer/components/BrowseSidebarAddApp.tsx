@@ -2,12 +2,15 @@ import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { EditableTextWrap } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
+import { OpenIcon } from './OpenIcon';
 
 export interface IBrowseSidebarAddAppProps {
   /** Additional Application to show and edit */
   addApp: IAdditionalApplicationInfo;
   /** Called when a field is edited */
   onEdit?: () => void;
+  /** Called when a field is edited */
+  onDelete?: (addApp: IAdditionalApplicationInfo) => void;
   /** Called when the launch button is clicked */
   onLaunch?: (addApp: IAdditionalApplicationInfo) => void;
   /** If the editing is disabled (it cant go into "edit mode") */
@@ -24,6 +27,7 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
   constructor(props: IBrowseSidebarAddAppProps) {
     super(props);
     this.onLaunchClick = this.onLaunchClick.bind(this);
+    this.onDeleteClick = this.onDeleteClick.bind(this);
   }
 
   render() {
@@ -57,6 +61,12 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
           <CheckBox className='browse-sidebar__row__check-box'
                     checked={addApp.waitForExit} onChange={this.onWaitForExitChange}/>
           <p> Wait for Exit</p>
+          { !editDisabled ? (
+            <div className='browse-sidebar__additional-application__delete-button'
+                onClick={this.onDeleteClick}>
+              <OpenIcon icon='trash' />
+            </div>            
+          ) : undefined}
         </div>
       </div>
     );
@@ -65,6 +75,12 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
   private onLaunchClick(): void {
     if (this.props.onLaunch) {
       this.props.onLaunch(this.props.addApp);
+    }
+  }
+
+  private onDeleteClick(): void {
+    if (this.props.onDelete) {
+      this.props.onDelete(this.props.addApp);
     }
   }
 

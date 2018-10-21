@@ -6,15 +6,15 @@ import * as fastXmlParser from 'fast-xml-parser';
 import { GameParser } from '../shared/game/GameParser';
 import { GameCollection } from '../shared/game/GameCollection';
 
-const platformsPath: string = './Data/Platforms';
-
 export class LaunchboxData {
+  public static platformsPath = './Data/Platforms';
+
   /**
    * Fetch the filenames of all platform XML files
    * @param flashpointPath Path to the root flashpoint folder
    */
   public static fetchPlatformFilenames(flashpointPath: string): Promise<string[]> {
-    const folderPath = path.posix.join(flashpointPath, platformsPath);
+    const folderPath = path.posix.join(flashpointPath, LaunchboxData.platformsPath);
     return new Promise((resolve, reject) => {
       // Get the names of all files and folders in the platforms folder
       fs.readdir(folderPath, (error: NodeJS.ErrnoException, files: string[]): void => {
@@ -51,7 +51,7 @@ export class LaunchboxData {
    */
   public static fetchPlatforms(flashpointPath: string, platforms: string[]): Promise<IGameCollection> {
     return new Promise((resolve, reject) => {
-      const folderPath: string = path.resolve(flashpointPath, platformsPath);
+      const folderPath: string = path.resolve(flashpointPath, LaunchboxData.platformsPath);
       const combinedCollection: GameCollection = new GameCollection();
       let done: number = 0;
       for (let i = 0; i < platforms.length; i++) {
@@ -104,6 +104,42 @@ export class LaunchboxData {
           const parsed = GameParser.parse(data);
           // Done
           resolve(parsed);
+        })
+        .catch(reject);
+      })
+      .catch(reject);
+    });
+  }
+
+  public static loadPlatform(source: string): Promise<IRawLaunchBoxPlatformRoot> {
+    return new Promise((resolve, reject) => {
+      fetch(source, {
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+        }
+      })
+      .then((response?: Response) => {
+        if (!response) {
+          reject(new Error('No response'));
+          return;
+        }
+        response.text()
+        .then((text: string) => {
+          // Parse XML text to objects
+          const data: IRawLaunchBoxPlatformRoot|undefined = fastXmlParser.parse(text, {
+            ignoreAttributes: true,
+            ignoreNameSpace: true,
+            parseNodeValue: true,
+            parseAttributeValue: false,
+            parseTrueNumberOnly: true,
+            // @TODO Look into which settings are most appropriate
+          });
+          if (!data) {
+            reject(new Error('Failed to parse XML'));
+            return;
+          }
+          // Done
+          resolve(data);
         })
         .catch(reject);
       })

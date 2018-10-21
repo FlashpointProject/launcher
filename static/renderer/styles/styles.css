@@ -675,12 +675,15 @@ body {
   flex-direction: column;
   flex: 1 0 auto;
 }
-/* BrowserSidebar  */
+/* BrowserSidebar Additional-Application */
 .browse-sidebar__additional-application {
   padding: 0.5rem;
 }
 .browse-sidebar__additional-application:nth-child(2n) {
   background-color: #141417;
+}
+.browse-sidebar__additional-application__delete-button {
+  float: right;
 }
 /* BrowserSidebar Row */
 .browse-sidebar__row {

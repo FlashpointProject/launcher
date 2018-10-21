@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as uuid from 'uuid/v4';
+import { uuid } from '../uuid';
 import { IGamePlaylist, IGamePlaylistEntry } from './interfaces';
 import { tryParseJSON } from '../../shared/Util';
 

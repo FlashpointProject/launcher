@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { uuid } from '../uuid';
 import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { EditableTextWrap } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
@@ -7,9 +8,13 @@ import { GameInfo } from '../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { BrowseSidebarAddApp } from './BrowseSidebarAddApp';
 import { GameLauncher } from '../GameLauncher';
+import { GameManager } from '../game/GameManager';
+import { GameParser } from '../../shared/game/GameParser';
+import { GameManagerPlatform } from '../game/GameManagerPlatform';
 
 export interface IBrowseSidebarProps {
-  gameImages?: GameImageCollection;
+  gameImages: GameImageCollection;
+  games: GameManager;
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
   /** Additional Applications of the currently selected game (if any) */
@@ -49,8 +54,10 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       editGame: undefined,
       editAddApps: undefined,
     };
+    this.onNewAddAppClick = this.onNewAddAppClick.bind(this);
     this.onSaveClick = this.onSaveClick.bind(this);
     this.onAddAppEdit = this.onAddAppEdit.bind(this);
+    this.onAddAppDelete = this.onAddAppDelete.bind(this);
   }
 
   componentDidMount(): void {
@@ -162,12 +169,13 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               <div className='browse-sidebar__row browse-sidebar__row--additional-applications-header'>
                 <p>Additional Applications:</p>
                 { !editDisabled ? (
-                  <input type="button" value="New" className="simple-button"/>
+                  <input type='button' value='New' className='simple-button' onClick={this.onNewAddAppClick} />
                 ) : undefined }
               </div>
               {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
                 return <BrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
-                                            onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}/>;
+                                            onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}
+                                            onDelete={this.onAddAppDelete} />;
               })}
             </div>
           ) : undefined }
@@ -229,6 +237,23 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     GameLauncher.launchAdditionalApplication(addApp);
   }
 
+  private onAddAppDelete(addApp: IAdditionalApplicationInfo): void {
+    const addApps = this.state.editAddApps;
+    if (!addApps) { throw new Error('editAddApps is missing.'); }
+    // Find and remove add-app
+    let index = -1;
+    for (let i = addApps.length - 1; i >= 0; i--) {
+      if (addApps[i].id === addApp.id) {
+        index = i;
+        break;
+      }
+    }
+    if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
+    addApps.splice(index, 1);
+    // Flag as changed
+    this.setState({ hasChanged: true });
+  }
+
   private updateEditGame(): void {
     this.setState({
       editGame: this.props.selectedGame && GameInfo.duplicate(this.props.selectedGame),
@@ -236,20 +261,113 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     });
   }
 
+  private onNewAddAppClick(): void {
+    if (!this.state.editAddApps) { throw new Error('???'); }
+    if (!this.state.editGame) { throw new Error('???'); }
+    const newAddApp = AdditionalApplicationInfo.create();
+    newAddApp.id = uuid();
+    newAddApp.gameId = this.state.editGame.id;
+    this.state.editAddApps.push(newAddApp);
+    this.setState({ hasChanged: true });
+  }
+
   private onSaveClick(): void {
+    console.time('save');
+    // Overwrite the game and additional applications with the changes made
     if (this.props.selectedGame && this.state.editGame) {
-      // Save changes to the selected game and additional applications
-      // (@HACK This should probably be sent up the the app - which then does the override)
+      const gameId = this.state.editGame.id;
+      const platform = this.props.games.getPlatfromOfGameId(gameId);
+      if (!platform) { throw new Error('Platform not found.'); }
+      // Update parsed game
       GameInfo.override(this.props.selectedGame, this.state.editGame);
-      if (this.props.selectedAddApps) {
-        if (!this.state.editAddApps) { throw new Error('Edit versions of the additional applications are missing?'); }
-        for (let i = this.props.selectedAddApps.length - 1; i >= 0; i--) {
-          AdditionalApplicationInfo.override(this.props.selectedAddApps[i], 
-                                             this.state.editAddApps[i]);
-        }
-        // @TODO Add a way to add newly created additional applications?
-      }
+      // Update raw game
+      const rawGame = platform.findRawGame(gameId);
+      if (!rawGame) { throw new Error('Raw game not found on platform the parsed game belongs to'); }
+      Object.assign(rawGame, GameParser.reverseParseGame(this.props.selectedGame));
+      // Override the additional applications
+      updateAddApps.call(this, platform);
+      // Refresh games collection
+      this.props.games.refreshCollection();
+      // Save changes to file
+      platform.saveToFile();
+      // Update flag
       this.setState({ hasChanged: false });
+    }
+    // -- Functions --
+    function updateAddApps(this: BrowseSidebar, platform: GameManagerPlatform) {
+      if (!platform.collection) { throw new Error('Platform not has no collection.'); }
+      // 1. Save the changes made to add-apps
+      // 2. Save any new add-apps
+      // 3. Delete any removed add-apps
+      const selectedApps = this.props.selectedAddApps;
+      const editApps = this.state.editAddApps;
+      if (!editApps) { throw new Error('editAddApps is missing'); }
+      if (!selectedApps) { throw new Error('selectedAddApps is missing'); }
+      // -- Categorize add-apps --
+      // Put all new add-apps in an array
+      const newAddApps: IAdditionalApplicationInfo[] = [];
+      for (let i = editApps.length - 1; i >= 0; i--) {
+        const editApp = editApps[i];
+        let found = false;
+        for (let j = selectedApps.length - 1; j >= 0; j--) {
+          const selApp = selectedApps[j];
+          if (editApp.id === selApp.id) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) { newAddApps.push(editApp); }
+      }
+      // Put all changed add-apps in an array
+      const changedAddApps: IAdditionalApplicationInfo[] = [];
+      for (let i = editApps.length - 1; i >= 0; i--) {
+        const editApp = editApps[i];
+        for (let j = selectedApps.length - 1; j >= 0; j--) {
+          const selApp = selectedApps[j];
+          if (editApp.id === selApp.id) {
+            changedAddApps.push(editApp);
+            break;
+          }
+        }
+      }
+      // Put all removes add-apps in an array
+      const removedAddApps: IAdditionalApplicationInfo[] = [];
+      for (let i = selectedApps.length - 1; i >= 0; i--) {
+        const selApp = selectedApps[i];
+        let found = false;
+        for (let j = editApps.length - 1; j >= 0; j--) {
+          const editApp = editApps[j];
+          if (editApp.id === selApp.id) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) { removedAddApps.push(selApp); }
+      }
+      // -- Update --
+      // Delete removed add-apps
+      for (let i = removedAddApps.length - 1; i >= 0; i--) {
+        const addApp = removedAddApps[i];
+        platform.removeAdditionalApplication(addApp.id);
+      }
+      // Update changed add-apps
+      for (let i = changedAddApps.length - 1; i >= 0; i--) {
+        const addApp = changedAddApps[i];
+        const oldAddApp = platform.collection.findAdditionalApplication(addApp.id);
+        if (!oldAddApp) { throw new Error('???'); }
+        const rawAddApp = platform.findRawAdditionalApplication(addApp.id);
+        if (!rawAddApp) { throw new Error('???'); }
+        Object.assign(oldAddApp, addApp);
+        Object.assign(rawAddApp, GameParser.reverseParseAdditionalApplication(oldAddApp));
+      }
+      // Add new add-apps
+      for (let i = newAddApps.length - 1; i >= 0; i--) {
+        const addApp = newAddApps[i];
+        platform.addAdditionalApplication(addApp);
+        const newRawAddApp = Object.assign({}, GameParser.emptyRawAdditionalApplication, 
+                                           GameParser.reverseParseAdditionalApplication(addApp));
+        platform.addRawAdditionalApplication(newRawAddApp);
+      }
     }
   }
   
