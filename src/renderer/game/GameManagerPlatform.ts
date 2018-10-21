@@ -55,10 +55,10 @@ export class GameManagerPlatform {
 
   public removeAdditionalApplication(addAppId: string): void {
     if (!this.collection) { return; }
-    const index = this.collection.indexOfGame(addAppId);
+    const index = this.collection.indexOfAdditionalApplication(addAppId);
     if (index >= 0) {
       this.collection.additionalApplications.splice(index, 1);
-    }
+    } else { console.error(`Failed to remove parsed add-app from platform because it wasnt found (${addAppId})`); }
     const rawIndex = this.indexOfRawAdditionalApplication(addAppId);
     if (rawIndex >= 0) {
       if (this.data && this.data.LaunchBox && this.data.LaunchBox.AdditionalApplication) {
@@ -69,7 +69,7 @@ export class GameManagerPlatform {
           this.data.LaunchBox.AdditionalApplication = undefined;
         }
       }
-    }
+    } else { console.error(`Failed to remove raw add-app from platform because it wasnt found (${addAppId})`); }
   }
 
   /**

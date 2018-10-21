@@ -57,6 +57,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     this.onNewAddAppClick = this.onNewAddAppClick.bind(this);
     this.onSaveClick = this.onSaveClick.bind(this);
     this.onAddAppEdit = this.onAddAppEdit.bind(this);
+    this.onAddAppDelete = this.onAddAppDelete.bind(this);
   }
 
   componentDidMount(): void {
@@ -173,7 +174,8 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               </div>
               {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
                 return <BrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
-                                            onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}/>;
+                                            onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}
+                                            onDelete={this.onAddAppDelete} />;
               })}
             </div>
           ) : undefined }
@@ -233,6 +235,23 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
 
   private onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
     GameLauncher.launchAdditionalApplication(addApp);
+  }
+
+  private onAddAppDelete(addApp: IAdditionalApplicationInfo): void {
+    const addApps = this.state.editAddApps;
+    if (!addApps) { throw new Error('editAddApps is missing.'); }
+    // Find and remove add-app
+    let index = -1;
+    for (let i = addApps.length - 1; i >= 0; i--) {
+      if (addApps[i].id === addApp.id) {
+        index = i;
+        break;
+      }
+    }
+    if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
+    addApps.splice(index, 1);
+    // Flag as changed
+    this.setState({ hasChanged: true });
   }
 
   private updateEditGame(): void {
@@ -326,7 +345,6 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
         if (!found) { removedAddApps.push(selApp); }
       }
       // -- Update --
-      const games = this.props.games;
       // Delete removed add-apps
       for (let i = removedAddApps.length - 1; i >= 0; i--) {
         const addApp = removedAddApps[i];
