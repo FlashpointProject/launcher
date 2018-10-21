@@ -2,6 +2,18 @@ import { IAdditionalApplicationInfo } from './interfaces';
 import { shallowStrictEquals } from '../Util';
 
 export class AdditionalApplicationInfo {
+  public static create(): IAdditionalApplicationInfo {
+    return {
+      id: '',
+      gameId: '',
+      applicationPath: '',
+      autoRunBefore: false,
+      commandLine: '',
+      name: '',
+      waitForExit: false,
+    };
+  }
+
   /**
    * Override the properties of an additional application info object with those of another
    * @param target Object to override property values of

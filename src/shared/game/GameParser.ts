@@ -93,6 +93,27 @@ export class GameParser {
       WaitForExit: !!addapp.waitForExit,
     };
   }
+
+  public static readonly emptyRawAdditionalApplication: IRawLaunchBoxAdditionalApplication = {
+    ApplicationPath: '',
+    AutoRunAfter: false,
+    AutoRunBefore: false,
+    CommandLine: '',
+    Developer: '',
+    GameID: '',
+    Id: '',
+    Name: '',
+    PlayCount: 0,
+    Priority: 0,
+    Region: '',
+    SideA: false,
+    SideB: false,
+    Status: false,
+    UseDosBox: false,
+    UseEmulator: false,
+    Version: '',
+    WaitForExit: false,
+  };
 }
 
 /** Generate a title suitable for ordering (only used for ordering and sorting, not visual) */

@@ -3,8 +3,9 @@ import * as path from 'path';
 import * as fastXmlParser from 'fast-xml-parser';
 import { promisify } from 'util';
 import { IRawLaunchBoxPlatformRoot, IRawLaunchBoxGame, IRawLaunchBoxAdditionalApplication } from 'src/shared/launchbox/interfaces';
-import { IGameCollection, IGameInfo } from 'src/shared/game/interfaces';
+import { IAdditionalApplicationInfo } from 'src/shared/game/interfaces';
 import { LaunchboxData } from '../LaunchboxData';
+import { GameCollection } from 'src/shared/game/GameCollection';
 
 const writeFile = promisify(fs.writeFile);
 
@@ -14,7 +15,7 @@ export class GameManagerPlatform {
   /** Raw data object (object tree representation of the xml document) */
   public data?: IRawLaunchBoxPlatformRoot;
   /** Parsed object of the data */
-  public collection?: IGameCollection;
+  public collection?: GameCollection;
 
   constructor(filename: string) {
     this.filename = filename;
@@ -32,14 +33,43 @@ export class GameManagerPlatform {
       path.join(flashpointPath, LaunchboxData.platformsPath, this.filename), 
       parser.parse(this.data),
     );
+    console.timeEnd('save');
   }
 
-  /**
-   * Find the first parsed game with a given id (if any)
-   * @param gameId ID of game
-   */
-  public findGame(gameId: string): IGameInfo|undefined {
-    return this.collection && this.collection.games[this.indexOfGame(gameId)];
+  public addAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
+    if (!this.collection) { throw new Error('Cant add additional application because collection is missing.'); }
+    this.collection.additionalApplications.push(addApp);
+  }
+
+  public addRawAdditionalApplication(rawAddApp: IRawLaunchBoxAdditionalApplication): void {
+    if (!this.data || !this.data.LaunchBox || !this.data.LaunchBox.AdditionalApplication) {
+      throw new Error('Cant add raw additional application because raw launchbox data structure is missing or broken.');
+    }
+    let addApps = this.data.LaunchBox.AdditionalApplication;
+    if (Array.isArray(addApps)) {
+      addApps.push(rawAddApp);
+    } else {
+      this.data.LaunchBox.AdditionalApplication = rawAddApp;
+    }
+  }
+
+  public removeAdditionalApplication(addAppId: string): void {
+    if (!this.collection) { return; }
+    const index = this.collection.indexOfGame(addAppId);
+    if (index >= 0) {
+      this.collection.additionalApplications.splice(index, 1);
+    }
+    const rawIndex = this.indexOfRawAdditionalApplication(addAppId);
+    if (rawIndex >= 0) {
+      if (this.data && this.data.LaunchBox && this.data.LaunchBox.AdditionalApplication) {
+        let addApps = this.data.LaunchBox.AdditionalApplication;
+        if (Array.isArray(addApps)) {
+          addApps.splice(rawIndex, 1);
+        } else {
+          this.data.LaunchBox.AdditionalApplication = undefined;
+        }
+      }
+    }
   }
 
   /**
@@ -70,11 +100,12 @@ export class GameManagerPlatform {
     }
   }
   
-  public indexOfGame(gameId: string): number {
-    if (this.collection) {
-      let games = this.collection.games;
+  public indexOfRawGame(gameId: string): number {
+    if (this.data && this.data.LaunchBox && this.data.LaunchBox.Game) {
+      let games = this.data.LaunchBox.Game;
+      if (!Array.isArray(games)) { games = [ games ]; }
       for (let i = games.length - 1; i >= 0; i--) {
-        if (games[i].id === gameId) {
+        if (games[i].ID === gameId) {
           return i;
         }
       }
@@ -82,12 +113,12 @@ export class GameManagerPlatform {
     return -1;
   }
   
-  public indexOfRawGame(gameId: string): number {
-    if (this.data && this.data.LaunchBox && this.data.LaunchBox.Game) {
-      let games = this.data.LaunchBox.Game;
-      if (!Array.isArray(games)) { games = [ games ]; }
-      for (let i = games.length - 1; i >= 0; i--) {
-        if (games[i].ID === gameId) {
+  public indexOfRawAdditionalApplication(addAppId: string): number {
+    if (this.data && this.data.LaunchBox && this.data.LaunchBox.AdditionalApplication) {
+      let addApps = this.data.LaunchBox.AdditionalApplication;
+      if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
+      for (let i = addApps.length - 1; i >= 0; i--) {
+        if (addApps[i].Id === addAppId) {
           return i;
         }
       }

@@ -30,7 +30,7 @@ export class GameManager {
         LaunchboxData.loadPlatform(path.join(flashpointPath, LaunchboxData.platformsPath, platform.filename))
         .then((data) => {
           platform.data = data;
-          platform.collection = GameParser.parse(data);
+          platform.collection = new GameCollection().push(GameParser.parse(data));
           this.collection.push(platform.collection);
           done++;
           if (done === this.platforms.length) {
@@ -74,6 +74,16 @@ export class GameManager {
             return platform;
           }
         }
+      }
+    }
+  }
+
+  public refreshCollection(): void {
+    this.collection.clear();
+    for (let i = this.platforms.length - 1; i >= 0; i--) {
+      let col = this.platforms[i].collection;
+      if (col) {
+        this.collection.push(col);
       }
     }
   }
