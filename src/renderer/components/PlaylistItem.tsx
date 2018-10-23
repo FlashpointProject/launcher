@@ -10,6 +10,7 @@ import { GameGridItem } from './GameGridItem';
 import { GameCollection } from '../../shared/game/GameCollection';
 import { GameLauncher } from '../GameLauncher';
 import { OpenIcon } from './OpenIcon';
+import { GameParser } from '../../shared/game/GameParser';
 
 export interface IPlaylistItemProps {
   playlist: IGamePlaylist;
@@ -53,6 +54,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.onEditClick = this.onEditClick.bind(this);
     this.onDeleteClick = this.onDeleteClick.bind(this);
     this.onSaveClick = this.onSaveClick.bind(this);
+    this.onAddGameDone = this.onAddGameDone.bind(this);
     this.onDoubleClickGame = this.onDoubleClickGame.bind(this);
   }
 
@@ -76,9 +78,9 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.width = (this.height * 0.666) | 0;
     //
     const gameInfos = this.getGames();
-    const gameEntries = this.props.playlist.games;
     // Normal rendering stuff
     const playlist = this.state.editPlaylist || this.props.playlist;
+    const gameEntries = playlist.games;
     const expanded = !!this.props.expanded;
     const editing = !!this.props.editing;
     let className = 'playlist-list-item';
@@ -102,7 +104,6 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
               </div>
             </div>
           )}
-
           <div className='playlist-list-item__head__title'>
             <EditableTextWrap editDisabled={!editing}
                               text={playlist.title} placeholder={'No Title'}
@@ -152,25 +153,25 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
             {/* Games */}
             <div className='playlist-list-item__games' ref={this._wrapper}>
               {gameEntries.map((gameEntry, index) => this.renderGame(gameEntry, gameInfos[index], index))}
-              {/* editing ? ( // "Add Game" button
+              { editing ? ( // "Add Game" button
                 <div className='playlist-list-item__games__game'>
-                  <div className='playlist-list-item__games__show-all'>
-                    <div className='playlist-list-item__games__show-all__inner'>
-                      <div className='playlist-list-item__games__show-all__inner__box'>
-                        <p className='playlist-list-item__games__show-all__text'>
-                          Add Game
-                        </p>
+                  <div className='playlist-list-item__games__fake-game'>
+                    <div className='playlist-list-item__games__fake-game__inner'>
+                      <div className='playlist-list-item__games__fake-game__inner__box'>
+                        <div className='playlist-list-item__games__fake-game__input'>
+                          <EditableTextWrap text='' placeholder='Add Game' onEditDone={this.onAddGameDone} />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                ) : undefined */}
+                ) : undefined }
               {/* (!editing && (gameEntries.length > 0)) ? ( // "Show All" button
                 <div className='playlist-list-item__games__game'>
-                <div className='playlist-list-item__games__show-all'>
-                  <div className='playlist-list-item__games__show-all__inner'>
-                    <div className='playlist-list-item__games__show-all__inner__box'>
-                      <p className='playlist-list-item__games__show-all__text'>
+                <div className='playlist-list-item__games__fake-game'>
+                  <div className='playlist-list-item__games__fake-game__inner'>
+                    <div className='playlist-list-item__games__fake-game__inner__box'>
+                      <p className='playlist-list-item__games__fake-game__text'>
                         Show All
                       </p>
                     </div>
@@ -202,7 +203,11 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
             index={index}
             onDoubleClick={this.onDoubleClickGame} />
         ) : (
-          <>No game with that ID was found.</>
+          <GameGridItem 
+            game={notFoundGame}
+            thumbnail={'test'} 
+            isSelected={false}
+            index={index} />
         ) }
       </div>
     );
@@ -273,6 +278,19 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
+  private onAddGameDone(text: string) {
+    if (!this.state.editPlaylist) { throw new Error('editPlaylist is missing.'); }
+    const platform = this.props.central.games.getPlatfromOfGameId(text);
+    if (!platform || !platform.collection) { throw new Error('No game with that ID was found.'); }
+    const game = platform.collection.findGame(text);
+    if (!game) { throw new Error('Game was found but then it wasnt found. What?'); }
+    this.state.editPlaylist.games.push({ 
+      id: game.id, 
+      notes: ''
+    });
+    this.setState({ hasChanged: true });
+  }
+
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
   private wrapOnEditDone(func: (edit: IGamePlaylist, text: string) => void): (text: string) => void {
     return (text: string) => {
@@ -294,8 +312,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
    */
   private getGames(): (IGameInfo|undefined)[] {
     const games: (IGameInfo|undefined)[] = [];
-    let collectionGames = this.props.central.games.collection.games;
-    let gameEntries = this.props.playlist.games;
+    const collectionGames = this.props.central.games.collection.games;
+    const gameEntries = (this.state.editPlaylist || this.props.playlist).games;
     for (let i = 0; i < gameEntries.length; i++) {
       const game2 = gameEntries[i];
       for (let j = collectionGames.length-1; j >= 0; j--) {
@@ -329,3 +347,10 @@ function toDataURL(url: string) {
     reader.readAsDataURL(blob);
   }))          
 }
+
+// "Game" used for displaying games that are not found
+const notFoundGame: IGameInfo = Object.assign(
+  GameParser.parseGame({}), {
+    title: 'Game not found',
+  }
+);

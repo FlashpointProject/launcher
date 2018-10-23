@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fastXmlParser from 'fast-xml-parser';
 import { promisify } from 'util';
 import { IRawLaunchBoxPlatformRoot, IRawLaunchBoxGame, IRawLaunchBoxAdditionalApplication } from 'src/shared/launchbox/interfaces';
-import { IAdditionalApplicationInfo } from 'src/shared/game/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo } from 'src/shared/game/interfaces';
 import { LaunchboxData } from '../LaunchboxData';
 import { GameCollection } from 'src/shared/game/GameCollection';
 
@@ -122,7 +122,7 @@ export class GameManagerPlatform {
       }
     } else { console.error(`Failed to remove raw add-app from platform because it wasnt found (${addAppId})`); }
   }
-
+  
   /**
    * Find the first raw game with a given id (if any)
    * @param gameId ID of game

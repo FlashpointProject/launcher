@@ -26,7 +26,7 @@ export class GameParser {
     return collection;
   }
 
-  private static parseGame(data: IRawLaunchBoxGame): IGameInfo {
+  public static parseGame(data: Partial<IRawLaunchBoxGame>): IGameInfo {
     const title: string = unescapeHTML(data.Title);
     return {
       id: unescapeHTML(data.ID),
