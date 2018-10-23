@@ -34,40 +34,49 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
     const { addApp, editDisabled } = this.props;
     return (
       <div className='browse-sidebar__additional-application'>
+        {/* Title & Launch Button */}
         <div className='browse-sidebar__row browse-sidebar__row--additional-applications-name'>
           <EditableTextWrap target={addApp} editDisabled={editDisabled}
                             text={addApp.name} onEditDone={this.onNameEditDone}
                             textProps={{title: addApp.name}}/>
           <input type="button" className="simple-button" value="Launch" onClick={this.onLaunchClick}/>
         </div>
-        <div className='browse-sidebar__row browse-sidebar__row--one-line'>
-          <p>Application Path: </p>
-          <EditableTextWrap target={addApp} editDisabled={editDisabled}
-                            text={addApp.applicationPath} onEditDone={this.onApplicationPathEditDone}
-                            textProps={{title: addApp.applicationPath}}/>
-        </div>
-        <div className='browse-sidebar__row browse-sidebar__row--one-line'>
-          <p>Command Line: </p>
-          <EditableTextWrap target={addApp} editDisabled={editDisabled}
-                            text={addApp.commandLine} onEditDone={this.onCommandLineEditDone}
-                            textProps={{title: addApp.commandLine}}/>
-        </div>
-        <div className='browse-sidebar__row'>
-          <CheckBox className='browse-sidebar__row__check-box'
-                    checked={addApp.autoRunBefore} onChange={this.onAutoRunBeforeChange}/>
-          <p> Auto Run Before</p>
-        </div>
-        <div className='browse-sidebar__row'>
-          <CheckBox className='browse-sidebar__row__check-box'
-                    checked={addApp.waitForExit} onChange={this.onWaitForExitChange}/>
-          <p> Wait for Exit</p>
-          { !editDisabled ? (
-            <div className='browse-sidebar__additional-application__delete-button'
-                onClick={this.onDeleteClick}>
-              <OpenIcon icon='trash' />
-            </div>            
-          ) : undefined}
-        </div>
+        { editDisabled ? undefined : (
+          <>
+            {/* Application Path */}
+            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+              <p>Application Path: </p>
+              <EditableTextWrap target={addApp} editDisabled={editDisabled}
+                                text={addApp.applicationPath} onEditDone={this.onApplicationPathEditDone}
+                                textProps={{title: addApp.applicationPath}}/>
+            </div>
+            {/* Command Line */}
+            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+              <p>Command Line: </p>
+              <EditableTextWrap target={addApp} editDisabled={editDisabled}
+                                text={addApp.commandLine} onEditDone={this.onCommandLineEditDone}
+                                textProps={{title: addApp.commandLine}}/>
+            </div>
+            {/* Auto Run Before */}
+            <div className='browse-sidebar__row'>
+              <CheckBox className='browse-sidebar__row__check-box'
+                        checked={addApp.autoRunBefore} onChange={this.onAutoRunBeforeChange}/>
+              <p> Auto Run Before</p>
+            </div>
+            {/* Wait for Exit */}
+            <div className='browse-sidebar__row'>
+              <CheckBox className='browse-sidebar__row__check-box'
+                        checked={addApp.waitForExit} onChange={this.onWaitForExitChange}/>
+              <p> Wait for Exit</p>
+              { !editDisabled ? (
+                <div className='browse-sidebar__additional-application__delete-button'
+                    onClick={this.onDeleteClick}>
+                  <OpenIcon icon='trash' />
+                </div>            
+              ) : undefined}
+            </div>
+          </>
+        ) }
       </div>
     );
   }
