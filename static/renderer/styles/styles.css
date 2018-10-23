@@ -1125,7 +1125,7 @@ body {
   margin-left: 0.3rem;
 }
 .playlist-list-item__games {
-  display: block;
+  display: inline-block;
 }
 .playlist-list-item__games__game {
   display: inline-block;
@@ -1164,6 +1164,7 @@ body {
   user-select: none;
 }
 .playlist-list-item__games__fake-game__input {
+  display: inline-block;
   font-weight: bold;
   user-select: none;
 }
