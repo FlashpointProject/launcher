@@ -44,6 +44,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onGameSelect = this.onGameSelect.bind(this);
     this.onGameLaunch = this.onGameLaunch.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
+    this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
   }
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
@@ -112,7 +113,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             <BrowseSidebar selectedGame={this.state.selectedGame} 
                            selectedAddApps={selectedAddApps}
                            gameImages={this.props.central.gameImages}
-                           games={this.props.central.games} />
+                           games={this.props.central.games}
+                           onDeleteSelectedGame={this.onDeleteSelectedGame} />
           </div>
         ) : undefined}
       </div>
@@ -184,6 +186,10 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       this._prevQuickSearchUpdate = now;
       return timedOut;
     }
+  }
+
+  private onDeleteSelectedGame(): void {
+    this.setState({ selectedGame: undefined });
   }
 
   /** Order the games according to the current settings */

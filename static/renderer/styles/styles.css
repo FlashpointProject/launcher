@@ -698,46 +698,75 @@ body {
 .browse-sidebar--edit-enabled {
   user-select: none; /* Can not select text while editing is enabled */
 }
-.browse-sidebar__row--title {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 0;
-}
 .browse-sidebar__row--one-line {
   display: flex;
 }
-.browse-sidebar__row--one-line :first-child {
+.browse-sidebar__row--one-line > :first-child {
   flex: 0 0 auto;
   white-space: pre;
 }
-.browse-sidebar__row--one-line :last-child {
+.browse-sidebar__row--one-line > :last-child {
   flex: 1 1 auto;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
-.browse-sidebar__row--additional-applications-header :not(:first-child) {
+.browse-sidebar__row--additional-applications-header > :not(:first-child) {
   float: right;
 }
 .browse-sidebar__row--additional-applications-name {
   display: flex;
 }
-.browse-sidebar__row--additional-applications-name :first-child {
+.browse-sidebar__row--additional-applications-name > :first-child {
   flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: bold;
 }
-.browse-sidebar__row--additional-applications-name :last-child {
+.browse-sidebar__row--additional-applications-name > :last-child {
   flex: 0 0 auto;
 }
 .browse-sidebar__row--save {
   background-color: #09090a;
   padding: 0.5rem;
 }
-.browse-sidebar__row--save :last-child {
+.browse-sidebar__row--save > :last-child {
   float: right;
+}
+/* BrowseSidebar Title-Row */
+.browse-sidebar__title-row {
+  display: flex;
+  margin-bottom: 0;
+}
+.browse-sidebar__title-row__title {
+  display: flex;
+  flex: 1 1 auto;
+  font-size: 1.2rem;
+  font-weight: bold;
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.browse-sidebar__title-row__title > * {
+  flex: 1 1 auto;
+}
+.browse-sidebar__title-row__buttons {
+  flex: 0 0 auto;
+}
+.browse-sidebar__title-row__buttons__remove {
+  height: 0.9rem;
+  width: 0.9rem;
+}
+.browse-sidebar__title-row__buttons__remove .icon__use {
+  fill: var(--theme__text-color);
+}
+.browse-sidebar__title-row__buttons__remove:hover .icon__use {
+  fill: #b1b1b1;
+}
+.browse-sidebar__title-row__buttons__remove--active .icon__use,
+.browse-sidebar__title-row__buttons__remove--active:hover .icon__use {
+  fill: #8a1212;
 }
 /* BrowserSidebar Row - Sub Elements */
 .browse-sidebar__row .browse-sidebar__row__editable-text {

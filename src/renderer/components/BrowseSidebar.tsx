@@ -11,6 +11,8 @@ import { GameLauncher } from '../GameLauncher';
 import { GameManager } from '../game/GameManager';
 import { GameParser } from '../../shared/game/GameParser';
 import { GameManagerPlatform } from '../game/GameManagerPlatform';
+import { OpenIcon } from './OpenIcon';
+import { ConfirmElement } from './ConfirmElement';
 
 export interface IBrowseSidebarProps {
   gameImages: GameImageCollection;
@@ -19,6 +21,8 @@ export interface IBrowseSidebarProps {
   selectedGame?: IGameInfo;
   /** Additional Applications of the currently selected game (if any) */
   selectedAddApps?: IAdditionalApplicationInfo[];
+  /** Called when the selected game is deleted by this */
+  onDeleteSelectedGame?: () => void;
 }
 
 export interface IBrowseSidebarState {
@@ -58,6 +62,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     this.onSaveClick = this.onSaveClick.bind(this);
     this.onAddAppEdit = this.onAddAppEdit.bind(this);
     this.onAddAppDelete = this.onAddAppDelete.bind(this);
+    this.onDeleteGameClick = this.onDeleteGameClick.bind(this);
   }
 
   componentDidMount(): void {
@@ -81,10 +86,30 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
         <div className={'browse-sidebar simple-scroll'+(!editDisabled?' browse-sidebar--edit-enabled':'')}>
           {/* -- Title & Developer(s) -- */}
           <div className='browse-sidebar__section'>
-            <div className='browse-sidebar__row browse-sidebar__row--title browse-sidebar__row--one-line'>
-              <EditableTextWrap target={game} editDisabled={editDisabled}
-                                text={game.title} onEditDone={this.onTitleEditDone}
-                                textProps={{title: game.title}}/>
+            <div className='browse-sidebar__row'>
+              <div className='browse-sidebar__title-row'>
+                <div className='browse-sidebar__title-row__title'>
+                  <EditableTextWrap target={game} editDisabled={editDisabled}
+                                    text={game.title} onEditDone={this.onTitleEditDone}
+                                    textProps={{title: game.title}}/>    
+                </div>
+                <div className='browse-sidebar__title-row__buttons'>
+                  { editDisabled ? undefined : (
+                    <ConfirmElement onConfirm={this.onDeleteGameClick}>
+                      {({ activate, activationCounter, reset }) => {
+                        return (
+                          <div className={'browse-sidebar__title-row__buttons__remove'+
+                                          ((activationCounter>0)?' browse-sidebar__title-row__buttons__remove--active simple-vertical-shake':'')}
+                               title='Delete game'
+                               onClick={activate} onMouseLeave={reset}>
+                            <OpenIcon icon='trash' />
+                          </div>
+                        );
+                      }}
+                    </ConfirmElement>                    
+                  ) }
+                </div>
+              </div>
             </div>
             <div className='browse-sidebar__row browse-sidebar__row--one-line'>
               <p>by </p>
@@ -233,6 +258,28 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     }
   }
 
+  private onDeleteGameClick(): void {
+    console.time('delete');
+    const game = this.props.selectedGame;
+    if (!game) { throw new Error('Can not delete a game when no game is selected.'); }
+    const platform = this.props.games.getPlatfromOfGameId(game.id);
+    if (!platform) { throw new Error('Can not delete a game when it does not belong to a platform.'); }
+    platform.removeGame(game.id);
+    platform.findAdditionalApplicationsOfGame(game.id).forEach(
+      (addApp) => { platform.removeAdditionalApplication(addApp.id); }
+    );
+    // Refresh games collection
+    this.props.games.refreshCollection();
+    // Save changes to file
+    platform.saveToFile().then(() => { console.timeEnd('delete'); });
+    // Update flag
+    this.setState({ hasChanged: false });
+    // Callback
+    if (this.props.onDeleteSelectedGame) {
+      this.props.onDeleteSelectedGame();
+    }
+  }
+
   private onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
     GameLauncher.launchAdditionalApplication(addApp);
   }
@@ -289,7 +336,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       // Refresh games collection
       this.props.games.refreshCollection();
       // Save changes to file
-      platform.saveToFile();
+      platform.saveToFile().then(() => { console.timeEnd('save'); });
       // Update flag
       this.setState({ hasChanged: false });
     }

@@ -5,13 +5,15 @@ export interface IIconProps {
   className?: string;
   useClassName?: string;
   shapeRendering?: string|number;
+  props?: React.HTMLAttributes<SVGElement>;
 };
 
 /** A SVG Icon from the "Open Iconic" collection */
 export const OpenIcon = function(props: IIconProps) {
   return (
     <svg viewBox='0 0 8 8' shapeRendering={props.shapeRendering}
-         className={`icon icon--${props.icon} ${props.className||''}`}>
+         className={`icon icon--${props.icon} ${props.className||''}`}
+         {...props.props}>
       <use xlinkHref={`svg/open-iconic.svg#${props.icon}`}
            className={`icon__use icon__use--${props.icon} ${props.useClassName||''}`} />
     </svg>
