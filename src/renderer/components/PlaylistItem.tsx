@@ -16,6 +16,7 @@ export interface IPlaylistItemProps {
   playlist: IGamePlaylist;
   expanded?: boolean;
   editing?: boolean;
+  editingDisabled?: boolean;
   central: ICentralState;
   gameScale: number;
   onHeadClick?: (playlist: IGamePlaylist) => void;
@@ -82,7 +83,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     const playlist = this.state.editPlaylist || this.props.playlist;
     const gameEntries = playlist.games;
     const expanded = !!this.props.expanded;
-    const editing = !!this.props.editing;
+    const editingDisabled = !!this.props.editingDisabled;
+    const editing = !editingDisabled && !!this.props.editing;
     let className = 'playlist-list-item';
     if (expanded) { className += ' playlist-list-item--expanded' }
     if (editing)  { className += ' playlist-list-item--editing' }
@@ -121,35 +123,37 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
         {/* Content */}
         <div className='playlist-list-item__content' ref={this.contentRef} style={{maxHeight}}>
           <div className='playlist-list-item__content__inner'>
-            <div style={{ display: 'block' }}>
-              <p className='playlist-list-item__content__id'>(ID: {playlist.id})</p>
-              <div className='playlist-list-item__content__buttons'>
-                {/* Save Button */}
-                { editing ? (
-                  <input type='button' value='Save' className='simple-button'
-                         title='Save changes made and stop editing'
-                         onClick={this.onSaveClick} disabled={!this.state.hasChanged} />
-                ) : undefined }
-                {/* Edit / Discard Button */}
-                { editing ? (
-                  <ConfirmButton props={{ value: 'Discard', title: 'Discard the changes made and stop editing',
-                                          className: 'simple-button', }}
-                                 confirm={{ value: 'Are you sure?',
+            { editingDisabled ? undefined : (
+              <div style={{ display: 'block' }}>
+                <p className='playlist-list-item__content__id'>(ID: {playlist.id})</p>
+                <div className='playlist-list-item__content__buttons'>
+                  {/* Save Button */}
+                  { editing ? (
+                    <input type='button' value='Save' className='simple-button'
+                          title='Save changes made and stop editing'
+                          onClick={this.onSaveClick} disabled={!this.state.hasChanged} />
+                  ) : undefined }
+                  {/* Edit / Discard Button */}
+                  { editing ? (
+                    <ConfirmButton props={{ value: 'Discard', title: 'Discard the changes made and stop editing',
+                                            className: 'simple-button', }}
+                                  confirm={{ value: 'Are you sure?',
+                                              className: 'simple-button simple-button--red simple-vertical-shake', }}
+                                  skipConfirm={!this.state.hasChanged}
+                                  onConfirm={this.onEditClick} />
+                  ) : (
+                    <input type='button' value='Edit' className='simple-button'
+                          title='Start editing this playlist'
+                          onClick={this.onEditClick} />
+                  ) }
+                  {/* Delete Button */}
+                  <ConfirmButton props={{ value: 'Delete', title: 'Delete this playlist', className: 'simple-button', }}
+                                confirm={{ value: 'Are you sure?',
                                             className: 'simple-button simple-button--red simple-vertical-shake', }}
-                                 skipConfirm={!this.state.hasChanged}
-                                 onConfirm={this.onEditClick} />
-                ) : (
-                  <input type='button' value='Edit' className='simple-button'
-                         title='Start editing this playlist'
-                         onClick={this.onEditClick} />
-                ) }
-                {/* Delete Button */}
-                <ConfirmButton props={{ value: 'Delete', title: 'Delete this playlist', className: 'simple-button', }}
-                               confirm={{ value: 'Are you sure?',
-                                          className: 'simple-button simple-button--red simple-vertical-shake', }}
-                               onConfirm={this.onDeleteClick} />
-              </div>
-            </div>
+                                onConfirm={this.onDeleteClick} />
+                </div>
+              </div>              
+            ) }
             {/* Games */}
             <div className='playlist-list-item__games' ref={this._wrapper}>
               {gameEntries.map((gameEntry, index) => this.renderGame(gameEntry, gameInfos[index], index))}

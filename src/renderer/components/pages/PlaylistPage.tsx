@@ -33,6 +33,8 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
   render() {
     const central = this.props.central;
     const anySelected = (this.state.expandedPlaylistID !== '');
+    const playlists = this.props.central.playlists.playlists.slice().sort((a, b) => a.title.localeCompare(b.title));
+    const editingDisabled = window.External.config.data.disableEditing;
     return (
       <div className='playlist-page simple-scroll'>
         <div className='playlist-page__inner'>
@@ -40,11 +42,12 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
             !central.playlistsFailedLoading ? (
               <div className='playlist-list'>
                 {/* List all playlists */}
-                {this.props.central.playlists.playlists.map((playlist) => {
+                {playlists.map((playlist) => {
                   return (
                     <PlaylistItem key={playlist.id} 
                                   playlist={playlist}
                                   expanded={anySelected && playlist.id === this.state.expandedPlaylistID}
+                                  editingDisabled={editingDisabled}
                                   editing={playlist.id === this.state.editingPlaylistID}
                                   central={this.props.central}
                                   gameScale={this.props.gameScale}
@@ -55,14 +58,16 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
                   );
                 })}
                 {/* Create New Playlist */}
-                <div className='playlist-list__create-playlist' onClick={this.onCreatePlaylistClick}>
-                  <div className='playlist-list__create-playlist__inner'>
-                    <OpenIcon icon='plus' />
-                  </div>
-                  <div className='playlist-list__create-playlist__inner'>
-                    <p className='playlist-list__create-playlist__inner__title'>New Playlist</p>
-                  </div>
-                </div>
+                { editingDisabled ? undefined : (
+                  <div className='playlist-list__create-playlist' onClick={this.onCreatePlaylistClick}>
+                    <div className='playlist-list__create-playlist__inner'>
+                      <OpenIcon icon='plus' />
+                    </div>
+                    <div className='playlist-list__create-playlist__inner'>
+                      <p className='playlist-list__create-playlist__inner__title'>New Playlist</p>
+                    </div>
+                  </div>                  
+                ) }
               </div>
             ) : ( // Failed to load
               <div className='playlist-page__message'>
@@ -108,7 +113,6 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
   }
 
   private onPlaylistItemSaveClick(playlist: IGamePlaylist, edit: IGamePlaylist): void {
-    console.log('save me', playlist);
     // Overwrite the playlist with the new one
     const arr = this.props.central.playlists.playlists;
     arr.splice(arr.indexOf(playlist), 1, edit);
