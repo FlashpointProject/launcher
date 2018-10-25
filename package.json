@@ -8,8 +8,10 @@
     "watch": "gulp watch",
     "pack:linux": "cross-env PACK_PLATFORM=linux PACK_ARCH=x64  gulp pack",
     "pack:win32": "cross-env PACK_PLATFORM=win32 PACK_ARCH=ia32 gulp pack",
+    "pack:all": "cross-env PACK_PLATFORM=all PACK_ARCH=all gulp pack",
     "release:linux": "cross-env-shell NODE_ENV=production \"gulp build && npm run pack:linux\"",
     "release:win32": "cross-env-shell NODE_ENV=production \"gulp build && npm run pack:win32\"",
+    "release:all": "cross-env-shell NODE_ENV=production \"gulp build && npm run pack:all\"",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "start": "electron ./build/main/index.js"
   },
