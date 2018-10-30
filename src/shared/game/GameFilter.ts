@@ -72,12 +72,18 @@ export function filterExtreme(games: IGameInfo[], showExtreme: boolean): IGameIn
 export function filterSearch(games: IGameInfo[], search: IGameSearchQuery): IGameInfo[] {
   const filteredGames: Array<IGameInfo|undefined> = games.slice();
   if (search.text) {
-    const title = search.text;
+    const text = search.text;
     for (let i = filteredGames.length - 1; i >= 0; i--) {
       const game = filteredGames[i];
-      if (game && game.title.toLowerCase().indexOf(title) === -1) {
-        filteredGames[i] = undefined;
+      if (game) {
+        if (game.title.toLowerCase().indexOf(text)     === -1 &&
+            game.developer.toLowerCase().indexOf(text) === -1 &&
+            game.publisher.toLowerCase().indexOf(text) === -1 &&
+            game.series.toLowerCase().indexOf(text)    === -1) {
+          filteredGames[i] = undefined;
+        }
       }
+
     }
   }
   if (search.developers) {
