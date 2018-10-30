@@ -196,7 +196,6 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     } else {
       let className = 'playlist-list-item__content__description-text';
       if (o.text === '') { className += ' playlist-list-item__content__description-text--empty'; }
-      if (o.editing) { className += ' playlist-list-item__content__description-text--edit'; }
       return (
         <p onClick={o.startEdit}
            className={className}>

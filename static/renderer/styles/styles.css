@@ -1157,9 +1157,6 @@ body {
   font-style: italic;
   color: #868686;
 }
-.playlist-list-item__content__description-text--edit {
-  cursor: pointer;
-}
 .playlist-list-item__content__buttons {
   float: right;
 }
