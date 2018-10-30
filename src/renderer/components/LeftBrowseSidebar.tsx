@@ -70,13 +70,13 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
                 ) }
               </div>
             ) : ( // Failed to load
-              <div className='playlist-page__message'>
+              <div className='playlist-list__message'>
                 <h2>Failed to load playlist folder.</h2>
                 <p>Check the log for more information.</p>
               </div>
             )
           ) : ( // Loading
-            <div className='playlist-page__message'>
+            <div className='playlist-list__message'>
               <p>Loading Playlists...</p>
             </div>
           ) }

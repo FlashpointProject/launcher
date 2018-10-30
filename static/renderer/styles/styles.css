@@ -1004,11 +1004,11 @@ body {
   min-width: 30em;
   overflow: visible;
 }
-.playlist-page__message {
+.playlist-list__message {
   padding: 1rem;
   text-align: center;
 }
-.playlist-page__message h2 {
+.playlist-list__message h2 {
   margin-bottom: 0.2rem;
 }
 .playlist-list__create-playlist {
