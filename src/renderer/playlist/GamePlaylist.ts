@@ -87,41 +87,6 @@ export function saveGamePlaylist(filePath: string, playlist: IGamePlaylist): Pro
 }
 
 /**
- * Recursively go through a folder and all of its sub-folders, and call back for each files encountered
- * @param dirPath Root folder to start recursive loop in
- * @param fileCallback Called for each file
- */
-async function recursiveDirectory(dirPath: string, fileCallback: (dirPath: string, filename: string) => Promise<void>|void): Promise<void> {
-  return new Promise<void>(async function(resolve, reject) {
-    fs.readdir(dirPath, function (err, files): void {
-      if (err) { reject(err); }
-      else {
-        let filesOrFoldersLeft: number = files.length;
-        for (let i = files.length - 1; i >= 0; i--) {
-          const filename = files[i];
-          const filePath = path.join(dirPath, filename);
-          fs.stat(filePath, async function(err, stats) {
-            if (err) { reject(err); }
-            else {
-              if (stats.isFile()) {
-                const p = fileCallback(dirPath, filename);
-                if (p) { await p; }
-              } else {
-                await recursiveDirectory(filePath, fileCallback).catch(reject);
-              }
-            }
-            filesOrFoldersLeft -= 1;
-            if (filesOrFoldersLeft === 0) {
-              resolve();
-            }
-          });
-        }
-      }
-    });
-  });
-}
-
-/**
  * Get the path of the Playlist folder from a Flashpoint folder
  * (If no flashpoint folder is given, the Flashpoint path from the config will be used)
  */

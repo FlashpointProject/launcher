@@ -1,16 +1,14 @@
 import * as React from 'react';
-import { IGamePlaylist, IGamePlaylistEntry } from '../playlist/interfaces';
-import { EditableTextWrap } from './EditableTextWrap';
+import { IGamePlaylist } from '../playlist/interfaces';
 import { deepCopy } from '../../shared/Util';
 import { ConfirmButton } from './ConfirmButton';
 import { ICentralState } from '../interfaces';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { lerp } from '../Util';
-import { GameGridItem } from './GameGridItem';
 import { GameCollection } from '../../shared/game/GameCollection';
 import { GameLauncher } from '../GameLauncher';
 import { OpenIcon } from './OpenIcon';
 import { GameParser } from '../../shared/game/GameParser';
+import { EditableTextElement, IEditableTextElementArgs } from './EditableTextElement';
 
 export interface IPlaylistItemProps {
   playlist: IGamePlaylist;
@@ -18,7 +16,6 @@ export interface IPlaylistItemProps {
   editing?: boolean;
   editingDisabled?: boolean;
   central: ICentralState;
-  gameScale: number;
   onHeadClick?: (playlist: IGamePlaylist) => void;
   onEditClick?: (playlist: IGamePlaylist) => void;
   onDeleteClick?: (playlist: IGamePlaylist) => void;
@@ -38,8 +35,12 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
   private onAuthorEditDone       = this.wrapOnEditDone((edit, text) => { edit.author = text; });
   private onDescriptionEditDone  = this.wrapOnEditDone((edit, text) => { edit.description = text; });
   //
+  private renderTitle  = this.wrapRenderEditableText('No Title', 'Title...');
+  private renderAuthor = this.wrapRenderEditableText('No Author', 'Author...');
+  //
   private contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   private contentHeight: number = 0;
+  private updateContentHeightInterval: number = -1;
   //
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
   private width: number = 0;
@@ -57,36 +58,38 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.onSaveClick = this.onSaveClick.bind(this);
     this.onAddGameDone = this.onAddGameDone.bind(this);
     this.onDoubleClickGame = this.onDoubleClickGame.bind(this);
+    this.renderDescription = this.renderDescription.bind(this);
   }
 
   componentDidMount() {
     this.updateContentHeight();
     this.updateEdit();
     this.updateCssVars();
+    this.updateContentHeightInterval = window.setInterval(() => {
+      if (this.props.editing) {
+        if (this.updateContentHeight()) { this.forceUpdate(); }
+      }
+    }, 150);
   }
 
   componentDidUpdate(prevProps: IPlaylistItemProps, prevState: IPlaylistItemState) {
+    this.updateContentHeight();
     this.updateEdit();
     this.updateCssVars();
   }
 
+  componentWillUnmount() {
+    window.clearInterval(this.updateContentHeightInterval);
+  }
+
   render() {
-    this.updateContentHeight();
-    // Calculate height and width
-    const min = 188 * 0.785;
-    const max = 691 * 0.5;
-    this.height = lerp(min, max, this.props.gameScale) | 0; // ("x|0" is the same as Math.floor(x))
-    this.width = (this.height * 0.666) | 0;
-    //
-    const gameInfos = this.getGames();
     // Normal rendering stuff
     const playlist = this.state.editPlaylist || this.props.playlist;
-    const gameEntries = playlist.games;
     const expanded = !!this.props.expanded;
     const editingDisabled = !!this.props.editingDisabled;
     const editing = !editingDisabled && !!this.props.editing;
     let className = 'playlist-list-item';
-    if (expanded) { className += ' playlist-list-item--expanded' }
+    if (expanded) { className += ' playlist-list-item--selected' }
     if (editing)  { className += ' playlist-list-item--editing' }
     const maxHeight = this.props.expanded && this.contentHeight || undefined;
     return (
@@ -106,125 +109,113 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
               </div>
             </div>
           )}
-          <div className='playlist-list-item__head__title'>
-            <EditableTextWrap editDisabled={!editing}
-                              text={playlist.title} placeholder={'No Title'}
-                              onEditDone={this.onTitleEditDone} />
+          <div className='playlist-list-item__head__title simple-center'>
+            <EditableTextElement text={playlist.title} onEditConfirm={this.onTitleEditDone}
+                                 confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
+                                 children={this.renderTitle} />
           </div>
-          <div className='playlist-list-item__head__divider'>
-            <p>by</p>
+          <div className='playlist-list-item__head__divider simple-center'>
+            <p className='simple-center__inner'>by</p>
           </div>
-          <div className='playlist-list-item__head__author'>
-            <EditableTextWrap editDisabled={!editing}
-                              text={playlist.author} placeholder={'No Author'}
-                              onEditDone={this.onAuthorEditDone} />
+          <div className='playlist-list-item__head__author simple-center'>
+            <EditableTextElement text={playlist.author} onEditConfirm={this.onAuthorEditDone}
+                                 confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
+                                 children={this.renderAuthor} />
           </div>
         </div>
         {/* Content */}
-        <div className='playlist-list-item__content' ref={this.contentRef} style={{maxHeight}}>
+        <div className='playlist-list-item__content' ref={this.contentRef}
+             style={{ maxHeight }}>
           <div className='playlist-list-item__content__inner'>
             { editingDisabled ? undefined : (
-              <div style={{ display: 'block' }}>
+              <div className='playlist-list-item__content__edit'>
                 <p className='playlist-list-item__content__id'>(ID: {playlist.id})</p>
                 <div className='playlist-list-item__content__buttons'>
                   {/* Save Button */}
                   { editing ? (
                     <input type='button' value='Save' className='simple-button'
-                          title='Save changes made and stop editing'
-                          onClick={this.onSaveClick} disabled={!this.state.hasChanged} />
+                           title='Save changes made and stop editing'
+                           onClick={this.onSaveClick} disabled={!this.state.hasChanged} />
                   ) : undefined }
                   {/* Edit / Discard Button */}
                   { editing ? (
                     <ConfirmButton props={{ value: 'Discard', title: 'Discard the changes made and stop editing',
                                             className: 'simple-button', }}
-                                  confirm={{ value: 'Are you sure?',
+                                   confirm={{ value: 'Are you sure?',
                                               className: 'simple-button simple-button--red simple-vertical-shake', }}
-                                  skipConfirm={!this.state.hasChanged}
-                                  onConfirm={this.onEditClick} />
+                                   skipConfirm={!this.state.hasChanged}
+                                   onConfirm={this.onEditClick} />
                   ) : (
                     <input type='button' value='Edit' className='simple-button'
-                          title='Start editing this playlist'
-                          onClick={this.onEditClick} />
+                           title='Start editing this playlist'
+                           onClick={this.onEditClick} />
                   ) }
                   {/* Delete Button */}
                   <ConfirmButton props={{ value: 'Delete', title: 'Delete this playlist', className: 'simple-button', }}
-                                confirm={{ value: 'Are you sure?',
+                                 confirm={{ value: 'Are you sure?',
                                             className: 'simple-button simple-button--red simple-vertical-shake', }}
-                                onConfirm={this.onDeleteClick} />
-                </div>
-              </div>              
-            ) }
-            {/* Games */}
-            <div className='playlist-list-item__games' ref={this._wrapper}>
-              {gameEntries.map((gameEntry, index) => this.renderGame(gameEntry, gameInfos[index], index))}
-              { editing ? ( // "Add Game" button
-                <div className='playlist-list-item__games__game'>
-                  <div className='playlist-list-item__games__fake-game'>
-                    <div className='playlist-list-item__games__fake-game__inner'>
-                      <div className='playlist-list-item__games__fake-game__inner__box'>
-                        <div className='playlist-list-item__games__fake-game__input'>
-                          <EditableTextWrap text='' placeholder='Add Game' onEditDone={this.onAddGameDone} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                ) : undefined }
-              {/* (!editing && (gameEntries.length > 0)) ? ( // "Show All" button
-                <div className='playlist-list-item__games__game'>
-                <div className='playlist-list-item__games__fake-game'>
-                  <div className='playlist-list-item__games__fake-game__inner'>
-                    <div className='playlist-list-item__games__fake-game__inner__box'>
-                      <p className='playlist-list-item__games__fake-game__text'>
-                        Show All
-                      </p>
-                    </div>
-                  </div>
+                                 onConfirm={this.onDeleteClick} />
                 </div>
               </div>
-              ) : undefined */}
-            </div>
+            ) }
             {/* Description */}
-            <p>Description:</p>
-            <EditableTextWrap editDisabled={!editing}
-                              text={playlist.description} placeholder={'No description'}
-                              isMultiline={true}
-                              onEditDone={this.onDescriptionEditDone} />
+            <EditableTextElement text={playlist.description} onEditConfirm={this.onDescriptionEditDone}
+                                 confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
+                                 children={this.renderDescription} />
           </div>
         </div>
       </div>
     );
   }
 
-  private renderGame(gameEntry: IGamePlaylistEntry, gameInfo: IGameInfo|undefined, index: number): JSX.Element {
-    return (
-      <div className='playlist-list-item__games__game' key={index} title={gameEntry.notes}>
-        { gameInfo ? (
-          <GameGridItem 
-            game={gameInfo}
-            thumbnail={this.props.central.gameImages.getThumbnailPath(gameInfo.title, gameInfo.platform)||''} 
-            isSelected={false}
-            index={index}
-            onDoubleClick={this.onDoubleClickGame} />
-        ) : (
-          <GameGridItem 
-            game={notFoundGame}
-            thumbnail={'test'} 
-            isSelected={false}
-            index={index} />
-        ) }
-      </div>
-    );
+  private wrapRenderEditableText(placeholderText: string, placeholderEdit: string) {
+    return (o: IEditableTextElementArgs) => {
+      if (o.editing) {
+        return (
+        <input value={o.text} placeholder={placeholderEdit}
+               onChange={o.onInputChange} onKeyDown={o.onInputKeyDown} 
+               className='simple-vertical-inner' />
+        );
+      } else {
+        return (
+          <p onClick={o.startEdit} className='simple-vertical-inner'>
+            {o.text || placeholderText}
+          </p>
+        );
+      }
+    };
   }
-
-  private updateContentHeight() {
-    if (this.contentRef.current) {
-      this.contentHeight = this.contentRef.current.scrollHeight;
+  
+  private renderDescription(o: IEditableTextElementArgs) {
+    if (o.editing) {
+      return (
+        <textarea value={o.text} placeholder='Enter a description here...'
+                  onChange={o.onInputChange} onKeyDown={o.onInputKeyDown}
+                  className='simple-vertical-inner playlist-list-item__content__description-edit' />
+      );
+    } else {
+      let className = 'playlist-list-item__content__description-text';
+      if (o.text === '') { className += ' playlist-list-item__content__description-text--empty'; }
+      return (
+        <p onClick={o.startEdit}
+           className={className}>
+          {o.text || '< No Description >'}
+        </p>
+      );
     }
   }
 
+  private updateContentHeight(): boolean {
+    if (this.contentRef.current) {
+      const oldHeight = this.contentHeight;
+      this.contentHeight = this.contentRef.current.scrollHeight;
+      if (this.contentHeight !== oldHeight) { return true; }
+    }
+    return false;
+  }
+
   private updateEdit() {
-    if (this.props.editing) {
+    if (this.props.editing && !this.props.editingDisabled) {
       if (!this.state.editPlaylist) {
         this.setState({ editPlaylist: deepCopy(this.props.playlist) });
       }
@@ -358,3 +349,6 @@ const notFoundGame: IGameInfo = Object.assign(
     title: 'Game not found',
   }
 );
+
+const confirmKeys: string[] = ['Enter'];
+const cancelKeys:  string[] = ['Escape'];

@@ -61,7 +61,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
-    this.onToggleSidebarClick = this.onToggleSidebarClick.bind(this);
+    this.onToggleLeftSidebarClick = this.onToggleLeftSidebarClick.bind(this);
+    this.onToggleRightSidebarClick = this.onToggleRightSidebarClick.bind(this);
     // Initialize app
     this.init();
   }
@@ -182,8 +183,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
         ) : undefined }
         {/* "Header" stuff */}
-        <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange} 
-                onToggleSidebarClick={this.onToggleSidebarClick} />
+        <Header onSearch={this.onSearch} onOrderChange={this.onOrderChange}
+                onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+                onToggleRightSidebarClick={this.onToggleRightSidebarClick} />
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter {...routerProps} />
@@ -228,9 +230,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     window.External.preferences.data.browsePageLayout = value;
   }
 
-  private onToggleSidebarClick(): void {
+  private onToggleLeftSidebarClick(): void {
     const pref = window.External.preferences.data;
-    pref.browsePageShowSidebar = !pref.browsePageShowSidebar;
+    pref.browsePageShowLeftSidebar = !pref.browsePageShowLeftSidebar;
+    this.forceUpdate();
+  }
+
+  private onToggleRightSidebarClick(): void {
+    const pref = window.External.preferences.data;
+    pref.browsePageShowRightSidebar = !pref.browsePageShowRightSidebar;
     this.forceUpdate();
   }
 }

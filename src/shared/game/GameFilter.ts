@@ -1,5 +1,6 @@
 import { IGameInfo, IGameSearchQuery } from './interfaces';
 import { IGameOrderChangeEvent } from '../../renderer/components/GameOrder';
+import { IGamePlaylist } from 'src/renderer/playlist/interfaces';
 
 export type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
 
@@ -45,7 +46,7 @@ export function getOrderFunction(order: IGameOrderChangeEvent): OrderFn {
 }
 
 /** Return a new array with all broken games removed (if showBroken is false) */
-export function filterBroken(games: IGameInfo[], showBroken: boolean): IGameInfo[] {
+export function filterBroken(showBroken: boolean, games: IGameInfo[]): IGameInfo[] {
   if (showBroken) { return games; }
   const filteredGames: IGameInfo[] = [];
   for (let game of games) {
@@ -57,7 +58,7 @@ export function filterBroken(games: IGameInfo[], showBroken: boolean): IGameInfo
 }
 
 /** Return a new array with all extreme games removed (if showExtreme is false) */
-export function filterExtreme(games: IGameInfo[], showExtreme: boolean): IGameInfo[] {
+export function filterExtreme(showExtreme: boolean, games: IGameInfo[]): IGameInfo[] {
   if (showExtreme) { return games; }
   const filteredGames: IGameInfo[] = [];
   for (let game of games) {
@@ -68,8 +69,24 @@ export function filterExtreme(games: IGameInfo[], showExtreme: boolean): IGameIn
   return filteredGames;
 }
 
+/** Return a new array with all games that are not in the playlist removed (if playlist isnt undefined) */
+export function filterPlaylist(playlist: IGamePlaylist|undefined, games: IGameInfo[]): IGameInfo[] {
+  if (!playlist) { return games; }
+  const filteredGames: IGameInfo[] = [];
+  for (let gameEntry of playlist.games) {
+    const id = gameEntry.id;
+    for (let game of games) {
+      if (game.id === id) {
+        filteredGames.push(game);
+        break;
+      }
+    }
+  }
+  return filteredGames;
+}
+
 /** Return a new array with all games that doesn't match the search removed (if there is a search) */
-export function filterSearch(games: IGameInfo[], search: IGameSearchQuery): IGameInfo[] {
+export function filterSearch(search: IGameSearchQuery, games: IGameInfo[]): IGameInfo[] {
   const filteredGames: Array<IGameInfo|undefined> = games.slice();
   if (search.text) {
     const text = search.text;
