@@ -8,11 +8,11 @@ import { gameScaleSpan } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
-import { filterSearch, filterExtreme, getOrderFunction, filterBroken } from '../../../shared/game/GameFilter';
+import { filterSearch, filterExtreme, getOrderFunction, filterBroken, filterPlaylist } from '../../../shared/game/GameFilter';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { GameLauncher } from '../../GameLauncher';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
-import { IGamePlaylist } from 'src/renderer/playlist/interfaces';
+import { IGamePlaylist, IGamePlaylistEntry } from 'src/renderer/playlist/interfaces';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central: ICentralState;
@@ -70,18 +70,30 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   render() {
     const games: IGameInfo[] = this.orderGames();
     const order = this.props.order || BrowsePage.defaultOrder;
+    const selectedGame = this.state.selectedGame;
     const selectedPlaylist = this.state.selectedPlaylist;
+    const anyGames: boolean = (this.props.central.games.collection.games.length > 0);
+    // Find the selected game in the selected playlist (if both are seleceted)
+    let gamePlaylistEntry: IGamePlaylistEntry|undefined;
+    if (selectedPlaylist && selectedGame) {
+      for (let gameEntry of selectedPlaylist.games) {
+        if (gameEntry.id === selectedGame.id) {
+          gamePlaylistEntry = gameEntry;
+          break;
+        }
+      }
+    }
     // Find additional applications for the selected game (if any)
     let selectedAddApps: IAdditionalApplicationInfo[]|undefined;
-    if (this.state.selectedGame) {
-      selectedAddApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, this.state.selectedGame.id);
+    if (selectedGame) {
+      selectedAddApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, selectedGame.id);
     }
     // Render
     return (
       <div className='game-browser'>
-        {(games.length > 0) ? (
+        {anyGames ? (
           <div className={'game-browser__left simple-scroll'+
-                          (this.state.selectedGame?'':' game-browser__left--none')+
+                          (selectedGame?'':' game-browser__left--none')+
                           (window.External.preferences.data.browsePageShowLeftSidebar?'':' game-browser__left--hidden')}>
             <LeftBrowseSidebar central={this.props.central}
                                selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
@@ -97,7 +109,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid games={games}
-                          selectedGame={this.state.selectedGame}
+                          selectedGame={selectedGame}
                           gameImages={this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
@@ -111,7 +123,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               const height: number = calcScale(137.5, this.props.gameScale);
               return (
                 <GameList games={games}
-                          selectedGame={this.state.selectedGame}
+                          selectedGame={selectedGame}
                           gameImages={this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
@@ -123,15 +135,16 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             }
           })()}
         </div>
-        {(games.length > 0) ? (
+        {anyGames ? (
           <div className={'game-browser__right'+
-                          (this.state.selectedGame?'':' game-browser__right--none')+
+                          (selectedGame?'':' game-browser__right--none')+
                           (window.External.preferences.data.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
-            <BrowseSidebar selectedGame={this.state.selectedGame} 
+            <BrowseSidebar selectedGame={selectedGame} 
                            selectedAddApps={selectedAddApps}
                            gameImages={this.props.central.gameImages}
                            games={this.props.central.games}
-                           onDeleteSelectedGame={this.onDeleteSelectedGame} />
+                           onDeleteSelectedGame={this.onDeleteSelectedGame}
+                           gamePlaylistEntry={gamePlaylistEntry} />
           </div>
         ) : undefined}
       </div>
@@ -228,10 +241,14 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const extreme: boolean = !window.External.config.data.disableExtremeGames &&
                              window.External.preferences.data.browsePageShowExtreme;
     const broken: boolean = window.External.config.data.showBrokenGames;
-    const filteredGames = filterSearch(filterBroken(filterExtreme(games, extreme), broken), filters);
+    const playlist = this.state.selectedPlaylist;
+    const filteredGames = filterSearch(filters, filterBroken(broken, filterExtreme(extreme, filterPlaylist(playlist, games))));
     // -- Order games --
-    const order = this.props.order || BrowsePage.defaultOrder;
-    const orderedGames = filteredGames.sort(getOrderFunction(order));
+    let orderedGames = filteredGames;
+    if (!playlist) { // (Dont order if a playlist is selected - kind of a hack)
+      const order = this.props.order || BrowsePage.defaultOrder;
+      orderedGames = filteredGames.sort(getOrderFunction(order));      
+    }
     // -- Return --
     return orderedGames;
   }

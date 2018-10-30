@@ -13,6 +13,7 @@ import { GameParser } from '../../shared/game/GameParser';
 import { GameManagerPlatform } from '../game/GameManagerPlatform';
 import { OpenIcon } from './OpenIcon';
 import { ConfirmElement } from './ConfirmElement';
+import { IGamePlaylistEntry } from '../playlist/interfaces';
 
 export interface IBrowseSidebarProps {
   gameImages: GameImageCollection;
@@ -21,6 +22,8 @@ export interface IBrowseSidebarProps {
   selectedGame?: IGameInfo;
   /** Additional Applications of the currently selected game (if any) */
   selectedAddApps?: IAdditionalApplicationInfo[];
+  /** Currently selected game entry (if any) */
+  gamePlaylistEntry?: IGamePlaylistEntry;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame?: () => void;
 }
@@ -175,6 +178,17 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               <p> Extreme</p>
             </div>
           </div>
+          {/* -- Playlist Game Entry Notes -- */}
+          { this.props.gamePlaylistEntry ? (
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row'>
+                <p>Playlist Notes: </p>
+                <p className='browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--text-multi-line' >
+                  {this.props.gamePlaylistEntry.notes || '< No Notes >'}
+                </p>
+              </div>
+            </div>
+          ) : undefined }
           {/* -- Notes -- */}
           { !editDisabled || game.notes ? (
             <div className='browse-right-sidebar__section'>
