@@ -10,7 +10,8 @@ import { OpenIcon } from './OpenIcon';
 export interface IHeaderProps extends IDefaultProps {
   onSearch?: (event: ISearchOnSearchEvent) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
-  onToggleSidebarClick?: () => void;
+  onToggleLeftSidebarClick?: () => void;
+  onToggleRightSidebarClick?: () => void;
 }
 
 export class Header extends React.Component<IHeaderProps, {}> {
@@ -19,7 +20,8 @@ export class Header extends React.Component<IHeaderProps, {}> {
     this.onSearch = this.onSearch.bind(this);
     this.onCleared = this.onCleared.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
-    this.onToggleSidebarClick = this.onToggleSidebarClick.bind(this);
+    this.onToggleLeftSidebarClick = this.onToggleLeftSidebarClick.bind(this);
+    this.onToggleRightSidebarClick = this.onToggleRightSidebarClick.bind(this);
   }
 
   render() {
@@ -31,7 +33,8 @@ export class Header extends React.Component<IHeaderProps, {}> {
       tagRemove:      'header__search__tag__remove',
       tagRemoveInner: 'header__search__tag__remove__inner',
     };
-    const showSidebar = window.External.preferences.data.browsePageShowSidebar;
+    const showLeftSidebar = window.External.preferences.data.browsePageShowLeftSidebar;
+    const showRightSidebar = window.External.preferences.data.browsePageShowRightSidebar;
     return (
       <div className='header'>
         {/* Header Menu */}
@@ -70,10 +73,17 @@ export class Header extends React.Component<IHeaderProps, {}> {
         {/*  */}
         <div className='header__wrap header__right'>
           <div>
+            {/* Toggle Right Sidebar */}
             <div className='header__toggle-sidebar'
-                 title={showSidebar ? 'Hide sidebar' : 'Show sidebar'}
-                 onClick={this.onToggleSidebarClick}>
-              <OpenIcon icon={showSidebar ? 'collapse-right' : 'collapse-left'} />
+                 title={showRightSidebar ? 'Hide right sidebar' : 'Show right sidebar'}
+                 onClick={this.onToggleRightSidebarClick}>
+              <OpenIcon icon={showRightSidebar ? 'collapse-right' : 'expand-right'} />
+            </div>
+            {/* Toggle Left Sidebar */}
+            <div className='header__toggle-sidebar'
+                 title={showLeftSidebar ? 'Hide left sidebar' : 'Show left sidebar'}
+                 onClick={this.onToggleLeftSidebarClick}>
+              <OpenIcon icon={showLeftSidebar ? 'collapse-left' : 'expand-left'} />
             </div>
           </div>
         </div>
@@ -100,9 +110,15 @@ export class Header extends React.Component<IHeaderProps, {}> {
     }
   }
 
-  private onToggleSidebarClick(event: React.MouseEvent): void {
-    if (this.props.onToggleSidebarClick) {
-      this.props.onToggleSidebarClick();
+  private onToggleLeftSidebarClick(event: React.MouseEvent): void {
+    if (this.props.onToggleLeftSidebarClick) {
+      this.props.onToggleLeftSidebarClick();
+    }
+  }
+
+  private onToggleRightSidebarClick(event: React.MouseEvent): void {
+    if (this.props.onToggleRightSidebarClick) {
+      this.props.onToggleRightSidebarClick();
     }
   }
 }

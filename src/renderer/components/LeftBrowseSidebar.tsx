@@ -1,27 +1,28 @@
 import * as React from 'react';
-import { ICentralState } from '../../interfaces';
-import { IGamePlaylist } from '../../playlist/interfaces';
-import { PlaylistItem } from '../PlaylistItem';
-import { OpenIcon } from '../OpenIcon';
+import { ICentralState } from '../interfaces';
+import { PlaylistItem } from './PlaylistItem';
+import { OpenIcon } from './OpenIcon';
+import { IGamePlaylist } from '../playlist/interfaces';
 
-export interface IPlaylistPageProps {
+export interface ILeftBrowseSidebarProps {
   central: ICentralState;
-  gameScale: number;
+  /** ID of the playlist that is selected (empty string if none) */
+  selectedPlaylistID: string;
+  onSelectPlaylist?: (playlist: IGamePlaylist) => void;
+  onDeselectPlaylist?: (playlist: IGamePlaylist) => void;
 }
 
-export interface IPlaylistPageState {
-  /** ID of the playlist that is expanded (empty string if none) */
-  expandedPlaylistID: string;
-  /** ID of the playlist that is being edited (empty string if none) */
-  editingPlaylistID: string;
+export interface ILeftBrowseSidebarState {
+  isEditing: boolean;
 }
 
-export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistPageState> {
-  constructor(props: IPlaylistPageProps) {
+/** Sidebar for BrowsePage */
+export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, ILeftBrowseSidebarState> {
+
+  constructor(props: ILeftBrowseSidebarProps) {
     super(props);
     this.state = {
-      expandedPlaylistID: '',
-      editingPlaylistID: '',
+      isEditing: false,
     };
     this.onPlaylistItemHeadClick = this.onPlaylistItemHeadClick.bind(this);
     this.onPlaylistItemEditClick = this.onPlaylistItemEditClick.bind(this);
@@ -32,23 +33,23 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
 
   render() {
     const central = this.props.central;
-    const anySelected = (this.state.expandedPlaylistID !== '');
+    const selectedPlaylistID = this.props.selectedPlaylistID;
     const playlists = this.props.central.playlists.playlists.slice().sort((a, b) => a.title.localeCompare(b.title));
     const editingDisabled = window.External.config.data.disableEditing;
     return (
-      <div className='playlist-page simple-scroll'>
-        <div className='playlist-page__inner'>
+      <div>
           {central.playlistsDoneLoading ? (
             !central.playlistsFailedLoading ? (
               <div className='playlist-list'>
                 {/* List all playlists */}
                 {playlists.map((playlist) => {
+                  const isSelected = playlist.id === selectedPlaylistID;
                   return (
                     <PlaylistItem key={playlist.id} 
                                   playlist={playlist}
-                                  expanded={anySelected && playlist.id === this.state.expandedPlaylistID}
+                                  expanded={isSelected}
                                   editingDisabled={editingDisabled}
-                                  editing={playlist.id === this.state.editingPlaylistID}
+                                  editing={isSelected && this.state.isEditing}
                                   central={this.props.central}
                                   onHeadClick={this.onPlaylistItemHeadClick}
                                   onEditClick={this.onPlaylistItemEditClick}
@@ -79,27 +80,23 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
               <p>Loading Playlists...</p>
             </div>
           ) }
-        </div>
       </div>
     );
   }
 
   private onPlaylistItemHeadClick(playlist: IGamePlaylist): void {
     let expandedID: string = '';
-    if (this.state.expandedPlaylistID !== playlist.id) {
-      expandedID = playlist.id;
+    if (this.props.selectedPlaylistID === playlist.id) {
+      this.props.onDeselectPlaylist && this.props.onDeselectPlaylist(playlist);
+    } else {
+      this.props.onSelectPlaylist && this.props.onSelectPlaylist(playlist);
     }
-    this.setState({
-      expandedPlaylistID: expandedID,
-      editingPlaylistID: '',
-    });
+    this.setState({ isEditing: false });
   }
 
   private onPlaylistItemEditClick(playlist: IGamePlaylist): void {
-    if (this.state.editingPlaylistID === playlist.id) {
-      this.setState({ editingPlaylistID: '' });
-    } else {
-      this.setState({ editingPlaylistID: playlist.id });
+    if (this.props.selectedPlaylistID === playlist.id) {
+      this.setState({ isEditing: !this.state.isEditing });
     }
   }
 
@@ -118,7 +115,7 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
     // Save playlist
     this.props.central.playlists.save(edit);
     // Stop editing
-    this.setState({ editingPlaylistID: '' });
+    this.setState({ isEditing: false });
   }
 
   private onCreatePlaylistClick(event: React.MouseEvent): void {
@@ -129,10 +126,8 @@ export class PlaylistPage extends React.Component<IPlaylistPageProps, IPlaylistP
       // Select the new playlist
       this.forceUpdate();
       setTimeout(() => { // (Give the playlist list item some time to be created before selecting it)
-        this.setState({
-          expandedPlaylistID: playlist.id,
-          editingPlaylistID: '',
-        });
+        this.props.onSelectPlaylist && this.props.onSelectPlaylist(playlist);
+        this.setState({ isEditing: false });
       }, 1);
     }
   }

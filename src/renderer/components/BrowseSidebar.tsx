@@ -83,23 +83,23 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       const editDisabled = window.External.config.data.disableEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
       return (
-        <div className={'browse-sidebar simple-scroll'+(!editDisabled?' browse-sidebar--edit-enabled':'')}>
+        <div className={'browse-right-sidebar simple-scroll'+(!editDisabled?' browse-right-sidebar--edit-enabled':'')}>
           {/* -- Title & Developer(s) -- */}
-          <div className='browse-sidebar__section'>
-            <div className='browse-sidebar__row'>
-              <div className='browse-sidebar__title-row'>
-                <div className='browse-sidebar__title-row__title'>
+          <div className='browse-right-sidebar__section'>
+            <div className='browse-right-sidebar__row'>
+              <div className='browse-right-sidebar__title-row'>
+                <div className='browse-right-sidebar__title-row__title'>
                   <EditableTextWrap target={game} editDisabled={editDisabled}
                                     text={game.title} onEditDone={this.onTitleEditDone}
                                     textProps={{title: game.title}}/>    
                 </div>
-                <div className='browse-sidebar__title-row__buttons'>
+                <div className='browse-right-sidebar__title-row__buttons'>
                   { editDisabled ? undefined : (
                     <ConfirmElement onConfirm={this.onDeleteGameClick}>
                       {({ activate, activationCounter, reset }) => {
                         return (
-                          <div className={'browse-sidebar__title-row__buttons__remove'+
-                                          ((activationCounter>0)?' browse-sidebar__title-row__buttons__remove--active simple-vertical-shake':'')}
+                          <div className={'browse-right-sidebar__title-row__buttons__remove'+
+                                          ((activationCounter>0)?' browse-right-sidebar__title-row__buttons__remove--active simple-vertical-shake':'')}
                                title='Delete game'
                                onClick={activate} onMouseLeave={reset}>
                             <OpenIcon icon='trash' />
@@ -111,7 +111,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
                 </div>
               </div>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>by </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.developer} onEditDone={this.onDeveloperEditDone}
@@ -119,79 +119,79 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
             </div>
           </div>
           {/* -- Most Fields -- */}
-          <div className='browse-sidebar__section'>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+          <div className='browse-right-sidebar__section'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Genre: </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.genre} onEditDone={this.onGenreEditDone}
                                 textProps={{title: game.genre}}/>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Series: </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.series} onEditDone={this.onSeriesEditDone}
                                 textProps={{title: game.series}}/>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Publisher: </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.publisher} onEditDone={this.onPublisherEditDone}
                                 textProps={{title: game.publisher}}/>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Source: </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.source} onEditDone={this.onSourceEditDone}
                                 textProps={{title: game.source}}/>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Platform: </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.platform} onEditDone={this.onPlatformEditDone}
                                 textProps={{title: game.platform}}/>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Play Mode: </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.playMode} onEditDone={this.onPlayModeEditDone}
                                 textProps={{title: game.playMode}}/>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Status: </p>
               <EditableTextWrap target={game} editDisabled={editDisabled}
                                 text={game.status} onEditDone={this.onStatusEditDone}
                                 textProps={{title: game.status}}/>
             </div>
-            <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Date Added: </p>
-              <p className='browse-sidebar__row__date-added' title={dateAdded}>{dateAdded}</p>
+              <p className='browse-right-sidebar__row__date-added' title={dateAdded}>{dateAdded}</p>
             </div>
-            <div className='browse-sidebar__row'>
-              <CheckBox checked={game.broken} onChange={this.onBrokenChange} className='browse-sidebar__row__check-box'/>
+            <div className='browse-right-sidebar__row'>
+              <CheckBox checked={game.broken} onChange={this.onBrokenChange} className='browse-right-sidebar__row__check-box'/>
               <p> Broken</p>
             </div>
-            <div className='browse-sidebar__row'>
-              <CheckBox checked={game.extreme} onChange={this.onExtremeChange} className='browse-sidebar__row__check-box'/>
+            <div className='browse-right-sidebar__row'>
+              <CheckBox checked={game.extreme} onChange={this.onExtremeChange} className='browse-right-sidebar__row__check-box'/>
               <p> Extreme</p>
             </div>
           </div>
           {/* -- Notes -- */}
           { !editDisabled || game.notes ? (
-            <div className='browse-sidebar__section'>
-              <div className='browse-sidebar__row'>
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row'>
                 <p>Notes: </p>
                 <EditableTextWrap target={game} editDisabled={editDisabled}
                                   isMultiline={true} placeholder='[N/A]'
-                                  textProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--text-multi-line'}}
-                                  editProps={{className: 'browse-sidebar__row__editable-text browse-sidebar__row__editable-text--edit-multi-line'}}
+                                  textProps={{className: 'browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--text-multi-line'}}
+                                  editProps={{className: 'browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--edit-multi-line'}}
                                   text={game.notes} onEditDone={this.onNotesEditDone}/>
               </div>
             </div>
           ) : undefined }
           {/* -- Additional Applications -- */}
           { !editDisabled || (this.state.editAddApps && this.state.editAddApps.length > 0) ? (
-            <div className='browse-sidebar__section'>
-              <div className='browse-sidebar__row browse-sidebar__row--additional-applications-header'>
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                 <p>Additional Applications:</p>
                 { !editDisabled ? (
                   <input type='button' value='New' className='simple-button' onClick={this.onNewAddAppClick} />
@@ -206,14 +206,14 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
           ) : undefined }
           {/* -- Application Path & Launch Command -- */}
           { !editDisabled ? (
-            <div className='browse-sidebar__section'>
-              <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Application Path: </p>
                 <EditableTextWrap target={game} editDisabled={editDisabled}
                                   text={game.applicationPath} onEditDone={this.onApplicationPathEditDone}
                                   textProps={{title: game.applicationPath}}/>
               </div>
-              <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Launch Command: </p>
                 <EditableTextWrap target={game} editDisabled={editDisabled}
                                   text={game.launchCommand} onEditDone={this.onLaunchCommandEditDone}
@@ -223,27 +223,27 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
           ) : undefined }
           {/* -- Game ID -- */}
           { !editDisabled ? (
-            <div className='browse-sidebar__section'>
-              <div className='browse-sidebar__row browse-sidebar__row--one-line'>
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>ID: </p>
-                <p className='browse-sidebar__row__game-id'>{game.id}</p>
+                <p className='browse-right-sidebar__row__game-id'>{game.id}</p>
               </div>
             </div>
           ) : undefined }
           {/* -- Screenshot -- */}
           {(this.props.gameImages && game) ? (
-            <div className='browse-sidebar__section browse-sidebar__section--below-gap'>
-              <div className='browse-sidebar__row browse-sidebar__row__spacer'/>
-              <div className='browse-sidebar__row'>
-                <img className='browse-sidebar__row__screenshot'
+            <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
+              <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer'/>
+              <div className='browse-right-sidebar__row'>
+                <img className='browse-right-sidebar__row__screenshot'
                      src={this.props.gameImages.getScreenshotPath(game.title, game.platform)}/>
               </div>
             </div>
           ) : undefined}
           {/* -- Save Changes -- */}
           {isEditing ? (
-            <div className='browse-sidebar__section'>
-              <div className='browse-sidebar__row browse-sidebar__row--save'>
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row browse-right-sidebar__row--save'>
                 <p>Changes have been made.</p>
                 <input type='button' value='Save Changes' className='simple-button' onClick={this.onSaveClick}/>
               </div>
