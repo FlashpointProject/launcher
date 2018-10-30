@@ -1108,6 +1108,10 @@ body {
 .playlist-list-item__head__author {
   font-style: italic;
 }
+.playlist-list-item--editing .playlist-list-item__head__title input,
+.playlist-list-item--editing .playlist-list-item__head__author input {
+  width: 8rem;
+}
 .playlist-list-item--editing .playlist-list-item__head__title, 
 .playlist-list-item--editing .playlist-list-item__head__author,
 .playlist-list-item--editing .playlist-list-item__head__icon {
@@ -1124,9 +1128,14 @@ body {
 .playlist-list-item--editing .playlist-list-item__content {
   background-color: #1c291b;
   color: #cecece;
+  transition: max-height 0.15s;
 }
 .playlist-list-item__content__inner {
   padding: 0.4rem;
+}
+.playlist-list-item__content__edit {
+  display: inline-block;
+  width: 100%;
 }
 .playlist-list-item__content__id {
   display: inline-block;
@@ -1134,8 +1143,22 @@ body {
   font-weight: 100;
   opacity: 0.3;
 }
-.playlist-list-item__content__description {
+.playlist-list-item__content__description-edit {
+  width: 100%;
+  min-height: 5rem;
+  resize: vertical;
+}
+.playlist-list-item__content__description-text {
   white-space: pre-wrap;
+}
+.playlist-list-item__content__description-text--empty {
+  cursor: default;
+  user-select: none;
+  font-style: italic;
+  color: #868686;
+}
+.playlist-list-item__content__description-text--edit {
+  cursor: pointer;
 }
 .playlist-list-item__content__buttons {
   float: right;

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { IGamePlaylist } from '../playlist/interfaces';
-import { EditableTextWrap } from './EditableTextWrap';
 import { deepCopy } from '../../shared/Util';
 import { ConfirmButton } from './ConfirmButton';
 import { ICentralState } from '../interfaces';
@@ -36,8 +35,12 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
   private onAuthorEditDone       = this.wrapOnEditDone((edit, text) => { edit.author = text; });
   private onDescriptionEditDone  = this.wrapOnEditDone((edit, text) => { edit.description = text; });
   //
+  private renderTitle  = this.wrapRenderEditableText('No Title', 'Title...');
+  private renderAuthor = this.wrapRenderEditableText('No Author', 'Author...');
+  //
   private contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   private contentHeight: number = 0;
+  private updateContentHeightInterval: number = -1;
   //
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
   private width: number = 0;
@@ -55,12 +58,18 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.onSaveClick = this.onSaveClick.bind(this);
     this.onAddGameDone = this.onAddGameDone.bind(this);
     this.onDoubleClickGame = this.onDoubleClickGame.bind(this);
+    this.renderDescription = this.renderDescription.bind(this);
   }
 
   componentDidMount() {
     this.updateContentHeight();
     this.updateEdit();
     this.updateCssVars();
+    this.updateContentHeightInterval = window.setInterval(() => {
+      if (this.props.editing) {
+        if (this.updateContentHeight()) { this.forceUpdate(); }
+      }
+    }, 150);
   }
 
   componentDidUpdate(prevProps: IPlaylistItemProps, prevState: IPlaylistItemState) {
@@ -69,8 +78,11 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.updateCssVars();
   }
 
+  componentWillUnmount() {
+    window.clearInterval(this.updateContentHeightInterval);
+  }
+
   render() {
-    this.updateContentHeight();
     // Normal rendering stuff
     const playlist = this.state.editPlaylist || this.props.playlist;
     const expanded = !!this.props.expanded;
@@ -100,7 +112,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
           <div className='playlist-list-item__head__title simple-center'>
             <EditableTextElement text={playlist.title} onEditConfirm={this.onTitleEditDone}
                                  confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
-                                 children={this.renderEditableText} />
+                                 children={this.renderTitle} />
           </div>
           <div className='playlist-list-item__head__divider simple-center'>
             <p className='simple-center__inner'>by</p>
@@ -108,14 +120,15 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
           <div className='playlist-list-item__head__author simple-center'>
             <EditableTextElement text={playlist.author} onEditConfirm={this.onAuthorEditDone}
                                  confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
-                                 children={this.renderEditableText} />
+                                 children={this.renderAuthor} />
           </div>
         </div>
         {/* Content */}
-        <div className='playlist-list-item__content' ref={this.contentRef} style={{maxHeight}}>
+        <div className='playlist-list-item__content' ref={this.contentRef}
+             style={{ maxHeight }}>
           <div className='playlist-list-item__content__inner'>
             { editingDisabled ? undefined : (
-              <div style={{ display: 'block' }}>
+              <div className='playlist-list-item__content__edit'>
                 <p className='playlist-list-item__content__id'>(ID: {playlist.id})</p>
                 <div className='playlist-list-item__content__buttons'>
                   {/* Save Button */}
@@ -146,48 +159,60 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
               </div>
             ) }
             {/* Description */}
-            <p>Description:</p>
             <EditableTextElement text={playlist.description} onEditConfirm={this.onDescriptionEditDone}
                                  confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
-                                 children={this.renderEditableTextMultiline} />
+                                 children={this.renderDescription} />
           </div>
         </div>
       </div>
     );
   }
-  
-  private renderEditableText(o: IEditableTextElementArgs) {
-    if (o.editing) {
-      return (
-      <input value={o.text}
-             onChange={o.onInputChange} onKeyDown={o.onInputKeyDown} 
-             className='simple-vertical-inner' />
-      );
-    } else {
-      return (<p onClick={o.startEdit} className='simple-vertical-inner'>{o.text || '...'}</p>);
-    }
+
+  private wrapRenderEditableText(placeholderText: string, placeholderEdit: string) {
+    return (o: IEditableTextElementArgs) => {
+      if (o.editing) {
+        return (
+        <input value={o.text} placeholder={placeholderEdit}
+               onChange={o.onInputChange} onKeyDown={o.onInputKeyDown} 
+               className='simple-vertical-inner' />
+        );
+      } else {
+        return (
+          <p onClick={o.startEdit} className='simple-vertical-inner'>
+            {o.text || placeholderText}
+          </p>
+        );
+      }
+    };
   }
   
-  private renderEditableTextMultiline(o: IEditableTextElementArgs) {
+  private renderDescription(o: IEditableTextElementArgs) {
     if (o.editing) {
       return (
-        <textarea value={o.text}
+        <textarea value={o.text} placeholder='Enter a description here...'
                   onChange={o.onInputChange} onKeyDown={o.onInputKeyDown}
-                  className='simple-vertical-inner' />
+                  className='simple-vertical-inner playlist-list-item__content__description-edit' />
       );
     } else {
+      let className = 'playlist-list-item__content__description-text';
+      if (o.text === '') { className += ' playlist-list-item__content__description-text--empty'; }
+      if (o.editing) { className += ' playlist-list-item__content__description-text--edit'; }
       return (
-        <p onClick={o.startEdit} className='playlist-list-item__content__description'>
-          {o.text || '...'}
+        <p onClick={o.startEdit}
+           className={className}>
+          {o.text || '< No Description >'}
         </p>
       );
     }
   }
 
-  private updateContentHeight() {
+  private updateContentHeight(): boolean {
     if (this.contentRef.current) {
+      const oldHeight = this.contentHeight;
       this.contentHeight = this.contentRef.current.scrollHeight;
+      if (this.contentHeight !== oldHeight) { return true; }
     }
+    return false;
   }
 
   private updateEdit() {
