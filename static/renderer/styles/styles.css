@@ -1011,17 +1011,17 @@ body {
 .playlist-list__message h2 {
   margin-bottom: 0.2rem;
 }
-.playlist-list__create-playlist {
+.playlist-list__fake-playlist {
   padding: 0.1rem;
   padding-left: 0.5rem;
   color: #aaaaaa;
 }
-.playlist-list__create-playlist:hover {
+.playlist-list__fake-playlist:hover {
   background-color: #3c3c41;
   color: #ffffff;
 }
-.playlist-list__create-playlist,
-.playlist-list__create-playlist * {
+.playlist-list__fake-playlist,
+.playlist-list__fake-playlist * {
   cursor: pointer;
   user-select: none;
 }
@@ -1163,84 +1163,40 @@ body {
 .playlist-list-item__content__buttons > * {
   margin-left: 0.3rem;
 }
-.playlist-list-item__games {
-  display: inline-block;
-}
-.playlist-list-item__games__game {
-  display: inline-block;
-  overflow: hidden;
-}
-.playlist-list-item__games__fake-game {
-  width: calc(var(--width) * 1px);
-  height: calc(var(--height) * 1px);
-}
-.playlist-list-item__games__fake-game:hover {
-  color: #e6e6e6;
-  cursor: pointer;
-}
-.playlist-list-item__games__fake-game__inner {
-  padding: calc(var(--width) * 0.0025rem);
-  width: 100%;
-  height: calc(var(--width) * 1px);
-}
-.playlist-list-item__games__fake-game__inner__box {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  /* Center text */
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  /* Pimp */
-  border-radius: 0.2em;
-  background-color: #242428;
-  border: 1px solid #141417;
-  box-shadow: 0px 2px 4px 0px #09090a;
-}
-.playlist-list-item__games__fake-game__text {
-  font-weight: bold;
-  user-select: none;
-}
-.playlist-list-item__games__fake-game__input {
-  display: inline-block;
-  font-weight: bold;
-  user-select: none;
-}
 /* Playlist-List Create-Playlist */
-.playlist-list__create-playlist {
+.playlist-list__fake-playlist {
   display: flex;
   overflow: hidden;
   height: calc(var(--image-size) + var(--image-padding) * 2);
   padding: var(--image-padding);
   padding-left: 0.5rem;
   /* Pimp */
-  background-color: #161617;
+  background-color: #181819;
   --color: #aaaaaa;
 }
 
-.playlist-list__create-playlist:hover {
+.playlist-list__fake-playlist:hover {
   background-color: #28282c;
   --color: #ffffff;
 }
-.playlist-list__create-playlist__inner {
+.playlist-list__fake-playlist__inner {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-.playlist-list__create-playlist__inner > * {
+.playlist-list__fake-playlist__inner > * {
   display: inline-block;
 }
-.playlist-list__create-playlist__inner .icon {
+.playlist-list__fake-playlist__inner .icon {
   --icon-size: calc(var(--image-size) * 0.65);
   width: var(--icon-size);
   height: var(--icon-size);
 }
-.playlist-list__create-playlist__inner .icon__use {
+.playlist-list__fake-playlist__inner .icon__use {
   fill: var(--color);
 }
-.playlist-list__create-playlist__inner__title {
-  font-size: 1.3rem;
+.playlist-list__fake-playlist__inner__title {
+  font-size: 1.1rem;
   padding-left: 0.5rem;
   color: var(--color);
 }

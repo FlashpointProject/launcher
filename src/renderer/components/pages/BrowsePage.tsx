@@ -190,7 +190,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.setState({ selectedPlaylist: playlist });
   }
 
-  private onLeftSidebarDeselectPlaylist(playlist: IGamePlaylist): void {
+  private onLeftSidebarDeselectPlaylist(): void {
     this.setState({ selectedPlaylist: undefined });
   }
 

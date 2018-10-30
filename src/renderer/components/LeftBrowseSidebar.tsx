@@ -9,7 +9,7 @@ export interface ILeftBrowseSidebarProps {
   /** ID of the playlist that is selected (empty string if none) */
   selectedPlaylistID: string;
   onSelectPlaylist?: (playlist: IGamePlaylist) => void;
-  onDeselectPlaylist?: (playlist: IGamePlaylist) => void;
+  onDeselectPlaylist?: () => void;
 }
 
 export interface ILeftBrowseSidebarState {
@@ -28,6 +28,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     this.onPlaylistItemEditClick = this.onPlaylistItemEditClick.bind(this);
     this.onPlaylistItemDeleteClick = this.onPlaylistItemDeleteClick.bind(this);
     this.onPlaylistItemSaveClick = this.onPlaylistItemSaveClick.bind(this);
+    this.onShowAllClick = this.onShowAllClick.bind(this);
     this.onCreatePlaylistClick = this.onCreatePlaylistClick.bind(this);
   }
 
@@ -41,6 +42,15 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
           {central.playlistsDoneLoading ? (
             !central.playlistsFailedLoading ? (
               <div className='playlist-list'>
+                {/* Show all games */}
+                <div className='playlist-list__fake-playlist' onClick={this.onShowAllClick}>
+                  <div className='playlist-list__fake-playlist__inner'>
+                    <OpenIcon icon='eye' />
+                  </div>
+                  <div className='playlist-list__fake-playlist__inner'>
+                    <p className='playlist-list__fake-playlist__inner__title'>Show All</p>
+                  </div>
+                </div>
                 {/* List all playlists */}
                 {playlists.map((playlist) => {
                   const isSelected = playlist.id === selectedPlaylistID;
@@ -59,12 +69,12 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
                 })}
                 {/* Create New Playlist */}
                 { editingDisabled ? undefined : (
-                  <div className='playlist-list__create-playlist' onClick={this.onCreatePlaylistClick}>
-                    <div className='playlist-list__create-playlist__inner'>
+                  <div className='playlist-list__fake-playlist' onClick={this.onCreatePlaylistClick}>
+                    <div className='playlist-list__fake-playlist__inner'>
                       <OpenIcon icon='plus' />
                     </div>
-                    <div className='playlist-list__create-playlist__inner'>
-                      <p className='playlist-list__create-playlist__inner__title'>New Playlist</p>
+                    <div className='playlist-list__fake-playlist__inner'>
+                      <p className='playlist-list__fake-playlist__inner__title'>New Playlist</p>
                     </div>
                   </div>                  
                 ) }
@@ -87,7 +97,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
   private onPlaylistItemHeadClick(playlist: IGamePlaylist): void {
     let expandedID: string = '';
     if (this.props.selectedPlaylistID === playlist.id) {
-      this.props.onDeselectPlaylist && this.props.onDeselectPlaylist(playlist);
+      this.props.onDeselectPlaylist && this.props.onDeselectPlaylist();
     } else {
       this.props.onSelectPlaylist && this.props.onSelectPlaylist(playlist);
     }
@@ -116,6 +126,12 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     this.props.central.playlists.save(edit);
     // Stop editing
     this.setState({ isEditing: false });
+  }
+
+  private onShowAllClick(event: React.MouseEvent): void {
+    if (this.props.onDeselectPlaylist) {
+      this.props.onDeselectPlaylist();
+    }
   }
 
   private onCreatePlaylistClick(event: React.MouseEvent): void {
