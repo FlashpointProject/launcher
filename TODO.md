@@ -4,8 +4,6 @@
 * Fix bug where the thumbnails/screenshots are fetched before the ImageCollections are set up (and therefore dont find any images)
 
 # Todo:
-* Improve game searching and filtering
-  - Make the game title searching part of the search string also search for the developer, publisher and series
 * Add support for custom themes
   - A new JSON file should contain colors, font names, font sizes etc. to be used in the launcher
   - A new page / popup window should let the user easily change these values in real time
@@ -41,9 +39,11 @@
 * Add a HelpPage (or show how to do this stuff somewhere else?)
   - How to filter by Platform (!), Developer (@) and Genre (#) with special characters
   - Show keyboard shortcuts (once there are more - there's currently only ``CTRL+SHIT+I`` for toggling DevTools)
-* Make changes to the GameCollection savable to the XML it was loaded from
 * Make the BrowseSidebar capable of displaying multiple screenshots per game
   - Add thin and tall buttons to the left and right of the screenshot that scrolls between them?
+* Make the launcher automatically check if the redirector is working on each startup
+  - Request a sample file (pick any game from the games collection?) and check the response
+  - Display the "status of" / "connection to" the redirector in the footer
 
 # Pimp:
 * Rework the AboutPage
