@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 import * as React from 'react';
-import { AppRouter } from './router';
+import { AppRouter, IAppRouterProps } from './router';
 import { Redirect } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -14,6 +14,8 @@ import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { GameManager } from './game/GameManager';
+import { IGameInfo } from 'src/shared/game/interfaces';
+import { IGamePlaylist } from './playlist/interfaces';
 
 export interface IAppProps {
   history?: any;
@@ -27,8 +29,10 @@ export interface IAppState {
   gameScale: number;
   /** Layout of the browse page */
   gameLayout: BrowsePageLayout;
-  /** If the custom titlebar is used */
-  useCustomTitlebar: boolean;
+  /** Currently selected game (if any) */
+  selectedGame?: IGameInfo;
+  /** Currently selected playlist (if any) */
+  selectedPlaylist?: IGamePlaylist;
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
@@ -49,12 +53,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
-      search: undefined,
-      order: undefined,
       logData: '',
       gameScale: preferences.data.browsePageGameScale,
       gameLayout: preferences.data.browsePageLayout,
-      useCustomTitlebar: config.data.useCustomTitlebar,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
@@ -63,12 +64,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     this.onToggleLeftSidebarClick = this.onToggleLeftSidebarClick.bind(this);
     this.onToggleRightSidebarClick = this.onToggleRightSidebarClick.bind(this);
+    this.onSelectGame = this.onSelectGame.bind(this);
+    this.onSelectPlaylist = this.onSelectPlaylist.bind(this);
     // Initialize app
     this.init();
   }
 
   init() {
-    const config = window.External.config;
     // Listen for the window to move or resize (and update the preferences when it does)
     ipcRenderer.on('window-move', function(sender: any, x: number, y: number) {
       const mw = window.External.preferences.data.mainWindow;
@@ -165,13 +167,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       gameCount = this.state.central.games.collection.games.length;
     }
     // Props to set to the router
-    const routerProps = {
+    const routerProps: IAppRouterProps = {
       central: this.state.central,
       search: this.state.search,
       order: this.state.order,
       logData: this.state.logData,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
+      selectedGame: this.state.selectedGame,
+      selectedPlaylist: this.state.selectedPlaylist,
+      onSelectGame: this.onSelectGame,
+      onSelectPlaylist: this.onSelectPlaylist,
     };
     // Render
     return (
@@ -179,7 +185,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {/* Redirect */}
         { redirect }
         {/* "TitleBar" stuff */}
-        { this.state.useCustomTitlebar ? (
+        { window.External.config.data.useCustomTitlebar ? (
           <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
         ) : undefined }
         {/* "Header" stuff */}
@@ -240,5 +246,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     const pref = window.External.preferences.data;
     pref.browsePageShowRightSidebar = !pref.browsePageShowRightSidebar;
     this.forceUpdate();
+  }
+
+  private onSelectGame(game?: IGameInfo): void {
+    this.setState({ selectedGame: game });
+  }
+
+  private onSelectPlaylist(playlist?: IGamePlaylist): void {
+    this.setState({ selectedPlaylist: playlist });
   }
 }

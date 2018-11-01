@@ -71,10 +71,11 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.updateEdit();
     this.updateCssVars();
     this.updateContentHeightInterval = window.setInterval(() => {
-      if (this.props.editing) {
+      if (this.props.expanded) {
         if (this.updateContentHeight()) { this.forceUpdate(); }
       }
     }, 150);
+    if (this.props.expanded) { this.forceUpdate(); }
   }
 
   componentDidUpdate(prevProps: IPlaylistItemProps, prevState: IPlaylistItemState) {

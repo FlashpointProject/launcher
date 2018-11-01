@@ -11,6 +11,8 @@ import { ConfigPage } from './components/pages/ConfigPage';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { HomePage } from './components/pages/HomePage';
+import { IGameInfo } from 'src/shared/game/interfaces';
+import { IGamePlaylist } from './playlist/interfaces';
 
 export interface IAppRouterProps {
   central: ICentralState;
@@ -19,6 +21,10 @@ export interface IAppRouterProps {
   logData: string;
   gameScale: number;
   gameLayout: BrowsePageLayout;
+  selectedGame?: IGameInfo;
+  selectedPlaylist?: IGamePlaylist;
+  onSelectGame?: (game?: IGameInfo) => void;
+  onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
@@ -29,6 +35,10 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
+      selectedGame: this.props.selectedGame,
+      selectedPlaylist: this.props.selectedPlaylist,
+      onSelectGame: this.props.onSelectGame,
+      onSelectPlaylist: this.props.onSelectPlaylist,
     };
     return (
       <Switch>

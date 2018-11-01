@@ -22,13 +22,15 @@ export interface IBrowsePageProps extends IDefaultProps {
   gameScale: number;
   /** Layout of the games */
   gameLayout: BrowsePageLayout;
-}
-
-export interface IBrowsePageState {
   /** Currently selected game (if any) */
   selectedGame?: IGameInfo;
   /** Currently selected playlist (if any) */
   selectedPlaylist?: IGamePlaylist;
+  onSelectGame?: (game?: IGameInfo) => void;
+  onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
+}
+
+export interface IBrowsePageState {
   /** Current quick search string (used to jump to a game in the list, not to filter the list) */
   quickSearch: string;
 }
@@ -61,7 +63,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       for (let index = 0; index < games.length; index++) {
         const game: IGameInfo = games[index];
         if (game.title.toLowerCase().startsWith(this.state.quickSearch)) {
-          this.setState({ selectedGame: game });
+          this.props.onSelectGame && this.props.onSelectGame(game);
           break;
         }
       }
@@ -71,8 +73,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   render() {
     const games: IGameInfo[] = this.orderGames();
     const order = this.props.order || BrowsePage.defaultOrder;
-    const selectedGame = this.state.selectedGame;
-    const selectedPlaylist = this.state.selectedPlaylist;
+    const selectedGame = this.props.selectedGame;
+    const selectedPlaylist = this.props.selectedPlaylist;
     const anyGames: boolean = (this.props.central.games.collection.games.length > 0);
     // Find the selected game in the selected playlist (if both are seleceted)
     let gamePlaylistEntry: IGamePlaylistEntry|undefined;
@@ -189,11 +191,11 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onLeftSidebarSelectPlaylist(playlist: IGamePlaylist): void {
-    this.setState({ selectedPlaylist: playlist });
+    this.props.onSelectPlaylist && this.props.onSelectPlaylist(playlist);
   }
 
   private onLeftSidebarDeselectPlaylist(): void {
-    this.setState({ selectedPlaylist: undefined });
+    this.props.onSelectPlaylist && this.props.onSelectPlaylist(undefined);
   }
 
   private onLeftSidebarPlaylistChanged(playlist: IGamePlaylist): void {
@@ -201,8 +203,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onGameSelect(game?: IGameInfo): void {
-    if (this.state.selectedGame !== game) {
-      this.setState({ selectedGame: game });
+    console.log(1, this.props.onSelectGame)
+    if (this.props.selectedGame !== game) {
+      this.props.onSelectGame && this.props.onSelectGame(game);
     }
   }
 
@@ -233,7 +236,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onDeleteSelectedGame(): void {
-    this.setState({ selectedGame: undefined });
+    this.props.onSelectGame && this.props.onSelectGame(undefined);
   }
 
   /** Order the games according to the current settings */
@@ -247,7 +250,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const extreme: boolean = !window.External.config.data.disableExtremeGames &&
                              window.External.preferences.data.browsePageShowExtreme;
     const broken: boolean = window.External.config.data.showBrokenGames;
-    const playlist = this.state.selectedPlaylist;
+    const playlist = this.props.selectedPlaylist;
     const filteredGames = filterSearch(filters, filterBroken(broken, filterExtreme(extreme, filterPlaylist(playlist, games))));
     // -- Order games --
     let orderedGames = filteredGames;
