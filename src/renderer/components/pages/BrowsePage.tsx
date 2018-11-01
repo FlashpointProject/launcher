@@ -203,7 +203,6 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onGameSelect(game?: IGameInfo): void {
-    console.log(1, this.props.onSelectGame)
     if (this.props.selectedGame !== game) {
       this.props.onSelectGame && this.props.onSelectGame(game);
     }
