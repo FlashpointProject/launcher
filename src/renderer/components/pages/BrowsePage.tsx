@@ -107,7 +107,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           {(() => {
             if (this.props.gameLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-              const height: number = calcScale(470, this.props.gameScale);
+              const height: number = calcScale(350, this.props.gameScale);
               const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid games={games}
@@ -122,7 +122,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           cellHeight={height}/>
               );
             } else {
-              const height: number = calcScale(137.5, this.props.gameScale);
+              const height: number = calcScale(120, this.props.gameScale);
               return (
                 <GameList games={games}
                           selectedGame={selectedGame}
