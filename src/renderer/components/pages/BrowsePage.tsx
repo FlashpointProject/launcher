@@ -93,7 +93,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     return (
       <div className='game-browser'>
         {anyGames ? (
-          <div className={'game-browser__left simple-scroll'+
+          <div className={'game-browser__left'+
                           (selectedGame?'':' game-browser__left--none')+
                           (window.External.preferences.data.browsePageShowLeftSidebar?'':' game-browser__left--hidden')}>
             <LeftBrowseSidebar central={this.props.central}

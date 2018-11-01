@@ -27,6 +27,7 @@ html, body {
   --theme__slider__color: #4d4f55;
   --theme__slider__color-hover: #43454b;
   --theme__slider__color-active: #2e2f33;
+  --theme__browse-sidebar__background-color: #181819;
   /* Pimp */
   color: var(--theme__text-color);
 }
@@ -632,8 +633,7 @@ body {
 .game-browser__left {
   flex: 0 0 auto;
   width: 20em;
-  overflow-x: hidden;
-  overflow-y: auto;
+  background-color: var(--theme__browse-sidebar__background-color);
 }
 .game-browser__left--hidden {
   display: none;
@@ -644,8 +644,7 @@ body {
 .game-browser__right {
   flex: 0 0 auto;
   width: 20em;
-  /* Pimp */
-  background-color: #1a1a1b;
+  background-color: var(--theme__browse-sidebar__background-color);
 }
 .game-browser__right--hidden {
   display: none;
@@ -662,7 +661,15 @@ body {
   font-weight: bold;
 }
 
-/* BrowserSidebar */
+/* Browse-Left-Sidebar */
+.browse-left-sidebar {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Browse-Right-Sidebar */
 .browse-right-sidebar {
   display: flex;
   flex-direction: column;
@@ -673,7 +680,7 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
 }
-/* BrowserSidebar Section */
+/* Browse-Right-Sidebar Section */
 .browse-right-sidebar__section {
   margin-bottom: 1.1em;
 }
@@ -685,7 +692,7 @@ body {
   flex-direction: column;
   flex: 1 0 auto;
 }
-/* BrowserSidebar Additional-Application */
+/* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application {
   padding: 0.5rem;
 }
@@ -695,7 +702,7 @@ body {
 .browse-right-sidebar__additional-application__delete-button {
   float: right;
 }
-/* BrowserSidebar Row */
+/* Browse-Right-Sidebar Row */
 .browse-right-sidebar__row {
   margin-bottom: 0.2rem;
 }
@@ -778,7 +785,7 @@ body {
 .browse-right-sidebar__title-row__buttons__remove--active:hover .icon__use {
   fill: #8a1212;
 }
-/* BrowserSidebar Row - Sub Elements */
+/* Browse-Right-Sidebar Row - Sub Elements */
 .browse-right-sidebar__row .browse-right-sidebar__row__editable-text {
   display: block;
   font-size: 0.9em;
@@ -1013,7 +1020,6 @@ body {
 
 /* PlaylistList */
 .playlist-list {
-  background-color: var(--theme__background-color);
   --image-size: 1.45rem; /* Width & Height of the icon in the playlist item head */
   --image-padding: 0.15rem; /* Padding of the playlist item head */
 }

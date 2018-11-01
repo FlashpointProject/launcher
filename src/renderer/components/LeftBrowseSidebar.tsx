@@ -42,7 +42,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     const playlists = this.props.central.playlists.playlists.slice().sort((a, b) => a.title.localeCompare(b.title));
     const editingDisabled = window.External.config.data.disableEditing;
     return (
-      <div>
+      <div className='browse-left-sidebar simple-scroll'>
           {central.playlistsDoneLoading ? (
             !central.playlistsFailedLoading ? (
               <div className='playlist-list'>
