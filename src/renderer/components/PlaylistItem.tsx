@@ -30,6 +30,8 @@ export interface IPlaylistItemState {
   hasChanged: boolean;
   /** Buffer for the playlist (stores all changes are made to it until edit is saved) */
   editPlaylist?: IGamePlaylist;
+  /** If something is being dragged over this element */
+  dragOver: boolean;
 }
 
 export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistItemState> {
@@ -53,6 +55,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     super(props);
     this.state = {
       hasChanged: false,
+      dragOver: false,
     };
     this.onHeadClick = this.onHeadClick.bind(this);
     this.onIconClick = this.onIconClick.bind(this);
@@ -61,6 +64,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.onSaveClick = this.onSaveClick.bind(this);
     this.onDrop = this.onDrop.bind(this);
     this.onDragOver = this.onDragOver.bind(this);
+    this.onDragEnter = this.onDragEnter.bind(this);
+    this.onDragLeave = this.onDragLeave.bind(this);
     this.onAddGameDone = this.onAddGameDone.bind(this);
     this.onDoubleClickGame = this.onDoubleClickGame.bind(this);
     this.renderDescription = this.renderDescription.bind(this);
@@ -97,9 +102,11 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     let className = 'playlist-list-item';
     if (expanded) { className += ' playlist-list-item--selected' }
     if (editing)  { className += ' playlist-list-item--editing' }
+    if (this.state.dragOver) { className += ' playlist-list-item--drag-over' }
     const maxHeight = this.props.expanded && this.contentHeight || undefined;
     return (
-      <div className={className} onDrop={this.onDrop} onDragOver={this.onDragOver}>
+      <div className={className} onDrop={this.onDrop} onDragOver={this.onDragOver}
+           onDragEnter={this.onDragEnter} onDragLeave={this.onDragLeave}>
         {/* Head */}
         <div className='playlist-list-item__head' onClick={(!editing)?this.onHeadClick:undefined}>
           {(playlist.icon) ? (
@@ -280,40 +287,62 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
   }
 
   private onDrop(event: React.DragEvent): void {
-    if (this.props.editingDisabled) { return; }
-    // Find game
-    const gameId: string = event.dataTransfer.getData(gameIdDataType);
-    if (gameId) {
-      const platform = this.props.central.games.getPlatfromOfGameId(gameId);
-      if (!platform || !platform.collection) { throw new Error('No game with that ID was found.'); }
-      const game = platform.collection.findGame(gameId);
-      if (!game) { throw new Error('Game was found but then it wasnt found. What?'); }
-      // Check if game is already in the playlist
-      if (this.props.playlist.games.every(g => g.id !== gameId)) {
-        // Add game to playlist(s) (both the edited and unedited, if editing)
-        const gameEntry: IGamePlaylistEntry = {
-          id: gameId,
-          notes: '',
+    if (this.state.dragOver) {
+      this.setState({ dragOver: false });
+    }
+    if (!this.props.editingDisabled) {
+      // Find game
+      const gameId: string = event.dataTransfer.getData(gameIdDataType);
+      if (gameId) {
+        const platform = this.props.central.games.getPlatfromOfGameId(gameId);
+        if (!platform || !platform.collection) { throw new Error('No game with that ID was found.'); }
+        const game = platform.collection.findGame(gameId);
+        if (!game) { throw new Error('Game was found but then it wasnt found. What?'); }
+        // Check if game is already in the playlist
+        if (this.props.playlist.games.every(g => g.id !== gameId)) {
+          // Add game to playlist(s) (both the edited and unedited, if editing)
+          const gameEntry: IGamePlaylistEntry = {
+            id: gameId,
+            notes: '',
+          }
+          this.props.playlist.games.push(deepCopy(gameEntry));
+          if (this.state.editPlaylist) {
+            this.state.editPlaylist.games.push(deepCopy(gameEntry));
+          }
+          // Save playlist (the un-edited veersion, even if editing)
+          this.props.central.playlists.save(this.props.playlist);
+          // Callback
+          if (this.props.onDrop) {
+            this.props.onDrop(event, this.props.playlist);
+          }
         }
-        this.props.playlist.games.push(deepCopy(gameEntry));
-        if (this.state.editPlaylist) {
-          this.state.editPlaylist.games.push(deepCopy(gameEntry));
-        }
-        // Save playlist (the un-edited veersion, even if editing)
-        this.props.central.playlists.save(this.props.playlist);
-        // Callback
-        if (this.props.onDrop) {
-          this.props.onDrop(event, this.props.playlist);
-        }
+      } else {
+        console.log('Item dropped on this playlist is not a game id, disregarding it.');
       }
-    } else {
-      console.log('Item dropped on this playlist is not a game id, disregarding it.');
     }
   }
 
   private onDragOver(event: React.DragEvent): void {
     if (this.props.onDragOver) {
       this.props.onDragOver(event, this.props.playlist);
+    }
+  }
+
+  private onDragEnter(event: React.DragEvent): void {
+    if (!this.state.dragOver) {
+      if (!findParent(event.currentTarget, event.relatedTarget as Element)) {
+        this.setState({ dragOver: true });
+        event.stopPropagation();
+      }      
+    }
+  }
+
+  private onDragLeave(event: React.DragEvent): void {
+    if (this.state.dragOver) {
+      if (!findParent(event.currentTarget, event.relatedTarget as Element)) {
+        this.setState({ dragOver: false });
+        event.stopPropagation();
+      }      
     }
   }
 
@@ -374,6 +403,17 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
       wrapper.style.setProperty('--height', this.height+'');
     }
   }
+}
+
+/** Check if an element or one of its parents is the same as another element */
+function findParent(parent: Element, leafElement: Element|null): boolean {
+  let element: Element|null = leafElement;
+  for (let i = 20; i >= 0; i--) { // (Depth limit - to stop endless looping)
+    if (!element) { return false; }
+    if (element === parent) { return true; }
+    element = element.parentElement;
+  }
+  return false;
 }
 
 function toDataURL(url: string) {

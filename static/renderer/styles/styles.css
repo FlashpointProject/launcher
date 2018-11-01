@@ -9,6 +9,12 @@ html, body {
 *:focus {
   outline: none;
 }
+[draggable] {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 :root {
   /* Root font size (Scales most stuff) */
@@ -1029,10 +1035,11 @@ body {
   background-color: var(--theme__background-color);
   color: #aaa;
 }
-.playlist-list-item:nth-child(2n) {
+.playlist-list-item:nth-child(2n):not(.playlist-list-item--drag-over) {
   background-color: #1e1e1f;
 }
-.playlist-list-item:hover {
+.playlist-list-item:hover,
+.playlist-list-item--drag-over {
   background-color: #3c3c41;
 }
 .playlist-list-item--editing {
@@ -1041,7 +1048,8 @@ body {
 .playlist-list-item--editing:nth-child(2n) {
   background-color: #192519;
 }
-.playlist-list-item--editing:hover {
+.playlist-list-item--editing:hover,
+.playlist-list-item--editing.playlist-list-item--drag-over {
   background-color: #20301f;
 }
 .playlist-list-item--editing p {
@@ -1061,7 +1069,8 @@ body {
 .playlist-list-item--editing .playlist-list-item__head {
   cursor: default;
 }
-.playlist-list-item__head:hover {
+.playlist-list-item__head:hover,
+.playlist-list-item--drag-over .playlist-list-item__head {
   --color: #e6e6e6;
 }
 .playlist-list-item__head > * {
