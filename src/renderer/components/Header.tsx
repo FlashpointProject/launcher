@@ -41,7 +41,7 @@ export class Header extends React.Component<IHeaderProps, {}> {
         <div className='header__wrap'>
           <ul className='header__menu'>
             <li className='header__menu__item'>
-              <Link to={Paths.playlists} className='header__menu__item__link'>Playlists</Link>
+              <Link to={Paths.home} className='header__menu__item__link'>Home</Link>
             </li>
             <li className='header__menu__item'>
               <Link to={Paths.browse} className='header__menu__item__link'>Browse</Link>

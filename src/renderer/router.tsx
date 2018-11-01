@@ -10,7 +10,7 @@ import LogsPage from './components/pages/LogsPage';
 import { ConfigPage } from './components/pages/ConfigPage';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { PlaylistPage } from './components/pages/PlaylistPage';
+import { HomePage } from './components/pages/HomePage';
 
 export interface IAppRouterProps {
   central: ICentralState;
@@ -32,7 +32,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     };
     return (
       <Switch>
-        <PropsRoute exact path={Paths.playlists} component={PlaylistPage}
+        <PropsRoute exact path={Paths.home} component={HomePage}
                     central={this.props.central} gameScale={this.props.gameScale} />
         <PropsRoute path={Paths.browse} component={BrowsePage}
                     {...browseProps} />
