@@ -65,7 +65,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     );
   }
 
-  onChange(e: React.ChangeEvent<HTMLInputElement>) {
+  private onChange(e: React.ChangeEvent<HTMLInputElement>) {
     // Get the new input string and check it for any new input tags
     const match = this.matchAllTags(e.target.value);
     const state: any = {
@@ -86,7 +86,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     this.setState(state);
   }
 
-  onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  private onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     // Backspace (was pressed)
     if (e.keyCode === 8) {
       // The caret (text cursor) is at the left-most position
@@ -114,7 +114,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     }
   }
 
-  onClickRemoveTag(tag: ISearchTagClickRemoveEvent) {
+  private onClickRemoveTag(tag: ISearchTagClickRemoveEvent) {
     if (!this.state.tags) { throw new Error('A <SearchTag> of a <Search> had it\'s "Remove Button" clicked, but there are no tags present in the <Search>.'); }
     if (tag.id === undefined) { throw new Error('A <SearchTag> of a <Search> had it\'s "Remove Button" clicked, but the <SearchTag>\'s property "id" is not set.'); }
     // Remove tag with the same index as the tags id (they should be the same)
@@ -125,7 +125,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     });
   }
 
-  getClassName(className: string, propName: string): string {
+  private getClassName(className: string, propName: string): string {
     if (this.props.classNames) {
       const cn: string = (this.props.classNames as any)[propName] || '';
       if (cn) {
@@ -135,9 +135,8 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     return className;
   }
 
-
   /** Get all tags (and the input string without the tags) from an input string */
-  matchAllTags(input: string) {
+  private matchAllTags(input: string) {
     const tags: string[] = [];
     let cleanInput: string = input;
     if (!this.props.disableTags) {
