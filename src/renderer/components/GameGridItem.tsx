@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ListRowProps, GridCellProps } from 'react-virtualized';
+import { GridCellProps } from 'react-virtualized';
 import { IDefaultProps } from '../interfaces';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { getPlatformIconPath } from '../Util';
@@ -13,6 +13,8 @@ export interface IGameGridItemProps extends Partial<GridCellProps>, IDefaultProp
   onClick?: (game: IGameInfo, index: number) => void;
   /** Called when the item is double clicked */
   onDoubleClick?: (game: IGameInfo, index: number) => void;
+  /** Called when starting to "drag" this element (if set, the element will be flagged as "draggable") */
+  onDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
   /** If the grid item is selected */
   isSelected: boolean;
   index: number;
@@ -23,6 +25,7 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     super(props);
     this.onClick = this.onClick.bind(this);
     this.onDoubleClick = this.onDoubleClick.bind(this);
+    this.onDragStart = this.onDragStart.bind(this);
   }
 
   render() {
@@ -36,7 +39,8 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     // Render
     return (
       <li style={this.props.style} className={className} 
-          onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
+          onClick={this.onClick} onDoubleClick={this.onDoubleClick}
+          onDragStart={this.onDragStart} draggable={!!this.props.onDragStart}>
         <div className='game-grid-item__thumb'>
           <div className='game-grid-item__thumb__image' style={{
             backgroundImage: `url('${this.props.thumbnail}')`
@@ -46,7 +50,7 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
                 <div className='game-grid-item__thumb__icons__icon' style={{
                   backgroundImage: `url('${platformIcon}')`
                 }} />
-              ) : undefined }           
+              ) : undefined }
             </div>
           </div>
         </div>
@@ -66,6 +70,12 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
   onDoubleClick(event: React.MouseEvent<HTMLLIElement>): void {
     if (this.props.onDoubleClick) {
       this.props.onDoubleClick(this.props.game, this.props.index);
+    }
+  }
+  
+  onDragStart(event: React.DragEvent): void {
+    if (this.props.onDragStart) {
+      this.props.onDragStart(event, this.props.game, this.props.index);
     }
   }
 }

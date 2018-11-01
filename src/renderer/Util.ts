@@ -1,5 +1,7 @@
 import * as path from 'path';
 
+export const gameIdDataType: string = 'text/game-id';
+
 /** How much the maximum/minimum game scale will scale the games up/down */
 export const gameScaleSpan = 0.7;
 

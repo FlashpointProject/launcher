@@ -6,6 +6,7 @@ import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { RenderedSection } from 'react-virtualized/dist/es/Grid';
 import { GameImageCollection } from '../image/GameImageCollection';
+import { gameIdDataType } from '../Util';
 
 export interface IGameListProps extends IDefaultProps {
   gameImages: GameImageCollection;
@@ -35,6 +36,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
     this.rowRenderer = this.rowRenderer.bind(this);
     this.onItemClick = this.onItemClick.bind(this);
     this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
+    this.onItemDragStart = this.onItemDragStart.bind(this);
     this.onKeyPress = this.onKeyPress.bind(this);
     this.onScrollToChange = this.onScrollToChange.bind(this);
     this.onRowsRendered = this.onRowsRendered.bind(this);
@@ -108,7 +110,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
                     isSelected={game === this.props.selectedGame}
-                    />
+                    onDragStart={this.onItemDragStart} />
     );
   }
 
@@ -129,6 +131,10 @@ export class GameList extends React.Component<IGameListProps, {}> {
   /** When a list item is double clicked */
   onItemDoubleClick(game: IGameInfo, index: number): void {
     this.props.onGameLaunch(game);
+  }
+  
+  onItemDragStart(event: React.DragEvent, game: IGameInfo, index: number): void {
+    event.dataTransfer.setData(gameIdDataType, game.id);
   }
 
   /** When a row/item is selected */

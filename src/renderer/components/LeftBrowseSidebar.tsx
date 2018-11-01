@@ -3,6 +3,7 @@ import { ICentralState } from '../interfaces';
 import { PlaylistItem } from './PlaylistItem';
 import { OpenIcon } from './OpenIcon';
 import { IGamePlaylist } from '../playlist/interfaces';
+import { gameIdDataType } from '../Util';
 
 export interface ILeftBrowseSidebarProps {
   central: ICentralState;
@@ -10,6 +11,7 @@ export interface ILeftBrowseSidebarProps {
   selectedPlaylistID: string;
   onSelectPlaylist?: (playlist: IGamePlaylist) => void;
   onDeselectPlaylist?: () => void;
+  onPlaylistChanged?: (playlist: IGamePlaylist) => void;
 }
 
 export interface ILeftBrowseSidebarState {
@@ -28,6 +30,8 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     this.onPlaylistItemEditClick = this.onPlaylistItemEditClick.bind(this);
     this.onPlaylistItemDeleteClick = this.onPlaylistItemDeleteClick.bind(this);
     this.onPlaylistItemSaveClick = this.onPlaylistItemSaveClick.bind(this);
+    this.onPlaylistItemDrop = this.onPlaylistItemDrop.bind(this);
+    this.onPlaylistItemDragOver = this.onPlaylistItemDragOver.bind(this);
     this.onShowAllClick = this.onShowAllClick.bind(this);
     this.onCreatePlaylistClick = this.onCreatePlaylistClick.bind(this);
   }
@@ -64,7 +68,9 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
                                   onHeadClick={this.onPlaylistItemHeadClick}
                                   onEditClick={this.onPlaylistItemEditClick}
                                   onDeleteClick={this.onPlaylistItemDeleteClick}
-                                  onSaveClick={this.onPlaylistItemSaveClick} />
+                                  onSaveClick={this.onPlaylistItemSaveClick}
+                                  onDrop={this.onPlaylistItemDrop}
+                                  onDragOver={this.onPlaylistItemDragOver} />
                   );
                 })}
                 {/* Create New Playlist */}
@@ -126,6 +132,22 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     this.props.central.playlists.save(edit);
     // Stop editing
     this.setState({ isEditing: false });
+  }
+
+  private onPlaylistItemDrop(event: React.DragEvent, playlist: IGamePlaylist): void {
+    if (this.props.onPlaylistChanged) {
+      this.props.onPlaylistChanged(playlist);
+    }
+  }
+
+  private onPlaylistItemDragOver(event: React.DragEvent, playlist: IGamePlaylist): void {
+    if (!window.External.config.data.disableEditing) {
+      const types = event.dataTransfer.types;
+      if (types.length === 1 && types[0] === gameIdDataType) {
+        // Show the "You can drop here" cursor while dragging something droppable over this element
+        event.preventDefault();
+      }
+    }
   }
 
   private onShowAllClick(event: React.MouseEvent): void {

@@ -51,6 +51,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
     this.onLeftSidebarSelectPlaylist = this.onLeftSidebarSelectPlaylist.bind(this);
     this.onLeftSidebarDeselectPlaylist = this.onLeftSidebarDeselectPlaylist.bind(this);
+    this.onLeftSidebarPlaylistChanged = this.onLeftSidebarPlaylistChanged.bind(this);
   }
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
@@ -98,7 +99,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             <LeftBrowseSidebar central={this.props.central}
                                selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
                                onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
-                               onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist} />
+                               onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
+                               onPlaylistChanged={this.onLeftSidebarPlaylistChanged} />
           </div>
         ) : undefined}
         <div className='game-browser__center' onKeyDown={this.onKeyDown}>
@@ -192,6 +194,10 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   private onLeftSidebarDeselectPlaylist(): void {
     this.setState({ selectedPlaylist: undefined });
+  }
+
+  private onLeftSidebarPlaylistChanged(playlist: IGamePlaylist): void {
+    this.forceUpdate();
   }
 
   private onGameSelect(game?: IGameInfo): void {

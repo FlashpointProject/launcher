@@ -15,6 +15,8 @@ export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   onClick?: (game: IGameInfo, index: number) => void;
   /** Called when the item is double clicked */
   onDoubleClick?: (game: IGameInfo, index: number) => void;
+  /** Called when starting to "drag" this element (if set, the element will be flagged as "draggable") */
+  onDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
   /** If the list item is selected */
   isSelected: boolean;
 }
@@ -24,6 +26,7 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     super(props);
     this.onClick = this.onClick.bind(this);
     this.onDoubleClick = this.onDoubleClick.bind(this);
+    this.onDragStart = this.onDragStart.bind(this);
   }
 
   render() {
@@ -43,6 +46,7 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     // Render
     return (
       <li style={this.props.style} className={className} 
+          onDragStart={this.onDragStart} draggable={!!this.props.onDragStart}
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
         <div className='game-list-item__thumb' style={{
           backgroundImage: `url("${this.props.thumbnail}")`,
@@ -73,6 +77,12 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
   onDoubleClick(event: React.MouseEvent<HTMLLIElement>): void {
     if (this.props.onDoubleClick) {
       this.props.onDoubleClick(this.props.game, this.props.index);
+    }
+  }
+
+  onDragStart(event: React.DragEvent): void {
+    if (this.props.onDragStart) {
+      this.props.onDragStart(event, this.props.game, this.props.index);
     }
   }
 }

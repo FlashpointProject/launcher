@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IGamePlaylist } from '../playlist/interfaces';
+import { IGamePlaylist, IGamePlaylistEntry } from '../playlist/interfaces';
 import { deepCopy } from '../../shared/Util';
 import { ConfirmButton } from './ConfirmButton';
 import { ICentralState } from '../interfaces';
@@ -9,6 +9,7 @@ import { GameLauncher } from '../GameLauncher';
 import { OpenIcon } from './OpenIcon';
 import { GameParser } from '../../shared/game/GameParser';
 import { EditableTextElement, IEditableTextElementArgs } from './EditableTextElement';
+import { gameIdDataType } from '../Util';
 
 export interface IPlaylistItemProps {
   playlist: IGamePlaylist;
@@ -20,6 +21,8 @@ export interface IPlaylistItemProps {
   onEditClick?: (playlist: IGamePlaylist) => void;
   onDeleteClick?: (playlist: IGamePlaylist) => void;
   onSaveClick?: (playlist: IGamePlaylist, edit: IGamePlaylist) => void;
+  onDrop?: (event: React.DragEvent, playlist: IGamePlaylist) => void;
+  onDragOver?: (event: React.DragEvent, playlist: IGamePlaylist) => void;
 }
 
 export interface IPlaylistItemState {
@@ -56,6 +59,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     this.onEditClick = this.onEditClick.bind(this);
     this.onDeleteClick = this.onDeleteClick.bind(this);
     this.onSaveClick = this.onSaveClick.bind(this);
+    this.onDrop = this.onDrop.bind(this);
+    this.onDragOver = this.onDragOver.bind(this);
     this.onAddGameDone = this.onAddGameDone.bind(this);
     this.onDoubleClickGame = this.onDoubleClickGame.bind(this);
     this.renderDescription = this.renderDescription.bind(this);
@@ -93,7 +98,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     if (editing)  { className += ' playlist-list-item--editing' }
     const maxHeight = this.props.expanded && this.contentHeight || undefined;
     return (
-      <div className={className}>
+      <div className={className} onDrop={this.onDrop} onDragOver={this.onDragOver}>
         {/* Head */}
         <div className='playlist-list-item__head' onClick={(!editing)?this.onHeadClick:undefined}>
           {(playlist.icon) ? (
@@ -270,6 +275,44 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
           this.setState({ hasChanged: true });
         })
       }
+    }
+  }
+
+  private onDrop(event: React.DragEvent): void {
+    if (this.props.editingDisabled) { return; }
+    // Find game
+    const gameId: string = event.dataTransfer.getData(gameIdDataType);
+    if (gameId) {
+      const platform = this.props.central.games.getPlatfromOfGameId(gameId);
+      if (!platform || !platform.collection) { throw new Error('No game with that ID was found.'); }
+      const game = platform.collection.findGame(gameId);
+      if (!game) { throw new Error('Game was found but then it wasnt found. What?'); }
+      // Check if game is already in the playlist
+      if (this.props.playlist.games.every(g => g.id !== gameId)) {
+        // Add game to playlist(s) (both the edited and unedited, if editing)
+        const gameEntry: IGamePlaylistEntry = {
+          id: gameId,
+          notes: '',
+        }
+        this.props.playlist.games.push(deepCopy(gameEntry));
+        if (this.state.editPlaylist) {
+          this.state.editPlaylist.games.push(deepCopy(gameEntry));
+        }
+        // Save playlist (the un-edited veersion, even if editing)
+        this.props.central.playlists.save(this.props.playlist);
+        // Callback
+        if (this.props.onDrop) {
+          this.props.onDrop(event, this.props.playlist);
+        }
+      }
+    } else {
+      console.log('Item dropped on this playlist is not a game id, disregarding it.');
+    }
+  }
+
+  private onDragOver(event: React.DragEvent): void {
+    if (this.props.onDragOver) {
+      this.props.onDragOver(event, this.props.playlist);
     }
   }
 
