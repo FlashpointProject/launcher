@@ -159,28 +159,38 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     return (
       <div className='game-list__no-games'>
         {this.props.central.gamesDoneLoading ? (
-          <>
-            <h1 className='game-list__no-games__title'>No Games Found!</h1>
-            <br/>
-            {(this.props.central.gamesFailedLoading) ? (
-              <>
-                Have you set the path to the <b>Flashpoint path</b> at the <i>Config</i> page?<br/>
-                <br/>
-                Note: You have to press <b>"Save & Restart"</b> for the change to take effect.
-              </>
-            ) : (
-              (this.props.central.games.collection.games.length > 0) ? (
+          this.props.selectedPlaylist ? (
+            /* Empty Playlist */
+            <>
+              <h2 className='game-list__no-games__title'>Empty Playlist</h2>
+              <br/>
+              <p>Drop a game on this playlist in the <i>left sidebar</i> to add it.</p>
+            </>
+          ) : (
+            /* No games found */
+            <>
+              <h1 className='game-list__no-games__title'>No Games Found!</h1>
+              <br/>
+              {(this.props.central.gamesFailedLoading) ? (
                 <>
-                  No game title matched your search.<br/>
-                  Try searching for something less restrictive.
+                  Have you set the path to the <b>Flashpoint path</b> at the <i>Config</i> page?<br/>
+                  <br/>
+                  Note: You have to press <b>"Save & Restart"</b> for the change to take effect.
                 </>
               ) : (
-                <>
-                  There are no games.
-                </>
-              )
-            )}
-          </>
+                (this.props.central.games.collection.games.length > 0) ? (
+                  <>
+                    No game title matched your search.<br/>
+                    Try searching for something less restrictive.
+                  </>
+                ) : (
+                  <>
+                    There are no games.
+                  </>
+                )
+              )}
+            </>
+          )
         ) : (
           <p>
             Loading Games...
