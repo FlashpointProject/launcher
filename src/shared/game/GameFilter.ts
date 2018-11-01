@@ -18,6 +18,13 @@ export function orderByGenre(a: IGameInfo, b: IGameInfo): number {
   return orderByTitle(a, b);
 }
 
+/** Order games by the date-time they were added (ascending) */
+export function orderByDateAdded(a: IGameInfo, b: IGameInfo): number {
+  if (a.dateAdded < b.dateAdded) { return -1; }
+  if (a.dateAdded > b.dateAdded) { return  1; }
+  return 0;
+}
+
 /** Reverse the order (makes an ascending order function descending instead) */
 export function reverseOrder(compareFn: OrderFn): OrderFn {
   return (a: IGameInfo, b: IGameInfo) => {
@@ -37,6 +44,9 @@ export function getOrderFunction(order: IGameOrderChangeEvent): OrderFn {
       break;
     case 'genre':
       orderFn = orderByGenre;
+      break;
+    case 'dateAdded':
+      orderFn = orderByDateAdded;
       break;
   }
   if (order.orderReverse === 'descending') {

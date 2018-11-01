@@ -19,7 +19,7 @@ interface IOptionalGameOrderState {
   orderReverse?: GameOrderReverse;
 }
 
-export type GameOrderBy = 'title'|'genre';
+export type GameOrderBy = 'title'|'genre'|'dateAdded';
 export type GameOrderReverse = 'ascending'|'descending';
 
 export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState> {
@@ -40,6 +40,7 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
         <select className='simple-selector' value={this.state.orderBy} onChange={this.onOrderByChange}>
           <option value='title'>Title</option>
           <option value='genre'>Genre</option>
+          <option value='dateAdded'>Date Added</option>
         </select>
         {/* Order Reverse */}
         <select className='simple-selector' value={this.state.orderReverse} onChange={this.onOrderReverseChange}>
@@ -78,6 +79,7 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
   private parseOrderBy(value: string): GameOrderBy {
     if (value === 'title') return 'title';
     if (value === 'genre') return 'genre';
+    if (value === 'dateAdded') return 'dateAdded';
     throw new Error(`"${value}" is not a valid GameOrderBy`);
   }
 
