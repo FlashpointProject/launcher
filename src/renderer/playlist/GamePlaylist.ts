@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { uuid } from '../uuid';
 import { IGamePlaylist, IGamePlaylistEntry } from './interfaces';
-import { tryParseJSON } from '../../shared/Util';
+import { tryParseJSON, stringifyJsonDataFile } from '../../shared/Util';
 
 export function createGamePlaylist(): IGamePlaylist {
   return {
@@ -78,7 +78,7 @@ export function loadGamePlaylist(filename: string): Promise<IGamePlaylist|LoadGa
  */
 export function saveGamePlaylist(filePath: string, playlist: IGamePlaylist): Promise<void> {
   return new Promise(function(resolve, reject) {
-    const json: string = JSON.stringify(playlist, null, 2);
+    const json: string = stringifyJsonDataFile(playlist);
     fs.writeFile(filePath, json, 'utf8', function(error) {
       if (error) { reject(error); }
       else       { resolve();     }

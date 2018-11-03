@@ -2,6 +2,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
+ * Stringify anything to a json string ready to be saved to a file
+ * @param data Data to be stringified
+ * @returns JSON string of given data
+ */
+export function stringifyJsonDataFile(data: any): string {
+  return JSON.stringify(data, null, 2).replace(/\n/g, '\r\n');
+}
+
+/**
  * Check if all properties of both arguments have strictly equals values,
  * and if both objects have identical properties (same number of props with the same names)
  * @param first 

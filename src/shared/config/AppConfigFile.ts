@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { tryParseJSON, recursiveReplace, deepCopy } from '../Util';
+import { tryParseJSON, recursiveReplace, deepCopy, stringifyJsonDataFile } from '../Util';
 import { IAppConfigData } from './interfaces';
 
 interface IConfigDataDefaults {
@@ -61,7 +61,7 @@ export class AppConfig {
 
   /** Serialize an app config data object into a string */
   public static stringifyData(data: IAppConfigData): string {
-    return JSON.stringify(data, null, 2);
+    return stringifyJsonDataFile(data);
   }
   
   /** Get the default config data for a specified platform */

@@ -83,6 +83,6 @@ export class AppPreferencesFile {
   }
   
   public static stringifyData(data: IAppPreferencesData): string {
-    return JSON.stringify(data, null, 2);
+    return Util.stringifyJsonDataFile(data);
   }
 }
