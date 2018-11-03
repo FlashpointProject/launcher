@@ -253,6 +253,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onSelectPlaylist(playlist?: IGamePlaylist): void {
-    this.setState({ selectedPlaylist: playlist });
+    this.setState({
+      selectedPlaylist: playlist,
+      selectedGame: undefined,
+    });
   }
 }

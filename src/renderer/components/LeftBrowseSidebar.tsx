@@ -118,9 +118,11 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
 
   private onPlaylistItemDeleteClick(playlist: IGamePlaylist): void {
     if (this.props.central.playlistsDoneLoading) {
+      // Delete playlist
       this.props.central.playlists.delete(playlist.id);
       this.props.central.playlists.remove(playlist.id);
-      this.forceUpdate();
+      // Deselect playlist
+      if (this.props.onDeselectPlaylist) { this.props.onDeselectPlaylist(); }
     }
   }
 

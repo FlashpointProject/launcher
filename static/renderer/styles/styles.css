@@ -662,9 +662,13 @@ body {
   padding: 1em 0;
   text-align: center;
 }
-.game-browser__right--none p {
-  font-size: 1.5em;
+.game-browser__right--none h1 {
+  font-size: 1.3rem;
   font-weight: bold;
+  padding-bottom: 0.2rem;
+}
+.game-browser__right--none p {
+  font-size: 1rem;
 }
 
 /* Browse-Left-Sidebar */

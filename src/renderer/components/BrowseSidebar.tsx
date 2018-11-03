@@ -267,7 +267,10 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       );
     } else {
       return (
-        <p>No game selected.</p>
+        <>
+          <h1>No game selected</h1>
+          <p>Click on a game to select it.</p>
+        </>
       );
     }
   }
