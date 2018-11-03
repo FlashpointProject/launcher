@@ -765,30 +765,52 @@ body {
 .browse-right-sidebar__title-row__title {
   display: flex;
   flex: 1 1 auto;
-  font-size: 1.2rem;
+  overflow-x: hidden;
+  font-size: 1.15rem;
   font-weight: bold;
+}
+.browse-right-sidebar__title-row__title > * {
+  flex: 1 1 auto;
   overflow-x: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.browse-right-sidebar__title-row__title > * {
-  flex: 1 1 auto;
-}
 .browse-right-sidebar__title-row__buttons {
   flex: 0 0 auto;
+  display: flex;
+  margin-left: 0.3rem;
 }
-.browse-right-sidebar__title-row__buttons__remove {
+.browse-right-sidebar__title-row__buttons > *:not(:first-child) {
+  margin-left: 0.6rem;
+}
+/* BrowseSidebar Title-Row Delete-Game */
+.browse-right-sidebar__title-row__buttons__delete-game {
   height: 0.9rem;
   width: 0.9rem;
 }
-.browse-right-sidebar__title-row__buttons__remove .icon__use {
+.browse-right-sidebar__title-row__buttons__delete-game .icon__use {
   fill: var(--theme__text-color);
 }
-.browse-right-sidebar__title-row__buttons__remove:hover .icon__use {
+.browse-right-sidebar__title-row__buttons__delete-game:hover .icon__use {
   fill: #b1b1b1;
 }
-.browse-right-sidebar__title-row__buttons__remove--active .icon__use,
-.browse-right-sidebar__title-row__buttons__remove--active:hover .icon__use {
+.browse-right-sidebar__title-row__buttons__delete-game--active .icon__use,
+.browse-right-sidebar__title-row__buttons__delete-game--active:hover .icon__use {
+  fill: #8a1212;
+}
+/* BrowseSidebar Title-Row Remove-From-Playlist */
+.browse-right-sidebar__title-row__buttons__remove-from-playlist {
+  height: 0.9rem;
+  width: 0.9rem;
+}
+.browse-right-sidebar__title-row__buttons__remove-from-playlist .icon__use {
+  fill: var(--theme__text-color);
+}
+.browse-right-sidebar__title-row__buttons__remove-from-playlist:hover .icon__use {
+  fill: #b1b1b1;
+}
+.browse-right-sidebar__title-row__buttons__remove-from-playlist--active .icon__use,
+.browse-right-sidebar__title-row__buttons__remove-from-playlist--active:hover .icon__use {
   fill: #8a1212;
 }
 /* Browse-Right-Sidebar Row - Sub Elements */

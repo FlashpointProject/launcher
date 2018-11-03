@@ -12,7 +12,7 @@ import { GameManager } from '../game/GameManager';
 import { GameParser } from '../../shared/game/GameParser';
 import { GameManagerPlatform } from '../game/GameManagerPlatform';
 import { OpenIcon } from './OpenIcon';
-import { ConfirmElement } from './ConfirmElement';
+import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
 
 export interface IBrowseSidebarProps {
@@ -26,6 +26,8 @@ export interface IBrowseSidebarProps {
   gamePlaylistEntry?: IGamePlaylistEntry;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame?: () => void;
+  /** Called when the selected game is removed from the selected by this */
+  onRemoveSelectedGameFromPlaylist?: () => void;
 }
 
 export interface IBrowseSidebarState {
@@ -66,6 +68,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     this.onAddAppEdit = this.onAddAppEdit.bind(this);
     this.onAddAppDelete = this.onAddAppDelete.bind(this);
     this.onDeleteGameClick = this.onDeleteGameClick.bind(this);
+    this.onRemoveFromPlaylistClick = this.onRemoveFromPlaylistClick.bind(this);
   }
 
   componentDidMount(): void {
@@ -83,6 +86,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     const game: IGameInfo|undefined = this.state.editGame;
     if (game) {
       const isEditing: boolean = this.state.hasChanged;
+      const playlistEntry = this.props.gamePlaylistEntry;
       const editDisabled = window.External.config.data.disableEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
       return (
@@ -97,19 +101,15 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
                                     textProps={{title: game.title}}/>    
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
+                  {/* "Remove From Playlist" Button */}
+                  { (!editDisabled && playlistEntry) ? (
+                    <ConfirmElement onConfirm={this.onRemoveFromPlaylistClick}
+                                    children={this.renderRemoveFromPlaylistButton} />             
+                  ) : undefined }
+                  {/* "Delete Game" Button */}
                   { editDisabled ? undefined : (
-                    <ConfirmElement onConfirm={this.onDeleteGameClick}>
-                      {({ activate, activationCounter, reset }) => {
-                        return (
-                          <div className={'browse-right-sidebar__title-row__buttons__remove'+
-                                          ((activationCounter>0)?' browse-right-sidebar__title-row__buttons__remove--active simple-vertical-shake':'')}
-                               title='Delete game'
-                               onClick={activate} onMouseLeave={reset}>
-                            <OpenIcon icon='trash' />
-                          </div>
-                        );
-                      }}
-                    </ConfirmElement>                    
+                    <ConfirmElement onConfirm={this.onDeleteGameClick}
+                                    children={this.renderDeleteGameButton} />
                   ) }
                 </div>
               </div>
@@ -179,12 +179,12 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
             </div>
           </div>
           {/* -- Playlist Game Entry Notes -- */}
-          { this.props.gamePlaylistEntry ? (
+          { playlistEntry ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>Playlist Notes: </p>
                 <p className='browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--text-multi-line' >
-                  {this.props.gamePlaylistEntry.notes || '< No Notes >'}
+                  {playlistEntry.notes || '< No Notes >'}
                 </p>
               </div>
             </div>
@@ -272,6 +272,28 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     }
   }
 
+  private renderDeleteGameButton({ activate, activationCounter, reset }: IConfirmElementArgs) {
+    return (
+      <div className={'browse-right-sidebar__title-row__buttons__delete-game'+
+                      ((activationCounter>0)?' browse-right-sidebar__title-row__buttons__delete-game--active simple-vertical-shake':'')}
+          title='Delete game'
+          onClick={activate} onMouseLeave={reset}>
+        <OpenIcon icon='trash' />
+      </div>
+    );
+  }
+
+  private renderRemoveFromPlaylistButton({ activate, activationCounter, reset }: IConfirmElementArgs) {
+    return (
+      <div className={'browse-right-sidebar__title-row__buttons__remove-from-playlist'+
+                      ((activationCounter>0)?' browse-right-sidebar__title-row__buttons__remove-from-playlist--active simple-vertical-shake':'')}
+          title='Remove game from playlist'
+          onClick={activate} onMouseLeave={reset}>
+        <OpenIcon icon='circle-x' />
+      </div>
+    );
+  }
+
   private onDeleteGameClick(): void {
     console.time('delete');
     const game = this.props.selectedGame;
@@ -291,6 +313,12 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     // Callback
     if (this.props.onDeleteSelectedGame) {
       this.props.onDeleteSelectedGame();
+    }
+  }
+
+  private onRemoveFromPlaylistClick(): void {
+    if (this.props.onRemoveSelectedGameFromPlaylist) {
+      this.props.onRemoveSelectedGameFromPlaylist();
     }
   }
 
