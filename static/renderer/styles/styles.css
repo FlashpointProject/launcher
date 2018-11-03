@@ -1135,7 +1135,7 @@ body {
   font-size: 0.9em;
 }
 .playlist-list-item__head__author {
-  flex: 0 1000 auto;
+  flex: 0 1 auto;
   min-width: 0;
   font-size: 0.9em;
   font-style: italic;
