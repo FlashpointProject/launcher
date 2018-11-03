@@ -1125,14 +1125,30 @@ body {
   fill: var(--color);
 }
 .playlist-list-item__head__title {
+  flex: 0 1 auto;
+  min-width: 0;
   font-weight: bold;
   padding-left: 0.5rem;
 }
 .playlist-list-item__head__divider {
   padding: 0 0.2rem;
+  font-size: 0.9em;
 }
 .playlist-list-item__head__author {
+  flex: 0 1000 auto;
+  min-width: 0;
+  font-size: 0.9em;
   font-style: italic;
+}
+.playlist-list-item__head__author > p {
+  padding-right: 0.2em; /* Give it some extra space since its in italics */
+}
+.playlist-list-item__head__title > *,
+.playlist-list-item__head__author > * {
+  /* Truncates the overflowing text */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .playlist-list-item--editing .playlist-list-item__head__title input,
 .playlist-list-item--editing .playlist-list-item__head__author input {

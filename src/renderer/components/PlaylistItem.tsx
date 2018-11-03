@@ -127,14 +127,18 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
                                  confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
                                  children={this.renderTitle} />
           </div>
-          <div className='playlist-list-item__head__divider simple-center'>
-            <p className='simple-center__inner'>by</p>
-          </div>
-          <div className='playlist-list-item__head__author simple-center'>
-            <EditableTextElement text={playlist.author} onEditConfirm={this.onAuthorEditDone}
-                                 confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
-                                 children={this.renderAuthor} />
-          </div>
+          { editing || playlist.author ? (
+            <>
+              <div className='playlist-list-item__head__divider simple-center'>
+                <p className='simple-center__inner'>by</p>
+              </div>
+              <div className='playlist-list-item__head__author simple-center'>
+                <EditableTextElement text={playlist.author} onEditConfirm={this.onAuthorEditDone}
+                                    confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
+                                    children={this.renderAuthor} />        
+              </div>    
+            </>
+          ) : undefined }
         </div>
         {/* Content */}
         <div className='playlist-list-item__content' ref={this.contentRef}
@@ -191,7 +195,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
         );
       } else {
         return (
-          <p onClick={o.startEdit} className='simple-vertical-inner'>
+          <p onClick={o.startEdit} title={o.text} className='simple-vertical-inner'>
             {o.text || placeholderText}
           </p>
         );
