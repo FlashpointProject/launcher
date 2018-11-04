@@ -149,3 +149,98 @@ export function filterSearch(search: IGameSearchQuery, games: IGameInfo[]): IGam
   }
   return finalFilteredGames;
 }
+
+export interface IOrderGamesArgs {
+  games: IGameInfo[];
+  search: string;
+  extreme: boolean;
+  broken: boolean;
+  playlist?: IGamePlaylist;
+  order: IGameOrderChangeEvent;
+}
+
+export function orderGames(args: IOrderGamesArgs): IGameInfo[] {
+  // -- Get the array of games --
+  let games = args.games;
+  if (!games) { return []; } // (No games found)
+  games = games.slice(); // (Copy array)
+  // -- Filter games --
+  const filters = parseFilters(args.search);
+  const filteredGames = filterSearch(filters, filterBroken(args.broken, filterExtreme(args.extreme, filterPlaylist(args.playlist, games))));
+  // -- Order games --
+  let orderedGames = filteredGames;
+  if (!args.playlist) { // (Dont order if a playlist is selected - kind of a hack)
+    orderedGames = filteredGames.sort(getOrderFunction(args.order));      
+  }
+  // -- Return --
+  return orderedGames;
+}
+
+/**
+ * Parse a search string into an object with the different search "types" separated
+ * @param input Search string
+ */
+function parseFilters(input: string): IGameSearchQuery {
+  const filter: IGameSearchQuery = {
+    text: '',
+    platforms: undefined,
+    developers: undefined,
+    genres: undefined,
+  };
+  // Abort if string is empty
+  if (!input) { return filter; }
+  // Do filtering
+  const splits = input.replace(/  +/g, ' ').split(' ');
+  let str = ''; // Current string that is being built
+  let mode = 0; // What "mode" the string current is in (Normal, Platform, Genre etc.)
+  for (let i = 0; i < splits.length; i++) {
+    const split = splits[i];
+    if (!split) { continue; } // Skip if split is empty
+    switch(split[0]) {
+      case '!': // Platform (1)
+        startNewString(split, 1);
+        break;
+      case '@': // Developer (2)
+        startNewString(split, 2);
+        break;
+      case '#': // Genre (3)
+        startNewString(split, 3);
+        break;
+      default:
+        str += split+' ';
+        break;
+    }
+  }
+  finishPreviousString();
+  return filter;
+  // -- Functions --
+  /** Start a new string with a given mode */
+  function startNewString(split: string, newMode: number) {
+    finishPreviousString();
+    str = split.substr(1)+' '; // Remove first character and add a space to the end
+    mode = newMode;
+  }
+  /** Add the current string to the filter object where it belongs (depending on its mode) */
+  function finishPreviousString() {
+    // Clean string up (remove last character which is a space, and turn into lower case)
+    let cleanStr = str.substr(0, str.length-1).toLowerCase();
+    // Add string at the correct place
+    switch (mode) {
+      case 0:
+        filter.text = cleanStr;
+        break;
+      case 1:
+        if (!filter.platforms) { filter.platforms = []; }
+        filter.platforms.push(cleanStr);
+        break;
+      case 2:
+        if (!filter.developers) { filter.developers = []; }
+        filter.developers.push(cleanStr);
+        break;
+      case 3:
+        if (!filter.genres) { filter.genres = []; }
+        filter.genres.push(cleanStr);
+        break;
+    }
+  }
+}
