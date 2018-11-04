@@ -70,7 +70,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   componentWillUnmount() {
-    this.props.central.games.off('change', this.onGamesCollectionChange);
+    this.props.central.games.removeListener('change', this.onGamesCollectionChange);
   }
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
