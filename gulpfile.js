@@ -95,6 +95,7 @@ function pack() {
     packageManager: 'npm',
     tmpdir: './temp/',
     overwrite: true,
+    icon: './icons/icon.ico',
     // Build settings
     executableName: 'FlashpointLauncher',
     platform: process.env.PACK_PLATFORM,
