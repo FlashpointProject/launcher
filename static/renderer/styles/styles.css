@@ -781,15 +781,17 @@ body {
   margin-bottom: 0;
 }
 .browse-right-sidebar__title-row__title {
-  display: flex;
   flex: 1 1 auto;
   overflow: hidden;
   height: 1.6rem;
   font-size: 1.15rem;
   font-weight: bold;
 }
+.browse-right-sidebar__title-row__title > p {
+  display: block;
+  overflow-y: visible;
+}
 .browse-right-sidebar__title-row__title > * {
-  flex: 1 1 auto;
   overflow-x: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -854,6 +856,9 @@ body {
   font-size: inherit;
   font-family: inherit;
   font-style: inherit;
+}
+.browse-right-sidebar__row__editable-text--edit {
+  width: 100%;
 }
 /* Browse-Right-Sidebar Row - Notes */
 .browse-right-sidebar__row .browse-right-sidebar__row__notes-edit {
