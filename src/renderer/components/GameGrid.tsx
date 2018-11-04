@@ -56,7 +56,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   render() {
     const games = this.props.games || [];
     return (
-      <div className='game-browser' ref={this._wrapper} onKeyPress={this.onKeyPress}>
+      <div className='game-browser__center__inner' ref={this._wrapper} onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => {
             // Calculate and set column/row count

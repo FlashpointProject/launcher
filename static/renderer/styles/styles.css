@@ -646,9 +646,10 @@ body {
 
 /* ------ Browse ------ */
 .game-browser {
+  display: flex;
   width: 100%;
   height: 100%;
-  display: flex;
+  background-color: var(--theme__background-color);
 }
 .game-browser__left {
   flex: 0 0 auto;
@@ -660,6 +661,11 @@ body {
 }
 .game-browser__center {
   flex: 1 0 auto;
+}
+.game-browser__center__inner {
+  display: flex;
+  width: 100%;
+  height: 100%;
 }
 .game-browser__right {
   flex: 0 0 auto;
@@ -881,7 +887,6 @@ body {
 
 /* GameList */
 .game-list {
-  background-color: var(--theme__background-color);
   /* --height | Height of list items (in pixels) */
 }
 /* GameList Item */
@@ -965,7 +970,6 @@ body {
 
 /* GameList */
 .game-grid {
-  background-color: var(--theme__background-color);
   /* --width | Width of grid items (in pixels) */
   /* --height | Height of grid items (in pixels) */
 }

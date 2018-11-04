@@ -60,7 +60,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
     }
     // Render
     return (
-      <div className='game-browser' ref={this._wrapper} onKeyPress={this.onKeyPress}>
+      <div className='game-browser__center__inner' ref={this._wrapper} onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => (
             <ArrowKeyStepper
