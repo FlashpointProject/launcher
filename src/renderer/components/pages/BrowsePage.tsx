@@ -8,7 +8,7 @@ import { gameScaleSpan } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
-import { orderGames } from '../../../shared/game/GameFilter';
+import { orderGames, IOrderGamesArgs } from '../../../shared/game/GameFilter';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { GameLauncher } from '../../GameLauncher';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
@@ -33,6 +33,10 @@ export interface IBrowsePageProps extends IDefaultProps {
 export interface IBrowsePageState {
   /** Current quick search string (used to jump to a game in the list, not to filter the list) */
   quickSearch: string;
+  /** Ordered games using the most recent props, configs and preferences */
+  orderedGames: IGameInfo[];
+  /** Arguments used to order the "orderedGames" array in this state */
+  orderedGamesArgs?: IOrderGamesArgs;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
@@ -45,6 +49,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     super(props);
     this.state = {
       quickSearch: '',
+      orderedGames: [],
     };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
@@ -56,12 +61,23 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onLeftSidebarSelectPlaylist = this.onLeftSidebarSelectPlaylist.bind(this);
     this.onLeftSidebarDeselectPlaylist = this.onLeftSidebarDeselectPlaylist.bind(this);
     this.onLeftSidebarPlaylistChanged = this.onLeftSidebarPlaylistChanged.bind(this);
+    this.onGamesCollectionChange = this.onGamesCollectionChange.bind(this);
+  }
+
+  componentDidMount() {
+    this.props.central.games.on('change', this.onGamesCollectionChange);
+    this.orderGames(true);
+  }
+
+  componentWillUnmount() {
+    this.props.central.games.off('change', this.onGamesCollectionChange);
   }
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
+    this.orderGames();
     // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== this.state.quickSearch && this.state.quickSearch !== '') {
-      const games: IGameInfo[] = this.orderGames();
+      const games: IGameInfo[] = this.state.orderedGames;
       for (let index = 0; index < games.length; index++) {
         const game: IGameInfo = games[index];
         if (game.title.toLowerCase().startsWith(this.state.quickSearch)) {
@@ -73,7 +89,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   render() {
-    const games: IGameInfo[] = this.orderGames();
+    const games: IGameInfo[] = this.state.orderedGames;
     const order = this.props.order || BrowsePage.defaultOrder;
     const selectedGame = this.props.selectedGame;
     const selectedPlaylist = this.props.selectedPlaylist;
@@ -298,10 +314,12 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.forceUpdate();
   }
   
-  /** Order the games according to the current props, configs and preferences */
-  private orderGames(): IGameInfo[] {
-    console.time('order');
-    const games = orderGames({
+  /**
+   * Update the ordered games array if the related props, configs or preferences has been changed
+   * @param force If checking for changes in the arguments should be skipped (it always re-orders the games)
+   */
+  private orderGames(force: boolean = false): void {
+    const args = {
       games: this.props.central.games.collection.games,
       search: this.props.search ? this.props.search.input : '',
       extreme: !window.External.config.data.disableExtremeGames &&
@@ -309,9 +327,17 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       broken: window.External.config.data.showBrokenGames,
       playlist: this.props.selectedPlaylist,
       order: this.props.order || BrowsePage.defaultOrder,
-    });
-    console.timeEnd('order');
-    return games;
+    };
+    if (force || !checkOrderGamesArgsEqual(args, this.state.orderedGamesArgs)) {
+      this.setState({
+        orderedGames: orderGames(args),
+        orderedGamesArgs: args,
+      });
+    }
+  }
+
+  private onGamesCollectionChange(): void {
+    this.orderGames(true);
   }
 
   private static defaultOrder: Readonly<IGameOrderChangeEvent> = {
@@ -322,4 +348,19 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
 function calcScale(defHeight: number, scale: number): number {
   return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0
+}
+
+/**
+ * Check if two sets of "order games argumets" will produce the same games in the same order
+ * (This is not an exhaustive test, as it does not check the contents of the games array)
+ */
+function checkOrderGamesArgsEqual(args1: IOrderGamesArgs, args2?: IOrderGamesArgs): boolean {
+  if (!args2)                            { return false; }
+  if (args1.games    !== args2.games)    { return false; }
+  if (args1.search   !== args2.search)   { return false; }
+  if (args1.extreme  !== args2.extreme)  { return false; }
+  if (args1.broken   !== args2.broken)   { return false; }
+  if (args1.playlist !== args2.playlist) { return false; }
+  if (args1.order    !== args2.order)    { return false; }
+  return true;
 }

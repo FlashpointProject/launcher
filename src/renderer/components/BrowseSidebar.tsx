@@ -1,16 +1,15 @@
 import * as React from 'react';
 import { uuid } from '../uuid';
 import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
-import { EditableTextWrap } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { BrowseSidebarAddApp } from './BrowseSidebarAddApp';
 import { GameLauncher } from '../GameLauncher';
-import { GameManager } from '../game/GameManager';
+import GameManager from '../game/GameManager';
 import { GameParser } from '../../shared/game/GameParser';
-import { GameManagerPlatform } from '../game/GameManagerPlatform';
+import GameManagerPlatform from '../game/GameManagerPlatform';
 import { OpenIcon } from './OpenIcon';
 import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
 import { IGamePlaylistEntry } from '../playlist/interfaces';

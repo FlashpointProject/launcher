@@ -3,13 +3,19 @@ import * as path from 'path';
 import * as fastXmlParser from 'fast-xml-parser';
 import { promisify } from 'util';
 import { IRawLaunchBoxPlatformRoot, IRawLaunchBoxGame, IRawLaunchBoxAdditionalApplication } from 'src/shared/launchbox/interfaces';
-import { IAdditionalApplicationInfo, IGameInfo } from 'src/shared/game/interfaces';
+import { IAdditionalApplicationInfo } from 'src/shared/game/interfaces';
 import { LaunchboxData } from '../LaunchboxData';
 import { GameCollection } from 'src/shared/game/GameCollection';
+import { EventEmitter } from 'events';
 
 const writeFile = promisify(fs.writeFile);
 
-export class GameManagerPlatform {
+declare interface GameManagerPlatform {
+  /** Fired when one or more games has been changed (added, removed, changed properties etc.) */
+  on(event: 'change', handler: (platform: this) => void): this;
+}
+
+class GameManagerPlatform extends EventEmitter {
   /** Filename of the platform XML file */
   public filename: string;
   /** Raw data object (object tree representation of the xml document) */
@@ -18,6 +24,7 @@ export class GameManagerPlatform {
   public collection?: GameCollection;
 
   constructor(filename: string) {
+    super();
     this.filename = filename;
   }
 
@@ -181,3 +188,5 @@ export class GameManagerPlatform {
     return -1;
   }
 }
+
+export default GameManagerPlatform;

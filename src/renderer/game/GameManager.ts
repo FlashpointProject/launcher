@@ -2,20 +2,33 @@ import * as path from 'path';
 import { LaunchboxData } from '../LaunchboxData';
 import { GameParser } from '../../shared/game/GameParser';
 import { GameCollection } from '../../shared/game/GameCollection';
-import { GameManagerPlatform } from './GameManagerPlatform';
+import GameManagerPlatform from './GameManagerPlatform';
+import { EventEmitter } from 'events';
 
-export class GameManager {
+declare interface GameManager {
+  /** Fired when one or more games has been changed (added, removed, changed properties etc.) */
+  on(event: 'change', handler: (manager: this) => void): this;
+}
+
+class GameManager extends EventEmitter {
   /** All individual platforms */
   private platforms: GameManagerPlatform[] = [];
   /**  */
   public collection: GameCollection = new GameCollection();
+
+  constructor() {
+    super();
+    this.onPlatformChange = this.onPlatformChange.bind(this);
+  }
   
   /** Fetch file filenames of all platform XMLs in the platforms folder */
   public async findPlatforms(): Promise<string[]> {
     const flashpointPath = window.External.config.fullFlashpointPath;
     const filenames = await LaunchboxData.fetchPlatformFilenames(flashpointPath);
     for (let i = filenames.length - 1; i >= 0; i--) {
-      this.platforms[i] = new GameManagerPlatform(filenames[i]);
+      let platform = new GameManagerPlatform(filenames[i]);
+      this.platforms[i] = platform;
+      platform.on('change', this.onPlatformChange);
     }
     return filenames;
   }
@@ -86,5 +99,12 @@ export class GameManager {
         this.collection.push(col);
       }
     }
+    this.emit('change', this);
+  }
+
+  private onPlatformChange(platform: GameManagerPlatform): void {
+    this.refreshCollection();
   }
 }
+
+export default GameManager;
