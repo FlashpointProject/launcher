@@ -124,8 +124,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
           )}
           <div className='playlist-list-item__head__title simple-center'>
             <EditableTextElement text={playlist.title} onEditConfirm={this.onTitleEditDone}
-                                 confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
-                                 children={this.renderTitle} />
+                                 editable={editing} children={this.renderTitle} />
           </div>
           { editing || playlist.author ? (
             <>
@@ -134,8 +133,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
               </div>
               <div className='playlist-list-item__head__author simple-center'>
                 <EditableTextElement text={playlist.author} onEditConfirm={this.onAuthorEditDone}
-                                    confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
-                                    children={this.renderAuthor} />        
+                                     editable={editing} children={this.renderAuthor} />
               </div>    
             </>
           ) : undefined }
@@ -177,8 +175,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
             ) }
             {/* Description */}
             <EditableTextElement text={playlist.description} onEditConfirm={this.onDescriptionEditDone}
-                                 confirmKeys={confirmKeys} cancelKeys={cancelKeys} editable={editing}
-                                 children={this.renderDescription} />
+                                 editable={editing} children={this.renderDescription} />
           </div>
         </div>
       </div>
@@ -186,16 +183,19 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
   }
 
   private wrapRenderEditableText(placeholderText: string, placeholderEdit: string) {
-    return (o: IEditableTextElementArgs) => {
+    return function(o: IEditableTextElementArgs) {
       if (o.editing) {
         return (
         <input value={o.text} placeholder={placeholderEdit}
                onChange={o.onInputChange} onKeyDown={o.onInputKeyDown} 
-               className='simple-vertical-inner' />
+               autoFocus onBlur={o.cancelEdit}
+               className='playlist-list-item__editable-text simple-vertical-inner simple-input' />
         );
       } else {
+        let className = 'playlist-list-item__editable-text simple-vertical-inner';
+        if (!o.text) { className += ' simple-disabled-text'; }
         return (
-          <p onClick={o.startEdit} title={o.text} className='simple-vertical-inner'>
+          <p onClick={o.startEdit} title={o.text} className={className}>
             {o.text || placeholderText}
           </p>
         );
@@ -208,14 +208,14 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
       return (
         <textarea value={o.text} placeholder='Enter a description here...'
                   onChange={o.onInputChange} onKeyDown={o.onInputKeyDown}
-                  className='simple-vertical-inner playlist-list-item__content__description-edit' />
+                  autoFocus onBlur={o.cancelEdit}
+                  className='playlist-list-item__content__description-edit simple-input simple-scroll' />
       );
     } else {
       let className = 'playlist-list-item__content__description-text';
-      if (o.text === '') { className += ' playlist-list-item__content__description-text--empty'; }
+      if (!o.text) { className += ' simple-disabled-text'; }
       return (
-        <p onClick={o.startEdit}
-           className={className}>
+        <p onClick={o.startEdit} className={className}>
           {o.text || '< No Description >'}
         </p>
       );

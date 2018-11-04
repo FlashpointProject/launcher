@@ -166,7 +166,8 @@ body {
   height: var(--scrollbar-size);
 }
 .simple-scroll::-webkit-scrollbar-corner {
-  display: none;
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
 }
 .simple-scroll::-webkit-scrollbar-track {
   box-shadow: inset 0 0 calc(0.25 * var(--scrollbar-size)) rgba(0, 0, 0, 0.25);
@@ -184,6 +185,19 @@ body {
 }
 .simple-scroll::-webkit-scrollbar-thumb:active {
   background-color: var(--theme__scrollbar__color-active);
+}
+/* Simple Input (Input text field) */
+.simple-input {
+  color: var(--theme__text-color);
+  background-color: #313131;
+  border: none;
+}
+/* Simple Disabled Text */
+.simple-disabled-text {
+  cursor: default;
+  user-select: none;
+  font-style: italic;
+  color: #868686;
 }
 
 
@@ -769,7 +783,8 @@ body {
 .browse-right-sidebar__title-row__title {
   display: flex;
   flex: 1 1 auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 1.6rem;
   font-size: 1.15rem;
   font-weight: bold;
 }
@@ -818,20 +833,6 @@ body {
   fill: #8a1212;
 }
 /* Browse-Right-Sidebar Row - Sub Elements */
-.browse-right-sidebar__row .browse-right-sidebar__row__editable-text {
-  display: block;
-  font-size: 0.9em;
-}
-.browse-right-sidebar__row .browse-right-sidebar__row__editable-text--text-multi-line {
-  width: 100%;
-  min-height: 1rem;
-  white-space: pre-wrap;
-}
-.browse-right-sidebar__row .browse-right-sidebar__row__editable-text--edit-multi-line {
-  width: 100%;
-  height: 16em;
-  resize: vertical;
-}
 .browse-right-sidebar__row__check-box {
   vertical-align: middle;
 }
@@ -848,6 +849,29 @@ body {
 .browse-right-sidebar__row__date-added {
   user-select: text;
   padding-left: 0.25rem;
+}
+.browse-right-sidebar__row__editable-text {
+  font-size: inherit;
+  font-family: inherit;
+  font-style: inherit;
+}
+/* Browse-Right-Sidebar Row - Notes */
+.browse-right-sidebar__row .browse-right-sidebar__row__notes-edit {
+  display: block;
+  font-size: 0.9em;
+  width: 100%;
+  height: 16em;
+  resize: vertical;
+  font-size: inherit;
+  font-family: inherit;
+  font-style: inherit;
+}
+.browse-right-sidebar__row .browse-right-sidebar__row__notes-text {
+  display: block;
+  font-size: 0.9em;
+  width: 100%;
+  min-height: 1rem;
+  white-space: pre-wrap;
 }
 
 /* GameList */
@@ -1061,11 +1085,11 @@ body {
   background-color: var(--theme__background-color);
   color: #aaa;
 }
-.playlist-list-item:nth-child(2n):not(.playlist-list-item--drag-over) {
+.playlist-list-item:nth-child(2n) {
   background-color: #1e1e1f;
 }
 .playlist-list-item:hover,
-.playlist-list-item--drag-over {
+.playlist-list-item.playlist-list-item--drag-over {
   background-color: #3c3c41;
 }
 .playlist-list-item--editing {
@@ -1189,21 +1213,21 @@ body {
   width: 100%;
   min-height: 5rem;
   resize: vertical;
+  background-color: #3a5637;
 }
 .playlist-list-item__content__description-text {
   white-space: pre-wrap;
-}
-.playlist-list-item__content__description-text--empty {
-  cursor: default;
-  user-select: none;
-  font-style: italic;
-  color: #868686;
 }
 .playlist-list-item__content__buttons {
   float: right;
 }
 .playlist-list-item__content__buttons > * {
   margin-left: 0.3rem;
+}
+.playlist-list-item__editable-text {
+  font-size: inherit;
+  font-family: inherit;
+  font-style: inherit;
 }
 /* Playlist-List Create-Playlist */
 .playlist-list__fake-playlist {

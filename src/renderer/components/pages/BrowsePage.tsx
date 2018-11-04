@@ -52,6 +52,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
     this.onRemoveSelectedGameFromPlaylist = this.onRemoveSelectedGameFromPlaylist.bind(this);
+    this.onEditPlaylistNotes = this.onEditPlaylistNotes.bind(this);
     this.onLeftSidebarSelectPlaylist = this.onLeftSidebarSelectPlaylist.bind(this);
     this.onLeftSidebarDeselectPlaylist = this.onLeftSidebarDeselectPlaylist.bind(this);
     this.onLeftSidebarPlaylistChanged = this.onLeftSidebarPlaylistChanged.bind(this);
@@ -150,6 +151,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                            games={this.props.central.games}
                            onDeleteSelectedGame={this.onDeleteSelectedGame}
                            onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                           onEditPlaylistNotes={this.onEditPlaylistNotes}
                            gamePlaylistEntry={gamePlaylistEntry} />
           </div>
         ) : undefined}
@@ -272,6 +274,28 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.props.central.playlists.save(playlist);
     // Deselect game
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
+  }
+
+  private onEditPlaylistNotes(text: string): void {
+    const playlist = this.props.selectedPlaylist;
+    const game = this.props.selectedGame;
+    if (!playlist) { throw new Error('Unable to remove game from selected playlist - No playlist is selected'); }
+    if (!game)     { throw new Error('Unable to remove game from selected playlist - No game is selected'); }
+    // Find the game entry (of the selected game) in the playlist
+    const gameId = game.id;
+    let index: number = -1;
+    playlist.games.every((gameEntry, i) => {
+      if (gameEntry.id === gameId) {
+        index = i;
+        return false;
+      }
+      return true;
+    });
+    if (index === -1) { throw new Error('Unable to remove game from selected playlist - Game is not in playlist'); }
+    // Set game specific playlist notes
+    playlist.games[index].notes = text;
+    this.props.central.playlists.save(playlist);
+    this.forceUpdate();
   }
 
   /** Order the games according to the current settings */

@@ -3,6 +3,8 @@ import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { EditableTextWrap } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
 import { OpenIcon } from './OpenIcon';
+import { EditableTextElement, IEditableTextElementArgs } from './EditableTextElement';
+import { BrowseSidebar } from './BrowseSidebar';
 
 export interface IBrowseSidebarAddAppProps {
   /** Additional Application to show and edit */
@@ -23,6 +25,10 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
   private onCommandLineEditDone     = this.wrapOnEditDone((addApp, text) => { addApp.commandLine = text; });
   private onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp, isChecked) => { addApp.autoRunBefore = isChecked; });
   private onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp, isChecked) => { addApp.waitForExit = isChecked; });
+  //
+  private renderName            = BrowseSidebar.wrapRenderEditableText('No Name', 'Name...');
+  private renderApplicationPath = BrowseSidebar.wrapRenderEditableText('No Application Path', 'Application Path...');
+  private renderCommandLine     = BrowseSidebar.wrapRenderEditableText('No Command Line', 'Command Line...');
 
   constructor(props: IBrowseSidebarAddAppProps) {
     super(props);
@@ -36,9 +42,8 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
       <div className='browse-right-sidebar__additional-application'>
         {/* Title & Launch Button */}
         <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'>
-          <EditableTextWrap target={addApp} editDisabled={editDisabled}
-                            text={addApp.name} onEditDone={this.onNameEditDone}
-                            textProps={{title: addApp.name}}/>
+          <EditableTextElement text={addApp.name} onEditConfirm={this.onNameEditDone}
+                               editable={!editDisabled} children={this.renderName} />
           <input type="button" className="simple-button" value="Launch" onClick={this.onLaunchClick}/>
         </div>
         { editDisabled ? undefined : (
@@ -46,16 +51,14 @@ export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppPro
             {/* Application Path */}
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Application Path: </p>
-              <EditableTextWrap target={addApp} editDisabled={editDisabled}
-                                text={addApp.applicationPath} onEditDone={this.onApplicationPathEditDone}
-                                textProps={{title: addApp.applicationPath}}/>
+              <EditableTextElement text={addApp.applicationPath} onEditConfirm={this.onApplicationPathEditDone}
+                                   editable={!editDisabled} children={this.renderApplicationPath} />
             </div>
             {/* Command Line */}
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Command Line: </p>
-              <EditableTextWrap target={addApp} editDisabled={editDisabled}
-                                text={addApp.commandLine} onEditDone={this.onCommandLineEditDone}
-                                textProps={{title: addApp.commandLine}}/>
+              <EditableTextElement text={addApp.commandLine} onEditConfirm={this.onCommandLineEditDone}
+                                   editable={!editDisabled} children={this.renderCommandLine} />
             </div>
             {/* Auto Run Before */}
             <div className='browse-right-sidebar__row'>

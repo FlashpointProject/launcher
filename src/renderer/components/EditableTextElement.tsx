@@ -10,16 +10,26 @@ export interface IEditableTextElementArgs {
   onInputKeyDown: (event: React.KeyboardEvent) => void;
 }
 
-export interface IEditableTextElementProps {
-  children?: (args: IEditableTextElementArgs) => JSX.Element|void;
+export interface IEditableTextElementKeyArgs {
+  event: React.KeyboardEvent;
+  /** Cancel edit */
+  cancel: () => void;
+  /** Confirm edit */
+  confirm: () => void;
+}
 
+export interface IEditableTextElementProps {
+  /** Function that renders the editable text */
+  children?: (args: IEditableTextElementArgs) => JSX.Element|void;
+  /** Called when editing is confirmed */
   onEditConfirm?: (text: string) => void;
+  /** Called when editing is cancelled */
   onEditCancel?: (text: string) => void;
-  
-  confirmKeys?: string[];
-  cancelKeys?: string[];
+  /** Called when a key is pushed down while editing */
+  onEditKeyDown?: (args: IEditableTextElementKeyArgs) => void;
+  /** If the element is editable (if it can go to the "edit mode") */
   editable?: boolean;
-  
+  /** Text to be displayed (and to edit when it goes into "edit mode") */
   text: string;
 }
 
@@ -88,21 +98,19 @@ export class EditableTextElement extends React.Component<IEditableTextElementPro
 
   private onInputKeyDown(event: React.KeyboardEvent): void {
     if (!this.state.editing) { return; }
-    if (findKey(event.key, this.props.confirmKeys)) {
-      this.props.onEditConfirm && this.props.onEditConfirm(this.state.text);
-      this.setState({ editing: false });
-    } else if (findKey(event.key, this.props.cancelKeys)) {
-      this.props.onEditCancel && this.props.onEditCancel(this.state.text);
-      this.setState({ editing: false });
-    }
+    const func = this.props.onEditKeyDown || EditableTextElement.onEditKeyDown;
+    func({
+      event,
+      cancel: this.cancelEdit.bind(this),
+      confirm: this.confirmEdit.bind(this),
+    });
   }
-}
 
-function findKey(key: string, keys?: string[]): boolean {
-  if (keys) {
-    for (let i = keys.length - 1; i >= 0; i--) {
-      if (key === keys[i]) { return true; }
+  public static onEditKeyDown({ event, cancel, confirm }: IEditableTextElementKeyArgs): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      confirm();
+    } else if (event.key === 'Escape') {
+      cancel();
     }
   }
-  return false;
 }
