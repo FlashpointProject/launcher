@@ -147,6 +147,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
       const types = event.dataTransfer.types;
       if (types.length === 1 && types[0] === gameIdDataType) {
         // Show the "You can drop here" cursor while dragging something droppable over this element
+        event.dataTransfer.dropEffect = 'copy';
         event.preventDefault();
       }
     }
