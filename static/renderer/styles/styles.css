@@ -1109,7 +1109,7 @@ body {
 .playlist-list-item--drag-over {
   position: relative;
 }
-.playlist-list-item__drag-overlay {
+.playlist-list-item--drag-over .playlist-list-item__drag-overlay {
   position: absolute;
   left: 0;
   top: 0;

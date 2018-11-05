@@ -107,6 +107,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     return (
       <div className={className} onDrop={this.onDrop} onDragOver={this.onDragOver}
            onDragEnter={this.onDragEnter} onDragLeave={this.onDragLeave}>
+        {/* Drag Overlay */}
+        <div className='playlist-list-item__drag-overlay' />
         {/* Head */}
         <div className='playlist-list-item__head' onClick={(!editing)?this.onHeadClick:undefined}>
           {(playlist.icon) ? (
@@ -183,10 +185,6 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
                                  editable={editing} children={this.renderDescription} />
           </div>
         </div>
-        {/* Drag Overlay */}
-        { this.state.dragOver ? (
-          <div className='playlist-list-item__drag-overlay' />
-        ) : undefined }
       </div>
     );
   }
