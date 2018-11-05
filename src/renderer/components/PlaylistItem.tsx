@@ -144,7 +144,12 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
           <div className='playlist-list-item__content__inner'>
             { editingDisabled ? undefined : (
               <div className='playlist-list-item__content__edit'>
-                <p className='playlist-list-item__content__id'>(ID: {playlist.id})</p>
+                <div className='playlist-list-item__content__id'>
+                  <p className='playlist-list-item__content__id__pre'>ID: </p>
+                  <div className='playlist-list-item__content__id__text'>
+                    <p>{playlist.id}</p>
+                  </div>
+                </div>
                 <div className='playlist-list-item__content__buttons'>
                   {/* Save Button */}
                   { editing ? (
@@ -209,7 +214,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
         <textarea value={o.text} placeholder='Enter a description here...'
                   onChange={o.onInputChange} onKeyDown={o.onInputKeyDown}
                   autoFocus onBlur={o.cancelEdit}
-                  className='playlist-list-item__content__description-edit simple-input simple-scroll' />
+                  className='playlist-list-item__content__description-edit playlist-list-item__editable-text simple-input simple-scroll' />
       );
     } else {
       let className = 'playlist-list-item__content__description-text';
