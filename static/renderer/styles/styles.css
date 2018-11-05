@@ -918,16 +918,7 @@ body {
   color: #e6e6e6;
 }
 .game-list-item--dragged {
-  position: relative;
   opacity: 0.4;
-}
-.game-list-item__dragged-overlay {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  border: 2px #818181 dashed;
 }
 .game-list-item p {
   user-select: none;
@@ -1010,16 +1001,7 @@ body {
   color: #e6e6e6;
 }
 .game-grid-item--dragged {
-  position: relative;
   opacity: 0.4;
-}
-.game-grid-item__dragged-overlay {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  border: 2px #818181 dashed;
 }
 /* GameList Item Thumb */
 .game-grid-item__thumb {
@@ -1123,6 +1105,17 @@ body {
 }
 .playlist-list-item--editing p {
   user-select: none; /* Can not select text while editing is enabled */
+}
+.playlist-list-item--drag-over {
+  position: relative;
+}
+.playlist-list-item__drag-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  border: 2px #818181 dashed;
 }
 /* Playlist-List-Item Head */
 .playlist-list-item__head {

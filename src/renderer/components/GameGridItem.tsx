@@ -61,9 +61,6 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
         <div className='game-grid-item__title'>
         <p className='game-grid-item__title__text'>{game.title || ''}</p>
         </div>
-        { this.props.isDragged ? (
-          <div className='game-grid-item__dragged-overlay' />
-        ) : undefined }
       </li>
     );
   }

@@ -183,6 +183,10 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
                                  editable={editing} children={this.renderDescription} />
           </div>
         </div>
+        {/* Drag Overlay */}
+        { this.state.dragOver ? (
+          <div className='playlist-list-item__drag-overlay' />
+        ) : undefined }
       </div>
     );
   }

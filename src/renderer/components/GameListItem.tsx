@@ -65,9 +65,6 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
             ) : undefined }
           </div>
         </div>
-        { this.props.isDragged ? (
-          <div className='game-list-item__dragged-overlay' />
-        ) : undefined }
       </li>
     );
   }
