@@ -46,13 +46,13 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
           {central.playlistsDoneLoading ? (
             !central.playlistsFailedLoading ? (
               <div className='playlist-list'>
-                {/* Show all games */}
-                <div className='playlist-list__fake-playlist' onClick={this.onShowAllClick}>
-                  <div className='playlist-list__fake-playlist__inner'>
+                {/* All games */}
+                <div className='playlist-list-fake-item' onClick={this.onShowAllClick}>
+                  <div className='playlist-list-fake-item__inner'>
                     <OpenIcon icon='eye' />
                   </div>
-                  <div className='playlist-list__fake-playlist__inner'>
-                    <p className='playlist-list__fake-playlist__inner__title'>Show All</p>
+                  <div className='playlist-list-fake-item__inner'>
+                    <p className='playlist-list-fake-item__inner__title'>All Games</p>
                   </div>
                 </div>
                 {/* List all playlists */}
@@ -75,12 +75,12 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
                 })}
                 {/* Create New Playlist */}
                 { editingDisabled ? undefined : (
-                  <div className='playlist-list__fake-playlist' onClick={this.onCreatePlaylistClick}>
-                    <div className='playlist-list__fake-playlist__inner'>
+                  <div className='playlist-list-fake-item' onClick={this.onCreatePlaylistClick}>
+                    <div className='playlist-list-fake-item__inner'>
                       <OpenIcon icon='plus' />
                     </div>
-                    <div className='playlist-list__fake-playlist__inner'>
-                      <p className='playlist-list__fake-playlist__inner__title'>New Playlist</p>
+                    <div className='playlist-list-fake-item__inner'>
+                      <p className='playlist-list-fake-item__inner__title'>New Playlist</p>
                     </div>
                   </div>                  
                 ) }
@@ -153,7 +153,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
   }
 
   private onShowAllClick(event: React.MouseEvent): void {
-    if (this.props.onDeselectPlaylist) {
+    if (this.props.selectedPlaylistID && this.props.onDeselectPlaylist) {
       this.props.onDeselectPlaylist();
     }
   }

@@ -1068,20 +1068,6 @@ body {
 .playlist-list__message h2 {
   margin-bottom: 0.2rem;
 }
-.playlist-list__fake-playlist {
-  padding: 0.1rem;
-  padding-left: 0.5rem;
-  color: #aaaaaa;
-}
-.playlist-list__fake-playlist:hover {
-  background-color: #3c3c41;
-  color: #ffffff;
-}
-.playlist-list__fake-playlist,
-.playlist-list__fake-playlist * {
-  cursor: pointer;
-  user-select: none;
-}
 
 /* PlaylistList */
 .playlist-list {
@@ -1238,42 +1224,46 @@ body {
   font-family: inherit;
   font-style: inherit;
 }
-/* Playlist-List Create-Playlist */
-.playlist-list__fake-playlist {
+/* Playlist-List-Fake-Item */
+.playlist-list-fake-item {
   display: flex;
   overflow: hidden;
   height: calc(var(--image-size) + var(--image-padding) * 2);
   padding: var(--image-padding);
   padding-left: 0.5rem;
   /* Pimp */
-  background-color: #181819;
+  background-color: #19191b;
   --color: #aaaaaa;
 }
-
-.playlist-list__fake-playlist:hover {
-  background-color: #28282c;
+.playlist-list-fake-item:hover {
+  background-color: #343438;
   --color: #ffffff;
 }
-.playlist-list__fake-playlist__inner {
+.playlist-list-fake-item__inner {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-.playlist-list__fake-playlist__inner > * {
+.playlist-list-fake-item__inner > * {
   display: inline-block;
 }
-.playlist-list__fake-playlist__inner .icon {
+.playlist-list-fake-item__inner .icon {
   --icon-size: calc(var(--image-size) * 0.65);
   width: var(--icon-size);
   height: var(--icon-size);
 }
-.playlist-list__fake-playlist__inner .icon__use {
+.playlist-list-fake-item__inner .icon__use {
   fill: var(--color);
 }
-.playlist-list__fake-playlist__inner__title {
+.playlist-list-fake-item__inner__title {
   font-size: 1.1rem;
   padding-left: 0.5rem;
   color: var(--color);
+}
+.playlist-list-fake-item,
+.playlist-list-fake-item * {
+  cursor: pointer;
+  user-select: none;
 }
 
 
