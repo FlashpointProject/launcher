@@ -6,7 +6,6 @@ import { IGameInfo } from '../../shared/game/interfaces';
 import { Grid, GridCellProps } from 'react-virtualized/dist/es/Grid';
 import { GameGridItem } from './GameGridItem';
 import { GameImageCollection } from '../image/GameImageCollection';
-import { gameIdDataType } from '../Util';
 
 export interface IGameGridProps extends IDefaultProps {
   gameImages?: GameImageCollection;
@@ -14,6 +13,8 @@ export interface IGameGridProps extends IDefaultProps {
   games?: IGameInfo[];
   /** Selected game (if any) */
   selectedGame?: IGameInfo;
+  /** Dragged game (if any) */
+  draggedGame?: IGameInfo;
   /** Width of each cell/item in the list (in pixels) */
   cellWidth: number;
   /** Height of each cell/item in the list (in pixels) */
@@ -24,6 +25,10 @@ export interface IGameGridProps extends IDefaultProps {
   onGameSelect?: (game?: IGameInfo) => void;
   /** Called when a game is launched */
   onGameLaunch: (game: IGameInfo) => void;
+  /** Called when a game is started being dragged */
+  onGameDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
+  /** Called when a game is ending being dragged */
+  onGameDragEnd?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -41,6 +46,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
     this.onItemClick = this.onItemClick.bind(this);
     this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
     this.onItemDragStart = this.onItemDragStart.bind(this);
+    this.onItemDragEnd = this.onItemDragEnd.bind(this);
     this.onKeyPress = this.onKeyPress.bind(this);
     this.onScrollToChange = this.onScrollToChange.bind(this);
   }
@@ -134,12 +140,14 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
     return (
       <GameGridItem key={props.key} {...props} 
                     game={game} 
-                    thumbnail={thumbnail||''}
+                    thumbnail={thumbnail || ''}
+                    isSelected={game === this.props.selectedGame}
+                    isDragged={game === this.props.draggedGame}
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
-                    isSelected={game === this.props.selectedGame}
                     index={index}
-                    onDragStart={this.onItemDragStart} />
+                    onDragStart={this.onItemDragStart}
+                    onDragEnd={this.onItemDragEnd} />
     );
   }
 
@@ -164,7 +172,16 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   
   /** When a grid item is started to being dragged */
   onItemDragStart(event: React.DragEvent, game: IGameInfo, index: number): void {
-    event.dataTransfer.setData(gameIdDataType, game.id);
+    if (this.props.onGameDragStart) {
+      this.props.onGameDragStart(event, game, index);
+    }
+  }
+  
+  /** When a grid item is ended to being dragged */
+  onItemDragEnd(event: React.DragEvent, game: IGameInfo, index: number): void {
+    if (this.props.onGameDragEnd) {
+      this.props.onGameDragEnd(event, game, index);
+    }
   }
 
   /** When a row/item is selected */

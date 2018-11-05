@@ -917,6 +917,18 @@ body {
   background-color: #a72aa2;
   color: #e6e6e6;
 }
+.game-list-item--dragged {
+  position: relative;
+  opacity: 0.4;
+}
+.game-list-item__dragged-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  border: 2px #818181 dashed;
+}
 .game-list-item p {
   user-select: none;
 }
@@ -996,6 +1008,18 @@ body {
   /* Pimp */
   background-color: #a72aa2;
   color: #e6e6e6;
+}
+.game-grid-item--dragged {
+  position: relative;
+  opacity: 0.4;
+}
+.game-grid-item__dragged-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  border: 2px #818181 dashed;
 }
 /* GameList Item Thumb */
 .game-grid-item__thumb {

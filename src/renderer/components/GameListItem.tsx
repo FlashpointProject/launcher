@@ -17,8 +17,12 @@ export interface IGameListItemProps extends ListRowProps, IDefaultProps {
   onDoubleClick?: (game: IGameInfo, index: number) => void;
   /** Called when starting to "drag" this element (if set, the element will be flagged as "draggable") */
   onDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
+  /** Called when ending to "drag" this element */
+  onDragEnd?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
   /** If the list item is selected */
   isSelected: boolean;
+  /** If the list item is being dragged */
+  isDragged: boolean;
 }
 
 export class GameListItem extends React.Component<IGameListItemProps, {}> {
@@ -27,6 +31,7 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     this.onClick = this.onClick.bind(this);
     this.onDoubleClick = this.onDoubleClick.bind(this);
     this.onDragStart = this.onDragStart.bind(this);
+    this.onDragEnd = this.onDragEnd.bind(this);
   }
 
   render() {
@@ -35,18 +40,14 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     const size: string = (this.props.height || 0)+'px';
     const platformIcon = getPlatformIconPath(game.platform);
     let className: string = 'game-list-item';
-    // Add class to all with an even index
-    if (this.props.index % 2 === 0) {
-      className += ' game-list-item--even';
-    }
-    // Add class if selected
-    if (this.props.isSelected) {
-      className += ' game-list-item--selected';
-    }
+    if (this.props.index % 2 === 0) { className += ' game-list-item--even';     }
+    if (this.props.isSelected)      { className += ' game-list-item--selected'; }
+    if (this.props.isDragged)       { className += ' game-list-item--dragged';  }
     // Render
     return (
       <li style={this.props.style} className={className} 
-          onDragStart={this.onDragStart} draggable={!!this.props.onDragStart}
+          onDragStart={this.onDragStart} onDragEnd={this.onDragEnd}
+          draggable={!!this.props.onDragStart}
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
         <div className='game-list-item__thumb' style={{
           backgroundImage: `url("${this.props.thumbnail}")`,
@@ -64,25 +65,34 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
             ) : undefined }
           </div>
         </div>
+        { this.props.isDragged ? (
+          <div className='game-list-item__dragged-overlay' />
+        ) : undefined }
       </li>
     );
   }
 
-  onClick(event: React.MouseEvent<HTMLLIElement>): void {
+  private onClick(event: React.MouseEvent<HTMLLIElement>): void {
     if (this.props.onClick) {
       this.props.onClick(this.props.game, this.props.index);
     }
   }
 
-  onDoubleClick(event: React.MouseEvent<HTMLLIElement>): void {
+  private onDoubleClick(event: React.MouseEvent<HTMLLIElement>): void {
     if (this.props.onDoubleClick) {
       this.props.onDoubleClick(this.props.game, this.props.index);
     }
   }
 
-  onDragStart(event: React.DragEvent): void {
+  private onDragStart(event: React.DragEvent): void {
     if (this.props.onDragStart) {
       this.props.onDragStart(event, this.props.game, this.props.index);
+    }
+  }
+
+  private onDragEnd(event: React.DragEvent): void {
+    if (this.props.onDragEnd) {
+      this.props.onDragEnd(event, this.props.game, this.props.index);
     }
   }
 }

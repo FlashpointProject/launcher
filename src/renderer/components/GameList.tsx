@@ -6,7 +6,6 @@ import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { RenderedSection } from 'react-virtualized/dist/es/Grid';
 import { GameImageCollection } from '../image/GameImageCollection';
-import { gameIdDataType } from '../Util';
 
 export interface IGameListProps extends IDefaultProps {
   gameImages: GameImageCollection;
@@ -14,6 +13,8 @@ export interface IGameListProps extends IDefaultProps {
   games?: IGameInfo[];
   /** Selected game (if any) */
   selectedGame?: IGameInfo;
+  /** Dragged game (if any) */
+  draggedGame?: IGameInfo;
   /** Height of each row/item in the list (in pixels) */
   rowHeight: number;
   /** Function that renders the child(ren) of the game list when it is empty */
@@ -22,6 +23,10 @@ export interface IGameListProps extends IDefaultProps {
   onGameSelect?: (game?: IGameInfo) => void;
   /** Called when a game is launched */
   onGameLaunch: (game: IGameInfo) => void;
+  /** Called when a game is dragged */
+  onGameDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
+  /** Called when a game is ending being dragged */
+  onGameDragEnd?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -37,6 +42,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
     this.onItemClick = this.onItemClick.bind(this);
     this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
     this.onItemDragStart = this.onItemDragStart.bind(this);
+    this.onItemDragEnd = this.onItemDragEnd.bind(this);
     this.onKeyPress = this.onKeyPress.bind(this);
     this.onScrollToChange = this.onScrollToChange.bind(this);
     this.onRowsRendered = this.onRowsRendered.bind(this);
@@ -103,14 +109,16 @@ export class GameList extends React.Component<IGameListProps, {}> {
     const game = this.props.games[props.index];
     let thumbnail = this.props.gameImages.getThumbnailPath(game.title, game.platform);
     return (
-      <GameListItem key={props.key} {...props} 
-                    game={game} 
-                    thumbnail={thumbnail||''} 
-                    height={this.props.rowHeight} 
+      <GameListItem key={props.key} {...props}
+                    game={game}
+                    thumbnail={thumbnail || ''}
+                    height={this.props.rowHeight}
+                    isSelected={game === this.props.selectedGame}
+                    isDragged={game === this.props.draggedGame}
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
-                    isSelected={game === this.props.selectedGame}
-                    onDragStart={this.onItemDragStart} />
+                    onDragStart={this.onItemDragStart}
+                    onDragEnd={this.onItemDragEnd} />
     );
   }
 
@@ -133,8 +141,18 @@ export class GameList extends React.Component<IGameListProps, {}> {
     this.props.onGameLaunch(game);
   }
   
+  /** When a list item is started to being dragged */
   onItemDragStart(event: React.DragEvent, game: IGameInfo, index: number): void {
-    event.dataTransfer.setData(gameIdDataType, game.id);
+    if (this.props.onGameDragStart) {
+      this.props.onGameDragStart(event, game, index);
+    }
+  }
+  
+  /** When a list item is ended to being dragged */
+  onItemDragEnd(event: React.DragEvent, game: IGameInfo, index: number): void {
+    if (this.props.onGameDragEnd) {
+      this.props.onGameDragEnd(event, game, index);
+    }
   }
 
   /** When a row/item is selected */

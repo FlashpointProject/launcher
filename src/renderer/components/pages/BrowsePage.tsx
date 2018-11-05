@@ -4,7 +4,7 @@ import { ISearchOnSearchEvent } from '../Search';
 import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo, IAdditionalApplicationInfo } from '../../../shared/game/interfaces';
-import { gameScaleSpan } from '../../Util';
+import { gameScaleSpan, gameIdDataType } from '../../Util';
 import { BrowseSidebar } from '../BrowseSidebar';
 import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
@@ -37,6 +37,8 @@ export interface IBrowsePageState {
   orderedGames: IGameInfo[];
   /** Arguments used to order the "orderedGames" array in this state */
   orderedGamesArgs?: IOrderGamesArgs;
+  /** Currently dragged game (if any) */
+  draggedGame?: IGameInfo;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
@@ -54,6 +56,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
     this.onGameLaunch = this.onGameLaunch.bind(this);
+    this.onGameDragStart = this.onGameDragStart.bind(this);
+    this.onGameDragEnd = this.onGameDragEnd.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
     this.onRemoveSelectedGameFromPlaylist = this.onRemoveSelectedGameFromPlaylist.bind(this);
@@ -92,6 +96,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const games: IGameInfo[] = this.state.orderedGames;
     const order = this.props.order || BrowsePage.defaultOrder;
     const selectedGame = this.props.selectedGame;
+    const draggedGame = this.state.draggedGame;
     const selectedPlaylist = this.props.selectedPlaylist;
     const anyGames: boolean = (this.props.central.games.collection.games.length > 0);
     // Find the selected game in the selected playlist (if both are seleceted)
@@ -132,10 +137,13 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               return (
                 <GameGrid games={games}
                           selectedGame={selectedGame}
+                          draggedGame={draggedGame}
                           gameImages={this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           onGameLaunch={this.onGameLaunch}
+                          onGameDragStart={this.onGameDragStart}
+                          onGameDragEnd={this.onGameDragEnd}
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
                           cellWidth={width}
@@ -146,10 +154,13 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               return (
                 <GameList games={games}
                           selectedGame={selectedGame}
+                          draggedGame={draggedGame}
                           gameImages={this.props.central.gameImages}
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           onGameLaunch={this.onGameLaunch}
+                          onGameDragStart={this.onGameDragStart}
+                          onGameDragEnd={this.onGameDragEnd}
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
                           rowHeight={height}/>
@@ -262,6 +273,16 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       this._prevQuickSearchUpdate = now;
       return timedOut;
     }
+  }
+
+  private onGameDragStart(event: React.DragEvent, game: IGameInfo, index: number): void {
+    this.setState({ draggedGame: game });
+    event.dataTransfer.setData(gameIdDataType, game.id);
+  }
+
+  private onGameDragEnd(event: React.DragEvent, game: IGameInfo, index: number): void {
+    this.setState({ draggedGame: undefined });
+    event.dataTransfer.clearData(gameIdDataType);
   }
 
   private onDeleteSelectedGame(): void {
