@@ -249,13 +249,18 @@ body {
   padding: 2rem;
   background-color: rgba(0, 0, 0, 0.8);
 }
-.image-preview__inner {
-  position: relative;
+.image-preview * {
+  user-select: none;
+}
+.image-preview__border {
   width: 100%;
   height: 100%;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+}
+.image-preview__image--fill {
+  cursor: zoom-out;
+}
+.image-preview__image--fit {
+  cursor: zoom-in;
 }
 
 
@@ -867,6 +872,7 @@ body {
 }
 .browse-right-sidebar__row__screenshot {
   width: 100%;
+  cursor: zoom-in;
 }
 .browse-right-sidebar__row__spacer {
   flex: 1 0 auto;

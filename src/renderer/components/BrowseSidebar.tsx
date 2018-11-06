@@ -273,7 +273,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
           ) : undefined}
           {/* -- Screenshot Prebiew -- */}
           { this.state.showPreview ? (
-            <ImagePreview src={screenshotSrc} onClick={this.onScreenshotPreviewClick} />
+            <ImagePreview src={screenshotSrc} onCancel={this.onScreenshotPreviewClick} />
           ) : undefined }
         </div>
       );
