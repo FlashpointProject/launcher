@@ -85,7 +85,6 @@ export class ImagePreview extends React.Component<IImagePreviewProps, IImagePrev
       width *= scale;
       height *= scale;
     }
-    console.log(imageWidth, imageHeight, borderWidth, borderHeight, scale);
     return { width, height };
   }
 
