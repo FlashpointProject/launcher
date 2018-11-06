@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
-import { EditableTextWrap } from './EditableTextWrap';
 import { CheckBox } from './CheckBox';
 import { OpenIcon } from './OpenIcon';
-import { EditableTextElement, IEditableTextElementArgs } from './EditableTextElement';
+import { EditableTextElement } from './EditableTextElement';
 import { BrowseSidebar } from './BrowseSidebar';
 
 export interface IBrowseSidebarAddAppProps {

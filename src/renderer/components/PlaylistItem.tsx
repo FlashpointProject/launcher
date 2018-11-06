@@ -305,10 +305,10 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
       // Find game
       const gameId: string = event.dataTransfer.getData(gameIdDataType);
       if (gameId) {
-        const platform = this.props.central.games.getPlatfromOfGameId(gameId);
+        const platform = this.props.central.games.getPlatformOfGameId(gameId);
         if (!platform || !platform.collection) { throw new Error('No game with that ID was found.'); }
         const game = platform.collection.findGame(gameId);
-        if (!game) { throw new Error('Game was found but then it wasnt found. What?'); }
+        if (!game) { throw new Error('Game was found but then it wasn\'t found. What?'); }
         // Check if game is already in the playlist
         if (this.props.playlist.games.every(g => g.id !== gameId)) {
           // Add game to playlist(s) (both the edited and unedited, if editing)
@@ -320,7 +320,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
           if (this.state.editPlaylist) {
             this.state.editPlaylist.games.push(deepCopy(gameEntry));
           }
-          // Save playlist (the un-edited veersion, even if editing)
+          // Save playlist (the un-edited version, even if editing)
           this.props.central.playlists.save(this.props.playlist);
           // Callback
           if (this.props.onDrop) {
@@ -359,10 +359,10 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
 
   private onAddGameDone(text: string) {
     if (!this.state.editPlaylist) { throw new Error('editPlaylist is missing.'); }
-    const platform = this.props.central.games.getPlatfromOfGameId(text);
+    const platform = this.props.central.games.getPlatformOfGameId(text);
     if (!platform || !platform.collection) { throw new Error('No game with that ID was found.'); }
     const game = platform.collection.findGame(text);
-    if (!game) { throw new Error('Game was found but then it wasnt found. What?'); }
+    if (!game) { throw new Error('Game was found but then it wasn\'t found. What?'); }
     this.state.editPlaylist.games.push({ 
       id: game.id, 
       notes: ''

@@ -93,7 +93,7 @@ class GameManagerPlatform extends EventEmitter {
     const index = this.collection.indexOfGame(gameId);
     if (index >= 0) {
       this.collection.games.splice(index, 1);
-    } else { console.error(`Failed to remove parsed game from platform because it wasnt found (${gameId})`); }
+    } else { console.error(`Failed to remove parsed game from platform because it wasn't found (${gameId})`); }
     const rawIndex = this.indexOfRawGame(gameId);
     if (rawIndex >= 0) {
       if (this.data && this.data.LaunchBox && this.data.LaunchBox.Game) {
@@ -104,7 +104,7 @@ class GameManagerPlatform extends EventEmitter {
           this.data.LaunchBox.Game = undefined;
         }
       }
-    } else { console.error(`Failed to remove raw game from platform because it wasnt found (${gameId})`); }
+    } else { console.error(`Failed to remove raw game from platform because it wasn't found (${gameId})`); }
   }
 
   /**
@@ -116,7 +116,7 @@ class GameManagerPlatform extends EventEmitter {
     const index = this.collection.indexOfAdditionalApplication(addAppId);
     if (index >= 0) {
       this.collection.additionalApplications.splice(index, 1);
-    } else { console.error(`Failed to remove parsed add-app from platform because it wasnt found (${addAppId})`); }
+    } else { console.error(`Failed to remove parsed add-app from platform because it wasn't found (${addAppId})`); }
     const rawIndex = this.indexOfRawAdditionalApplication(addAppId);
     if (rawIndex >= 0) {
       if (this.data && this.data.LaunchBox && this.data.LaunchBox.AdditionalApplication) {
@@ -127,7 +127,7 @@ class GameManagerPlatform extends EventEmitter {
           this.data.LaunchBox.AdditionalApplication = undefined;
         }
       }
-    } else { console.error(`Failed to remove raw add-app from platform because it wasnt found (${addAppId})`); }
+    } else { console.error(`Failed to remove raw add-app from platform because it wasn't found (${addAppId})`); }
   }
   
   /**

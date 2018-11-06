@@ -79,7 +79,7 @@ export function filterExtreme(showExtreme: boolean, games: IGameInfo[]): IGameIn
   return filteredGames;
 }
 
-/** Return a new array with all games that are not in the playlist removed (if playlist isnt undefined) */
+/** Return a new array with all games that are not in the playlist removed (if playlist isn't undefined) */
 export function filterPlaylist(playlist: IGamePlaylist|undefined, games: IGameInfo[]): IGameInfo[] {
   if (!playlist) { return games; }
   const filteredGames: IGameInfo[] = [];

@@ -1,4 +1,4 @@
-/** Modes for displaying the gamme collection at the BrowsePage */
+/** Modes for displaying the game collection at the BrowsePage */
 export enum BrowsePageLayout {
   /** Games are in a vertical list, one game per row */
   list = 0,

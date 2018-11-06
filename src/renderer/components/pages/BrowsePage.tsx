@@ -99,7 +99,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const draggedGame = this.state.draggedGame;
     const selectedPlaylist = this.props.selectedPlaylist;
     const anyGames: boolean = (this.props.central.games.collection.games.length > 0);
-    // Find the selected game in the selected playlist (if both are seleceted)
+    // Find the selected game in the selected playlist (if both are selected)
     let gamePlaylistEntry: IGamePlaylistEntry|undefined;
     if (selectedPlaylist && selectedGame) {
       for (let gameEntry of selectedPlaylist.games) {
@@ -371,7 +371,7 @@ function calcScale(defHeight: number, scale: number): number {
 }
 
 /**
- * Check if two sets of "order games argumets" will produce the same games in the same order
+ * Check if two sets of "order games arguments" will produce the same games in the same order
  * (This is not an exhaustive test, as it does not check the contents of the games array)
  */
 function checkOrderGamesArgsEqual(args1: IOrderGamesArgs, args2?: IOrderGamesArgs): boolean {

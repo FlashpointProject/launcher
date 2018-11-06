@@ -3,7 +3,7 @@ import * as React from 'react';
 export interface IConfirmElementArgs {
   /** Number of times this has been activated since the last reset. */
   activationCounter: number;
-  /** Incremenets "activationCounter" then fires "onConfirm" if the counter exceeds "activationLimit". */
+  /** Increments "activationCounter" then fires "onConfirm" if the counter exceeds "activationLimit". */
   activate: () => void;
   /** Calls the "onConfirm" callback (does not change or reset "activationCounter") */
   confirm: () => void;

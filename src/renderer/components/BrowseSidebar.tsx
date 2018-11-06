@@ -71,7 +71,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   private renderPlatform        = BrowseSidebar.wrapRenderEditableText('No Platform', 'Platform...');
   private renderPlayMode        = BrowseSidebar.wrapRenderEditableText('No Play Mode', 'Play Mode...');
   private renderStatus          = BrowseSidebar.wrapRenderEditableText('No Status', 'Status...');
-  private renderLaunchCommand   = BrowseSidebar.wrapRenderEditableText('No Launc hCommand', 'Launc hCommand...');
+  private renderLaunchCommand   = BrowseSidebar.wrapRenderEditableText('No Launch Command', 'Launch Command...');
   private renderApplicationPath = BrowseSidebar.wrapRenderEditableText('No Application Path', 'Application Path...');
 
   constructor(props: IBrowseSidebarProps) {
@@ -271,7 +271,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               </div>
             </div>
           ) : undefined}
-          {/* -- Screenshot Prebiew -- */}
+          {/* -- Screenshot Preview -- */}
           { this.state.showPreview ? (
             <ImagePreview src={screenshotSrc} onCancel={this.onScreenshotPreviewClick} />
           ) : undefined }
@@ -353,7 +353,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     console.time('delete');
     const game = this.props.selectedGame;
     if (!game) { throw new Error('Can not delete a game when no game is selected.'); }
-    const platform = this.props.games.getPlatfromOfGameId(game.id);
+    const platform = this.props.games.getPlatformOfGameId(game.id);
     if (!platform) { throw new Error('Can not delete a game when it does not belong to a platform.'); }
     platform.removeGame(game.id);
     platform.findAdditionalApplicationsOfGame(game.id).forEach(
@@ -434,7 +434,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     // Overwrite the game and additional applications with the changes made
     if (this.props.selectedGame && this.state.editGame) {
       const gameId = this.state.editGame.id;
-      const platform = this.props.games.getPlatfromOfGameId(gameId);
+      const platform = this.props.games.getPlatformOfGameId(gameId);
       if (!platform) { throw new Error('Platform not found.'); }
       // Update parsed game
       GameInfo.override(this.props.selectedGame, this.state.editGame);

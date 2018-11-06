@@ -87,9 +87,9 @@ export function tryParseJSON(jsonString: string): any|Error {
 }
 
 /**
- * Reursively go down a folder and call back for each file encountered
+ * Recursively go down a folder and call back for each file encountered
  * @param options Various options (a shallow copy of this is accessible from the callback)
- * @returns A promoise that resolves when either all files have been called back for or recursion is aborted
+ * @returns A promise that resolves when either all files have been called back for or recursion is aborted
  */
 export async function recursiveDirectory(options: IRecursiveDirectoryOptions): Promise<void> {
   const shared: IRecursiveDirectorySharedObject = {

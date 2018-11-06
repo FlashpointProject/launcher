@@ -14,7 +14,7 @@ export interface ConfirmButtonProps {
   noConfirm?: ConfirmButtonPassthroughProps;
   /** Pass-through props that are passed while confirming (overrides .props) */
   confirm?: ConfirmButtonPassthroughProps;
-  /** If the button should skip the cofirmation step and trigger onConfirm after the first click (false by default) */
+  /** If the button should skip the confirmation step and trigger onConfirm after the first click (false by default) */
   skipConfirm?: boolean;
   /** Called when the button is clicked while confirming */
   onConfirm?: () => void;

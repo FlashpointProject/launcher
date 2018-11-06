@@ -59,7 +59,7 @@ class GameManager extends EventEmitter {
    * Get the first platform that contains a game with the given id (if any)
    * @param gameId ID of game
    */
-  public getPlatfromOfGameId(gameId: string): GameManagerPlatform|undefined {
+  public getPlatformOfGameId(gameId: string): GameManagerPlatform|undefined {
     for (let i = this.platforms.length - 1; i >= 0; i--) {
       const platform = this.platforms[i];
       if (platform.collection) {
@@ -77,7 +77,7 @@ class GameManager extends EventEmitter {
    * Get the first platform that contains an additional application with the given id (if any)
    * @param addAppId ID of Additional Application
    */
-  public getPlatfromOfAddAppId(addAppId: string): GameManagerPlatform|undefined {
+  public getPlatformOfAddAppId(addAppId: string): GameManagerPlatform|undefined {
     for (let i = this.platforms.length - 1; i >= 0; i--) {
       const platform = this.platforms[i];
       if (platform.collection) {
