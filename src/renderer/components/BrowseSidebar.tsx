@@ -14,6 +14,7 @@ import { OpenIcon } from './OpenIcon';
 import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
 import { IEditableTextElementArgs, EditableTextElement } from './EditableTextElement';
+import { ImagePreview } from './ImagePreview';
 
 export interface IBrowseSidebarProps {
   gameImages: GameImageCollection;
@@ -39,6 +40,8 @@ export interface IBrowseSidebarState {
   editGame?: IGameInfo;
   /** Buffer for the selected games additional applications (all changes are made to this until saved) */
   editAddApps?: IAdditionalApplicationInfo[];
+  /** If a preview of the current games screenshot should be shown */
+  showPreview: boolean;
 }
 
 /** Sidebar for BrowsePage */
@@ -77,8 +80,11 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       hasChanged: false,
       editGame: undefined,
       editAddApps: undefined,
+      showPreview: false,
     };
     this.onNewAddAppClick = this.onNewAddAppClick.bind(this);
+    this.onScreenshotClick = this.onScreenshotClick.bind(this);
+    this.onScreenshotPreviewClick = this.onScreenshotPreviewClick.bind(this);
     this.onSaveClick = this.onSaveClick.bind(this);
     this.onAddAppEdit = this.onAddAppEdit.bind(this);
     this.onAddAppDelete = this.onAddAppDelete.bind(this);
@@ -106,6 +112,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       const playlistEntry = this.props.gamePlaylistEntry;
       const editDisabled = window.External.config.data.disableEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
+      const screenshotSrc = this.props.gameImages.getScreenshotPath(game.title, game.platform);
       return (
         <div className={'browse-right-sidebar simple-scroll'+(!editDisabled?' browse-right-sidebar--edit-enabled':'')}>
           {/* -- Title & Developer(s) -- */}
@@ -247,15 +254,14 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
             </div>
           ) : undefined }
           {/* -- Screenshot -- */}
-          {(this.props.gameImages && game) ? (
-            <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
-              <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer'/>
-              <div className='browse-right-sidebar__row'>
-                <img className='browse-right-sidebar__row__screenshot'
-                     src={this.props.gameImages.getScreenshotPath(game.title, game.platform)}/>
-              </div>
+          <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer'/>
+            <div className='browse-right-sidebar__row'>
+              <img className='browse-right-sidebar__row__screenshot'
+                    src={screenshotSrc}
+                    onClick={this.onScreenshotClick} />
             </div>
-          ) : undefined}
+          </div>
           {/* -- Save Changes -- */}
           {isEditing ? (
             <div className='browse-right-sidebar__section'>
@@ -265,6 +271,10 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
               </div>
             </div>
           ) : undefined}
+          {/* -- Screenshot Prebiew -- */}
+          { this.state.showPreview ? (
+            <ImagePreview src={screenshotSrc} onClick={this.onScreenshotPreviewClick} />
+          ) : undefined }
         </div>
       );
     } else {
@@ -409,6 +419,14 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     newAddApp.gameId = this.state.editGame.id;
     this.state.editAddApps.push(newAddApp);
     this.setState({ hasChanged: true });
+  }
+
+  private onScreenshotClick(): void {
+    this.setState({ showPreview: true });
+  }
+
+  private onScreenshotPreviewClick(): void {
+    this.setState({ showPreview: false });
   }
 
   private onSaveClick(): void {

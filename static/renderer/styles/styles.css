@@ -237,6 +237,27 @@ body {
   user-select: none;
 }
 
+/* ------ Image Preview ------ */
+.image-preview {
+  /* Fill entire screen */
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  /* Pimp */
+  padding: 2rem;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.image-preview__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 
 /* ------ Main Layout ------ */
 .root {
