@@ -3,9 +3,9 @@ import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { CheckBox } from './CheckBox';
 import { OpenIcon } from './OpenIcon';
 import { EditableTextElement } from './EditableTextElement';
-import { BrowseSidebar } from './BrowseSidebar';
+import { RightBrowseSidebar } from './RightBrowseSidebar';
 
-export interface IBrowseSidebarAddAppProps {
+export interface IRightBrowseSidebarAddAppProps {
   /** Additional Application to show and edit */
   addApp: IAdditionalApplicationInfo;
   /** Called when a field is edited */
@@ -18,18 +18,18 @@ export interface IBrowseSidebarAddAppProps {
   editDisabled?: boolean;
 }
 
-export class BrowseSidebarAddApp extends React.Component<IBrowseSidebarAddAppProps, {}> {
+export class RightBrowseSidebarAddApp extends React.Component<IRightBrowseSidebarAddAppProps, {}> {
   private onNameEditDone            = this.wrapOnEditDone((addApp, text) => { addApp.name = text; });
   private onApplicationPathEditDone = this.wrapOnEditDone((addApp, text) => { addApp.applicationPath = text; });
   private onCommandLineEditDone     = this.wrapOnEditDone((addApp, text) => { addApp.commandLine = text; });
   private onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp, isChecked) => { addApp.autoRunBefore = isChecked; });
   private onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp, isChecked) => { addApp.waitForExit = isChecked; });
   //
-  private renderName            = BrowseSidebar.wrapRenderEditableText('No Name', 'Name...');
-  private renderApplicationPath = BrowseSidebar.wrapRenderEditableText('No Application Path', 'Application Path...');
-  private renderCommandLine     = BrowseSidebar.wrapRenderEditableText('No Command Line', 'Command Line...');
+  private renderName            = RightBrowseSidebar.wrapRenderEditableText('No Name', 'Name...');
+  private renderApplicationPath = RightBrowseSidebar.wrapRenderEditableText('No Application Path', 'Application Path...');
+  private renderCommandLine     = RightBrowseSidebar.wrapRenderEditableText('No Command Line', 'Command Line...');
 
-  constructor(props: IBrowseSidebarAddAppProps) {
+  constructor(props: IRightBrowseSidebarAddAppProps) {
     super(props);
     this.onLaunchClick = this.onLaunchClick.bind(this);
     this.onDeleteClick = this.onDeleteClick.bind(this);

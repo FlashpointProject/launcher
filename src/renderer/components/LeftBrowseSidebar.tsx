@@ -18,9 +18,8 @@ export interface ILeftBrowseSidebarState {
   isEditing: boolean;
 }
 
-/** Sidebar for BrowsePage */
+/** Sidebar on the left side of BrowsePage */
 export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, ILeftBrowseSidebarState> {
-
   constructor(props: ILeftBrowseSidebarProps) {
     super(props);
     this.state = {

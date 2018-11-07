@@ -5,7 +5,7 @@ import { CheckBox } from './CheckBox';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
-import { BrowseSidebarAddApp } from './BrowseSidebarAddApp';
+import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { GameLauncher } from '../GameLauncher';
 import GameManager from '../game/GameManager';
 import { GameParser } from '../../shared/game/GameParser';
@@ -16,7 +16,7 @@ import { IGamePlaylistEntry } from '../playlist/interfaces';
 import { IEditableTextElementArgs, EditableTextElement } from './EditableTextElement';
 import { ImagePreview } from './ImagePreview';
 
-export interface IBrowseSidebarProps {
+export interface IRightBrowseSidebarProps {
   gameImages: GameImageCollection;
   games: GameManager;
   /** Currently selected game (if any) */
@@ -33,7 +33,7 @@ export interface IBrowseSidebarProps {
   onEditPlaylistNotes?: (text: string) => void;
 }
 
-export interface IBrowseSidebarState {
+export interface IRightBrowseSidebarState {
   /** If any unsaved changes has been made to the selected game (the buffer) */
   hasChanged: boolean;
   /** Buffer for the selected game (all changes are made to the game until saved) */
@@ -44,9 +44,9 @@ export interface IBrowseSidebarState {
   showPreview: boolean;
 }
 
-/** Sidebar for BrowsePage */
-export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseSidebarState> {
-  // 
+/** Sidebar on the right side of BrowsePage */
+export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps, IRightBrowseSidebarState> {
+  // Bound "on done" handlers
   private onTitleEditDone           = this.wrapOnEditDone((game, text) => { game.title = text; });
   private onDeveloperEditDone       = this.wrapOnEditDone((game, text) => { game.developer = text; });
   private onGenreEditDone           = this.wrapOnEditDone((game, text) => { game.genre = text; });
@@ -61,20 +61,20 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
   private onNotesEditDone           = this.wrapOnEditDone((game, text) => { game.notes = text; });
   private onBrokenChange            = this.wrapOnCheckBoxChange((game, isChecked) => { game.broken = isChecked; });
   private onExtremeChange           = this.wrapOnCheckBoxChange((game, isChecked) => { game.extreme = isChecked; });
-  //
-  private renderTitle           = BrowseSidebar.wrapRenderEditableText('No Title', 'Title...');
-  private renderDeveloper       = BrowseSidebar.wrapRenderEditableText('No Developer', 'Author...');
-  private renderGenre           = BrowseSidebar.wrapRenderEditableText('No Genre', 'Genre...');
-  private renderSeries          = BrowseSidebar.wrapRenderEditableText('No Series', 'Series...');
-  private renderSource          = BrowseSidebar.wrapRenderEditableText('No Source', 'Source...');
-  private renderPublisher       = BrowseSidebar.wrapRenderEditableText('No Publisher', 'Publisher...');
-  private renderPlatform        = BrowseSidebar.wrapRenderEditableText('No Platform', 'Platform...');
-  private renderPlayMode        = BrowseSidebar.wrapRenderEditableText('No Play Mode', 'Play Mode...');
-  private renderStatus          = BrowseSidebar.wrapRenderEditableText('No Status', 'Status...');
-  private renderLaunchCommand   = BrowseSidebar.wrapRenderEditableText('No Launch Command', 'Launch Command...');
-  private renderApplicationPath = BrowseSidebar.wrapRenderEditableText('No Application Path', 'Application Path...');
+  // Bound render handlers
+  private renderTitle           = RightBrowseSidebar.wrapRenderEditableText('No Title', 'Title...');
+  private renderDeveloper       = RightBrowseSidebar.wrapRenderEditableText('No Developer', 'Author...');
+  private renderGenre           = RightBrowseSidebar.wrapRenderEditableText('No Genre', 'Genre...');
+  private renderSeries          = RightBrowseSidebar.wrapRenderEditableText('No Series', 'Series...');
+  private renderSource          = RightBrowseSidebar.wrapRenderEditableText('No Source', 'Source...');
+  private renderPublisher       = RightBrowseSidebar.wrapRenderEditableText('No Publisher', 'Publisher...');
+  private renderPlatform        = RightBrowseSidebar.wrapRenderEditableText('No Platform', 'Platform...');
+  private renderPlayMode        = RightBrowseSidebar.wrapRenderEditableText('No Play Mode', 'Play Mode...');
+  private renderStatus          = RightBrowseSidebar.wrapRenderEditableText('No Status', 'Status...');
+  private renderLaunchCommand   = RightBrowseSidebar.wrapRenderEditableText('No Launch Command', 'Launch Command...');
+  private renderApplicationPath = RightBrowseSidebar.wrapRenderEditableText('No Application Path', 'Application Path...');
 
-  constructor(props: IBrowseSidebarProps) {
+  constructor(props: IRightBrowseSidebarProps) {
     super(props);
     this.state = {
       hasChanged: false,
@@ -98,7 +98,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     this.updateEditGame();
   }
 
-  componentDidUpdate(prevProps: IBrowseSidebarProps, prevState: IBrowseSidebarState) {
+  componentDidUpdate(prevProps: IRightBrowseSidebarProps, prevState: IRightBrowseSidebarState) {
     if (this.props.selectedGame !== prevProps.selectedGame) {
       this.updateEditGame();
       this.setState({ hasChanged: false });
@@ -223,9 +223,9 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
                 ) : undefined }
               </div>
               {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
-                return <BrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
-                                            onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}
-                                            onDelete={this.onAddAppDelete} />;
+                return <RightBrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
+                                                 onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}
+                                                 onDelete={this.onAddAppDelete} />;
               })}
             </div>
           ) : undefined }
@@ -287,7 +287,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     }
   }
 
-  private renderDeleteGameButton({ activate, activationCounter, reset }: IConfirmElementArgs) {
+  private renderDeleteGameButton({ activate, activationCounter, reset }: IConfirmElementArgs): JSX.Element {
     return (
       <div className={'browse-right-sidebar__title-row__buttons__delete-game'+
                       ((activationCounter>0)?' browse-right-sidebar__title-row__buttons__delete-game--active simple-vertical-shake':'')}
@@ -298,7 +298,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     );
   }
 
-  private renderRemoveFromPlaylistButton({ activate, activationCounter, reset }: IConfirmElementArgs) {
+  private renderRemoveFromPlaylistButton({ activate, activationCounter, reset }: IConfirmElementArgs): JSX.Element {
     return (
       <div className={'browse-right-sidebar__title-row__buttons__remove-from-playlist'+
                       ((activationCounter>0)?' browse-right-sidebar__title-row__buttons__remove-from-playlist--active simple-vertical-shake':'')}
@@ -330,7 +330,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
     };
   }
   
-  private renderNotes(o: IEditableTextElementArgs) {
+  private renderNotes(o: IEditableTextElementArgs): JSX.Element {
     if (o.editing) {
       return (
         <textarea value={o.text} placeholder='Enter notes here...'
@@ -452,7 +452,7 @@ export class BrowseSidebar extends React.Component<IBrowseSidebarProps, IBrowseS
       this.setState({ hasChanged: false });
     }
     // -- Functions --
-    function updateAddApps(this: BrowseSidebar, platform: GameManagerPlatform) {
+    function updateAddApps(this: RightBrowseSidebar, platform: GameManagerPlatform): void {
       if (!platform.collection) { throw new Error('Platform not has no collection.'); }
       // 1. Save the changes made to add-apps
       // 2. Save any new add-apps

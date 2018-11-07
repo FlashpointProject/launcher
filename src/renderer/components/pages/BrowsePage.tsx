@@ -5,7 +5,7 @@ import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo, IAdditionalApplicationInfo } from '../../../shared/game/interfaces';
 import { gameScaleSpan, gameIdDataType } from '../../Util';
-import { BrowseSidebar } from '../BrowseSidebar';
+import { RightBrowseSidebar } from '../RightBrowseSidebar';
 import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { orderGames, IOrderGamesArgs } from '../../../shared/game/GameFilter';
@@ -172,21 +172,21 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           <div className={'game-browser__right'+
                           (selectedGame?'':' game-browser__right--none')+
                           (window.External.preferences.data.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
-            <BrowseSidebar selectedGame={selectedGame} 
-                           selectedAddApps={selectedAddApps}
-                           gameImages={this.props.central.gameImages}
-                           games={this.props.central.games}
-                           onDeleteSelectedGame={this.onDeleteSelectedGame}
-                           onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
-                           onEditPlaylistNotes={this.onEditPlaylistNotes}
-                           gamePlaylistEntry={gamePlaylistEntry} />
+            <RightBrowseSidebar selectedGame={selectedGame} 
+                                selectedAddApps={selectedAddApps}
+                                gameImages={this.props.central.gameImages}
+                                games={this.props.central.games}
+                                onDeleteSelectedGame={this.onDeleteSelectedGame}
+                                onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                                onEditPlaylistNotes={this.onEditPlaylistNotes}
+                                gamePlaylistEntry={gamePlaylistEntry} />
           </div>
         ) : undefined}
       </div>
     );
   }
 
-  private noRowsRenderer() {
+  private noRowsRenderer(): JSX.Element {
     return (
       <div className='game-list__no-games'>
         {this.props.central.gamesDoneLoading ? (
