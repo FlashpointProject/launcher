@@ -105,6 +105,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     if (this.props.wasNewGameClicked && !prevProps.wasNewGameClicked) {
       const newGame = GameInfo.create();
       newGame.id = uuid();
+      newGame.dateAdded = Date.now();
       this.setState({
         currentGame: newGame,
         currentAddApps: [],
