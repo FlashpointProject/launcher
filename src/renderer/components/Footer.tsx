@@ -13,6 +13,8 @@ export interface IFooterProps extends IDefaultProps {
   layout: BrowsePageLayout;
   /** When the value of the layout selector is changed */
   onLayoutChange?: (value: BrowsePageLayout) => void;
+  /** When the "New Game" button is clicked */
+  onNewGameClick?: () => void;
 }
 
 export class Footer extends React.Component<IFooterProps, {}> {
@@ -22,6 +24,7 @@ export class Footer extends React.Component<IFooterProps, {}> {
     super(props);
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutChange = this.onLayoutChange.bind(this);
+    this.onNewGameClick = this.onNewGameClick.bind(this);
   }
 
   render() {
@@ -40,6 +43,13 @@ export class Footer extends React.Component<IFooterProps, {}> {
         <div className='footer__wrap footer__right'>
           <div>
             <div className='footer__right__inner'>
+              {/* New Game */}
+              <div className='footer__wrap'>
+                <div className='simple-center'>
+                  <input type='button' value='New Game' onClick={this.onNewGameClick}
+                         className='footer__new-game simple-button simple-center__vertical-inner' />
+                </div>
+              </div>
               {/* Layout Selector */}
               <div className='footer__wrap'>
                 <div>
@@ -86,6 +96,12 @@ export class Footer extends React.Component<IFooterProps, {}> {
       const value = parseBrowsePageLayout(event.target.value);
       if (value === undefined) { throw new Error(`Layout selector option has an invalid value (${event.target.value})`); }
       this.props.onLayoutChange(value);
+    }
+  }
+
+  onNewGameClick(): void {
+    if (this.props.onNewGameClick) {
+      this.props.onNewGameClick();
     }
   }
 }

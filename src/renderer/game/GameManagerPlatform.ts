@@ -116,7 +116,6 @@ class GameManagerPlatform extends EventEmitter {
     if (!this.collection) { return; }
     // Add or overwrite the parsed game to the collection
     const orgGame = this.collection.findGame(game.id);
-    console.log('orgGame', orgGame);
     if (orgGame) {
       GameInfo.override(orgGame, game);
     } else {
@@ -126,7 +125,6 @@ class GameManagerPlatform extends EventEmitter {
     }
     // Add or overwrite the raw game to the collection
     const rawGame = this.findRawGame(game.id);
-    console.log('rawGame', rawGame);
     if (rawGame) {
       Object.assign(rawGame, GameParser.reverseParseGame(game));
     } else {

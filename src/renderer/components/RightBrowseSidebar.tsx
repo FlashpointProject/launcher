@@ -3,13 +3,10 @@ import { uuid } from '../uuid';
 import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { CheckBox } from './CheckBox';
 import { GameImageCollection } from '../image/GameImageCollection';
-import { GameInfo } from '../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { GameLauncher } from '../GameLauncher';
 import GameManager from '../game/GameManager';
-import { GameParser } from '../../shared/game/GameParser';
-import GameManagerPlatform from '../game/GameManagerPlatform';
 import { OpenIcon } from './OpenIcon';
 import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
@@ -33,11 +30,13 @@ export interface IRightBrowseSidebarProps {
   onEditPlaylistNotes?: (text: string) => void;
   /** Called when the "Save Changes" button is clicked */
   onSaveClick?: () => void;
+  /** If unsaved changes has been made to the current game and/or add-apps */
+  hasEditedCurrent: boolean;
+  /** Called when changes has been made to the current game and/or add-apps */
+  onEditCurrrent?: () => void;
 }
 
 export interface IRightBrowseSidebarState {
-  /** If any unsaved changes has been made to the selected game (the buffer) */
-  hasChanged: boolean;
   /** If a preview of the current games screenshot should be shown */
   showPreview: boolean;
 }
@@ -75,7 +74,6 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   constructor(props: IRightBrowseSidebarProps) {
     super(props);
     this.state = {
-      hasChanged: false,
       showPreview: false,
     };
     this.onNewAddAppClick = this.onNewAddAppClick.bind(this);
@@ -93,17 +91,11 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   componentDidMount(): void {
   }
 
-  componentDidUpdate(prevProps: IRightBrowseSidebarProps, prevState: IRightBrowseSidebarState) {
-    if (this.props.currentGame !== prevProps.currentGame) {
-      this.setState({ hasChanged: false });
-    }
-  }
-
   render() {
     const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
       const addApps: IAdditionalApplicationInfo[]|undefined = this.props.currentAddApps;
-      const isEditing: boolean = this.state.hasChanged;
+      const isEditing: boolean = this.props.hasEditedCurrent;
       const playlistEntry = this.props.gamePlaylistEntry;
       const editDisabled = window.External.config.data.disableEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
@@ -358,8 +350,6 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.props.games.refreshCollection();
     // Save changes to file
     platform.saveToFile().then(() => { console.timeEnd('delete'); });
-    // Update flag
-    this.setState({ hasChanged: false });
     // Callback
     if (this.props.onDeleteSelectedGame) {
       this.props.onDeleteSelectedGame();
@@ -396,7 +386,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
     addApps.splice(index, 1);
     // Flag as changed
-    this.setState({ hasChanged: true });
+    if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
   }
 
   private onNewAddAppClick(): void {
@@ -406,7 +396,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     newAddApp.id = uuid();
     newAddApp.gameId = this.props.currentGame.id;
     this.props.currentAddApps.push(newAddApp);
-    this.setState({ hasChanged: true });
+    if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
   }
 
   private onScreenshotClick(): void {
@@ -418,15 +408,12 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   private onSaveClick(): void {
-    if (this.props.onSaveClick) {
-      this.props.onSaveClick();
-      this.setState({ hasChanged: false });
-    }
+    if (this.props.onSaveClick) { this.props.onSaveClick(); }
   }
   
   /** Called when an additional application is edited */
   private onAddAppEdit(): void {
-    this.setState({ hasChanged: true });
+    if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
   }
 
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
@@ -435,7 +422,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const game = this.props.currentGame;
       if (game) {
         func(game, text);
-        this.setState({ hasChanged: true });
+        if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
       }
     }
   }
@@ -446,7 +433,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const game = this.props.currentGame;
       if (game && !window.External.config.data.disableEditing) {
         func(game, isChecked);
-        this.setState({ hasChanged: true });
+        if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
       }
     }
   }

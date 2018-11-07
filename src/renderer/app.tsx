@@ -33,6 +33,8 @@ export interface IAppState {
   selectedGame?: IGameInfo;
   /** Currently selected playlist (if any) */
   selectedPlaylist?: IGamePlaylist;
+  /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page) */
+  wasNewGameClicked: boolean;
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
@@ -56,11 +58,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       logData: '',
       gameScale: preferences.data.browsePageGameScale,
       gameLayout: preferences.data.browsePageLayout,
+      wasNewGameClicked: false,
     };
     this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
+    this.onNewGameClick = this.onNewGameClick.bind(this);
     this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     this.onToggleLeftSidebarClick = this.onToggleLeftSidebarClick.bind(this);
     this.onToggleRightSidebarClick = this.onToggleRightSidebarClick.bind(this);
@@ -148,6 +152,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.removeListener('log-data-update', this.onLogDataUpdate);
   }
 
+  componentDidUpdate(prevProps: IAppProps, prevState: IAppState) {
+    if (prevState.wasNewGameClicked) {
+      this.setState({ wasNewGameClicked: false });
+    }
+  }
+
   private onLogDataUpdate(event: any, fullLog: string) {
     this.setState({
       logData: fullLog,
@@ -178,6 +188,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       selectedPlaylist: this.state.selectedPlaylist,
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
+      wasNewGameClicked: this.state.wasNewGameClicked,
     };
     // Render
     return (
@@ -204,7 +215,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         {/* "Footer" stuff */}
         <Footer gameCount={gameCount}
                 onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-                onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout} />
+                onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+                onNewGameClick={this.onNewGameClick} />
       </>
     );
   }
@@ -234,6 +246,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setState({ gameLayout: value });
     // Update Preferences Data (this is to make it get saved on disk)
     window.External.preferences.data.browsePageLayout = value;
+  }
+
+  private onNewGameClick(): void {
+    this.setState({
+      wasNewGameClicked: true,
+      selectedGame: undefined
+    });
   }
 
   private onToggleLeftSidebarClick(): void {

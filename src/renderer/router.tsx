@@ -25,6 +25,7 @@ export interface IAppRouterProps {
   selectedPlaylist?: IGamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
   onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
+  wasNewGameClicked: boolean;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
@@ -39,6 +40,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       selectedPlaylist: this.props.selectedPlaylist,
       onSelectGame: this.props.onSelectGame,
       onSelectPlaylist: this.props.onSelectPlaylist,
+      wasNewGameClicked: this.props.wasNewGameClicked,
     };
     return (
       <Switch>

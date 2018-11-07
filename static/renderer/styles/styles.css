@@ -508,6 +508,10 @@ body {
 .footer__game-count {
   cursor: default;
 }
+/* Scale New-Game */
+.footer__new-game {
+  font-size: 0.8rem;
+}
 /* Layout Selector */
 .footer__layout-selector {
   display: inline-block;

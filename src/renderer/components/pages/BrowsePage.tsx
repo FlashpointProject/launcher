@@ -17,6 +17,7 @@ import { GameInfo } from '../../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
 import GameManagerPlatform from '../../game/GameManagerPlatform';
 import { GameParser } from '../../../shared/game/GameParser';
+import { uuid } from '../../uuid';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central: ICentralState;
@@ -32,6 +33,7 @@ export interface IBrowsePageProps extends IDefaultProps {
   selectedPlaylist?: IGamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
   onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
+  wasNewGameClicked: boolean;
 }
 
 export interface IBrowsePageState {
@@ -48,6 +50,8 @@ export interface IBrowsePageState {
   currentGame?: IGameInfo;
   /** Buffer for the selected games additional applications (all changes are made to this until saved) */
   currentAddApps?: IAdditionalApplicationInfo[];
+  /** If unsaved changes has been made to the current game and/or add-apps */
+  hasEditedCurrent: boolean;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
@@ -61,6 +65,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.state = {
       quickSearch: '',
       orderedGames: [],
+      hasEditedCurrent: false,
     };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
@@ -71,6 +76,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
     this.onRemoveSelectedGameFromPlaylist = this.onRemoveSelectedGameFromPlaylist.bind(this);
     this.onSaveCurrentGame = this.onSaveCurrentGame.bind(this);
+    this.onEditCurrrent = this.onEditCurrrent.bind(this);
     this.onEditPlaylistNotes = this.onEditPlaylistNotes.bind(this);
     this.onLeftSidebarSelectPlaylist = this.onLeftSidebarSelectPlaylist.bind(this);
     this.onLeftSidebarDeselectPlaylist = this.onLeftSidebarDeselectPlaylist.bind(this);
@@ -90,8 +96,20 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
     this.orderGames();
+    // Update current game and add-apps if the selected game changes
     if (this.props.selectedGame !== prevProps.selectedGame) {
       this.updateCurrentGameAndAddApps();
+      this.setState({ hasEditedCurrent: false });
+    }
+    // Create a new game if the "New Game" button is pushed
+    if (this.props.wasNewGameClicked && !prevProps.wasNewGameClicked) {
+      const newGame = GameInfo.create();
+      newGame.id = uuid();
+      this.setState({
+        currentGame: newGame,
+        currentAddApps: [],
+        hasEditedCurrent: true,
+      });
     }
     // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== this.state.quickSearch && this.state.quickSearch !== '') {
@@ -179,7 +197,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
         </div>
         {anyGames ? (
           <div className={'game-browser__right'+
-                          (selectedGame?'':' game-browser__right--none')+
+                          (this.state.currentGame?'':' game-browser__right--none')+
                           (window.External.preferences.data.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
             <RightBrowseSidebar currentGame={this.state.currentGame} 
                                 currentAddApps={this.state.currentAddApps}
@@ -189,7 +207,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                 onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
                                 onEditPlaylistNotes={this.onEditPlaylistNotes}
                                 gamePlaylistEntry={gamePlaylistEntry}
-                                onSaveClick={this.onSaveCurrentGame} />
+                                onSaveClick={this.onSaveCurrentGame}
+                                hasEditedCurrent={this.state.hasEditedCurrent}
+                                onEditCurrrent={this.onEditCurrrent} />
           </div>
         ) : undefined}
       </div>
@@ -358,7 +378,11 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   private onSaveCurrentGame(): void {
     this.saveGameAndAddApps();
-    this.forceUpdate();
+    this.setState({ hasEditedCurrent: false });
+  }
+
+  private onEditCurrrent(): void {
+    this.setState({ hasEditedCurrent: true });
   }
   
   private saveGameAndAddApps(): void {
@@ -371,7 +395,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                    games.getPlatformByName(game.platform) ||
                    games.getPlatformByName('Unknown Platform');
     if (!platform) {
-      platform = new GameManagerPlatform('Unknown Platform');
+      platform = new GameManagerPlatform('Unknown Platform.xml');
+      platform.collection = new GameCollection();
+      platform.data = { LaunchBox: {} };
       games.addPlatform(platform);
     }
     // Overwrite the game and additional applications with the changes made
@@ -386,7 +412,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
     // -- Functions --
     function updateAddApps(this:  BrowsePage, selectedApps: IAdditionalApplicationInfo[], platform: GameManagerPlatform): void {
-      if (!platform.collection) { throw new Error('Platform not has no collection.'); }
+      if (!platform.collection) { throw new Error('Platform does not have a collection.'); }
       // 1. Save the changes made to add-apps
       // 2. Save any new add-apps
       // 3. Delete any removed add-apps
