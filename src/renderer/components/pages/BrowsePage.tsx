@@ -12,7 +12,11 @@ import { orderGames, IOrderGamesArgs } from '../../../shared/game/GameFilter';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { GameLauncher } from '../../GameLauncher';
 import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
-import { IGamePlaylist, IGamePlaylistEntry } from 'src/renderer/playlist/interfaces';
+import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/interfaces';
+import { GameInfo } from '../../../shared/game/GameInfo';
+import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
+import GameManagerPlatform from '../../game/GameManagerPlatform';
+import { GameParser } from '../../../shared/game/GameParser';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central: ICentralState;
@@ -39,6 +43,11 @@ export interface IBrowsePageState {
   orderedGamesArgs?: IOrderGamesArgs;
   /** Currently dragged game (if any) */
   draggedGame?: IGameInfo;
+  
+  /** Buffer for the selected game (all changes are made to the game until saved) */
+  currentGame?: IGameInfo;
+  /** Buffer for the selected games additional applications (all changes are made to this until saved) */
+  currentAddApps?: IAdditionalApplicationInfo[];
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
@@ -61,6 +70,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
     this.onRemoveSelectedGameFromPlaylist = this.onRemoveSelectedGameFromPlaylist.bind(this);
+    this.onSaveCurrentGame = this.onSaveCurrentGame.bind(this);
     this.onEditPlaylistNotes = this.onEditPlaylistNotes.bind(this);
     this.onLeftSidebarSelectPlaylist = this.onLeftSidebarSelectPlaylist.bind(this);
     this.onLeftSidebarDeselectPlaylist = this.onLeftSidebarDeselectPlaylist.bind(this);
@@ -71,6 +81,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   componentDidMount() {
     this.props.central.games.on('change', this.onGamesCollectionChange);
     this.orderGames(true);
+    this.updateCurrentGameAndAddApps();
   }
 
   componentWillUnmount() {
@@ -79,6 +90,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
     this.orderGames();
+    if (this.props.selectedGame !== prevProps.selectedGame) {
+      this.updateCurrentGameAndAddApps();
+    }
     // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== this.state.quickSearch && this.state.quickSearch !== '') {
       const games: IGameInfo[] = this.state.orderedGames;
@@ -108,11 +122,6 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           break;
         }
       }
-    }
-    // Find additional applications for the selected game (if any)
-    let selectedAddApps: IAdditionalApplicationInfo[]|undefined;
-    if (selectedGame) {
-      selectedAddApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, selectedGame.id);
     }
     // Render
     return (
@@ -172,14 +181,15 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           <div className={'game-browser__right'+
                           (selectedGame?'':' game-browser__right--none')+
                           (window.External.preferences.data.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
-            <RightBrowseSidebar selectedGame={selectedGame} 
-                                selectedAddApps={selectedAddApps}
+            <RightBrowseSidebar currentGame={this.state.currentGame} 
+                                currentAddApps={this.state.currentAddApps}
                                 gameImages={this.props.central.gameImages}
                                 games={this.props.central.games}
                                 onDeleteSelectedGame={this.onDeleteSelectedGame}
                                 onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
                                 onEditPlaylistNotes={this.onEditPlaylistNotes}
-                                gamePlaylistEntry={gamePlaylistEntry} />
+                                gamePlaylistEntry={gamePlaylistEntry}
+                                onSaveClick={this.onSaveCurrentGame} />
           </div>
         ) : undefined}
       </div>
@@ -332,6 +342,123 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     playlist.games[index].notes = text;
     this.props.central.playlists.save(playlist);
     this.forceUpdate();
+  }
+
+  private updateCurrentGameAndAddApps(): void {
+    const game = this.props.selectedGame;
+    // Find additional applications for the selected game (if any)
+    let addApps: IAdditionalApplicationInfo[]|undefined;
+    if (game) { addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id); }
+    // Update State
+    this.setState({
+      currentGame: game && GameInfo.duplicate(game),
+      currentAddApps: addApps && addApps.map(AdditionalApplicationInfo.duplicate),
+    });
+  }
+
+  private onSaveCurrentGame(): void {
+    this.saveGameAndAddApps();
+    this.forceUpdate();
+  }
+  
+  private saveGameAndAddApps(): void {
+    console.time('save');
+    const game = this.state.currentGame;
+    if (!game) { console.error(`Can't save game. "currentGame" is missing.`); return; }
+    // Find the platform the game is in (or should be in, if it is not in one already)
+    const games = this.props.central.games;
+    let platform = games.getPlatformOfGameId(game.id) ||
+                   games.getPlatformByName(game.platform) ||
+                   games.getPlatformByName('Unknown Platform');
+    if (!platform) {
+      platform = new GameManagerPlatform('Unknown Platform');
+      games.addPlatform(platform);
+    }
+    // Overwrite the game and additional applications with the changes made
+    platform.addOrUpdateGame(game);
+    // Override the additional applications
+    const addApps = GameCollection.findAdditionalApplicationsByGameId(games.collection, game.id);
+    updateAddApps.call(this, addApps, platform);
+    // Refresh games collection
+    games.refreshCollection();
+    // Save changes to file
+    platform.saveToFile().then(() => { console.timeEnd('save'); });
+
+    // -- Functions --
+    function updateAddApps(this:  BrowsePage, selectedApps: IAdditionalApplicationInfo[], platform: GameManagerPlatform): void {
+      if (!platform.collection) { throw new Error('Platform not has no collection.'); }
+      // 1. Save the changes made to add-apps
+      // 2. Save any new add-apps
+      // 3. Delete any removed add-apps
+      const editApps = this.state.currentAddApps;
+      if (!editApps) { throw new Error('editAddApps is missing'); }
+      if (!selectedApps) { throw new Error('selectedAddApps is missing'); }
+      // -- Categorize add-apps --
+      // Put all new add-apps in an array
+      const newAddApps: IAdditionalApplicationInfo[] = [];
+      for (let i = editApps.length - 1; i >= 0; i--) {
+        const editApp = editApps[i];
+        let found = false;
+        for (let j = selectedApps.length - 1; j >= 0; j--) {
+          const selApp = selectedApps[j];
+          if (editApp.id === selApp.id) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) { newAddApps.push(editApp); }
+      }
+      // Put all changed add-apps in an array
+      const changedAddApps: IAdditionalApplicationInfo[] = [];
+      for (let i = editApps.length - 1; i >= 0; i--) {
+        const editApp = editApps[i];
+        for (let j = selectedApps.length - 1; j >= 0; j--) {
+          const selApp = selectedApps[j];
+          if (editApp.id === selApp.id) {
+            changedAddApps.push(editApp);
+            break;
+          }
+        }
+      }
+      // Put all removes add-apps in an array
+      const removedAddApps: IAdditionalApplicationInfo[] = [];
+      for (let i = selectedApps.length - 1; i >= 0; i--) {
+        const selApp = selectedApps[i];
+        let found = false;
+        for (let j = editApps.length - 1; j >= 0; j--) {
+          const editApp = editApps[j];
+          if (editApp.id === selApp.id) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) { removedAddApps.push(selApp); }
+      }
+      // -- Update --
+      // Delete removed add-apps
+      for (let i = removedAddApps.length - 1; i >= 0; i--) {
+        const addApp = removedAddApps[i];
+        platform.removeAdditionalApplication(addApp.id);
+      }
+      // Update changed add-apps
+      for (let i = changedAddApps.length - 1; i >= 0; i--) {
+        const addApp = changedAddApps[i];
+        const oldAddApp = platform.collection.findAdditionalApplication(addApp.id);
+        if (!oldAddApp) { throw new Error('???'); }
+        const rawAddApp = platform.findRawAdditionalApplication(addApp.id);
+        if (!rawAddApp) { throw new Error('???'); }
+        Object.assign(oldAddApp, addApp);
+        Object.assign(rawAddApp, GameParser.reverseParseAdditionalApplication(oldAddApp));
+      }
+      // Add new add-apps
+      for (let i = newAddApps.length - 1; i >= 0; i--) {
+        const addApp = newAddApps[i];
+        platform.addAdditionalApplication(addApp);
+        const newRawAddApp = Object.assign({}, GameParser.emptyRawAdditionalApplication, 
+                                          GameParser.reverseParseAdditionalApplication(addApp));
+        platform.addRawAdditionalApplication(newRawAddApp);
+      }
+    }
   }
   
   /**

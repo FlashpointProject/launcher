@@ -2,11 +2,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as fastXmlParser from 'fast-xml-parser';
 import { promisify } from 'util';
-import { IRawLaunchBoxPlatformRoot, IRawLaunchBoxGame, IRawLaunchBoxAdditionalApplication } from 'src/shared/launchbox/interfaces';
-import { IAdditionalApplicationInfo } from 'src/shared/game/interfaces';
-import { LaunchboxData } from '../LaunchboxData';
-import { GameCollection } from 'src/shared/game/GameCollection';
 import { EventEmitter } from 'events';
+import { IRawLaunchBoxPlatformRoot, IRawLaunchBoxGame, IRawLaunchBoxAdditionalApplication } from 'src/shared/launchbox/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo } from 'src/shared/game/interfaces';
+import { LaunchboxData } from '../LaunchboxData';
+import { GameCollection } from '../../shared/game/GameCollection';
+import { GameInfo } from '../../shared/game/GameInfo';
+import { GameParser } from '../../shared/game/GameParser';
 
 const writeFile = promisify(fs.writeFile);
 
@@ -73,14 +75,62 @@ class GameManagerPlatform extends EventEmitter {
    * @param rawAddApp Raw Additional Application to add
    */
   public addRawAdditionalApplication(rawAddApp: IRawLaunchBoxAdditionalApplication): void {
-    if (!this.data || !this.data.LaunchBox || !this.data.LaunchBox.AdditionalApplication) {
+    if (!this.data || !this.data.LaunchBox) {
       throw new Error('Cant add raw additional application because raw launchbox data structure is missing or broken.');
     }
     let addApps = this.data.LaunchBox.AdditionalApplication;
-    if (Array.isArray(addApps)) {
+    if (Array.isArray(addApps)) { // (2 or more entries - is already an array)
       addApps.push(rawAddApp);
-    } else {
+    } else if (addApps) { // (1 entry)
+      addApps = this.data.LaunchBox.AdditionalApplication = [ addApps ];
+      addApps.push(rawAddApp);
+    } else { // (0 entries)
       this.data.LaunchBox.AdditionalApplication = rawAddApp;
+    }
+  }
+
+  /**
+   * Add a raw game
+   * @param rawGame Raw game to add
+   */
+  public addRawGame(rawGame: IRawLaunchBoxGame): void {
+    if (!this.data || !this.data.LaunchBox) {
+      throw new Error('Cant add raw game because raw launchbox data structure is missing or broken.');
+    }
+    let games = this.data.LaunchBox.Game;
+    if (Array.isArray(games)) { // (2 or more entries - is already an array)
+      games.push(rawGame);
+    } else if (games) { // (1 entry)
+      games = this.data.LaunchBox.Game = [ games ];
+      games.push(rawGame);
+    } else { // (0 entries)
+      this.data.LaunchBox.Game = rawGame;
+    }
+  }
+
+  /**
+   * Add a game (or update the props of a game if they share IDs)
+   * @param game Game to add, or copy props from
+   */
+  public addOrUpdateGame(game: IGameInfo): void {
+    if (!this.collection) { return; }
+    // Add or overwrite the parsed game to the collection
+    const orgGame = this.collection.findGame(game.id);
+    console.log('orgGame', orgGame);
+    if (orgGame) {
+      GameInfo.override(orgGame, game);
+    } else {
+      let newGame = GameInfo.create();
+      GameInfo.override(newGame, game);
+      this.collection.games.push(newGame);
+    }
+    // Add or overwrite the raw game to the collection
+    const rawGame = this.findRawGame(game.id);
+    console.log('rawGame', rawGame);
+    if (rawGame) {
+      Object.assign(rawGame, GameParser.reverseParseGame(game));
+    } else {
+      this.addRawGame(GameParser.reverseParseGame(game));
     }
   }
 

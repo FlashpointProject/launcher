@@ -1,9 +1,9 @@
 import * as path from 'path';
+import { EventEmitter } from 'events';
 import { LaunchboxData } from '../LaunchboxData';
 import { GameParser } from '../../shared/game/GameParser';
 import { GameCollection } from '../../shared/game/GameCollection';
 import GameManagerPlatform from './GameManagerPlatform';
-import { EventEmitter } from 'events';
 
 declare interface GameManager {
   /** Fired when one or more games has been changed (added, removed, changed properties etc.) */
@@ -25,10 +25,8 @@ class GameManager extends EventEmitter {
   public async findPlatforms(): Promise<string[]> {
     const flashpointPath = window.External.config.fullFlashpointPath;
     const filenames = await LaunchboxData.fetchPlatformFilenames(flashpointPath);
-    for (let i = filenames.length - 1; i >= 0; i--) {
-      let platform = new GameManagerPlatform(filenames[i]);
-      this.platforms[i] = platform;
-      platform.on('change', this.onPlatformChange);
+    for (let i = 0; i < filenames.length; i++) {
+      this.addPlatform(new GameManagerPlatform(filenames[i]));
     }
     return filenames;
   }
@@ -53,6 +51,15 @@ class GameManager extends EventEmitter {
         .catch(reject);
       }
     });
+  }
+
+  /**
+   * Add a platform to this manager
+   * @param platform Platform to add
+   */
+  public addPlatform(platform: GameManagerPlatform): void {
+    this.platforms.push(platform);
+    platform.on('change', this.onPlatformChange);
   }
 
   /**
@@ -87,6 +94,16 @@ class GameManager extends EventEmitter {
             return platform;
           }
         }
+      }
+    }
+  }
+  
+  public getPlatformByName(platformName: string): GameManagerPlatform|undefined {
+    const targetName = platformName.toLocaleLowerCase() + '.xml';
+    for (let i = this.platforms.length - 1; i >= 0; i--) {
+      const platform = this.platforms[i];
+      if (targetName === platform.filename.toLocaleLowerCase()) {
+        return platform;
       }
     }
   }

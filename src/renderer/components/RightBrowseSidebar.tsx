@@ -20,9 +20,9 @@ export interface IRightBrowseSidebarProps {
   gameImages: GameImageCollection;
   games: GameManager;
   /** Currently selected game (if any) */
-  selectedGame?: IGameInfo;
+  currentGame?: IGameInfo;
   /** Additional Applications of the currently selected game (if any) */
-  selectedAddApps?: IAdditionalApplicationInfo[];
+  currentAddApps?: IAdditionalApplicationInfo[];
   /** Currently selected game entry (if any) */
   gamePlaylistEntry?: IGamePlaylistEntry;
   /** Called when the selected game is deleted by this */
@@ -31,15 +31,13 @@ export interface IRightBrowseSidebarProps {
   onRemoveSelectedGameFromPlaylist?: () => void;
   /** Called when the playlist notes for the selected game has been changed */
   onEditPlaylistNotes?: (text: string) => void;
+  /** Called when the "Save Changes" button is clicked */
+  onSaveClick?: () => void;
 }
 
 export interface IRightBrowseSidebarState {
   /** If any unsaved changes has been made to the selected game (the buffer) */
   hasChanged: boolean;
-  /** Buffer for the selected game (all changes are made to the game until saved) */
-  editGame?: IGameInfo;
-  /** Buffer for the selected games additional applications (all changes are made to this until saved) */
-  editAddApps?: IAdditionalApplicationInfo[];
   /** If a preview of the current games screenshot should be shown */
   showPreview: boolean;
 }
@@ -78,8 +76,6 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     super(props);
     this.state = {
       hasChanged: false,
-      editGame: undefined,
-      editAddApps: undefined,
       showPreview: false,
     };
     this.onNewAddAppClick = this.onNewAddAppClick.bind(this);
@@ -95,19 +91,18 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   componentDidMount(): void {
-    this.updateEditGame();
   }
 
   componentDidUpdate(prevProps: IRightBrowseSidebarProps, prevState: IRightBrowseSidebarState) {
-    if (this.props.selectedGame !== prevProps.selectedGame) {
-      this.updateEditGame();
+    if (this.props.currentGame !== prevProps.currentGame) {
       this.setState({ hasChanged: false });
     }
   }
 
   render() {
-    const game: IGameInfo|undefined = this.state.editGame;
+    const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
+      const addApps: IAdditionalApplicationInfo[]|undefined = this.props.currentAddApps;
       const isEditing: boolean = this.state.hasChanged;
       const playlistEntry = this.props.gamePlaylistEntry;
       const editDisabled = window.External.config.data.disableEditing;
@@ -214,7 +209,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             </div>
           ) : undefined }
           {/* -- Additional Applications -- */}
-          { !editDisabled || (this.state.editAddApps && this.state.editAddApps.length > 0) ? (
+          { !editDisabled || (addApps && addApps.length > 0) ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                 <p>Additional Applications:</p>
@@ -222,11 +217,11 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                   <input type='button' value='New' className='simple-button' onClick={this.onNewAddAppClick} />
                 ) : undefined }
               </div>
-              {this.state.editAddApps && this.state.editAddApps.map((addApp) => {
+              { addApps && addApps.map((addApp) => {
                 return <RightBrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
                                                  onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}
                                                  onDelete={this.onAddAppDelete} />;
-              })}
+              }) }
             </div>
           ) : undefined }
           {/* -- Application Path & Launch Command -- */}
@@ -351,7 +346,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
 
   private onDeleteGameClick(): void {
     console.time('delete');
-    const game = this.props.selectedGame;
+    const game = this.props.currentGame;
     if (!game) { throw new Error('Can not delete a game when no game is selected.'); }
     const platform = this.props.games.getPlatformOfGameId(game.id);
     if (!platform) { throw new Error('Can not delete a game when it does not belong to a platform.'); }
@@ -388,7 +383,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   private onAddAppDelete(addApp: IAdditionalApplicationInfo): void {
-    const addApps = this.state.editAddApps;
+    const addApps = this.props.currentAddApps;
     if (!addApps) { throw new Error('editAddApps is missing.'); }
     // Find and remove add-app
     let index = -1;
@@ -404,20 +399,13 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.setState({ hasChanged: true });
   }
 
-  private updateEditGame(): void {
-    this.setState({
-      editGame: this.props.selectedGame && GameInfo.duplicate(this.props.selectedGame),
-      editAddApps: this.props.selectedAddApps && this.props.selectedAddApps.map(AdditionalApplicationInfo.duplicate),
-    });
-  }
-
   private onNewAddAppClick(): void {
-    if (!this.state.editAddApps) { throw new Error('???'); }
-    if (!this.state.editGame) { throw new Error('???'); }
+    if (!this.props.currentAddApps) { throw new Error(`Unable to add a new AddApp. "currentAddApps" is missing.`); }
+    if (!this.props.currentGame)    { throw new Error(`Unable to add a new AddApp. "currentGame" is missing.`); }
     const newAddApp = AdditionalApplicationInfo.create();
     newAddApp.id = uuid();
-    newAddApp.gameId = this.state.editGame.id;
-    this.state.editAddApps.push(newAddApp);
+    newAddApp.gameId = this.props.currentGame.id;
+    this.props.currentAddApps.push(newAddApp);
     this.setState({ hasChanged: true });
   }
 
@@ -430,102 +418,9 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   private onSaveClick(): void {
-    console.time('save');
-    // Overwrite the game and additional applications with the changes made
-    if (this.props.selectedGame && this.state.editGame) {
-      const gameId = this.state.editGame.id;
-      const platform = this.props.games.getPlatformOfGameId(gameId);
-      if (!platform) { throw new Error('Platform not found.'); }
-      // Update parsed game
-      GameInfo.override(this.props.selectedGame, this.state.editGame);
-      // Update raw game
-      const rawGame = platform.findRawGame(gameId);
-      if (!rawGame) { throw new Error('Raw game not found on platform the parsed game belongs to'); }
-      Object.assign(rawGame, GameParser.reverseParseGame(this.props.selectedGame));
-      // Override the additional applications
-      updateAddApps.call(this, platform);
-      // Refresh games collection
-      this.props.games.refreshCollection();
-      // Save changes to file
-      platform.saveToFile().then(() => { console.timeEnd('save'); });
-      // Update flag
+    if (this.props.onSaveClick) {
+      this.props.onSaveClick();
       this.setState({ hasChanged: false });
-    }
-    // -- Functions --
-    function updateAddApps(this: RightBrowseSidebar, platform: GameManagerPlatform): void {
-      if (!platform.collection) { throw new Error('Platform not has no collection.'); }
-      // 1. Save the changes made to add-apps
-      // 2. Save any new add-apps
-      // 3. Delete any removed add-apps
-      const selectedApps = this.props.selectedAddApps;
-      const editApps = this.state.editAddApps;
-      if (!editApps) { throw new Error('editAddApps is missing'); }
-      if (!selectedApps) { throw new Error('selectedAddApps is missing'); }
-      // -- Categorize add-apps --
-      // Put all new add-apps in an array
-      const newAddApps: IAdditionalApplicationInfo[] = [];
-      for (let i = editApps.length - 1; i >= 0; i--) {
-        const editApp = editApps[i];
-        let found = false;
-        for (let j = selectedApps.length - 1; j >= 0; j--) {
-          const selApp = selectedApps[j];
-          if (editApp.id === selApp.id) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) { newAddApps.push(editApp); }
-      }
-      // Put all changed add-apps in an array
-      const changedAddApps: IAdditionalApplicationInfo[] = [];
-      for (let i = editApps.length - 1; i >= 0; i--) {
-        const editApp = editApps[i];
-        for (let j = selectedApps.length - 1; j >= 0; j--) {
-          const selApp = selectedApps[j];
-          if (editApp.id === selApp.id) {
-            changedAddApps.push(editApp);
-            break;
-          }
-        }
-      }
-      // Put all removes add-apps in an array
-      const removedAddApps: IAdditionalApplicationInfo[] = [];
-      for (let i = selectedApps.length - 1; i >= 0; i--) {
-        const selApp = selectedApps[i];
-        let found = false;
-        for (let j = editApps.length - 1; j >= 0; j--) {
-          const editApp = editApps[j];
-          if (editApp.id === selApp.id) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) { removedAddApps.push(selApp); }
-      }
-      // -- Update --
-      // Delete removed add-apps
-      for (let i = removedAddApps.length - 1; i >= 0; i--) {
-        const addApp = removedAddApps[i];
-        platform.removeAdditionalApplication(addApp.id);
-      }
-      // Update changed add-apps
-      for (let i = changedAddApps.length - 1; i >= 0; i--) {
-        const addApp = changedAddApps[i];
-        const oldAddApp = platform.collection.findAdditionalApplication(addApp.id);
-        if (!oldAddApp) { throw new Error('???'); }
-        const rawAddApp = platform.findRawAdditionalApplication(addApp.id);
-        if (!rawAddApp) { throw new Error('???'); }
-        Object.assign(oldAddApp, addApp);
-        Object.assign(rawAddApp, GameParser.reverseParseAdditionalApplication(oldAddApp));
-      }
-      // Add new add-apps
-      for (let i = newAddApps.length - 1; i >= 0; i--) {
-        const addApp = newAddApps[i];
-        platform.addAdditionalApplication(addApp);
-        const newRawAddApp = Object.assign({}, GameParser.emptyRawAdditionalApplication, 
-                                           GameParser.reverseParseAdditionalApplication(addApp));
-        platform.addRawAdditionalApplication(newRawAddApp);
-      }
     }
   }
   
@@ -537,7 +432,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
   private wrapOnEditDone(func: (game: IGameInfo, text: string) => void): (text: string) => void {
     return (text: string) => {
-      const game = this.state.editGame;
+      const game = this.props.currentGame;
       if (game) {
         func(game, text);
         this.setState({ hasChanged: true });
@@ -548,7 +443,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy) */
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void): (isChecked: boolean) => void {
     return (isChecked: boolean) => {
-      const game = this.state.editGame;
+      const game = this.props.currentGame;
       if (game && !window.External.config.data.disableEditing) {
         func(game, isChecked);
         this.setState({ hasChanged: true });

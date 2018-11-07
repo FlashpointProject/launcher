@@ -43,7 +43,10 @@ export class GameImageCollection {
   public getThumbnailPath(gameTitle: string, platform: string): string|undefined {
     platform = platform.toLowerCase();
     const cache = this._thumbnails[platform];
-    if (!cache) { throw new Error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`); }
+    if (!cache) {
+      //console.error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`);
+      return undefined;
+    }
     return cache.getFilePath(gameTitle);
   }
   
@@ -57,7 +60,7 @@ export class GameImageCollection {
     platform = platform.toLowerCase();
     const cache = this._screenshots[platform];
     if (!cache) {
-      console.error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`);
+      //console.error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`);
       return undefined;
     }
     return cache.getFilePath(gameTitle);

@@ -2,6 +2,28 @@ import { IGameInfo } from './interfaces';
 import { shallowStrictEquals } from '../Util';
 
 export class GameInfo {
+  public static create(): IGameInfo {
+    return {
+      id: '',
+      title: '',
+      series: '',
+      developer: '',
+      publisher: '',
+      platform: '',
+      dateAdded: 0,
+      broken: false,
+      extreme: false,
+      playMode: '',
+      status: '',
+      notes: '',
+      genre: '',
+      source: '',
+      applicationPath: '',
+      launchCommand: '',
+      orderTitle: '',
+    };
+  }
+
   /**
    * Override the properties of a game info object with those of another
    * @param target Object to override property values of
