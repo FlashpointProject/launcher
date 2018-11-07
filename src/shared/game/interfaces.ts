@@ -17,7 +17,7 @@ export interface IGameInfo {
   /** Name of the publisher of the game */
   publisher: string;
   /** Date-time of when the game was added to collection */
-  dateAdded: number;
+  dateAdded: string;
   /** Platform the game runs on (Flash, HTML5, Shockwave etc.) */
   platform: string;
   /** If the game is "broken" or not */

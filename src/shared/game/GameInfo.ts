@@ -10,7 +10,7 @@ export class GameInfo {
       developer: '',
       publisher: '',
       platform: '',
-      dateAdded: 0,
+      dateAdded: '',
       broken: false,
       extreme: false,
       playMode: '',

@@ -35,7 +35,7 @@ export class GameParser {
       developer: unescapeHTML(data.Developer),
       publisher: unescapeHTML(data.Publisher),
       platform: unescapeHTML(data.Platform),
-      dateAdded: Date.parse(unescapeHTML(data.DateAdded)),
+      dateAdded: unescapeHTML(data.DateAdded),
       broken: !!data.Broken,
       extreme: !!data.Hide,
       playMode: unescapeHTML(data.PlayMode),
@@ -45,7 +45,7 @@ export class GameParser {
       source: unescapeHTML(data.Source),
       applicationPath: unescapeHTML(data.ApplicationPath),
       launchCommand: unescapeHTML(data.CommandLine),
-      orderTitle: generateOrderTitle(title),
+      orderTitle: generateGameOrderTitle(title),
     };
   }
 
@@ -69,7 +69,7 @@ export class GameParser {
       Developer: escapeHTML(game.developer),
       Publisher: escapeHTML(game.publisher),
       Platform: escapeHTML(game.platform),
-      //DateAdded: formatDate(game.dateAdded),
+      DateAdded: escapeHTML(game.dateAdded),
       Broken: !!game.broken,
       Hide: !!game.extreme,
       PlayMode: escapeHTML(game.playMode),
@@ -117,14 +117,8 @@ export class GameParser {
 }
 
 /** Generate a title suitable for ordering (only used for ordering and sorting, not visual) */
-function generateOrderTitle(title: string): string {
+export function generateGameOrderTitle(title: string): string {
   return title.toLowerCase();
-}
-
-/** */
-function formatDate(date: number): string {
-
-  return '';
 }
 
 // Escape / Unescape some HTML characters

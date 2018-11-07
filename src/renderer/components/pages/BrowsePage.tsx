@@ -16,8 +16,9 @@ import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/in
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
 import GameManagerPlatform from '../../game/GameManagerPlatform';
-import { GameParser } from '../../../shared/game/GameParser';
+import { GameParser, generateGameOrderTitle } from '../../../shared/game/GameParser';
 import { uuid } from '../../uuid';
+import { formatDate } from '../../../shared/Util';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central: ICentralState;
@@ -105,7 +106,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     if (this.props.wasNewGameClicked && !prevProps.wasNewGameClicked) {
       const newGame = GameInfo.create();
       newGame.id = uuid();
-      newGame.dateAdded = Date.now();
+      newGame.dateAdded = formatDate(new Date());
       this.setState({
         currentGame: newGame,
         currentAddApps: [],
@@ -401,6 +402,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       platform.data = { LaunchBox: {} };
       games.addPlatform(platform);
     }
+    // Update game's order title
+    game.orderTitle = generateGameOrderTitle(game.title);
     // Overwrite the game and additional applications with the changes made
     platform.addOrUpdateGame(game);
     // Override the additional applications
@@ -408,6 +411,11 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     updateAddApps.call(this, addApps, platform);
     // Refresh games collection
     games.refreshCollection();
+    // If a new game was created, select the new game
+    if ((this.props.selectedGame && this.props.selectedGame.id) !== game.id) {
+      if (!platform.collection) { throw new Error('Platform collection is missing.'); }
+      if (this.props.onSelectGame) { this.props.onSelectGame(platform.collection.findGame(game.id)); }
+    }
     // Save changes to file
     platform.saveToFile().then(() => { console.timeEnd('save'); });
 

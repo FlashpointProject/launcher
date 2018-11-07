@@ -1,6 +1,27 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+
+/**
+ * Get the ISO formatted time stamp from a date object.
+ * ("yyyy-MM-ddThh:mm:ss.fff+00:00")
+ * @param date 
+ */
+export function formatDate(d: Date): string {
+  return `${pad(d.getFullYear(), 4)}-${pad(d.getMonth()+1, 2)}-${pad(d.getDate(), 2)}`+
+         `T${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}:${pad(d.getSeconds(), 2)}`+
+         `.${pad(d.getMilliseconds(), 3)}${timezone(d.getTimezoneOffset())}`;
+}
+// (Pads the begining of a string with "0"s until it reaches a specified length)
+function pad(str: string|number, len: number): string {
+  return '0'.repeat(Math.max(0, len - (str+'').length)) + str;
+}
+// (Converts a timestamp (in minutes, not miliseconds) to the timezome part of the ISO date string ("(+/-)hh:mm"))
+function timezone(time: number): string {
+  const t = Math.abs(time);
+  return `${(time < 0)?'+':'-'}${pad(Math.floor(t / 60), 2)}:${pad(t % 60, 2)}`;
+}
+
 /**
  * Stringify anything to a json string ready to be saved to a file
  * @param data Data to be stringified
