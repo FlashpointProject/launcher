@@ -1,6 +1,6 @@
 /** Root object in a LaunchBox Platform XML */
 export interface IRawLaunchBoxPlatformRoot {
-  LaunchBox?: IRawLaunchBoxPlatform;
+  LaunchBox: IRawLaunchBoxPlatform;
 }
 
 /** Only child of the root object in a LaunchBox Platform XML */

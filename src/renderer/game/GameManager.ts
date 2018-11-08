@@ -99,10 +99,10 @@ class GameManager extends EventEmitter {
   }
   
   public getPlatformByName(platformName: string): GameManagerPlatform|undefined {
-    const targetName = platformName.toLocaleLowerCase() + '.xml';
+    const targetName = platformName.toLowerCase() + '.xml';
     for (let i = this.platforms.length - 1; i >= 0; i--) {
       const platform = this.platforms[i];
-      if (targetName === platform.filename.toLocaleLowerCase()) {
+      if (targetName === platform.filename.toLowerCase()) {
         return platform;
       }
     }

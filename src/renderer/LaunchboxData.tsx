@@ -138,6 +138,8 @@ export class LaunchboxData {
             reject(new Error('Failed to parse XML'));
             return;
           }
+          // Make sure the sub-object exists
+          if (!data.LaunchBox) { data.LaunchBox = {}; }
           // Done
           resolve(data);
         })

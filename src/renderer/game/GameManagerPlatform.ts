@@ -75,8 +75,10 @@ class GameManagerPlatform extends EventEmitter {
    * @param rawAddApp Raw Additional Application to add
    */
   public addRawAdditionalApplication(rawAddApp: IRawLaunchBoxAdditionalApplication): void {
-    if (!this.data || !this.data.LaunchBox) {
-      throw new Error('Cant add raw additional application because raw launchbox data structure is missing or broken.');
+    if (!this.data) {
+      const error = new Error('Cant add raw additional application because raw launchbox data structure is missing or broken.');
+      console.error(error, this.data);
+      throw error;
     }
     let addApps = this.data.LaunchBox.AdditionalApplication;
     if (Array.isArray(addApps)) { // (2 or more entries - is already an array)
@@ -94,8 +96,10 @@ class GameManagerPlatform extends EventEmitter {
    * @param rawGame Raw game to add
    */
   public addRawGame(rawGame: IRawLaunchBoxGame): void {
-    if (!this.data || !this.data.LaunchBox) {
-      throw new Error('Cant add raw game because raw launchbox data structure is missing or broken.');
+    if (!this.data) {
+      const error = new Error('Cant add raw game because raw launchbox data structure is missing or broken.');
+      console.error(error, this.data);
+      throw error;
     }
     let games = this.data.LaunchBox.Game;
     if (Array.isArray(games)) { // (2 or more entries - is already an array)
@@ -144,7 +148,7 @@ class GameManagerPlatform extends EventEmitter {
     } else { console.error(`Failed to remove parsed game from platform because it wasn't found (${gameId})`); }
     const rawIndex = this.indexOfRawGame(gameId);
     if (rawIndex >= 0) {
-      if (this.data && this.data.LaunchBox && this.data.LaunchBox.Game) {
+      if (this.data && this.data.LaunchBox.Game) {
         let games = this.data.LaunchBox.Game;
         if (Array.isArray(games)) {
           games.splice(rawIndex, 1);
@@ -167,7 +171,7 @@ class GameManagerPlatform extends EventEmitter {
     } else { console.error(`Failed to remove parsed add-app from platform because it wasn't found (${addAppId})`); }
     const rawIndex = this.indexOfRawAdditionalApplication(addAppId);
     if (rawIndex >= 0) {
-      if (this.data && this.data.LaunchBox && this.data.LaunchBox.AdditionalApplication) {
+      if (this.data && this.data.LaunchBox.AdditionalApplication) {
         let addApps = this.data.LaunchBox.AdditionalApplication;
         if (Array.isArray(addApps)) {
           addApps.splice(rawIndex, 1);
@@ -183,7 +187,7 @@ class GameManagerPlatform extends EventEmitter {
    * @param gameId ID of game
    */
   public findRawGame(gameId: string): IRawLaunchBoxGame|undefined {
-    if (this.data && this.data.LaunchBox && this.data.LaunchBox.Game) {
+    if (this.data && this.data.LaunchBox.Game) {
       let games = this.data.LaunchBox.Game;
       if (!Array.isArray(games)) { games = [ games ]; }
       for (let i = games.length - 1; i >= 0; i--) {
@@ -199,7 +203,7 @@ class GameManagerPlatform extends EventEmitter {
    * @param addAppId ID of raw additional application
    */
   public findRawAdditionalApplication(addAppId: string): IRawLaunchBoxAdditionalApplication|undefined {
-    if (this.data && this.data.LaunchBox && this.data.LaunchBox.AdditionalApplication) {
+    if (this.data && this.data.LaunchBox.AdditionalApplication) {
       let addApps = this.data.LaunchBox.AdditionalApplication;
       if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
       for (let i = addApps.length - 1; i >= 0; i--) {
@@ -211,7 +215,7 @@ class GameManagerPlatform extends EventEmitter {
   }
   
   public indexOfRawGame(gameId: string): number {
-    if (this.data && this.data.LaunchBox && this.data.LaunchBox.Game) {
+    if (this.data && this.data.LaunchBox.Game) {
       let games = this.data.LaunchBox.Game;
       if (!Array.isArray(games)) { games = [ games ]; }
       for (let i = games.length - 1; i >= 0; i--) {
@@ -224,7 +228,7 @@ class GameManagerPlatform extends EventEmitter {
   }
   
   public indexOfRawAdditionalApplication(addAppId: string): number {
-    if (this.data && this.data.LaunchBox && this.data.LaunchBox.AdditionalApplication) {
+    if (this.data && this.data.LaunchBox.AdditionalApplication) {
       let addApps = this.data.LaunchBox.AdditionalApplication;
       if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
       for (let i = addApps.length - 1; i >= 0; i--) {

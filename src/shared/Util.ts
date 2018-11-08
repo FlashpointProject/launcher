@@ -5,7 +5,6 @@ import * as path from 'path';
 /**
  * Get the ISO formatted time stamp from a date object.
  * ("yyyy-MM-ddThh:mm:ss.fff+00:00")
- * @param date 
  */
 export function formatDate(d: Date): string {
   return `${pad(d.getFullYear(), 4)}-${pad(d.getMonth()+1, 2)}-${pad(d.getDate(), 2)}`+
