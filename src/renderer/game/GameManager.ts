@@ -35,20 +35,24 @@ class GameManager extends EventEmitter {
   public async loadPlatforms(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const flashpointPath = window.External.config.fullFlashpointPath;
-      let done: number = 0;
-      for (let i = this.platforms.length - 1; i >= 0; i--) {
-        const platform = this.platforms[i];
-        LaunchboxData.loadPlatform(path.join(flashpointPath, LaunchboxData.platformsPath, platform.filename))
-        .then((data) => {
-          platform.data = data;
-          platform.collection = new GameCollection().push(GameParser.parse(data));
-          this.collection.push(platform.collection);
-          done++;
-          if (done === this.platforms.length) {
-            resolve();
-          }
-        })
-        .catch(reject);
+      if (this.platforms.length === 0) {
+        resolve(); // No files found
+      } else {
+        let done: number = 0;
+        for (let i = this.platforms.length - 1; i >= 0; i--) {
+          const platform = this.platforms[i];
+          LaunchboxData.loadPlatform(path.join(flashpointPath, LaunchboxData.platformsPath, platform.filename))
+          .then((data) => {
+            platform.data = data;
+            platform.collection = new GameCollection().push(GameParser.parse(data));
+            this.collection.push(platform.collection);
+            done++;
+            if (done === this.platforms.length) {
+              resolve();
+            }
+          })
+          .catch(reject);
+        }
       }
     });
   }

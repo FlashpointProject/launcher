@@ -132,7 +132,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const selectedGame = this.props.selectedGame;
     const draggedGame = this.state.draggedGame;
     const selectedPlaylist = this.props.selectedPlaylist;
-    const anyGames: boolean = (this.props.central.games.collection.games.length > 0);
+    const showSidebars: boolean = this.props.central.gamesDoneLoading;
     // Find the selected game in the selected playlist (if both are selected)
     let gamePlaylistEntry: IGamePlaylistEntry|undefined;
     if (selectedPlaylist && selectedGame) {
@@ -146,17 +146,17 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     // Render
     return (
       <div className='game-browser'>
-        {anyGames ? (
+        { showSidebars ? (
           <div className={'game-browser__left'+
                           (selectedGame?'':' game-browser__left--none')+
                           (window.External.preferences.data.browsePageShowLeftSidebar?'':' game-browser__left--hidden')}>
             <LeftBrowseSidebar central={this.props.central}
-                               selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
-                               onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
-                               onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
-                               onPlaylistChanged={this.onLeftSidebarPlaylistChanged} />
+                                selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
+                                onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
+                                onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
+                                onPlaylistChanged={this.onLeftSidebarPlaylistChanged} />
           </div>
-        ) : undefined}
+        ) : undefined }
         <div className='game-browser__center' onKeyDown={this.onKeyDown}>
           {(() => {
             if (this.props.gameLayout === BrowsePageLayout.grid) {
@@ -197,7 +197,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             }
           })()}
         </div>
-        {anyGames ? (
+        { showSidebars ? (
           <div className={'game-browser__right'+
                           (this.state.currentGame?'':' game-browser__right--none')+
                           (window.External.preferences.data.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
@@ -213,7 +213,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                 hasEditedCurrent={this.state.hasEditedCurrent}
                                 onEditCurrrent={this.onEditCurrrent} />
           </div>
-        ) : undefined}
+        ) : undefined }
       </div>
     );
   }
@@ -221,7 +221,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private noRowsRenderer(): JSX.Element {
     return (
       <div className='game-list__no-games'>
-        {this.props.central.gamesDoneLoading ? (
+        { this.props.central.gamesDoneLoading ? (
           this.props.selectedPlaylist ? (
             /* Empty Playlist */
             <>
@@ -258,7 +258,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           <p>
             Loading Games...
           </p>
-        )}
+        ) }
       </div>
     );
   }

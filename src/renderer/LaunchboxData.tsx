@@ -20,25 +20,29 @@ export class LaunchboxData {
       fs.readdir(folderPath, (error: NodeJS.ErrnoException, files: string[]): void => {
         if (error) { reject(error); }
         else {
-          // Filter out all folders
-          const fileNames: string[] = [];
-          let filesLeft: number = files.length;
-          files.forEach((fileName) => {
-            fs.stat(path.posix.join(folderPath, fileName), (err: NodeJS.ErrnoException, stats: fs.Stats) => {
-              if (err) { reject(err); }
-              else {
-                // Add to array if it is a file
-                if (stats.isFile()) {
-                  fileNames.push(fileName);
+          if (files.length === 0) {
+            resolve([]); // No files found
+          } else {
+            // Filter out all folders
+            const fileNames: string[] = [];
+            let filesLeft: number = files.length;
+            files.forEach((fileName) => {
+              fs.stat(path.posix.join(folderPath, fileName), (err: NodeJS.ErrnoException, stats: fs.Stats) => {
+                if (err) { reject(err); }
+                else {
+                  // Add to array if it is a file
+                  if (stats.isFile()) {
+                    fileNames.push(fileName);
+                  }
+                  // Decrement counter and check if this was the last file
+                  filesLeft -= 1;
+                  if (filesLeft === 0) {
+                    resolve(fileNames);
+                  }
                 }
-                // Decrement counter and check if this was the last file
-                filesLeft -= 1;
-                if (filesLeft === 0) {
-                  resolve(fileNames);
-                }
-              }
+              });
             });
-          });
+          }
         }
       });
     });
