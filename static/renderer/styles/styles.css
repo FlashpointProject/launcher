@@ -15,7 +15,6 @@ html, body {
   -webkit-user-select: none;
   user-select: none;
 }
-
 :root {
   /* Root font size (Scales most stuff) */
   font-size: 1em;
@@ -110,6 +109,7 @@ body {
 .simple-selector {
   margin-right: 0.5em;
   font-size: 1em;
+  font-weight: 100;
   border: 1px solid var(--theme__search-bar__outline-color);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -285,9 +285,9 @@ body {
 .title-bar {
   display: flex;
   flex: 0 0 auto;
-  width: 100%;
+  width: calc(100% - 4px);
   height: 18px;
-  margin-top: 4px;
+  margin: 4px 0 0 4px;
   -webkit-app-region: drag; /* Dragging this moves the window */
   -webkit-user-select: none; /* Disable text selection */
   /* Pimp */
@@ -297,12 +297,13 @@ body {
 .title-bar__title {
   display: inline;
   flex: 1;
-  padding-left: 2px;
-  font-size: 16px;
   position: relative;
   top: -2px;
-  white-space: nowrap;
   overflow: hidden;
+  /* Text */
+  font-size: 16px;
+  font-weight: 100;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 /* Button Bar */
@@ -364,6 +365,7 @@ body {
   padding: 0.3em;
   padding-bottom: 0.4em;
   /* Pimp */
+  font-weight: 100;
   background-color: #2d2d30;
 }
 .header__wrap {
