@@ -35,6 +35,7 @@ html, body {
   --theme__browse-sidebar__background-color: #181819;
   /* Pimp */
   color: var(--theme__text-color);
+  font-weight: 100;
 }
 
 body {
@@ -302,7 +303,6 @@ body {
   overflow: hidden;
   /* Text */
   font-size: 16px;
-  font-weight: 100;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -365,7 +365,6 @@ body {
   padding: 0.3em;
   padding-bottom: 0.4em;
   /* Pimp */
-  font-weight: 100;
   background-color: #2d2d30;
 }
 .header__wrap {
@@ -895,6 +894,7 @@ body {
   font-size: inherit;
   font-family: inherit;
   font-style: inherit;
+  font-weight: inherit;
 }
 .browse-right-sidebar__row__editable-text--edit {
   width: 100%;
@@ -909,6 +909,7 @@ body {
   font-size: inherit;
   font-family: inherit;
   font-style: inherit;
+  font-weight: inherit;
 }
 .browse-right-sidebar__row .browse-right-sidebar__row__notes-text {
   display: block;
@@ -1290,6 +1291,7 @@ body {
   font-size: inherit;
   font-family: inherit;
   font-style: inherit;
+  font-weight: inherit;
 }
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
