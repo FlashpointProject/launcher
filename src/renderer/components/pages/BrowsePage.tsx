@@ -192,7 +192,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           onGameDragEnd={this.onGameDragEnd}
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
-                          rowHeight={height}/>
+                          rowHeight={height} />
               );
             }
           })()}
@@ -201,7 +201,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           <div className={'game-browser__right'+
                           (this.state.currentGame?'':' game-browser__right--none')+
                           (window.External.preferences.data.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
-            <RightBrowseSidebar currentGame={this.state.currentGame} 
+            <RightBrowseSidebar currentGame={this.state.currentGame}
                                 currentAddApps={this.state.currentAddApps}
                                 gameImages={this.props.central.gameImages}
                                 games={this.props.central.games}

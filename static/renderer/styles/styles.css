@@ -833,6 +833,7 @@ body {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+/* BrowseSidebar Title-Row Buttons */
 .browse-right-sidebar__title-row__buttons {
   flex: 0 0 auto;
   display: flex;
@@ -841,33 +842,27 @@ body {
 .browse-right-sidebar__title-row__buttons > *:not(:first-child) {
   margin-left: 0.6rem;
 }
-/* BrowseSidebar Title-Row Delete-Game */
-.browse-right-sidebar__title-row__buttons__delete-game {
+.browse-right-sidebar__title-row__buttons > * {
   height: 0.9rem;
   width: 0.9rem;
 }
-.browse-right-sidebar__title-row__buttons__delete-game .icon__use {
+.browse-right-sidebar__title-row__buttons .icon__use {
   fill: var(--theme__text-color);
 }
+.browse-right-sidebar__title-row__buttons :hover .icon__use {
+  fill: #b1b1b1;
+}
+/* BrowseSidebar Title-Row Delete-Game */
 .browse-right-sidebar__title-row__buttons__delete-game:hover .icon__use {
   fill: #b1b1b1;
 }
-.browse-right-sidebar__title-row__buttons__delete-game--active .icon__use,
 .browse-right-sidebar__title-row__buttons__delete-game--active:hover .icon__use {
   fill: #8a1212;
 }
 /* BrowseSidebar Title-Row Remove-From-Playlist */
-.browse-right-sidebar__title-row__buttons__remove-from-playlist {
-  height: 0.9rem;
-  width: 0.9rem;
-}
-.browse-right-sidebar__title-row__buttons__remove-from-playlist .icon__use {
-  fill: var(--theme__text-color);
-}
 .browse-right-sidebar__title-row__buttons__remove-from-playlist:hover .icon__use {
   fill: #b1b1b1;
 }
-.browse-right-sidebar__title-row__buttons__remove-from-playlist--active .icon__use,
 .browse-right-sidebar__title-row__buttons__remove-from-playlist--active:hover .icon__use {
   fill: #8a1212;
 }

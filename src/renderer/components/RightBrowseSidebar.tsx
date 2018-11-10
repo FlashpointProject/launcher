@@ -79,12 +79,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.onNewAddAppClick = this.onNewAddAppClick.bind(this);
     this.onScreenshotClick = this.onScreenshotClick.bind(this);
     this.onScreenshotPreviewClick = this.onScreenshotPreviewClick.bind(this);
-    this.onSaveClick = this.onSaveClick.bind(this);
-    this.onAddAppEdit = this.onAddAppEdit.bind(this);
     this.onAddAppDelete = this.onAddAppDelete.bind(this);
     this.onDeleteGameClick = this.onDeleteGameClick.bind(this);
-    this.onRemoveFromPlaylistClick = this.onRemoveFromPlaylistClick.bind(this);
-    this.onPlaylistNotesEditDone = this.onPlaylistNotesEditDone.bind(this);
     this.renderNotes = this.renderNotes.bind(this);
   }
 
@@ -94,9 +90,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   render() {
     const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
-      const addApps: IAdditionalApplicationInfo[]|undefined = this.props.currentAddApps;
-      const isEditing: boolean = this.props.hasEditedCurrent;
-      const playlistEntry = this.props.gamePlaylistEntry;
+      const { currentAddApps, gamePlaylistEntry, hasEditedCurrent } = this.props;
       const editDisabled = window.External.config.data.disableEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
       const screenshotSrc = this.props.gameImages.getScreenshotPath(game.title, game.platform);
@@ -112,9 +106,9 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
                   {/* "Remove From Playlist" Button */}
-                  { (!editDisabled && playlistEntry) ? (
-                    <ConfirmElement onConfirm={this.onRemoveFromPlaylistClick}
-                                    children={this.renderRemoveFromPlaylistButton} />             
+                  { (!editDisabled && gamePlaylistEntry) ? (
+                    <ConfirmElement onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
+                                    children={this.renderRemoveFromPlaylistButton} />
                   ) : undefined }
                   {/* "Delete Game" Button */}
                   { editDisabled ? undefined : (
@@ -181,11 +175,11 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             </div>
           </div>
           {/* -- Playlist Game Entry Notes -- */}
-          { playlistEntry ? (
+          { gamePlaylistEntry ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>Playlist Notes: </p>
-                <EditableTextElement text={playlistEntry.notes || ''} onEditConfirm={this.onPlaylistNotesEditDone}
+                <EditableTextElement text={gamePlaylistEntry.notes || ''} onEditConfirm={this.props.onEditPlaylistNotes}
                                      editable={!editDisabled} children={this.renderNotes} />
               </div>
             </div>
@@ -201,7 +195,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             </div>
           ) : undefined }
           {/* -- Additional Applications -- */}
-          { !editDisabled || (addApps && addApps.length > 0) ? (
+          { !editDisabled || (currentAddApps && currentAddApps.length > 0) ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                 <p>Additional Applications:</p>
@@ -209,9 +203,9 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                   <input type='button' value='New' className='simple-button' onClick={this.onNewAddAppClick} />
                 ) : undefined }
               </div>
-              { addApps && addApps.map((addApp) => {
+              { currentAddApps && currentAddApps.map((addApp) => {
                 return <RightBrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={editDisabled}
-                                                 onEdit={this.onAddAppEdit} onLaunch={this.onAddAppLaunch}
+                                                 onEdit={this.props.onEditCurrrent} onLaunch={this.onAddAppLaunch}
                                                  onDelete={this.onAddAppDelete} />;
               }) }
             </div>
@@ -250,14 +244,14 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             </div>
           </div>
           {/* -- Save Changes -- */}
-          {isEditing ? (
+          { hasEditedCurrent ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--save'>
                 <p>Changes have been made.</p>
-                <input type='button' value='Save Changes' className='simple-button' onClick={this.onSaveClick}/>
+                <input type='button' value='Save Changes' className='simple-button' onClick={this.props.onSaveClick}/>
               </div>
             </div>
-          ) : undefined}
+          ) : undefined }
           {/* -- Screenshot Preview -- */}
           { this.state.showPreview ? (
             <ImagePreview src={screenshotSrc} onCancel={this.onScreenshotPreviewClick} />
@@ -356,18 +350,6 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private onRemoveFromPlaylistClick(): void {
-    if (this.props.onRemoveSelectedGameFromPlaylist) {
-      this.props.onRemoveSelectedGameFromPlaylist();
-    }
-  }
-
-  private onPlaylistNotesEditDone(text: string): void {
-    if (this.props.onEditPlaylistNotes) {
-      this.props.onEditPlaylistNotes(text);
-    }
-  }
-
   private onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
     GameLauncher.launchAdditionalApplication(addApp);
   }
@@ -405,15 +387,6 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
 
   private onScreenshotPreviewClick(): void {
     this.setState({ showPreview: false });
-  }
-
-  private onSaveClick(): void {
-    if (this.props.onSaveClick) { this.props.onSaveClick(); }
-  }
-  
-  /** Called when an additional application is edited */
-  private onAddAppEdit(): void {
-    if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
   }
 
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */

@@ -100,7 +100,6 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
   }
 
   private onPlaylistItemHeadClick(playlist: IGamePlaylist): void {
-    let expandedID: string = '';
     if (this.props.selectedPlaylistID === playlist.id) {
       this.props.onDeselectPlaylist && this.props.onDeselectPlaylist();
     } else {
