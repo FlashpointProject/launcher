@@ -805,13 +805,6 @@ body {
 .browse-right-sidebar__row--additional-applications-name > :last-child {
   flex: 0 0 auto;
 }
-.browse-right-sidebar__row--save {
-  background-color: #09090a;
-  padding: 0.5rem;
-}
-.browse-right-sidebar__row--save > :last-child {
-  float: right;
-}
 /* BrowseSidebar Title-Row */
 .browse-right-sidebar__title-row {
   display: flex;
@@ -854,17 +847,29 @@ body {
 }
 /* BrowseSidebar Title-Row Delete-Game */
 .browse-right-sidebar__title-row__buttons__delete-game:hover .icon__use {
-  fill: #b1b1b1;
+  fill: #aa4b4b;
 }
 .browse-right-sidebar__title-row__buttons__delete-game--active:hover .icon__use {
   fill: #8a1212;
 }
 /* BrowseSidebar Title-Row Remove-From-Playlist */
 .browse-right-sidebar__title-row__buttons__remove-from-playlist:hover .icon__use {
-  fill: #b1b1b1;
+  fill: #aa4b4b;
 }
 .browse-right-sidebar__title-row__buttons__remove-from-playlist--active:hover .icon__use {
   fill: #8a1212;
+}
+/* BrowseSidebar Title-Row Edit */
+.browse-right-sidebar__title-row__buttons__edit-button:hover .icon__use {
+  fill: #5cb468;
+}
+/* BrowseSidebar Title-Row Discard */
+.browse-right-sidebar__title-row__buttons__discard-button:hover .icon__use {
+  fill: #aa4b4b;
+}
+/* BrowseSidebar Title-Row Save */
+.browse-right-sidebar__title-row__buttons__save-button:hover .icon__use {
+  fill: #5cb468;
 }
 /* Browse-Right-Sidebar Row - Sub Elements */
 .browse-right-sidebar__row__check-box {

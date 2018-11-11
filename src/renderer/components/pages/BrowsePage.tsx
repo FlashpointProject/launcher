@@ -46,11 +46,12 @@ export interface IBrowsePageState {
   orderedGamesArgs?: IOrderGamesArgs;
   /** Currently dragged game (if any) */
   draggedGame?: IGameInfo;
-  
   /** Buffer for the selected game (all changes are made to the game until saved) */
   currentGame?: IGameInfo;
   /** Buffer for the selected games additional applications (all changes are made to this until saved) */
   currentAddApps?: IAdditionalApplicationInfo[];
+  /** If the "edit mode" is currently enabled */
+  isEditing: boolean;
   /** If unsaved changes has been made to the current game and/or add-apps */
   hasEditedCurrent: boolean;
 }
@@ -66,6 +67,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.state = {
       quickSearch: '',
       orderedGames: [],
+      isEditing: false,
       hasEditedCurrent: false,
     };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
@@ -76,8 +78,10 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
     this.onRemoveSelectedGameFromPlaylist = this.onRemoveSelectedGameFromPlaylist.bind(this);
-    this.onSaveCurrentGame = this.onSaveCurrentGame.bind(this);
     this.onEditCurrrent = this.onEditCurrrent.bind(this);
+    this.onStartEditClick = this.onStartEditClick.bind(this);
+    this.onDiscardEditClick = this.onDiscardEditClick.bind(this);
+    this.onSaveEditClick = this.onSaveEditClick.bind(this);
     this.onEditPlaylistNotes = this.onEditPlaylistNotes.bind(this);
     this.onLeftSidebarSelectPlaylist = this.onLeftSidebarSelectPlaylist.bind(this);
     this.onLeftSidebarDeselectPlaylist = this.onLeftSidebarDeselectPlaylist.bind(this);
@@ -97,10 +101,17 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
     this.orderGames();
+    //
+    if (!this.state.isEditing && prevState.isEditing) {
+      this.updateCurrentGameAndAddApps();
+    }
     // Update current game and add-apps if the selected game changes
     if (this.props.selectedGame !== prevProps.selectedGame) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ hasEditedCurrent: false });
+      this.setState({
+        hasEditedCurrent: false,
+        isEditing: false
+      });
     }
     // Create a new game if the "New Game" button is pushed
     if (this.props.wasNewGameClicked && !prevProps.wasNewGameClicked) {
@@ -209,9 +220,12 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                 onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
                                 onEditPlaylistNotes={this.onEditPlaylistNotes}
                                 gamePlaylistEntry={gamePlaylistEntry}
-                                onSaveClick={this.onSaveCurrentGame}
+                                isEditing={this.state.isEditing}
                                 hasEditedCurrent={this.state.hasEditedCurrent}
-                                onEditCurrrent={this.onEditCurrrent} />
+                                onEditCurrrent={this.onEditCurrrent}
+                                onEditClick={this.onStartEditClick}
+                                onDiscardClick={this.onDiscardEditClick}
+                                onSaveGame={this.onSaveEditClick} />
           </div>
         ) : undefined }
       </div>
@@ -378,13 +392,27 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     });
   }
 
-  private onSaveCurrentGame(): void {
-    this.saveGameAndAddApps();
-    this.setState({ hasEditedCurrent: false });
-  }
-
   private onEditCurrrent(): void {
     this.setState({ hasEditedCurrent: true });
+  }
+
+  private onStartEditClick(): void {
+    this.setState({ isEditing: true });
+  }
+
+  private onDiscardEditClick(): void {
+    this.setState({
+      isEditing: false,
+      hasEditedCurrent: false,
+    });
+  }
+
+  private onSaveEditClick(): void {
+    this.saveGameAndAddApps();
+    this.setState({
+      isEditing: false,
+      hasEditedCurrent: false,
+    });
   }
   
   private saveGameAndAddApps(): void {
