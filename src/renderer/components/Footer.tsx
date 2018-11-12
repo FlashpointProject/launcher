@@ -43,14 +43,14 @@ export class Footer extends React.Component<IFooterProps, {}> {
           <div>
             <div className='footer__right__inner'>
               {/* New Game */}
-              { window.External.config.data.disableEditing ? undefined : (
+              { window.External.preferences.data.enableEditing ? (
                 <div className='footer__wrap'>
                   <div className='simple-center'>
                     <input type='button' value='New Game' onClick={this.props.onNewGameClick}
                           className='footer__new-game simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
-              ) }
+              ) : undefined }
               {/* Layout Selector */}
               <div className='footer__wrap'>
                 <div>

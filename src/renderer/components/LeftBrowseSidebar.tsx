@@ -39,7 +39,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     const central = this.props.central;
     const selectedPlaylistID = this.props.selectedPlaylistID;
     const playlists = this.props.central.playlists.playlists.slice().sort((a, b) => a.title.localeCompare(b.title));
-    const editingDisabled = window.External.config.data.disableEditing;
+    const editingDisabled = !window.External.preferences.data.enableEditing;
     return (
       <div className='browse-left-sidebar simple-scroll'>
           {central.playlistsDoneLoading ? (
@@ -141,7 +141,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
   }
 
   private onPlaylistItemDragOver(event: React.DragEvent, playlist: IGamePlaylist): void {
-    if (!window.External.config.data.disableEditing) {
+    if (window.External.preferences.data.enableEditing) {
       const types = event.dataTransfer.types;
       if (types.length === 1 && types[0] === gameIdDataType) {
         // Show the "You can drop here" cursor while dragging something droppable over this element

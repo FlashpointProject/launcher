@@ -14,6 +14,7 @@ export class AppPreferencesFile {
   private static readonly defaultData: Readonly<IAppPreferencesData> = Object.freeze({
     browsePageGameScale: 0.087,
     browsePageShowExtreme: false,
+    enableEditing: true,
     browsePageLayout: BrowsePageLayout.grid,
     browsePageShowLeftSidebar: true,
     browsePageShowRightSidebar: true,

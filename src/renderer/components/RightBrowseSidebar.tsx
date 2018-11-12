@@ -95,7 +95,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
       const { currentAddApps, gamePlaylistEntry, isEditing, hasEditedCurrent } = this.props;
-      const editDisabled = window.External.config.data.disableEditing;
+      const editDisabled = !window.External.preferences.data.enableEditing;
       const canEdit = !editDisabled && isEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
       const screenshotSrc = this.props.gameImages.getScreenshotPath(game.title, game.platform);
@@ -420,7 +420,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void): (isChecked: boolean) => void {
     return (isChecked: boolean) => {
       const game = this.props.currentGame;
-      const canEdit = !window.External.config.data.disableEditing && this.props.isEditing;
+      const canEdit = window.External.preferences.data.enableEditing && this.props.isEditing;
       if (game && canEdit) {
         func(game, isChecked);
         if (this.props.onEditCurrent) { this.props.onEditCurrent(); }

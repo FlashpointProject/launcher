@@ -27,6 +27,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
       useFiddler: configData.useFiddler,
     };
     this.onShowExtremeChange = this.onShowExtremeChange.bind(this);
+    this.onEnableEditingChange = this.onEnableEditingChange.bind(this);
     this.onFlashpointPathChange = this.onFlashpointPathChange.bind(this);
     this.onUseCustomTitlebarChange = this.onUseCustomTitlebarChange.bind(this);
     this.onRedirectorRedirectorChange = this.onRedirectorRedirectorChange.bind(this);
@@ -42,29 +43,45 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
           <i>(You must press 'Save & Restart' for some changes to take effect)</i>
 
           {/* -- Preferences -- */}
-          {((!window.External.config.data.disableExtremeGames)) ? (
             <div className='setting'>
               <p className='setting__title'>Preferences</p>
               <div className='setting__body'>
+                {/* */}
+                {((!window.External.config.data.disableExtremeGames)) ? (
+                  <div className='setting__row'>
+                    <div className='setting__row__top'>
+                      <div className='setting__row__title'>
+                        <p>Show Extreme Games</p>
+                      </div>
+                      <div className='setting__row__content setting__row__content--toggle'>
+                        <div>
+                          <CheckBox checked={window.External.preferences.data.browsePageShowExtreme} onChange={this.onShowExtremeChange} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className='setting__row__bottom'>
+                      <p>Show games with sexual, violent or other content unsuitable for children.</p>
+                    </div>
+                  </div>
+                ) : undefined }
+                {/* */}
                 <div className='setting__row'>
                   <div className='setting__row__top'>
                     <div className='setting__row__title'>
-                      <p>Show Extreme Games</p>
+                      <p>Enable Editing</p>
                     </div>
                     <div className='setting__row__content setting__row__content--toggle'>
                       <div>
-                        <CheckBox checked={window.External.preferences.data.browsePageShowExtreme} 
-                                  onChange={this.onShowExtremeChange} />
+                        <CheckBox checked={window.External.preferences.data.enableEditing} onChange={this.onEnableEditingChange} />
                       </div>
                     </div>
                   </div>
                   <div className='setting__row__bottom'>
-                    <p>Show games with sexual, violent or other content unsuitable for children.</p>
+                    <p>Enable editing of games, additional applications and playlists.</p>
                   </div>
                 </div>
               </div>
             </div>
-          ) : undefined }
 
           {/* -- Flashpoint -- */}
           <div className='setting'>
@@ -145,6 +162,11 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
   
   onShowExtremeChange(isChecked: boolean): void {
     window.External.preferences.data.browsePageShowExtreme = isChecked;
+    this.forceUpdate();
+  }
+
+  onEnableEditingChange(isChecked: boolean): void {
+    window.External.preferences.data.enableEditing = isChecked;
     this.forceUpdate();
   }
 

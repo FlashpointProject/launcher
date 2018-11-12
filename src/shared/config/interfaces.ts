@@ -14,8 +14,6 @@ export interface IAppConfigData {
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
-  /** If editing Games and AdditionalApplications should be disabled */
-  disableEditing: boolean;
 }
 
 /** Data fetched from the Main by the Renderer */

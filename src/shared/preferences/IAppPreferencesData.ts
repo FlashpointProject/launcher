@@ -9,6 +9,8 @@ export interface IAppPreferencesData {
   browsePageGameScale: number;
   /** If "Extreme" games should be shown at the BrowsePage */
   browsePageShowExtreme: boolean;
+  /** If editing games, additional applications and playlists should be allowed */
+  enableEditing: boolean;
   /** Layout of game collection at BrowsePage */
   browsePageLayout: BrowsePageLayout;
   /** If the left sidebar at the BrowsePage should be visible */
