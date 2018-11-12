@@ -57,7 +57,6 @@ export class EditableText extends React.Component<IEditableTextProps, IEditableT
       editText: props.text,
     };
     this.onInputChange = this.onInputChange.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
   }
 
   componentDidMount() {
@@ -72,20 +71,21 @@ export class EditableText extends React.Component<IEditableTextProps, IEditableT
   }
 
   render() {
+    const { text, placeholder, isEditing, isMultiline, onKeyDown, onTextClick, onEditClick, textProps, editProps } = this.props;
     return (
-      this.props.isEditing ? (
-        this.props.isMultiline ? ( // Multi-line edit
-          <textarea value={this.state.editText} placeholder={this.props.placeholder}
-                    onChange={this.onInputChange} onClick={this.props.onEditClick}
-                    onKeyDown={this.onKeyDown} ref={this._edit} {...this.props.editProps} />
+      isEditing ? (
+        isMultiline ? ( // Multi-line edit
+          <textarea value={this.state.editText} placeholder={placeholder}
+                    onChange={this.onInputChange} onClick={onEditClick}
+                    onKeyDown={onKeyDown} ref={this._edit} {...editProps} />
         ) : ( // Single-line edit
-          <input value={this.state.editText} placeholder={this.props.placeholder}
-                 onChange={this.onInputChange} onClick={this.props.onEditClick}
-                 onKeyDown={this.onKeyDown} ref={this._edit} {...this.props.editProps} />
+          <input value={this.state.editText} placeholder={placeholder}
+                 onChange={this.onInputChange} onClick={onEditClick}
+                 onKeyDown={onKeyDown} ref={this._edit} {...editProps} />
         )
       ) : ( // Normal text
-        <p onClick={this.props.onTextClick} {...this.props.textProps}>
-          {this.props.text || this.props.placeholder}
+        <p onClick={onTextClick} {...textProps}>
+          {text || placeholder}
         </p>
       )
     );
@@ -100,12 +100,6 @@ export class EditableText extends React.Component<IEditableTextProps, IEditableT
 
   onInputChange(event: React.ChangeEvent<{ value: string; }>): void {
     this.setState({ editText: event.target.value });
-  }
-
-  onKeyDown(event: React.KeyboardEvent): void {
-    if (this.props.onKeyDown) {
-      this.props.onKeyDown(event);
-    }
   }
 
   /** Check if it has started editing */

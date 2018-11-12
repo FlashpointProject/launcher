@@ -19,9 +19,6 @@ export class Header extends React.Component<IHeaderProps, {}> {
     super(props);
     this.onSearch = this.onSearch.bind(this);
     this.onCleared = this.onCleared.bind(this);
-    this.onOrderChange = this.onOrderChange.bind(this);
-    this.onToggleLeftSidebarClick = this.onToggleLeftSidebarClick.bind(this);
-    this.onToggleRightSidebarClick = this.onToggleRightSidebarClick.bind(this);
   }
 
   render() {
@@ -67,7 +64,7 @@ export class Header extends React.Component<IHeaderProps, {}> {
         {/* Header Drop-downs */}
         <div className='header__wrap'>
           <div>
-            <GameOrder onChange={this.onOrderChange}/>
+            <GameOrder onChange={this.props.onOrderChange}/>
           </div>
         </div>
         {/*  */}
@@ -76,13 +73,13 @@ export class Header extends React.Component<IHeaderProps, {}> {
             {/* Toggle Right Sidebar */}
             <div className='header__toggle-sidebar'
                  title={showRightSidebar ? 'Hide right sidebar' : 'Show right sidebar'}
-                 onClick={this.onToggleRightSidebarClick}>
+                 onClick={this.props.onToggleRightSidebarClick}>
               <OpenIcon icon={showRightSidebar ? 'collapse-right' : 'expand-right'} />
             </div>
             {/* Toggle Left Sidebar */}
             <div className='header__toggle-sidebar'
                  title={showLeftSidebar ? 'Hide left sidebar' : 'Show left sidebar'}
-                 onClick={this.onToggleLeftSidebarClick}>
+                 onClick={this.props.onToggleLeftSidebarClick}>
               <OpenIcon icon={showLeftSidebar ? 'collapse-left' : 'expand-left'} />
             </div>
           </div>
@@ -101,24 +98,6 @@ export class Header extends React.Component<IHeaderProps, {}> {
   private onCleared(): void {
     if (this.props.onSearch) {
       this.props.onSearch({ input: '', tags: [] });
-    }
-  }
-
-  private onOrderChange(event: IGameOrderChangeEvent): void {
-    if (this.props.onOrderChange) {
-      this.props.onOrderChange(event);
-    }
-  }
-
-  private onToggleLeftSidebarClick(event: React.MouseEvent): void {
-    if (this.props.onToggleLeftSidebarClick) {
-      this.props.onToggleLeftSidebarClick();
-    }
-  }
-
-  private onToggleRightSidebarClick(event: React.MouseEvent): void {
-    if (this.props.onToggleRightSidebarClick) {
-      this.props.onToggleRightSidebarClick();
     }
   }
 }

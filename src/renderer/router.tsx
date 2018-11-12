@@ -6,7 +6,7 @@ import { ISearchOnSearchEvent } from './components/Search';
 import { ICentralState } from './interfaces';
 import { AboutPage } from './components/pages/AboutPage';
 import { IGameOrderChangeEvent } from './components/GameOrder';
-import LogsPage from './components/pages/LogsPage';
+import { LogsPage } from './components/pages/LogsPage';
 import { ConfigPage } from './components/pages/ConfigPage';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';

@@ -33,7 +33,7 @@ export interface IRightBrowseSidebarProps {
   /** If unsaved changes has been made to the current game and/or add-apps */
   hasEditedCurrent: boolean;
   /** Called when changes has been made to the current game and/or add-apps */
-  onEditCurrrent?: () => void;
+  onEditCurrent?: () => void;
   
   onEditClick?: () => void;
   onDiscardClick?: () => void;
@@ -230,7 +230,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
               </div>
               { currentAddApps && currentAddApps.map((addApp) => {
                 return <RightBrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={!canEdit}
-                                                 onEdit={this.props.onEditCurrrent} onLaunch={this.onAddAppLaunch}
+                                                 onEdit={this.props.onEditCurrent} onLaunch={this.onAddAppLaunch}
                                                  onDelete={this.onAddAppDelete} />;
               }) }
             </div>
@@ -384,7 +384,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
     addApps.splice(index, 1);
     // Flag as changed
-    if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
+    if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
   }
 
   private onNewAddAppClick(): void {
@@ -394,7 +394,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     newAddApp.id = uuid();
     newAddApp.gameId = this.props.currentGame.id;
     this.props.currentAddApps.push(newAddApp);
-    if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
+    if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
   }
 
   private onScreenshotClick(): void {
@@ -411,7 +411,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const game = this.props.currentGame;
       if (game) {
         func(game, text);
-        if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
+        if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
       }
     }
   }
@@ -423,7 +423,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const canEdit = !window.External.config.data.disableEditing && this.props.isEditing;
       if (game && canEdit) {
         func(game, isChecked);
-        if (this.props.onEditCurrrent) { this.props.onEditCurrrent(); }
+        if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
       }
     }
   }

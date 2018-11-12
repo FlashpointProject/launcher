@@ -78,7 +78,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
     this.onRemoveSelectedGameFromPlaylist = this.onRemoveSelectedGameFromPlaylist.bind(this);
-    this.onEditCurrrent = this.onEditCurrrent.bind(this);
+    this.onEditCurrent = this.onEditCurrent.bind(this);
     this.onStartEditClick = this.onStartEditClick.bind(this);
     this.onDiscardEditClick = this.onDiscardEditClick.bind(this);
     this.onSaveEditClick = this.onSaveEditClick.bind(this);
@@ -130,7 +130,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       for (let index = 0; index < games.length; index++) {
         const game: IGameInfo = games[index];
         if (game.title.toLowerCase().startsWith(this.state.quickSearch)) {
-          this.props.onSelectGame && this.props.onSelectGame(game);
+          if (this.props.onSelectGame) { this.props.onSelectGame(game); }
           break;
         }
       }
@@ -222,7 +222,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                 gamePlaylistEntry={gamePlaylistEntry}
                                 isEditing={this.state.isEditing}
                                 hasEditedCurrent={this.state.hasEditedCurrent}
-                                onEditCurrrent={this.onEditCurrrent}
+                                onEditCurrent={this.onEditCurrent}
                                 onEditClick={this.onStartEditClick}
                                 onDiscardClick={this.onDiscardEditClick}
                                 onSaveGame={this.onSaveEditClick} />
@@ -278,11 +278,11 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onLeftSidebarSelectPlaylist(playlist: IGamePlaylist): void {
-    this.props.onSelectPlaylist && this.props.onSelectPlaylist(playlist);
+    if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(playlist); }
   }
 
   private onLeftSidebarDeselectPlaylist(): void {
-    this.props.onSelectPlaylist && this.props.onSelectPlaylist(undefined);
+    if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(undefined); }
   }
 
   private onLeftSidebarPlaylistChanged(playlist: IGamePlaylist): void {
@@ -291,7 +291,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   private onGameSelect(game?: IGameInfo): void {
     if (this.props.selectedGame !== game) {
-      this.props.onSelectGame && this.props.onSelectGame(game);
+      if (this.props.onSelectGame) { this.props.onSelectGame(game); }
     }
   }
 
@@ -332,7 +332,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onDeleteSelectedGame(): void {
-    this.props.onSelectGame && this.props.onSelectGame(undefined);
+    if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
   }
 
   private onRemoveSelectedGameFromPlaylist(): void {
@@ -392,7 +392,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     });
   }
 
-  private onEditCurrrent(): void {
+  private onEditCurrent(): void {
     this.setState({ hasEditedCurrent: true });
   }
 

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { IDefaultProps } from '../interfaces';
 
 export interface IGameOrderProps extends IDefaultProps {
-  onChange: (event: IGameOrderChangeEvent) => void;
+  onChange?: (event: IGameOrderChangeEvent) => void;
 }
 export interface IGameOrderState {
   orderBy: GameOrderBy;

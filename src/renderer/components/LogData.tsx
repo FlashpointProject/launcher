@@ -1,10 +1,10 @@
 import * as React from 'react';
 
-interface ILogDataProps {
+export interface ILogDataProps {
   logData: string;
 }
 
-interface ILogDataSnapshot {
+export interface ILogDataSnapshot {
   scrolledToBottom: boolean;
 }
 
@@ -15,7 +15,7 @@ interface ILogDataSnapshot {
  * scrolling is automatically disabled when the user scrolls up, and
  * automatically re-enabled when the user scrolls all the way down.
  */
-export default class LogData extends React.Component<ILogDataProps> {
+export class LogData extends React.Component<ILogDataProps> {
   private preNodeRef = React.createRef<HTMLPreElement>();
 
   /**
@@ -24,13 +24,10 @@ export default class LogData extends React.Component<ILogDataProps> {
    */
   getSnapshotBeforeUpdate(): ILogDataSnapshot | null {
     const preNode = this.preNodeRef.current;
-    if (!preNode) throw Error('<pre> is not mounted');
-
-    const scrolledToBottom = (
-      preNode.scrollHeight - preNode.scrollTop === preNode.clientHeight
-    );
-
-    return { scrolledToBottom };
+    if (!preNode) { throw Error('<pre> is not mounted'); }
+    return {
+      scrolledToBottom: (preNode.scrollHeight - preNode.scrollTop) === preNode.clientHeight
+    };
   }
 
   /**
@@ -45,30 +42,25 @@ export default class LogData extends React.Component<ILogDataProps> {
   /**
    * Scroll all the way down if the pre was already scrolled all the way down
    * before the update.
-   *
    * @param snapshot The return value of `getSnapshotBeforeUpdate`
    */
   componentDidUpdate(prevProps: ILogDataProps, prevState: {}, snapshot: ILogDataSnapshot) {
-    if (snapshot == null) return;
-    if (!snapshot.scrolledToBottom) return;
-
+    if (snapshot === null) { return; }
+    if (!snapshot.scrolledToBottom) { return; }
     this.scrollAllTheDown();
   }
 
   private scrollAllTheDown() {
     const preNode = this.preNodeRef.current;
     if (!preNode) throw Error('<pre> is not mounted');
-
     preNode.scrollTop = preNode.scrollHeight;
   }
 
   render() {
-    const { logData } = this.props;
-
     return (
       <pre className='logs__log-data simple-scroll' ref={this.preNodeRef}>
-        {logData}
+        {this.props.logData}
       </pre>
-    )
+    );
   }
 }
