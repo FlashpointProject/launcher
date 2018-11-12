@@ -40,3 +40,10 @@ export interface ICentralState {
   /** If the playlist failed to load */
   playlistsFailedLoading: boolean;
 }
+
+/**
+ * State of the current search.
+ */
+export interface ISearchState {
+  input: string;
+}

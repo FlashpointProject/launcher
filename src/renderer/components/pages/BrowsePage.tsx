@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { IDefaultProps, ICentralState } from '../../interfaces';
-import { ISearchOnSearchEvent } from '../Search';
+import { IDefaultProps, ICentralState, ISearchState } from '../../interfaces';
 import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo, IAdditionalApplicationInfo } from '../../../shared/game/interfaces';
@@ -22,7 +21,7 @@ import { formatDate } from '../../../shared/Util';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central: ICentralState;
-  search?: ISearchOnSearchEvent;
+  search: ISearchState;
   order?: IGameOrderChangeEvent;
   /** Scale of the games */
   gameScale: number;
@@ -34,6 +33,7 @@ export interface IBrowsePageProps extends IDefaultProps {
   selectedPlaylist?: IGamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
   onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
+  clearSearch: () => void;
   wasNewGameClicked: boolean;
 }
 
@@ -86,6 +86,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onLeftSidebarSelectPlaylist = this.onLeftSidebarSelectPlaylist.bind(this);
     this.onLeftSidebarDeselectPlaylist = this.onLeftSidebarDeselectPlaylist.bind(this);
     this.onLeftSidebarPlaylistChanged = this.onLeftSidebarPlaylistChanged.bind(this);
+    this.onLeftSidebarShowAllClick = this.onLeftSidebarShowAllClick.bind(this);
     this.onGamesCollectionChange = this.onGamesCollectionChange.bind(this);
   }
 
@@ -165,7 +166,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                 selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
                                 onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
                                 onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
-                                onPlaylistChanged={this.onLeftSidebarPlaylistChanged} />
+                                onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
+                                onShowAllClick={this.onLeftSidebarShowAllClick} />
           </div>
         ) : undefined }
         <div className='game-browser__center' onKeyDown={this.onKeyDown}>
@@ -287,6 +289,11 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   private onLeftSidebarPlaylistChanged(playlist: IGamePlaylist): void {
     this.forceUpdate();
+  }
+
+  private onLeftSidebarShowAllClick(): void {
+    if (this.props.clearSearch) { this.props.clearSearch(); }
+    if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(undefined); }
   }
 
   private onGameSelect(game?: IGameInfo): void {

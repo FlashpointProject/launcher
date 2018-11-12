@@ -1,35 +1,34 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ISearchOnSearchEvent } from './Search';
-import { IDefaultProps } from '../interfaces';
+import { IDefaultProps, ISearchState } from '../interfaces';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
 import { Paths } from '../Paths';
 import * as Util from '../Util';
 import { OpenIcon } from './OpenIcon';
 
 export interface IHeaderProps extends IDefaultProps {
-  onSearch?: (event: ISearchOnSearchEvent) => void;
+  search: ISearchState;
+  onSearch: (input: string) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
   onToggleLeftSidebarClick?: () => void;
   onToggleRightSidebarClick?: () => void;
 }
 
-export class Header extends React.Component<IHeaderProps, {}> {
+export interface IHeaderState {
+  searchText: string;
+}
+
+export class Header extends React.Component<IHeaderProps, IHeaderState> {
   constructor(props: IHeaderProps) {
     super(props);
-    this.onSearch = this.onSearch.bind(this);
-    this.onCleared = this.onCleared.bind(this);
+    this.state = {
+      searchText: this.props.search.input,
+    };
+    this.onSearchChange = this.onSearchChange.bind(this);
+    this.onSearchKeyDown = this.onSearchKeyDown.bind(this);
   }
 
   render() {
-    const searchClassNames = {
-      search:         'header__search',
-      input:          'header__search__input',
-      tag:            'header__search__tag',
-      tagText:        'header__search__tag__text',
-      tagRemove:      'header__search__tag__remove',
-      tagRemoveInner: 'header__search__tag__remove__inner',
-    };
     const showLeftSidebar = window.External.preferences.data.browsePageShowLeftSidebar;
     const showRightSidebar = window.External.preferences.data.browsePageShowRightSidebar;
     return (
@@ -57,8 +56,10 @@ export class Header extends React.Component<IHeaderProps, {}> {
         {/* Header Search */}
         <div className='header__wrap'>
           <div>
-            <Search onSearch={this.onSearch} onCleared={this.onCleared} classNames={searchClassNames}
-                    disableTags={true}/>
+            <div className='header__search'>
+              <input className='header__search__input' value={this.state.searchText} placeholder='Search...'
+                     onChange={this.onSearchChange} onKeyDown={this.onSearchKeyDown} />
+            </div>
           </div>
         </div>
         {/* Header Drop-downs */}
@@ -67,7 +68,7 @@ export class Header extends React.Component<IHeaderProps, {}> {
             <GameOrder onChange={this.props.onOrderChange}/>
           </div>
         </div>
-        {/*  */}
+        {/* Right-most portion */}
         <div className='header__wrap header__right'>
           <div>
             {/* Toggle Right Sidebar */}
@@ -88,16 +89,18 @@ export class Header extends React.Component<IHeaderProps, {}> {
     );
   }
 
-  private onSearch(event: ISearchOnSearchEvent): void {
-    if (this.props.onSearch) {
-      this.props.onSearch(event);
-    }
-    Util.easterEgg(event.input);
+  private onSearchChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    const value = event.target.value;
+    this.setState({ searchText: value });
+    // "Clear" the search when the search field gets empty
+    if (value === '') { this.props.onSearch(''); }
   }
 
-  private onCleared(): void {
-    if (this.props.onSearch) {
-      this.props.onSearch({ input: '', tags: [] });
+  private onSearchKeyDown(event: React.KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      const value = this.state.searchText;
+      this.props.onSearch(value);
+      Util.easterEgg(value);
     }
   }
 }

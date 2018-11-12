@@ -2,8 +2,7 @@ import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import { BrowsePage, IBrowsePageProps } from './components/pages/BrowsePage';
-import { ISearchOnSearchEvent } from './components/Search';
-import { ICentralState } from './interfaces';
+import { ICentralState, ISearchState } from './interfaces';
 import { AboutPage } from './components/pages/AboutPage';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { LogsPage } from './components/pages/LogsPage';
@@ -16,7 +15,7 @@ import { IGamePlaylist } from './playlist/interfaces';
 
 export interface IAppRouterProps {
   central: ICentralState;
-  search?: ISearchOnSearchEvent;
+  search: ISearchState;
   order?: IGameOrderChangeEvent;
   logData: string;
   gameScale: number;
@@ -25,6 +24,7 @@ export interface IAppRouterProps {
   selectedPlaylist?: IGamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
   onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
+  clearSearch: () => void;
   wasNewGameClicked: boolean;
 }
 
@@ -40,6 +40,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       selectedPlaylist: this.props.selectedPlaylist,
       onSelectGame: this.props.onSelectGame,
       onSelectPlaylist: this.props.onSelectPlaylist,
+      clearSearch: this.props.clearSearch,
       wasNewGameClicked: this.props.wasNewGameClicked,
     };
     return (

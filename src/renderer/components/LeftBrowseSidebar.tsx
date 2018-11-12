@@ -12,6 +12,7 @@ export interface ILeftBrowseSidebarProps {
   onSelectPlaylist?: (playlist: IGamePlaylist) => void;
   onDeselectPlaylist?: () => void;
   onPlaylistChanged?: (playlist: IGamePlaylist) => void;
+  onShowAllClick?: () => void;
 }
 
 export interface ILeftBrowseSidebarState {
@@ -31,7 +32,6 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     this.onPlaylistItemSaveClick = this.onPlaylistItemSaveClick.bind(this);
     this.onPlaylistItemDrop = this.onPlaylistItemDrop.bind(this);
     this.onPlaylistItemDragOver = this.onPlaylistItemDragOver.bind(this);
-    this.onShowAllClick = this.onShowAllClick.bind(this);
     this.onCreatePlaylistClick = this.onCreatePlaylistClick.bind(this);
   }
 
@@ -46,7 +46,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
             !central.playlistsFailedLoading ? (
               <div className='playlist-list'>
                 {/* All games */}
-                <div className='playlist-list-fake-item' onClick={this.onShowAllClick}>
+                <div className='playlist-list-fake-item' onClick={this.props.onShowAllClick}>
                   <div className='playlist-list-fake-item__inner'>
                     <OpenIcon icon='eye' />
                   </div>
@@ -148,12 +148,6 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
         event.dataTransfer.dropEffect = 'copy';
         event.preventDefault();
       }
-    }
-  }
-
-  private onShowAllClick(event: React.MouseEvent): void {
-    if (this.props.selectedPlaylistID && this.props.onDeselectPlaylist) {
-      this.props.onDeselectPlaylist();
     }
   }
 
