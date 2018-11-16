@@ -13,7 +13,7 @@ import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import GameManager from './game/GameManager';
-import { IGameInfo } from 'src/shared/game/interfaces';
+import { IGameInfo } from '../shared/game/interfaces';
 import { IGamePlaylist } from './playlist/interfaces';
 
 export interface IAppProps {

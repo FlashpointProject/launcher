@@ -46,7 +46,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
             <div className='setting'>
               <p className='setting__title'>Preferences</p>
               <div className='setting__body'>
-                {/* */}
+                {/* Show Extreme Games */}
                 {((!window.External.config.data.disableExtremeGames)) ? (
                   <div className='setting__row'>
                     <div className='setting__row__top'>
@@ -64,7 +64,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                     </div>
                   </div>
                 ) : undefined }
-                {/* */}
+                {/* Enable Editing */}
                 <div className='setting__row'>
                   <div className='setting__row__top'>
                     <div className='setting__row__title'>

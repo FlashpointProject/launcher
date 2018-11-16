@@ -10,7 +10,7 @@ import { ConfigPage } from './components/pages/ConfigPage';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { HomePage } from './components/pages/HomePage';
-import { IGameInfo } from 'src/shared/game/interfaces';
+import { IGameInfo } from '../shared/game/interfaces';
 import { IGamePlaylist } from './playlist/interfaces';
 
 export interface IAppRouterProps {
