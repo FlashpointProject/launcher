@@ -1,7 +1,10 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
 import { App } from './app';
-import { MemoryRouter } from 'react-router-dom';
+import configureStore from './configureStore';
+import { createMemoryHistory } from 'history';
+import { ConnectedRouter } from 'connected-react-router';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -14,11 +17,17 @@ import { MemoryRouter } from 'react-router-dom';
   // Wait for the preferences and config to initialize
   await window.External.config.waitUtilInitialized();
   await window.External.preferences.waitUtilInitialized();
+  // Create history
+  const history = createMemoryHistory();
+  // Create Redux store
+  const store = configureStore(history);
   // Render the application
   ReactDOM.render((
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>
+      <Provider store={store}>
+        <ConnectedRouter history={history}>
+            <App />
+        </ConnectedRouter>
+      </Provider>
     ),
     document.getElementById('root')
   );
