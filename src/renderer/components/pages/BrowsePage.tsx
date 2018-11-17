@@ -18,10 +18,11 @@ import GameManagerPlatform from '../../game/GameManagerPlatform';
 import { GameParser, generateGameOrderTitle } from '../../../shared/game/GameParser';
 import { uuid } from '../../uuid';
 import { formatDate } from '../../../shared/Util';
+import { SearchQuery } from 'src/renderer/store/search';
 
 export interface IBrowsePageProps extends IDefaultProps {
   central: ICentralState;
-  search: ISearchState;
+  search: SearchQuery;
   order?: IGameOrderChangeEvent;
   /** Scale of the games */
   gameScale: number;
@@ -538,7 +539,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private orderGames(force: boolean = false): void {
     const args = {
       games: this.props.central.games.collection.games,
-      search: this.props.search ? this.props.search.input : '',
+      search: this.props.search ? this.props.search.text : '',
       extreme: !window.External.config.data.disableExtremeGames &&
                window.External.preferences.data.browsePageShowExtreme,
       broken: window.External.config.data.showBrokenGames,

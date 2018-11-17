@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { NotFoundPage } from './components/pages/NotFoundPage';
-import { BrowsePage, IBrowsePageProps } from './components/pages/BrowsePage';
-import { ICentralState, ISearchState } from './interfaces';
+import { ICentralState } from './interfaces';
 import { AboutPage } from './components/pages/AboutPage';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { LogsPage } from './components/pages/LogsPage';
@@ -12,10 +11,10 @@ import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { HomePage } from './components/pages/HomePage';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IGamePlaylist } from './playlist/interfaces';
+import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 
 export interface IAppRouterProps {
   central: ICentralState;
-  search: ISearchState;
   order?: IGameOrderChangeEvent;
   logData: string;
   gameScale: number;
@@ -24,15 +23,13 @@ export interface IAppRouterProps {
   selectedPlaylist?: IGamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
   onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
-  clearSearch: () => void;
   wasNewGameClicked: boolean;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
   render() {
-    const browseProps: IBrowsePageProps = {
+    const browseProps: IConnectedBrowsePageProps = {
       central: this.props.central,
-      search: this.props.search,
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
@@ -40,14 +37,13 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       selectedPlaylist: this.props.selectedPlaylist,
       onSelectGame: this.props.onSelectGame,
       onSelectPlaylist: this.props.onSelectPlaylist,
-      clearSearch: this.props.clearSearch,
       wasNewGameClicked: this.props.wasNewGameClicked,
     };
     return (
       <Switch>
         <PropsRoute exact path={Paths.home} component={HomePage}
                     central={this.props.central} gameScale={this.props.gameScale} />
-        <PropsRoute path={Paths.browse} component={BrowsePage}
+        <PropsRoute path={Paths.browse} component={ConnectedBrowsePage}
                     {...browseProps} />
         <PropsRoute path={Paths.logs} component={LogsPage}
                     logData={this.props.logData} />

@@ -1,27 +1,26 @@
 import { ipcRenderer } from 'electron';
 import * as React from 'react';
+import { RouteComponentProps } from 'react-router-dom';
 import { AppRouter, IAppRouterProps } from './router';
-import { Redirect } from 'react-router-dom';
-import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { TitleBar } from './components/TitleBar';
-import { ICentralState, ISearchState } from './interfaces';
+import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
-import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import GameManager from './game/GameManager';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IGamePlaylist } from './playlist/interfaces';
+import { SearchQuery } from './store/search';
+import HeaderContainer from './containers/HeaderContainer';
 
-export interface IAppProps {
-  history?: any;
+export interface IAppProps extends RouteComponentProps {
+  search: SearchQuery;
 }
 export interface IAppState {
   central: ICentralState;
-  search: ISearchState;
   order?: IGameOrderChangeEvent;
   logData: string;
   /** Scale of games at the browse page */
@@ -37,8 +36,6 @@ export interface IAppState {
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
-  private _onSearch: boolean = false;
-
   constructor(props: IAppProps) {
     super(props);
     // Normal constructor stuff
@@ -54,14 +51,11 @@ export class App extends React.Component<IAppProps, IAppState> {
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
-      search: { input: '' },
       logData: '',
       gameScale: preferences.data.browsePageGameScale,
       gameLayout: preferences.data.browsePageLayout,
       wasNewGameClicked: false,
     };
-    this.clearSearch = this.clearSearch.bind(this);
-    this.onSearch = this.onSearch.bind(this);
     this.onOrderChange = this.onOrderChange.bind(this);
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
@@ -166,12 +160,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   render() {
-    // Check if a search was made - if so redirect to the browse page (this is a bit ghetto)
-    let redirect = null;
-    if (this._onSearch) {
-      this._onSearch = false;
-      redirect = <Redirect to={Paths.browse} push={true} />;
-    }
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
     if (this.state.central.gamesDoneLoading) {
@@ -180,7 +168,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     // Props to set to the router
     const routerProps: IAppRouterProps = {
       central: this.state.central,
-      search: this.state.search,
       order: this.state.order,
       logData: this.state.logData,
       gameScale: this.state.gameScale,
@@ -189,22 +176,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       selectedPlaylist: this.state.selectedPlaylist,
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
-      clearSearch: this.clearSearch,
       wasNewGameClicked: this.state.wasNewGameClicked,
     };
     // Render
     return (
       <>
-        {/* Redirect */}
-        { redirect }
         {/* "TitleBar" stuff */}
         { window.External.config.data.useCustomTitlebar ? (
           <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
         ) : undefined }
         {/* "Header" stuff */}
-        <Header search={this.state.search} onSearch={this.onSearch} onOrderChange={this.onOrderChange}
-                onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-                onToggleRightSidebarClick={this.onToggleRightSidebarClick} />
+        <HeaderContainer onOrderChange={this.onOrderChange}
+                         onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+                         onToggleRightSidebarClick={this.onToggleRightSidebarClick} />
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter {...routerProps} />
@@ -221,15 +205,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                 onNewGameClick={this.onNewGameClick} />
       </>
     );
-  }
-
-  private clearSearch(): void {
-    this.setState({ search: { input: '', tags: [] } });
-  }
-
-  private onSearch(input: string): void {
-    if (input) { this._onSearch = true; }
-    this.setState({ search: { input } });
   }
 
   private onOrderChange(event: IGameOrderChangeEvent): void {
