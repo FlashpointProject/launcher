@@ -14,7 +14,6 @@ export type ReducerAction = ActionType<typeof actions>;
 const reducer: Reducer<IPreferencesState, ReducerAction> = (state = initialState, action) => {
   switch (action.type) {
     case getType(actions.updatePreferences): {
-      console.log({ ...state, data: { ...state.data, ...action.payload } });
       return { ...state, data: { ...state.data, ...action.payload } };
     }
     default: {
