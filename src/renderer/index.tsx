@@ -21,7 +21,7 @@ import { App } from './app';
   // Create history
   const history = createMemoryHistory();
   // Create Redux store
-  const store = configureStore(history);
+  const store = configureStore(history, { preferences: { data: window.External.preferences.getData() } });
   // Render the application
   ReactDOM.render((
       <Provider store={store}>

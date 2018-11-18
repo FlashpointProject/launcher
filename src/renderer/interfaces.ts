@@ -44,6 +44,6 @@ export interface ICentralState {
 /**
  * State of the current search.
  */
-export interface ISearchState {
+export interface SearchState {
   input: string;
 }

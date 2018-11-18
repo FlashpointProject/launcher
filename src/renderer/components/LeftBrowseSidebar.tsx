@@ -4,8 +4,9 @@ import { PlaylistItem } from './PlaylistItem';
 import { OpenIcon } from './OpenIcon';
 import { IGamePlaylist } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
+import { WithPreferencesProps } from '../containers/withPreferences';
 
-export interface ILeftBrowseSidebarProps {
+interface OwnProps {
   central: ICentralState;
   /** ID of the playlist that is selected (empty string if none) */
   selectedPlaylistID: string;
@@ -14,6 +15,8 @@ export interface ILeftBrowseSidebarProps {
   onPlaylistChanged?: (playlist: IGamePlaylist) => void;
   onShowAllClick?: () => void;
 }
+
+export type ILeftBrowseSidebarProps = OwnProps & WithPreferencesProps;
 
 export interface ILeftBrowseSidebarState {
   isEditing: boolean;
@@ -39,7 +42,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     const central = this.props.central;
     const selectedPlaylistID = this.props.selectedPlaylistID;
     const playlists = this.props.central.playlists.playlists.slice().sort((a, b) => a.title.localeCompare(b.title));
-    const editingDisabled = !window.External.preferences.data.enableEditing;
+    const editingDisabled = !this.props.preferencesData.enableEditing;
     return (
       <div className='browse-left-sidebar simple-scroll'>
           {central.playlistsDoneLoading ? (
@@ -141,7 +144,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
   }
 
   private onPlaylistItemDragOver(event: React.DragEvent, playlist: IGamePlaylist): void {
-    if (window.External.preferences.data.enableEditing) {
+    if (this.props.preferencesData.enableEditing) {
       const types = event.dataTransfer.types;
       if (types.length === 1 && types[0] === gameIdDataType) {
         // Show the "You can drop here" cursor while dragging something droppable over this element

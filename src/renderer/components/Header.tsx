@@ -5,14 +5,17 @@ import { Paths } from '../Paths';
 import * as Util from '../Util';
 import { OpenIcon } from './OpenIcon';
 import { SearchQuery } from '../store/search';
+import { WithPreferencesProps } from '../containers/withPreferences';
 
-export interface IHeaderProps extends RouteComponentProps {
+interface OwnProps {
   search: SearchQuery;
   onSearch: (text: string, redirect: boolean) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
   onToggleLeftSidebarClick?: () => void;
   onToggleRightSidebarClick?: () => void;
 }
+
+export type IHeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps;
 
 export interface IHeaderState {
   searchText: string;
@@ -29,8 +32,8 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   }
 
   render() {
-    const showLeftSidebar = window.External.preferences.data.browsePageShowLeftSidebar;
-    const showRightSidebar = window.External.preferences.data.browsePageShowRightSidebar;
+    const showLeftSidebar = this.props.preferencesData.browsePageShowLeftSidebar;
+    const showRightSidebar = this.props.preferencesData.browsePageShowRightSidebar;
     return (
       <div className='header'>
         {/* Header Menu */}

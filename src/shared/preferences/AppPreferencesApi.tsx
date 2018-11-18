@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
 import { IAppPreferencesData } from './IAppPreferencesData';
-import { deepCopy } from '../Util';
+import { deepCopy, recursiveReplace } from '../Util';
 
 /**
  * Bridge between the Renderer and "AppPreferencesMain" (which then accesses the Preferences file).
@@ -21,13 +21,8 @@ export class AppPreferencesApi extends EventEmitter {
   /** If data has been sent, and no response has yet been received */
   private _isSending: boolean = false;
 
-  public get data(): IAppPreferencesData {
-    if (!this._dataProxy) { throw new Error('You must not access AppPreferencesApi.data before it has loaded'); }
-    return this._dataProxy;
-  }
-
   /** How often the data should be sent to the main (in milliseconds) */
-  private static sendDataInterval: number = 2 * 1000;
+  private static sendDataInterval: number = 0.5 * 1000;
   
   /**
    * Initialize (this should be called after construction, and before accessing the data object)
@@ -104,6 +99,18 @@ export class AppPreferencesApi extends EventEmitter {
       if (data) { resolve(data); }
       else      { reject(new Error('No data received from preference data fetch request')); }
     });
+  }
+  
+  /** Get the currently cached data (wrapped in a proxy) */
+  public getData(): IAppPreferencesData {
+    if (!this._dataProxy) { throw new Error('You must not call AppPreferencesApi.getData before it has loaded'); }
+    return this._dataProxy;
+  }
+
+  /** Set the data */
+  public setData(data: Partial<IAppPreferencesData>): void {
+    if (!this._dataProxy) { throw new Error('You must not call AppPreferencesApi.setData before it has loaded'); }
+    recursiveReplace(this._dataProxy, data);
   }
 
   /** Send Preferences Data (renderer -> main) (IPC Event Name) */

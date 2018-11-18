@@ -2,8 +2,9 @@ import * as React from 'react';
 import { IDefaultProps } from '../interfaces';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
 import { gameScaleSpan } from '../Util';
+import { WithPreferencesProps } from '../containers/withPreferences';
 
-export interface IFooterProps extends IDefaultProps {
+interface OwnProps extends IDefaultProps {
   gameCount?: number;
   /** Value of the scale slider (between 0 - 1) */
   scaleSliderValue: number;
@@ -16,6 +17,8 @@ export interface IFooterProps extends IDefaultProps {
   /** When the "New Game" button is clicked */
   onNewGameClick?: () => void;
 }
+
+export type IFooterProps = OwnProps & IDefaultProps & WithPreferencesProps;
 
 export class Footer extends React.Component<IFooterProps, {}> {
   private static scaleSliderMax: number = 1000;
@@ -43,7 +46,7 @@ export class Footer extends React.Component<IFooterProps, {}> {
           <div>
             <div className='footer__right__inner'>
               {/* New Game */}
-              { window.External.preferences.data.enableEditing ? (
+              { this.props.preferencesData.enableEditing ? (
                 <div className='footer__wrap'>
                   <div className='simple-center'>
                     <input type='button' value='New Game' onClick={this.props.onNewGameClick}

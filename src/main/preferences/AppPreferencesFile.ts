@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as Util from '../../shared/Util';
 import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
-import { BrowsePageLayout } from '../../shared/BrowsePageLayout';
+import { defaultPreferencesData } from '../../shared/preferences/util';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export class AppPreferencesFile {
@@ -9,22 +9,6 @@ export class AppPreferencesFile {
   private static filePath: string = './preferences.json';
   /** Encoding used by preferences file */
   private static fileEncoding: string = 'utf8';
-
-  /** Default Preferences Data used for values that are not found in the file */
-  private static readonly defaultData: Readonly<IAppPreferencesData> = Object.freeze({
-    browsePageGameScale: 0.087,
-    browsePageShowExtreme: false,
-    enableEditing: true,
-    browsePageLayout: BrowsePageLayout.grid,
-    browsePageShowLeftSidebar: true,
-    browsePageShowRightSidebar: true,
-    mainWindow: Object.freeze({
-      x: undefined,
-      y: undefined,
-      width: undefined,
-      height: undefined,
-    }),
-  });
 
   /** Read the file, or create a new one using the defaults, and return the preferences */
   public static async readOrCreate(): Promise<IAppPreferencesData> {
@@ -38,7 +22,7 @@ export class AppPreferencesFile {
     }
     // If that failed, set data to default and save it to a new file
     if (error || !data) {
-      data = Util.deepCopy(AppPreferencesFile.defaultData) as IAppPreferencesData;
+      data = Util.deepCopy(defaultPreferencesData) as IAppPreferencesData;
       await AppPreferencesFile.saveFile(data);
     }
     // Return
@@ -58,7 +42,7 @@ export class AppPreferencesFile {
           return reject(jsonOrError);
         }
         // Parse the JSON object as a config object
-        const parsed: IAppPreferencesData = AppPreferencesFile.parseData(jsonOrError, AppPreferencesFile.defaultData);
+        const parsed: IAppPreferencesData = AppPreferencesFile.parseData(jsonOrError, defaultPreferencesData);
         // Success!
         return resolve(parsed);
       });

@@ -7,6 +7,7 @@ import { ApplicationState } from '../store';
 import { Header, IHeaderProps } from '../components/Header';
 import { SearchQuery } from '../store/search';
 import { Paths } from '../Paths';
+import { withPreferences } from './withPreferences';
 
 interface IStateToProps {
   search: SearchQuery;
@@ -39,7 +40,7 @@ const mapDispatchToProps = (dispatch: Dispatch): IDispatchToProps => bindActionC
   onSearch: (text: string) => searchActions.setQuery({ text }),
 }, dispatch);
 
-export default withRouter(connect(
+export default withRouter(withPreferences(connect(
   mapStateToProps,
   mapDispatchToProps
-)(HeaderContainer));
+)(HeaderContainer)));

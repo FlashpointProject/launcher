@@ -2,7 +2,6 @@ import { ipcRenderer } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { AppRouter, IAppRouterProps } from './router';
-import { Footer } from './components/Footer';
 import { TitleBar } from './components/TitleBar';
 import { ICentralState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
@@ -15,10 +14,15 @@ import { IGameInfo } from '../shared/game/interfaces';
 import { IGamePlaylist } from './playlist/interfaces';
 import { SearchQuery } from './store/search';
 import HeaderContainer from './containers/HeaderContainer';
+import { WithPreferencesProps } from './containers/withPreferences';
+import { ConnectedFooter } from './containers/ConnectedFooter';
 
-export interface IAppProps extends RouteComponentProps {
+interface IAppOwnProps {
   search: SearchQuery;
 }
+
+export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProps;
+
 export interface IAppState {
   central: ICentralState;
   order?: IGameOrderChangeEvent;
@@ -39,7 +43,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   constructor(props: IAppProps) {
     super(props);
     // Normal constructor stuff
-    const preferences = window.External.preferences;
+    const preferencesData = this.props.preferencesData;
     const config = window.External.config;
     this.state = {
       central: {
@@ -52,8 +56,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         playlistsFailedLoading: false,
       },
       logData: '',
-      gameScale: preferences.data.browsePageGameScale,
-      gameLayout: preferences.data.browsePageLayout,
+      gameScale: preferencesData.browsePageGameScale,
+      gameLayout: preferencesData.browsePageLayout,
       wasNewGameClicked: false,
     };
     this.onOrderChange = this.onOrderChange.bind(this);
@@ -71,13 +75,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   init() {
     // Listen for the window to move or resize (and update the preferences when it does)
-    ipcRenderer.on('window-move', function(sender: any, x: number, y: number) {
-      const mw = window.External.preferences.data.mainWindow;
+    ipcRenderer.on('window-move', (sender: any, x: number, y: number) => {
+      const mw = this.props.preferencesData.mainWindow;
       mw.x = x | 0;
       mw.y = y | 0;
     });
-    ipcRenderer.on('window-resize', function(sender: any, width: number, height: number) {
-      const mw = window.External.preferences.data.mainWindow;
+    ipcRenderer.on('window-resize', (sender: any, width: number, height: number) => {
+      const mw = this.props.preferencesData.mainWindow;
       mw.width  = width  | 0;
       mw.height = height | 0;
     });
@@ -199,10 +203,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           </noscript>
         </div>
         {/* "Footer" stuff */}
-        <Footer gameCount={gameCount}
-                onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-                onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-                onNewGameClick={this.onNewGameClick} />
+        <ConnectedFooter gameCount={gameCount}
+                         onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+                         onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+                         onNewGameClick={this.onNewGameClick} />
       </>
     );
   }
@@ -216,13 +220,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onScaleSliderChange(value: number): void {
     this.setState({ gameScale: value });
     // Update Preferences Data (this is to make it get saved on disk)
-    window.External.preferences.data.browsePageGameScale = value;
+    this.props.updatePreferences({ browsePageGameScale: value });
   }
 
   private onLayoutSelectorChange(value: BrowsePageLayout): void {
     this.setState({ gameLayout: value });
     // Update Preferences Data (this is to make it get saved on disk)
-    window.External.preferences.data.browsePageLayout = value;
+    this.props.updatePreferences({ browsePageLayout: value });
   }
 
   private onNewGameClick(): void {
@@ -233,14 +237,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onToggleLeftSidebarClick(): void {
-    const pref = window.External.preferences.data;
-    pref.browsePageShowLeftSidebar = !pref.browsePageShowLeftSidebar;
+    const pref = this.props.preferencesData;
+    this.props.updatePreferences({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
     this.forceUpdate();
   }
 
   private onToggleRightSidebarClick(): void {
-    const pref = window.External.preferences.data;
-    pref.browsePageShowRightSidebar = !pref.browsePageShowRightSidebar;
+    const pref = this.props.preferencesData;
+    this.props.updatePreferences({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
     this.forceUpdate();
   }
 
