@@ -4,9 +4,12 @@ import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { CheckBox } from '../CheckBox';
 import { AppConfig } from '../../../shared/config/AppConfigFile';
+import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 
-export interface IConfigPageProps {
+interface OwnProps {
 }
+
+export type IConfigPageProps = OwnProps & WithPreferencesProps;
 
 export interface IConfigPageState {
   isFlashpointPathValid?: boolean;
@@ -55,7 +58,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                       </div>
                       <div className='setting__row__content setting__row__content--toggle'>
                         <div>
-                          <CheckBox checked={window.External.preferences.data.browsePageShowExtreme} onChange={this.onShowExtremeChange} />
+                          <CheckBox checked={this.props.preferencesData.browsePageShowExtreme} onChange={this.onShowExtremeChange} />
                         </div>
                       </div>
                     </div>
@@ -72,7 +75,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                     </div>
                     <div className='setting__row__content setting__row__content--toggle'>
                       <div>
-                        <CheckBox checked={window.External.preferences.data.enableEditing} onChange={this.onEnableEditingChange} />
+                        <CheckBox checked={this.props.preferencesData.enableEditing} onChange={this.onEnableEditingChange} />
                       </div>
                     </div>
                   </div>
@@ -161,12 +164,12 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
   }
   
   onShowExtremeChange(isChecked: boolean): void {
-    window.External.preferences.data.browsePageShowExtreme = isChecked;
+    this.props.updatePreferences({ browsePageShowExtreme: isChecked });
     this.forceUpdate();
   }
 
   onEnableEditingChange(isChecked: boolean): void {
-    window.External.preferences.data.enableEditing = isChecked;
+    this.props.updatePreferences({ enableEditing: isChecked });
     this.forceUpdate();
   }
 

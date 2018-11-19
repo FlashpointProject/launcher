@@ -1,16 +1,14 @@
 import * as React from 'react';
-import { IDefaultProps, ICentralState, ISearchState } from '../../interfaces';
+import { IDefaultProps, ICentralState } from '../../interfaces';
 import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
 import { IGameInfo, IAdditionalApplicationInfo } from '../../../shared/game/interfaces';
 import { gameScaleSpan, gameIdDataType } from '../../Util';
-import { RightBrowseSidebar } from '../RightBrowseSidebar';
 import { GameGrid } from '../GameGrid';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { orderGames, IOrderGamesArgs } from '../../../shared/game/GameFilter';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { GameLauncher } from '../../GameLauncher';
-import { LeftBrowseSidebar } from '../LeftBrowseSidebar';
 import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/interfaces';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
@@ -18,10 +16,14 @@ import GameManagerPlatform from '../../game/GameManagerPlatform';
 import { GameParser, generateGameOrderTitle } from '../../../shared/game/GameParser';
 import { uuid } from '../../uuid';
 import { formatDate } from '../../../shared/Util';
+import { SearchQuery } from '../../store/search';
+import { WithPreferencesProps } from '../../containers/withPreferences';
+import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
+import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 
-export interface IBrowsePageProps extends IDefaultProps {
+interface OwnProps {
   central: ICentralState;
-  search: ISearchState;
+  search: SearchQuery;
   order?: IGameOrderChangeEvent;
   /** Scale of the games */
   gameScale: number;
@@ -36,6 +38,8 @@ export interface IBrowsePageProps extends IDefaultProps {
   clearSearch: () => void;
   wasNewGameClicked: boolean;
 }
+
+export type IBrowsePageProps = OwnProps & IDefaultProps & WithPreferencesProps;
 
 export interface IBrowsePageState {
   /** Current quick search string (used to jump to a game in the list, not to filter the list) */
@@ -161,13 +165,13 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
         { showSidebars ? (
           <div className={'game-browser__left'+
                           (selectedGame?'':' game-browser__left--none')+
-                          (window.External.preferences.data.browsePageShowLeftSidebar?'':' game-browser__left--hidden')}>
-            <LeftBrowseSidebar central={this.props.central}
-                                selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
-                                onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
-                                onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
-                                onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
-                                onShowAllClick={this.onLeftSidebarShowAllClick} />
+                          (this.props.preferencesData.browsePageShowLeftSidebar?'':' game-browser__left--hidden')}>
+            <ConnectedLeftBrowseSidebar central={this.props.central}
+                                        selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
+                                        onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
+                                        onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
+                                        onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
+                                        onShowAllClick={this.onLeftSidebarShowAllClick} />
           </div>
         ) : undefined }
         <div className='game-browser__center' onKeyDown={this.onKeyDown}>
@@ -213,21 +217,21 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
         { showSidebars ? (
           <div className={'game-browser__right'+
                           (this.state.currentGame?'':' game-browser__right--none')+
-                          (window.External.preferences.data.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
-            <RightBrowseSidebar currentGame={this.state.currentGame}
-                                currentAddApps={this.state.currentAddApps}
-                                gameImages={this.props.central.gameImages}
-                                games={this.props.central.games}
-                                onDeleteSelectedGame={this.onDeleteSelectedGame}
-                                onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
-                                onEditPlaylistNotes={this.onEditPlaylistNotes}
-                                gamePlaylistEntry={gamePlaylistEntry}
-                                isEditing={this.state.isEditing}
-                                hasEditedCurrent={this.state.hasEditedCurrent}
-                                onEditCurrent={this.onEditCurrent}
-                                onEditClick={this.onStartEditClick}
-                                onDiscardClick={this.onDiscardEditClick}
-                                onSaveGame={this.onSaveEditClick} />
+                          (this.props.preferencesData.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
+            <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
+                                         currentAddApps={this.state.currentAddApps}
+                                         gameImages={this.props.central.gameImages}
+                                         games={this.props.central.games}
+                                         onDeleteSelectedGame={this.onDeleteSelectedGame}
+                                         onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                                         onEditPlaylistNotes={this.onEditPlaylistNotes}
+                                         gamePlaylistEntry={gamePlaylistEntry}
+                                         isEditing={this.state.isEditing}
+                                         hasEditedCurrent={this.state.hasEditedCurrent}
+                                         onEditCurrent={this.onEditCurrent}
+                                         onEditClick={this.onStartEditClick}
+                                         onDiscardClick={this.onDiscardEditClick}
+                                         onSaveGame={this.onSaveEditClick} />
           </div>
         ) : undefined }
       </div>
@@ -538,9 +542,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private orderGames(force: boolean = false): void {
     const args = {
       games: this.props.central.games.collection.games,
-      search: this.props.search ? this.props.search.input : '',
+      search: this.props.search ? this.props.search.text : '',
       extreme: !window.External.config.data.disableExtremeGames &&
-               window.External.preferences.data.browsePageShowExtreme,
+               this.props.preferencesData.browsePageShowExtreme,
       broken: window.External.config.data.showBrokenGames,
       playlist: this.props.selectedPlaylist,
       order: this.props.order || BrowsePage.defaultOrder,

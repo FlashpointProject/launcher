@@ -1,18 +1,21 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
-import { IDefaultProps, ISearchState } from '../interfaces';
+import { Link, RouteComponentProps } from 'react-router-dom';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
 import { Paths } from '../Paths';
 import * as Util from '../Util';
 import { OpenIcon } from './OpenIcon';
+import { SearchQuery } from '../store/search';
+import { WithPreferencesProps } from '../containers/withPreferences';
 
-export interface IHeaderProps extends IDefaultProps {
-  search: ISearchState;
-  onSearch: (input: string) => void;
+interface OwnProps {
+  search: SearchQuery;
+  onSearch: (text: string, redirect: boolean) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
   onToggleLeftSidebarClick?: () => void;
   onToggleRightSidebarClick?: () => void;
 }
+
+export type IHeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps;
 
 export interface IHeaderState {
   searchText: string;
@@ -22,15 +25,15 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   constructor(props: IHeaderProps) {
     super(props);
     this.state = {
-      searchText: this.props.search.input,
+      searchText: this.props.search.text,
     };
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchKeyDown = this.onSearchKeyDown.bind(this);
   }
 
   render() {
-    const showLeftSidebar = window.External.preferences.data.browsePageShowLeftSidebar;
-    const showRightSidebar = window.External.preferences.data.browsePageShowRightSidebar;
+    const showLeftSidebar = this.props.preferencesData.browsePageShowLeftSidebar;
+    const showRightSidebar = this.props.preferencesData.browsePageShowRightSidebar;
     return (
       <div className='header'>
         {/* Header Menu */}
@@ -93,13 +96,13 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     const value = event.target.value;
     this.setState({ searchText: value });
     // "Clear" the search when the search field gets empty
-    if (value === '') { this.props.onSearch(''); }
+    if (value === '') { this.props.onSearch('', false); }
   }
 
   private onSearchKeyDown(event: React.KeyboardEvent): void {
     if (event.key === 'Enter') {
       const value = this.state.searchText;
-      this.props.onSearch(value);
+      this.props.onSearch(value, true);
       Util.easterEgg(value);
     }
   }

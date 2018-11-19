@@ -12,8 +12,9 @@ import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
 import { IEditableTextElementArgs, EditableTextElement } from './EditableTextElement';
 import { ImagePreview } from './ImagePreview';
+import { WithPreferencesProps } from '../containers/withPreferences';
 
-export interface IRightBrowseSidebarProps {
+interface OwnProps {
   gameImages: GameImageCollection;
   games: GameManager;
   /** Currently selected game (if any) */
@@ -39,6 +40,8 @@ export interface IRightBrowseSidebarProps {
   onDiscardClick?: () => void;
   onSaveGame?: () => void;
 }
+
+export type IRightBrowseSidebarProps = OwnProps & WithPreferencesProps;
 
 export interface IRightBrowseSidebarState {
   /** If a preview of the current games screenshot should be shown */
@@ -94,8 +97,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   render() {
     const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
-      const { currentAddApps, gamePlaylistEntry, isEditing, hasEditedCurrent } = this.props;
-      const editDisabled = !window.External.preferences.data.enableEditing;
+      const { currentAddApps, gamePlaylistEntry, isEditing } = this.props;
+      const editDisabled = !this.props.preferencesData.enableEditing;
       const canEdit = !editDisabled && isEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
       const screenshotSrc = this.props.gameImages.getScreenshotPath(game.title, game.platform);
@@ -420,7 +423,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void): (isChecked: boolean) => void {
     return (isChecked: boolean) => {
       const game = this.props.currentGame;
-      const canEdit = window.External.preferences.data.enableEditing && this.props.isEditing;
+      const canEdit = this.props.preferencesData.enableEditing && this.props.isEditing;
       if (game && canEdit) {
         func(game, isChecked);
         if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
