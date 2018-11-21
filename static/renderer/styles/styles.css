@@ -593,8 +593,27 @@ body {
   overflow: auto;
 }
 .home-page__inner {
-  min-width: 30em;
+  min-width: 40em;
   overflow: visible;
+}
+.home-page__random-games {
+  text-align: center;
+}
+.home-page__random-games__inner {
+  display: inline-block;
+  margin: 0 auto;
+}
+.home-page__random-games__title {
+  margin: 0.2em 0;
+font-size: 1.2em;
+font-weight: bold;
+}
+.home-page__random-games__games {
+  display: flex;
+}
+.home-page__random-games__loading {
+  display: block;
+  text-align: center;
 }
 
 

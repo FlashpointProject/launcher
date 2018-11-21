@@ -7,11 +7,11 @@ import { IGameOrderChangeEvent } from './components/GameOrder';
 import { LogsPage } from './components/pages/LogsPage';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { HomePage } from './components/pages/HomePage';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IGamePlaylist } from './playlist/interfaces';
 import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage } from './containers/ConnectedConfigPage';
+import { ConnectedHomePage } from './containers/ConnectedHomePage';
 
 export interface IAppRouterProps {
   central: ICentralState;
@@ -41,7 +41,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     };
     return (
       <Switch>
-        <PropsRoute exact path={Paths.home} component={HomePage}
+        <PropsRoute exact path={Paths.home} component={ConnectedHomePage}
                     central={this.props.central} gameScale={this.props.gameScale} />
         <PropsRoute path={Paths.browse} component={ConnectedBrowsePage}
                     {...browseProps} />
