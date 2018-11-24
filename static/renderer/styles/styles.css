@@ -9,6 +9,9 @@ html, body {
 *:focus {
   outline: none;
 }
+*:visited {
+  color: inherit;
+}
 [draggable] {
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -596,6 +599,49 @@ body {
   min-width: 40em;
   overflow: visible;
 }
+/* Logo */
+.home-page__logo {
+  --size: 5rem;
+  margin: 0.5rem auto 1rem;
+  /* Keep the mask's aspect ratio */
+  width: var(--size);
+  height: calc(var(--size) * 0.9);
+  /* Mask the background color with the FP logo */
+  -webkit-mask: url('../images/logo-solid.svg');
+  -webkit-mask-size: var(--size);
+  -webkit-mask-repeat: no-repeat;
+  /* Cool colors yall */
+  background-image: linear-gradient(red, yellow);
+}
+/* Quick Start*/
+.home-page__quick-start {
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 1rem;
+  width: 25em;
+  border: 1px #3f3f3f solid;
+  background-color: #252525;
+}
+.home-page__quick-start__head {
+  padding: 0.15rem 0.3rem;
+  border-bottom: 1px #3f3f3f solid;
+  font-weight: bold;
+}
+.home-page__quick-start__body {
+  padding: 0.3rem;
+}
+.home-page__quick-start__item {
+  display: flex;
+  flex-direction: row;
+  list-style: none;
+}
+.home-page__quick-start__item:not(:last-child) {
+  margin-bottom: 0.1rem;
+}
+.home-page__quick-start__item__icon {
+  margin-right: 0.35rem;
+}
+/* Random Games*/
 .home-page__random-games {
   text-align: center;
 }

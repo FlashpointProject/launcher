@@ -42,7 +42,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     return (
       <Switch>
         <PropsRoute exact path={Paths.home} component={ConnectedHomePage}
-                    central={this.props.central} gameScale={this.props.gameScale} />
+                    central={this.props.central} onSelectPlaylist={this.props.onSelectPlaylist} />
         <PropsRoute path={Paths.browse} component={ConnectedBrowsePage}
                     {...browseProps} />
         <PropsRoute path={Paths.logs} component={LogsPage}
