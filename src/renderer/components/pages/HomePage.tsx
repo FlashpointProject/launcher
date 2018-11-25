@@ -24,6 +24,8 @@ export interface IHomePageState {
   pickedRandomGames: boolean;
   randomGames: IGameInfo[];
   randomGameThumbnails: Array<string | undefined>;
+  /** Delay applied to the logo's animation */
+  logoDelay: string;
 }
 
 export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
@@ -35,6 +37,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
       pickedRandomGames: false,
       randomGames: [],
       randomGameThumbnails: [],
+      logoDelay: (Date.now() * -0.001) + 's', // (Offset the animation with the current time stamp)
     };
     this.onHallOfFameClick = this.onHallOfFameClick.bind(this);
     this.onAllGamesClick = this.onAllGamesClick.bind(this);
@@ -51,7 +54,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
   }
 
   render() {
-    const { pickedRandomGames, randomGames, randomGameThumbnails } = this.state;
+    const { pickedRandomGames, randomGames, randomGameThumbnails, logoDelay } = this.state;
     // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
     const height: number = 140;
     const width: number = (height * 0.666) | 0;
@@ -59,7 +62,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
       <div className='home-page simple-scroll'>
         <div className='home-page__inner'>
           {/* Logo */}
-          <div className='home-page__logo'></div>
+          <div className='home-page__logo'>
+            <div className='home-page__logo__image' style={{ animationDelay:logoDelay }} />
+          </div>
           {/* Quick Start */}
           <div className='home-page__quick-start'>
             <div className='home-page__quick-start__head'>Quick Start</div>
