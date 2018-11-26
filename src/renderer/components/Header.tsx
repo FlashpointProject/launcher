@@ -8,7 +8,7 @@ import { SearchQuery } from '../store/search';
 import { WithPreferencesProps } from '../containers/withPreferences';
 
 interface OwnProps {
-  search: SearchQuery;
+  searchQuery: SearchQuery;
   onSearch: (text: string, redirect: boolean) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
   onToggleLeftSidebarClick?: () => void;
@@ -22,13 +22,24 @@ export interface IHeaderState {
 }
 
 export class Header extends React.Component<IHeaderProps, IHeaderState> {
+  private searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
+
   constructor(props: IHeaderProps) {
     super(props);
     this.state = {
-      searchText: this.props.search.text,
+      searchText: this.props.searchQuery.text,
     };
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchKeyDown = this.onSearchKeyDown.bind(this);
+    this.onKeypress = this.onKeypress.bind(this);
+  }
+
+  componentDidMount() {
+    window.addEventListener('keypress', this.onKeypress);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keypress', this.onKeypress);
   }
 
   render() {
@@ -60,7 +71,8 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         <div className='header__wrap'>
           <div>
             <div className='header__search'>
-              <input className='header__search__input' value={this.state.searchText} placeholder='Search...'
+              <input className='header__search__input' ref={this.searchInputRef}
+                     value={this.state.searchText} placeholder='Search...'
                      onChange={this.onSearchChange} onKeyDown={this.onSearchKeyDown} />
             </div>
           </div>
@@ -104,6 +116,16 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
       const value = this.state.searchText;
       this.props.onSearch(value, true);
       Util.easterEgg(value);
+    }
+  }
+
+  private onKeypress(event: KeyboardEvent): void {
+    if (event.ctrlKey && event.code === 'KeyF') {
+      const element = this.searchInputRef.current;
+      if (element) {
+        element.select();
+        event.preventDefault();
+      }
     }
   }
 }

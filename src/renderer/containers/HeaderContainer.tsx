@@ -5,19 +5,17 @@ import { withRouter } from 'react-router';
 import * as searchActions from '../store/search/actions';
 import { ApplicationState } from '../store';
 import { Header, IHeaderProps } from '../components/Header';
-import { SearchQuery } from '../store/search';
 import { Paths } from '../Paths';
 import { withPreferences } from './withPreferences';
+import { withSearch, WithSearchProps } from './withSearch';
 
 interface IStateToProps {
-  search: SearchQuery;
 }
 
 interface IDispatchToProps {
-  onSearch: (text: string) => void;
 }
 
-type IHeaderContainerProps = IHeaderProps & IStateToProps & IDispatchToProps;
+type IHeaderContainerProps = IHeaderProps & IStateToProps & IDispatchToProps & WithSearchProps;
 
 const HeaderContainer: React.FunctionComponent<IHeaderContainerProps> = (props: IHeaderContainerProps) => {
   const { onSearch, ...rest } = props;
@@ -40,7 +38,7 @@ const mapDispatchToProps = (dispatch: Dispatch): IDispatchToProps => bindActionC
   onSearch: (text: string) => searchActions.setQuery({ text }),
 }, dispatch);
 
-export default withRouter(withPreferences(connect(
+export default withRouter(withPreferences(withSearch(connect(
   mapStateToProps,
   mapDispatchToProps
-)(HeaderContainer)));
+)(HeaderContainer))));

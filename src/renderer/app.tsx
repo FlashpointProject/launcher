@@ -142,7 +142,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   componentDidMount() {
     ipcRenderer.on('log-data-update', this.onLogDataUpdate);
-
     // Ask main to send us our first log-data-update msg.
     window.External.resendLogDataUpdate();
   }
@@ -158,9 +157,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onLogDataUpdate(event: any, fullLog: string) {
-    this.setState({
-      logData: fullLog,
-    });
+    this.setState({ logData: fullLog });
   }
 
   render() {
@@ -212,9 +209,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onOrderChange(event: IGameOrderChangeEvent): void {
-    this.setState({
-      order: event,
-    });
+    this.setState({ order: event });
   }
 
   private onScaleSliderChange(value: number): void {
@@ -237,13 +232,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onToggleLeftSidebarClick(): void {
-    const pref = this.props.preferencesData;
     this.props.updatePreferences({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
     this.forceUpdate();
   }
 
   private onToggleRightSidebarClick(): void {
-    const pref = this.props.preferencesData;
     this.props.updatePreferences({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
     this.forceUpdate();
   }
