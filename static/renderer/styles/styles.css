@@ -384,7 +384,6 @@ body {
 }
 /* Header Menu */
 .header__menu {
-  
   padding: 0.3em 0;
   margin-right: 1em;
   /* Pimp */
@@ -977,24 +976,16 @@ font-weight: bold;
 .browse-right-sidebar__row__editable-text--edit {
   width: 100%;
 }
-/* Browse-Right-Sidebar Row - Notes */
-.browse-right-sidebar__row .browse-right-sidebar__row__notes-edit {
-  display: block;
-  font-size: 0.9em;
-  width: 100%;
-  height: 16em;
-  resize: vertical;
-  font-size: inherit;
-  font-family: inherit;
-  font-style: inherit;
-  font-weight: inherit;
-}
-.browse-right-sidebar__row .browse-right-sidebar__row__notes-text {
+.browse-right-sidebar__row__editable-text.browse-right-sidebar__row__editable-text--multiline {
   display: block;
   font-size: 0.9em;
   width: 100%;
   min-height: 1rem;
+  resize: vertical;
   white-space: pre-wrap;
+}
+.browse-right-sidebar__row__editable-text--multiline.browse-right-sidebar__row__editable-text--edit {
+  height: 14em;
 }
 
 /* GameList */

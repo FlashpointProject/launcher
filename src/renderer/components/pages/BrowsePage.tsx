@@ -56,8 +56,6 @@ export interface IBrowsePageState {
   currentAddApps?: IAdditionalApplicationInfo[];
   /** If the "edit mode" is currently enabled */
   isEditing: boolean;
-  /** If unsaved changes has been made to the current game and/or add-apps */
-  hasEditedCurrent: boolean;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
@@ -71,8 +69,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.state = {
       quickSearch: '',
       orderedGames: [],
-      isEditing: false,
-      hasEditedCurrent: false,
+      isEditing: false
     };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
@@ -82,7 +79,6 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
     this.onRemoveSelectedGameFromPlaylist = this.onRemoveSelectedGameFromPlaylist.bind(this);
-    this.onEditCurrent = this.onEditCurrent.bind(this);
     this.onStartEditClick = this.onStartEditClick.bind(this);
     this.onDiscardEditClick = this.onDiscardEditClick.bind(this);
     this.onSaveEditClick = this.onSaveEditClick.bind(this);
@@ -113,10 +109,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     // Update current game and add-apps if the selected game changes
     if (this.props.selectedGame !== prevProps.selectedGame) {
       this.updateCurrentGameAndAddApps();
-      this.setState({
-        hasEditedCurrent: false,
-        isEditing: false
-      });
+      this.setState({ isEditing: false });
     }
     // Create a new game if the "New Game" button is pushed
     if (this.props.wasNewGameClicked && !prevProps.wasNewGameClicked) {
@@ -125,8 +118,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       newGame.dateAdded = formatDate(new Date());
       this.setState({
         currentGame: newGame,
-        currentAddApps: [],
-        hasEditedCurrent: true,
+        currentAddApps: []
       });
     }
     // Check if quick search string changed, and if it isn't empty
@@ -227,8 +219,6 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                          onEditPlaylistNotes={this.onEditPlaylistNotes}
                                          gamePlaylistEntry={gamePlaylistEntry}
                                          isEditing={this.state.isEditing}
-                                         hasEditedCurrent={this.state.hasEditedCurrent}
-                                         onEditCurrent={this.onEditCurrent}
                                          onEditClick={this.onStartEditClick}
                                          onDiscardClick={this.onDiscardEditClick}
                                          onSaveGame={this.onSaveEditClick} />
@@ -403,26 +393,20 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     });
   }
 
-  private onEditCurrent(): void {
-    this.setState({ hasEditedCurrent: true });
-  }
-
   private onStartEditClick(): void {
     this.setState({ isEditing: true });
   }
 
   private onDiscardEditClick(): void {
     this.setState({
-      isEditing: false,
-      hasEditedCurrent: false,
+      isEditing: false
     });
   }
 
   private onSaveEditClick(): void {
     this.saveGameAndAddApps();
     this.setState({
-      isEditing: false,
-      hasEditedCurrent: false,
+      isEditing: false
     });
   }
   

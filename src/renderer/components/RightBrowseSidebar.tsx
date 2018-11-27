@@ -10,9 +10,9 @@ import GameManager from '../game/GameManager';
 import { OpenIcon } from './OpenIcon';
 import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
-import { IEditableTextElementArgs, EditableTextElement } from './EditableTextElement';
 import { ImagePreview } from './ImagePreview';
 import { WithPreferencesProps } from '../containers/withPreferences';
+import { InputField } from './InputField';
 
 interface OwnProps {
   gameImages: GameImageCollection;
@@ -31,10 +31,6 @@ interface OwnProps {
   onEditPlaylistNotes?: (text: string) => void;
   /** If the "edit mode" is currently enabled */
   isEditing: boolean;
-  /** If unsaved changes has been made to the current game and/or add-apps */
-  hasEditedCurrent: boolean;
-  /** Called when changes has been made to the current game and/or add-apps */
-  onEditCurrent?: () => void;
   
   onEditClick?: () => void;
   onDiscardClick?: () => void;
@@ -51,32 +47,20 @@ export interface IRightBrowseSidebarState {
 /** Sidebar on the right side of BrowsePage */
 export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps, IRightBrowseSidebarState> {
   // Bound "on done" handlers
-  private onTitleEditDone           = this.wrapOnEditDone((game, text) => { game.title = text; });
-  private onDeveloperEditDone       = this.wrapOnEditDone((game, text) => { game.developer = text; });
-  private onGenreEditDone           = this.wrapOnEditDone((game, text) => { game.genre = text; });
-  private onSeriesEditDone          = this.wrapOnEditDone((game, text) => { game.series = text; });
-  private onSourceEditDone          = this.wrapOnEditDone((game, text) => { game.source = text; });
-  private onPublisherEditDone       = this.wrapOnEditDone((game, text) => { game.publisher = text; });
-  private onPlatformEditDone        = this.wrapOnEditDone((game, text) => { game.platform = text; });
-  private onPlayModeEditDone        = this.wrapOnEditDone((game, text) => { game.playMode = text; });
-  private onStatusEditDone          = this.wrapOnEditDone((game, text) => { game.status = text; });
-  private onLaunchCommandEditDone   = this.wrapOnEditDone((game, text) => { game.launchCommand = text; });
-  private onApplicationPathEditDone = this.wrapOnEditDone((game, text) => { game.applicationPath = text; });
-  private onNotesEditDone           = this.wrapOnEditDone((game, text) => { game.notes = text; });
+  private onTitleChange           = this.wrapOnTextChange((game, text) => { game.title = text; });
+  private onDeveloperChange       = this.wrapOnTextChange((game, text) => { game.developer = text; });
+  private onGenreChange           = this.wrapOnTextChange((game, text) => { game.genre = text; });
+  private onSeriesChange          = this.wrapOnTextChange((game, text) => { game.series = text; });
+  private onSourceChange          = this.wrapOnTextChange((game, text) => { game.source = text; });
+  private onPublisherChange       = this.wrapOnTextChange((game, text) => { game.publisher = text; });
+  private onPlatformChange        = this.wrapOnTextChange((game, text) => { game.platform = text; });
+  private onPlayModeChange        = this.wrapOnTextChange((game, text) => { game.playMode = text; });
+  private onStatusChange          = this.wrapOnTextChange((game, text) => { game.status = text; });
+  private onLaunchCommandChange   = this.wrapOnTextChange((game, text) => { game.launchCommand = text; });
+  private onApplicationPathChange = this.wrapOnTextChange((game, text) => { game.applicationPath = text; });
+  private onNotesChange           = this.wrapOnTextChange((game, text) => { game.notes = text; });
   private onBrokenChange            = this.wrapOnCheckBoxChange((game, isChecked) => { game.broken = isChecked; });
   private onExtremeChange           = this.wrapOnCheckBoxChange((game, isChecked) => { game.extreme = isChecked; });
-  // Bound render handlers
-  private renderTitle           = RightBrowseSidebar.wrapRenderEditableText('No Title', 'Title...');
-  private renderDeveloper       = RightBrowseSidebar.wrapRenderEditableText('No Developer', 'Author...');
-  private renderGenre           = RightBrowseSidebar.wrapRenderEditableText('No Genre', 'Genre...');
-  private renderSeries          = RightBrowseSidebar.wrapRenderEditableText('No Series', 'Series...');
-  private renderSource          = RightBrowseSidebar.wrapRenderEditableText('No Source', 'Source...');
-  private renderPublisher       = RightBrowseSidebar.wrapRenderEditableText('No Publisher', 'Publisher...');
-  private renderPlatform        = RightBrowseSidebar.wrapRenderEditableText('No Platform', 'Platform...');
-  private renderPlayMode        = RightBrowseSidebar.wrapRenderEditableText('No Play Mode', 'Play Mode...');
-  private renderStatus          = RightBrowseSidebar.wrapRenderEditableText('No Status', 'Status...');
-  private renderLaunchCommand   = RightBrowseSidebar.wrapRenderEditableText('No Launch Command', 'Launch Command...');
-  private renderApplicationPath = RightBrowseSidebar.wrapRenderEditableText('No Application Path', 'Application Path...');
 
   constructor(props: IRightBrowseSidebarProps) {
     super(props);
@@ -88,7 +72,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.onScreenshotPreviewClick = this.onScreenshotPreviewClick.bind(this);
     this.onAddAppDelete = this.onAddAppDelete.bind(this);
     this.onDeleteGameClick = this.onDeleteGameClick.bind(this);
-    this.renderNotes = this.renderNotes.bind(this);
+    this.onEditPlaylistNotes = this.onEditPlaylistNotes.bind(this);
   }
 
   componentDidMount(): void {
@@ -103,14 +87,14 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const dateAdded = new Date(game.dateAdded).toUTCString();
       const screenshotSrc = this.props.gameImages.getScreenshotPath(game.title, game.platform);
       return (
-        <div className={'browse-right-sidebar simple-scroll'+(!editDisabled?' browse-right-sidebar--edit-enabled':'')}>
+        <div className={'browse-right-sidebar simple-scroll'+(canEdit?' browse-right-sidebar--edit-enabled':'')}>
           {/* -- Title & Developer(s) -- */}
           <div className='browse-right-sidebar__section'>
             <div className='browse-right-sidebar__row'>
               <div className='browse-right-sidebar__title-row'>
                 <div className='browse-right-sidebar__title-row__title'>
-                  <EditableTextElement text={game.title} onEditConfirm={this.onTitleEditDone}
-                                       editable={canEdit} children={this.renderTitle} />
+                  <InputField text={game.title} placeholder='No Title'
+                              onChange={this.onTitleChange} canEdit={canEdit} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
                   { editDisabled ? undefined : (
@@ -148,46 +132,46 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             </div>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>by </p>
-              <EditableTextElement text={game.developer} onEditConfirm={this.onDeveloperEditDone}
-                                   editable={canEdit} children={this.renderDeveloper} />
+              <InputField text={game.developer} placeholder='No Developer'
+                          onChange={this.onDeveloperChange} canEdit={canEdit} />
             </div>
           </div>
           {/* -- Most Fields -- */}
           <div className='browse-right-sidebar__section'>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Genre: </p>
-              <EditableTextElement text={game.genre} onEditConfirm={this.onGenreEditDone}
-                                   editable={canEdit} children={this.renderGenre} />
+              <InputField text={game.genre} placeholder='No Genre'
+                          onChange={this.onGenreChange} canEdit={canEdit} />
             </div>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Series: </p>
-              <EditableTextElement text={game.series} onEditConfirm={this.onSeriesEditDone}
-                                   editable={canEdit} children={this.renderSeries} />
+              <InputField text={game.series} placeholder='No Series'
+                          onChange={this.onSeriesChange} canEdit={canEdit} />
             </div>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Publisher: </p>
-              <EditableTextElement text={game.publisher} onEditConfirm={this.onPublisherEditDone}
-                                   editable={canEdit} children={this.renderPublisher} />
+              <InputField text={game.publisher} placeholder='No Publisher'
+                          onChange={this.onPublisherChange} canEdit={canEdit} />
             </div>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Source: </p>
-              <EditableTextElement text={game.source} onEditConfirm={this.onSourceEditDone}
-                                   editable={canEdit} children={this.renderSource} />
+              <InputField text={game.source} placeholder='No Source'
+                          onChange={this.onSourceChange} canEdit={canEdit} />
             </div>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Platform: </p>
-              <EditableTextElement text={game.platform} onEditConfirm={this.onPlatformEditDone}
-                                   editable={canEdit} children={this.renderPlatform} />
+              <InputField text={game.platform} placeholder='No Platform'
+                          onChange={this.onPlatformChange} canEdit={canEdit} />
             </div>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Play Mode: </p>
-              <EditableTextElement text={game.playMode} onEditConfirm={this.onPlayModeEditDone}
-                                   editable={canEdit} children={this.renderPlayMode} />
+              <InputField text={game.playMode} placeholder='No Play Mode'
+                          onChange={this.onPlayModeChange} canEdit={canEdit} />
             </div>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Status: </p>
-              <EditableTextElement text={game.status} onEditConfirm={this.onStatusEditDone}
-                                   editable={canEdit} children={this.renderStatus} />
+              <InputField text={game.status} placeholder='No Status'
+                          onChange={this.onStatusChange} canEdit={canEdit} />
             </div>
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
               <p>Date Added: </p>
@@ -207,8 +191,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>Playlist Notes: </p>
-                <EditableTextElement text={gamePlaylistEntry.notes || ''} onEditConfirm={this.props.onEditPlaylistNotes}
-                                     editable={canEdit} children={this.renderNotes} />
+                <InputField text={gamePlaylistEntry.notes || ''} placeholder='No Playlist Notes'
+                            onChange={this.onEditPlaylistNotes} canEdit={canEdit} multiline={true} />
               </div>
             </div>
           ) : undefined }
@@ -217,8 +201,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>Notes: </p>
-                <EditableTextElement text={game.notes} onEditConfirm={this.onNotesEditDone}
-                                     editable={canEdit} children={this.renderNotes} />
+                <InputField text={game.notes} placeholder='No Notes'
+                            onChange={this.onNotesChange} canEdit={canEdit} multiline={true} />
               </div>
             </div>
           ) : undefined }
@@ -233,7 +217,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
               </div>
               { currentAddApps && currentAddApps.map((addApp) => {
                 return <RightBrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={!canEdit}
-                                                 onEdit={this.props.onEditCurrent} onLaunch={this.onAddAppLaunch}
+                                                 onLaunch={this.onAddAppLaunch}
                                                  onDelete={this.onAddAppDelete} />;
               }) }
             </div>
@@ -243,13 +227,13 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Application Path: </p>
-                <EditableTextElement text={game.applicationPath} onEditConfirm={this.onApplicationPathEditDone}
-                                     editable={canEdit} children={this.renderApplicationPath} />
+                <InputField text={game.applicationPath} placeholder='No Application Path'
+                            onChange={this.onApplicationPathChange} canEdit={canEdit} />
               </div>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Launch Command: </p>
-                <EditableTextElement text={game.launchCommand} onEditConfirm={this.onLaunchCommandEditDone}
-                                     editable={canEdit} children={this.renderLaunchCommand} />
+                <InputField text={game.launchCommand} placeholder='No Launch Command'
+                            onChange={this.onLaunchCommandChange} canEdit={canEdit} />
               </div>
             </div>
           ) : undefined }
@@ -309,46 +293,6 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     );
   }
 
-  public static wrapRenderEditableText(placeholderText: string, placeholderEdit: string) {
-    return (o: IEditableTextElementArgs) => {
-      if (o.editing) {
-        return (
-        <input value={o.text} placeholder={placeholderEdit}
-               onChange={o.onInputChange} onKeyDown={o.onInputKeyDown}
-               autoFocus onBlur={o.cancelEdit}
-               className='browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--edit simple-input' />
-        );
-      } else {
-        let className = 'browse-right-sidebar__row__editable-text';
-        if (!o.text) { className += ' simple-disabled-text'; }
-        return (
-          <p onClick={o.startEdit} title={o.text} className={className}>
-            {o.text || placeholderText}
-          </p>
-        );
-      }
-    };
-  }
-  
-  private renderNotes(o: IEditableTextElementArgs): JSX.Element {
-    if (o.editing) {
-      return (
-        <textarea value={o.text} placeholder='Enter notes here...'
-                  onChange={o.onInputChange} onKeyDown={o.onInputKeyDown}
-                  autoFocus onBlur={o.cancelEdit}
-                  className='browse-right-sidebar__row__notes-edit simple-input simple-scroll' />
-      );
-    } else {
-      let className = 'browse-right-sidebar__row__notes-text';
-      if (!o.text) { className += ' simple-disabled-text'; }
-      return (
-        <p onClick={o.startEdit} className={className}>
-          {o.text || '< No Notes >'}
-        </p>
-      );
-    }
-  }
-
   private onDeleteGameClick(): void {
     console.time('delete');
     const game = this.props.currentGame;
@@ -386,8 +330,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
     if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
     addApps.splice(index, 1);
-    // Flag as changed
-    if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
+    this.forceUpdate();
   }
 
   private onNewAddAppClick(): void {
@@ -397,7 +340,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     newAddApp.id = uuid();
     newAddApp.gameId = this.props.currentGame.id;
     this.props.currentAddApps.push(newAddApp);
-    if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
+    this.forceUpdate();
   }
 
   private onScreenshotClick(): void {
@@ -408,13 +351,20 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.setState({ showPreview: false });
   }
 
-  /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
-  private wrapOnEditDone(func: (game: IGameInfo, text: string) => void): (text: string) => void {
-    return (text: string) => {
+  private onEditPlaylistNotes(event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void {
+    if (this.props.onEditPlaylistNotes) {
+      this.props.onEditPlaylistNotes(event.currentTarget.value);
+      this.forceUpdate();
+    }
+  }
+
+  /** Create a wrapper for a EditableTextWrap's onChange callback (this is to reduce redundancy) */
+  private wrapOnTextChange(func: (game: IGameInfo, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
+    return (event) => {
       const game = this.props.currentGame;
       if (game) {
-        func(game, text);
-        if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
+        func(game, event.currentTarget.value);
+        this.forceUpdate();
       }
     }
   }
@@ -426,7 +376,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const canEdit = this.props.preferencesData.enableEditing && this.props.isEditing;
       if (game && canEdit) {
         func(game, isChecked);
-        if (this.props.onEditCurrent) { this.props.onEditCurrent(); }
+        this.forceUpdate();
       }
     }
   }
