@@ -908,6 +908,7 @@ font-weight: bold;
   flex: 0 0 auto;
   display: flex;
   margin-left: 0.3rem;
+  user-select: none;
 }
 .browse-right-sidebar__title-row__buttons > *:not(:first-child) {
   margin-left: 0.6rem;
@@ -949,6 +950,9 @@ font-weight: bold;
   fill: #5cb468;
 }
 /* Browse-Right-Sidebar Row - Sub Elements */
+.browse-right-sidebar__row__check-box-wrapper {
+  display: contents;
+}
 .browse-right-sidebar__row__check-box {
   vertical-align: middle;
 }

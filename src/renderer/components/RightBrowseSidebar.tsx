@@ -59,8 +59,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   private onLaunchCommandChange   = this.wrapOnTextChange((game, text) => { game.launchCommand = text; });
   private onApplicationPathChange = this.wrapOnTextChange((game, text) => { game.applicationPath = text; });
   private onNotesChange           = this.wrapOnTextChange((game, text) => { game.notes = text; });
-  private onBrokenChange            = this.wrapOnCheckBoxChange((game, isChecked) => { game.broken = isChecked; });
-  private onExtremeChange           = this.wrapOnCheckBoxChange((game, isChecked) => { game.extreme = isChecked; });
+  private onBrokenChange          = this.wrapOnCheckBoxChange((game) => { game.broken = !game.broken; });
+  private onExtremeChange         = this.wrapOnCheckBoxChange((game) => { game.extreme = !game.extreme; });
 
   constructor(props: IRightBrowseSidebarProps) {
     super(props);
@@ -178,12 +178,16 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
               <p className='browse-right-sidebar__row__date-added' title={dateAdded}>{dateAdded}</p>
             </div>
             <div className='browse-right-sidebar__row'>
-              <CheckBox checked={game.broken} onChange={this.onBrokenChange} className='browse-right-sidebar__row__check-box'/>
-              <p> Broken</p>
+              <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onBrokenChange}>
+                <CheckBox checked={game.broken} className='browse-right-sidebar__row__check-box' />
+                <p> Broken</p>
+              </div>
             </div>
             <div className='browse-right-sidebar__row'>
-              <CheckBox checked={game.extreme} onChange={this.onExtremeChange} className='browse-right-sidebar__row__check-box'/>
-              <p> Extreme</p>
+              <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onExtremeChange}>
+                <CheckBox checked={game.extreme} className='browse-right-sidebar__row__check-box' />
+                <p> Extreme</p>                
+              </div>
             </div>
           </div>
           {/* -- Playlist Game Entry Notes -- */}
@@ -370,12 +374,12 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy) */
-  private wrapOnCheckBoxChange(func: (game: IGameInfo, isChecked: boolean) => void): (isChecked: boolean) => void {
-    return (isChecked: boolean) => {
+  private wrapOnCheckBoxChange(func: (game: IGameInfo) => void): () => void {
+    return () => {
       const game = this.props.currentGame;
       const canEdit = this.props.preferencesData.enableEditing && this.props.isEditing;
       if (game && canEdit) {
-        func(game, isChecked);
+        func(game);
         this.forceUpdate();
       }
     }

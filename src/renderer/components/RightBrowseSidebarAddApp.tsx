@@ -23,8 +23,8 @@ export class RightBrowseSidebarAddApp extends React.Component<IRightBrowseSideba
   private onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
   private onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
   private onCommandLineEditDone     = this.wrapOnTextChange((addApp, text) => { addApp.commandLine = text; });
-  private onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp, isChecked) => { addApp.autoRunBefore = isChecked; });
-  private onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp, isChecked) => { addApp.waitForExit = isChecked; });
+  private onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp) => { addApp.autoRunBefore = !addApp.autoRunBefore; });
+  private onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
 
   constructor(props: IRightBrowseSidebarAddAppProps) {
     super(props);
@@ -58,15 +58,17 @@ export class RightBrowseSidebarAddApp extends React.Component<IRightBrowseSideba
             </div>
             {/* Auto Run Before */}
             <div className='browse-right-sidebar__row'>
-              <CheckBox className='browse-right-sidebar__row__check-box'
-                        checked={addApp.autoRunBefore} onChange={this.onAutoRunBeforeChange}/>
-              <p> Auto Run Before</p>
+              <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onAutoRunBeforeChange}>
+                <CheckBox className='browse-right-sidebar__row__check-box' checked={addApp.autoRunBefore} />
+                <p> Auto Run Before</p>
+              </div>
             </div>
             {/* Wait for Exit */}
             <div className='browse-right-sidebar__row'>
-              <CheckBox className='browse-right-sidebar__row__check-box'
-                        checked={addApp.waitForExit} onChange={this.onWaitForExitChange}/>
-              <p> Wait for Exit</p>
+              <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onWaitForExitChange}>
+                <CheckBox className='browse-right-sidebar__row__check-box' checked={addApp.waitForExit} />
+                <p> Wait for Exit</p>
+              </div>
               {/* Delete Button */}
               { !editDisabled ? (
                 <div className='browse-right-sidebar__additional-application__delete-button'
@@ -111,10 +113,10 @@ export class RightBrowseSidebarAddApp extends React.Component<IRightBrowseSideba
   }
 
   /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy) */
-  private wrapOnCheckBoxChange(func: (addApp: IAdditionalApplicationInfo, isChecked: boolean) => void) {
-    return (isChecked: boolean) => {
+  private wrapOnCheckBoxChange(func: (addApp: IAdditionalApplicationInfo) => void) {
+    return () => {
       if (!this.props.editDisabled) {
-        func(this.props.addApp, isChecked);
+        func(this.props.addApp);
         this.onEdit();
         this.forceUpdate();
       }
