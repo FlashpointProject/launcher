@@ -109,7 +109,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
                   </div>
                 ) : (
                   <p className='home-page__random-games__loading'>
-                    Loading...
+                    { this.props.central.gamesFailedLoading ? ('No games found.') : ('Loading...') }
                   </p>
                 ) }
               </div>
