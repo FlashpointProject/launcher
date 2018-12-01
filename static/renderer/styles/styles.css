@@ -663,17 +663,16 @@ body {
 }
 .home-page__random-games__title {
   margin: 0.2em 0;
-font-size: 1.2em;
-font-weight: bold;
-}
-.home-page__random-games__games {
-  display: flex;
+  font-size: 1.2em;
+  font-weight: bold;
 }
 .home-page__random-games__loading {
   display: block;
   text-align: center;
 }
-
+.random-games {
+  display: flex;
+}
 
 /* ------ Page-Not-Found (404) ------ */
 .page-not-found {
@@ -722,7 +721,7 @@ font-weight: bold;
   font-style: italic;
 }
 .about-page__bottom__author {
-  
+
 }
 .about-page__title {
   font-size: 2.5em;
@@ -1297,7 +1296,7 @@ font-weight: bold;
 .playlist-list-item--editing .playlist-list-item__head__author input {
   width: 8rem;
 }
-.playlist-list-item--editing .playlist-list-item__head__title, 
+.playlist-list-item--editing .playlist-list-item__head__title,
 .playlist-list-item--editing .playlist-list-item__head__author,
 .playlist-list-item--editing .playlist-list-item__head__icon {
   cursor: pointer;

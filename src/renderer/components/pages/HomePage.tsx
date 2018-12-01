@@ -5,11 +5,11 @@ import { IGameInfo } from '../../../shared/game/interfaces';
 import { GameGridItem } from '../GameGridItem';
 import { SizeProvider } from '../SizeProvider';
 import { GameLauncher } from '../../GameLauncher';
-import { filterExtreme } from '../../../shared/game/GameFilter';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { Paths } from '../../Paths';
+import { RandomGames } from '../RandomGames';
 
 interface OwnProps {
   central: ICentralState;
@@ -20,10 +20,6 @@ interface OwnProps {
 export type IHomePageProps = OwnProps & WithPreferencesProps;
 
 export interface IHomePageState {
-  /** If the random games has been picked yet */
-  pickedRandomGames: boolean;
-  randomGames: IGameInfo[];
-  randomGameThumbnails: Array<string | undefined>;
   /** Delay applied to the logo's animation */
   logoDelay: string;
 }
@@ -34,27 +30,23 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
   constructor(props: IHomePageProps) {
     super(props);
     this.state = {
-      pickedRandomGames: false,
-      randomGames: [],
-      randomGameThumbnails: [],
       logoDelay: (Date.now() * -0.001) + 's', // (Offset the animation with the current time stamp)
     };
     this.onHallOfFameClick = this.onHallOfFameClick.bind(this);
     this.onAllGamesClick = this.onAllGamesClick.bind(this);
   }
 
-  componentDidMount() {
-    this.selectRandomGames();
-  }
-
-  componentDidUpdate() {
-    if (!this.state.pickedRandomGames) {
-      this.selectRandomGames();
-    }
-  }
-
   render() {
-    const { pickedRandomGames, randomGames, randomGameThumbnails, logoDelay } = this.state;
+    const {
+      central: {
+        gamesDoneLoading,
+        games,
+        gameImages,
+      }
+    } = this.props;
+
+    const { logoDelay } = this.state;
+
     // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
     const height: number = 140;
     const width: number = (height * 0.666) | 0;
@@ -94,19 +86,12 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             <div className='home-page__random-games'>
               <div className='home-page__random-games__inner'>
                 <p className='home-page__random-games__title'>Random Games</p>
-                { pickedRandomGames ? (
-                  <div className='home-page__random-games__games'>
-                      { randomGames.map((game, index) => (
-                        <GameGridItem
-                          key={game.id}
-                          game={game}
-                          thumbnail={randomGameThumbnails[index] || ''}
-                          onDoubleClick={this.onLaunchGame}
-                          isSelected={false}
-                          isDragged={false}
-                          index={index} />
-                      )) }
-                  </div>
+                { gamesDoneLoading ? (
+                  <RandomGames
+                    games={games.collection.games}
+                    gameImages={gameImages}
+                    onLaunchGame={this.onLaunchGame}
+                  />
                 ) : (
                   <p className='home-page__random-games__loading'>
                     { this.props.central.gamesFailedLoading ? ('No games found.') : ('Loading...') }
@@ -138,27 +123,6 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     this.props.onSelectPlaylist(undefined);
     this.props.clearSearch();
   }
-
-  /** Select the random games to show */
-  private selectRandomGames() {
-    const gameImages = this.props.central.gameImages;
-    const allGames = this.props.central.games.collection.games;
-    if (allGames.length > 0) {
-      // Filter and randomize games
-      let games = allGames.slice();
-      games = filterExtreme(this.props.preferencesData.browsePageShowExtreme, games);
-      games = games.sort(() => .5 - Math.random()); // (Shuffle array)
-      // Pick a number of games and find their thumbnails
-      const randomGames = games.slice(0, Math.min(HomePage.randomGamesCount, games.length));
-      const randomGameThumbnails = randomGames.map((game) => gameImages.getThumbnailPath(game.title, game.platform));
-      // Update state
-      this.setState({
-        pickedRandomGames: true,
-        randomGames,
-        randomGameThumbnails,
-      });
-    }
-  }
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, children?: React.ReactNode }): JSX.Element {
@@ -167,7 +131,7 @@ function QuickStartItem(props: { icon?: OpenIconType, children?: React.ReactNode
       { props.icon ? (
          <div className='home-page__quick-start__item__icon simple-center__vertical-inner'>
           <OpenIcon icon={props.icon} />
-        </div>       
+        </div>
       ) : undefined }
       <div className='simple-center__vertical-inner'>
         {props.children}
