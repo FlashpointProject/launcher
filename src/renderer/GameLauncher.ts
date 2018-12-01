@@ -172,7 +172,9 @@ function doStuffs(emitter: EventEmitter, events: string[], callback: (event: str
 }
 
 function log(str: string): void {
-  window.External.appendLogData(`Game Launcher: ${str}\n`);
+  let outputStr = `Game Launcher: ${str}`;
+  console.time(outputStr);
+  window.External.log.addEntry(outputStr);
 }
 
 /**

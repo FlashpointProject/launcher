@@ -16,6 +16,7 @@ import { SearchQuery } from './store/search';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
+import { LogRendererApi } from '../shared/Log/LogRendererApi';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -94,7 +95,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           playlistsFailedLoading: true,
         })
       });
-      window.External.appendLogData(err.toString());
+      window.External.log.addEntry(err.toString());
       throw err;
     })
     .then(() => {
@@ -141,9 +142,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   componentDidMount() {
-    ipcRenderer.on('log-data-update', this.onLogDataUpdate);
-    // Ask main to send us our first log-data-update msg.
-    window.External.resendLogDataUpdate();
+    // Listen for changes in the log
+    window.External.log.on('change', this.onLogDataUpdate);
+    // Request all log entires
+    window.External.log.refreshEntries();
   }
 
   componentWillUnmount() {
@@ -156,8 +158,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private onLogDataUpdate(event: any, fullLog: string) {
-    this.setState({ logData: fullLog });
+  private onLogDataUpdate(log: LogRendererApi) {
+    console.timeEnd(log.entries[log.entries.length - 1]);
+    this.setState({ logData: log.entries.join('\n') });
   }
 
   render() {

@@ -102,8 +102,8 @@ class BackgroundServices extends EventEmitter {
       try {
         proc.spawn();
       } catch(error) {
-        logOutput(`An unexpected error occurred while trying to run the background process "${proc.name}".\n`+
-                  `  ${error.toString()}\n`);
+        logOutput(`An unexpected error occurred while trying to run the background process "${proc.name}".`+
+                  `  ${error.toString()}`);
       }
     }
   }
@@ -157,7 +157,7 @@ class BackgroundServices extends EventEmitter {
   }
 
   private outputLine(text: string): void {
-    this.emit('output', text+'\n');
+    this.emit('output', text);
   }
 }
 

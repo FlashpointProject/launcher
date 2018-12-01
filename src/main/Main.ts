@@ -8,12 +8,14 @@ import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 import { AppConfig } from '../shared/config/AppConfigFile';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
 import { IAppConfigData, IAppConfigApiFetchData } from '../shared/config/interfaces';
+import { LogMainApi } from '../shared/Log/LogMainApi';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
   private _backgroundServices?: BackgroundServices;
   private _config?: IAppConfigData;
   private _preferences: AppPreferencesMain = new AppPreferencesMain();
+  private _log: LogMainApi = new LogMainApi(this.sendToMainWindowRenderer.bind(this));
 
   public get config(): IAppConfigData {
     if (!this._config) { throw new Error('You must not try to access config before it is loaded!'); }
@@ -32,8 +34,7 @@ export class Main {
     app.once('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
     ipcMain.on(AppConfigApi.ipcRequestSync, this.onGetConfigSync.bind(this));
-    ipcMain.on('append-log-data', this.onAppendLogData.bind(this));
-    ipcMain.on('resend-log-data-update', this.onSendLogData.bind(this));
+    this._log.bindListeners();
     // Load config and preferences
     this.loadConfig()
     .then(async () => { await this._preferences.load(); })
@@ -105,17 +106,7 @@ export class Main {
    */
   private pushLogData(output: string): void {
     process.stdout.write(output);
-    this._mainWindow.appendLogData(output);
-  }
-
-  /** Send the main windows log to its renderer */
-  private onAppendLogData(event: Electron.IpcMessageEvent, data?: string): void {
-    this._mainWindow.appendLogData(data+'');
-  }
-
-  /** Send the main windows log to its renderer */
-  private onSendLogData(): void {
-    this._mainWindow.sendLogDataToRenderer();
+    this._log.addEntry(output);
   }
 
   /** Load the application config asynchronously */
@@ -146,5 +137,12 @@ export class Main {
       fullFlashpointPath: path.resolve(this.config.flashpointPath),
     };
     event.returnValue = data;
+  }
+
+  /** Send a message to the main windows renderer */
+  private sendToMainWindowRenderer(channel: string , ...rest: any[]): boolean {
+    if (!this._mainWindow.window) { return false;}
+    this._mainWindow.window.webContents.send(channel, ...rest);
+    return true;
   }
 }
