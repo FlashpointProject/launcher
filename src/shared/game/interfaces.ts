@@ -4,8 +4,11 @@ export interface IGameCollection {
   additionalApplications: IAdditionalApplicationInfo[];
 }
 
-/** Represents the meta data for a single Game */
-export interface IGameInfo {
+/**
+ * Represents the meta data for a single Game (that gets saved)
+ * (This will replace "IRawLaunchBoxGame" once a JSON format is used instead of XML)
+ */
+interface IPureGameInfo {
   /** ID of the game (unique identifier) */
   id: string;
   /** Full title of the game */
@@ -38,8 +41,14 @@ export interface IGameInfo {
   applicationPath: string;
   /** Command line argument(s) passed to the application to launch the game */
   launchCommand: string;
+}
+
+/** Represents the meta data for a single Game (including temporary data) */
+export interface IGameInfo extends IPureGameInfo {
   /** The title but reconstructed to be suitable for sorting and ordering (and not be shown visually) */
   orderTitle: string;
+  /** If the game is a placeholder (and can therefore not be saved) */
+  placeholder: boolean;
 }
 
 /** Represents the meta data for a single additional application */

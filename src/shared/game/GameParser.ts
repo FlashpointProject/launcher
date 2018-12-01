@@ -44,6 +44,7 @@ export class GameParser {
       applicationPath: unescapeHTML(data.ApplicationPath),
       launchCommand: unescapeHTML(data.CommandLine),
       orderTitle: generateGameOrderTitle(title),
+      placeholder: false, // (No loaded game is a placeholder)
     };
   }
 

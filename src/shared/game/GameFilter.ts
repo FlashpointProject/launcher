@@ -1,6 +1,7 @@
 import { IGameInfo, IGameSearchQuery } from './interfaces';
 import { IGameOrderChangeEvent } from '../../renderer/components/GameOrder';
 import { IGamePlaylist } from '../../renderer/playlist/interfaces';
+import { GameInfo } from './GameInfo';
 
 export type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
 
@@ -79,18 +80,25 @@ export function filterExtreme(showExtreme: boolean, games: IGameInfo[]): IGameIn
   return filteredGames;
 }
 
-/** Return a new array with all games that are not in the playlist removed (if playlist isn't undefined) */
+/**
+ * Return a new array with all games that are not in the playlist removed (if playlist isn't undefined)
+ * (This will add new games for the games in the playlist that are missing,
+ *  this will also reorder the games to match the order of the playlist)
+ */
 export function filterPlaylist(playlist: IGamePlaylist|undefined, games: IGameInfo[]): IGameInfo[] {
   if (!playlist) { return games; }
   const filteredGames: IGameInfo[] = [];
   for (let gameEntry of playlist.games) {
     const id = gameEntry.id;
+    let gameFound = false;
     for (let game of games) {
       if (game.id === id) {
         filteredGames.push(game);
+        gameFound = true;
         break;
       }
     }
+    if (!gameFound) { filteredGames.push(createGameNotFound(id)); }
   }
   return filteredGames;
 }
@@ -243,4 +251,21 @@ function parseFilters(input: string): IGameSearchQuery {
         break;
     }
   }
+}
+
+/* "Game" used for displaying games that are not found */
+const notFoundGame: IGameInfo = Object.freeze(Object.assign(
+  GameInfo.create(),
+  {
+    title: 'Game not found',
+    placeholder: true, // (This game is not an "actual" game - it just shows the actual game was not found)
+  }
+));
+
+/** Create a placeholder for games that are not found */
+function createGameNotFound(id: string): IGameInfo {
+  return Object.assign(
+    {}, notFoundGame,
+    { id }
+  );
 }

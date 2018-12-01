@@ -82,6 +82,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
       const { currentAddApps, gamePlaylistEntry, isEditing } = this.props;
+      const isPlaceholder = game.placeholder;
       const editDisabled = !this.props.preferencesData.enableEditing;
       const canEdit = !editDisabled && isEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
@@ -99,23 +100,27 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                 <div className='browse-right-sidebar__title-row__buttons'>
                   { editDisabled ? undefined : (
                     <>
-                      {/* "Save" Button */}
-                      { isEditing ? (
-                        <div className='browse-right-sidebar__title-row__buttons__save-button'
-                             title='Save Changes' onClick={this.props.onSaveGame}>
-                          <OpenIcon icon='check' />
-                        </div>
-                      ) : undefined }
-                      { isEditing ? ( /* "Discard" Button */
-                        <div className='browse-right-sidebar__title-row__buttons__discard-button'
-                             title='Discard Changes' onClick={this.props.onDiscardClick}>
-                          <OpenIcon icon='x' />
-                        </div>
-                      ) : ( /* "Edit" Button */
-                        <div className='browse-right-sidebar__title-row__buttons__edit-button'
-                            title='Edit Game' onClick={this.props.onEditClick}>
-                          <OpenIcon icon='pencil' />
-                        </div>
+                      { isEditing ? ( /* While Editing */
+                        <>
+                          {/* "Save" Button */}
+                          <div className='browse-right-sidebar__title-row__buttons__save-button'
+                              title='Save Changes' onClick={this.props.onSaveGame}>
+                            <OpenIcon icon='check' />
+                          </div>
+                          {/* "Discard" Button */}
+                          <div className='browse-right-sidebar__title-row__buttons__discard-button'
+                              title='Discard Changes' onClick={this.props.onDiscardClick}>
+                            <OpenIcon icon='x' />
+                          </div>
+                        </>
+                      ) : ( /* While NOT Editing */
+                        /* "Edit" Button */
+                        isPlaceholder ? undefined : (
+                            <div className='browse-right-sidebar__title-row__buttons__edit-button'
+                                title='Edit Game' onClick={this.props.onEditClick}>
+                              <OpenIcon icon='pencil' />
+                            </div>
+                        )
                       ) }
                       {/* "Remove From Playlist" Button */}
                       { gamePlaylistEntry ? (
@@ -123,73 +128,81 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                                         children={this.renderRemoveFromPlaylistButton} />
                       ) : undefined }
                       {/* "Delete Game" Button */}
-                      <ConfirmElement onConfirm={this.onDeleteGameClick}
-                                      children={this.renderDeleteGameButton} />
+                      { isPlaceholder ? undefined : (
+                        <ConfirmElement onConfirm={this.onDeleteGameClick}
+                                        children={this.renderDeleteGameButton} />
+                      ) }
                     </>
                   ) }
                 </div>
               </div>
             </div>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>by </p>
-              <InputField text={game.developer} placeholder='No Developer'
-                          onChange={this.onDeveloperChange} canEdit={canEdit} />
-            </div>
+            { isPlaceholder ? undefined : (
+              <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                <p>by </p>
+                <InputField text={game.developer} placeholder='No Developer'
+                            onChange={this.onDeveloperChange} canEdit={canEdit} />
+              </div>
+            ) }
           </div>
           {/* -- Most Fields -- */}
-          <div className='browse-right-sidebar__section'>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Genre: </p>
-              <InputField text={game.genre} placeholder='No Genre'
-                          onChange={this.onGenreChange} canEdit={canEdit} />
-            </div>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Series: </p>
-              <InputField text={game.series} placeholder='No Series'
-                          onChange={this.onSeriesChange} canEdit={canEdit} />
-            </div>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Publisher: </p>
-              <InputField text={game.publisher} placeholder='No Publisher'
-                          onChange={this.onPublisherChange} canEdit={canEdit} />
-            </div>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Source: </p>
-              <InputField text={game.source} placeholder='No Source'
-                          onChange={this.onSourceChange} canEdit={canEdit} />
-            </div>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Platform: </p>
-              <InputField text={game.platform} placeholder='No Platform'
-                          onChange={this.onPlatformChange} canEdit={canEdit} />
-            </div>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Play Mode: </p>
-              <InputField text={game.playMode} placeholder='No Play Mode'
-                          onChange={this.onPlayModeChange} canEdit={canEdit} />
-            </div>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Status: </p>
-              <InputField text={game.status} placeholder='No Status'
-                          onChange={this.onStatusChange} canEdit={canEdit} />
-            </div>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Date Added: </p>
-              <p className='browse-right-sidebar__row__date-added' title={dateAdded}>{dateAdded}</p>
-            </div>
-            <div className='browse-right-sidebar__row'>
-              <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onBrokenChange}>
-                <CheckBox checked={game.broken} className='browse-right-sidebar__row__check-box' />
-                <p> Broken</p>
+          { isPlaceholder ? undefined : (
+            <>
+              <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Genre: </p>
+                  <InputField text={game.genre} placeholder='No Genre'
+                              onChange={this.onGenreChange} canEdit={canEdit} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Series: </p>
+                  <InputField text={game.series} placeholder='No Series'
+                              onChange={this.onSeriesChange} canEdit={canEdit} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Publisher: </p>
+                  <InputField text={game.publisher} placeholder='No Publisher'
+                              onChange={this.onPublisherChange} canEdit={canEdit} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Source: </p>
+                  <InputField text={game.source} placeholder='No Source'
+                              onChange={this.onSourceChange} canEdit={canEdit} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Platform: </p>
+                  <InputField text={game.platform} placeholder='No Platform'
+                              onChange={this.onPlatformChange} canEdit={canEdit} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Play Mode: </p>
+                  <InputField text={game.playMode} placeholder='No Play Mode'
+                              onChange={this.onPlayModeChange} canEdit={canEdit} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Status: </p>
+                  <InputField text={game.status} placeholder='No Status'
+                              onChange={this.onStatusChange} canEdit={canEdit} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Date Added: </p>
+                  <p className='browse-right-sidebar__row__date-added' title={dateAdded}>{dateAdded}</p>
+                </div>
+                <div className='browse-right-sidebar__row'>
+                  <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onBrokenChange}>
+                    <CheckBox checked={game.broken} className='browse-right-sidebar__row__check-box' />
+                    <p> Broken</p>
+                  </div>
+                </div>
+                <div className='browse-right-sidebar__row'>
+                  <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onExtremeChange}>
+                    <CheckBox checked={game.extreme} className='browse-right-sidebar__row__check-box' />
+                    <p> Extreme</p>                
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className='browse-right-sidebar__row'>
-              <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onExtremeChange}>
-                <CheckBox checked={game.extreme} className='browse-right-sidebar__row__check-box' />
-                <p> Extreme</p>                
-              </div>
-            </div>
-          </div>
+            </>            
+          ) }
           {/* -- Playlist Game Entry Notes -- */}
           { gamePlaylistEntry ? (
             <div className='browse-right-sidebar__section'>
@@ -201,7 +214,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             </div>
           ) : undefined }
           {/* -- Notes -- */}
-          { !editDisabled || game.notes ? (
+          { (!editDisabled || game.notes) && !isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>Notes: </p>
@@ -227,7 +240,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             </div>
           ) : undefined }
           {/* -- Application Path & Launch Command -- */}
-          { canEdit ? (
+          { canEdit && !isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Application Path: </p>
@@ -242,7 +255,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             </div>
           ) : undefined }
           {/* -- Game ID -- */}
-          { canEdit ? (
+          { canEdit || isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>ID: </p>

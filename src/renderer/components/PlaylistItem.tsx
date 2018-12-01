@@ -385,25 +385,6 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
     GameLauncher.launchGame(game, addApps);
   }
-
-  /**
-   * Get all games in the playlists from 
-   */
-  private getGames(): (IGameInfo|undefined)[] {
-    const games: (IGameInfo|undefined)[] = [];
-    const collectionGames = this.props.central.games.collection.games;
-    const gameEntries = (this.state.editPlaylist || this.props.playlist).games;
-    for (let i = 0; i < gameEntries.length; i++) {
-      const game2 = gameEntries[i];
-      for (let j = collectionGames.length-1; j >= 0; j--) {
-        const game = collectionGames[j];
-        if (game2.id === game.id) {
-          games[i] = game;
-        }
-      }
-    }
-    return games;
-  }
   
   /** Update CSS Variables */
   updateCssVars() {
@@ -435,15 +416,5 @@ function toDataURL(url: string) {
     reader.onloadend = () => resolve(reader.result as any);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
-  }))          
+  }))
 }
-
-// "Game" used for displaying games that are not found
-const notFoundGame: IGameInfo = Object.assign(
-  GameParser.parseGame({}), {
-    title: 'Game not found',
-  }
-);
-
-const confirmKeys: string[] = ['Enter'];
-const cancelKeys:  string[] = ['Escape'];

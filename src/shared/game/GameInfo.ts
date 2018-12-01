@@ -21,6 +21,7 @@ export class GameInfo {
       applicationPath: '',
       launchCommand: '',
       orderTitle: '',
+      placeholder: false,
     };
   }
 
