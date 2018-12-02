@@ -754,9 +754,41 @@ font-weight: bold;
 
 /* ------ Log ------ */
 .log-page {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
 }
+/* Log-Page Bar */
+.log-page__bar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  flex-flow: wrap;
+  padding: 0 0.3rem;
+  font-size: 0.85rem;
+  user-select: none;
+  background-color: #222222;
+}
+.log-page__bar__wrap {
+  padding: 0.025rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.log-page__bar__right {
+  flex-grow: 1;
+}
+.log-page__bar__right__inner {
+  display: flex;
+  float: right;
+  width: auto;
+  flex-wrap: wrap;
+}
+/* Log-Page Content */
+.log-page__content {
+  flex: 1 1 auto;
+}
+/* Log */
 .log {
   height: 100%;
   overflow: scroll;

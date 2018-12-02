@@ -17,14 +17,17 @@ export class LogRendererApi extends EventEmitter {
   constructor() {
     super();
     this.onRefreshEntries = this.onRefreshEntries.bind(this);
+    this.onRemoveEntries = this.onRemoveEntries.bind(this);
   }
 
   bindListeners() {
     ipcRenderer.on(LogChannel.refreshEntriesReply, this.onRefreshEntries);
+    ipcRenderer.on(LogChannel.removeEntriesReply, this.onRemoveEntries);
   }
 
   unbinbListeners() {
     ipcRenderer.removeListener(LogChannel.refreshEntriesReply, this.onRefreshEntries);
+    ipcRenderer.removeListener(LogChannel.removeEntriesReply, this.onRemoveEntries);
   }
   
   public addEntry(preEntry: ILogPreEntry): void {
@@ -52,6 +55,11 @@ export class LogRendererApi extends EventEmitter {
   public refreshEntries(): void {
     ipcRenderer.send(LogChannel.refreshEntries, this.entries.length);
   }
+  
+  public clearEntries(): void {
+    // (Remove all entries between index 0 and the index of the latest entry)
+    ipcRenderer.send(LogChannel.removeEntries, 0, this.entries.length);
+  }
 
   public stringifyEntries(): string {
     return stringifyLogEntries(this.entries);
@@ -62,6 +70,13 @@ export class LogRendererApi extends EventEmitter {
     for (let i = 0; i < entries.length; i++) {
       this.entries[start + i] = entries[i];
     }
+    // Emit event
+    this.emit('change', this);
+  }
+
+  private onRemoveEntries(event: IpcMessageEvent, first: number, last: number): void {
+    // Remove entries
+    this.entries.splice(first, last);
     // Emit event
     this.emit('change', this);
   }

@@ -20,6 +20,17 @@ export enum LogChannel {
    * (main -> renderer)
    */
   refreshEntriesReply = 'log-refresh-entries-reply',
+
+  /**
+   * Send a request to remove a set of entries from the main and renderer logs
+   * (renderer -> main)
+  */
+  removeEntries = 'log-remove-entries',
+  /**
+   * Reply from the main, tells the renderer to also remove entries from its log
+   * (main -> renderer)
+   */
+  removeEntriesReply = 'log-remove-entries-reply',
 }
 
 /** Create a HTML string of a number of entries */

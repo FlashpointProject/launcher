@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 export interface ILogDataProps {
+  className?: string;
   logData: string;
 }
 
@@ -57,8 +58,9 @@ export class LogData extends React.Component<ILogDataProps> {
   }
 
   render() {
+    const { className } = this.props;
     return (
-      <pre className='log simple-scroll' ref={this.preNodeRef}
+      <pre className={(className||'')+' log simple-scroll'} ref={this.preNodeRef}
            dangerouslySetInnerHTML={{ __html:this.props.logData }} />
     );
   }

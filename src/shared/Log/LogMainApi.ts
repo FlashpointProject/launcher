@@ -15,16 +15,19 @@ export class LogMainApi {
     this.sendToRenderer = sendToRenderer;
     this.onAddEntry = this.onAddEntry.bind(this);
     this.onRefreshEntries = this.onRefreshEntries.bind(this);
+    this.onRemoveEntries = this.onRemoveEntries.bind(this);
   }
 
   bindListeners() {
     ipcMain.on(LogChannel.addEntry, this.onAddEntry);
     ipcMain.on(LogChannel.refreshEntries, this.onRefreshEntries);
+    ipcMain.on(LogChannel.removeEntries, this.onRemoveEntries);
   }
 
   unbinbListeners() {
     ipcMain.removeListener(LogChannel.addEntry, this.onAddEntry);
     ipcMain.removeListener(LogChannel.refreshEntries, this.onRefreshEntries);
+    ipcMain.removeListener(LogChannel.removeEntries, this.onRemoveEntries);
   }
 
   public addEntry(preEntry: ILogPreEntry) {
@@ -56,6 +59,17 @@ export class LogMainApi {
       LogChannel.refreshEntriesReply,
       length,
       this.entries.slice(length)
+    );
+  }
+
+  private onRemoveEntries(event: IpcMessageEvent, first: number, last: number) {
+    // Remove the entries
+    this.entries.splice(first, last);
+    // Respond
+    event.sender.send(
+      LogChannel.removeEntriesReply,
+      first,
+      last
     );
   }
 }
