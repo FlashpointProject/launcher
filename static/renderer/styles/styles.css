@@ -764,7 +764,7 @@ font-weight: bold;
   flex: 0 0 auto;
   display: inline-flex;
   flex-flow: wrap;
-  padding: 0 0.3rem;
+  padding: 0.2rem 0.3rem;
   font-size: 0.85rem;
   user-select: none;
   background-color: #222222;
@@ -783,6 +783,9 @@ font-weight: bold;
   float: right;
   width: auto;
   flex-wrap: wrap;
+}
+.log-page__bar__right__inner > *:not(:last-child) {
+  margin-right: 0.3rem;
 }
 /* Log-Page Content */
 .log-page__content {
