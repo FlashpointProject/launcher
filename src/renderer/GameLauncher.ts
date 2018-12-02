@@ -9,7 +9,7 @@ export class GameLauncher {
     const appPath: string = relativeToFlashpoint(addApp.applicationPath);
     const appArgs: string = addApp.commandLine;
     const proc = GameLauncher.launch(appPath, appArgs, { env: GameLauncher.getEnvironment() });
-    log(`launch add-app "${addApp.name}" (PID: ${proc.pid}) [path: "${addApp.applicationPath}", arg: "${addApp.commandLine}"]`);
+    log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.commandLine}" ]`);
   }
 
   /**
@@ -27,7 +27,7 @@ export class GameLauncher {
     const gamePath: string = relativeToFlashpoint(GameLauncher.getApplicationPath(game));
     let gameArgs: string = game.launchCommand;
     const proc = GameLauncher.launch(gamePath, gameArgs, { env: GameLauncher.getEnvironment() });
-    log(`launch game "${game.title}" (PID: ${proc.pid}), [path: "${game.applicationPath}", arg: "${game.launchCommand}"]`);
+    log(`Launch Game "${game.title}" (PID: ${proc.pid}) [ path: "${game.applicationPath}", arg: "${game.launchCommand}" ]`);
     // Show popups for Unity games
     // (This is written specifically for the "startUnity.bat" batch file)
     if (game.platform === 'Unity') {
@@ -141,21 +141,55 @@ export class GameLauncher {
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     const logStuff = (event: string, args: any[]): void => {
-      let str = `${event} (PID: ${proc.pid}) [ `;
-      for (let i = 0; i < args.length; i++) {
-        let element = args[i];
-        str += isString(element) ? `"${element}"` : element+'';
-        if (i !== args.length - 1) { str += ', '; }
-      }
-      str += ' ]';
-      log(str);
+      log(`${event} (PID: ${padStart(proc.pid, 5)}) ${strinfigyArray(args)}`);
     };
-    doStuffs(proc, ['close', 'disconnect', 'error', 'exit', 'message'], logStuff);
+    doStuffs(proc, [/*'close',*/ 'disconnect', 'error', 'exit', 'message'], logStuff);
     proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); });
     proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); });
     // Return process
     return proc;
   }
+}
+
+/**
+ * Pad a the end of a string with spaces until the string is of a specified length
+ * @param str String to pad
+ * @param length Target length of string (max number of spaces to add)
+ * @returns String padded with spaces
+ *          (or the original string if it's length is equal or longer than the specified length)
+ */
+function padEnd(str: string|number, length: number): string {
+  str = str + ''; // (Coerce to string)
+  return str + ' '.repeat(Math.max(0, length - str.length));
+}
+
+/**
+ * Pad a the start of a string with spaces until the string is of a specified length
+ * @param str String to pad
+ * @param length Target length of string (max number of spaces to add)
+ * @returns String padded with spaces
+ *          (or the original string if it's length is equal or longer than the specified length)
+ */
+function padStart(str: string|number, length: number): string {
+  str = str + ''; // (Coerce to string)
+  return ' '.repeat(Math.max(0, length - str.length)) + str;
+}
+
+/**
+ * Write an array to a string in a pretty and readable way
+ * Ex. [0,'test',null] => "[ 0, 'test', null ]"
+ * @param array Array to "stringify"
+ * @returns Readable text representation of the array
+ */
+function strinfigyArray(array: Array<any>): string {
+  let str = '[ ';
+  for (let i = 0; i < array.length; i++) {
+    let element = array[i];
+    str += isString(element) ? `"${element}"` : element+'';
+    if (i !== array.length - 1) { str += ', '; }
+  }
+  str += ' ]';
+  return str;
 }
 
 function relativeToFlashpoint(filePath: string): string {
