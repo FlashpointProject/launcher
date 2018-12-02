@@ -159,7 +159,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onLogDataUpdate(log: LogRendererApi) {
-    console.timeEnd(log.entries[log.entries.length - 1]);
     this.setState({ logData: log.entries.join('\n') });
   }
 
