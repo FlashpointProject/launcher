@@ -1,10 +1,24 @@
 import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
+import { ILogPreEntry } from '../shared/Log/interface';
+
+export declare interface ManagedChildProcess {
+  /**
+   * Fires when any background service prints to std{out,err}. Every line is
+   * prefixed with the name of the process and the output is guaranteed to end
+   * with a new line.
+   */
+  on(event: 'output', handler: (output: ILogPreEntry) => void): this;
+  emit(event: 'output', output: ILogPreEntry): boolean;
+  /** Fires when the this has executed all processes inside .start() */
+  on(event: 'start-done'): this;
+  emit(event: 'start-done'): boolean;
+}
 
 /**
  * A Child Process which automatically logs all output to the console
  */
-export default class ManagedChildProcess extends EventEmitter {
+export class ManagedChildProcess extends EventEmitter {
   private process?: ChildProcess;
   public readonly name: string;
   private command: string;
@@ -25,19 +39,19 @@ export default class ManagedChildProcess extends EventEmitter {
   public spawn(): void {
     if (this.process) { throw Error('You must not spawn the same ManagedChildProcess multiple times.'); }
     this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
-    this.emit('output', `${this.name} has been started`);
+    this.logContent(`has been started`);
     // Add event listeners to process
     this.process.stdout.on('data', (data: Buffer) => {
       // @BUG: This is only shows after the user presses CTRL+C.
       //       It does not show it any other circumstances.
-      this.emit('output', this.addNameToOutput(data.toString('utf8')));
+      this.logContent(data.toString('utf8'));
     });
     this.process.stderr.on('data', (data: Buffer) => {
-      this.emit('output', this.addNameToOutput(data.toString('utf8')));
+      this.logContent(data.toString('utf8'));
     });
     this.process.on('exit', (code, signal) => {
-      if (code) { this.emit('output', `${this.name} exited with code ${code}`);     } 
-      else      { this.emit('output', `${this.name} exited with signal ${signal}`); }
+      if (code) { this.logContent(`exited with code ${code}`);     } 
+      else      { this.logContent(`exited with signal ${signal}`); }
       this.process = undefined;
     });
   }
@@ -49,17 +63,19 @@ export default class ManagedChildProcess extends EventEmitter {
     }
   }
 
-  /**
-   * Add `${this.name}:` before each line of the output
-   * @param output The std{out,err} of the process.
-   */
-  private addNameToOutput(output: string): string {
-    return (
-      output
-        .replace(/\n$/, '')
-        .split('\n')
-        .map(line => `${this.name}: ${line}`)
-        .join('\n')
-    );
+  private logContent(content: string): void {
+    this.emit('output', {
+      source: this.name,
+      content: removeTrailingNewlines(content),
+    });
   }
+}
+
+/** Remove all newlines at the end of a string */
+function removeTrailingNewlines(str: string): string {
+  let newString = str;
+  while (newString.endsWith('\n')) {
+    newString = newString.substr(0, newString.length - 1);
+  }
+  return newString;
 }

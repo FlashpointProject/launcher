@@ -1,11 +1,13 @@
 import { ipcMain, IpcMessageEvent } from 'electron';
 import { LogChannel } from './LogCommon';
+import { ILogEntry, ILogPreEntry } from './interface';
+import { deepCopy } from '../Util';
 
 type SendFunc = (channel: string , ...rest: any[]) => boolean;
 
 /** API for the log used by the main process */
 export class LogMainApi {
-  private entries: string[] = [];
+  private entries: ILogEntry[] = [];
   /** Function that sends a message to the renderer through the IPC */
   private sendToRenderer: SendFunc;
 
@@ -25,9 +27,12 @@ export class LogMainApi {
     ipcMain.removeListener(LogChannel.refreshEntries, this.onRefreshEntries);
   }
 
-  public addEntry(data: string) {
+  public addEntry(preEntry: ILogPreEntry) {
     // Format entry
-    const entry = `[${formatTime(new Date())}] ${data}`;
+    const entry = Object.assign(
+      deepCopy(preEntry),
+      { timestamp: Date.now() }
+    );
     // Add entry
     this.entries.push(entry);
     // Send the entry to the renderer
@@ -38,8 +43,8 @@ export class LogMainApi {
     );
   }
 
-  private onAddEntry(event: IpcMessageEvent, data: string, msgId?: number) {
-    this.addEntry(data);
+  private onAddEntry(event: IpcMessageEvent, entry: ILogPreEntry, msgId?: number) {
+    this.addEntry(entry);
     // Reply if it's a tracked message
     if (msgId !== undefined) {
       event.sender.send(LogChannel.addEntryReply, msgId);
@@ -53,13 +58,4 @@ export class LogMainApi {
       this.entries.slice(length)
     );
   }
-}
-
-/** Formats a date to a string in the format HH:MM:SS */
-function formatTime(date: Date): string {
-  return (
-    ('0'+date.getHours()  ).slice(-2)+':'+
-    ('0'+date.getMinutes()).slice(-2)+':'+
-    ('0'+date.getSeconds()).slice(-2)
-  );
 }

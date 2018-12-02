@@ -159,7 +159,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onLogDataUpdate(log: LogRendererApi) {
-    this.setState({ logData: log.entries.join('\n') });
+    this.setState({ logData: log.stringifyEntries() });
   }
 
   render() {

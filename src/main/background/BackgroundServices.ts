@@ -2,11 +2,12 @@ import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { promisify } from 'util';
-import ManagedChildProcess from '../ManagedChildProcess';
+import { ManagedChildProcess } from '../ManagedChildProcess';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
 import { BackgroundServicesFile } from './BackgroundServicesFile';
 import { IBackProcessInfoFile, IBackProcessInfo } from './interfaces';
 import { IAppConfigData } from '../../shared/config/interfaces';
+import { ILogPreEntry } from '../../shared/Log/interface';
 
 const execFile = promisify(child_process.execFile);
 
@@ -16,9 +17,11 @@ declare interface BackgroundServices {
    * prefixed with the name of the process and the output is guaranteed to end
    * with a new line.
    */
-  on(event: 'output', handler: (output: string) => void): this;
+  on(event: 'output', handler: (output: ILogPreEntry) => void): this;
+  emit(event: 'output', output: ILogPreEntry): boolean;
   /** Fires when the this has executed all processes inside .start() */
   on(event: 'start-done'): this;
+  emit(event: 'start-done'): boolean;
 }
 
 class BackgroundServices extends EventEmitter {
@@ -35,7 +38,7 @@ class BackgroundServices extends EventEmitter {
 
   /** Start all required background process for this platform */
   public async start(config: IAppConfigData): Promise<void> {
-    const logOutput = (output: string) => { this.emit('output', output); };
+    const logOutput = (entry: ILogPreEntry) => { this.log(entry); };
 
     // Keep some configs
     this.flashpointPath = config.flashpointPath;
@@ -44,7 +47,7 @@ class BackgroundServices extends EventEmitter {
     // Abort if Flashpoint path is not valid
     const valid = await isFlashpointValidCheck(config.flashpointPath);
     if (!valid) {
-      this.outputLine('The flashpoint root folder is invalid.');
+      this.logContent('The flashpoint root folder is invalid.');
       this.startDone();
       return;
     }
@@ -54,7 +57,7 @@ class BackgroundServices extends EventEmitter {
     try {
       serviceInfo = await BackgroundServicesFile.readFile(config.flashpointPath);
     } catch(error) {
-      this.outputLine(`An error occurred while loading the background services file:\n  ${error.toString()}`);
+      this.logContent(`An error occurred while loading the background services file:\n  ${error.toString()}`);
       this.startDone();
       return;
     }
@@ -72,7 +75,7 @@ class BackgroundServices extends EventEmitter {
       if (!serviceInfo.server) { throw new Error('Server process information not found.'); }
       this.server = createManagedChildProcess('Router', serviceInfo.server);
       this.server.on('output', logOutput);
-      spawnProc(this.server);
+      this.spawnProc(this.server);
     }
 
     // Start redirector
@@ -82,7 +85,7 @@ class BackgroundServices extends EventEmitter {
       if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${config.useFiddler?'Fiddler':'Redirector'})`); }
       this.redirector = createManagedChildProcess('Redirector', redirectorInfo, config.useFiddler);
       this.redirector.on('output', logOutput);
-      spawnProc(this.redirector);
+      this.spawnProc(this.redirector);
     }
     
     this.startDone();
@@ -96,15 +99,6 @@ class BackgroundServices extends EventEmitter {
         info.arguments, 
         path.join(config.flashpointPath, info.path),
         !!detached);
-    }
-    // Try to spawn a ManagedChildProcess, and log error if it fails
-    function spawnProc(proc: ManagedChildProcess): void {
-      try {
-        proc.spawn();
-      } catch(error) {
-        logOutput(`An unexpected error occurred while trying to run the background process "${proc.name}".`+
-                  `  ${error.toString()}`);
-      }
     }
   }
   
@@ -147,17 +141,34 @@ class BackgroundServices extends EventEmitter {
   private async execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void> {
     if (this.flashpointPath === undefined) { throw new Error('BackgroundServices#flashpointPath must not be undefined when executing a process'); }
     const cwd: string = path.join(this.flashpointPath, proc.path);
-    this.outputLine(`Executing "${proc.filename}" [${proc.arguments.toString()}] in "${proc.path}"`);
+    this.logContent(`Executing "${proc.filename}" [${proc.arguments.toString()}] in "${proc.path}"`);
     try {
       if (sync) { child_process.execFileSync(proc.filename, proc.arguments, { cwd: cwd }); }
       else      { await execFile(            proc.filename, proc.arguments, { cwd: cwd }); }
     } catch(error) {
-      this.outputLine(`An unexpected error occurred while executing a command:\n  "${error}"`);
+      this.logContent(`An unexpected error occurred while executing a command:\n  "${error}"`);
     }
   }
 
-  private outputLine(text: string): void {
-    this.emit('output', text);
+  private log(entry: ILogPreEntry): void {
+    this.emit('output', entry);
+  }
+
+  private logContent(content: string): void {
+    this.emit('output', {
+      source: 'Background Services',
+      content,
+    });
+  }
+  
+  /** Try to spawn a ManagedChildProcess, and log error if it fails */
+  private spawnProc(proc: ManagedChildProcess): void {
+    try {
+      proc.spawn();
+    } catch(error) {
+      this.logContent(`An unexpected error occurred while trying to run the background process "${proc.name}".`+
+                    `  ${error.toString()}`);
+    }
   }
 }
 

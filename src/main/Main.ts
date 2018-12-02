@@ -9,6 +9,7 @@ import { AppConfig } from '../shared/config/AppConfigFile';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
 import { IAppConfigData, IAppConfigApiFetchData } from '../shared/config/interfaces';
 import { LogMainApi } from '../shared/Log/LogMainApi';
+import { ILogPreEntry } from '../shared/Log/interface';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
@@ -104,8 +105,8 @@ export class Main {
    * the "Logs" tab. Also print the output to stdout.
    * @param output The log entry to be added. Must end with a new line.
    */
-  private pushLogData(output: string): void {
-    process.stdout.write(output);
+  private pushLogData(output: ILogPreEntry): void {
+    //process.stdout.write(output);
     this._log.addEntry(output);
   }
 

@@ -8,7 +8,9 @@ interface ILogsPageProps {
 export class LogsPage extends React.Component<ILogsPageProps> {
   render() {
     return (
-      <LogData logData={this.props.logData} />
+      <div className='log-page'>
+        <LogData logData={this.props.logData} />
+      </div>
     );
   }
 }

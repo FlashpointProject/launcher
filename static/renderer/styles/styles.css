@@ -752,6 +752,38 @@ font-weight: bold;
 }
 
 
+/* ------ Log ------ */
+.log-page {
+  width: 100%;
+  height: 100%;
+}
+.log {
+  height: 100%;
+  overflow: scroll;
+  /* Pimp */
+  color: white;
+}
+.log__time-stamp {
+  color: #857df3;
+}
+.log__source {
+  /* Default color of sources, used on the unknown/unspecified sources */
+  color: #d4d4d4;
+}
+.log__source--background-services {
+  color: #8d8d8d;
+}
+.log__source--game-launcher {
+  color: #ffd900;
+}
+.log__source--router {
+  color: #00ff00;
+}
+.log__source--redirector {
+  color: #00ffff;
+}
+
+
 /* ------ Browse ------ */
 .game-browser {
   display: flex;
@@ -1523,11 +1555,4 @@ font-weight: bold;
 }
 .setting__row__content--redirector input {
   margin-right: 0.2rem;
-}
-
-
-/* ------ Logs ------ */
-.logs__log-data {
-  height: 100%;
-  overflow: scroll;
 }

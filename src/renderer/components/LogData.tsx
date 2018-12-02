@@ -58,9 +58,8 @@ export class LogData extends React.Component<ILogDataProps> {
 
   render() {
     return (
-      <pre className='logs__log-data simple-scroll' ref={this.preNodeRef}>
-        {this.props.logData}
-      </pre>
+      <pre className='log simple-scroll' ref={this.preNodeRef}
+           dangerouslySetInnerHTML={{ __html:this.props.logData }} />
     );
   }
 }

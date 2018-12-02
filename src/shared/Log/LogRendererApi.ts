@@ -1,6 +1,7 @@
 import { ipcRenderer, IpcMessageEvent } from 'electron';
 import { EventEmitter } from 'events';
-import { LogChannel } from './LogCommon';
+import { LogChannel, stringifyLogEntries } from './LogCommon';
+import { ILogEntry, ILogPreEntry } from './interface';
 
 export declare interface LogRendererApi {
   /** @TODO Write this comment */
@@ -10,7 +11,7 @@ export declare interface LogRendererApi {
 
 /** API for the log used by the renderer process */
 export class LogRendererApi extends EventEmitter {
-  public entries: string[] = [];
+  private entries: ILogEntry[] = [];
   private _nextAddEntryMsgId: number = 0;
 
   constructor() {
@@ -26,21 +27,20 @@ export class LogRendererApi extends EventEmitter {
     ipcRenderer.removeListener(LogChannel.refreshEntriesReply, this.onRefreshEntries);
   }
   
-  public addEntry(data: string): void {
+  public addEntry(preEntry: ILogPreEntry): void {
     // Send the entry data (& message id)
-    ipcRenderer.send(LogChannel.addEntry, data);
+    ipcRenderer.send(LogChannel.addEntry, preEntry);
   }
   
-  public addEntryTracked(data: string): Promise<number> {
+  public addEntryTracked(preEntry: ILogPreEntry): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       // Pick a unique id for this message
       const sentMsgId = this._nextAddEntryMsgId++;
       // Send the entry data (& message id)
-      ipcRenderer.send(LogChannel.addEntry, data, sentMsgId);
+      ipcRenderer.send(LogChannel.addEntry, preEntry, sentMsgId);
       // Add listener for the response
       const listener = (msgId: number) => {
         if (msgId === sentMsgId) {
-          console.log('addEntry done!', msgId);
           ipcRenderer.removeListener(LogChannel.addEntryReply, listener);
           resolve(sentMsgId);
         }
@@ -53,9 +53,13 @@ export class LogRendererApi extends EventEmitter {
     ipcRenderer.send(LogChannel.refreshEntries, this.entries.length);
   }
 
-  private onRefreshEntries(event: IpcMessageEvent, start: number, entries: string[]): void {
+  public stringifyEntries(): string {
+    return stringifyLogEntries(this.entries);
+  }
+
+  private onRefreshEntries(event: IpcMessageEvent, start: number, entries: ILogEntry[]): void {
     // Add new entries
-    for (let i = 0; i <= entries.length; i++) {
+    for (let i = 0; i < entries.length; i++) {
       this.entries[start + i] = entries[i];
     }
     // Emit event
