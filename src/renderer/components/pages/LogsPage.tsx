@@ -31,7 +31,7 @@ export class LogsPage extends React.Component<ILogsPageProps, ILogsPageState> {
                 {/* Copy Button */}
                 <div className='log-page__bar__wrap'>
                   <div>
-                    <input type='button' value='Copy Log Text' onClick={this.onCopyClick}
+                    <input type='button' value='Copy Text' onClick={this.onCopyClick}
                            className='simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
