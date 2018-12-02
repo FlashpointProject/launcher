@@ -25,12 +25,18 @@ export enum LogChannel {
 /** Create a HTML string of a number of entries */
 export function stringifyLogEntries(entries: ILogEntry[]): string {
   let str = '';
+  let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0 };
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
     str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
-    if (entry.source) { str += `<span class="log__source log__source--${getClassModifier(entry.source)}">${escapeHTML(entry.source)}:</span> `; }
+    if (entry.source) {
+      str += (entry.source !== prevEntry.source) ?
+             `<span class="log__source log__source--${getClassModifier(entry.source)}">${escapeHTML(entry.source)}:</span> ` :
+             ' '.repeat(entry.source.length + 2);
+    }
     str += escapeHTML(entry.content);
     str += '\n';
+    prevEntry = entry;
   }
   return str;
 }
