@@ -34,7 +34,7 @@ export function stringifyLogEntries(entries: ILogEntry[]): string {
              `<span class="log__source log__source--${getClassModifier(entry.source)}">${escapeHTML(entry.source)}:</span> ` :
              ' '.repeat(entry.source.length + 2);
     }
-    str += escapeHTML(entry.content);
+    str += padLines(escapeHTML(entry.content), 11 + entry.source.length + 2);
     str += '\n';
     prevEntry = entry;
   }
@@ -50,12 +50,14 @@ function formatTime(date: Date): string {
   );
 }
 
+/** Mak a string safe to use as HTML content (only safe if used as "text" between tags, not inside a tag) */
 function escapeHTML(str: string): string {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 /**
- * 
+ * Create a CSS class "modifier" name from the name of a log entry source
+ * (it just makes it lower-case, only alphabetical characters and replaces all spaces with "-")
  */
 function getClassModifier(source: string): string {
   return (
@@ -64,4 +66,9 @@ function getClassModifier(source: string): string {
       .replace(/ /g, '-')
       .replace(/[^a-z\-]/gi, '') // (Only allow a-z and "-")
   );
+}
+
+/** Pad all lines (except for the first one) by a number of spaces */
+function padLines(text: string, padding: number): string {
+  return text.replace(/\n/g, '\n'+' '.repeat(padding));
 }
