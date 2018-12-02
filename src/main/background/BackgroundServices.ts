@@ -8,6 +8,7 @@ import { BackgroundServicesFile } from './BackgroundServicesFile';
 import { IBackProcessInfoFile, IBackProcessInfo } from './interfaces';
 import { IAppConfigData } from '../../shared/config/interfaces';
 import { ILogPreEntry } from '../../shared/Log/interface';
+import { strinfigyArray } from '../../shared/Util';
 
 const execFile = promisify(child_process.execFile);
 
@@ -141,7 +142,7 @@ class BackgroundServices extends EventEmitter {
   private async execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void> {
     if (this.flashpointPath === undefined) { throw new Error('BackgroundServices#flashpointPath must not be undefined when executing a process'); }
     const cwd: string = path.join(this.flashpointPath, proc.path);
-    this.logContent(`Executing "${proc.filename}" [${proc.arguments.toString()}] in "${proc.path}"`);
+    this.logContent(`Executing "${proc.filename}" ${strinfigyArray(proc.arguments)} in "${proc.path}"`);
     try {
       if (sync) { child_process.execFileSync(proc.filename, proc.arguments, { cwd: cwd }); }
       else      { await execFile(            proc.filename, proc.arguments, { cwd: cwd }); }

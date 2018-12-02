@@ -1,6 +1,22 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Write an array to a string in a pretty and readable way
+ * Ex. [0,'test',null] => "[ 0, 'test', null ]"
+ * @param array Array to "stringify"
+ * @returns Readable text representation of the array
+ */
+export function strinfigyArray(array: Array<any>): string {
+  let str = '[ ';
+  for (let i = 0; i < array.length; i++) {
+    let element = array[i];
+    str += isString(element) ? `"${element}"` : element+'';
+    if (i !== array.length - 1) { str += ', '; }
+  }
+  str += ' ]';
+  return str;
+}
 
 /**
  * Get the ISO formatted time stamp from a date object.
@@ -182,4 +198,8 @@ export interface IRecursiveDirectorySharedObject {
   options: IRecursiveDirectoryOptions;
   /** If true, it will abort the recursion (do not set to anything other than false) */
   abort: boolean;
+}
+
+function isString(obj: any): boolean {
+  return typeof obj === 'string' || obj instanceof String;
 }

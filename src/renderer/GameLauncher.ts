@@ -1,8 +1,9 @@
 import * as electron from 'electron';
 import * as path from 'path';
 import { exec, ExecOptions, ChildProcess } from 'child_process';
-import { IGameInfo, IAdditionalApplicationInfo } from '../shared/game/interfaces';
 import { EventEmitter } from 'events';
+import { IGameInfo, IAdditionalApplicationInfo } from '../shared/game/interfaces';
+import { strinfigyArray } from '../shared/Util';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
@@ -175,23 +176,6 @@ function padStart(str: string|number, length: number): string {
   return ' '.repeat(Math.max(0, length - str.length)) + str;
 }
 
-/**
- * Write an array to a string in a pretty and readable way
- * Ex. [0,'test',null] => "[ 0, 'test', null ]"
- * @param array Array to "stringify"
- * @returns Readable text representation of the array
- */
-function strinfigyArray(array: Array<any>): string {
-  let str = '[ ';
-  for (let i = 0; i < array.length; i++) {
-    let element = array[i];
-    str += isString(element) ? `"${element}"` : element+'';
-    if (i !== array.length - 1) { str += ', '; }
-  }
-  str += ' ]';
-  return str;
-}
-
 function relativeToFlashpoint(filePath: string): string {
   return path.posix.join(window.External.config.fullFlashpointPath, filePath);
 }
@@ -226,8 +210,4 @@ function escapeWin(str: string): string {
  */
 function escapeLinuxArgs(str: string): string {
   return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
-}
-
-function isString(obj: any): boolean {
-  return typeof obj === 'string' || obj instanceof String;
 }
