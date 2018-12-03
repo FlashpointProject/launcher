@@ -13,7 +13,9 @@ type EqualsCheck<T extends any[]> = (newArgs: T, prevArgs: T) => boolean;
 
 /**
  * Memoize a function with a cache size of one (only store the last return value)
+ * Note: This does not make copies of the arguments when caching them, you have to do that yourself beforehand
  * @param func Function to memoize
+ * @param equalsFunc Function that compares the the new and previous arguments
  * @returns Memoized function
  */
 export function memoizeOne<T extends CallableWrap<T>>(func: T, equalsFunc: EqualsCheck<ArgumentTypesOf<T>> = defaultEqualsFunc): CallableWrap<T> {
@@ -27,7 +29,6 @@ export function memoizeOne<T extends CallableWrap<T>>(func: T, equalsFunc: Equal
     if (firstCall || !equalsFunc(args, prevArgs)) {
       doRefresh = true;
     }
-    console.log(args, prevArgs, doRefresh);
     firstCall = false;
     // Refresh return value if necessary
     if (doRefresh) {
@@ -40,8 +41,8 @@ export function memoizeOne<T extends CallableWrap<T>>(func: T, equalsFunc: Equal
   return memo;
 }
 
-export function defaultEqualsFunc<T extends any[]>(newArgs: T, prevArgs: T): boolean {
-  console.log(newArgs.length === prevArgs.length, shallowStrictEquals(newArgs, prevArgs));
+/** Default function used to compare arguments */
+function defaultEqualsFunc<T extends any[]>(newArgs: T, prevArgs: T): boolean {
   return newArgs.length === prevArgs.length && 
          shallowStrictEquals(newArgs, prevArgs);
 }

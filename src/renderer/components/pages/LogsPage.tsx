@@ -6,6 +6,7 @@ import { LogRendererApi } from '../../../shared/Log/LogRendererApi';
 import { memoizeOne } from '../../../shared/memoize';
 import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
 import { ArgumentTypesOf } from '../../../shared/interfaces';
+import { shallowStrictEquals } from '../../../shared/Util';
 
 interface OwnProps {
 }
@@ -36,7 +37,8 @@ export class LogsPage extends React.Component<ILogsPageProps, ILogsPageState> {
 
   private getLogString() {
     const logEntries = Object.assign([], window.External.log.entries);
-    return this.stringifyLogEntriesMemo(logEntries);
+    const filter = Object.assign({}, this.props.preferencesData.showLogSource);
+    return this.stringifyLogEntriesMemo(logEntries, filter);
   }
 
   componentDidMount() {
@@ -139,5 +141,6 @@ function getBoolean(value?: boolean): boolean {
 
 type ArgsType = ArgumentTypesOf<typeof stringifyLogEntries>;
 function stringifyLogEntriesEquals(newArgs: ArgsType, prevArgs: ArgsType): boolean {
-  return newArgs[0].length === prevArgs[0].length;
+  return (newArgs[0].length === prevArgs[0].length) && // (Only compare lengths of log entry arrays)
+         shallowStrictEquals(newArgs[1], prevArgs[1]); // (Do a proper compare of the filters)
 }
