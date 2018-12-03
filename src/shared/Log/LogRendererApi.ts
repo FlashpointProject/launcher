@@ -11,7 +11,7 @@ export declare interface LogRendererApi {
 
 /** API for the log used by the renderer process */
 export class LogRendererApi extends EventEmitter {
-  private entries: ILogEntry[] = [];
+  public entries: ILogEntry[] = [];
   private _nextAddEntryMsgId: number = 0;
 
   constructor() {

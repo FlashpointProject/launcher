@@ -4,7 +4,6 @@ import { NotFoundPage } from './components/pages/NotFoundPage';
 import { ICentralState } from './interfaces';
 import { AboutPage } from './components/pages/AboutPage';
 import { IGameOrderChangeEvent } from './components/GameOrder';
-import { LogsPage } from './components/pages/LogsPage';
 import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
@@ -12,11 +11,11 @@ import { IGamePlaylist } from './playlist/interfaces';
 import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage } from './containers/ConnectedConfigPage';
 import { ConnectedHomePage } from './containers/ConnectedHomePage';
+import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 
 export interface IAppRouterProps {
   central: ICentralState;
   order?: IGameOrderChangeEvent;
-  logData: string;
   gameScale: number;
   gameLayout: BrowsePageLayout;
   selectedGame?: IGameInfo;
@@ -45,8 +44,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
                     central={this.props.central} onSelectPlaylist={this.props.onSelectPlaylist} />
         <PropsRoute path={Paths.browse} component={ConnectedBrowsePage}
                     {...browseProps} />
-        <PropsRoute path={Paths.logs} component={LogsPage}
-                    logData={this.props.logData} />
+        <PropsRoute path={Paths.logs} component={ConnectedLogsPage} />
         <PropsRoute path={Paths.config} component={ConnectedConfigPage} />
         <Route path={Paths.about} component={AboutPage} />
         <Route component={NotFoundPage} />

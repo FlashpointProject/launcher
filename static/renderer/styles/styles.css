@@ -203,6 +203,42 @@ body {
   font-style: italic;
   color: #868686;
 }
+/* Checkbox Dropdown */
+.checkbox-dropdown {
+  --width: 11rem;
+  width: var(--width);
+  /* Pimp */
+  font-family: var(--theme__font-family);
+  background-color: var(--theme__background-color);
+  color: var(--theme__text-color);
+}
+.checkbox-dropdown__select-box {
+  position: relative;
+  width: 100%;
+  padding: 0 0.1rem;
+  /* Pimp */
+  background-color: var(--theme__background-color);
+  color: var(--theme__text-color);
+  border: 1px solid var(--theme__search-bar__outline-color);
+}
+.checkbox-dropdown__check-boxes {
+  width: var(--width);
+  display: block;
+  position: absolute;
+  /* Pimp */
+  background-color: var(--theme__background-color);
+  color: var(--theme__text-color);
+  border: 1px solid var(--theme__search-bar__outline-color);
+}
+.checkbox-dropdown__check-boxes--hidden {
+  display: none;
+}
+.checkbox-dropdown__check-boxes label {
+  display: block;
+}
+.checkbox-dropdown__check-boxes label:hover {
+  background-color: #1e90ff;
+}
 
 
 /* ------ Search & SearchTag Components ------ */

@@ -24,4 +24,8 @@ export interface IAppPreferencesData {
     width?: number;
     height?: number;
   }
+  /** Sources to show/hide in the log page */
+  showLogSource: {
+    [key: string]: boolean;
+  }
 }

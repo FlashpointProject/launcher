@@ -27,7 +27,6 @@ export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProp
 export interface IAppState {
   central: ICentralState;
   order?: IGameOrderChangeEvent;
-  logData: string;
   /** Scale of games at the browse page */
   gameScale: number;
   /** Layout of the browse page */
@@ -56,7 +55,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
-      logData: '',
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
       wasNewGameClicked: false,
@@ -65,7 +63,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
     this.onNewGameClick = this.onNewGameClick.bind(this);
-    this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     this.onToggleLeftSidebarClick = this.onToggleLeftSidebarClick.bind(this);
     this.onToggleRightSidebarClick = this.onToggleRightSidebarClick.bind(this);
     this.onSelectGame = this.onSelectGame.bind(this);
@@ -142,24 +139,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   componentDidMount() {
-    // Listen for changes in the log
-    window.External.log.on('change', this.onLogDataUpdate);
     // Request all log entires
     window.External.log.refreshEntries();
-  }
-
-  componentWillUnmount() {
-    ipcRenderer.removeListener('log-data-update', this.onLogDataUpdate);
   }
 
   componentDidUpdate(prevProps: IAppProps, prevState: IAppState) {
     if (prevState.wasNewGameClicked) {
       this.setState({ wasNewGameClicked: false });
     }
-  }
-
-  private onLogDataUpdate(log: LogRendererApi) {
-    this.setState({ logData: log.stringifyEntries() });
   }
 
   render() {
@@ -172,7 +159,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     const routerProps: IAppRouterProps = {
       central: this.state.central,
       order: this.state.order,
-      logData: this.state.logData,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
       selectedGame: this.state.selectedGame,

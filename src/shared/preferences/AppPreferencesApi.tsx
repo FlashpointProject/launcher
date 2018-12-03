@@ -1,7 +1,8 @@
 import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
 import { IAppPreferencesData } from './IAppPreferencesData';
-import { deepCopy, recursiveReplace } from '../Util';
+import { deepCopy } from '../Util';
+import { overwritePreferenceData } from './util';
 
 /**
  * Bridge between the Renderer and "AppPreferencesMain" (which then accesses the Preferences file).
@@ -110,7 +111,7 @@ export class AppPreferencesApi extends EventEmitter {
   /** Set the data */
   public setData(data: Partial<IAppPreferencesData>): void {
     if (!this._dataProxy) { throw new Error('You must not call AppPreferencesApi.setData before it has loaded'); }
-    recursiveReplace(this._dataProxy, data);
+    overwritePreferenceData(this._dataProxy, data);
   }
 
   /** Send Preferences Data (renderer -> main) (IPC Event Name) */
