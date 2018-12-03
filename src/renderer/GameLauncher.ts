@@ -3,7 +3,7 @@ import * as path from 'path';
 import { exec, ExecOptions, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import { IGameInfo, IAdditionalApplicationInfo } from '../shared/game/interfaces';
-import { strinfigyArray } from '../shared/Util';
+import { strinfigyArray, padStart } from '../shared/Util';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
@@ -150,30 +150,6 @@ export class GameLauncher {
     // Return process
     return proc;
   }
-}
-
-/**
- * Pad a the end of a string with spaces until the string is of a specified length
- * @param str String to pad
- * @param length Target length of string (max number of spaces to add)
- * @returns String padded with spaces
- *          (or the original string if it's length is equal or longer than the specified length)
- */
-function padEnd(str: string|number, length: number): string {
-  str = str + ''; // (Coerce to string)
-  return str + ' '.repeat(Math.max(0, length - str.length));
-}
-
-/**
- * Pad a the start of a string with spaces until the string is of a specified length
- * @param str String to pad
- * @param length Target length of string (max number of spaces to add)
- * @returns String padded with spaces
- *          (or the original string if it's length is equal or longer than the specified length)
- */
-function padStart(str: string|number, length: number): string {
-  str = str + ''; // (Coerce to string)
-  return ' '.repeat(Math.max(0, length - str.length)) + str;
 }
 
 function relativeToFlashpoint(filePath: string): string {

@@ -2,6 +2,30 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
+ * Pad a the end of a string with spaces until the string is of a specified length
+ * @param str String to pad
+ * @param length Target length of string (max number of spaces to add)
+ * @returns String padded with spaces
+ *          (or the original string if it's length is equal or longer than the specified length)
+ */
+export function padEnd(str: string|number, length: number): string {
+  str = str + ''; // (Coerce to string)
+  return str + ' '.repeat(Math.max(0, length - str.length));
+}
+
+/**
+ * Pad a the start of a string with spaces until the string is of a specified length
+ * @param str String to pad
+ * @param length Target length of string (max number of spaces to add)
+ * @returns String padded with spaces
+ *          (or the original string if it's length is equal or longer than the specified length)
+ */
+export function padStart(str: string|number, length: number): string {
+  str = str + ''; // (Coerce to string)
+  return ' '.repeat(Math.max(0, length - str.length)) + str;
+}
+
+/**
  * Write an array to a string in a pretty and readable way
  * Ex. [0,'test',null] => "[ 0, 'test', null ]"
  * @param array Array to "stringify"
