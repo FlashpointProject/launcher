@@ -61,9 +61,14 @@ export class LogsPage extends React.Component<ILogsPageProps, ILogsPageState> {
             <Dropdown text='Filters'>
               { labels.map((label, index) => (
                 <label key={index}>
-                  <input type='checkbox' checked={getBoolean(showLogSource[label])}
-                         onChange={() => this.onCheckboxClick(index)} />
-                  {label}
+                  <div className='simple-center'>
+                    <input type='checkbox' checked={getBoolean(showLogSource[label])}
+                           onChange={() => this.onCheckboxClick(index)}
+                           className='simple-center__vertical-inner' />               
+                  </div>
+                  <div className='simple-center'>
+                    <p className='simple-center__vertical-inner'>{label}</p>                  
+                  </div>
                 </label>
               )) }
             </Dropdown>

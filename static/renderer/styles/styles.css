@@ -85,6 +85,7 @@ body {
 }
 .simple-center__vertical-inner {
   display: inline-block;
+  margin-left: 0.1rem;
 }
 /* Simple Button */
 .simple-button {
@@ -234,7 +235,11 @@ body {
   display: none;
 }
 .checkbox-dropdown__check-boxes label {
-  display: block;
+  display: flex;
+}
+.checkbox-dropdown__check-boxes label p {
+  display: inline-block;
+  overflow: hidden;
 }
 .checkbox-dropdown__check-boxes label:hover {
   background-color: #1e90ff;
