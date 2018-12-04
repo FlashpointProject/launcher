@@ -857,8 +857,7 @@ font-weight: bold;
 .log__source--router {
   color: #00ff00;
 }
-.log__source--redirector,
-.log__source--fiddler {
+.log__source--redirector {
   color: #00ffff;
 }
 
