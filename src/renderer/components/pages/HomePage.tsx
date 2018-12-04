@@ -42,6 +42,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
         gamesDoneLoading,
         games,
         gameImages,
+      },
+      preferencesData: {
+        browsePageShowExtreme
       }
     } = this.props;
 
@@ -91,6 +94,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
                     games={games.collection.games}
                     gameImages={gameImages}
                     onLaunchGame={this.onLaunchGame}
+                    showExtreme={browsePageShowExtreme}
                   />
                 ) : (
                   <p className='home-page__random-games__loading'>

@@ -3,11 +3,13 @@ import { IGameInfo } from 'src/shared/game/interfaces';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { GameGridItem } from './GameGridItem';
 import { shuffle } from '../Util';
+import { filterExtreme } from '../../shared/game/GameFilter';
 
 export interface IRandomGamesProps {
-  gameImages: GameImageCollection;
   games: IGameInfo[];
+  gameImages: GameImageCollection;
   onLaunchGame: (game: IGameInfo, index: number) => void;
+  showExtreme: boolean;
 }
 
 /**
@@ -21,10 +23,11 @@ export class RandomGames extends React.PureComponent<IRandomGamesProps> {
   amountOfRandomGames = 6;
 
   private selectRandomGames() {
-    const { games } = this.props;
+    const { games, showExtreme } = this.props;
 
     const shuffledGames = shuffle(games);
-    const randomGames = shuffledGames
+    const filteredGames = filterExtreme(showExtreme, shuffledGames);
+    const randomGames = filteredGames
       .slice(0, Math.min(this.amountOfRandomGames, games.length));
 
     return randomGames;
