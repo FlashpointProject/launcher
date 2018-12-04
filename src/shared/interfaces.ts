@@ -1,13 +1,8 @@
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 import { AppConfigApi } from './config/AppConfigApi';
+import { LogRendererApi } from './Log/LogRendererApi';
 
 export interface IMainWindowExternal {
-  /** Append a string to the end of the log */
-  appendLogData(data: string): void;
-
-  /** Ask the main to resend the log-data-update event */
-  resendLogDataUpdate(): void;
-
   /** Get the OS name */
   platform: NodeJS.Platform;
 
@@ -34,7 +29,16 @@ export interface IMainWindowExternal {
 
   /** Renderer's interface for the Config data */
   config: AppConfigApi;
+
+  /** Renderer's interface for the Log data */
+  log: LogRendererApi;
 }
 
 /** Callback for Electron.dialog.showOpenDialog */
 export type ElectronOpenDialogCallback = (filePaths?: string[], bookmarks?: string[]) => void;
+
+/** Obtain the return type of a function */
+export type ReturnTypeOf<T extends Function> = T extends (...args: ArgumentTypesOf<T>) => infer R ? R : any;
+
+/** Obtain the argument types of a function */
+export type ArgumentTypesOf<F extends Function> = F extends (...args: infer A) => any ? A : never;

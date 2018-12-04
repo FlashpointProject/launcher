@@ -16,6 +16,7 @@ import { SearchQuery } from './store/search';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
+import { LogRendererApi } from '../shared/Log/LogRendererApi';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -26,7 +27,6 @@ export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProp
 export interface IAppState {
   central: ICentralState;
   order?: IGameOrderChangeEvent;
-  logData: string;
   /** Scale of games at the browse page */
   gameScale: number;
   /** Layout of the browse page */
@@ -55,7 +55,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
-      logData: '',
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
       wasNewGameClicked: false,
@@ -64,7 +63,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
     this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
     this.onNewGameClick = this.onNewGameClick.bind(this);
-    this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
     this.onToggleLeftSidebarClick = this.onToggleLeftSidebarClick.bind(this);
     this.onToggleRightSidebarClick = this.onToggleRightSidebarClick.bind(this);
     this.onSelectGame = this.onSelectGame.bind(this);
@@ -94,7 +92,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           playlistsFailedLoading: true,
         })
       });
-      window.External.appendLogData(err.toString());
+      window.External.log.addEntry(err.toString());
       throw err;
     })
     .then(() => {
@@ -141,23 +139,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   componentDidMount() {
-    ipcRenderer.on('log-data-update', this.onLogDataUpdate);
-    // Ask main to send us our first log-data-update msg.
-    window.External.resendLogDataUpdate();
-  }
-
-  componentWillUnmount() {
-    ipcRenderer.removeListener('log-data-update', this.onLogDataUpdate);
+    // Request all log entires
+    window.External.log.refreshEntries();
   }
 
   componentDidUpdate(prevProps: IAppProps, prevState: IAppState) {
     if (prevState.wasNewGameClicked) {
       this.setState({ wasNewGameClicked: false });
     }
-  }
-
-  private onLogDataUpdate(event: any, fullLog: string) {
-    this.setState({ logData: fullLog });
   }
 
   render() {
@@ -170,7 +159,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     const routerProps: IAppRouterProps = {
       central: this.state.central,
       order: this.state.order,
-      logData: this.state.logData,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
       selectedGame: this.state.selectedGame,

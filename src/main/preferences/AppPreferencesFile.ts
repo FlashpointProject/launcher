@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as Util from '../../shared/Util';
 import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
-import { defaultPreferencesData } from '../../shared/preferences/util';
+import { defaultPreferencesData, overwritePreferenceData } from '../../shared/preferences/util';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export class AppPreferencesFile {
@@ -64,7 +64,7 @@ export class AppPreferencesFile {
   public static parseData(data: any, defaultData: IAppPreferencesData): IAppPreferencesData {
     // This makes sure that only the necessary properties are copied
     // And that the missing ones are set to their default value
-    return Util.recursiveReplace(Util.deepCopy(defaultData), data);
+    return overwritePreferenceData(Util.deepCopy(defaultData), data);
   }
   
   public static stringifyData(data: IAppPreferencesData): string {

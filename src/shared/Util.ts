@@ -1,6 +1,46 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Pad a the end of a string with spaces until the string is of a specified length
+ * @param str String to pad
+ * @param length Target length of string (max number of spaces to add)
+ * @returns String padded with spaces
+ *          (or the original string if it's length is equal or longer than the specified length)
+ */
+export function padEnd(str: string|number, length: number): string {
+  str = str + ''; // (Coerce to string)
+  return str + ' '.repeat(Math.max(0, length - str.length));
+}
+
+/**
+ * Pad a the start of a string with spaces until the string is of a specified length
+ * @param str String to pad
+ * @param length Target length of string (max number of spaces to add)
+ * @returns String padded with spaces
+ *          (or the original string if it's length is equal or longer than the specified length)
+ */
+export function padStart(str: string|number, length: number): string {
+  str = str + ''; // (Coerce to string)
+  return ' '.repeat(Math.max(0, length - str.length)) + str;
+}
+
+/**
+ * Write an array to a string in a pretty and readable way
+ * Ex. [0,'test',null] => "[ 0, 'test', null ]"
+ * @param array Array to "stringify"
+ * @returns Readable text representation of the array
+ */
+export function strinfigyArray(array: Array<any>): string {
+  let str = '[ ';
+  for (let i = 0; i < array.length; i++) {
+    let element = array[i];
+    str += isString(element) ? `"${element}"` : element+'';
+    if (i !== array.length - 1) { str += ', '; }
+  }
+  str += ' ]';
+  return str;
+}
 
 /**
  * Get the ISO formatted time stamp from a date object.
@@ -182,4 +222,8 @@ export interface IRecursiveDirectorySharedObject {
   options: IRecursiveDirectoryOptions;
   /** If true, it will abort the recursion (do not set to anything other than false) */
   abort: boolean;
+}
+
+function isString(obj: any): boolean {
+  return typeof obj === 'string' || obj instanceof String;
 }

@@ -2,7 +2,7 @@ import { ipcMain, IpcMessageEvent } from 'electron';
 import { AppPreferencesFile } from './AppPreferencesFile';
 import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
 import { AppPreferencesApi } from '../../shared/preferences/AppPreferencesApi';
-import { recursiveReplace } from '../../shared/Util';
+import { overwritePreferenceData } from '../../shared/preferences/util';
 
 /**
  * Manager of the Preferences Data.
@@ -36,7 +36,7 @@ export class AppPreferencesMain {
     if (!this._data) { throw new Error('The data must first be loaded before new can be received.'); }
     if (!data) { throw new Error('You must send a data object, but no data was received.'); }
     // Update the data
-    this._data = recursiveReplace(this._data, data);
+    this._data = overwritePreferenceData(this._data, data);
     // Save the data
     AppPreferencesFile.saveFile(this._data);
     // Send response (so the renderer knows that the data was received)
