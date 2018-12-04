@@ -218,11 +218,13 @@ body {
   width: 100%;
   padding: 0 0.1rem;
   /* Pimp */
+  appearance: menulist-button;
+  -webkit-appearance: menulist-button;
   background-color: var(--theme__background-color);
   color: var(--theme__text-color);
   border: 1px solid var(--theme__search-bar__outline-color);
 }
-.checkbox-dropdown__check-boxes {
+.checkbox-dropdown__content {
   width: var(--width);
   display: block;
   position: absolute;
@@ -231,17 +233,17 @@ body {
   color: var(--theme__text-color);
   border: 1px solid var(--theme__search-bar__outline-color);
 }
-.checkbox-dropdown__check-boxes--hidden {
+.checkbox-dropdown__content--hidden {
   display: none;
 }
-.checkbox-dropdown__check-boxes label {
+.checkbox-dropdown__content label {
   display: flex;
 }
-.checkbox-dropdown__check-boxes label p {
+.checkbox-dropdown__content label p {
   display: inline-block;
   overflow: hidden;
 }
-.checkbox-dropdown__check-boxes label:hover {
+.checkbox-dropdown__content label:hover {
   background-color: #1e90ff;
 }
 

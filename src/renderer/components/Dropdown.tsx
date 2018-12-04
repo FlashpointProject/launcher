@@ -10,12 +10,23 @@ export interface IDropdownState {
 }
 
 export class Dropdown extends React.Component<IDropdownProps, IDropdownState> {
+  private contentRef: React.RefObject<HTMLDivElement> = React.createRef();
+
   constructor(props: IDropdownProps) {
     super(props);
     this.state = {
       expanded: false,
     };
-    this.onBoxClick = this.onBoxClick.bind(this);
+    this.onBoxMouseDown = this.onBoxMouseDown.bind(this);
+    this.onGlobalMouseDown = this.onGlobalMouseDown.bind(this);
+  }
+
+  componentDidMount() {
+    document.addEventListener('mousedown', this.onGlobalMouseDown);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.onGlobalMouseDown);
   }
 
   render() {
@@ -23,19 +34,40 @@ export class Dropdown extends React.Component<IDropdownProps, IDropdownState> {
     const { expanded } = this.state;
     return (
       <div className='checkbox-dropdown'>
-        <div className='checkbox-dropdown__select-box' onClick={this.onBoxClick}
+        <div className='checkbox-dropdown__select-box' onMouseDown={this.onBoxMouseDown}
              tabIndex={0}>
           {text}
         </div>
-        <div className={'checkbox-dropdown__check-boxes' + 
-                        (expanded?'':' checkbox-dropdown__check-boxes--hidden')}>
+        <div className={'checkbox-dropdown__content' +  (expanded?'':' checkbox-dropdown__content--hidden')}
+             ref={this.contentRef}>
           { children }
         </div>
       </div>
     );
   }
 
-  onBoxClick(): void {
-    this.setState({ expanded: !this.state.expanded });
+  onBoxMouseDown(event: React.MouseEvent): void {
+    if (event.button === 0) {
+      this.setState({ expanded: !this.state.expanded });
+      event.preventDefault();
+    }
   }
+
+  onGlobalMouseDown(event: MouseEvent) {
+    if (this.state.expanded && !event.defaultPrevented) {
+      if (!checkIfAncestor(event.target as HTMLElement|null, this.contentRef.current)) {
+        this.setState({ expanded: false });
+      }
+    }
+  }
+}
+
+/** Check if an element is the ancestor of another element */
+function checkIfAncestor(start: HTMLElement|null, target: HTMLElement|null): boolean {
+  let element: HTMLElement|null = start;
+  while (element) {
+    if (element === target) { return true; }
+    element = element.parentElement;
+  }
+  return false;
 }
