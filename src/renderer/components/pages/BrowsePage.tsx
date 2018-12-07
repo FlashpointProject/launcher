@@ -56,6 +56,8 @@ export interface IBrowsePageState {
   currentAddApps?: IAdditionalApplicationInfo[];
   /** If the "edit mode" is currently enabled */
   isEditing: boolean;
+  /** If the selected game is a new game being created */
+  isNewGame: boolean;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
@@ -69,7 +71,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.state = {
       quickSearch: '',
       orderedGames: [],
-      isEditing: false
+      isEditing: false,
+      isNewGame: false,
     };
     this.noRowsRenderer = this.noRowsRenderer.bind(this);
     this.onGameSelect = this.onGameSelect.bind(this);
@@ -118,7 +121,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       newGame.dateAdded = formatDate(new Date());
       this.setState({
         currentGame: newGame,
-        currentAddApps: []
+        currentAddApps: [],
+        isEditing: true,
+        isNewGame: true,
       });
     }
     // Check if quick search string changed, and if it isn't empty
@@ -219,6 +224,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                          onEditPlaylistNotes={this.onEditPlaylistNotes}
                                          gamePlaylistEntry={gamePlaylistEntry}
                                          isEditing={this.state.isEditing}
+                                         isNewGame={this.state.isNewGame}
                                          onEditClick={this.onStartEditClick}
                                          onDiscardClick={this.onDiscardEditClick}
                                          onSaveGame={this.onSaveEditClick} />
@@ -390,6 +396,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.setState({
       currentGame: game && GameInfo.duplicate(game),
       currentAddApps: addApps && addApps.map(AdditionalApplicationInfo.duplicate),
+      isNewGame: false,
     });
   }
 
@@ -398,15 +405,14 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onDiscardEditClick(): void {
-    this.setState({
-      isEditing: false
-    });
+    this.setState({ isEditing: false });
   }
 
   private onSaveEditClick(): void {
     this.saveGameAndAddApps();
     this.setState({
-      isEditing: false
+      isEditing: false,
+      isNewGame: false
     });
   }
   

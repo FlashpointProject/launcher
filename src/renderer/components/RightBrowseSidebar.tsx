@@ -31,6 +31,8 @@ interface OwnProps {
   onEditPlaylistNotes?: (text: string) => void;
   /** If the "edit mode" is currently enabled */
   isEditing: boolean;
+  /** If the selected game is a new game being created */
+  isNewGame: boolean;
   
   onEditClick?: () => void;
   onDiscardClick?: () => void;
@@ -81,7 +83,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   render() {
     const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
-      const { currentAddApps, gamePlaylistEntry, isEditing } = this.props;
+      const { currentAddApps, gamePlaylistEntry, isEditing, isNewGame } = this.props;
       const isPlaceholder = game.placeholder;
       const editDisabled = !this.props.preferencesData.enableEditing;
       const canEdit = !editDisabled && isEditing;
@@ -128,7 +130,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                                         children={this.renderRemoveFromPlaylistButton} />
                       ) : undefined }
                       {/* "Delete Game" Button */}
-                      { isPlaceholder ? undefined : (
+                      { (isPlaceholder || isNewGame) ? undefined : (
                         <ConfirmElement onConfirm={this.onDeleteGameClick}
                                         children={this.renderDeleteGameButton} />
                       ) }
