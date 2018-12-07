@@ -18,6 +18,8 @@ export class GameLauncher {
    * @param game Game to launch
    */
   public static launchGame(game: IGameInfo, addApps?: IAdditionalApplicationInfo[]): void {
+    // Abort if placeholder (placeholders are not "actual" games)
+    if (game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
     addApps && addApps.forEach((addApp) => {
       if (addApp.autoRunBefore) {
