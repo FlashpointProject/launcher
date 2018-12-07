@@ -92,7 +92,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           playlistsFailedLoading: true,
         })
       });
-      window.External.log.addEntry(err.toString());
+      window.External.log.addEntry({
+        source: 'Launcher',
+        content: err+''
+      });
       throw err;
     })
     .then(() => {
