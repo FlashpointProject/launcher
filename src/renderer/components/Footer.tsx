@@ -33,7 +33,9 @@ export class Footer extends React.Component<IFooterProps, {}> {
     const scale = Math.min(Math.max(0, this.props.scaleSliderValue), 1);
     return (
       <div className='footer'>
+        {/* Left Side */}
         <div className='footer__wrap'>
+          {/* Game Count */}
           <div className='footer__game-count'>
             {(this.props.gameCount !== undefined) ? (
               <>Games Total: {this.props.gameCount}</>
@@ -42,6 +44,7 @@ export class Footer extends React.Component<IFooterProps, {}> {
             )}
           </div>
         </div>
+        {/* Right Side */}
         <div className='footer__wrap footer__right'>
           <div>
             <div className='footer__right__inner'>

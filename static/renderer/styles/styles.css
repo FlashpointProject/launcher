@@ -547,7 +547,7 @@ body {
   display: flex;
   float: right;
   width: 100%;
-  max-width: 18em;
+  max-width: 22.5em;
   flex-wrap: wrap;
 }
 /* Game Count */
