@@ -73,15 +73,19 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   init() {
     // Listen for the window to move or resize (and update the preferences when it does)
-    ipcRenderer.on('window-move', (sender: any, x: number, y: number) => {
-      const mw = this.props.preferencesData.mainWindow;
-      mw.x = x | 0;
-      mw.y = y | 0;
+    ipcRenderer.on('window-move', (sender: any, x: number, y: number, isMaximized: boolean) => {
+      if (!isMaximized) {
+        const mw = this.props.preferencesData.mainWindow;
+        mw.x = x | 0;
+        mw.y = y | 0;
+      }
     });
-    ipcRenderer.on('window-resize', (sender: any, width: number, height: number) => {
-      const mw = this.props.preferencesData.mainWindow;
-      mw.width  = width  | 0;
-      mw.height = height | 0;
+    ipcRenderer.on('window-resize', (sender: any, width: number, height: number, isMaximized: boolean) => {
+      if (!isMaximized) {
+        const mw = this.props.preferencesData.mainWindow;
+        mw.width  = width  | 0;
+        mw.height = height | 0;
+      }
     });
     // Load Playlists
     this.state.central.playlists.load()

@@ -56,13 +56,15 @@ export default class MainWindow {
     this._window.on('move', () => {
       if (!this._window) { throw new Error(); }
       const pos = this._window.getPosition();
-      this._window.webContents.send('window-move', pos[0], pos[1]);
+      const isMaximized = this._window.isMaximized();
+      this._window.webContents.send('window-move', pos[0], pos[1], isMaximized);
     });
     // Replay window's move event to the renderer
     this._window.on('resize', () => {
       if (!this._window) { throw new Error(); }
       const size = this._window.getSize();
-      this._window.webContents.send('window-resize', size[0], size[1]);
+      const isMaximized = this._window.isMaximized();
+      this._window.webContents.send('window-resize', size[0], size[1], isMaximized);
     });
     // Emitted when the window is closed.
     this._window.on('closed', () => {
