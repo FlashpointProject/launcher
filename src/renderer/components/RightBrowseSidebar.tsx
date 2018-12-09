@@ -90,7 +90,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const dateAdded = new Date(game.dateAdded).toUTCString();
       const screenshotSrc = this.props.gameImages.getScreenshotPath(game.title, game.platform);
       return (
-        <div className={'browse-right-sidebar simple-scroll'+(canEdit?' browse-right-sidebar--edit-enabled':'')}>
+        <div className={'browse-right-sidebar simple-scroll '+
+                        (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}>
           {/* -- Title & Developer(s) -- */}
           <div className='browse-right-sidebar__section'>
             <div className='browse-right-sidebar__row'>
@@ -119,10 +120,10 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                         <>
                           {/* "Edit" Button */}
                           { isPlaceholder ? undefined : (
-                              <div className='browse-right-sidebar__title-row__buttons__edit-button'
-                                  title='Edit Game' onClick={this.props.onEditClick}>
-                                <OpenIcon icon='pencil' />
-                              </div>
+                            <div className='browse-right-sidebar__title-row__buttons__edit-button'
+                                 title='Edit Game' onClick={this.props.onEditClick}>
+                              <OpenIcon icon='pencil' />
+                            </div>
                           ) }
                           {/* "Remove From Playlist" Button */}
                           { gamePlaylistEntry ? (

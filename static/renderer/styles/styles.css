@@ -454,13 +454,14 @@ body {
   width: 12em;
   padding: 0.25em;
   margin-right: 0.5em;
+  overflow: hidden;
   /* Pimp */
   border: 1px solid var(--theme__search-bar__outline-color);
   background-color: var(--theme__background-color);
 }
 .header__search__input, .header__search__input:active {
   font-size: 1em;
-  /* Pimp */
+  width: 100%;
   color: var(--theme__text-color);
   background: none;
   border: none;
@@ -969,7 +970,7 @@ body {
   flex: 0 0 auto;
   white-space: pre;
 }
-.browse-right-sidebar__row--one-line > :last-child {
+.browse-right-sidebar--edit-disabled .browse-right-sidebar__row--one-line > :last-child {
   flex: 1 1 auto;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -981,7 +982,7 @@ body {
 .browse-right-sidebar__row--additional-applications-name {
   display: flex;
 }
-.browse-right-sidebar__row--additional-applications-name > :first-child {
+.browse-right-sidebar--edit-disabled .browse-right-sidebar__row--additional-applications-name > :first-child {
   flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1007,7 +1008,7 @@ body {
   display: block;
   overflow-y: visible;
 }
-.browse-right-sidebar__title-row__title > * {
+.browse-right-sidebar--edit-disabled .browse-right-sidebar__title-row__title > * {
   overflow-x: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
