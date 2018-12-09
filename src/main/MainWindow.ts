@@ -30,7 +30,7 @@ export default class MainWindow {
     let height: number = (mw.height !== undefined) ? mw.height :  650;
     if (mw.width === undefined && mw.height === undefined &&
         !this._main.config.useCustomTitlebar) {
-      width += 8;  // Add the width of the window-grab-things,
+      width  += 8; // Add the width of the window-grab-things,
       height += 8; // they are 4 pixels wide each (at least for me @TBubba)
     }
     this._window = new BrowserWindow({
@@ -75,7 +75,7 @@ export default class MainWindow {
   private onAppActivate(): void {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (this._window == null) {
+    if (!this._window) {
       this.createWindow();
     }
   }
