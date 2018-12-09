@@ -116,23 +116,25 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                           </div>
                         </>
                       ) : ( /* While NOT Editing */
-                        /* "Edit" Button */
-                        isPlaceholder ? undefined : (
-                            <div className='browse-right-sidebar__title-row__buttons__edit-button'
-                                title='Edit Game' onClick={this.props.onEditClick}>
-                              <OpenIcon icon='pencil' />
-                            </div>
-                        )
-                      ) }
-                      {/* "Remove From Playlist" Button */}
-                      { gamePlaylistEntry ? (
-                        <ConfirmElement onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
-                                        children={this.renderRemoveFromPlaylistButton} />
-                      ) : undefined }
-                      {/* "Delete Game" Button */}
-                      { (isPlaceholder || isNewGame) ? undefined : (
-                        <ConfirmElement onConfirm={this.onDeleteGameClick}
-                                        children={this.renderDeleteGameButton} />
+                        <>
+                          {/* "Edit" Button */}
+                          { isPlaceholder ? undefined : (
+                              <div className='browse-right-sidebar__title-row__buttons__edit-button'
+                                  title='Edit Game' onClick={this.props.onEditClick}>
+                                <OpenIcon icon='pencil' />
+                              </div>
+                          ) }
+                          {/* "Remove From Playlist" Button */}
+                          { gamePlaylistEntry ? (
+                            <ConfirmElement onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
+                                            children={this.renderRemoveFromPlaylistButton} />
+                          ) : undefined }
+                          {/* "Delete Game" Button */}
+                          { (isPlaceholder || isNewGame) ? undefined : (
+                            <ConfirmElement onConfirm={this.onDeleteGameClick}
+                                            children={this.renderDeleteGameButton} />
+                          ) }
+                        </>
                       ) }
                     </>
                   ) }
