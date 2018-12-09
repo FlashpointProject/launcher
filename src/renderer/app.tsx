@@ -87,6 +87,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         mw.height = height | 0;
       }
     });
+    ipcRenderer.on('window-maximize', (sender: any, isMaximized: boolean) => {
+      this.props.preferencesData.mainWindow.maximized = isMaximized;
+    });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {

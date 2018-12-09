@@ -15,6 +15,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
     y: undefined,
     width: undefined,
     height: undefined,
+    maximized: false,
   }),
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)

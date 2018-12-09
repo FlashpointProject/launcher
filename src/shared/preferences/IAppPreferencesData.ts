@@ -23,6 +23,7 @@ export interface IAppPreferencesData {
     y?: number;
     width?: number;
     height?: number;
+    maximized: boolean;
   }
   /** Sources to show/hide in the log page */
   showLogSource: {

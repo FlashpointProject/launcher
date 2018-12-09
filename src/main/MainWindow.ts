@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, IpcMessageEvent } from 'electron';
 import * as path from 'path';
 import { Main } from './Main';
 import * as Util from './Util';
@@ -52,6 +52,17 @@ export default class MainWindow {
     if (Util.isDev) {
       this._window.webContents.openDevTools();
     }
+    // Maximize window
+    if (mw.maximized) {
+      this._window.maximize();
+    }
+    // Relay window's maximize/unmaximize events to the renderer (as a single event with a flag)
+    this._window.on('maximize', (event: IpcMessageEvent) => {
+      event.sender.send('window-maximize', true);
+    });
+    this._window.on('unmaximize', (event: IpcMessageEvent) => {
+      event.sender.send('window-maximize', false);
+    });
     // Replay window's move event to the renderer
     this._window.on('move', () => {
       if (!this._window) { throw new Error(); }
