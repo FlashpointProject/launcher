@@ -7,7 +7,6 @@ import { IGameInfo } from '../../shared/game/interfaces';
 import { GameCollection } from '../../shared/game/GameCollection';
 import { GameLauncher } from '../GameLauncher';
 import { OpenIcon } from './OpenIcon';
-import { GameParser } from '../../shared/game/GameParser';
 import { EditableTextElement, IEditableTextElementArgs } from './EditableTextElement';
 import { gameIdDataType } from '../Util';
 

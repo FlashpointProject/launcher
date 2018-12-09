@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, IpcMessageEvent } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { AppRouter, IAppRouterProps } from './router';
@@ -16,7 +16,6 @@ import { SearchQuery } from './store/search';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
-import { LogRendererApi } from '../shared/Log/LogRendererApi';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -73,21 +72,21 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   init() {
     // Listen for the window to move or resize (and update the preferences when it does)
-    ipcRenderer.on('window-move', (sender: any, x: number, y: number, isMaximized: boolean) => {
+    ipcRenderer.on('window-move', (sender: IpcMessageEvent, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
         const mw = this.props.preferencesData.mainWindow;
         mw.x = x | 0;
         mw.y = y | 0;
       }
     });
-    ipcRenderer.on('window-resize', (sender: any, width: number, height: number, isMaximized: boolean) => {
+    ipcRenderer.on('window-resize', (sender: IpcMessageEvent, width: number, height: number, isMaximized: boolean) => {
       if (!isMaximized) {
         const mw = this.props.preferencesData.mainWindow;
         mw.width  = width  | 0;
         mw.height = height | 0;
       }
     });
-    ipcRenderer.on('window-maximize', (sender: any, isMaximized: boolean) => {
+    ipcRenderer.on('window-maximize', (sender: IpcMessageEvent, isMaximized: boolean) => {
       this.props.preferencesData.mainWindow.maximized = isMaximized;
     });
     // Load Playlists

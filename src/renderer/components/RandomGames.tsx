@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IGameInfo } from 'src/shared/game/interfaces';
+import { IGameInfo } from '../../shared/game/interfaces';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { GameGridItem } from './GameGridItem';
 import { shuffle } from '../Util';

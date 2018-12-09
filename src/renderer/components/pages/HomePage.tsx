@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { ICentralState } from '../../interfaces';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { GameGridItem } from '../GameGridItem';
 import { SizeProvider } from '../SizeProvider';
 import { GameLauncher } from '../../GameLauncher';
 import { WithPreferencesProps } from '../../containers/withPreferences';

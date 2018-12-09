@@ -5,7 +5,6 @@ import configureStore from './configureStore';
 import { createMemoryHistory } from 'history';
 import { ConnectedRouter } from 'connected-react-router';
 import ConnectedApp from './containers/ConnectedApp';
-import { App } from './app';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed

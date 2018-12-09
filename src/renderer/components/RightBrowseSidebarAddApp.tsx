@@ -2,8 +2,6 @@ import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { CheckBox } from './CheckBox';
 import { OpenIcon } from './OpenIcon';
-import { EditableTextElement } from './EditableTextElement';
-import { RightBrowseSidebar } from './RightBrowseSidebar';
 import { InputField } from './InputField';
 
 export interface IRightBrowseSidebarAddAppProps {

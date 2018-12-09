@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { IDefaultProps } from '../interfaces';
 import { List, AutoSizer, ListRowProps, ArrowKeyStepper, ScrollIndices } from 'react-virtualized';
+import { IDefaultProps } from '../interfaces';
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
