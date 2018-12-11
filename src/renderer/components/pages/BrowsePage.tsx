@@ -160,15 +160,20 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     return (
       <div className='game-browser'>
         { showSidebars ? (
-          <div className={'game-browser__left'+
-                          (selectedGame?'':' game-browser__left--none')+
-                          (this.props.preferencesData.browsePageShowLeftSidebar?'':' game-browser__left--hidden')}>
-            <ConnectedLeftBrowseSidebar central={this.props.central}
-                                        selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
-                                        onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
-                                        onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
-                                        onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
-                                        onShowAllClick={this.onLeftSidebarShowAllClick} />
+          <div className={'game-browser__sidebar'+
+                          (selectedGame?'':' game-browser__sidebar--none')+
+                          (this.props.preferencesData.browsePageShowLeftSidebar?'':' game-browser__sidebar--hidden')}>
+            <div className='game-browser__sidebar__inner'>
+              <div className='game-browser__sidebar__content simple-scroll'>
+                <ConnectedLeftBrowseSidebar central={this.props.central}
+                                            selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
+                                            onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
+                                            onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
+                                            onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
+                                            onShowAllClick={this.onLeftSidebarShowAllClick} />
+              </div>
+              <div className='game-browser__sidebar__divider'></div>
+            </div>
           </div>
         ) : undefined }
         <div className='game-browser__center' onKeyDown={this.onKeyDown}>
@@ -212,22 +217,27 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           })()}
         </div>
         { showSidebars ? (
-          <div className={'game-browser__right'+
-                          (this.state.currentGame?'':' game-browser__right--none')+
-                          (this.props.preferencesData.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
-            <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
-                                         currentAddApps={this.state.currentAddApps}
-                                         gameImages={this.props.central.gameImages}
-                                         games={this.props.central.games}
-                                         onDeleteSelectedGame={this.onDeleteSelectedGame}
-                                         onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
-                                         onEditPlaylistNotes={this.onEditPlaylistNotes}
-                                         gamePlaylistEntry={gamePlaylistEntry}
-                                         isEditing={this.state.isEditing}
-                                         isNewGame={this.state.isNewGame}
-                                         onEditClick={this.onStartEditClick}
-                                         onDiscardClick={this.onDiscardEditClick}
-                                         onSaveGame={this.onSaveEditClick} />
+          <div className={'game-browser__sidebar game-browser__right'+
+                          (this.state.currentGame?'':' game-browser__sidebar--none')+
+                          (this.props.preferencesData.browsePageShowRightSidebar?'':' game-browser__sidebar--hidden')}>
+            <div className='game-browser__sidebar__inner'>
+              <div className='game-browser__sidebar__divider'></div>
+              <div className='game-browser__sidebar__content simple-scroll'>
+                <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
+                                             currentAddApps={this.state.currentAddApps}
+                                             gameImages={this.props.central.gameImages}
+                                             games={this.props.central.games}
+                                             onDeleteSelectedGame={this.onDeleteSelectedGame}
+                                             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                                             onEditPlaylistNotes={this.onEditPlaylistNotes}
+                                             gamePlaylistEntry={gamePlaylistEntry}
+                                             isEditing={this.state.isEditing}
+                                             isNewGame={this.state.isNewGame}
+                                             onEditClick={this.onStartEditClick}
+                                             onDiscardClick={this.onDiscardEditClick}
+                                             onSaveGame={this.onSaveEditClick} />
+              </div>              
+            </div>
           </div>
         ) : undefined }
       </div>
