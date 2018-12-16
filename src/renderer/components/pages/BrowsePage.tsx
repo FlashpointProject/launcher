@@ -65,6 +65,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   /** A timestamp of the previous the the quick search string was updated */
   private _prevQuickSearchUpdate: number = 0;
 
+  private gameBrowserRef: React.RefObject<HTMLDivElement> = React.createRef();
+
   private static readonly quickSearchTimeout: number = 1500;
 
   constructor(props: IBrowsePageProps) {
@@ -142,7 +144,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     }
     // Render
     return (
-      <div className='game-browser'>
+      <div className='game-browser' ref={this.gameBrowserRef}>
         <IResizableSidebar none={!!selectedGame}
                         hide={this.props.preferencesData.browsePageShowLeftSidebar && showSidebars}
                         divider='after'
@@ -281,15 +283,25 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onLeftSidebarResize = (event: IResizeEvent): void => {
+    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth;
+    const targetWidth = event.startWidth + event.event.clientX - event.startX;
     this.props.updatePreferences({
-      browsePageLeftSidebarWidth: event.startWidth + event.event.clientX - event.startX
+      browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
     });
   }
 
   private onRightSidebarResize = (event: IResizeEvent): void => {
+    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth;
+    const targetWidth = event.startWidth + event.startX - event.event.clientX;
     this.props.updatePreferences({
-      browsePageRightSidebarWidth: event.startWidth + event.startX - event.event.clientX
+      browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
     });
+  }
+  
+  private getGameBrowserDivWidth(): number {
+    if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
+    if (!this.gameBrowserRef.current) { throw new Error('"game-browser" div is missing.'); }
+    return parseInt(document.defaultView.getComputedStyle(this.gameBrowserRef.current).width || '', 10);
   }
 
   private onGameSelect = (game?: IGameInfo): void => {
