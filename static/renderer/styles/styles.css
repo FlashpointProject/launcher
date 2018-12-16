@@ -36,6 +36,7 @@ html, body {
   --theme__slider__color-hover: #43454b;
   --theme__slider__color-active: #2e2f33;
   --theme__browse-sidebar__background-color: #181819;
+  --theme__browse-sidebar__divider__background-color: #131313;
   /* Pimp */
   color: var(--theme__text-color);
   font-weight: 100;
@@ -880,9 +881,11 @@ body {
 }
 /* Sidebar */
 .game-browser__sidebar {
+  --divider-width: 6px;
   display: flex;
   flex: 0 0 auto;
-  width: 20em;
+  min-width: var(--divider-width);
+  max-width: 100%;
   background-color: var(--theme__browse-sidebar__background-color);
 }
 .game-browser__sidebar--hidden {
@@ -895,31 +898,21 @@ body {
 }
 .game-browser__sidebar__content {
   flex: 1 1 auto;
-  width: calc(100% - 4px);
+  width: calc(100% - var(--divider-width));
   overflow-y: auto;
   overflow-x: hidden;
 }
 .game-browser__sidebar__divider {
-  width: 4px;
+  width: var(--divider-width);
   flex: 0 0 auto;
-  background-color: #000000;
+  background-color: var(--theme__browse-sidebar__divider__background-color);
+  user-select: none;
+  cursor: ew-resize;
 }
 /* Right Sidebar */
 .game-browser__right {}
 .game-browser__right p {
   display: inline;
-}
-.game-browser__right.game-browser__sidebar--none .game-browser__sidebar__content { /* No Game Selected */
-  padding: 1em 0;
-  text-align: center;
-}
-.game-browser__right.game-browser__sidebar--none h1 {
-  font-size: 1.3rem;
-  font-weight: bold;
-  padding-bottom: 0.2rem;
-}
-.game-browser__right.game-browser__sidebar--none p {
-  font-size: 1rem;
 }
 
 /* Browse-Left-Sidebar */
@@ -969,6 +962,7 @@ body {
   margin-bottom: 0;
 }
 .browse-right-sidebar__row p {
+  display: inline;
   cursor: default;
 }
 .browse-right-sidebar--edit-enabled {
@@ -1112,6 +1106,21 @@ body {
 .browse-right-sidebar__row__editable-text--multiline.browse-right-sidebar__row__editable-text--edit {
   height: 10em;
 }
+/* Browse Right Sidebar Empty (when no game is selected) */
+.browse-right-sidebar-empty {
+  padding: 1em 0;
+  text-align: center;
+  text-align: center;
+}
+.browse-right-sidebar-empty h1 {
+  font-size: 1.3rem;
+  font-weight: bold;
+  padding-bottom: 0.2rem;
+}
+.browse-right-sidebar-empty p {
+  font-size: 1rem;
+}
+
 
 /* GameList */
 .game-list {
@@ -1528,6 +1537,8 @@ body {
   font-size: 1.1rem;
   padding-left: 0.5rem;
   color: var(--color);
+  overflow: hidden;
+  word-break: break-all;
 }
 
 

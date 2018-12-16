@@ -285,10 +285,10 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       );
     } else {
       return (
-        <>
+        <div className='browse-right-sidebar-empty'>
           <h1>No game selected</h1>
           <p>Click on a game to select it.</p>
-        </>
+        </div>
       );
     }
   }

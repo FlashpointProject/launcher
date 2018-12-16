@@ -10,6 +10,8 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageLayout: BrowsePageLayout.grid,
   browsePageShowLeftSidebar: true,
   browsePageShowRightSidebar: true,
+  browsePageLeftSidebarWidth: 320,
+  browsePageRightSidebarWidth: 320,
   mainWindow: Object.freeze({
     x: undefined,
     y: undefined,
@@ -20,7 +22,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
-} as IAppPreferencesData);
+});
 
 /**
  * Overwrite a preferences data object with data from another object

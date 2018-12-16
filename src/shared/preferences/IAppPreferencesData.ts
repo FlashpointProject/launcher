@@ -17,6 +17,10 @@ export interface IAppPreferencesData {
   browsePageShowLeftSidebar: boolean;
   /** If the right sidebar at the BrowsePage should be visible */
   browsePageShowRightSidebar: boolean;
+  /** Width of the left sidebar */
+  browsePageLeftSidebarWidth: number;
+  /** Width of the right sidebar */
+  browsePageRightSidebarWidth: number;
   /** Position and size of the main window */
   mainWindow: {
     x?: number;

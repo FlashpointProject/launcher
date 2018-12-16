@@ -20,6 +20,7 @@ import { SearchQuery } from '../../store/search';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
+import { IResizableSidebar, IResizeEvent } from '../IResizableSidebar';
 
 interface OwnProps {
   central: ICentralState;
@@ -159,23 +160,18 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     // Render
     return (
       <div className='game-browser'>
-        { showSidebars ? (
-          <div className={'game-browser__sidebar'+
-                          (selectedGame?'':' game-browser__sidebar--none')+
-                          (this.props.preferencesData.browsePageShowLeftSidebar?'':' game-browser__sidebar--hidden')}>
-            <div className='game-browser__sidebar__inner'>
-              <div className='game-browser__sidebar__content simple-scroll'>
-                <ConnectedLeftBrowseSidebar central={this.props.central}
-                                            selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
-                                            onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
-                                            onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
-                                            onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
-                                            onShowAllClick={this.onLeftSidebarShowAllClick} />
-              </div>
-              <div className='game-browser__sidebar__divider'></div>
-            </div>
-          </div>
-        ) : undefined }
+        <IResizableSidebar none={!!selectedGame}
+                        hide={this.props.preferencesData.browsePageShowLeftSidebar && showSidebars}
+                        divider='after'
+                        width={this.props.preferencesData.browsePageLeftSidebarWidth}
+                        onResize={this.onLeftSidebarResize}>
+          <ConnectedLeftBrowseSidebar central={this.props.central}
+                                      selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
+                                      onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
+                                      onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
+                                      onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
+                                      onShowAllClick={this.onLeftSidebarShowAllClick} />
+        </IResizableSidebar>
         <div className='game-browser__center' onKeyDown={this.onKeyDown}>
           {(() => {
             if (this.props.gameLayout === BrowsePageLayout.grid) {
@@ -216,30 +212,25 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             }
           })()}
         </div>
-        { showSidebars ? (
-          <div className={'game-browser__sidebar game-browser__right'+
-                          (this.state.currentGame?'':' game-browser__sidebar--none')+
-                          (this.props.preferencesData.browsePageShowRightSidebar?'':' game-browser__sidebar--hidden')}>
-            <div className='game-browser__sidebar__inner'>
-              <div className='game-browser__sidebar__divider'></div>
-              <div className='game-browser__sidebar__content simple-scroll'>
-                <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
-                                             currentAddApps={this.state.currentAddApps}
-                                             gameImages={this.props.central.gameImages}
-                                             games={this.props.central.games}
-                                             onDeleteSelectedGame={this.onDeleteSelectedGame}
-                                             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
-                                             onEditPlaylistNotes={this.onEditPlaylistNotes}
-                                             gamePlaylistEntry={gamePlaylistEntry}
-                                             isEditing={this.state.isEditing}
-                                             isNewGame={this.state.isNewGame}
-                                             onEditClick={this.onStartEditClick}
-                                             onDiscardClick={this.onDiscardEditClick}
-                                             onSaveGame={this.onSaveEditClick} />
-              </div>              
-            </div>
-          </div>
-        ) : undefined }
+        <IResizableSidebar none={!!this.state.currentGame}
+                        hide={this.props.preferencesData.browsePageShowRightSidebar && showSidebars}
+                        divider='before'
+                        width={this.props.preferencesData.browsePageRightSidebarWidth}
+                        onResize={this.onRightSidebarResize}>
+          <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
+                                       currentAddApps={this.state.currentAddApps}
+                                       gameImages={this.props.central.gameImages}
+                                       games={this.props.central.games}
+                                       onDeleteSelectedGame={this.onDeleteSelectedGame}
+                                       onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                                       onEditPlaylistNotes={this.onEditPlaylistNotes}
+                                       gamePlaylistEntry={gamePlaylistEntry}
+                                       isEditing={this.state.isEditing}
+                                       isNewGame={this.state.isNewGame}
+                                       onEditClick={this.onStartEditClick}
+                                       onDiscardClick={this.onDiscardEditClick}
+                                       onSaveGame={this.onSaveEditClick} />
+        </IResizableSidebar>
       </div>
     );
   }
@@ -304,6 +295,18 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private onLeftSidebarShowAllClick(): void {
     if (this.props.clearSearch) { this.props.clearSearch(); }
     if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(undefined); }
+  }
+
+  private onLeftSidebarResize = (event: IResizeEvent): void => {
+    this.props.updatePreferences({
+      browsePageLeftSidebarWidth: event.startWidth + event.event.clientX - event.startX
+    });
+  }
+
+  private onRightSidebarResize = (event: IResizeEvent): void => {
+    this.props.updatePreferences({
+      browsePageRightSidebarWidth: event.startWidth + event.startX - event.event.clientX
+    });
   }
 
   private onGameSelect(game?: IGameInfo): void {
