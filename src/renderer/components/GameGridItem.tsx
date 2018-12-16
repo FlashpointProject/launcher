@@ -27,10 +27,6 @@ export interface IGameGridItemProps extends Partial<GridCellProps>, IDefaultProp
 export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
   constructor(props: IGameGridItemProps) {
     super(props);
-    this.onClick = this.onClick.bind(this);
-    this.onDoubleClick = this.onDoubleClick.bind(this);
-    this.onDragStart = this.onDragStart.bind(this);
-    this.onDragEnd = this.onDragEnd.bind(this);
   }
 
   render() {
@@ -65,25 +61,25 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     );
   }
 
-  private onClick(event: React.MouseEvent<HTMLLIElement>): void {
+  private onClick = (event: React.MouseEvent<HTMLLIElement>): void => {
     if (this.props.onClick) {
       this.props.onClick(this.props.game, this.props.index);
     }
   }
 
-  private onDoubleClick(event: React.MouseEvent<HTMLLIElement>): void {
+  private onDoubleClick = (event: React.MouseEvent<HTMLLIElement>): void => {
     if (this.props.onDoubleClick) {
       this.props.onDoubleClick(this.props.game, this.props.index);
     }
   }
   
-  private onDragStart(event: React.DragEvent): void {
+  private onDragStart = (event: React.DragEvent): void => {
     if (this.props.onDragStart) {
       this.props.onDragStart(event, this.props.game, this.props.index);
     }
   }
 
-  private onDragEnd(event: React.DragEvent): void {
+  private onDragEnd = (event: React.DragEvent): void => {
     if (this.props.onDragEnd) {
       this.props.onDragEnd(event, this.props.game, this.props.index);
     }

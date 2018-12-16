@@ -12,7 +12,6 @@ export interface ICheckBoxProps {
 export class CheckBox extends React.Component<ICheckBoxProps, {}> {
   constructor(props: ICheckBoxProps) {
     super(props);
-    this.onChange = this.onChange.bind(this);
   }
 
   render() {
@@ -22,7 +21,7 @@ export class CheckBox extends React.Component<ICheckBoxProps, {}> {
     );
   }
 
-  onChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  onChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     if (this.props.onChange) { this.props.onChange(event.target.checked); }
   }
 }

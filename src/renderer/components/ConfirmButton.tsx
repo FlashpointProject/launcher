@@ -30,8 +30,6 @@ export class ConfirmButton extends React.Component<ConfirmButtonProps, ConfirmBu
     this.state = {
       showConfirm: false,
     };
-    this.onClick = this.onClick.bind(this);
-    this.onMouseLeave = this.onMouseLeave.bind(this);
   }
 
   render() {
@@ -49,12 +47,12 @@ export class ConfirmButton extends React.Component<ConfirmButtonProps, ConfirmBu
     );
   }
 
-  private onClick(event: React.MouseEvent): void {
+  private onClick = (event: React.MouseEvent): void => {
     if (this.props.skipConfirm) {
-      this.onConfirm();
+      if (this.props.onConfirm) { this.props.onConfirm(); }
     } else {
       if (this.state.showConfirm) {
-        this.onConfirm();
+        if (this.props.onConfirm) { this.props.onConfirm(); }
         this.setState({ showConfirm: false });
       } else {
         this.setState({ showConfirm: true });
@@ -62,15 +60,9 @@ export class ConfirmButton extends React.Component<ConfirmButtonProps, ConfirmBu
     }
   }
 
-  private onMouseLeave(event: React.MouseEvent): void {
+  private onMouseLeave = (event: React.MouseEvent): void => {
     if (this.state.showConfirm) {
       this.setState({ showConfirm: false });
-    }
-  }
-
-  private onConfirm(): void {
-    if (this.props.onConfirm) {
-      this.props.onConfirm();
     }
   }
 }

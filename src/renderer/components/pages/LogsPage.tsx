@@ -13,9 +13,6 @@ interface OwnProps {
 
 export type ILogsPageProps = OwnProps & WithPreferencesProps;
 
-interface ILogsPageState {
-}
-
 const labels = [
   'Background Services',
   'Game Launcher',
@@ -23,16 +20,11 @@ const labels = [
   'Router',
 ];
 
-export class LogsPage extends React.Component<ILogsPageProps, ILogsPageState> {
+export class LogsPage extends React.Component<ILogsPageProps> {
   private stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
 
   constructor(props: ILogsPageProps) {
     super(props);
-    this.state = {};
-    this.onCopyClick = this.onCopyClick.bind(this);
-    this.onClearClick = this.onClearClick.bind(this);
-    this.onCheckboxClick = this.onCheckboxClick.bind(this);
-    this.onLogDataUpdate = this.onLogDataUpdate.bind(this);
   }
 
   private getLogString() {
@@ -102,17 +94,17 @@ export class LogsPage extends React.Component<ILogsPageProps, ILogsPageState> {
     );
   }
 
-  private onCopyClick(): void {
+  private onCopyClick = (): void => {
     if (!navigator.clipboard) { throw new Error('Clipboard API is not available.'); }
     const logData = this.getLogString();
     navigator.clipboard.writeText(parseHtmlToText(logData));
   }
 
-  private onClearClick(): void {
+  private onClearClick = (): void => {
     window.External.log.clearEntries();
   }
 
-  private onCheckboxClick(index: number): void {
+  private onCheckboxClick = (index: number): void => {
     const label = labels[index];
     const { showLogSource } = this.props.preferencesData;
     this.props.updatePreferences({
@@ -124,7 +116,7 @@ export class LogsPage extends React.Component<ILogsPageProps, ILogsPageState> {
     });
   }
 
-  private onLogDataUpdate(log: LogRendererApi) {
+  private onLogDataUpdate = (log: LogRendererApi): void => {
     this.forceUpdate();
   }
 }

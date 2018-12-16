@@ -18,7 +18,6 @@ class GameManager extends EventEmitter {
 
   constructor() {
     super();
-    this.onPlatformChange = this.onPlatformChange.bind(this);
   }
   
   /** Fetch file filenames of all platform XMLs in the platforms folder */
@@ -123,7 +122,7 @@ class GameManager extends EventEmitter {
     this.emit('change', this);
   }
 
-  private onPlatformChange(platform: GameManagerPlatform): void {
+  private onPlatformChange = (platform: GameManagerPlatform): void => {
     this.refreshCollection();
   }
 }

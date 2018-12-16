@@ -37,10 +37,6 @@ export class ImagePreview extends React.Component<IImagePreviewProps, IImagePrev
     };
     this.parent = document.body;
     this.element = document.createElement('div');
-    this.onClickImage = this.onClickImage.bind(this);
-    this.onClickBackground = this.onClickBackground.bind(this);
-    this.updateBorderSize = this.updateBorderSize.bind(this);
-    this.onLoad = this.onLoad.bind(this);
   }
 
   componentDidUpdate(prevProps: IImagePreviewProps, prevState: IImagePreviewState) {
@@ -88,17 +84,17 @@ export class ImagePreview extends React.Component<IImagePreviewProps, IImagePrev
     return { width, height };
   }
 
-  private onClickImage(): void {
+  private onClickImage = (): void => {
     this.setState({ scaleUp: !this.state.scaleUp });
   }
 
-  private onClickBackground(event: React.MouseEvent): void {
+  private onClickBackground = (event: React.MouseEvent): void => {
     if (event.target === event.currentTarget) {
       if (this.props.onCancel) { this.props.onCancel(); }
     }
   }
 
-  private updateBorderSize(): void {
+  private updateBorderSize = (): void => {
     const border = this.borderRef.current;
     if (!border) { throw new Error('Border is missing.'); }
     this.setState({
@@ -107,7 +103,7 @@ export class ImagePreview extends React.Component<IImagePreviewProps, IImagePrev
     });
   }
   
-  private onLoad(event: React.SyntheticEvent<HTMLImageElement>): void {
+  private onLoad = (event: React.SyntheticEvent<HTMLImageElement>): void => {
     this.setState({
       imageWidth: event.currentTarget.naturalWidth,
       imageHeight: event.currentTarget.naturalHeight,

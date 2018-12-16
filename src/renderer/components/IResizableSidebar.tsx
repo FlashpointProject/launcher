@@ -43,9 +43,6 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
       startX: 0,
       startWidth: 0,
     };
-    this.onMouseUp = this.onMouseUp.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onDividerMouseDown = this.onDividerMouseDown.bind(this);
   }
 
   componentDidMount() {
@@ -78,7 +75,7 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
     );
   }
 
-  renderDivider() {
+  private renderDivider() {
     return (
       <div className='game-browser__sidebar__divider'
            onMouseDown={this.onDividerMouseDown}>
@@ -86,7 +83,7 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
     );
   }
 
-  onDividerMouseDown(event: React.MouseEvent) {
+  private onDividerMouseDown = (event: React.MouseEvent): void => {
     if (event.button === 0 && !this.state.isDragging) {
       if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
       if (!this.sidebarRef.current) { throw new Error('sidebar div is missing.'); }
@@ -100,7 +97,7 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
     }
   }
 
-  onMouseUp(event: MouseEvent) {
+  private onMouseUp = (event: MouseEvent): void => {
     if (event.button === 0 && this.state.isDragging) {
       this.setState({ isDragging: false });
       if (this.props.onResizeEnd) { this.props.onResizeEnd(); }
@@ -108,7 +105,7 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
     }
   }
 
-  onMouseMove(event: MouseEvent) {
+  private onMouseMove = (event: MouseEvent): void => {
     if (this.state.isDragging) {
       const { startX, startWidth } = this.state;
       if (this.props.onResize) { this.props.onResize({ event, startX, startWidth }); }

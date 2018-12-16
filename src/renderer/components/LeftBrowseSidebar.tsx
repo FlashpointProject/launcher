@@ -29,13 +29,6 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     this.state = {
       isEditing: false,
     };
-    this.onPlaylistItemHeadClick = this.onPlaylistItemHeadClick.bind(this);
-    this.onPlaylistItemEditClick = this.onPlaylistItemEditClick.bind(this);
-    this.onPlaylistItemDeleteClick = this.onPlaylistItemDeleteClick.bind(this);
-    this.onPlaylistItemSaveClick = this.onPlaylistItemSaveClick.bind(this);
-    this.onPlaylistItemDrop = this.onPlaylistItemDrop.bind(this);
-    this.onPlaylistItemDragOver = this.onPlaylistItemDragOver.bind(this);
-    this.onCreatePlaylistClick = this.onCreatePlaylistClick.bind(this);
   }
 
   render() {
@@ -102,7 +95,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     );
   }
 
-  private onPlaylistItemHeadClick(playlist: IGamePlaylist): void {
+  private onPlaylistItemHeadClick = (playlist: IGamePlaylist): void => {
     if (this.props.selectedPlaylistID === playlist.id) {
       this.props.onDeselectPlaylist && this.props.onDeselectPlaylist();
     } else {
@@ -111,13 +104,13 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     this.setState({ isEditing: false });
   }
 
-  private onPlaylistItemEditClick(playlist: IGamePlaylist): void {
+  private onPlaylistItemEditClick = (playlist: IGamePlaylist): void => {
     if (this.props.selectedPlaylistID === playlist.id) {
       this.setState({ isEditing: !this.state.isEditing });
     }
   }
 
-  private onPlaylistItemDeleteClick(playlist: IGamePlaylist): void {
+  private onPlaylistItemDeleteClick = (playlist: IGamePlaylist): void => {
     if (this.props.central.playlistsDoneLoading) {
       // Delete playlist
       this.props.central.playlists.delete(playlist.id);
@@ -127,7 +120,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     }
   }
 
-  private onPlaylistItemSaveClick(playlist: IGamePlaylist, edit: IGamePlaylist): void {
+  private onPlaylistItemSaveClick = (playlist: IGamePlaylist, edit: IGamePlaylist): void => {
     // Overwrite the playlist with the new one
     const arr = this.props.central.playlists.playlists;
     arr.splice(arr.indexOf(playlist), 1, edit);
@@ -137,13 +130,13 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     this.setState({ isEditing: false });
   }
 
-  private onPlaylistItemDrop(event: React.DragEvent, playlist: IGamePlaylist): void {
+  private onPlaylistItemDrop = (event: React.DragEvent, playlist: IGamePlaylist): void => {
     if (this.props.onPlaylistChanged) {
       this.props.onPlaylistChanged(playlist);
     }
   }
 
-  private onPlaylistItemDragOver(event: React.DragEvent, playlist: IGamePlaylist): void {
+  private onPlaylistItemDragOver = (event: React.DragEvent, playlist: IGamePlaylist): void => {
     if (this.props.preferencesData.enableEditing) {
       const types = event.dataTransfer.types;
       if (types.length === 1 && types[0] === gameIdDataType) {
@@ -154,7 +147,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     }
   }
 
-  private onCreatePlaylistClick(event: React.MouseEvent): void {
+  private onCreatePlaylistClick = (event: React.MouseEvent): void => {
     if (this.props.central.playlistsDoneLoading) {
       // Create and save a new playlist
       const playlist = this.props.central.playlists.create();

@@ -42,13 +42,6 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   constructor(props: IGameGridProps) {
     super(props);
     this.state = {};
-    this.cellRenderer = this.cellRenderer.bind(this);
-    this.onItemClick = this.onItemClick.bind(this);
-    this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
-    this.onItemDragStart = this.onItemDragStart.bind(this);
-    this.onItemDragEnd = this.onItemDragEnd.bind(this);
-    this.onKeyPress = this.onKeyPress.bind(this);
-    this.onScrollToChange = this.onScrollToChange.bind(this);
   }
 
   componentDidMount(): void {
@@ -130,7 +123,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   }
 
   /** Renders a single row / list item */
-  cellRenderer(props: GridCellProps): React.ReactNode {
+  cellRenderer = (props: GridCellProps): React.ReactNode => {
     if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     if (!this.props.gameImages) { throw new Error('Trying to render a row in game list, but game image loader is not found?'); }
     const index: number = props.rowIndex * this.columns + props.columnIndex;
@@ -152,7 +145,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   }
 
   /** When a key is pressed (while the list, or one of its children, is selected) */
-  onKeyPress(event: React.KeyboardEvent): void {
+  onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGame) {
         this.props.onGameLaunch(this.props.selectedGame);
@@ -161,31 +154,31 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   }
 
   /** When a list item is clicked */
-  onItemClick(game: IGameInfo, index: number): void {
+  onItemClick = (game: IGameInfo, index: number): void => {
     this.onGameSelect(game);
   }
   
   /** When a list item is double clicked */
-  onItemDoubleClick(game: IGameInfo, index: number): void {
+  onItemDoubleClick = (game: IGameInfo, index: number): void => {
     this.props.onGameLaunch(game);
   }
   
   /** When a grid item is started to being dragged */
-  onItemDragStart(event: React.DragEvent, game: IGameInfo, index: number): void {
+  onItemDragStart = (event: React.DragEvent, game: IGameInfo, index: number): void => {
     if (this.props.onGameDragStart) {
       this.props.onGameDragStart(event, game, index);
     }
   }
   
   /** When a grid item is ended to being dragged */
-  onItemDragEnd(event: React.DragEvent, game: IGameInfo, index: number): void {
+  onItemDragEnd = (event: React.DragEvent, game: IGameInfo, index: number): void => {
     if (this.props.onGameDragEnd) {
       this.props.onGameDragEnd(event, game, index);
     }
   }
 
   /** When a row/item is selected */
-  onScrollToChange(params: ScrollIndices): void {
+  onScrollToChange = (params: ScrollIndices): void => {
     if (!this.props.games) { throw new Error('Games array is missing.'); }
     if (params.scrollToColumn === -1 || params.scrollToRow === -1) {
       this.onGameSelect(undefined);

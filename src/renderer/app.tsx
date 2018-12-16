@@ -58,14 +58,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       gameLayout: preferencesData.browsePageLayout,
       wasNewGameClicked: false,
     };
-    this.onOrderChange = this.onOrderChange.bind(this);
-    this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
-    this.onLayoutSelectorChange = this.onLayoutSelectorChange.bind(this);
-    this.onNewGameClick = this.onNewGameClick.bind(this);
-    this.onToggleLeftSidebarClick = this.onToggleLeftSidebarClick.bind(this);
-    this.onToggleRightSidebarClick = this.onToggleRightSidebarClick.bind(this);
-    this.onSelectGame = this.onSelectGame.bind(this);
-    this.onSelectPlaylist = this.onSelectPlaylist.bind(this);
     // Initialize app
     this.init();
   }
@@ -205,44 +197,44 @@ export class App extends React.Component<IAppProps, IAppState> {
     );
   }
 
-  private onOrderChange(event: IGameOrderChangeEvent): void {
+  private onOrderChange = (event: IGameOrderChangeEvent): void => {
     this.setState({ order: event });
   }
 
-  private onScaleSliderChange(value: number): void {
+  private onScaleSliderChange = (value: number): void => {
     this.setState({ gameScale: value });
     // Update Preferences Data (this is to make it get saved on disk)
     this.props.updatePreferences({ browsePageGameScale: value });
   }
 
-  private onLayoutSelectorChange(value: BrowsePageLayout): void {
+  private onLayoutSelectorChange = (value: BrowsePageLayout): void => {
     this.setState({ gameLayout: value });
     // Update Preferences Data (this is to make it get saved on disk)
     this.props.updatePreferences({ browsePageLayout: value });
   }
 
-  private onNewGameClick(): void {
+  private onNewGameClick = (): void => {
     this.setState({
       wasNewGameClicked: true,
       selectedGame: undefined
     });
   }
 
-  private onToggleLeftSidebarClick(): void {
+  private onToggleLeftSidebarClick = (): void => {
     this.props.updatePreferences({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
     this.forceUpdate();
   }
 
-  private onToggleRightSidebarClick(): void {
+  private onToggleRightSidebarClick = (): void => {
     this.props.updatePreferences({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
     this.forceUpdate();
   }
 
-  private onSelectGame(game?: IGameInfo): void {
+  private onSelectGame = (game?: IGameInfo): void => {
     this.setState({ selectedGame: game });
   }
 
-  private onSelectPlaylist(playlist?: IGamePlaylist): void {
+  private onSelectPlaylist = (playlist?: IGamePlaylist): void => {
     this.setState({
       selectedPlaylist: playlist,
       selectedGame: undefined,

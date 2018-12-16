@@ -17,8 +17,6 @@ export class Dropdown extends React.Component<IDropdownProps, IDropdownState> {
     this.state = {
       expanded: false,
     };
-    this.onBoxMouseDown = this.onBoxMouseDown.bind(this);
-    this.onGlobalMouseDown = this.onGlobalMouseDown.bind(this);
   }
 
   componentDidMount() {
@@ -46,14 +44,14 @@ export class Dropdown extends React.Component<IDropdownProps, IDropdownState> {
     );
   }
 
-  onBoxMouseDown(event: React.MouseEvent): void {
+  onBoxMouseDown = (event: React.MouseEvent): void => {
     if (event.button === 0) {
       this.setState({ expanded: !this.state.expanded });
       event.preventDefault();
     }
   }
 
-  onGlobalMouseDown(event: MouseEvent) {
+  onGlobalMouseDown = (event: MouseEvent) => {
     if (this.state.expanded && !event.defaultPrevented) {
       if (!checkIfAncestor(event.target as HTMLElement|null, this.contentRef.current)) {
         this.setState({ expanded: false });
