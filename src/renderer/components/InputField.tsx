@@ -1,34 +1,47 @@
 import * as React from 'react';
 
+type InputElement = HTMLInputElement|HTMLTextAreaElement;
+
 export interface InputFieldProps {
   text: string;
-  onChange: (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void;
-  placeholder: string;
-  canEdit: boolean;
+  placeholder?: string;
+  canEdit?: boolean;
   multiline?: boolean;
+  className?: string;
+  reference?: React.RefObject<any>;
+  onChange?: (event: React.ChangeEvent<InputElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
 }
 
 export function InputField(props: InputFieldProps) {
-  if (props.canEdit) {
-    if (props.multiline) {
+  const { canEdit, className, multiline, onChange, onKeyDown, placeholder, reference, text } = props;
+  if (canEdit) {
+    if (multiline) {
       return (
-        <textarea value={props.text} placeholder={props.placeholder} onChange={props.onChange}
-                  className='browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--multiline browse-right-sidebar__row__editable-text--edit simple-input simple-scroll' />
+        <textarea value={text} placeholder={placeholder} ref={reference}
+                  onChange={onChange || noop} onKeyDown={onKeyDown || noop}
+                  className={'browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--multiline browse-right-sidebar__row__editable-text--edit simple-input simple-scroll'+
+                             (className ? ' '+className : '')} />
       );
     } else {
       return (
-        <input value={props.text} placeholder={props.placeholder} onChange={props.onChange}
-               className='browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--edit simple-input' />
+        <input value={text} placeholder={placeholder} ref={reference}
+               onChange={onChange || noop} onKeyDown={onKeyDown || noop}
+               className={'browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--edit simple-input'+
+                          (className ? ' '+className : '')} />
       );
     }
   } else {
-    let className = 'browse-right-sidebar__row__editable-text';
-    if (!props.text) { className += ' simple-disabled-text'; }
-    if (props.multiline) { className += ' browse-right-sidebar__row__editable-text--multiline'; }
+    let cn = 'browse-right-sidebar__row__editable-text';
+    if (!text)     { cn += ' simple-disabled-text'; }
+    if (multiline) { cn += ' browse-right-sidebar__row__editable-text--multiline'; }
+    if (className) { cn += ' '+className; }
     return (
-      <p title={props.text} className={className}>
+      <p title={props.text} className={cn} ref={reference}>
         {props.text || props.placeholder}
       </p>
     );
   }
 }
+
+const noop = () => {};
