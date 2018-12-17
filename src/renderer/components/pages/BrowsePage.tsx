@@ -20,6 +20,7 @@ import { SearchQuery } from '../../store/search';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
+import { IResizableSidebar, IResizeEvent } from '../IResizableSidebar';
 
 interface OwnProps {
   central: ICentralState;
@@ -64,6 +65,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   /** A timestamp of the previous the the quick search string was updated */
   private _prevQuickSearchUpdate: number = 0;
 
+  private gameBrowserRef: React.RefObject<HTMLDivElement> = React.createRef();
+
   private static readonly quickSearchTimeout: number = 1500;
 
   constructor(props: IBrowsePageProps) {
@@ -74,23 +77,6 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       isEditing: false,
       isNewGame: false,
     };
-    this.noRowsRenderer = this.noRowsRenderer.bind(this);
-    this.onGameSelect = this.onGameSelect.bind(this);
-    this.onGameLaunch = this.onGameLaunch.bind(this);
-    this.onGameDragStart = this.onGameDragStart.bind(this);
-    this.onGameDragEnd = this.onGameDragEnd.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
-    this.onDeleteSelectedGame = this.onDeleteSelectedGame.bind(this);
-    this.onRemoveSelectedGameFromPlaylist = this.onRemoveSelectedGameFromPlaylist.bind(this);
-    this.onStartEditClick = this.onStartEditClick.bind(this);
-    this.onDiscardEditClick = this.onDiscardEditClick.bind(this);
-    this.onSaveEditClick = this.onSaveEditClick.bind(this);
-    this.onEditPlaylistNotes = this.onEditPlaylistNotes.bind(this);
-    this.onLeftSidebarSelectPlaylist = this.onLeftSidebarSelectPlaylist.bind(this);
-    this.onLeftSidebarDeselectPlaylist = this.onLeftSidebarDeselectPlaylist.bind(this);
-    this.onLeftSidebarPlaylistChanged = this.onLeftSidebarPlaylistChanged.bind(this);
-    this.onLeftSidebarShowAllClick = this.onLeftSidebarShowAllClick.bind(this);
-    this.onGamesCollectionChange = this.onGamesCollectionChange.bind(this);
   }
 
   componentDidMount() {
@@ -158,19 +144,19 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     }
     // Render
     return (
-      <div className='game-browser'>
-        { showSidebars ? (
-          <div className={'game-browser__left'+
-                          (selectedGame?'':' game-browser__left--none')+
-                          (this.props.preferencesData.browsePageShowLeftSidebar?'':' game-browser__left--hidden')}>
-            <ConnectedLeftBrowseSidebar central={this.props.central}
-                                        selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
-                                        onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
-                                        onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
-                                        onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
-                                        onShowAllClick={this.onLeftSidebarShowAllClick} />
-          </div>
-        ) : undefined }
+      <div className='game-browser' ref={this.gameBrowserRef}>
+        <IResizableSidebar none={!!selectedGame}
+                        hide={this.props.preferencesData.browsePageShowLeftSidebar && showSidebars}
+                        divider='after'
+                        width={this.props.preferencesData.browsePageLeftSidebarWidth}
+                        onResize={this.onLeftSidebarResize}>
+          <ConnectedLeftBrowseSidebar central={this.props.central}
+                                      selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
+                                      onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
+                                      onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
+                                      onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
+                                      onShowAllClick={this.onLeftSidebarShowAllClick} />
+        </IResizableSidebar>
         <div className='game-browser__center' onKeyDown={this.onKeyDown}>
           {(() => {
             if (this.props.gameLayout === BrowsePageLayout.grid) {
@@ -211,30 +197,30 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             }
           })()}
         </div>
-        { showSidebars ? (
-          <div className={'game-browser__right'+
-                          (this.state.currentGame?'':' game-browser__right--none')+
-                          (this.props.preferencesData.browsePageShowRightSidebar?'':' game-browser__right--hidden')}>
-            <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
-                                         currentAddApps={this.state.currentAddApps}
-                                         gameImages={this.props.central.gameImages}
-                                         games={this.props.central.games}
-                                         onDeleteSelectedGame={this.onDeleteSelectedGame}
-                                         onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
-                                         onEditPlaylistNotes={this.onEditPlaylistNotes}
-                                         gamePlaylistEntry={gamePlaylistEntry}
-                                         isEditing={this.state.isEditing}
-                                         isNewGame={this.state.isNewGame}
-                                         onEditClick={this.onStartEditClick}
-                                         onDiscardClick={this.onDiscardEditClick}
-                                         onSaveGame={this.onSaveEditClick} />
-          </div>
-        ) : undefined }
+        <IResizableSidebar none={!!this.state.currentGame}
+                        hide={this.props.preferencesData.browsePageShowRightSidebar && showSidebars}
+                        divider='before'
+                        width={this.props.preferencesData.browsePageRightSidebarWidth}
+                        onResize={this.onRightSidebarResize}>
+          <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
+                                       currentAddApps={this.state.currentAddApps}
+                                       gameImages={this.props.central.gameImages}
+                                       games={this.props.central.games}
+                                       onDeleteSelectedGame={this.onDeleteSelectedGame}
+                                       onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+                                       onEditPlaylistNotes={this.onEditPlaylistNotes}
+                                       gamePlaylistEntry={gamePlaylistEntry}
+                                       isEditing={this.state.isEditing}
+                                       isNewGame={this.state.isNewGame}
+                                       onEditClick={this.onStartEditClick}
+                                       onDiscardClick={this.onDiscardEditClick}
+                                       onSaveGame={this.onSaveEditClick} />
+        </IResizableSidebar>
       </div>
     );
   }
 
-  private noRowsRenderer(): JSX.Element {
+  private noRowsRenderer = (): JSX.Element => {
     return (
       <div className='game-list__no-games'>
         { this.props.central.gamesDoneLoading ? (
@@ -279,35 +265,57 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     );
   }
 
-  private onLeftSidebarSelectPlaylist(playlist: IGamePlaylist): void {
+  private onLeftSidebarSelectPlaylist = (playlist: IGamePlaylist): void => {
     if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(playlist); }
   }
 
-  private onLeftSidebarDeselectPlaylist(): void {
+  private onLeftSidebarDeselectPlaylist = (): void => {
     if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(undefined); }
   }
 
-  private onLeftSidebarPlaylistChanged(playlist: IGamePlaylist): void {
+  private onLeftSidebarPlaylistChanged = (playlist: IGamePlaylist): void => {
     this.forceUpdate();
   }
 
-  private onLeftSidebarShowAllClick(): void {
+  private onLeftSidebarShowAllClick = (): void => {
     if (this.props.clearSearch) { this.props.clearSearch(); }
     if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(undefined); }
   }
 
-  private onGameSelect(game?: IGameInfo): void {
+  private onLeftSidebarResize = (event: IResizeEvent): void => {
+    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth;
+    const targetWidth = event.startWidth + event.event.clientX - event.startX;
+    this.props.updatePreferences({
+      browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
+    });
+  }
+
+  private onRightSidebarResize = (event: IResizeEvent): void => {
+    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth;
+    const targetWidth = event.startWidth + event.startX - event.event.clientX;
+    this.props.updatePreferences({
+      browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
+    });
+  }
+  
+  private getGameBrowserDivWidth(): number {
+    if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
+    if (!this.gameBrowserRef.current) { throw new Error('"game-browser" div is missing.'); }
+    return parseInt(document.defaultView.getComputedStyle(this.gameBrowserRef.current).width || '', 10);
+  }
+
+  private onGameSelect = (game?: IGameInfo): void => {
     if (this.props.selectedGame !== game) {
       if (this.props.onSelectGame) { this.props.onSelectGame(game); }
     }
   }
 
-  private onGameLaunch(game: IGameInfo): void {
+  private onGameLaunch = (game: IGameInfo): void => {
     const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
     GameLauncher.launchGame(game, addApps);
   }
 
-  private onKeyDown(event: React.KeyboardEvent): void {
+  private onKeyDown = (event: React.KeyboardEvent): void => {
     const key: string = event.key.toLowerCase();
     if (key === 'backspace') { // (Backspace - Remove a character)
       const timedOut = updateTime.call(this);
@@ -328,21 +336,21 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     }
   }
 
-  private onGameDragStart(event: React.DragEvent, game: IGameInfo, index: number): void {
+  private onGameDragStart = (event: React.DragEvent, game: IGameInfo, index: number): void => {
     this.setState({ draggedGame: game });
     event.dataTransfer.setData(gameIdDataType, game.id);
   }
 
-  private onGameDragEnd(event: React.DragEvent, game: IGameInfo, index: number): void {
+  private onGameDragEnd = (event: React.DragEvent, game: IGameInfo, index: number): void => {
     this.setState({ draggedGame: undefined });
     event.dataTransfer.clearData(gameIdDataType);
   }
 
-  private onDeleteSelectedGame(): void {
+  private onDeleteSelectedGame = (): void => {
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
   }
 
-  private onRemoveSelectedGameFromPlaylist(): void {
+  private onRemoveSelectedGameFromPlaylist = (): void => {
     const playlist = this.props.selectedPlaylist;
     const game = this.props.selectedGame;
     if (!playlist) { throw new Error('Unable to remove game from selected playlist - No playlist is selected'); }
@@ -365,7 +373,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
   }
 
-  private onEditPlaylistNotes(text: string): void {
+  private onEditPlaylistNotes = (text: string): void => {
     const playlist = this.props.selectedPlaylist;
     const game = this.props.selectedGame;
     if (!playlist) { throw new Error('Unable to remove game from selected playlist - No playlist is selected'); }
@@ -400,15 +408,15 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     });
   }
 
-  private onStartEditClick(): void {
+  private onStartEditClick = (): void => {
     this.setState({ isEditing: true });
   }
 
-  private onDiscardEditClick(): void {
+  private onDiscardEditClick = (): void => {
     this.setState({ isEditing: false });
   }
 
-  private onSaveEditClick(): void {
+  private onSaveEditClick = (): void => {
     this.saveGameAndAddApps();
     this.setState({
       isEditing: false,
@@ -547,7 +555,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     }
   }
 
-  private onGamesCollectionChange(): void {
+  private onGamesCollectionChange = (): void => {
     this.orderGames(true);
   }
 

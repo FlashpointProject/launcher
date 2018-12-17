@@ -12,8 +12,6 @@ export interface IConfigFlashpointPathInputProps {
 export class ConfigFlashpointPathInput extends React.Component<IConfigFlashpointPathInputProps, {}> {
   constructor(props: IConfigFlashpointPathInputProps) {
     super(props);
-    this.onInputChange = this.onInputChange.bind(this);
-    this.onBrowseClick = this.onBrowseClick.bind(this);
     if (props.onInputChange) { props.onInputChange(this.props.input || ''); }
   }
 
@@ -33,11 +31,11 @@ export class ConfigFlashpointPathInput extends React.Component<IConfigFlashpoint
     );
   }
 
-  onInputChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  onInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setInput(event.target.value);
   }
 
-  onBrowseClick(event: React.MouseEvent<HTMLInputElement>): void {
+  onBrowseClick = (event: React.MouseEvent<HTMLInputElement>): void => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select the FlashPoint root directory',

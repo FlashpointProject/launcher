@@ -26,8 +26,6 @@ export class RightBrowseSidebarAddApp extends React.Component<IRightBrowseSideba
 
   constructor(props: IRightBrowseSidebarAddAppProps) {
     super(props);
-    this.onLaunchClick = this.onLaunchClick.bind(this);
-    this.onDeleteClick = this.onDeleteClick.bind(this);
   }
 
   render() {
@@ -81,13 +79,13 @@ export class RightBrowseSidebarAddApp extends React.Component<IRightBrowseSideba
     );
   }
 
-  private onLaunchClick(): void {
+  private onLaunchClick = (): void => {
     if (this.props.onLaunch) {
       this.props.onLaunch(this.props.addApp);
     }
   }
 
-  private onDeleteClick(): void {
+  private onDeleteClick = (): void => {
     if (this.props.onDelete) {
       this.props.onDelete(this.props.addApp);
     }

@@ -37,15 +37,6 @@ export class GameList extends React.Component<IGameListProps, {}> {
 
   constructor(props: IGameListProps) {
     super(props);
-    this.state = {};
-    this.rowRenderer = this.rowRenderer.bind(this);
-    this.onItemClick = this.onItemClick.bind(this);
-    this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
-    this.onItemDragStart = this.onItemDragStart.bind(this);
-    this.onItemDragEnd = this.onItemDragEnd.bind(this);
-    this.onKeyPress = this.onKeyPress.bind(this);
-    this.onScrollToChange = this.onScrollToChange.bind(this);
-    this.onRowsRendered = this.onRowsRendered.bind(this);
   }
 
   componentDidMount(): void {
@@ -103,7 +94,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
   }
 
   /** Renders a single row / list item */
-  rowRenderer(props: ListRowProps): React.ReactNode {
+  rowRenderer = (props: ListRowProps): React.ReactNode => {
     if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     if (!this.props.gameImages) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
     const game = this.props.games[props.index];
@@ -123,7 +114,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
   }
 
   /** When a key is pressed (while the list, or one of its children, is selected) */
-  onKeyPress(event: React.KeyboardEvent): void {
+  onKeyPress = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.selectedGame) {
         this.props.onGameLaunch(this.props.selectedGame);
@@ -132,31 +123,31 @@ export class GameList extends React.Component<IGameListProps, {}> {
   }
 
   /** When a list item is clicked */
-  onItemClick(game: IGameInfo, index: number): void {
+  onItemClick = (game: IGameInfo, index: number): void => {
     this.onGameSelect(game);
   }
   
   /** When a list item is double clicked */
-  onItemDoubleClick(game: IGameInfo, index: number): void {
+  onItemDoubleClick = (game: IGameInfo, index: number): void => {
     this.props.onGameLaunch(game);
   }
   
   /** When a list item is started to being dragged */
-  onItemDragStart(event: React.DragEvent, game: IGameInfo, index: number): void {
+  onItemDragStart = (event: React.DragEvent, game: IGameInfo, index: number): void => {
     if (this.props.onGameDragStart) {
       this.props.onGameDragStart(event, game, index);
     }
   }
   
   /** When a list item is ended to being dragged */
-  onItemDragEnd(event: React.DragEvent, game: IGameInfo, index: number): void {
+  onItemDragEnd = (event: React.DragEvent, game: IGameInfo, index: number): void => {
     if (this.props.onGameDragEnd) {
       this.props.onGameDragEnd(event, game, index);
     }
   }
 
   /** When a row/item is selected */
-  onScrollToChange(params: ScrollIndices): void {
+  onScrollToChange = (params: ScrollIndices): void => {
     if (!this.props.games) { throw new Error('Games array is missing.'); }
     if (params.scrollToRow === -1) {
       this.onGameSelect(undefined);
@@ -169,7 +160,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
   }
 
   /** When the game list renders - argument contains the indices of first/last rows rendered */
-  onRowsRendered(onSectionRendered: (params: RenderedSection) => void, info: RowsRenderedInfo): void {
+  onRowsRendered = (onSectionRendered: (params: RenderedSection) => void, info: RowsRenderedInfo): void => {
     onSectionRendered({
       columnOverscanStartIndex: 0,
       columnOverscanStopIndex: 0,

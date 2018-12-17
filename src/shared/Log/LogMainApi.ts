@@ -13,9 +13,6 @@ export class LogMainApi {
 
   constructor(sendToRenderer: SendFunc) {
     this.sendToRenderer = sendToRenderer;
-    this.onAddEntry = this.onAddEntry.bind(this);
-    this.onRefreshEntries = this.onRefreshEntries.bind(this);
-    this.onRemoveEntries = this.onRemoveEntries.bind(this);
   }
 
   bindListeners() {
@@ -46,7 +43,7 @@ export class LogMainApi {
     );
   }
 
-  private onAddEntry(event: IpcMessageEvent, entry: ILogPreEntry, msgId?: number) {
+  private onAddEntry = (event: IpcMessageEvent, entry: ILogPreEntry, msgId?: number) => {
     this.addEntry(entry);
     // Reply if it's a tracked message
     if (msgId !== undefined) {
@@ -54,7 +51,7 @@ export class LogMainApi {
     }
   }
 
-  private onRefreshEntries(event: IpcMessageEvent, length: number) {
+  private onRefreshEntries = (event: IpcMessageEvent, length: number) => {
     event.sender.send(
       LogChannel.refreshEntriesReply,
       length,
@@ -62,7 +59,7 @@ export class LogMainApi {
     );
   }
 
-  private onRemoveEntries(event: IpcMessageEvent, first: number, last: number) {
+  private onRemoveEntries = (event: IpcMessageEvent, first: number, last: number) => {
     // Remove the entries
     this.entries.splice(first, last);
     // Respond

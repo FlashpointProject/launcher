@@ -45,11 +45,6 @@ export class EditableTextElement extends React.Component<IEditableTextElementPro
       editing: false,
       text: this.props.text,
     };
-    this.startEdit = this.startEdit.bind(this);
-    this.cancelEdit = this.cancelEdit.bind(this);
-    this.confirmEdit = this.confirmEdit.bind(this);
-    this.onInputChange = this.onInputChange.bind(this);
-    this.onInputKeyDown = this.onInputKeyDown.bind(this);
   }
 
   render() {
@@ -76,33 +71,33 @@ export class EditableTextElement extends React.Component<IEditableTextElementPro
     }
   }
 
-  private startEdit(): void {
+  private startEdit = (): void => {
     if (this.props.editable) {
       this.setState({ editing: true });
     }
   }
 
-  private cancelEdit(): void {
+  private cancelEdit = (): void => {
     this.setState({ editing: false });
     this.props.onEditCancel && this.props.onEditCancel(this.state.text);
   }
 
-  private confirmEdit(): void {
+  private confirmEdit = (): void => {
     this.setState({ editing: false });
     this.props.onEditConfirm && this.props.onEditConfirm(this.state.text);
   }
 
-  private onInputChange(event: React.ChangeEvent<{ value: string }>): void {
+  private onInputChange = (event: React.ChangeEvent<{ value: string }>): void => {
     this.setState({ text: event.target.value });
   }
 
-  private onInputKeyDown(event: React.KeyboardEvent): void {
+  private onInputKeyDown = (event: React.KeyboardEvent): void => {
     if (!this.state.editing) { return; }
     const func = this.props.onEditKeyDown || EditableTextElement.onEditKeyDown;
     func({
       event,
-      cancel: this.cancelEdit.bind(this),
-      confirm: this.confirmEdit.bind(this),
+      cancel: this.cancelEdit,
+      confirm: this.confirmEdit,
     });
   }
 

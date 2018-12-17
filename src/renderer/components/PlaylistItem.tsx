@@ -56,18 +56,6 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
       hasChanged: false,
       dragOver: false,
     };
-    this.onHeadClick = this.onHeadClick.bind(this);
-    this.onIconClick = this.onIconClick.bind(this);
-    this.onEditClick = this.onEditClick.bind(this);
-    this.onDeleteClick = this.onDeleteClick.bind(this);
-    this.onSaveClick = this.onSaveClick.bind(this);
-    this.onDrop = this.onDrop.bind(this);
-    this.onDragOver = this.onDragOver.bind(this);
-    this.onDragEnter = this.onDragEnter.bind(this);
-    this.onDragLeave = this.onDragLeave.bind(this);
-    this.onAddGameDone = this.onAddGameDone.bind(this);
-    this.onDoubleClickGame = this.onDoubleClickGame.bind(this);
-    this.renderDescription = this.renderDescription.bind(this);
   }
 
   componentDidMount() {
@@ -209,7 +197,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     };
   }
   
-  private renderDescription(o: IEditableTextElementArgs) {
+  private renderDescription = (o: IEditableTextElementArgs) => {
     if (o.editing) {
       return (
         <textarea value={o.text} placeholder='Enter a description here...'
@@ -252,33 +240,33 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  private onHeadClick() {
+  private onHeadClick = () => {
     if (this.props.onHeadClick) {
       this.props.onHeadClick(this.props.playlist);
     }
   }
 
-  private onEditClick() {
+  private onEditClick = () => {
     if (this.props.onEditClick) {
       this.props.onEditClick(this.props.playlist);
     }
     
   }
 
-  private onDeleteClick() {
+  private onDeleteClick = () => {
     if (this.props.onDeleteClick) {
       this.props.onDeleteClick(this.props.playlist);
     }
   }
 
-  private onSaveClick() {
+  private onSaveClick = () => {
     if (this.props.onSaveClick) {
       if (!this.state.editPlaylist) { throw new Error('editPlaylist is missing wtf?'); }
       this.props.onSaveClick(this.props.playlist, this.state.editPlaylist);
     }
   }
 
-  private onIconClick() {
+  private onIconClick = () => {
     const edit = this.state.editPlaylist;
     if (this.props.editing && edit) {
       // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
@@ -296,7 +284,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  private onDrop(event: React.DragEvent): void {
+  private onDrop = (event: React.DragEvent): void => {
     if (this.state.dragOver) {
       this.setState({ dragOver: false });
     }
@@ -332,13 +320,13 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  private onDragOver(event: React.DragEvent): void {
+  private onDragOver = (event: React.DragEvent): void => {
     if (this.props.onDragOver) {
       this.props.onDragOver(event, this.props.playlist);
     }
   }
 
-  private onDragEnter(event: React.DragEvent): void {
+  private onDragEnter = (event: React.DragEvent): void => {
     if (!this.state.dragOver) {
       if (!findParent(event.currentTarget, event.relatedTarget as Element)) {
         this.setState({ dragOver: true });
@@ -347,26 +335,13 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  private onDragLeave(event: React.DragEvent): void {
+  private onDragLeave = (event: React.DragEvent): void => {
     if (this.state.dragOver) {
       if (!findParent(event.currentTarget, event.relatedTarget as Element)) {
         this.setState({ dragOver: false });
         event.stopPropagation();
       }      
     }
-  }
-
-  private onAddGameDone(text: string) {
-    if (!this.state.editPlaylist) { throw new Error('editPlaylist is missing.'); }
-    const platform = this.props.central.games.getPlatformOfGameId(text);
-    if (!platform || !platform.collection) { throw new Error('No game with that ID was found.'); }
-    const game = platform.collection.findGame(text);
-    if (!game) { throw new Error('Game was found but then it wasn\'t found. What?'); }
-    this.state.editPlaylist.games.push({ 
-      id: game.id, 
-      notes: ''
-    });
-    this.setState({ hasChanged: true });
   }
 
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
@@ -378,11 +353,6 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
         this.setState({ hasChanged: true });
       }
     }
-  }
-
-  onDoubleClickGame(game: IGameInfo, index: number): void {
-    const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
-    GameLauncher.launchGame(game, addApps);
   }
   
   /** Update CSS Variables */

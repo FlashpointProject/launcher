@@ -31,8 +31,6 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     this.state = {
       logoDelay: (Date.now() * -0.001) + 's', // (Offset the animation with the current time stamp)
     };
-    this.onHallOfFameClick = this.onHallOfFameClick.bind(this);
-    this.onAllGamesClick = this.onAllGamesClick.bind(this);
   }
 
   render() {
@@ -112,7 +110,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     GameLauncher.launchGame(game);
   }
 
-  private onHallOfFameClick(event: React.MouseEvent) {
+  private onHallOfFameClick = (event: React.MouseEvent) => {
     // Select the "Hall of Fame" playlist
     const playlists = this.props.central.playlists.playlists;
     let hof: IGamePlaylist|undefined = playlists.find(
@@ -121,7 +119,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     this.props.onSelectPlaylist(hof);
   }
 
-  private onAllGamesClick(event: React.MouseEvent) {
+  private onAllGamesClick = (event: React.MouseEvent) => {
     // Deselect the current playlist and clear the search
     this.props.onSelectPlaylist(undefined);
     this.props.clearSearch();

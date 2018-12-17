@@ -69,12 +69,6 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.state = {
       showPreview: false,
     };
-    this.onNewAddAppClick = this.onNewAddAppClick.bind(this);
-    this.onScreenshotClick = this.onScreenshotClick.bind(this);
-    this.onScreenshotPreviewClick = this.onScreenshotPreviewClick.bind(this);
-    this.onAddAppDelete = this.onAddAppDelete.bind(this);
-    this.onDeleteGameClick = this.onDeleteGameClick.bind(this);
-    this.onEditPlaylistNotes = this.onEditPlaylistNotes.bind(this);
   }
 
   componentDidMount(): void {
@@ -90,7 +84,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const dateAdded = new Date(game.dateAdded).toUTCString();
       const screenshotSrc = this.props.gameImages.getScreenshotPath(game.title, game.platform);
       return (
-        <div className={'browse-right-sidebar simple-scroll '+
+        <div className={'browse-right-sidebar '+
                         (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}>
           {/* -- Title & Developer(s) -- */}
           <div className='browse-right-sidebar__section'>
@@ -285,10 +279,10 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       );
     } else {
       return (
-        <>
+        <div className='browse-right-sidebar-empty'>
           <h1>No game selected</h1>
           <p>Click on a game to select it.</p>
-        </>
+        </div>
       );
     }
   }
@@ -315,7 +309,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     );
   }
 
-  private onDeleteGameClick(): void {
+  private onDeleteGameClick = (): void => {
     console.time('delete');
     const game = this.props.currentGame;
     if (!game) { throw new Error('Can not delete a game when no game is selected.'); }
@@ -339,7 +333,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     GameLauncher.launchAdditionalApplication(addApp);
   }
 
-  private onAddAppDelete(addApp: IAdditionalApplicationInfo): void {
+  private onAddAppDelete = (addApp: IAdditionalApplicationInfo): void => {
     const addApps = this.props.currentAddApps;
     if (!addApps) { throw new Error('editAddApps is missing.'); }
     // Find and remove add-app
@@ -355,7 +349,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.forceUpdate();
   }
 
-  private onNewAddAppClick(): void {
+  private onNewAddAppClick = (): void => {
     if (!this.props.currentAddApps) { throw new Error(`Unable to add a new AddApp. "currentAddApps" is missing.`); }
     if (!this.props.currentGame)    { throw new Error(`Unable to add a new AddApp. "currentGame" is missing.`); }
     const newAddApp = AdditionalApplicationInfo.create();
@@ -365,15 +359,15 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.forceUpdate();
   }
 
-  private onScreenshotClick(): void {
+  private onScreenshotClick = (): void => {
     this.setState({ showPreview: true });
   }
 
-  private onScreenshotPreviewClick(): void {
+  private onScreenshotPreviewClick = (): void => {
     this.setState({ showPreview: false });
   }
 
-  private onEditPlaylistNotes(event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void {
+  private onEditPlaylistNotes = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
     if (this.props.onEditPlaylistNotes) {
       this.props.onEditPlaylistNotes(event.currentTarget.value);
       this.forceUpdate();

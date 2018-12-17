@@ -29,9 +29,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     this.state = {
       searchText: this.props.searchQuery.text,
     };
-    this.onSearchChange = this.onSearchChange.bind(this);
-    this.onSearchKeyDown = this.onSearchKeyDown.bind(this);
-    this.onKeypress = this.onKeypress.bind(this);
   }
 
   componentDidMount() {
@@ -104,14 +101,14 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     );
   }
 
-  private onSearchChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  private onSearchChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const value = event.target.value;
     this.setState({ searchText: value });
     // "Clear" the search when the search field gets empty
     if (value === '') { this.props.onSearch('', false); }
   }
 
-  private onSearchKeyDown(event: React.KeyboardEvent): void {
+  private onSearchKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       const value = this.state.searchText;
       this.props.onSearch(value, true);
@@ -119,7 +116,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     }
   }
 
-  private onKeypress(event: KeyboardEvent): void {
+  private onKeypress = (event: KeyboardEvent): void => {
     if (event.ctrlKey && event.code === 'KeyF') {
       const element = this.searchInputRef.current;
       if (element) {

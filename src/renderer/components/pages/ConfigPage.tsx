@@ -29,13 +29,6 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
       useCustomTitlebar: configData.useCustomTitlebar,
       useFiddler: configData.useFiddler,
     };
-    this.onShowExtremeChange = this.onShowExtremeChange.bind(this);
-    this.onEnableEditingChange = this.onEnableEditingChange.bind(this);
-    this.onFlashpointPathChange = this.onFlashpointPathChange.bind(this);
-    this.onUseCustomTitlebarChange = this.onUseCustomTitlebarChange.bind(this);
-    this.onRedirectorRedirectorChange = this.onRedirectorRedirectorChange.bind(this);
-    this.onRedirectorFiddlerChange = this.onRedirectorFiddlerChange.bind(this);
-    this.onSaveAndRestartClick = this.onSaveAndRestartClick.bind(this);
   }
 
   render() {
@@ -163,38 +156,38 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     );
   }
   
-  onShowExtremeChange(isChecked: boolean): void {
+  private onShowExtremeChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ browsePageShowExtreme: isChecked });
     this.forceUpdate();
   }
 
-  onEnableEditingChange(isChecked: boolean): void {
+  private onEnableEditingChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ enableEditing: isChecked });
     this.forceUpdate();
   }
 
-  onRedirectorRedirectorChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  private onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ useFiddler: !event.target.checked });
   }
-  onRedirectorFiddlerChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  private onRedirectorFiddlerChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ useFiddler: event.target.checked });
   }
 
   /** When the "FlashPoint Folder Path" input text is changed */
-  async onFlashpointPathChange(filePath: string): Promise<void> {
+  private onFlashpointPathChange = async (filePath: string): Promise<void> => {
     this.setState({ flashpointPath: filePath });
     // Check if the file-path points at a valid FlashPoint folder
     const isValid = await isFlashpointValidCheck(filePath);
     this.setState({ isFlashpointPathValid: isValid });
   }
   
-  // When the different toggles are checked/unchecked
-  onUseCustomTitlebarChange(isChecked: boolean): void {
+  /** When the different toggles are checked/unchecked */
+  private onUseCustomTitlebarChange = (isChecked: boolean): void => {
     this.setState({ useCustomTitlebar: isChecked });
   }
 
   /** When the "Save & Restart" button is clicked */
-  onSaveAndRestartClick(event: React.MouseEvent<HTMLInputElement>) {
+  private onSaveAndRestartClick = (event: React.MouseEvent<HTMLInputElement>) => {
     // Create new config
     let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
       flashpointPath: this.state.flashpointPath,

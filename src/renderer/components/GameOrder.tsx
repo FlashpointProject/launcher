@@ -29,8 +29,6 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
       orderBy: 'title',
       orderReverse: 'ascending',
     };
-    this.onOrderByChange = this.onOrderByChange.bind(this);
-    this.onOrderReverseChange = this.onOrderReverseChange.bind(this);
   }
 
   render() {
@@ -51,13 +49,13 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
     );
   }
 
-  private onOrderByChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+  private onOrderByChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     this.updateState({
       orderBy: this.parseOrderBy(event.target.value),
     });
   }
 
-  private onOrderReverseChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+  private onOrderReverseChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     this.updateState({
       orderReverse: this.parseOrderReverse(event.target.value),
     });

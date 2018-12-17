@@ -27,9 +27,6 @@ export class ConfirmElement extends React.Component<IConfirmElementProps, IConfi
     this.state = {
       activationCounter: 0,
     };
-    this.activate = this.activate.bind(this);
-    this.confirm = this.confirm.bind(this);
-    this.reset = this.reset.bind(this);
   }
 
   render() {
@@ -42,7 +39,7 @@ export class ConfirmElement extends React.Component<IConfirmElementProps, IConfi
     }) || (<></>);
   }
 
-  private activate(): void {
+  private activate = (): void => {
     let limit = (this.props.activationLimit !== undefined) ? this.props.activationLimit : 1;
     let nextCount = this.state.activationCounter + 1;
     if (nextCount > limit) {
@@ -53,13 +50,13 @@ export class ConfirmElement extends React.Component<IConfirmElementProps, IConfi
     }
   }
 
-  private confirm(): void {
+  private confirm = (): void => {
     if (this.props.onConfirm) {
       this.props.onConfirm();
     }
   }
 
-  private reset(): void {
+  private reset = (): void => {
     if (this.state.activationCounter !== 0) {
       this.setState({ activationCounter: 0 });
     }

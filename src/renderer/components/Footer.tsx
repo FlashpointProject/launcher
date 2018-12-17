@@ -25,8 +25,6 @@ export class Footer extends React.Component<IFooterProps, {}> {
 
   constructor(props: IFooterProps) {
     super(props);
-    this.onScaleSliderChange = this.onScaleSliderChange.bind(this);
-    this.onLayoutChange = this.onLayoutChange.bind(this);
   }
 
   render() {
@@ -92,13 +90,13 @@ export class Footer extends React.Component<IFooterProps, {}> {
     );
   }
   
-  onScaleSliderChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  onScaleSliderChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     if (this.props.onScaleSliderChange) {
       this.props.onScaleSliderChange(event.target.valueAsNumber / Footer.scaleSliderMax);
     }
   }
   
-  onLayoutChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+  onLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     if (this.props.onLayoutChange) {
       const value = parseBrowsePageLayout(event.target.value);
       if (value === undefined) { throw new Error(`Layout selector option has an invalid value (${event.target.value})`); }

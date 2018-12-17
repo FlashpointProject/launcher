@@ -16,8 +16,6 @@ export class LogRendererApi extends EventEmitter {
 
   constructor() {
     super();
-    this.onRefreshEntries = this.onRefreshEntries.bind(this);
-    this.onRemoveEntries = this.onRemoveEntries.bind(this);
   }
 
   bindListeners() {
@@ -65,7 +63,7 @@ export class LogRendererApi extends EventEmitter {
     return stringifyLogEntries(this.entries);
   }
 
-  private onRefreshEntries(event: IpcMessageEvent, start: number, entries: ILogEntry[]): void {
+  private onRefreshEntries = (event: IpcMessageEvent, start: number, entries: ILogEntry[]): void => {
     // Add new entries
     for (let i = 0; i < entries.length; i++) {
       this.entries[start + i] = entries[i];
@@ -74,7 +72,7 @@ export class LogRendererApi extends EventEmitter {
     this.emit('change', this);
   }
 
-  private onRemoveEntries(event: IpcMessageEvent, first: number, last: number): void {
+  private onRemoveEntries = (event: IpcMessageEvent, first: number, last: number): void => {
     // Remove entries
     this.entries.splice(first, last);
     // Emit event
