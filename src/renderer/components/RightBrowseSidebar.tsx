@@ -143,10 +143,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             { isPlaceholder ? undefined : (
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>by </p>
-                <DropdownInputField text={game.developer} placeholder='No Developer'
-                                    onChange={this.onDeveloperChange} canEdit={canEdit}
-                                    items={suggestions && filterSuggestions(suggestions.developer) || []}
-                                    onItemSelect={text => { game.developer = text; this.forceUpdate(); }} />
+                <InputField text={game.developer} placeholder='No Developer'
+                            onChange={this.onDeveloperChange} canEdit={canEdit} />
               </div>
             ) }
           </div>
@@ -163,24 +161,18 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Series: </p>
-                  <DropdownInputField text={game.series} placeholder='No Series'
-                                      onChange={this.onSeriesChange} canEdit={canEdit}
-                                      items={suggestions && filterSuggestions(suggestions.series) || []}
-                                      onItemSelect={text => { game.series = text; this.forceUpdate(); }} />
+                  <InputField text={game.series} placeholder='No Series'
+                              onChange={this.onSeriesChange} canEdit={canEdit} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Publisher: </p>
-                  <DropdownInputField text={game.publisher} placeholder='No Publisher'
-                                      onChange={this.onPublisherChange} canEdit={canEdit}
-                                      items={suggestions && filterSuggestions(suggestions.publisher) || []}
-                                      onItemSelect={text => { game.publisher = text; this.forceUpdate(); }} />
+                  <InputField text={game.publisher} placeholder='No Publisher'
+                              onChange={this.onPublisherChange} canEdit={canEdit} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Source: </p>
-                  <DropdownInputField text={game.source} placeholder='No Source'
-                                      onChange={this.onSourceChange} canEdit={canEdit}
-                                      items={suggestions && filterSuggestions(suggestions.source) || []}
-                                      onItemSelect={text => { game.source = text; this.forceUpdate(); }} />
+                  <InputField text={game.source} placeholder='No Source'
+                              onChange={this.onSourceChange} canEdit={canEdit} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Platform: </p>

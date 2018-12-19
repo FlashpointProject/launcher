@@ -2,11 +2,7 @@ import { GameCollection } from '../../shared/game/GameCollection';
 
 /** Properties that are suggested */
 type SuggestionProps = (
-    'developer'
-  | 'genre'
-  | 'series'
-  | 'publisher'
-  | 'source'
+    'genre'
   | 'platform'
   | 'playMode'
   | 'status'
@@ -25,14 +21,9 @@ export type GamePropSuggestions = {
 };
 
 export function getSuggestions(collection: GameCollection): Partial<GamePropSuggestions> {
-  console.time('getSuggestions');
   // Get the values from the game collection
   const map: GamePropSuggestionsMap = {
-    developer: {},
     genre: {},
-    series: {},
-    publisher: {},
-    source: {},
     platform: {},
     playMode: {},
     status: {},
@@ -40,11 +31,7 @@ export function getSuggestions(collection: GameCollection): Partial<GamePropSugg
   };
   for (let key in collection.games) {
     const game = collection.games[key];
-    getGamePropValues(map.developer,       game.developer);
     getGamePropValues(map.genre,           game.genre);
-    getGamePropValues(map.series,          game.series);
-    getGamePropValues(map.publisher,       game.publisher);
-    getGamePropValues(map.source,          game.source);
     getGamePropValues(map.platform,        game.platform);
     getGamePropValues(map.playMode,        game.playMode);
     getGamePropValues(map.status,          game.status);
@@ -55,8 +42,6 @@ export function getSuggestions(collection: GameCollection): Partial<GamePropSugg
   for (let key in map) {
     sugs[key as SuggestionProps] = Object.keys(map[key as SuggestionProps]);
   }
-  // Done
-  console.timeEnd('getSuggestions');
   return sugs;
 }
 
