@@ -21,6 +21,7 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { IResizableSidebar, IResizeEvent } from '../IResizableSidebar';
+import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 
 interface OwnProps {
   central: ICentralState;
@@ -59,6 +60,8 @@ export interface IBrowsePageState {
   isEditing: boolean;
   /** If the selected game is a new game being created */
   isNewGame: boolean;
+  /** ... */
+  suggestions?: Partial<GamePropSuggestions>;
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
@@ -91,9 +94,15 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
     this.orderGames();
-    //
+    // Check if it ended editing
     if (!this.state.isEditing && prevState.isEditing) {
       this.updateCurrentGameAndAddApps();
+      this.setState({ suggestions: undefined });
+    }
+    // Check if it started editing
+    if (this.state.isEditing && !prevState.isEditing) {
+      this.updateCurrentGameAndAddApps();
+      this.setState({ suggestions: getSuggestions(this.props.central.games.collection) });
     }
     // Update current game and add-apps if the selected game changes
     if (this.props.selectedGame !== prevProps.selectedGame) {
@@ -146,10 +155,10 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     return (
       <div className='game-browser' ref={this.gameBrowserRef}>
         <IResizableSidebar none={!!selectedGame}
-                        hide={this.props.preferencesData.browsePageShowLeftSidebar && showSidebars}
-                        divider='after'
-                        width={this.props.preferencesData.browsePageLeftSidebarWidth}
-                        onResize={this.onLeftSidebarResize}>
+                           hide={this.props.preferencesData.browsePageShowLeftSidebar && showSidebars}
+                           divider='after'
+                           width={this.props.preferencesData.browsePageLeftSidebarWidth}
+                           onResize={this.onLeftSidebarResize}>
           <ConnectedLeftBrowseSidebar central={this.props.central}
                                       selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
                                       onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
@@ -198,10 +207,10 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
           })()}
         </div>
         <IResizableSidebar none={!!this.state.currentGame}
-                        hide={this.props.preferencesData.browsePageShowRightSidebar && showSidebars}
-                        divider='before'
-                        width={this.props.preferencesData.browsePageRightSidebarWidth}
-                        onResize={this.onRightSidebarResize}>
+                           hide={this.props.preferencesData.browsePageShowRightSidebar && showSidebars}
+                           divider='before'
+                           width={this.props.preferencesData.browsePageRightSidebarWidth}
+                           onResize={this.onRightSidebarResize}>
           <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
                                        currentAddApps={this.state.currentAddApps}
                                        gameImages={this.props.central.gameImages}
@@ -214,7 +223,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                        isNewGame={this.state.isNewGame}
                                        onEditClick={this.onStartEditClick}
                                        onDiscardClick={this.onDiscardEditClick}
-                                       onSaveGame={this.onSaveEditClick} />
+                                       onSaveGame={this.onSaveEditClick}
+                                       suggestions={this.state.suggestions} />
         </IResizableSidebar>
       </div>
     );

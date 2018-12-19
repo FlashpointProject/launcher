@@ -291,6 +291,8 @@ body {
   width: 100%;
   display: block;
   position: absolute;
+  overflow-x: hidden;
+  overflow-y: auto;
   /* Pimp */
   background-color: #313131;
   color: var(--theme__text-color);
@@ -1046,6 +1048,10 @@ body {
 }
 .browse-right-sidebar__row--one-line > .input-dropdown {
   width: 100%;
+}
+.browse-right-sidebar__row--one-line .input-dropdown__content {
+  max-height: 25rem;
+  z-index: 1; /* Kind of a hacky fix - makes the drop-down secntion not appear underneath the drop-downs that come after this */
 }
 .browse-right-sidebar__row--additional-applications-header > :not(:first-child) {
   float: right;

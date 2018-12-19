@@ -13,6 +13,8 @@ import { IGamePlaylistEntry } from '../playlist/interfaces';
 import { ImagePreview } from './ImagePreview';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { InputField } from './InputField';
+import { DropdownInputField } from './DropdownInputField';
+import { GamePropSuggestions } from '../util/suggestions';
 
 interface OwnProps {
   gameImages: GameImageCollection;
@@ -33,6 +35,8 @@ interface OwnProps {
   isEditing: boolean;
   /** If the selected game is a new game being created */
   isNewGame: boolean;
+  /** ... */
+  suggestions?: Partial<GamePropSuggestions>;
   
   onEditClick?: () => void;
   onDiscardClick?: () => void;
@@ -77,7 +81,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   render() {
     const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
-      const { currentAddApps, gamePlaylistEntry, isEditing, isNewGame } = this.props;
+      const { currentAddApps, gamePlaylistEntry, isEditing, isNewGame, suggestions } = this.props;
       const isPlaceholder = game.placeholder;
       const editDisabled = !this.props.preferencesData.enableEditing;
       const canEdit = !editDisabled && isEditing;
@@ -139,8 +143,10 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             { isPlaceholder ? undefined : (
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>by </p>
-                <InputField text={game.developer} placeholder='No Developer'
-                            onChange={this.onDeveloperChange} canEdit={canEdit} />
+                <DropdownInputField text={game.developer} placeholder='No Developer'
+                                    onChange={this.onDeveloperChange} canEdit={canEdit}
+                                    items={suggestions && filterSuggestions(suggestions.developer) || []}
+                                    onItemSelect={text => { game.developer = text; this.forceUpdate(); }} />
               </div>
             ) }
           </div>
@@ -150,38 +156,53 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Genre: </p>
-                  <InputField text={game.genre} placeholder='No Genre'
-                              onChange={this.onGenreChange} canEdit={canEdit} />
+                  <DropdownInputField text={game.genre} placeholder='No Genre'
+                                      onChange={this.onGenreChange} canEdit={canEdit}
+                                      items={suggestions && filterSuggestions(suggestions.genre) || []}
+                                      onItemSelect={text => { game.genre = text; this.forceUpdate(); }} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Series: </p>
-                  <InputField text={game.series} placeholder='No Series'
-                              onChange={this.onSeriesChange} canEdit={canEdit} />
+                  <DropdownInputField text={game.series} placeholder='No Series'
+                                      onChange={this.onSeriesChange} canEdit={canEdit}
+                                      items={suggestions && filterSuggestions(suggestions.series) || []}
+                                      onItemSelect={text => { game.series = text; this.forceUpdate(); }} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Publisher: </p>
-                  <InputField text={game.publisher} placeholder='No Publisher'
-                              onChange={this.onPublisherChange} canEdit={canEdit} />
+                  <DropdownInputField text={game.publisher} placeholder='No Publisher'
+                                      onChange={this.onPublisherChange} canEdit={canEdit}
+                                      items={suggestions && filterSuggestions(suggestions.publisher) || []}
+                                      onItemSelect={text => { game.publisher = text; this.forceUpdate(); }} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Source: </p>
-                  <InputField text={game.source} placeholder='No Source'
-                              onChange={this.onSourceChange} canEdit={canEdit} />
+                  <DropdownInputField text={game.source} placeholder='No Source'
+                                      onChange={this.onSourceChange} canEdit={canEdit}
+                                      items={suggestions && filterSuggestions(suggestions.source) || []}
+                                      onItemSelect={text => { game.source = text; this.forceUpdate(); }} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Platform: </p>
-                  <InputField text={game.platform} placeholder='No Platform'
-                              onChange={this.onPlatformChange} canEdit={canEdit} />
+                  <DropdownInputField text={game.platform} placeholder='No Platform'
+                                      onChange={this.onPlatformChange} canEdit={canEdit}
+                                      items={suggestions && filterSuggestions(suggestions.platform) || []}
+                                      onItemSelect={text => { game.platform = text; this.forceUpdate(); }} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Play Mode: </p>
-                  <InputField text={game.playMode} placeholder='No Play Mode'
-                              onChange={this.onPlayModeChange} canEdit={canEdit} />
+                  <DropdownInputField text={game.playMode} placeholder='No Play Mode'
+                                      onChange={this.onPlayModeChange} canEdit={canEdit}
+                                      items={suggestions && filterSuggestions(suggestions.playMode) || []}
+                                      onItemSelect={text => { game.playMode = text; this.forceUpdate(); }} />
+
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Status: </p>
-                  <InputField text={game.status} placeholder='No Status'
-                              onChange={this.onStatusChange} canEdit={canEdit} />
+                  <DropdownInputField text={game.status} placeholder='No Status'
+                                      onChange={this.onStatusChange} canEdit={canEdit}
+                                      items={suggestions && filterSuggestions(suggestions.status) || []}
+                                      onItemSelect={text => { game.status = text; this.forceUpdate(); }} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Date Added: </p>
@@ -243,8 +264,10 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Application Path: </p>
-                <InputField text={game.applicationPath} placeholder='No Application Path'
-                            onChange={this.onApplicationPathChange} canEdit={canEdit} />
+                <DropdownInputField text={game.applicationPath} placeholder='No Application Path'
+                                    onChange={this.onApplicationPathChange} canEdit={canEdit}
+                                    items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
+                                    onItemSelect={text => { game.applicationPath = text; this.forceUpdate(); }} />
               </div>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Launch Command: </p>
@@ -396,4 +419,10 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       }
     }
   }
+}
+
+function filterSuggestions(suggestions?: string[]): string[] {
+  if (!suggestions) { return []; }
+  //if (suggestions.length > 25) { return suggestions.slice(0, 25); }
+  return suggestions;
 }

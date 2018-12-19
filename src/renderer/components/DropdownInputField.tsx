@@ -9,7 +9,7 @@ export interface DropdownInputFieldProps extends InputFieldProps {
   /** Items to show in the list */
   items: string[];
   /** Called when a list item is clicked or otherwise "selected" */
-  onItemSelect?: (index: number, text: string) => void;
+  onItemSelect?: (text: string, index: number) => void;
 }
 
 interface DropdownInputFieldState {
@@ -59,15 +59,13 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
             <div className='input-dropdown__input-field__button'
                  onMouseDown={this.onExpandButtonMouseDown} />
           </div>
-          <div className={'input-dropdown__content' +  (expanded?'':' input-dropdown__content--hidden')}
+          <div className={'input-dropdown__content simple-scroll' +  (expanded?'':' input-dropdown__content--hidden')}
                ref={this.contentRef}>
             { items.map((text, index) => (
               <label key={index} tabIndex={0}
                      onClick={() => this.onListItemClick(index)}
                      onKeyDown={(e) => this.onListItemKeyDown(index, e)}>
-                <div className='simple-center'>
-                  <p>{text}</p>
-                </div>
+                {text}
               </label>
             )) }
           </div>
@@ -103,14 +101,14 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
 
   onListItemClick = (index: number): void => {
     this.setState({ expanded: false });
-    if (this.props.onItemSelect) { this.props.onItemSelect(index, this.props.items[index]); }
+    if (this.props.onItemSelect) { this.props.onItemSelect(this.props.items[index], index); }
   }
 
   onListItemKeyDown = (index: number, event: React.KeyboardEvent): void => {
     const { key } = event;
     // Select the focused list item
     if (this.props.onItemSelect && (key === 'Enter' || key === ' ')) {
-      this.props.onItemSelect(index, this.props.items[index]);
+      this.props.onItemSelect(this.props.items[index], index);
       this.setState({ expanded: false });
       // Focus the input element
       const input = this.inputRef.current;
