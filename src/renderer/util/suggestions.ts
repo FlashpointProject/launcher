@@ -40,7 +40,11 @@ export function getSuggestions(collection: GameCollection): Partial<GamePropSugg
   // Create a more usable object to store the values in
   const sugs: Partial<GamePropSuggestions> = {};
   for (let key in map) {
-    sugs[key as SuggestionProps] = Object.keys(map[key as SuggestionProps]);
+    sugs[key as SuggestionProps] = (
+      Object.keys(map[key as SuggestionProps])
+      .filter(val => val !== '')
+      .sort()
+    );
   }
   return sugs;
 }
