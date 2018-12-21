@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { InputField, InputFieldProps } from './InputField';
+import { memoizeOne } from '../../shared/memoize';
 
 type InputElement = HTMLInputElement|HTMLTextAreaElement;
 
@@ -60,21 +61,27 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
                  onMouseDown={this.onExpandButtonMouseDown} />
           </div>
           <div className={'input-dropdown__content simple-scroll' +  (expanded?'':' input-dropdown__content--hidden')}
+               onClick={this.onListItemClick} onKeyDown={this.onListItemKeyDown}
                ref={this.contentRef}>
-            { items.map((text, index) => (
-              <label key={index} tabIndex={0}
-                     onClick={() => this.onListItemClick(index)}
-                     onKeyDown={(e) => this.onListItemKeyDown(index, e)}>
-                {text}
-              </label>
-            )) }
+            { this.renderItems(items) }
           </div>
         </div>
-      );      
+      );
     } else {
       return inputField;
     }
   }
+
+  /** Renders the list of items in the drop-down menu. */
+  private renderItems = memoizeOne((items: string[]) => {
+    return items.map((text, index) => (
+      <label key={index} data-dropdown-index={index} tabIndex={0}>
+        {text}
+      </label>
+    ));
+  }, ([ itemsA ], [ itemsB ]) => {
+    return checkIfArraysAreEqual(itemsA, itemsB);
+  });
 
   onBoxMouseDown = (event: React.MouseEvent): void => {
     if (event.button === 0) {
@@ -99,20 +106,28 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
     }
   }
 
-  onListItemClick = (index: number): void => {
+  onListItemClick = (event: React.MouseEvent): void => {
     this.setState({ expanded: false });
-    if (this.props.onItemSelect) { this.props.onItemSelect(this.props.items[index], index); }
+    if (this.props.onItemSelect) {
+      const index = getListItemIndex(event.target);
+      if (index >= 0) {
+        this.props.onItemSelect(this.props.items[index], index);
+      }
+    }
   }
 
-  onListItemKeyDown = (index: number, event: React.KeyboardEvent): void => {
-    const { key } = event;
+  onListItemKeyDown = (event: React.KeyboardEvent): void => {
+    const { key, target } = event;
     // Select the focused list item
     if (this.props.onItemSelect && (key === 'Enter' || key === ' ')) {
-      this.props.onItemSelect(this.props.items[index], index);
-      this.setState({ expanded: false });
-      // Focus the input element
-      const input = this.inputRef.current;
-      if (input && input.focus) { input.focus(); }
+      const index = getListItemIndex(target);
+      if (index >= 0) {
+        this.props.onItemSelect(this.props.items[index], index);
+        this.setState({ expanded: false });
+        // Focus the input element
+        const input = this.inputRef.current;
+        if (input && input.focus) { input.focus(); }
+      }
     }
     // Move focus up or down
     if (key === 'ArrowUp' || key === 'ArrowDown') {
@@ -120,7 +135,10 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
       if (element && checkIfAncestor(element, this.contentRef.current)) {
         const next: any = (key === 'ArrowUp') ? element.previousSibling :
                                                 element.nextElementSibling;
-        if (next && next.focus) { next.focus(); }
+        if (next && next.focus) {
+          next.focus();
+          event.preventDefault();
+        }
       }
     } else {
       if (!this.state.expanded) { this.setState({ expanded: true }); }
@@ -141,8 +159,8 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
 
   onInputKeyDown = (event: React.KeyboardEvent<InputElement>): void => {
     const { key } = event;
-    // Focus the first or last item, also expand the content container
     if (key === 'ArrowUp' || key === 'ArrowDown') {
+      // Focus the first or last item, also expand the content container
       event.preventDefault();
       if (!this.state.expanded) { this.setState({ expanded: true }); }
       const content = this.contentRef.current;
@@ -167,4 +185,21 @@ function checkIfAncestor(start: Element|null, target: Element|null): boolean {
     element = element.parentElement;
   }
   return false;
+}
+
+/** Get the index of an item element (or -1 if index was not found) */
+function getListItemIndex(target: any): number {
+  if (target instanceof Element || target instanceof HTMLElement) {
+    return parseInt(target.getAttribute('data-dropdown-index') || '-1', 10);
+  }
+  return -1;
+}
+
+/** Check if two arrays are of equal length and contains the exact same items in the same order */
+function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
+  if (a.length !== b.length) { return false; }
+  for (let i = a.length; i >= 0; i--) {
+    if (a[i] !== b[i]) { return false; }
+  }
+  return true;
 }
