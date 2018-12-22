@@ -66,9 +66,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             <div className='home-page__logo__image' style={{ animationDelay:logoDelay }} />
           </div>
           {/* Quick Start */}
-          <div className='home-page__quick-start'>
-            <div className='home-page__quick-start__head'>Quick Start</div>
-            <ul className='home-page__quick-start__body'>
+          <div className='home-page__box'>
+            <div className='home-page__box__head'>Quick Start</div>
+            <ul className='home-page__box__body'>
               <QuickStartItem icon='badge'>
                 Don't know what to play? Check out the <Link to={Paths.browse} onClick={this.onHallOfFameClick}>Hall of Fame</Link>!
               </QuickStartItem>
@@ -81,9 +81,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             </ul>
           </div>
           {/* Upgrades */}
-          <div className='home-page__quick-start'>
-            <div className='home-page__quick-start__head'>Upgrades</div>
-            <ul className='home-page__quick-start__body'>
+          <div className='home-page__box'>
+            <div className='home-page__box__head'>Upgrades</div>
+            <ul className='home-page__box__body'>
               <QuickStartItem>
                 Other technologies
               </QuickStartItem>
@@ -100,9 +100,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             </ul>
           </div>
           {/* Notes */}
-          <div className='home-page__quick-start'>
-            <div className='home-page__quick-start__head'>Notes</div>
-            <ul className='home-page__quick-start__body'>
+          <div className='home-page__box'>
+            <div className='home-page__box__head'>Notes</div>
+            <ul className='home-page__box__body'>
               <QuickStartItem>
                 Don't forget to read the readme if you're having issues.
               </QuickStartItem>
@@ -143,7 +143,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             'Installation Complete! Restart the launcher!'
           ) : (
             stageState.isInstalling ? (
-              <p>Downloading & Installing... ({ Math.round(stageState.installProgress * 100) }%)</p>
+              <p>{stageState.installProgressNote}</p>
             ) : (
               <a className='simple-button' onClick={onClick}>Download</a>
             )            
@@ -175,9 +175,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
 
 function QuickStartItem(props: { icon?: OpenIconType, children?: React.ReactNode }): JSX.Element {
   return (
-    <li className='home-page__quick-start__item simple-center'>
+    <li className='home-page__box__item simple-center'>
       { props.icon ? (
-         <div className='home-page__quick-start__item__icon simple-center__vertical-inner'>
+         <div className='home-page__box__item__icon simple-center__vertical-inner'>
           <OpenIcon icon={props.icon} />
         </div>
       ) : undefined }

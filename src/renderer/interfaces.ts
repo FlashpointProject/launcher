@@ -69,6 +69,6 @@ export interface UpgradeStageState {
   isInstalling: boolean;
   /** If the stage was installed during this session (this is so it can tell the user to restart) */
   isInstallationComplete: boolean;
-  /** Progress of the installation (if its being installed) */
-  installProgress: number;
+  /** Progress note of the installation (if its being installed) */
+  installProgressNote: string;
 }
