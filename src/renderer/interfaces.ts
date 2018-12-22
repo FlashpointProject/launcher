@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import GameManager from './game/GameManager';
+import { IUpgradeData } from './upgrade/upgrade';
 
 /** "match" object from 'react-router' and 'history' npm packages */
 export interface IMatch {
@@ -31,6 +32,8 @@ export interface ICentralState {
   gameImages: GameImageCollection;
   /** All playlists */
   playlists: GamePlaylistManager;
+  /** @TODO write this comment */
+  upgrade: UpgradeState;
   /** If the game collection is done loading */
   gamesDoneLoading: boolean;
   /** If the game collection failed to load */
@@ -46,4 +49,15 @@ export interface ICentralState {
  */
 export interface SearchState {
   input: string;
+}
+
+/** @TODO write this comment */
+export interface UpgradeState {
+  data?: IUpgradeData;
+  techInstalled: boolean;
+  techChecksDone: boolean;
+  screenshotsInstalled: boolean;
+  screenshotsChecksDone: boolean;
+  /** If the "upgrade" file has been loaded and parsed (or if it failed and the default values were used instead) */
+  doneLoading: boolean;
 }

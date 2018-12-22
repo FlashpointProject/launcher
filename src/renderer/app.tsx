@@ -3,7 +3,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { AppRouter, IAppRouterProps } from './router';
 import { TitleBar } from './components/TitleBar';
-import { ICentralState } from './interfaces';
+import { ICentralState, UpgradeState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
@@ -16,6 +16,7 @@ import { SearchQuery } from './store/search';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
+import { readUpgradeFile, performUpgradeStageChecks } from './upgrade/upgrade';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -49,6 +50,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         games: new GameManager(),
         gameImages: new GameImageCollection(config.fullFlashpointPath),
         playlists: new GamePlaylistManager(),
+        upgrade: {
+          doneLoading: false,
+          techInstalled: false,
+          techChecksDone: false,
+          screenshotsInstalled: false,
+          screenshotsChecksDone: false,
+        },
         gamesDoneLoading: false,
         gamesFailedLoading: false,
         playlistsDoneLoading: false,
@@ -63,6 +71,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   init() {
+    const fullFlashpointPath = window.External.config.fullFlashpointPath;
     // Listen for the window to move or resize (and update the preferences when it does)
     ipcRenderer.on('window-move', (sender: IpcMessageEvent, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
@@ -136,6 +145,33 @@ export class App extends React.Component<IAppProps, IAppState> {
           gamesFailedLoading: true,
         })
       });
+    });
+    //
+    readUpgradeFile(fullFlashpointPath)
+    .then((data) => {
+      console.log(data);
+      this.setUpgradeState({
+        data: data,
+        doneLoading: true,
+      });
+      performUpgradeStageChecks(data.screenshots, fullFlashpointPath)
+      .then(results => {
+        this.setUpgradeState({
+          screenshotsInstalled: results.indexOf(false) === -1,
+          screenshotsChecksDone: true,
+        });
+      });
+      performUpgradeStageChecks(data.tech, fullFlashpointPath)
+      .then(results => {
+        this.setUpgradeState({
+          techInstalled: results.indexOf(false) === -1,
+          techChecksDone: true,
+        });
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      this.setUpgradeState({ doneLoading: true });
     });
   }
 
@@ -238,6 +274,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setState({
       selectedPlaylist: playlist,
       selectedGame: undefined,
+    });
+  }
+
+  private setUpgradeState(state: Partial<UpgradeState>) {
+    this.setState({
+      central: Object.assign({}, this.state.central, {
+        upgrade: Object.assign({}, this.state.central.upgrade, state),
+      })
     });
   }
 }

@@ -39,6 +39,12 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
         gamesDoneLoading,
         games,
         gameImages,
+        upgrade: {
+          techInstalled,
+          techChecksDone,
+          screenshotsInstalled,
+          screenshotsChecksDone
+        }
       },
       preferencesData: {
         browsePageShowExtreme
@@ -69,6 +75,25 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
               </QuickStartItem>
               <QuickStartItem icon='wrench'>
                 Want to change something? Go to <Link to={Paths.config}>Config</Link>.
+              </QuickStartItem>
+            </ul>
+          </div>
+          {/* Upgrades */}
+          <div className='home-page__quick-start'>
+            <div className='home-page__quick-start__head'>Upgrades</div>
+            <ul className='home-page__quick-start__body'>
+              <QuickStartItem>
+                Other technologies
+              </QuickStartItem>
+              <QuickStartItem>
+                { techChecksDone ? (techInstalled ? (<>Already Installed</>) : (<a onClick={this.onDownloadTechClick}>Download</a>)) : '...' }
+              </QuickStartItem>
+              <br/>
+              <QuickStartItem>
+                Screenshots
+              </QuickStartItem>
+              <QuickStartItem>
+                { screenshotsChecksDone ? (screenshotsInstalled ? (<>Already Installed</>) : (<a onClick={this.onDownloadScreenshotsClick}>Download</a>)) : '...' }
               </QuickStartItem>
             </ul>
           </div>
@@ -123,6 +148,14 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     // Deselect the current playlist and clear the search
     this.props.onSelectPlaylist(undefined);
     this.props.clearSearch();
+  }
+
+  private onDownloadTechClick = () => {
+    
+  }
+
+  private onDownloadScreenshotsClick = () => {
+    
   }
 }
 
