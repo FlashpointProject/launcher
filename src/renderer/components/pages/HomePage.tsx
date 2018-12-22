@@ -9,6 +9,7 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { Paths } from '../../Paths';
 import { RandomGames } from '../RandomGames';
+import { downloadAndInstallUpgrade } from '../../util/upgrade';
 
 interface OwnProps {
   central: ICentralState;
@@ -86,14 +87,14 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
                 Other technologies
               </QuickStartItem>
               <QuickStartItem>
-                { techChecksDone ? (techInstalled ? (<>Already Installed</>) : (<a onClick={this.onDownloadTechClick}>Download</a>)) : '...' }
+                { this.renderStageButton(techChecksDone, techInstalled, this.onDownloadTechClick) }
               </QuickStartItem>
               <br/>
               <QuickStartItem>
                 Screenshots
               </QuickStartItem>
               <QuickStartItem>
-                { screenshotsChecksDone ? (screenshotsInstalled ? (<>Already Installed</>) : (<a onClick={this.onDownloadScreenshotsClick}>Download</a>)) : '...' }
+                { this.renderStageButton(screenshotsChecksDone, screenshotsInstalled, this.onDownloadScreenshotsClick) }
               </QuickStartItem>
             </ul>
           </div>
@@ -131,6 +132,18 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     );
   }
 
+  private renderStageButton(checksDone: boolean, isInstalled: boolean, onClick: () => void) {
+    return (
+      checksDone ? (
+        isInstalled ? (
+          'Already Installed'
+        ) : (
+          <a className='simple-button' onClick={onClick}>Download</a>
+        )
+      ) : '...'
+    );
+  }
+
   private onLaunchGame(game: IGameInfo, index: number): void {
     GameLauncher.launchGame(game);
   }
@@ -151,11 +164,25 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
   }
 
   private onDownloadTechClick = () => {
-    
+    const upgradeData = this.props.central.upgrade.data;
+    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
+    downloadAndInstallUpgrade(upgradeData.tech, {
+      installPath: window.External.config.fullFlashpointPath,
+      upgradeTitle: 'Tech',
+    })
+    .then(() => { console.log('yay'); })
+    .catch(console.error);
   }
 
   private onDownloadScreenshotsClick = () => {
-    
+    const upgradeData = this.props.central.upgrade.data;
+    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
+    downloadAndInstallUpgrade(upgradeData.screenshots, {
+      installPath: window.External.config.fullFlashpointPath,
+      upgradeTitle: 'Screenshots',
+    })
+    .then(() => { console.log('yay'); })
+    .catch(console.error);
   }
 }
 

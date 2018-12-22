@@ -95,6 +95,7 @@ body {
   background-color: #2d2d30;
   border: 1px solid var(--theme__search-bar__outline-color);
   color: var(--theme__text-color);
+  user-select: none;
 }
 .simple-button:hover {
   background-color: #434346;

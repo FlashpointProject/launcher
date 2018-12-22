@@ -18,7 +18,9 @@
   "author": "Jesper Gustafsson",
   "license": "MIT",
   "dependencies": {
-    "fast-xml-parser": "3.12.7"
+    "fast-xml-parser": "3.12.7",
+    "multipart-download": "1.1.0",
+    "yauzl": "2.10.0"
   },
   "devDependencies": {
     "@types/node": "10.12.5",
@@ -28,6 +30,7 @@
     "@types/react-router-dom": "4.3.1",
     "@types/react-virtualized": "9.18.7",
     "@types/uuid": "3.4.4",
+    "@types/yauzl": "2.9.0",
     "awesome-typescript-loader": "5.2.1",
     "connected-react-router": "5.0.1",
     "copy-webpack-plugin": "4.6.0",
