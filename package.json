@@ -19,7 +19,6 @@
   "license": "MIT",
   "dependencies": {
     "fast-xml-parser": "3.12.7",
-    "multipart-download": "1.1.0",
     "yauzl": "2.10.0"
   },
   "devDependencies": {

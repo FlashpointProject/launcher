@@ -3,7 +3,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { AppRouter, IAppRouterProps } from './router';
 import { TitleBar } from './components/TitleBar';
-import { ICentralState, UpgradeState } from './interfaces';
+import { ICentralState, UpgradeState, UpgradeStageState } from './interfaces';
 import * as AppConstants from '../shared/AppConstants';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
@@ -16,7 +16,8 @@ import { SearchQuery } from './store/search';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
-import { readUpgradeFile, performUpgradeStageChecks } from './upgrade/upgrade';
+import { readUpgradeFile, performUpgradeStageChecks, IUpgradeData, IUpgradeStage } from './upgrade/upgrade';
+import { downloadAndInstallUpgrade } from './util/upgrade';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -52,10 +53,20 @@ export class App extends React.Component<IAppProps, IAppState> {
         playlists: new GamePlaylistManager(),
         upgrade: {
           doneLoading: false,
-          techInstalled: false,
-          techChecksDone: false,
-          screenshotsInstalled: false,
-          screenshotsChecksDone: false,
+          techState: {
+            alreadyInstalled: false,
+            checksDone: false,
+            isInstalling: false,
+            isInstallationComplete: false,
+            installProgress: 0,
+          },
+          screenshotsState: {
+            alreadyInstalled: false,
+            checksDone: false,
+            isInstalling: false,
+            isInstallationComplete: false,
+            installProgress: 0,
+          },
         },
         gamesDoneLoading: false,
         gamesFailedLoading: false,
@@ -149,23 +160,22 @@ export class App extends React.Component<IAppProps, IAppState> {
     //
     readUpgradeFile(fullFlashpointPath)
     .then((data) => {
-      console.log(data);
       this.setUpgradeState({
         data: data,
         doneLoading: true,
       });
       performUpgradeStageChecks(data.screenshots, fullFlashpointPath)
       .then(results => {
-        this.setUpgradeState({
-          screenshotsInstalled: results.indexOf(false) === -1,
-          screenshotsChecksDone: true,
+        this.setScreenshotsUpgradeState({
+          alreadyInstalled: results.indexOf(false) === -1,
+          checksDone: true,
         });
       });
       performUpgradeStageChecks(data.tech, fullFlashpointPath)
       .then(results => {
-        this.setUpgradeState({
-          techInstalled: results.indexOf(false) === -1,
-          techChecksDone: true,
+        this.setTechUpgradeState({
+          alreadyInstalled: results.indexOf(false) === -1,
+          checksDone: true,
         });
       });
     })
@@ -203,6 +213,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.state.wasNewGameClicked,
+      onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
+      onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
     };
     // Render
     return (
@@ -277,6 +289,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     });
   }
 
+  private onDownloadTechUpgradeClick = () => {
+    const upgradeData = this.state.central.upgrade.data;
+    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
+    downloadAndInstallStage(upgradeData.tech, this.setTechUpgradeState);
+  }
+
+  private onDownloadScreenshotsUpgradeClick = () => {
+    const upgradeData = this.state.central.upgrade.data;
+    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
+    downloadAndInstallStage(upgradeData.screenshots, this.setScreenshotsUpgradeState);
+  }
+
   private setUpgradeState(state: Partial<UpgradeState>) {
     this.setState({
       central: Object.assign({}, this.state.central, {
@@ -284,4 +308,41 @@ export class App extends React.Component<IAppProps, IAppState> {
       })
     });
   }
+
+  private setTechUpgradeState = (state: Partial<UpgradeStageState>): void => {
+    const { central: { upgrade: { techState } } } = this.state;
+    this.setUpgradeState({
+      techState: Object.assign({}, techState, state),
+    });
+  }
+
+  private setScreenshotsUpgradeState = (state: Partial<UpgradeStageState>):void => {
+    const { central: { upgrade: { screenshotsState } } } = this.state;
+    this.setUpgradeState({
+      screenshotsState: Object.assign({}, screenshotsState, state),
+    });
+  }
+}
+
+function downloadAndInstallStage(stage: IUpgradeStage, setStageState: (stage: Partial<UpgradeStageState>) => void) {
+  // Flag as installing
+  setStageState({ isInstalling: true });
+  // Start download and installation
+  downloadAndInstallUpgrade(stage, {
+    installPath: window.External.config.fullFlashpointPath,
+    upgradeTitle: 'Tech',
+  })
+  .once('done', () => {
+    // Flag as done installing
+    setStageState({
+      isInstalling: false,
+      isInstallationComplete: true,
+    });
+  })
+  .once('error', (error) => {
+    // Flag as not installing (so the user can retry if they want to)
+    setStageState({ isInstalling: false });
+    console.error(error);
+  })
+  .on('warn', console.warn);
 }

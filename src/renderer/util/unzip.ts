@@ -34,13 +34,11 @@ export function unzip(sourceFile: string, outputFolder: string): UnzipStatus {
     // Add event listeners
     zip
     .on('close', () => {
-      console.log('closed input file');
       status.emit('done');
     })
     .on('entry', (entry) => {
       // Get the full path of the file/folder being extracted
       const fullFilePath = path.join(outputFolder, entry.fileName);
-      console.log(fullFilePath);
       if (!fullFilePath.startsWith(outputFolder)) {
         status.emit('warn', 'ZIP entries are not allowed to escape the "root folder" it is unzipped in.');
         zip.readEntry();
@@ -81,7 +79,6 @@ function mkdirp(dir: string, cb: (error?: Error) => void): void {
     if (error && error.code === 'ENOENT') { // file not found
       const parent = path.dirname(dir);
       mkdirp(parent, () => {
-        console.log(dir);
         fs.mkdir(dir, cb);
       });
     } else { cb(error); } // (error is either undefined, or an unhandled error)

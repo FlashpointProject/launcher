@@ -54,10 +54,21 @@ export interface SearchState {
 /** @TODO write this comment */
 export interface UpgradeState {
   data?: IUpgradeData;
-  techInstalled: boolean;
-  techChecksDone: boolean;
-  screenshotsInstalled: boolean;
-  screenshotsChecksDone: boolean;
+  techState: UpgradeStageState;
+  screenshotsState: UpgradeStageState;
   /** If the "upgrade" file has been loaded and parsed (or if it failed and the default values were used instead) */
   doneLoading: boolean;
+}
+
+export interface UpgradeStageState {
+  /** If the stage was already installed when the launcher started up */
+  alreadyInstalled: boolean;
+  /** If the checks has been performed */
+  checksDone: boolean;
+  /** If the stage is currently being downloaded / installed */
+  isInstalling: boolean;
+  /** If the stage was installed during this session (this is so it can tell the user to restart) */
+  isInstallationComplete: boolean;
+  /** Progress of the installation (if its being installed) */
+  installProgress: number;
 }

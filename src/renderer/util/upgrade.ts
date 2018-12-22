@@ -1,8 +1,10 @@
+import { EventEmitter } from 'events';
+import * as http from 'http';
 import * as fs from 'fs';
 import * as os from 'os';
+import * as path from 'path';
 import { unzip } from '../util/unzip';
 import { IUpgradeStage } from '../upgrade/upgrade';
-const MultipartDownload = require('multipart-download');
 
 interface IGetUpgradeOpts {
   /** Path to install the upgrade to */
@@ -11,35 +13,52 @@ interface IGetUpgradeOpts {
   upgradeTitle: string;
 }
 
-interface IGetUpgradeResult {
-
+export declare interface UpgradeStatus {
+  /** Fired when an error occurs, this also means that the process has ended */
+  once(event: 'error', handler: (error: any) => void): this;
+  emit(event: 'error', error: any): boolean;
+  /** Fired when something goes wrong, this DOES NOT mean that the process has ended */
+  on(event: 'warn', handler: (warning: string) => void): this;
+  emit(event: 'warn', warning: string): boolean;
+  /** Fired when the process is done (and it was successful) */
+  once(event: 'done', handler: () => void): this;
+  emit(event: 'done'): boolean;
 }
 
-export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgradeOpts): Promise<IGetUpgradeResult> {
-  return new Promise((resolve, reject) => {
-    log(`Download of upgrade "${opts.upgradeTitle}" started.`);
-    downloadUpgrade(upgrade)
-    .then((zipPath) => {
-      log(`Download of the "${opts.upgradeTitle}" upgrade complete!`);
-      log(`Installation of the "${opts.upgradeTitle}" upgrade started.`);
-      console.log(opts.installPath);
-      unzip(zipPath, opts.installPath)
-      .on('warn', warning => { log(warning); })
-      .once('done', () => {
-        log(`Installation of the "${opts.upgradeTitle}" upgrade complete!\n`+
-            'Restart the launcher for the upgrade to take effect.');
-        resolve();
-      })
-      .once('error', (error) => {
-        log(`Installation of the "${opts.upgradeTitle}" upgrade failed!\nError: ${error}`);
-        reject(error);
-      });
+export class UpgradeStatus extends EventEmitter {
+  /** */
+  public downloadProgress: number = 0;
+
+  /** Get the estimated progess of the whole process (from 0 to 1) */
+  public getEstimagedProgress(): number {
+    return this.downloadProgress;
+  }
+}
+
+export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgradeOpts): UpgradeStatus {
+  const status = new UpgradeStatus();
+  log(`Download of upgrade "${opts.upgradeTitle}" started.`);
+  downloadUpgrade(upgrade, opts.upgradeTitle, (offset) => { status.downloadProgress = offset / 1; })
+  .then((zipPath) => {
+    log(`Download of the "${opts.upgradeTitle}" upgrade complete!`);
+    log(`Installation of the "${opts.upgradeTitle}" upgrade started.`);
+    unzip(zipPath, opts.installPath)
+    .on('warn', warning => { log(warning); })
+    .once('done', () => {
+      log(`Installation of the "${opts.upgradeTitle}" upgrade complete!\n`+
+          'Restart the launcher for the upgrade to take effect.');
+      status.emit('done');
     })
-    .catch((error) => {
-      log(`Download of the "${opts.upgradeTitle}" upgrade failed!\nError: ${error}`);
-      reject(error);
+    .once('error', (error) => {
+      log(`Installation of the "${opts.upgradeTitle}" upgrade failed!\nError: ${error}`);
+      status.emit('error', error);
     });
+  })
+  .catch((error) => {
+    log(`Download of the "${opts.upgradeTitle}" upgrade failed!\nError: ${error}`);
+    status.emit('error', error);
   });
+  return status;
 }
 
 /**
@@ -47,7 +66,7 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
  * @param upgrade Upgrade to download
  * @returns Path of the local zip file, ready for extraction/installation
  */
-function downloadUpgrade(upgrade: IUpgradeStage): Promise<string> {
+function downloadUpgrade(upgrade: IUpgradeStage, title: string, onData: (offset: number) => void): Promise<string> {
   return new Promise((resolve, reject) => {
     const urlOrPath = upgrade.sources[0];
     if (urlOrPath.startsWith('file://') || urlOrPath.indexOf('://') === -1) { // (Local file)
@@ -56,13 +75,15 @@ function downloadUpgrade(upgrade: IUpgradeStage): Promise<string> {
         else        { reject();  }
       });
     } else { // (Network resource)
-      (new MultipartDownload()).start(urlOrPath, {
-        numOfConnections: 3,
-        saveDirectory: os.tmpdir(),
-        fileName: 'flashpoint_screenshots.zip',
-      })
-      .on('end', (output: string) => resolve(output))
-      .on('error', (error: any) => reject(error));
+      http.get(urlOrPath, (res) => {
+        if (res.statusCode === 200) {
+          const filePath = path.join(os.tmpdir(), `flashpoint_stage_${title}.zip`);
+          const fileStream = fs.createWriteStream(filePath);
+          res.pipe(fileStream);
+          res.once('end', () => { resolve(filePath); });
+          res.once('error', (error) => { reject(error); });          
+        } else { reject(new Error(`File request failed. Server responded with code: ${res.statusCode}`)); }
+      });
     }
   });
 }

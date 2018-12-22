@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { ICentralState } from '../../interfaces';
+import { ICentralState, UpgradeStageState } from '../../interfaces';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { SizeProvider } from '../SizeProvider';
 import { GameLauncher } from '../../GameLauncher';
@@ -9,12 +9,13 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { Paths } from '../../Paths';
 import { RandomGames } from '../RandomGames';
-import { downloadAndInstallUpgrade } from '../../util/upgrade';
 
 interface OwnProps {
   central: ICentralState;
   onSelectPlaylist: (playlist?: IGamePlaylist) => void;
   clearSearch: () => void;
+  onDownloadTechUpgradeClick: () => void;
+  onDownloadScreenshotsUpgradeClick: () => void;
 }
 
 export type IHomePageProps = OwnProps & WithPreferencesProps;
@@ -36,15 +37,15 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
 
   render() {
     const {
+      onDownloadTechUpgradeClick,
+      onDownloadScreenshotsUpgradeClick,
       central: {
         gamesDoneLoading,
         games,
         gameImages,
         upgrade: {
-          techInstalled,
-          techChecksDone,
-          screenshotsInstalled,
-          screenshotsChecksDone
+          techState,
+          screenshotsState
         }
       },
       preferencesData: {
@@ -87,14 +88,14 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
                 Other technologies
               </QuickStartItem>
               <QuickStartItem>
-                { this.renderStageButton(techChecksDone, techInstalled, this.onDownloadTechClick) }
+                { this.renderStageButton(techState, onDownloadTechUpgradeClick) }
               </QuickStartItem>
               <br/>
               <QuickStartItem>
                 Screenshots
               </QuickStartItem>
               <QuickStartItem>
-                { this.renderStageButton(screenshotsChecksDone, screenshotsInstalled, this.onDownloadScreenshotsClick) }
+                { this.renderStageButton(screenshotsState, onDownloadScreenshotsUpgradeClick) }
               </QuickStartItem>
             </ul>
           </div>
@@ -132,13 +133,21 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     );
   }
 
-  private renderStageButton(checksDone: boolean, isInstalled: boolean, onClick: () => void) {
+  private renderStageButton(stageState: UpgradeStageState, onClick: () => void) {
     return (
-      checksDone ? (
-        isInstalled ? (
+      stageState.checksDone ? (
+        stageState.alreadyInstalled ? (
           'Already Installed'
         ) : (
-          <a className='simple-button' onClick={onClick}>Download</a>
+          stageState.isInstallationComplete ? (
+            'Installation Complete! Restart the launcher!'
+          ) : (
+            stageState.isInstalling ? (
+              <p>Downloading & Installing... ({ Math.round(stageState.installProgress * 100) }%)</p>
+            ) : (
+              <a className='simple-button' onClick={onClick}>Download</a>
+            )            
+          )
         )
       ) : '...'
     );
@@ -161,28 +170,6 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     // Deselect the current playlist and clear the search
     this.props.onSelectPlaylist(undefined);
     this.props.clearSearch();
-  }
-
-  private onDownloadTechClick = () => {
-    const upgradeData = this.props.central.upgrade.data;
-    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallUpgrade(upgradeData.tech, {
-      installPath: window.External.config.fullFlashpointPath,
-      upgradeTitle: 'Tech',
-    })
-    .then(() => { console.log('yay'); })
-    .catch(console.error);
-  }
-
-  private onDownloadScreenshotsClick = () => {
-    const upgradeData = this.props.central.upgrade.data;
-    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallUpgrade(upgradeData.screenshots, {
-      installPath: window.External.config.fullFlashpointPath,
-      upgradeTitle: 'Screenshots',
-    })
-    .then(() => { console.log('yay'); })
-    .catch(console.error);
   }
 }
 

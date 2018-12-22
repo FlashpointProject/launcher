@@ -10,7 +10,7 @@ import { IGameInfo } from '../shared/game/interfaces';
 import { IGamePlaylist } from './playlist/interfaces';
 import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage } from './containers/ConnectedConfigPage';
-import { ConnectedHomePage } from './containers/ConnectedHomePage';
+import { ConnectedHomePage, IConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 
 export interface IAppRouterProps {
@@ -21,12 +21,20 @@ export interface IAppRouterProps {
   selectedGame?: IGameInfo;
   selectedPlaylist?: IGamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
-  onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
+  onSelectPlaylist: (playlist?: IGamePlaylist) => void;
   wasNewGameClicked: boolean;
+  onDownloadTechUpgradeClick: () => void;
+  onDownloadScreenshotsUpgradeClick: () => void;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
   render() {
+    const homeProps: IConnectedHomePageProps = {
+      central: this.props.central,
+      onSelectPlaylist: this.props.onSelectPlaylist,
+      onDownloadTechUpgradeClick: this.props.onDownloadTechUpgradeClick,
+      onDownloadScreenshotsUpgradeClick: this.props.onDownloadScreenshotsUpgradeClick,
+    };
     const browseProps: IConnectedBrowsePageProps = {
       central: this.props.central,
       order: this.props.order,
@@ -41,7 +49,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     return (
       <Switch>
         <PropsRoute exact path={Paths.home} component={ConnectedHomePage}
-                    central={this.props.central} onSelectPlaylist={this.props.onSelectPlaylist} />
+                    {...homeProps} />
         <PropsRoute path={Paths.browse} component={ConnectedBrowsePage}
                     {...browseProps} />
         <PropsRoute path={Paths.logs} component={ConnectedLogsPage} />
