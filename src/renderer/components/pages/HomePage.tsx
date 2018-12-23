@@ -9,6 +9,7 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { Paths } from '../../Paths';
 import { RandomGames } from '../RandomGames';
+import { IUpgradeStage } from 'src/renderer/upgrade/upgrade';
 
 interface OwnProps {
   central: ICentralState;
@@ -52,9 +53,8 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
         browsePageShowExtreme
       }
     } = this.props;
-
+    const upgradeData = this.props.central.upgrade.data;
     const { logoDelay } = this.state;
-
     // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
     const height: number = 140;
     const width: number = (height * 0.666) | 0;
@@ -81,24 +81,18 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             </ul>
           </div>
           {/* Upgrades */}
-          <div className='home-page__box'>
-            <div className='home-page__box__head'>Upgrades</div>
-            <ul className='home-page__box__body'>
-              <QuickStartItem>
-                Other technologies
-              </QuickStartItem>
-              <QuickStartItem>
-                { this.renderStageButton(techState, onDownloadTechUpgradeClick) }
-              </QuickStartItem>
-              <br/>
-              <QuickStartItem>
-                Screenshots
-              </QuickStartItem>
-              <QuickStartItem>
-                { this.renderStageButton(screenshotsState, onDownloadScreenshotsUpgradeClick) }
-              </QuickStartItem>
-            </ul>
-          </div>
+          { upgradeData ? (
+              <div className='home-page__box home-page__box--upgrades'>
+                <div className='home-page__box__head'>Upgrades</div>
+                <ul className='home-page__box__body'>
+                  { this.renderStageSection(upgradeData.tech, techState, onDownloadTechUpgradeClick) }
+                  <br/>
+                  { this.renderStageSection(upgradeData.screenshots, screenshotsState, onDownloadScreenshotsUpgradeClick) }
+                </ul>
+              </div>
+            ) : undefined
+          }
+
           {/* Notes */}
           <div className='home-page__box'>
             <div className='home-page__box__head'>Notes</div>
@@ -130,6 +124,16 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
           </SizeProvider>
         </div>
       </div>
+    );
+  }
+
+  private renderStageSection(stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
+    return (
+      <>
+        <QuickStartItem><b>{stageData && stageData.title || '...'}</b></QuickStartItem>
+        <QuickStartItem><i>{stageData && stageData.description || '...'}</i></QuickStartItem>
+        <QuickStartItem>{ this.renderStageButton(stageState, onClick) }</QuickStartItem>
+      </>
     );
   }
 
@@ -173,9 +177,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
   }
 }
 
-function QuickStartItem(props: { icon?: OpenIconType, children?: React.ReactNode }): JSX.Element {
+function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {
   return (
-    <li className='home-page__box__item simple-center'>
+    <li className={'home-page__box__item simple-center ' + (props.className||'')}>
       { props.icon ? (
          <div className='home-page__box__item__icon simple-center__vertical-inner'>
           <OpenIcon icon={props.icon} />

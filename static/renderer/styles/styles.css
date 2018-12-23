@@ -736,7 +736,7 @@ body {
      0% { background-position-x:          0%; }
    100% { background-position-x: var(--zoom); }
 }
-/* Quick Start*/
+/* HomePage Box */
 .home-page__box {
   display: block;
   margin: 0 auto;
@@ -764,7 +764,14 @@ body {
 .home-page__box__item__icon {
   margin-right: 0.35rem;
 }
-/* Random Games*/
+/* HomePage Box - Upgrades */
+.home-page__box--upgrades b,
+.home-page__box--upgrades i {
+  display: block;
+  text-align: center;
+  white-space: pre-line;
+}
+/* Random Games */
 .home-page__random-games {
   text-align: center;
 }

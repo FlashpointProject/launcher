@@ -292,13 +292,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDownloadTechUpgradeClick = () => {
     const upgradeData = this.state.central.upgrade.data;
     if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.tech, this.setTechUpgradeState);
+    downloadAndInstallStage(upgradeData.tech, 'flashpoint_stage_tech.zip', this.setTechUpgradeState);
   }
 
   private onDownloadScreenshotsUpgradeClick = () => {
     const upgradeData = this.state.central.upgrade.data;
     if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.screenshots, this.setScreenshotsUpgradeState);
+    downloadAndInstallStage(upgradeData.screenshots, 'flashpoint_stage_screenshots.zip', this.setScreenshotsUpgradeState);
   }
 
   private setUpgradeState(state: Partial<UpgradeState>) {
@@ -324,7 +324,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 }
 
-function downloadAndInstallStage(stage: IUpgradeStage, setStageState: (stage: Partial<UpgradeStageState>) => void) {
+function downloadAndInstallStage(stage: IUpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
   // Flag as installing
   setStageState({
     isInstalling: true,
@@ -335,7 +335,7 @@ function downloadAndInstallStage(stage: IUpgradeStage, setStageState: (stage: Pa
   const state = (
     downloadAndInstallUpgrade(stage, {
       installPath: window.External.config.fullFlashpointPath,
-      upgradeTitle: 'Tech',
+      downloadFilename: filename
     })
     .on('progress', () => {
       const now = Date.now();

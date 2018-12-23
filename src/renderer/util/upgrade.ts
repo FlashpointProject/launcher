@@ -12,8 +12,8 @@ const https = require('follow-redirects').https;
 interface IGetUpgradeOpts {
   /** Path to install the upgrade to */
   installPath: string;
-  /** Title of the upgrade (for logging purposes) */
-  upgradeTitle: string;
+  /** Name of file to save to */
+  downloadFilename: string;
 }
 
 export declare interface UpgradeStatus {
@@ -65,9 +65,9 @@ class UpgradeDownloadStatus extends EventEmitter {
 export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgradeOpts): UpgradeStatus {
   const status = new UpgradeStatus();
   status.currentTask = 'downloading';
-  log(`Download of upgrade "${opts.upgradeTitle}" started.`);
+  log(`Download of upgrade "${upgrade.title}" started.`);
   const dlStatus = (
-    downloadUpgrade(upgrade, opts.upgradeTitle, (offset) => { status.downloadProgress = offset / 1; })
+    downloadUpgrade(upgrade, opts.downloadFilename, (offset) => { status.downloadProgress = offset / 1; })
     .on('progress', () => {
       if (dlStatus.contentLength > 0) {
         status.downloadProgress = dlStatus.bytesDownloaded / dlStatus.contentLength;
@@ -76,8 +76,8 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
     })
     .once('done', (zipPath) => {
       status.currentTask = 'extracting';
-      log(`Download of the "${opts.upgradeTitle}" upgrade complete!`);
-      log(`Installation of the "${opts.upgradeTitle}" upgrade started.`);
+      log(`Download of the "${upgrade.title}" upgrade complete!`);
+      log(`Installation of the "${upgrade.title}" upgrade started.`);
       const unzipStatus = (
         unzip(zipPath, opts.installPath)
         .on('warn', warning => { log(warning); })
@@ -86,18 +86,18 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
           status.emit('progress');
         })
         .once('done', () => {
-          log(`Installation of the "${opts.upgradeTitle}" upgrade complete!\n`+
+          log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
               'Restart the launcher for the upgrade to take effect.');
           status.emit('done');
         })
         .once('error', (error) => {
-          log(`Installation of the "${opts.upgradeTitle}" upgrade failed!\${error}`);
+          log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
           status.emit('error', error);
         })
       );
     })
     .once('error', (error) => {
-      log(`Download of the "${opts.upgradeTitle}" upgrade failed!\${error}`);
+      log(`Download of the "${upgrade.title}" upgrade failed!\n${error}`);
       status.emit('error', error);
     })
   );
@@ -109,36 +109,40 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
  * @param upgrade Upgrade to download
  * @returns Path of the local zip file, ready for extraction/installation
  */
-function downloadUpgrade(upgrade: IUpgradeStage, title: string, onData: (offset: number) => void): UpgradeDownloadStatus {
+function downloadUpgrade(upgrade: IUpgradeStage, filename: string, onData: (offset: number) => void): UpgradeDownloadStatus {
   const status = new UpgradeDownloadStatus();
-  const urlOrPath = upgrade.sources[0];
-  if (urlOrPath.startsWith('file://') || urlOrPath.indexOf('://') === -1) { // (Local file)
-    fs.exists(urlOrPath, (exists) => {
-      if (exists) { status.emit('done', urlOrPath); }
-      else        { status.emit('error', new Error('File does not exist.')); }
-    });
-  } else { // (Network resource)
-    let protocol: any = urlOrPath.startsWith('https://') ? https : http;
-    try {
-      protocol.get(urlOrPath, (res: IncomingMessage) => {
-        const { statusCode, headers } = res;
-        status.contentLength = parseInt(headers["content-length"]+'', 10);
-        if (statusCode === 200) {
-          const filePath = path.posix.join(os.tmpdir(), `flashpoint_stage_${title}.zip`);
-          const fileStream = fs.createWriteStream(filePath);
-          res.pipe(createMiddleStream(length => {
-                status.bytesDownloaded += length;
-                status.emit('progress');
-              }))
-              .pipe(fileStream);
-          res.once('error', (error) => { status.emit('error', error); });
-          fileStream.on('close', () => { status.emit('done', filePath); });
-        } else { status.emit('error', new Error(`File request failed. Server responded with code: ${res.statusCode}`)); }
-      });
-    }
-    catch(error) { status.emit('error', new Error(`File download failed. ${error}`)); }
-  }
+  tryDownload(0);
   return status;
+  /** Try downloading/locating the file */
+  function tryDownload(index: number) {
+    const urlOrPath = upgrade.sources[index];
+    if (urlOrPath.startsWith('file://') || urlOrPath.indexOf('://') === -1) { // (Local file)
+      fs.exists(urlOrPath, (exists) => {
+        if (exists) { status.emit('done', urlOrPath); }
+        else        { status.emit('error', new Error('File does not exist.')); }
+      });
+    } else { // (Network resource)
+      let protocol: any = urlOrPath.startsWith('https://') ? https : http;
+      try {
+        protocol.get(urlOrPath, (res: IncomingMessage) => {
+          const { statusCode, headers } = res;
+          status.contentLength = parseInt(headers["content-length"]+'', 10);
+          if (statusCode === 200) {
+            const filePath = path.posix.join(os.tmpdir(), filename);
+            const fileStream = fs.createWriteStream(filePath);
+            res.pipe(createMiddleStream(length => {
+                  status.bytesDownloaded += length;
+                  status.emit('progress');
+                }))
+                .pipe(fileStream);
+            res.once('error', (error) => { status.emit('error', error); });
+            fileStream.on('close', () => { status.emit('done', filePath); });
+          } else { status.emit('error', new Error(`File request failed. Server responded with code: ${res.statusCode}`)); }
+        });
+      }
+      catch(error) { status.emit('error', new Error(`File download failed. ${error}`)); }
+    }    
+  }
 }
 
 function log(content: string): void {
