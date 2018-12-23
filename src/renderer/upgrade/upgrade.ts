@@ -12,6 +12,8 @@ export interface IUpgradeData {
 }
 
 export interface IUpgradeStage {
+  title: string;
+  description: string;
   /** Paths of files that should exist if the stage is "installed" (paths are relative to the flashpoint root) */
   checks: string[];
   /** URLs from where the stage can be downloaded (only one will be downloaded, the other are "backups") */
@@ -60,8 +62,10 @@ function parseUpgradeFile(data: any): IUpgradeData {
 }
 
 function parseUpgradeFileStage(dest: IUpgradeStage, source: IUpgradeStage): void {
-  if (source.checks)  { stringArray(dest.checks,  source.checks);  }
-  if (source.sources) { stringArray(dest.sources, source.sources); }
+  if (source.title)       { dest.title       = source.title+'';        }
+  if (source.description) { dest.description = source.description+'';  }
+  if (source.checks)      { stringArray(dest.checks,  source.checks);  }
+  if (source.sources)     { stringArray(dest.sources, source.sources); }
 }
 
 function stringArray(dest: string[], source: string[]): void {
@@ -77,10 +81,14 @@ function createDefaultUpgradeData(): IUpgradeData {
 
 const defaultUpgradeData: Readonly<IUpgradeData> = Object.freeze({
   tech: {
+    title: '',
+    description: '',
     checks:  [ '' ],
     sources: [ '' ],
   },
   screenshots: {
+    title: '',
+    description: '',
     checks:  [ '' ],
     sources: [''],
   }

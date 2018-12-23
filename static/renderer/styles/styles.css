@@ -736,8 +736,8 @@ body {
      0% { background-position-x:          0%; }
    100% { background-position-x: var(--zoom); }
 }
-/* Quick Start*/
-.home-page__quick-start {
+/* HomePage Box */
+.home-page__box {
   display: block;
   margin: 0 auto;
   margin-bottom: 1rem;
@@ -745,26 +745,33 @@ body {
   border: 1px #3f3f3f solid;
   background-color: #252525;
 }
-.home-page__quick-start__head {
+.home-page__box__head {
   padding: 0.15rem 0.3rem;
   border-bottom: 1px #3f3f3f solid;
   font-weight: bold;
 }
-.home-page__quick-start__body {
+.home-page__box__body {
   padding: 0.3rem;
 }
-.home-page__quick-start__item {
+.home-page__box__item {
   display: flex;
   flex-direction: row;
   list-style: none;
 }
-.home-page__quick-start__item:not(:last-child) {
+.home-page__box__item:not(:last-child) {
   margin-bottom: 0.1rem;
 }
-.home-page__quick-start__item__icon {
+.home-page__box__item__icon {
   margin-right: 0.35rem;
 }
-/* Random Games*/
+/* HomePage Box - Upgrades */
+.home-page__box--upgrades b,
+.home-page__box--upgrades i {
+  display: block;
+  text-align: center;
+  white-space: pre-line;
+}
+/* Random Games */
 .home-page__random-games {
   text-align: center;
 }

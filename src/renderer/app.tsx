@@ -58,14 +58,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             checksDone: false,
             isInstalling: false,
             isInstallationComplete: false,
-            installProgress: 0,
+            installProgressNote: '',
           },
           screenshotsState: {
             alreadyInstalled: false,
             checksDone: false,
             isInstalling: false,
             isInstallationComplete: false,
-            installProgress: 0,
+            installProgressNote: '',
           },
         },
         gamesDoneLoading: false,
@@ -292,13 +292,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDownloadTechUpgradeClick = () => {
     const upgradeData = this.state.central.upgrade.data;
     if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.tech, this.setTechUpgradeState);
+    downloadAndInstallStage(upgradeData.tech, 'flashpoint_stage_tech.zip', this.setTechUpgradeState);
   }
 
   private onDownloadScreenshotsUpgradeClick = () => {
     const upgradeData = this.state.central.upgrade.data;
     if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.screenshots, this.setScreenshotsUpgradeState);
+    downloadAndInstallStage(upgradeData.screenshots, 'flashpoint_stage_screenshots.zip', this.setScreenshotsUpgradeState);
   }
 
   private setUpgradeState(state: Partial<UpgradeState>) {
@@ -324,25 +324,42 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 }
 
-function downloadAndInstallStage(stage: IUpgradeStage, setStageState: (stage: Partial<UpgradeStageState>) => void) {
+function downloadAndInstallStage(stage: IUpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
   // Flag as installing
-  setStageState({ isInstalling: true });
+  setStageState({
+    isInstalling: true,
+    installProgressNote: '...',
+  });
   // Start download and installation
-  downloadAndInstallUpgrade(stage, {
-    installPath: window.External.config.fullFlashpointPath,
-    upgradeTitle: 'Tech',
-  })
-  .once('done', () => {
-    // Flag as done installing
-    setStageState({
-      isInstalling: false,
-      isInstallationComplete: true,
-    });
-  })
-  .once('error', (error) => {
-    // Flag as not installing (so the user can retry if they want to)
-    setStageState({ isInstalling: false });
-    console.error(error);
-  })
-  .on('warn', console.warn);
+  let prevProgressUpdate = Date.now();
+  const state = (
+    downloadAndInstallUpgrade(stage, {
+      installPath: window.External.config.fullFlashpointPath,
+      downloadFilename: filename
+    })
+    .on('progress', () => {
+      const now = Date.now();
+      if (now - prevProgressUpdate > 100) {
+        prevProgressUpdate = now;
+        switch (state.currentTask) {
+          case 'downloading': setStageState({ installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
+          case 'extracting':  setStageState({ installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
+          default:            setStageState({ installProgressNote: '...' });                                                        break;
+        }
+      }
+    })
+    .once('done', () => {
+      // Flag as done installing
+      setStageState({
+        isInstalling: false,
+        isInstallationComplete: true,
+      });
+    })
+    .once('error', (error) => {
+      // Flag as not installing (so the user can retry if they want to)
+      setStageState({ isInstalling: false });
+      console.error(error);
+    })
+    .on('warn', console.warn)
+  );
 }
