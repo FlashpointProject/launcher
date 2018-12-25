@@ -42,6 +42,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   render() {
     const showLeftSidebar = this.props.preferencesData.browsePageShowLeftSidebar;
     const showRightSidebar = this.props.preferencesData.browsePageShowRightSidebar;
+    const { searchText } = this.state;
     return (
       <div className='header'>
         {/* Header Menu */}
@@ -65,12 +66,20 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
           </ul>
         </div>
         {/* Header Search */}
-        <div className='header__wrap'>
+        <div className='header__wrap header__wrap--width-restricted header__search__wrap'>
           <div>
             <div className='header__search'>
-              <input className='header__search__input' ref={this.searchInputRef}
-                     value={this.state.searchText} placeholder='Search...'
-                     onChange={this.onSearchChange} onKeyDown={this.onSearchKeyDown} />
+              <div className='header__search__left'>
+                <input className='header__search__input' ref={this.searchInputRef}
+                       value={searchText} placeholder='Search...'
+                       onChange={this.onSearchChange} onKeyDown={this.onSearchKeyDown} />                
+              </div>
+              <div className='header__search__right'
+                   onClick={ searchText ? this.onClearClick : undefined }>
+                <div className='header__search__right__inner'>
+                  <OpenIcon className='header__search__icon' icon={ searchText ? 'circle-x' : 'magnifying-glass' } />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -124,5 +133,10 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         event.preventDefault();
       }
     }
+  }
+
+  private onClearClick = (): void => {
+    this.setState({ searchText: '' });
+    this.props.onSearch('', false);
   }
 }
