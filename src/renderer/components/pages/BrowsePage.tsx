@@ -166,7 +166,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                                       onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
                                       onShowAllClick={this.onLeftSidebarShowAllClick} />
         </IResizableSidebar>
-        <div className='game-browser__center' onKeyDown={this.onKeyDown}>
+        <div className='game-browser__center' onKeyDown={this.onCenterKeyDown}>
           {(() => {
             if (this.props.gameLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
@@ -325,17 +325,19 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     GameLauncher.launchGame(game, addApps);
   }
 
-  private onKeyDown = (event: React.KeyboardEvent): void => {
+  private onCenterKeyDown = (event: React.KeyboardEvent): void => {
     const key: string = event.key.toLowerCase();
-    if (key === 'backspace') { // (Backspace - Remove a character)
-      const timedOut = updateTime.call(this);
-      let newString: string = (timedOut ? '' : this.state.quickSearch);
-      newString = newString.substr(0, newString.length - 1);
-      this.setState({ quickSearch: newString });
-    } else if (key.length === 1) { // (Single character - add it to the search string)
-      const timedOut = updateTime.call(this);
-      let newString: string = (timedOut ? '' : this.state.quickSearch) + key;
-      this.setState({ quickSearch: newString });
+    if (!event.ctrlKey && !event.altKey) { // (Don't add CTRL or ALT modified key presses)
+      if (key === 'backspace') { // (Backspace - Remove a character)
+        const timedOut = updateTime.call(this);
+        let newString: string = (timedOut ? '' : this.state.quickSearch);
+        newString = newString.substr(0, newString.length - 1);
+        this.setState({ quickSearch: newString });
+      } else if (key.length === 1) { // (Single character - add it to the search string)
+        const timedOut = updateTime.call(this);
+        let newString: string = (timedOut ? '' : this.state.quickSearch) + key;
+        this.setState({ quickSearch: newString });
+      }
     }
 
     function updateTime(this: BrowsePage): boolean {

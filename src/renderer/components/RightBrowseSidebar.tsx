@@ -68,6 +68,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   private onBrokenChange          = this.wrapOnCheckBoxChange((game) => { game.broken = !game.broken; });
   private onExtremeChange         = this.wrapOnCheckBoxChange((game) => { game.extreme = !game.extreme; });
 
+  private launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
+
   constructor(props: IRightBrowseSidebarProps) {
     super(props);
     this.state = {
@@ -75,7 +77,12 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     };
   }
 
-  componentDidMount(): void {
+  componentDidMount() {
+    window.addEventListener('keydown', this.onKeyDown);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.onKeyDown);
   }
 
   render() {
@@ -264,7 +271,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Launch Command: </p>
                 <InputField text={game.launchCommand} placeholder='No Launch Command'
-                            onChange={this.onLaunchCommandChange} canEdit={canEdit} />
+                            onChange={this.onLaunchCommandChange} canEdit={canEdit}
+                            reference={this.launchCommandRef} />
               </div>
             </div>
           ) : undefined }
@@ -322,6 +330,17 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
         <OpenIcon icon='circle-x' />
       </div>
     );
+  }
+
+  private onKeyDown = (event: KeyboardEvent) => {
+    const { currentGame, isEditing, onEditClick } = this.props;
+    // Start editing
+    if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
+        !isEditing && currentGame) { // ... while not editing, and a game is selected)
+      if (onEditClick) { onEditClick(); }
+      if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
+      event.preventDefault();
+    }
   }
 
   private onDeleteGameClick = (): void => {
