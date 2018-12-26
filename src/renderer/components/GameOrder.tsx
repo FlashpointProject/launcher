@@ -19,7 +19,7 @@ interface IOptionalGameOrderState {
   orderReverse?: GameOrderReverse;
 }
 
-export type GameOrderBy = 'title'|'genre'|'dateAdded';
+export type GameOrderBy = 'dateAdded'|'genre'|'platform'|'series'|'title';
 export type GameOrderReverse = 'ascending'|'descending';
 
 export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState> {
@@ -36,9 +36,11 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
       <>
         {/* Order By */}
         <select className='simple-selector' value={this.state.orderBy} onChange={this.onOrderByChange}>
-          <option value='title'>Title</option>
-          <option value='genre'>Genre</option>
           <option value='dateAdded'>Date Added</option>
+          <option value='genre'>Genre</option>
+          <option value='platform'>Platform</option>
+          <option value='series'>Series</option>
+          <option value='title'>Title</option>
         </select>
         {/* Order Reverse */}
         <select className='simple-selector' value={this.state.orderReverse} onChange={this.onOrderReverseChange}>
@@ -75,16 +77,22 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
 
   /** Parse GameOrderBy from a string (error if invalid) */
   private parseOrderBy(value: string): GameOrderBy {
-    if (value === 'title') return 'title';
-    if (value === 'genre') return 'genre';
-    if (value === 'dateAdded') return 'dateAdded';
-    throw new Error(`"${value}" is not a valid GameOrderBy`);
+    switch (value) {
+      case 'dateAdded': return 'dateAdded';
+      case 'genre':     return 'genre';
+      case 'platform':  return 'platform';
+      case 'series':    return 'series';
+      case 'title':     return 'title';
+      default: throw new Error(`"${value}" is not a valid GameOrderBy`);
+    }
   }
 
   /** Parse GameOrderReverse from a string (error if invalid) */
   private parseOrderReverse(value: string): GameOrderReverse {
-    if (value === 'ascending') return 'ascending';
-    if (value === 'descending') return 'descending';
-    throw new Error(`"${value}" is not a valid GameOrderReverse`);
+    switch (value) {
+      case 'ascending':  return 'ascending';
+      case 'descending': return 'descending';
+      default: throw new Error(`"${value}" is not a valid GameOrderReverse`);
+    }
   }
 }

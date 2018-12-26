@@ -26,6 +26,20 @@ export function orderByDateAdded(a: IGameInfo, b: IGameInfo): number {
   return 0;
 }
 
+/** Order games by their series alphabetically (ascending) */
+export function orderBySeries(a: IGameInfo, b: IGameInfo): number {
+  if (a.series < b.series) { return -1; }
+  if (a.series > b.series) { return  1; }
+  return orderByTitle(a, b);
+}
+
+/** Order games by their platform alphabetically (ascending) */
+export function orderByPlatform(a: IGameInfo, b: IGameInfo): number {
+  if (a.platform < b.platform) { return -1; }
+  if (a.platform > b.platform) { return  1; }
+  return orderByTitle(a, b);
+}
+
 /** Reverse the order (makes an ascending order function descending instead) */
 export function reverseOrder(compareFn: OrderFn): OrderFn {
   return (a: IGameInfo, b: IGameInfo) => {
@@ -40,15 +54,11 @@ export function reverseOrder(compareFn: OrderFn): OrderFn {
 export function getOrderFunction(order: IGameOrderChangeEvent): OrderFn {
   let orderFn: OrderFn;
   switch (order.orderBy) {
-    default: //case 'title':
-      orderFn = orderByTitle;
-      break;
-    case 'genre':
-      orderFn = orderByGenre;
-      break;
-    case 'dateAdded':
-      orderFn = orderByDateAdded;
-      break;
+    case 'dateAdded': orderFn = orderByDateAdded; break;
+    case 'genre':     orderFn = orderByGenre;     break;
+    case 'platform':  orderFn = orderByPlatform;  break;
+    case 'series':    orderFn = orderBySeries;    break;
+    default: /*case 'title':*/ orderFn = orderByTitle; break;
   }
   if (order.orderReverse === 'descending') {
     orderFn = reverseOrder(orderFn);
