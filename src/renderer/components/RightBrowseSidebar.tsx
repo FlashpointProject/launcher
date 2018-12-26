@@ -151,7 +151,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>by </p>
                 <InputField text={game.developer} placeholder='No Developer'
-                            onChange={this.onDeveloperChange} canEdit={canEdit} />
+                            onChange={this.onDeveloperChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown} />
               </div>
             ) }
           </div>
@@ -164,36 +164,39 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                   <DropdownInputField text={game.genre} placeholder='No Genre'
                                       onChange={this.onGenreChange} canEdit={canEdit}
                                       items={suggestions && filterSuggestions(suggestions.genre) || []}
-                                      onItemSelect={text => { game.genre = text; this.forceUpdate(); }} />
+                                      onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
+                                      onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Series: </p>
                   <InputField text={game.series} placeholder='No Series'
-                              onChange={this.onSeriesChange} canEdit={canEdit} />
+                              onChange={this.onSeriesChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Publisher: </p>
                   <InputField text={game.publisher} placeholder='No Publisher'
-                              onChange={this.onPublisherChange} canEdit={canEdit} />
+                              onChange={this.onPublisherChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Source: </p>
                   <InputField text={game.source} placeholder='No Source'
-                              onChange={this.onSourceChange} canEdit={canEdit} />
+                              onChange={this.onSourceChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Platform: </p>
                   <DropdownInputField text={game.platform} placeholder='No Platform'
                                       onChange={this.onPlatformChange} canEdit={canEdit}
                                       items={suggestions && filterSuggestions(suggestions.platform) || []}
-                                      onItemSelect={text => { game.platform = text; this.forceUpdate(); }} />
+                                      onItemSelect={text => { game.platform = text; this.forceUpdate(); }}
+                                      onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Play Mode: </p>
                   <DropdownInputField text={game.playMode} placeholder='No Play Mode'
                                       onChange={this.onPlayModeChange} canEdit={canEdit}
                                       items={suggestions && filterSuggestions(suggestions.playMode) || []}
-                                      onItemSelect={text => { game.playMode = text; this.forceUpdate(); }} />
+                                      onItemSelect={text => { game.playMode = text; this.forceUpdate(); }}
+                                      onKeyDown={this.onInputKeyDown} />
 
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -201,7 +204,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                   <DropdownInputField text={game.status} placeholder='No Status'
                                       onChange={this.onStatusChange} canEdit={canEdit}
                                       items={suggestions && filterSuggestions(suggestions.status) || []}
-                                      onItemSelect={text => { game.status = text; this.forceUpdate(); }} />
+                                      onItemSelect={text => { game.status = text; this.forceUpdate(); }}
+                                      onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Date Added: </p>
@@ -266,12 +270,13 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                 <DropdownInputField text={game.applicationPath} placeholder='No Application Path'
                                     onChange={this.onApplicationPathChange} canEdit={canEdit}
                                     items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
-                                    onItemSelect={text => { game.applicationPath = text; this.forceUpdate(); }} />
+                                    onItemSelect={text => { game.applicationPath = text; this.forceUpdate(); }}
+                                    onKeyDown={this.onInputKeyDown} />
               </div>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Launch Command: </p>
                 <InputField text={game.launchCommand} placeholder='No Launch Command'
-                            onChange={this.onLaunchCommandChange} canEdit={canEdit}
+                            onChange={this.onLaunchCommandChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown}
                             reference={this.launchCommandRef} />
               </div>
             </div>
@@ -332,6 +337,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     );
   }
 
+  /** When a key is pressed down "globally" (and this component is present) */
   private onKeyDown = (event: KeyboardEvent) => {
     const { currentGame, isEditing, onEditClick } = this.props;
     // Start editing
@@ -405,6 +411,13 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     if (this.props.onEditPlaylistNotes) {
       this.props.onEditPlaylistNotes(event.currentTarget.value);
       this.forceUpdate();
+    }
+  }
+
+  /** When a key is pressed while an input field is selected (except for multiline fields) */
+  private onInputKeyDown = (event: React.KeyboardEvent): void => {
+    if (event.key === 'Enter') {
+      if (this.props.onSaveGame) { this.props.onSaveGame(); }
     }
   }
 
