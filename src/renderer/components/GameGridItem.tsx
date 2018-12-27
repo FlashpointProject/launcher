@@ -54,8 +54,8 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
             </div>
           </div>
         </div>
-        <div className='game-grid-item__title'>
-        <p className='game-grid-item__title__text'>{game.title || ''}</p>
+        <div className='game-grid-item__title' title={game.title}>
+          <p className='game-grid-item__title__text'>{game.title}</p>
         </div>
       </li>
     );

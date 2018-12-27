@@ -51,7 +51,7 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
           height: size,
         }} />
         <div className='game-list-item__right'>
-          <p className='game-list-item__right__title'>{title}</p>
+          <p className='game-list-item__right__title' title={title}>{title}</p>
           <p className='game-list-item__right__genre'>{game.genre}</p>
           <div className='game-list-item__right__icons'>
             {(platformIcon) ? (
