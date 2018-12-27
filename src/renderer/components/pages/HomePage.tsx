@@ -54,6 +54,8 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
       }
     } = this.props;
     const upgradeData = this.props.central.upgrade.data;
+    const { showBrokenGames } = window.External.config.data;
+    const { disableExtremeGames } = window.External.config.data;
     const { logoDelay } = this.state;
     // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
     const height: number = 140;
@@ -112,7 +114,8 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
                     games={games.collection.games}
                     gameImages={gameImages}
                     onLaunchGame={this.onLaunchGame}
-                    showExtreme={browsePageShowExtreme}
+                    showExtreme={!disableExtremeGames && browsePageShowExtreme}
+                    showBroken={showBrokenGames}
                   />
                 ) : (
                   <p className='home-page__random-games__loading'>

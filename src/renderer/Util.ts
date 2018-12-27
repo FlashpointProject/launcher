@@ -45,17 +45,17 @@ export function easterEgg(search: string) {
 }
 
 /**
- * Shuffles array.
- * @param {Array} array items An array containing the items.
- * @returns The shuffled array.
+ * Copy and shuffle an array.
+ * @param {Array} array The array to copy and shuffle
+ * @returns Shuffled copy of the given array
  */
 export function shuffle<T>(array: T[]): T[] {
-  const arrayCopy = array.slice();
-
-  for (let i = arrayCopy.length - 1; i > 0; i--) {
+  const shuffled = array.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arrayCopy[i], arrayCopy[j]] = [arrayCopy[j], arrayCopy[i]];
+    const temp = shuffled[j];
+    shuffled[j] = shuffled[i];
+    shuffled[i] = temp;
   }
-
-  return arrayCopy;
+  return shuffled;
 }
