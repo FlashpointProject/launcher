@@ -49,20 +49,25 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         <div className='header__wrap'>
           <ul className='header__menu'>
             <li className='header__menu__item'>
-              <Link to={Paths.home} className='header__menu__item__link'>Home</Link>
+              <Link to={Paths.HOME} className='header__menu__item__link'>Home</Link>
             </li>
             <li className='header__menu__item'>
-              <Link to={Paths.browse} className='header__menu__item__link'>Browse</Link>
+              <Link to={Paths.BROWSE} className='header__menu__item__link'>Browse</Link>
             </li>
             <li className='header__menu__item'>
-              <Link to={Paths.logs} className='header__menu__item__link'>Logs</Link>
+              <Link to={Paths.LOGS} className='header__menu__item__link'>Logs</Link>
             </li>
             <li className='header__menu__item'>
-              <Link to={Paths.config} className='header__menu__item__link'>Config</Link>
+              <Link to={Paths.CONFIG} className='header__menu__item__link'>Config</Link>
             </li>
             <li className='header__menu__item'>
-              <Link to={Paths.about} className='header__menu__item__link'>About</Link>
+              <Link to={Paths.ABOUT} className='header__menu__item__link'>About</Link>
             </li>
+            { this.props.preferencesData.showDeveloperTab ? (
+              <li className='header__menu__item'>
+                <Link to={Paths.DEVELOPER} className='header__menu__item__link'>Developer</Link>
+              </li>
+            ) : undefined }
           </ul>
         </div>
         {/* Header Search */}

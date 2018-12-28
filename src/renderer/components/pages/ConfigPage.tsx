@@ -145,6 +145,29 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
             </div>
           </div>
 
+          {/* -- Advanced -- */}
+          <div className='setting'>
+            <p className='setting__title'>Advanced</p>
+            <div className='setting__body'>
+              {/* -- Show Developer Tab -- */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>Show Developer Tab</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <CheckBox checked={this.props.preferencesData.showDeveloperTab} onChange={this.onShowDeveloperTab} />
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>Show the "Developer" tab in the header. This is most likely only useful for developers and curators.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* -- Save & Restart -- */}
           <div className='setting'>
             <div className='setting__row'>
@@ -184,6 +207,11 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
   /** When the different toggles are checked/unchecked */
   private onUseCustomTitlebarChange = (isChecked: boolean): void => {
     this.setState({ useCustomTitlebar: isChecked });
+  }
+  
+  private onShowDeveloperTab = (isChecked: boolean): void => {
+    this.props.updatePreferences({ showDeveloperTab: isChecked });
+    this.forceUpdate();
   }
 
   /** When the "Save & Restart" button is clicked */

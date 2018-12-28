@@ -72,13 +72,13 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             <div className='home-page__box__head'>Quick Start</div>
             <ul className='home-page__box__body'>
               <QuickStartItem icon='badge'>
-                Don't know what to play? Check out the <Link to={Paths.browse} onClick={this.onHallOfFameClick}>Hall of Fame</Link>!
+                Don't know what to play? Check out the <Link to={Paths.BROWSE} onClick={this.onHallOfFameClick}>Hall of Fame</Link>!
               </QuickStartItem>
               <QuickStartItem icon='magnifying-glass'>
-                Looking for something specific? View <Link to={Paths.browse} onClick={this.onAllGamesClick}>All Games</Link>.
+                Looking for something specific? View <Link to={Paths.BROWSE} onClick={this.onAllGamesClick}>All Games</Link>.
               </QuickStartItem>
               <QuickStartItem icon='wrench'>
-                Want to change something? Go to <Link to={Paths.config}>Config</Link>.
+                Want to change something? Go to <Link to={Paths.CONFIG}>Config</Link>.
               </QuickStartItem>
             </ul>
           </div>

@@ -1640,6 +1640,21 @@ body {
   word-break: break-all;
 }
 
+/** ------ Developer ------ */
+.developer-page {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+.developer-page__inner {
+  padding: 0.1rem 0.5rem;
+  min-width: 30em;
+  text-align: center;
+  overflow: visible;
+}
+.developer-page__title {
+  font-size: 2.5em;
+}
 
 /** ------ Config ------ */
 .config-page {

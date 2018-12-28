@@ -21,6 +21,8 @@ export interface IAppPreferencesData {
   browsePageLeftSidebarWidth: number;
   /** Width of the right sidebar */
   browsePageRightSidebarWidth: number;
+  /** If the "Developer" tab should be visible in the header */
+  showDeveloperTab: boolean;
   /** Position and size of the main window */
   mainWindow: {
     x?: number;

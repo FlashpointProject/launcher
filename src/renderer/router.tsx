@@ -12,6 +12,7 @@ import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/Con
 import { ConnectedConfigPage } from './containers/ConnectedConfigPage';
 import { ConnectedHomePage, IConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
+import { DeveloperPage } from './components/pages/DeveloperPage';
 
 export interface IAppRouterProps {
   central: ICentralState;
@@ -48,13 +49,14 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
     };
     return (
       <Switch>
-        <PropsRoute exact path={Paths.home} component={ConnectedHomePage}
+        <PropsRoute exact path={Paths.HOME} component={ConnectedHomePage}
                     {...homeProps} />
-        <PropsRoute path={Paths.browse} component={ConnectedBrowsePage}
+        <PropsRoute path={Paths.BROWSE} component={ConnectedBrowsePage}
                     {...browseProps} />
-        <PropsRoute path={Paths.logs} component={ConnectedLogsPage} />
-        <PropsRoute path={Paths.config} component={ConnectedConfigPage} />
-        <Route path={Paths.about} component={AboutPage} />
+        <PropsRoute path={Paths.LOGS} component={ConnectedLogsPage} />
+        <PropsRoute path={Paths.CONFIG} component={ConnectedConfigPage} />
+        <Route path={Paths.ABOUT} component={AboutPage} />
+        <Route path={Paths.DEVELOPER} component={DeveloperPage} />
         <Route component={NotFoundPage} />
       </Switch>
     );
