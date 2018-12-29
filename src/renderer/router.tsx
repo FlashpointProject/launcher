@@ -56,7 +56,8 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
         <PropsRoute path={Paths.LOGS} component={ConnectedLogsPage} />
         <PropsRoute path={Paths.CONFIG} component={ConnectedConfigPage} />
         <Route path={Paths.ABOUT} component={AboutPage} />
-        <Route path={Paths.DEVELOPER} component={DeveloperPage} />
+        <PropsRoute path={Paths.DEVELOPER} component={DeveloperPage}
+                    central={this.props.central} />
         <Route component={NotFoundPage} />
       </Switch>
     );

@@ -42,3 +42,5 @@ export type ReturnTypeOf<T extends Function> = T extends (...args: ArgumentTypes
 
 /** Obtain the argument types of a function */
 export type ArgumentTypesOf<F extends Function> = F extends (...args: infer A) => any ? A : never;
+
+export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;

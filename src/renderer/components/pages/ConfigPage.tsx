@@ -162,7 +162,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Show the "Developer" tab in the header. This is most likely only useful for developers and curators.</p>
+                  <p>Show the "Developer" tab. This is most likely only useful for developers and curators.</p>
                 </div>
               </div>
             </div>
