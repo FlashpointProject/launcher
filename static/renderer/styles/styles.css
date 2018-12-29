@@ -1655,9 +1655,12 @@ body {
 .developer-page__title {
   font-size: 2.5em;
 }
-.developer-page__content {
+.developer-page__buttons > * {
+  margin: 0.25rem;
+}
+.developer-page__log {
   flex: 1 1 auto;
-  height: 20rem;
+  height: 35rem;
   background-color: #313133;
   border: 1px #353535 solid;
   border-radius: 0.5rem;
