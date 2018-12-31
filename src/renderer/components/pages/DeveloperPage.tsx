@@ -36,6 +36,8 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
                           title='List all games with duplicate or invalid IDs' />
             <SimpleButton value='Check Game Titles' onClick={this.onCheckGameNamesClick}
                           title='List all games with duplicate titles' />
+            <SimpleButton value='Check Game Fields' onClick={this.onCheckGameFieldsClick}
+                          title='List all games with empty fields (of the fields that should not be empty)' />
             <LogData className='developer-page__log' logData={text} />
           </div>
         </div>
@@ -57,6 +59,11 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
   private onCheckGameNamesClick = (): void => {
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkGameTitles(games) });
+  }
+
+  private onCheckGameFieldsClick = (): void => {
+    const games = this.props.central.games.collection.games;
+    this.setState({ text: checkGameEmptyFields(games) });
   }
 }
 
@@ -142,3 +149,55 @@ function checkGameTitles(games: IGameInfo[]): string {
   });
   return text;
 }
+
+type IGameInfoKeys = AllowedNames<IGameInfo, string>;
+type EmptyRegister = { [key in IGameInfoKeys]?: IGameInfo[] }; // empty[fieldName] = [ game... ]
+function checkGameEmptyFields(games: IGameInfo[]): string {
+  const timeStart = Date.now(); // Start timing
+  // Find all games with empty fields (that should not be empty)
+  const empty: EmptyRegister = {};
+  for (let i = 0; i < games.length - 1; i++) {
+    const game = games[i];
+    // Check if any game field (that should not be empty) is empty
+    checkField(game, empty, 'developer');
+    checkField(game, empty, 'genre');
+    checkField(game, empty, 'publisher');
+    checkField(game, empty, 'source');
+    checkField(game, empty, 'platform');
+    checkField(game, empty, 'playMode');
+    checkField(game, empty, 'status');
+    checkField(game, empty, 'applicationPath');
+    checkField(game, empty, 'launchCommand');
+  }
+  const timeEnd = Date.now(); // End timing
+  // Write log message
+  let text = '';
+  text += `Checked all games for empty fields (in ${timeEnd - timeStart}ms)\n`;
+  text += `\n`;
+  for (let field in empty) {
+    const array = empty[field as IGameInfoKeys];
+    if (array) {
+      text += `Field "${field}" has ${array.length} games with missing values:\n`;
+      array.forEach(game => { text += `"${game.title}" (ID: ${game.id})\n`; });
+    } else {
+      text += `Field "${field}" has no games with missing values!\n`;
+    }
+    text += '\n';
+  }
+  return text;
+  // -- Functions --
+  function checkField(game: IGameInfo, empty: EmptyRegister, field: IGameInfoKeys): void {
+    if (game[field] === '') {
+      // Check if field is empty, if so add it to the collection of that field
+      const array = empty[field] || [];
+      array.push(game);
+      if (!empty[field]) { empty[field] = array; }
+    }
+  }
+}
+
+type FilterFlags<Base, Condition> = {
+    [Key in keyof Base]: 
+        Base[Key] extends Condition ? Key : never
+};
+type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base];
