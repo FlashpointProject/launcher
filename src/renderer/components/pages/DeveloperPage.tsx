@@ -151,7 +151,18 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
   // Write log message
   let text = '';
   text += `Checked all games for empty fields (in ${timeEnd - timeStart}ms)\n`;
-  text += `\n`;
+  text += '\n';
+  text += 'Summary:\n';
+  text += '\n';
+  for (let field in empty) {
+    const array = empty[field as IGameInfoKeys];
+    if (array) {
+      text += `"${field}" has ${array.length} games with missing values.\n`;
+    }
+  }
+  text += '\n';
+  text += 'Detailed list:\n';
+  text += '\n';
   for (let field in empty) {
     const array = empty[field as IGameInfoKeys];
     if (array) {
