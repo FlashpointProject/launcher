@@ -92,6 +92,7 @@ function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollect
   text += '\n';
   text += `Games with missing screenshots (${missingScreenshots.length}):\n`;
   missingScreenshots.forEach((game) => { text += `"${game.title}" (ID: ${game.id})\n`; });
+  text += '\n';
   return text;
 }
 
@@ -111,6 +112,7 @@ function checkGameIDs(games: IGameInfo[]): string {
   text += '\n';
   text += `Games with invalid IDs (${invalidIDs.length}):\n`;
   invalidIDs.forEach(game => { text += `"${game.title}" (ID: ${game.id})\n`; });
+  text += '\n';
   return text;
 }
 
@@ -126,6 +128,7 @@ function checkGameTitles(games: IGameInfo[]): string {
   for (let title in dupes) {
     text += `Title: "${title}" | Games (${dupes[title].length}): ${dupes[title].map(game => `${game.id}`).join(', ')}\n`;
   }
+  text += '\n';
   return text;
 }
 
@@ -173,6 +176,7 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
     }
     text += '\n';
   }
+  text += '\n';
   return text;
   // -- Functions --
   function checkField(game: IGameInfo, empty: EmptyRegister, field: IGameInfoKeys): void {
@@ -261,6 +265,7 @@ function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string 
       }
     }
   });
+  text += '\n';
   return text;
 }
 
