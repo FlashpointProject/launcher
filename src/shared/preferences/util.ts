@@ -12,6 +12,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageShowRightSidebar: true,
   browsePageLeftSidebarWidth: 320,
   browsePageRightSidebarWidth: 320,
+  showDeveloperTab: false,
   mainWindow: Object.freeze({
     x: undefined,
     y: undefined,

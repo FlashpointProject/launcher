@@ -3,6 +3,8 @@ import * as React from 'react';
 export interface ILogDataProps {
   className?: string;
   logData: string;
+  /** If the "logData" should be displayed as HTML or plain text (defaults to plain text) */
+  isLogDataHTML?: boolean;
 }
 
 export interface ILogDataSnapshot {
@@ -58,10 +60,16 @@ export class LogData extends React.Component<ILogDataProps> {
   }
 
   render() {
-    const { className } = this.props;
+    const { className, logData, isLogDataHTML } = this.props;
+    const logContent =  isLogDataHTML ? {
+      dangerouslySetInnerHTML: { __html: this.props.logData }
+    } : {
+      children: logData
+    };
     return (
-      <pre className={(className||'')+' log simple-scroll'} ref={this.preNodeRef}
-           dangerouslySetInnerHTML={{ __html:this.props.logData }} />
+      <pre className={(className||'')+' log simple-scroll'}
+           ref={this.preNodeRef}
+           {...logContent} />
     );
   }
 }

@@ -313,6 +313,32 @@ body {
 .input-dropdown__content label:focus {
   background-color: #1e90ff;
 }
+/* Log */
+.log {
+  height: 100%;
+  overflow: scroll;
+  /* Pimp */
+  color: white;
+}
+.log__time-stamp {
+  color: #857df3;
+}
+.log__source {
+  /* Default color of sources, used on the unknown/unspecified sources */
+  color: #d4d4d4;
+}
+.log__source--background-services {
+  color: #8d8d8d;
+}
+.log__source--game-launcher {
+  color: #ffd900;
+}
+.log__source--router {
+  color: #00ff00;
+}
+.log__source--redirector {
+  color: #00ffff;
+}
 
 
 /* ------ Search & SearchTag Components ------ */
@@ -926,32 +952,6 @@ body {
 /* Log-Page Content */
 .log-page__content {
   flex: 1 1 auto;
-}
-/* Log */
-.log {
-  height: 100%;
-  overflow: scroll;
-  /* Pimp */
-  color: white;
-}
-.log__time-stamp {
-  color: #857df3;
-}
-.log__source {
-  /* Default color of sources, used on the unknown/unspecified sources */
-  color: #d4d4d4;
-}
-.log__source--background-services {
-  color: #8d8d8d;
-}
-.log__source--game-launcher {
-  color: #ffd900;
-}
-.log__source--router {
-  color: #00ff00;
-}
-.log__source--redirector {
-  color: #00ffff;
 }
 
 
@@ -1640,6 +1640,32 @@ body {
   word-break: break-all;
 }
 
+/** ------ Developer ------ */
+.developer-page {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+.developer-page__inner {
+  padding: 0.1rem 0.5rem;
+  min-width: 30em;
+  text-align: center;
+  overflow: visible;
+}
+.developer-page__title {
+  font-size: 2.5em;
+}
+.developer-page__buttons > * {
+  margin: 0.25rem;
+}
+.developer-page__log {
+  flex: 1 1 auto;
+  height: 35rem;
+  background-color: #313133;
+  border: 1px #353535 solid;
+  border-radius: 0.5rem;
+  text-align: left;
+}
 
 /** ------ Config ------ */
 .config-page {

@@ -22,7 +22,7 @@ const HeaderContainer: React.FunctionComponent<IHeaderContainerProps> = (props: 
   return (
     <Header
       onSearch={(text: string, redirect: boolean) => {
-        if (redirect) { props.history.push(Paths.browse); }
+        if (redirect) { props.history.push(Paths.BROWSE); }
         onSearch(text);
       }}
       {...rest}
