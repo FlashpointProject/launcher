@@ -5,6 +5,8 @@ import { ICentralState } from '../../interfaces';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { validateSemiUUID } from '../../uuid';
+import { IGamePlaylist, IGamePlaylistEntry } from 'src/renderer/playlist/interfaces';
+import * as uuidValidate from 'uuid-validate';
 
 interface IDeveloperPageProps {
   central: ICentralState;
@@ -38,6 +40,8 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
                           title='List all games with duplicate titles' />
             <SimpleButton value='Check Game Fields' onClick={this.onCheckGameFieldsClick}
                           title='List all games with empty fields (of the fields that should not be empty)' />
+            <SimpleButton value='Check Playlists' onClick={this.onCheckPlaylistsClick}
+                          title='List all playlists with duplicate or invalid IDs, or that has games with missing or invalid IDs' />
             <LogData className='developer-page__log' logData={text} />
           </div>
         </div>
@@ -64,6 +68,12 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
   private onCheckGameFieldsClick = (): void => {
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkGameEmptyFields(games) });
+  }
+
+  private onCheckPlaylistsClick = (): void => {
+    const playlists = this.props.central.playlists.playlists;
+    const games = this.props.central.games.collection.games;
+    this.setState({ text: checkPlaylists(playlists, games) });
   }
 }
 
@@ -194,6 +204,113 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
       if (!empty[field]) { empty[field] = array; }
     }
   }
+}
+
+type PlaylistReport = {
+  playlist: IGamePlaylist;
+  missingGameIDs: string[];
+  duplicateGames: { [key: string]: IGamePlaylistEntry[] };
+  invalidGameIDs: IGamePlaylistEntry[];
+};
+function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string {
+  const timeStart = Date.now(); // Start timing
+  const dupes = checkDupes(playlists, 'id'); // Find all playlists with duplicate IDs
+  const invalidIDs: IGamePlaylist[] = findMatches(playlists, playlist => !uuidValidate(playlist.id, 4)); // Find all playlists with invalid IDs
+  // Check the games of all playlsits (if they are missing or if their IDs are invalid or duplicates)
+  const reports: PlaylistReport[] = [];
+  for (let i = 0; i < playlists.length - 1; i++) {
+    const playlist = playlists[i];
+    const duplicateGames = checkDupes(playlist.games, 'id'); // Find all games with duplicate IDs
+    const invalidGameIDs = findMatches(playlist.games, game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
+    // Check for missing games (games that are in the playist, and not in the game collection)
+    const missingGameIDs: string[] = [];
+    for (let gameEntry of playlist.games) {
+      const id = gameEntry.id;
+      if (!games.find(game => game.id === id)) {
+        missingGameIDs.push(id);
+      }
+    }
+    // Add "report" of this playlist
+    if (Object.keys(duplicateGames).length > 0 ||
+        invalidGameIDs.length > 0 ||
+        missingGameIDs.length > 0) {
+      reports.push({
+        playlist,
+        duplicateGames,
+        missingGameIDs,
+        invalidGameIDs
+      });
+    }
+  }
+  const timeEnd = Date.now(); // End timing
+  // Write log message
+  let text = '';
+  text += `Checked all playlists for duplicate or invalid IDs, and for games with invalid or missing IDs (in ${timeEnd - timeStart}ms)\n`;
+  text += '\n';
+  text += `Playlists with invalid IDs (${invalidIDs.length}):\n`;
+  invalidIDs.forEach(playlist => { text += `"${playlist.title}" (ID: ${playlist.id})\n`; });
+  text += '\n';
+  text += `Playlists with duplicate IDs (${Object.keys(dupes).length}):\n`;
+  for (let id in dupes) {
+    text += `ID: "${id}" | Playlists (${dupes[id].length}): ${dupes[id].map(playlist => `${playlist.id}`).join(', ')}\n`;
+  }
+  text += '\n';
+  text += `Playlists with game entry issues (${reports.length}):\n`;
+  reports.forEach(({ playlist, duplicateGames, missingGameIDs, invalidGameIDs }) => {
+    text += `  "${playlist.title}" (ID: ${playlist.id}):\n`;
+    // Log duplicate game entry IDs
+    if (Object.keys(duplicateGames).length > 0) {
+      text += `    Game entries with duplicate IDs (${Object.keys(duplicateGames).length}):\n`;
+      for (let id in duplicateGames) {
+        const dupes = duplicateGames[id];
+        const game = games.find(game => game.id === id);
+        text += `      ${game ? `"${game.title}"` : 'Game not found'} (ID: ${id}) (Duplicates: ${dupes.length})\n`;
+      }
+    }
+    // Log missing game entry IDs
+    if (missingGameIDs.length > 0) {
+      text += `    Game entries with IDs of missing games (${missingGameIDs.length}):\n`;
+      for (let id of missingGameIDs) {
+        text += `      ${id}\n`;
+      }
+    }
+    // Log invalid game entry IDs
+    if (invalidGameIDs.length > 0) {
+      text += `    Game entries with invalid IDs (${invalidGameIDs.length}):\n`;
+      for (let id of invalidGameIDs) {
+        text += `      ${id}\n`;
+      }
+    }
+  });
+  return text;
+}
+
+function checkDupes<T extends { [key in U]: string }, U extends string>(array: T[], prop: U): { [key: string]: T[] } {
+  const registry: { [key: string]: T[] } = {};
+  const dupes: string[] = [];
+  // Find all duplicates
+  for (let i = 0; i < array.length; i++) {
+    const item = array[i];
+    const val = item[prop];
+    // Add prop to registry (to check for duplicates)
+    if (!registry[val]) { registry[val] = []; }
+    else if (registry[val].length === 1) { dupes.push(val); }
+    registry[val].push(item);
+  }
+  // Prepare return value (only include the registry items that are duplicates)
+  const clean: { [key: string]: T[] } = {};
+  dupes.forEach(dupe => { clean[dupe] = registry[dupe]; });
+  return clean;
+}
+
+function findMatches<T>(array: T[], isMatch: (item: T) => boolean): T[] {
+  const matches: T[] = [];
+  for (let i = 0; i < array.length; i++) {
+    if (isMatch(array[i])) {
+      matches.push(array[i]);
+    }
+  }
+  return matches;
 }
 
 type FilterFlags<Base, Condition> = {
