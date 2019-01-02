@@ -41,7 +41,7 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
             <SimpleButton value='Check Game Fields' onClick={this.onCheckGameFieldsClick}
                           title='List all games with empty fields (of the fields that should not be empty)' />
             <SimpleButton value='Check Playlists' onClick={this.onCheckPlaylistsClick}
-                          title='List all playlists with duplicate or invalid IDs, or that has games with missing or invalid IDs' />
+                          title='List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs' />
             <LogData className='developer-page__log' logData={text} />
           </div>
         </div>
@@ -126,7 +126,7 @@ function checkGameTitles(games: IGameInfo[]): string {
   text += '\n';
   text += 'Games with duplicate titles:\n';
   for (let title in dupes) {
-    text += `Title: "${title}" | Games (${dupes[title].length}): ${dupes[title].map(game => `${game.id}`).join(', ')}\n`;
+    text += `"${title}" | Games (${dupes[title].length}): ${dupes[title].map(game => `${game.id}`).join(', ')}\n`;
   }
   text += '\n';
   return text;
@@ -228,7 +228,7 @@ function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string 
   const timeEnd = Date.now(); // End timing
   // Write log message
   let text = '';
-  text += `Checked all playlists for duplicate or invalid IDs, and for games with invalid or missing IDs (in ${timeEnd - timeStart}ms)\n`;
+  text += `Checked all playlists for duplicate or invalid IDs, and for game entries with invalid, missing or duplicate IDs (in ${timeEnd - timeStart}ms)\n`;
   text += '\n';
   text += `Playlists with invalid IDs (${invalidIDs.length}):\n`;
   invalidIDs.forEach(playlist => { text += `"${playlist.title}" (ID: ${playlist.id})\n`; });
