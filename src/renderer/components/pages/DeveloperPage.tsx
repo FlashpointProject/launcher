@@ -80,25 +80,16 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
 function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollection): string {
   const timeStart = Date.now(); // Start timing
   // Find all games with missing thumbnails and screenshots
-  const missingThumbnails: IGameInfo[] = [];
-  const missingScreenshots: IGameInfo[] = [];
-  for (let i = 0; i < games.length - 1; i++) {
-    const game = games[i];
-    if (gameImages.getThumbnailPath(game.title, game.platform) === undefined) {
-      missingThumbnails.push(game);
-    }
-    if (gameImages.getScreenshotPath(game.title, game.platform) === undefined) {
-      missingScreenshots.push(game);
-    }
-  }
+  const missingThumbnails:  IGameInfo[] = games.filter(game => gameImages.getThumbnailPath(game.title,  game.platform) === undefined);
+  const missingScreenshots: IGameInfo[] = games.filter(game => gameImages.getScreenshotPath(game.title, game.platform) === undefined);
   const timeEnd = Date.now(); // End timing
   // Write log message
   let text = '';
   text += `Checked games for missing images (in ${timeEnd - timeStart}ms)\n`;
-  text += `\n`;
+  text += '\n';
   text += `Games with missing thumbnails (${missingThumbnails.length}):\n`;
   missingThumbnails.forEach((game) => { text += `"${game.title}" (ID: ${game.id})\n`; });
-  text += `\n`;
+  text += '\n';
   text += `Games with missing screenshots (${missingScreenshots.length}):\n`;
   missingScreenshots.forEach((game) => { text += `"${game.title}" (ID: ${game.id})\n`; });
   return text;
@@ -106,31 +97,18 @@ function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollect
 
 function checkGameIDs(games: IGameInfo[]): string {
   const timeStart = Date.now(); // Start timing
-  // Find all games with duplicate and invalid IDs
-  const ids: { [key: string]: IGameInfo[] } = {};
-  const dupes: string[] = [];
-  const invalidIDs: IGameInfo[] = [];
-  for (let i = 0; i < games.length - 1; i++) {
-    const game = games[i];
-    // Check if ID is valid
-    if (!validateSemiUUID(game.id)) {
-      invalidIDs.push(game);
-    }
-    // Add ID to registry (to check for duplicates)
-    if (!ids[game.id]) { ids[game.id] = []; }
-    else if (ids[game.id].length === 1) { dupes.push(game.id); }
-    ids[game.id].push(game);
-  }
+  const dupes = checkDupes(games, 'id'); // Find all games with duplicate IDs
+  const invalidIDs: IGameInfo[] = games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
   const timeEnd = Date.now(); // End timing
   // Write log message
   let text = '';
   text += `Checked games for duplicate and invalid IDs (in ${timeEnd - timeStart}ms)\n`;
-  text += `\n`;
-  text += `Games with duplicate IDs:\n`;
-  dupes.forEach(id => {
-    text += `ID: "${id}" | Games (${ids[id].length}): ${ids[id].map(game => `"${game.title}"`).join(', ')}\n`;
-  });
-  text += `\n`;
+  text += '\n';
+  text += `Games with duplicate IDs (${Object.keys(dupes).length}):\n`;
+  for (let id in dupes) {
+    text += `ID: "${id}" | Games (${dupes[id].length}): ${dupes[id].map(game => `${game.id}`).join(', ')}\n`;
+  }
+  text += '\n';
   text += `Games with invalid IDs (${invalidIDs.length}):\n`;
   invalidIDs.forEach(game => { text += `"${game.title}" (ID: ${game.id})\n`; });
   return text;
@@ -138,25 +116,16 @@ function checkGameIDs(games: IGameInfo[]): string {
 
 function checkGameTitles(games: IGameInfo[]): string {
   const timeStart = Date.now(); // Start timing
-  // Find all games with duplicate titles
-  const titles: { [key: string]: IGameInfo[] } = {};
-  const dupes: string[] = [];
-  for (let i = 0; i < games.length - 1; i++) {
-    const game = games[i];
-    // Add name to registry (to check for duplicates)
-    if (!titles[game.title]) { titles[game.title] = []; }
-    else if (titles[game.title].length === 1) { dupes.push(game.title); }
-    titles[game.title].push(game);
-  }
+  const dupes = checkDupes(games, 'title'); // Find all games with duplicate titles
   const timeEnd = Date.now(); // End timing
   // Write log message
   let text = '';
   text += `Checked all games for duplicate titles (in ${timeEnd - timeStart}ms)\n`;
-  text += `\n`;
-  text += `Games with duplicate titles:\n`;
-  dupes.forEach(name => {
-    text += `Name: "${name}" | Games (${titles[name].length}): ${titles[name].map(game => `${game.id}`).join(', ')}\n`;
-  });
+  text += '\n';
+  text += 'Games with duplicate titles:\n';
+  for (let title in dupes) {
+    text += `Title: "${title}" | Games (${dupes[title].length}): ${dupes[title].map(game => `${game.id}`).join(', ')}\n`;
+  }
   return text;
 }
 
@@ -171,7 +140,6 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
     // Check if any game field (that should not be empty) is empty
     checkField(game, empty, 'developer');
     checkField(game, empty, 'genre');
-    checkField(game, empty, 'publisher');
     checkField(game, empty, 'source');
     checkField(game, empty, 'platform');
     checkField(game, empty, 'playMode');
@@ -215,13 +183,13 @@ type PlaylistReport = {
 function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string {
   const timeStart = Date.now(); // Start timing
   const dupes = checkDupes(playlists, 'id'); // Find all playlists with duplicate IDs
-  const invalidIDs: IGamePlaylist[] = findMatches(playlists, playlist => !uuidValidate(playlist.id, 4)); // Find all playlists with invalid IDs
+  const invalidIDs: IGamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.id, 4)); // Find all playlists with invalid IDs
   // Check the games of all playlsits (if they are missing or if their IDs are invalid or duplicates)
   const reports: PlaylistReport[] = [];
   for (let i = 0; i < playlists.length - 1; i++) {
     const playlist = playlists[i];
     const duplicateGames = checkDupes(playlist.games, 'id'); // Find all games with duplicate IDs
-    const invalidGameIDs = findMatches(playlist.games, game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
+    const invalidGameIDs = playlist.games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
     // Check for missing games (games that are in the playist, and not in the game collection)
     const missingGameIDs: string[] = [];
     for (let gameEntry of playlist.games) {
@@ -301,16 +269,6 @@ function checkDupes<T extends { [key in U]: string }, U extends string>(array: T
   const clean: { [key: string]: T[] } = {};
   dupes.forEach(dupe => { clean[dupe] = registry[dupe]; });
   return clean;
-}
-
-function findMatches<T>(array: T[], isMatch: (item: T) => boolean): T[] {
-  const matches: T[] = [];
-  for (let i = 0; i < array.length; i++) {
-    if (isMatch(array[i])) {
-      matches.push(array[i]);
-    }
-  }
-  return matches;
 }
 
 type FilterFlags<Base, Condition> = {
