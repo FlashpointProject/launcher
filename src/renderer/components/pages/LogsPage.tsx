@@ -89,7 +89,7 @@ export class LogsPage extends React.Component<ILogsPageProps> {
           </div>
         </div>
         {/* Content */}
-        <LogData className='log-page__content' logData={logData} />
+        <LogData className='log-page__content' logData={logData} isLogDataHTML={true} />
       </div>
     );
   }
