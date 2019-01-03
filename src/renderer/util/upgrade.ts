@@ -39,7 +39,7 @@ export class UpgradeStatus extends EventEmitter {
   public extractProgress: number = 0;
 
   /** Get the estimated progress of the whole process (from 0 to 1) */
-  public getEstimagedProgress(): number {
+  public getEstimatedProgress(): number {
     return this.downloadProgress;
   }
 }

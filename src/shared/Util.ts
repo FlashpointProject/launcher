@@ -31,7 +31,7 @@ export function padStart(str: string|number, length: number): string {
  * @param array Array to "stringify"
  * @returns Readable text representation of the array
  */
-export function strinfigyArray(array: Array<any>): string {
+export function stringifyArray(array: Array<any>): string {
   let str = '[ ';
   for (let i = 0; i < array.length; i++) {
     let element = array[i];
@@ -51,11 +51,11 @@ export function formatDate(d: Date): string {
          `T${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}:${pad(d.getSeconds(), 2)}`+
          `.${pad(d.getMilliseconds(), 3)}${timezone(d.getTimezoneOffset())}`;
 }
-// (Pads the begining of a string with "0"s until it reaches a specified length)
+// (Pads the beginning of a string with "0"s until it reaches a specified length)
 function pad(str: string|number, len: number): string {
   return '0'.repeat(Math.max(0, len - (str+'').length)) + str;
 }
-// (Converts a timestamp (in minutes, not miliseconds) to the timezome part of the ISO date string ("(+/-)hh:mm"))
+// (Converts a timestamp (in minutes, not milliseconds) to the timezone part of the ISO date string ("(+/-)hh:mm"))
 function timezone(time: number): string {
   const t = Math.abs(time);
   return `${(time < 0)?'+':'-'}${pad(Math.floor(t / 60), 2)}:${pad(t % 60, 2)}`;

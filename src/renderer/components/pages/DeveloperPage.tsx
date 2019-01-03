@@ -199,13 +199,13 @@ function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string 
   const timeStart = Date.now(); // Start timing
   const dupes = checkDupes(playlists, 'id'); // Find all playlists with duplicate IDs
   const invalidIDs: IGamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.id, 4)); // Find all playlists with invalid IDs
-  // Check the games of all playlsits (if they are missing or if their IDs are invalid or duplicates)
+  // Check the games of all playlists (if they are missing or if their IDs are invalid or duplicates)
   const reports: PlaylistReport[] = [];
   for (let i = 0; i < playlists.length - 1; i++) {
     const playlist = playlists[i];
     const duplicateGames = checkDupes(playlist.games, 'id'); // Find all games with duplicate IDs
     const invalidGameIDs = playlist.games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
-    // Check for missing games (games that are in the playist, and not in the game collection)
+    // Check for missing games (games that are in the playlist, and not in the game collection)
     const missingGameIDs: string[] = [];
     for (let gameEntry of playlist.games) {
       const id = gameEntry.id;

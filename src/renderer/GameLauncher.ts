@@ -3,7 +3,7 @@ import * as path from 'path';
 import { exec, ExecOptions, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import { IGameInfo, IAdditionalApplicationInfo } from '../shared/game/interfaces';
-import { strinfigyArray, padStart } from '../shared/Util';
+import { stringifyArray, padStart } from '../shared/Util';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
@@ -144,7 +144,7 @@ export class GameLauncher {
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     const logStuff = (event: string, args: any[]): void => {
-      log(`${event} (PID: ${padStart(proc.pid, 5)}) ${strinfigyArray(args)}`);
+      log(`${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args)}`);
     };
     doStuffs(proc, [/*'close',*/ 'disconnect', 'error', 'exit', 'message'], logStuff);
     proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); });

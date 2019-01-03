@@ -31,7 +31,7 @@ export class AppPreferencesMain {
     console.log('Preferences:', this._data);
   }
 
-  /** Called when data is sent to this from the renderer's preferences api */
+  /** Called when data is sent to this from the renderers preferences api */
   private onSendData(event: IpcMessageEvent, data?: Partial<IAppPreferencesData>): void {
     if (!this._data) { throw new Error('The data must first be loaded before new can be received.'); }
     if (!data) { throw new Error('You must send a data object, but no data was received.'); }
@@ -43,7 +43,7 @@ export class AppPreferencesMain {
     event.sender.send(AppPreferencesApi.ipcSendResponse);
   }
 
-  /** Called when data is requested from the renderer's preferences api */
+  /** Called when data is requested from the renderers preferences api */
   private onRequestDataSync(event: IpcMessageEvent): void {
     event.returnValue = this._data;
   }

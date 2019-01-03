@@ -40,7 +40,7 @@ export function uuid() {
 
 /**
  * Check if a semi-UUIDv4 string is valid
- * (since a lot of games in Flashpoint does not follow the UUIDv4 spec entierly
+ * (since a lot of games in Flashpoint does not follow the UUIDv4 spec entirely
  *  we have to make a more lenient script for validating them)
  * (A "semi-UUIDv4" follows the following pattern:
  *  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" where "x" is any hexadecimal character)

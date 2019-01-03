@@ -51,8 +51,8 @@ export function getSuggestions(collection: GameCollection): Partial<GamePropSugg
 
 function getGamePropValues(dict: { [key: string]: true }, value: string) {
   if (value.indexOf(';') >= 0) { // (Multiple values)
-    const vals = value.split(';');
-    for (let v of vals) { dict[v.trim()] = true; }
+    const values = value.split(';');
+    for (let v of values) { dict[v.trim()] = true; }
   } else { // (Single value)
     dict[value] = true;
   }

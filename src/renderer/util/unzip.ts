@@ -100,7 +100,7 @@ export function unzip(sourceFile: string, outputFolder: string): UnzipStatus {
   }
 }
 
-/** Make sure all directories in the path exists, create any that are missings */
+/** Make sure all directories in the path exists, create any that are missing */
 function mkdirp(dir: string, cb: (error?: Error) => void): void {
   if (dir === '.') { return cb(); }
   fs.stat(dir, (error) => {

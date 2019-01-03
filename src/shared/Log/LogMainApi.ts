@@ -21,7 +21,7 @@ export class LogMainApi {
     ipcMain.on(LogChannel.removeEntries, this.onRemoveEntries);
   }
 
-  unbinbListeners() {
+  unbindListeners() {
     ipcMain.removeListener(LogChannel.addEntry, this.onAddEntry);
     ipcMain.removeListener(LogChannel.refreshEntries, this.onRefreshEntries);
     ipcMain.removeListener(LogChannel.removeEntries, this.onRemoveEntries);

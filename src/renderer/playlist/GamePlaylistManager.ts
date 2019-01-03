@@ -32,7 +32,7 @@ export class GamePlaylistManager {
       if (!validFpPath) {
         return reject(`The Flashpoint folder was not found.`);
       }
-      // Make sure the playlists folder exists (and create one if it doesnt)
+      // Make sure the playlists folder exists (and create one if it doesn't)
       const playlistFolderPath = getPlaylistFolder();
       const res = await checkFolder(playlistFolderPath);
       switch (res) {
@@ -48,7 +48,7 @@ export class GamePlaylistManager {
                         `Please delete or rename the file. (Path: "${playlistFolderPath}")`);
       }
       // Load and parse all playlist files
-      const vals: Array<{
+      const values: Array<{
         playlist: IGamePlaylist;
         filename: string;
       }> = [];
@@ -60,7 +60,7 @@ export class GamePlaylistManager {
             const result = await loadGamePlaylist(fullPath);
             if (result !== LoadGamePlaylistError.FileNotFound &&
                 result !== LoadGamePlaylistError.JSONError) {
-              vals.push({
+              values.push({
                 playlist: result,
                 filename: fullPath,
               });
@@ -71,8 +71,8 @@ export class GamePlaylistManager {
         console.log(error);
       }
       // Add playlists and paths to this
-      for (let i = vals.length-1; i >= 0; i--) {
-        const item = vals[i];
+      for (let i = values.length-1; i >= 0; i--) {
+        const item = values[i];
         this.playlists[i] = item.playlist;
         this.fileMap[item.playlist.id] = item.filename;
       }
@@ -165,7 +165,7 @@ export class GamePlaylistManager {
       if (playlist.id === playlistId) {
         // Remove playlist from array
         this.playlists.splice(i, 1);
-        // Remove playlist from filemap
+        // Remove playlist from file map
         if (this.fileMap[playlistId]) {
           delete this.fileMap[playlistId];
         }

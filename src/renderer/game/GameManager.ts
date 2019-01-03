@@ -11,9 +11,9 @@ declare interface GameManager {
 }
 
 class GameManager extends EventEmitter {
-  /** All individual platforms */
+  /** All platforms */
   private platforms: GameManagerPlatform[] = [];
-  /**  */
+  /** A collection of all games from all platforms */
   public collection: GameCollection = new GameCollection();
 
   constructor() {

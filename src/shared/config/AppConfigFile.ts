@@ -17,9 +17,7 @@ export class AppConfig {
     return new Promise<IAppConfigData>((resolve, reject) => {
       fs.readFile(AppConfig.configFilePath, AppConfig.configFileEncoding, (error, data) => {
         // Check if reading file failed
-        if (error) {
-          return reject(error);
-        }
+        if (error) { return reject(error); }
         // Try to parse json (and callback error if it fails)
         const jsonOrError: string|Error = tryParseJSON(data as string);
         if (jsonOrError instanceof Error) {
@@ -46,7 +44,8 @@ export class AppConfig {
     });
   }
 
-  /** Parse and object as an app config data object
+  /**
+   * Parse and object as an app config data object
    * (Extract the valid settings, and use the default values for everything else, then return a new object with these settings combined)
    */
   public static parseData(data: any, defaultData: IAppConfigData): IAppConfigData {

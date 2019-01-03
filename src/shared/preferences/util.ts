@@ -32,7 +32,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
  * @returns source object (not a copy)
  */
 export function overwritePreferenceData(source: IAppPreferencesData, data: Partial<IAppPreferencesData>): IAppPreferencesData {
-  // Repalce every prop thats already present
+  // Replace every prop thats already present
   recursiveReplace(source, data);
   // Copy "showLogSource"
   if (data.showLogSource) {

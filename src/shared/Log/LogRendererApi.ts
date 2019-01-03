@@ -23,7 +23,7 @@ export class LogRendererApi extends EventEmitter {
     ipcRenderer.on(LogChannel.removeEntriesReply, this.onRemoveEntries);
   }
 
-  unbinbListeners() {
+  unbindListeners() {
     ipcRenderer.removeListener(LogChannel.refreshEntriesReply, this.onRefreshEntries);
     ipcRenderer.removeListener(LogChannel.removeEntriesReply, this.onRemoveEntries);
   }

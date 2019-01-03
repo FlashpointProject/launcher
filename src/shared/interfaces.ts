@@ -24,13 +24,13 @@ export interface IMainWindowExternal {
   /** Open/Close the DevTools for this window */
   toggleDevtools(): void;
 
-  /** Renderer's interface for the Preferences data */
+  /** Renderers interface for the Preferences data */
   preferences: AppPreferencesApi;
 
-  /** Renderer's interface for the Config data */
+  /** Renderers interface for the Config data */
   config: AppConfigApi;
 
-  /** Renderer's interface for the Log data */
+  /** Renderers interface for the Log data */
   log: LogRendererApi;
 }
 
