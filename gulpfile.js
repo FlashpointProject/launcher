@@ -1,92 +1,55 @@
-const fs = require('fs-extra');
 const path = require('path');
+const fs = require('fs-extra');
 const gulp = require('gulp');
-const webpack = require('webpack-stream');
 const packager = require('electron-packager');
 const serialHooks = require('electron-packager/hooks').serialHooks;
-const typescript = require('gulp-typescript');
-const mainTsProject = typescript.createProject('tsconfig-main.json');
+const { exec } = require('child_process');
 
-gulp.task('default', ['build', 'watch']);
-gulp.task('watch', ['watch_main', 'watch_renderer', 'watch_static']);
-gulp.task('build', ['build_main', 'build_renderer', 'copy_static']);
-gulp.task('pack', pack);
-
-gulp.task('watch_main', watchMain);
-gulp.task('build_main', buildMain);
-
-gulp.task('watch_renderer', watchRenderer);
-gulp.task('build_renderer', buildRenderer);
-
-gulp.task('watch_static', watchStatic);
-gulp.task('copy_static',  copyStatic);
-
-const config = Object.freeze({
+const config = {
   isRelease: process.env.NODE_ENV === 'production',
-  paths: {
-    main: {
-      src:  './src/main',
-      dest: './build', // (It includes both /main/ and /shared/, so it is one folder higher than otherwise!)
-    },
-    renderer: {
-      src:  './src/renderer',
-      dest: './build/renderer',
-    },
-    static: {
-      src:  './static',
-      dest: './build'
-    },
-    shared: {
-      src:  './src/shared',
-    },
+  static: {
+    src: './static',
+    dest: './build',
   }
+};
+
+/* ------ Watch ------ */
+
+gulp.task('watch', ['watch-main', 'watch-renderer', 'watch-static', 'copy-static']);
+
+gulp.task('watch-main', () => {
+  execute('tsc --project tsconfig-main.json --watch --preserveWatchOutput --pretty');
 });
 
-function watchMain() {
-  gulp.watch([config.paths.main.src+'/**/*',
-              config.paths.shared.src+'/**/*'], ['build_main']);
-}
-function buildMain() {
-  const stream = mainTsProject
-    .src()
-    .pipe(mainTsProject())
-    .on('error', function() { stream.end(); })
-    .pipe(gulp.dest(config.paths.main.dest));
-  return stream;
-}
+gulp.task('watch-renderer', () => {
+  const mode = config.isRelease ? 'production' : 'development';
+  execute(`webpack --color true --mode "${mode}" --watch`);
+});
 
-function watchRenderer() {
-  gulp.watch([config.paths.renderer.src+'/**/*',
-              config.paths.shared.src+'/**/*'], ['build_renderer']);
-}
-function buildRenderer() {
-  const webpackConfig = require('./webpack.config.js');
-  // Alter config
-  if (config.isRelease) {
-    delete webpackConfig.devtool;
-  }
-  // Build source
-  const stream = gulp
-    .src(webpackConfig.entry)
-    .pipe(webpack({
-      ...webpackConfig,
-      mode: process.env.NODE_ENV || 'development',
-    }))
-    .on('error', function() { stream.end(); })
-    .pipe(gulp.dest(config.paths.renderer.dest));
-  return stream;
-}
+gulp.task('watch-static', () => {
+  gulp.watch([config.static.src+'/**/*'], ['copy-static']);
+});
 
-function watchStatic() {
-  gulp.watch([config.paths.static.src+'/**/*'], ['copy_static']);
-}
-function copyStatic() {
-  return gulp
-    .src(config.paths.static.src+'/**/*')
-    .pipe(gulp.dest(config.paths.static.dest));
-}
+/* ------ Build ------ */
 
-function pack() {
+gulp.task('build', ['build-main', 'build-renderer', 'copy-static']);
+
+gulp.task('build-main', () => {
+  execute('tsc --project tsconfig-main.json --pretty');
+});
+
+gulp.task('build-renderer', () => {
+  const mode = config.isRelease ? 'production' : 'development';
+  execute(`webpack --color true --mode "${mode}"`);
+});
+
+gulp.task('copy-static', () => {
+  return gulp.src(config.static.src+'/**/*').pipe(gulp.dest(config.static.dest));
+});
+
+/* ------ Pack ------ */
+
+gulp.task('pack', () => {
   packager({
     dir: './build/',
     out: './dist/',
@@ -124,4 +87,12 @@ function pack() {
   })
   .then((appPaths) => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); });
+});
+
+/* ------ Misc ------*/
+
+function execute(command) {
+  const child = exec(command);
+  child.stderr.on('data', data => { console.log(data); });
+  child.stdout.on('data', data => { console.log(data); });
 }

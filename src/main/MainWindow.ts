@@ -47,7 +47,7 @@ export default class MainWindow {
     // Remove the menu bar
     this._window.setMenu(null);
     // and load the index.html of the app.
-    this._window.loadFile(path.join(__dirname, '../renderer/index.html'));
+    this._window.loadFile(path.join(__dirname, '../window/index.html'));
     // Open the DevTools.
     if (Util.isDev) {
       this._window.webContents.openDevTools();

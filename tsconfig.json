@@ -4,7 +4,7 @@
     "noImplicitAny": true,
     "jsx": "react",
     "sourceMap": true,
-    "outDir": "dist",
+    "outDir": "build",
     "baseUrl": ".",
     "target": "es6",
     "lib": ["es2015", "es5", "dom"],
@@ -12,6 +12,7 @@
   },
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "build"
   ]
 }
