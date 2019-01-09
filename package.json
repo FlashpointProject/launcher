@@ -4,7 +4,6 @@
   "description": "A desktop application used to browse, manage and play games from the Flashpoint project",
   "main": "main/index.js",
   "scripts": {
-    "lint": "tslint -c tslint.json -p tsconfig.json",
     "start": "electron ./build/main/index.js",
     "build": "gulp build",
     "watch": "gulp watch",
@@ -24,8 +23,6 @@
     "electron": "3.0.8",
     "fast-xml-parser": "3.12.7",
     "follow-redirects": "1.5.10",
-    "uuid-validate": "0.0.3",
-    "yauzl": "2.10.0",
     "react": "16.6.1",
     "react-dom": "16.6.1",
     "react-redux": "5.1.1",
@@ -34,8 +31,10 @@
     "redux": "4.0.1",
     "redux-devtools-extension": "2.13.5",
     "typesafe-actions": "2.0.4",
+    "uuid": "3.3.2",
+    "uuid-validate": "0.0.3",
     "utility-types": "2.1.0",
-    "uuid": "3.3.2"
+    "yauzl": "2.10.0"
   },
   "devDependencies": {
     "@types/node": "10.12.5",
