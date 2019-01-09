@@ -6,19 +6,20 @@
 3. Run ``npm install``
 
 ## Development
-1. Open a command prompt and run ``npm run build`` then ``npm run watch``
+1. Open a command prompt and run ``npm run watch`` and wait for it to finish building
 2. Open another command prompt and wait for ``build`` to complete, then run ``npm run start``
 
-The ``build`` command compiles the source code, and copies the resources, to the ``build`` folder.
+## Package Scripts
 
-The ``watch`` command runs a piece of software that detects changes made to the source code and resources, and re-builds the application whenever a change is detected. Highly recommended to leave running while you are developing (and preferably within sight, since it shows compilation errors - also because it crashes sometimes).
+* ``build`` - Build the launcher (build main & renderer and copy static files to ``./build/``)
+* ``watch`` - Build the launcher and incrementally rebuild it when the source or static files change
+* ``pack`` - Pack the latest build (and put the packaged file with the executable electron app in ``./dist/``)
+* ``release`` - Build then pack the launcher (same as running ``build`` then ``pack``)
+* ``start`` - Run the latest build of the launcher
 
-The ``start`` command launches the current build of the application. This will <u>not</u> automatically update when you change the source code or resources, you have to restart it manually.
+``pack`` and ``release`` will by default pack for the OS and architecture of the machine that runs it.
 
-## Release
-Run ``npm run release:PLATFORM`` (where ``PLATFORM`` is either ``win32`` or ``linux``)
-
-The release builds can be found in the ``dist`` folder (the folder is created when making a release build).
+To pack for a specific OS / architecture use the handy package scripts (such as ``pack:linux`` or ``release:win32``) or set the environment variables ``PACK_PLATFORM`` / ``PACK_ARCH``.
 
 ## Troubleshooting
 
