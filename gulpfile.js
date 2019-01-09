@@ -64,7 +64,8 @@ gulp.task('pack', () => {
     platform: process.env.PACK_PLATFORM,
     arch: process.env.PACK_ARCH,
     asar: config.isRelease,
-    // ...
+    // "afterCopy" in the docs:
+    // "An array of functions to be called after your app directory has been copied to a temporary directory."
     afterCopy: [serialHooks([
       function(buildPath, electronVersion, platform, arch) {
         // Read the package.json file (it is required to run the electron app)
@@ -81,9 +82,21 @@ gulp.task('pack', () => {
           dependencies: package.dependencies
         });
         // Save file to the temporary folder (that gets moved or packed into the release)
-        fs.writeFileSync(path.join(buildPath, './package.json'), data, 'utf8');
+        fs.writeFileSync(path.join(buildPath, 'package.json'), data, 'utf8');
       },
     ])],
+    // "afterExtract" in the docs:
+    // "An array of functions to be called after Electron has been extracted to a temporary directory."
+    afterExtract: [serialHooks([
+      function(buildPath, electronVersion, platform, arch) {
+        // Copy licenses folder and the LICENSE file 
+        fs.copySync('./licenses', path.join(buildPath, 'licenses/'));
+        fs.copySync('./LICENSE',  path.join(buildPath, 'licenses/LICENSE'));
+        // Move electron license into the licenses folder
+        fs.moveSync(path.join(buildPath, 'LICENSE'), path.join(buildPath, 'licenses/electron/LICENSE'));
+      },
+    ])],
+
   })
   .then((appPaths) => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); });
