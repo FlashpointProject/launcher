@@ -23,7 +23,8 @@ export class AppPreferencesFile {
     // If that failed, set data to default and save it to a new file
     if (error || !data) {
       data = Util.deepCopy(defaultPreferencesData) as IAppPreferencesData;
-      await AppPreferencesFile.saveFile(data);
+      await AppPreferencesFile.saveFile(data)
+            .catch(() => console.log('Failed to save default preferences file!'));
     }
     // Return
     return data;
