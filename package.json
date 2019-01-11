@@ -10,10 +10,12 @@
     "pack": "npx gulp pack",
     "pack:linux": "npx cross-env PACK_PLATFORM=linux PACK_ARCH=x64 npx gulp pack",
     "pack:win32": "npx cross-env PACK_PLATFORM=win32 PACK_ARCH=ia32 npx gulp pack",
+    "pack:darwin": "npx cross-env PACK_PLATFORM=darwin PACK_ARCH=x64 npx gulp pack",
     "pack:all": "npx cross-env PACK_PLATFORM=all PACK_ARCH=all npx gulp pack",
     "release": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack\"",
     "release:linux": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:linux\"",
     "release:win32": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:win32\"",
+    "release:darwin": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:darwin\"",
     "release:all": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:all\""
   },
   "author": "Jesper Gustafsson",
