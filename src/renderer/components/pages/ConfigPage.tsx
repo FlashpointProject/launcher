@@ -215,7 +215,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
   }
 
   /** When the "Save & Restart" button is clicked */
-  private onSaveAndRestartClick = (event: React.MouseEvent<HTMLInputElement>) => {
+  private onSaveAndRestartClick = () => {
     // Create new config
     let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
       flashpointPath: this.state.flashpointPath,

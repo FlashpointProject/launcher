@@ -9,7 +9,7 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { Paths } from '../../Paths';
 import { RandomGames } from '../RandomGames';
-import { IUpgradeStage } from 'src/renderer/upgrade/upgrade';
+import { IUpgradeStage } from '../../upgrade/upgrade';
 
 interface OwnProps {
   central: ICentralState;
@@ -27,8 +27,6 @@ export interface IHomePageState {
 }
 
 export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
-  private static readonly randomGamesCount = 6;
-
   constructor(props: IHomePageProps) {
     super(props);
     this.state = {
@@ -164,7 +162,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     GameLauncher.launchGame(game);
   }
 
-  private onHallOfFameClick = (event: React.MouseEvent) => {
+  private onHallOfFameClick = () => {
     // Select the "Hall of Fame" playlist
     const playlists = this.props.central.playlists.playlists;
     let hof: IGamePlaylist|undefined = playlists.find(
@@ -173,7 +171,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     this.props.onSelectPlaylist(hof);
   }
 
-  private onAllGamesClick = (event: React.MouseEvent) => {
+  private onAllGamesClick = () => {
     // Deselect the current playlist and clear the search
     this.props.onSelectPlaylist(undefined);
     this.props.clearSearch();

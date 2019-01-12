@@ -92,8 +92,8 @@ export class GameLauncher {
   }
 
   /**
-    * The paths provided in the Game/AdditionalApplication XMLs are only accurate
-    * on Windows. So we replace them with other hard-coded paths here.
+   * The paths provided in the Game/AdditionalApplication XMLs are only accurate
+   * on Windows. So we replace them with other hard-coded paths here.
    */
   private static getApplicationPath(game: IGameInfo): string {
     // @TODO Let the user change these paths from a file or something (services.json?).

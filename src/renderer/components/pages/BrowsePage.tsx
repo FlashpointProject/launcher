@@ -67,7 +67,6 @@ export interface IBrowsePageState {
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
   /** A timestamp of the previous the the quick search string was updated */
   private _prevQuickSearchUpdate: number = 0;
-
   private gameBrowserRef: React.RefObject<HTMLDivElement> = React.createRef();
 
   private static readonly quickSearchTimeout: number = 1500;
@@ -283,7 +282,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(undefined); }
   }
 
-  private onLeftSidebarPlaylistChanged = (playlist: IGamePlaylist): void => {
+  private onLeftSidebarPlaylistChanged = (): void => {
     this.forceUpdate();
   }
 
@@ -578,7 +577,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 }
 
 function calcScale(defHeight: number, scale: number): number {
-  return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0
+  return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0;
 }
 
 /**

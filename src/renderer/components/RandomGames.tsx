@@ -21,13 +21,13 @@ export interface IRandomGamesProps {
  * launch one of the games.
  */
 export class RandomGames extends React.PureComponent<IRandomGamesProps> {
-  amountOfRandomGames = 6;
+  private static amountOfRandomGames = 6;
 
   private selectRandomGames() {
     const { games, showExtreme, showBroken } = this.props;
     const filteredGames = filterBroken(showBroken, filterExtreme(showExtreme, games));
     const shuffledGames = shuffle(filteredGames);
-    const randomGames = shuffledGames.slice(0, Math.min(this.amountOfRandomGames, games.length));
+    const randomGames = shuffledGames.slice(0, Math.min(RandomGames.amountOfRandomGames, games.length));
     return randomGames;
   }
 

@@ -5,7 +5,7 @@ import { ICentralState } from '../../interfaces';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { validateSemiUUID } from '../../uuid';
-import { IGamePlaylist, IGamePlaylistEntry } from 'src/renderer/playlist/interfaces';
+import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
 import * as uuidValidate from 'uuid-validate';
 
 interface IDeveloperPageProps {
@@ -288,7 +288,6 @@ function checkDupes<T extends { [key in U]: string }, U extends string>(array: T
 }
 
 type FilterFlags<Base, Condition> = {
-    [Key in keyof Base]: 
-        Base[Key] extends Condition ? Key : never
+  [Key in keyof Base]: Base[Key] extends Condition ? Key : never
 };
 type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base];

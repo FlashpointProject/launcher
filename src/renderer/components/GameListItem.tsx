@@ -65,13 +65,13 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     );
   }
 
-  private onClick = (event: React.MouseEvent<HTMLLIElement>): void => {
+  private onClick = (): void => {
     if (this.props.onClick) {
       this.props.onClick(this.props.game, this.props.index);
     }
   }
 
-  private onDoubleClick = (event: React.MouseEvent<HTMLLIElement>): void => {
+  private onDoubleClick = (): void => {
     if (this.props.onDoubleClick) {
       this.props.onDoubleClick(this.props.game, this.props.index);
     }

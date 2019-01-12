@@ -99,7 +99,8 @@ class BackgroundServices extends EventEmitter {
         info.filename, 
         info.arguments, 
         path.join(config.flashpointPath, info.path),
-        !!detached);
+        !!detached
+      );
     }
   }
   

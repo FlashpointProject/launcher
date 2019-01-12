@@ -96,7 +96,6 @@ gulp.task('pack', () => {
         fs.moveSync(path.join(buildPath, 'LICENSE'), path.join(buildPath, 'licenses/electron/LICENSE'));
       },
     ])],
-
   })
   .then((appPaths) => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); });

@@ -47,7 +47,7 @@ export class ConfirmButton extends React.Component<ConfirmButtonProps, ConfirmBu
     );
   }
 
-  private onClick = (event: React.MouseEvent): void => {
+  private onClick = (): void => {
     if (this.props.skipConfirm) {
       if (this.props.onConfirm) { this.props.onConfirm(); }
     } else {
@@ -60,7 +60,7 @@ export class ConfirmButton extends React.Component<ConfirmButtonProps, ConfirmBu
     }
   }
 
-  private onMouseLeave = (event: React.MouseEvent): void => {
+  private onMouseLeave = (): void => {
     if (this.state.showConfirm) {
       this.setState({ showConfirm: false });
     }

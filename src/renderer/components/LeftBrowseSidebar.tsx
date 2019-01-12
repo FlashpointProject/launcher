@@ -147,7 +147,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
     }
   }
 
-  private onCreatePlaylistClick = (event: React.MouseEvent): void => {
+  private onCreatePlaylistClick = (): void => {
     if (this.props.central.playlistsDoneLoading) {
       // Create and save a new playlist
       const playlist = this.props.central.playlists.create();

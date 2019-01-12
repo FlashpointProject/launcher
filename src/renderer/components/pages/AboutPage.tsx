@@ -45,7 +45,5 @@ export const AboutPage: React.StatelessComponent<{}> = () => {
 };
 
 function link(title: string, url: string): JSX.Element {
-  return (
-    <a href={url} title={url}>{title}</a>
-  );
+  return (<a href={url} title={url}>{title}</a>);
 }

@@ -35,15 +35,13 @@ export class ConfigFlashpointPathInput extends React.Component<IConfigFlashpoint
     this.setInput(event.target.value);
   }
 
-  onBrowseClick = (event: React.MouseEvent<HTMLInputElement>): void => {
+  onBrowseClick = (): void => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select the FlashPoint root directory',
       properties: ['openDirectory'],
     });
-    if (filePaths) {
-      this.setInput(filePaths[0]);
-    }
+    if (filePaths) { this.setInput(filePaths[0]); }
   }
 
   setInput(input: string): void {

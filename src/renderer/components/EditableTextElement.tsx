@@ -60,7 +60,7 @@ export class EditableTextElement extends React.Component<IEditableTextElementPro
     }) || (<></>);
   }
 
-  componentDidUpdate(prevProps: IEditableTextElementProps, prevState: IEditableTextElementState) {
+  componentDidUpdate() {
     // Stop editing if no longer editable
     if (!this.props.editable && this.state.editing) {
       this.setState({ editing: false });
