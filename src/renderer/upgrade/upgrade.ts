@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { tryParseJSON } from '../../shared/Util';
+import { readJsonFile } from '../../shared/Util';
 import { doAsyncParallel } from '../util/async';
 
 const upgradeFilePath: string = './upgrade.json';
@@ -37,18 +37,10 @@ export async function performUpgradeStageChecks(stage: IUpgradeStage, flashpoint
 /** Read and parse the file asynchronously */
 export function readUpgradeFile(flashpointFolder: string): Promise<IUpgradeData> {
   return new Promise((resolve, reject) => {
-    fs.readFile(path.join(flashpointFolder, upgradeFilePath), 
-                upgradeFileEncoding, (error, data) => {
-      // Check if reading file failed
-      if (error) { return reject(error); }
-      // Try to parse json (and callback error if it fails)
-      const jsonOrError: string|Error = tryParseJSON(data as string);
-      if (jsonOrError instanceof Error) { return reject(jsonOrError); }
-      // Parse the JSON object
-      const parsed = parseUpgradeFile(jsonOrError);
-      // Success!
-      return resolve(parsed);
-    });
+    readJsonFile(path.join(flashpointFolder, upgradeFilePath), 
+                 upgradeFileEncoding)
+    .then(json => resolve(parseUpgradeFile(json)))
+    .catch(reject);
   });
 }
 

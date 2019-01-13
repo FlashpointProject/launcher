@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { tryParseJSON, recursiveReplace, deepCopy, stringifyJsonDataFile } from '../Util';
+import { readJsonFile, recursiveReplace, deepCopy, stringifyJsonDataFile } from '../Util';
 import { IAppConfigData } from './interfaces';
 
 interface IConfigDataDefaults {
@@ -8,26 +8,16 @@ interface IConfigDataDefaults {
 
 export class AppConfig {
   /** Path to the config file */
-  private static configFilePath: string = './config.json';
+  private static filePath: string = './config.json';
   /** Encoding used by config file */
-  private static configFileEncoding: string = 'utf8';
+  private static fileEncoding: string = 'utf8';
 
   /** Read and parse the config file asynchronously */
   public static readConfigFile(): Promise<IAppConfigData> {
-    return new Promise<IAppConfigData>((resolve, reject) => {
-      fs.readFile(AppConfig.configFilePath, AppConfig.configFileEncoding, (error, data) => {
-        // Check if reading file failed
-        if (error) { return reject(error); }
-        // Try to parse json (and callback error if it fails)
-        const jsonOrError: string|Error = tryParseJSON(data as string);
-        if (jsonOrError instanceof Error) {
-          return reject(jsonOrError);
-        }
-        // Parse the JSON object as a config object
-        const parsed: IAppConfigData = AppConfig.parseData(jsonOrError, AppConfig.getDefaults(process.platform));
-        // Success!
-        return resolve(parsed);
-      });
+    return new Promise((resolve, reject) => {
+      readJsonFile(AppConfig.filePath, AppConfig.fileEncoding)
+      .then(json => resolve(AppConfig.parseData(json, AppConfig.getDefaults(process.platform))))
+      .catch(reject);
     });
   }
 
@@ -37,7 +27,7 @@ export class AppConfig {
       // Convert config to json string
       const json: string = AppConfig.stringifyData(data);
       // Save the config file
-      fs.writeFile(AppConfig.configFilePath, json, function(error) {
+      fs.writeFile(AppConfig.filePath, json, function(error) {
         if (error) { return reject(error); }
         else       { return resolve();     }
       });

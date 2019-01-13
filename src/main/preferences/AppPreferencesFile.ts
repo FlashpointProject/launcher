@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as Util from '../../shared/Util';
+import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../../shared/Util';
 import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
 import { defaultPreferencesData, overwritePreferenceData } from '../../shared/preferences/util';
 
@@ -22,7 +22,7 @@ export class AppPreferencesFile {
     }
     // If that failed, set data to default and save it to a new file
     if (error || !data) {
-      data = Util.deepCopy(defaultPreferencesData) as IAppPreferencesData;
+      data = deepCopy(defaultPreferencesData) as IAppPreferencesData;
       await AppPreferencesFile.saveFile(data)
             .catch(() => console.log('Failed to save default preferences file!'));
     }
@@ -31,22 +31,10 @@ export class AppPreferencesFile {
   }
   
   public static readFile(): Promise<IAppPreferencesData> {
-    return new Promise<IAppPreferencesData>((resolve, reject) => {
-      fs.readFile(AppPreferencesFile.filePath, AppPreferencesFile.fileEncoding, (error, data) => {
-        // Check if reading file failed
-        if (error) {
-          return reject(error);
-        }
-        // Try to parse json (and callback error if it fails)
-        const jsonOrError: string|Error = Util.tryParseJSON(data as string);
-        if (jsonOrError instanceof Error) {
-          return reject(jsonOrError);
-        }
-        // Parse the JSON object as a config object
-        const parsed: IAppPreferencesData = AppPreferencesFile.parseData(jsonOrError, defaultPreferencesData);
-        // Success!
-        return resolve(parsed);
-      });
+    return new Promise((resolve, reject) => {
+      readJsonFile(AppPreferencesFile.filePath, AppPreferencesFile.fileEncoding)
+      .then(json => resolve(AppPreferencesFile.parseData(json, defaultPreferencesData)))
+      .catch(reject);
     });
   }
   
@@ -65,10 +53,10 @@ export class AppPreferencesFile {
   public static parseData(data: any, defaultData: IAppPreferencesData): IAppPreferencesData {
     // This makes sure that only the necessary properties are copied
     // And that the missing ones are set to their default value
-    return overwritePreferenceData(Util.deepCopy(defaultData), data);
+    return overwritePreferenceData(deepCopy(defaultData), data);
   }
   
   public static stringifyData(data: IAppPreferencesData): string {
-    return Util.stringifyJsonDataFile(data);
+    return stringifyJsonDataFile(data);
   }
 }

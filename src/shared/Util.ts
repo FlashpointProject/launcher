@@ -1,6 +1,30 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | undefined | null;
+
+/**
+ * Read and parse a JSON file asynchronously.
+ * Wrapper around "fs.readFile()" plus "JSON.parse()".
+ * @param path Path of the JSON file
+ * @param options Options for reading the file
+ */
+export function readJsonFile(path: string, options: ReadFileOptions): Promise<any> {
+  return new Promise<any>((resolve, reject) => {
+    fs.readFile(path, options, (error, data) => {
+      // Check if reading file failed
+      if (error) { return reject(error); }
+      // Try to parse json (and callback error if it fails)
+      const jsonOrError: string|Error = tryParseJSON(data as string);
+      if (jsonOrError instanceof Error) {
+        return reject(jsonOrError);
+      }
+      // Success!
+      return resolve(jsonOrError);
+    });
+  });
+};
+
 /**
  * Pad a the end of a string with spaces until the string is of a specified length
  * @param str String to pad

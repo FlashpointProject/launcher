@@ -1,6 +1,5 @@
-import * as fs from 'fs';
 import * as path from 'path';
-import { tryParseJSON } from '../../shared/Util';
+import { readJsonFile } from '../../shared/Util';
 import { IBackProcessInfoFile, IBackProcessInfo } from './interfaces';
 
 export class BackgroundServicesFile {
@@ -12,18 +11,10 @@ export class BackgroundServicesFile {
   /** Read and parse the file asynchronously */
   public static readFile(flashpointFolder: string): Promise<IBackProcessInfoFile> {
     return new Promise((resolve, reject) => {
-      fs.readFile(path.join(flashpointFolder, BackgroundServicesFile.filePath), 
-                  BackgroundServicesFile.fileEncoding, (error, data) => {
-        // Check if reading file failed
-        if (error) { return reject(error); }
-        // Try to parse json (and callback error if it fails)
-        const jsonOrError: string|Error = tryParseJSON(data as string);
-        if (jsonOrError instanceof Error) { return reject(jsonOrError); }
-        // Parse the JSON object
-        const parsed = parseBackProcessInfoFile(jsonOrError);
-        // Success!
-        return resolve(parsed);
-      });
+      readJsonFile(path.join(flashpointFolder, BackgroundServicesFile.filePath), 
+                   BackgroundServicesFile.fileEncoding)
+      .then(json => resolve(parseBackProcessInfoFile(json)))
+      .catch(reject);
     });
   }
 }
