@@ -114,11 +114,10 @@ export class Main {
   private async loadConfig(): Promise<void> {
     let error: Error|undefined;
     let data: IAppConfigData|undefined;
+    const onError = (e: string) => this.pushLogData({ source: 'Config', content: e });
     try {
-      data = await AppConfig.readConfigFile();
-    } catch(e) {
-      error = e;
-    }
+      data = await AppConfig.readConfigFile(onError);
+    } catch(e) { error = e; }
     // Check if config data failed to load
     if (error || !data) {
       // Set the config data to the default

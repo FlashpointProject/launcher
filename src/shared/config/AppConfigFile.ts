@@ -1,6 +1,7 @@
 import * as fs from 'fs';
-import { readJsonFile, recursiveReplace, deepCopy, stringifyJsonDataFile } from '../Util';
+import { readJsonFile, deepCopy, stringifyJsonDataFile } from '../Util';
 import { IAppConfigData } from './interfaces';
+import { ObjectParser } from '../utils/ObjectParser';
 
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;
@@ -13,10 +14,10 @@ export class AppConfig {
   private static fileEncoding: string = 'utf8';
 
   /** Read and parse the config file asynchronously */
-  public static readConfigFile(): Promise<IAppConfigData> {
+  public static readConfigFile(onError?: (error: string) => void): Promise<IAppConfigData> {
     return new Promise((resolve, reject) => {
       readJsonFile(AppConfig.filePath, AppConfig.fileEncoding)
-      .then(json => resolve(AppConfig.parseData(json, AppConfig.getDefaults(process.platform))))
+      .then(json => resolve(AppConfig.parseData(json, AppConfig.getDefaults(process.platform), onError)))
       .catch(reject);
     });
   }
@@ -38,10 +39,19 @@ export class AppConfig {
    * Parse and object as an app config data object
    * (Extract the valid settings, and use the default values for everything else, then return a new object with these settings combined)
    */
-  public static parseData(data: any, defaultData: IAppConfigData): IAppConfigData {
-    // This makes sure that only the necessary properties are copied
-    // And that the missing ones are set to their default value
-    const parsed: IAppConfigData = recursiveReplace(deepCopy(defaultData), data);
+  public static parseData(data: any, defaultData: IAppConfigData, onError?: (error: string) => void): IAppConfigData {
+    const parsed: IAppConfigData = deepCopy(defaultData);
+    const parser = new ObjectParser({
+      input: data,
+      onError: onError ? (error => onError(`Error while parsing Config: ${error.toString()}`)) : noop
+    });
+    parser.prop('flashpointPath',      v => parsed.flashpointPath      = v+'');
+    parser.prop('useCustomTitlebar',   v => parsed.useCustomTitlebar   = !!v);
+    parser.prop('startRouter',         v => parsed.startRouter         = !!v);
+    parser.prop('startRedirector',     v => parsed.startRedirector     = !!v);
+    parser.prop('useFiddler',          v => parsed.useFiddler          = !!v);
+    parser.prop('disableExtremeGames', v => parsed.disableExtremeGames = !!v);
+    parser.prop('showBrokenGames',     v => parsed.showBrokenGames     = !!v);
     // Do some alterations
     parsed.flashpointPath = parsed.flashpointPath.replace(/\\/g, '/'); // (Clean path)
     // Return
@@ -93,3 +103,5 @@ export class AppConfig {
     // ...
   }
 }
+
+function noop() {}
