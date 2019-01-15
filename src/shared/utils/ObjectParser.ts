@@ -125,7 +125,8 @@ function createStack(stack: string[], label: string|number|Symbol): string[] {
 
 /** Create a string from a stack. Used for making errors pretty. */
 function stackToString(stack: string[]): string {
-  return stack.reduce((prev, cur) => prev + (isArrayIndex(cur) ? `[${cur}]` : ((prev[prev.length-1] === ']') ? cur : `.${cur}`)));
+  if (stack.length === 0) return '';
+  return stack.reduce((prev, cur) => prev + (isArrayIndex(cur) ? `[${cur}]` : `.${cur}`));
 }
 
 /** Check if a string is a valid array index (whole number, not NaN, etc.) */
