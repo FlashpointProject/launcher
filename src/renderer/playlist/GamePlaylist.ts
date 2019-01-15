@@ -3,6 +3,7 @@ import * as path from 'path';
 import { uuid } from '../uuid';
 import { IGamePlaylist, IGamePlaylistEntry } from './interfaces';
 import { tryParseJSON, stringifyJsonDataFile } from '../../shared/Util';
+import { ObjectParser } from '../../shared/utils/ObjectParser';
 
 export function createGamePlaylist(): IGamePlaylist {
   return {
@@ -30,28 +31,28 @@ export function parseGamePlaylist(data: any): IGamePlaylist {
     author: '',
     icon: undefined,
   };
-  if (data) {
-    if (data.id          !== undefined) { playlist.id          = data.id+'';          }
-    if (data.title       !== undefined) { playlist.title       = data.title+'';       }
-    if (data.title       !== undefined) { playlist.title       = data.title+'';       }
-    if (data.description !== undefined) { playlist.description = data.description+''; }
-    if (data.author      !== undefined) { playlist.author      = data.author+'';      }
-    if (data.icon        !== undefined) { playlist.icon        = data.icon+'';        }
-    // Parse games array
-    let games = data.games;
-    if (Array.isArray(games)) {
-      for (let i = games.length - 1; i >= 0; i--) {
-        playlist.games[i] = parseGamePlaylistEntry(games[i]);
-      }
-    }
-  }
+  const parser = new ObjectParser({
+    input: data,
+    onError: (e) => { console.warn(`Error while parsing Playlist: ${e.toString()}`) },
+  });
+  parser.prop('id',          id          => playlist.id          = id+''         );
+  parser.prop('title',       title       => playlist.title       = title+''      );
+  parser.prop('description', description => playlist.description = description+'');
+  parser.prop('author',      author      => playlist.author      = author+''     );
+  parser.prop('icon',        icon        => playlist.icon        = icon+''       );
+  parser.prop('games').array(gameParser => {
+    const game = createGamePlaylistEntry();
+    gameParser.prop('id',    id    => game.id    = id+''   );
+    gameParser.prop('notes', notes => game.notes = notes+'');
+    playlist.games.push(game);
+  });
   return playlist;
 }
 
-function parseGamePlaylistEntry(data: any): IGamePlaylistEntry {
+function createGamePlaylistEntry(): IGamePlaylistEntry {
   return {
-    id: data.id+'',
-    notes: data.notes+'',
+    id: '',
+    notes: ''
   };
 }
 
