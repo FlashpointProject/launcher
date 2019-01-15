@@ -18,15 +18,30 @@ interface Context {
 
 export interface IObjectParserProp<P> {
   /**
+   * Call a function for each property of this object.
+   * (An error will be "fired" if this is not a non-array object)
+   * @param func Called for each property of this object
+   */
+  map(func: (item: IObjectParserProp<P[Extract<keyof P, string>]>, label: keyof P) => void): this;
+
+  /**
+   * Call a function for each property of this object.
+   * (An error will be "fired" if this is not a non-array object)
+   * (This uses the raw values of the object - it does NOT wrap the properties in "ObjectParserProp")
+   * @param func Called for each property of this object
+   */
+  mapRaw(func: (item: P[keyof P], label: keyof P) => void): this;
+
+  /**
    * Call a function for each element in this array.
-   * (If this is not an array and error will be "fired" instead)
+   * (If this is not an array an error will be "fired" instead)
    * @param func Called for each element in the array (starting at index 0 and counting up)
    */
   array(func: (item: P extends Array<any> ? IObjectParserProp<P[number]> : never, index: number, array: P) => void): this;
 
   /**
    * Call a function for each element in this array.
-   * (If this is not an array and error will be "fired" instead)
+   * (If this is not an array an error will be "fired" instead)
    * (This uses the raw values of the array - it does NOT wrap the element in "ObjectParserProp")
    * @param func Called for each element in the array (starting at index 0 and counting up)
    */
@@ -64,6 +79,33 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
     this._property = property;
     this._context = context;
     this._stack = stack;
+  }
+
+  /** @inheritdoc */
+  public map(func: (item: IObjectParserProp<P[Extract<keyof P, string>]>, label: keyof P) => void): this {
+    const prop = this._property;
+    if (typeof prop === 'object' && prop !== null && !Array.isArray(prop)) {
+      for (let label in prop) {
+        const item = new ObjectParserProp(prop[label], this._context, createStack(this._stack, label));
+        func(item, label);
+      }
+    } else {
+      this._context.onError(new ErrorThing(this._stack, 'Property is not a non-array object.'));
+    }
+    return this;
+  }
+
+  /** @inheritdoc */
+  public mapRaw(func: (item: P[keyof P], label: keyof P) => void): this {
+    const prop = this._property;
+    if (typeof prop === 'object' && prop !== null && !Array.isArray(prop)) {
+      for (let label in prop) {
+        func(prop[label], label);
+      }
+    } else {
+      this._context.onError(new ErrorThing(this._stack, 'Property is not a non-array object.'));
+    }
+    return this;
   }
 
   /** @inheritdoc */
