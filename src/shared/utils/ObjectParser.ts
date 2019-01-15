@@ -16,6 +16,31 @@ interface Context {
   onError: (error: IErrorThing) => void;
 }
 
+export interface IObjectParserProp<P> {
+  /**
+   * Call a function for each element in this array.
+   * (If this is not an array and error will be "fired" instead)
+   * @param func Called for each element in the array (starting at index 0 and counting up)
+   */
+  array(func: (item: P extends Array<any> ? IObjectParserProp<P[number]> : never, index: number, array: P) => void): this;
+
+  /**
+   * Call a function for each element in this array.
+   * (If this is not an array and error will be "fired" instead)
+   * (This uses the raw values of the array - it does NOT wrap the element in "ObjectParserProp")
+   * @param func Called for each element in the array (starting at index 0 and counting up)
+   */
+  arrayRaw(func: (item: P extends Array<any> ? P[number] : never, index: number, array: P) => void): this;
+
+  /**
+   * Get a property of this object.
+   * @param label Label of the property (also known as "property name")
+   * @param func Called if the property was found (and passes the unwrapped property value)
+   * @returns Property with given label (wrapped in ObjectParserProp)
+   */
+  prop<L extends keyof P>(label: L, func?: (prop: P[L]) => void): IObjectParserProp<P[L]>;
+}
+
 class ErrorThing implements IErrorThing {
   public stack: string[];
   public message: string;
@@ -30,7 +55,7 @@ class ErrorThing implements IErrorThing {
   }
 }
 
-class ObjectParserProp<P> {
+class ObjectParserProp<P> implements IObjectParserProp<P> {
   private _property: P;
   private _context: Context;
   private _stack: string[];
@@ -41,12 +66,8 @@ class ObjectParserProp<P> {
     this._stack = stack;
   }
 
-  /**
-   * Call a function for each element in this array.
-   * (If this is not an array and error will be "fired" instead)
-   * @param func Called for each element in the array (starting at index 0 and counting up)
-   */
-  public array(func: (item: P extends Array<any> ? ObjectParserProp<P[number]> : never, index: number, array: P) => void): this {
+  /** @inheritdoc */
+  public array(func: (item: P extends Array<any> ? IObjectParserProp<P[number]> : never, index: number, array: P) => void): this {
     const prop = this._property;
     if (Array.isArray(prop)) {
       for (let i = 0; i < prop.length; i++) {
@@ -58,13 +79,8 @@ class ObjectParserProp<P> {
     }
     return this;
   }
-
-  /**
-   * Call a function for each element in this array.
-   * (If this is not an array and error will be "fired" instead)
-   * (This uses the raw values of the array - it does NOT wrap the element in "ObjectParserProp")
-   * @param func Called for each element in the array (starting at index 0 and counting up)
-   */
+  
+  /** @inheritdoc */
   public arrayRaw(func: (item: P extends Array<any> ? P[number] : never, index: number, array: P) => void): this {
     const prop = this._property;
     if (Array.isArray(prop)) {
@@ -77,14 +93,11 @@ class ObjectParserProp<P> {
     return this;
   }
 
-  /**
-   * Get a property of this object.
-   * @param label Label of the property (also known as "property name")
-   * @param func Called if the property was found (and passes the unwrapped property value)
-   * @returns Property with given label (wrapped in ObjectParserProp)
-   */
-  public prop<L extends keyof P>(label: L, func?: (prop: P[L]) => void): ObjectParserProp<P[L]> {
-    if (Object.prototype.hasOwnProperty.call(this._property, label)) {
+  /** @inheritdoc */
+  public prop<L extends keyof P>(label: L, func?: (prop: P[L]) => void): IObjectParserProp<P[L]> {
+    if (this._property !== null &&
+        this._property !== undefined &&
+        Object.prototype.hasOwnProperty.call(this._property, label)) {
       if (func) { func(this._property[label]); }
     } else {
       this._context.onError(new ErrorThing(this._stack, `Property "${label}" was not found.`));
