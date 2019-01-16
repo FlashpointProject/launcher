@@ -114,19 +114,25 @@ class BackgroundServices extends EventEmitter {
   /** Stop all currently active background processes */
   public async stop(): Promise<void> {
     if (!this.startDone) { throw new Error('You must not stop the background services before they are done starting.'); }
+    if (!this.serviceInfo) { return; }
     // Kill processes
     if (this.server) {
-      this.server.kill();
+      if (this.serviceInfo.server && this.serviceInfo.server.kill) {
+        this.server.kill();
+      }
     }
-    if (this.redirector && !this.useFiddler) { // (Fiddler should be manually shut down in the stop array)
-      this.redirector.kill();
+    if (this.redirector) {
+      const doKill: boolean = !!(
+        this.useFiddler ?
+          this.serviceInfo.fiddler    && this.serviceInfo.fiddler.kill :
+          this.serviceInfo.redirector && this.serviceInfo.redirector.kill
+      );
+      if (doKill) { this.redirector.kill(); }
     }
     // Run stop commands
-    if (this.serviceInfo) {
-      const stop = this.serviceInfo.stop;
-      for (let i = 0; i < stop.length; i++) {
-        await this.execProcess(stop[i], true);
-      }  
+    const stop = this.serviceInfo.stop;
+    for (let i = 0; i < stop.length; i++) {
+      await this.execProcess(stop[i], true);
     }
   }
   

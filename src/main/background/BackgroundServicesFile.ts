@@ -45,9 +45,11 @@ function parseBackProcessInfo(parser: IObjectParserProp<any>): IBackProcessInfo 
     path: '',
     filename: '',
     arguments: [],
+    kill: false,
   };
-  parser.prop('path',     path     => parsed.path     = str(path)    );
-  parser.prop('filename', filename => parsed.filename = str(filename));
+  parser.prop('path',     v => parsed.path     = str(v));
+  parser.prop('filename', v => parsed.filename = str(v));
+  parser.prop('kill',     v => parsed.kill     = !!v, true);
   parser.prop('arguments').arrayRaw(item => parsed.arguments.push(str(item)));
   return parsed;
 }

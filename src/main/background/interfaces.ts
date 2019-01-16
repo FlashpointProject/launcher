@@ -15,4 +15,9 @@ export interface IBackProcessInfo {
   filename: string;
   /** Arguments to pass to the process */
   arguments: string[];
+  /**
+   * If the process should be "killed" when shutting down
+   * (This does not do anything for "start" and "stop" processes)
+   */
+  kill: boolean;
 }
