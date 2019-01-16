@@ -50,10 +50,19 @@ export interface IObjectParserProp<P> {
   /**
    * Get a property of this object.
    * @param label Label of the property (also known as "property name")
-   * @param func Called if the property was found (and passes the unwrapped property value)
+   * @param optional If the property is optional (no error is "fired" if it is not found, default is false)
    * @returns Property with given label (wrapped in ObjectParserProp)
    */
-  prop<L extends keyof P>(label: L, func?: (prop: P[L]) => void): IObjectParserProp<P[L]>;
+  prop<L extends keyof P>(label: L, optional?: boolean): IObjectParserProp<P[L]>;
+
+  /**
+   * Get a property of this object.
+   * @param label Label of the property (also known as "property name")
+   * @param func Called if the property was found (and passes the unwrapped property value)
+   * @param optional If the property is optional (no error is "fired" if it is not found, default is false)
+   * @returns Property with given label (wrapped in ObjectParserProp)
+   */
+  prop<L extends keyof P>(label: L, func?: (prop: P[L]) => void, optional?: boolean): IObjectParserProp<P[L]>;
 }
 
 class ErrorThing implements IErrorThing {
@@ -136,12 +145,20 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
   }
 
   /** @inheritdoc */
-  public prop<L extends keyof P>(label: L, func?: (prop: P[L]) => void): IObjectParserProp<P[L]> {
+  public prop<L extends keyof P>(label: L, funcOrOptional?: ((prop: P[L]) => void)|boolean, optional?: boolean): IObjectParserProp<P[L]> {
+    // Figure out which argument is used for what purpose
+    let func: ((prop: P[L]) => void)|undefined; // ("func" from parameter)
+    let isOptional: boolean = false; // ("optional" from parameter)
+    if (typeof funcOrOptional === 'function') {
+      func = funcOrOptional;
+      isOptional = !!optional;
+    } else { isOptional = !!funcOrOptional; }
+    
     if (this._property !== null &&
         this._property !== undefined &&
         Object.prototype.hasOwnProperty.call(this._property, label)) {
       if (func) { func(this._property[label]); }
-    } else {
+    } else if (!isOptional) {
       this._context.onError(new ErrorThing(this._stack, `Property "${label}" was not found.`));
     }
     const prop = this._property && this._property[label];
