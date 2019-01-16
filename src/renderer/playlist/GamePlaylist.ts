@@ -22,7 +22,7 @@ export function createGamePlaylist(): IGamePlaylist {
  *  not be sure what properties exists, or what types they are of)
  * @param data IGamePlaylistRaw-like object to copy properties from
  */
-export function parseGamePlaylist(data: any): IGamePlaylist {
+export function parseGamePlaylist(data: any, onError?: (error: string) => void): IGamePlaylist {
   const playlist: IGamePlaylist = {
     id: '',
     games: [],
@@ -33,7 +33,7 @@ export function parseGamePlaylist(data: any): IGamePlaylist {
   };
   const parser = new ObjectParser({
     input: data,
-    onError: (e) => { console.warn(`Error while parsing Playlist: ${e.toString()}`) },
+    onError: onError ? (e) => { onError(e.toString()) } : noop,
   });
   parser.prop('id',          id          => playlist.id          = id+''         );
   parser.prop('title',       title       => playlist.title       = title+''      );
@@ -56,7 +56,7 @@ function createGamePlaylistEntry(): IGamePlaylistEntry {
   };
 }
 
-export function loadGamePlaylist(filename: string): Promise<IGamePlaylist|LoadGamePlaylistError> {
+export function loadGamePlaylist(filename: string, onError?: (error: string) => void): Promise<IGamePlaylist|LoadGamePlaylistError> {
   return new Promise<IGamePlaylist|LoadGamePlaylistError>(function(resolve, reject) {
     fs.readFile(filename, 'utf8', function(error, data) {
       if (error) {
@@ -67,7 +67,7 @@ export function loadGamePlaylist(filename: string): Promise<IGamePlaylist|LoadGa
       const jsonOrError: string|Error = tryParseJSON(data as string);
       if (jsonOrError instanceof Error) { return resolve(LoadGamePlaylistError.JSONError); }
       // Parse the JSON object
-      resolve(parseGamePlaylist(jsonOrError));
+      resolve(parseGamePlaylist(jsonOrError, onError));
     });
   });
 }
@@ -100,3 +100,5 @@ export enum LoadGamePlaylistError {
   FileNotFound,
   JSONError,
 }
+
+function noop() {}
