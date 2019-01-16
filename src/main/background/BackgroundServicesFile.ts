@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { readJsonFile } from '../../shared/Util';
 import { IBackProcessInfoFile, IBackProcessInfo } from './interfaces';
+import { ObjectParser, IObjectParserProp } from '../../shared/utils/ObjectParser';
 
 export class BackgroundServicesFile {
   /** Path to the background services file (relative to the flashpoint root folder) */
@@ -9,17 +10,17 @@ export class BackgroundServicesFile {
   private static fileEncoding: string = 'utf8';
 
   /** Read and parse the file asynchronously */
-  public static readFile(flashpointFolder: string): Promise<IBackProcessInfoFile> {
+  public static readFile(flashpointFolder: string, onError?: (error: string) => void): Promise<IBackProcessInfoFile> {
     return new Promise((resolve, reject) => {
       readJsonFile(path.join(flashpointFolder, BackgroundServicesFile.filePath), 
                    BackgroundServicesFile.fileEncoding)
-      .then(json => resolve(parseBackProcessInfoFile(json)))
+      .then(json => resolve(parseBackProcessInfoFile(json, onError)))
       .catch(reject);
     });
   }
 }
 
-function parseBackProcessInfoFile(data: any): IBackProcessInfoFile {
+function parseBackProcessInfoFile(data: any, onError?: (error: string) => void): IBackProcessInfoFile {
   let parsed: IBackProcessInfoFile = {
     redirector: undefined,
     fiddler: undefined,
@@ -27,27 +28,27 @@ function parseBackProcessInfoFile(data: any): IBackProcessInfoFile {
     start: [],
     stop: [],
   };
-  if (data) {
-    if (data.redirector) { parsed.redirector = parseBackProcessInfo(data.redirector); }
-    if (data.fiddler)    { parsed.fiddler    = parseBackProcessInfo(data.fiddler);  }
-    if (data.server)     { parsed.server     = parseBackProcessInfo(data.server);   }
-    if (Array.isArray(data.start)) { copyFromArray(parsed.start, data.start); }
-    if (Array.isArray(data.stop))  { copyFromArray(parsed.stop,  data.stop);  }
-  }
+  const parser = new ObjectParser({
+    input: data,
+    onError: onError ? ((e) => { onError(`Error while parsing Services: ${e.toString()}`) }) : noop
+  });
+  parsed.redirector = parseBackProcessInfo(parser.prop('redirector'));
+  parsed.fiddler    = parseBackProcessInfo(parser.prop('fiddler'));
+  parsed.server     = parseBackProcessInfo(parser.prop('server'));
+  parser.prop('start').array(item => parsed.start.push(parseBackProcessInfo(item)));
+  parser.prop('stop').array(item  => parsed.stop.push(parseBackProcessInfo(item)));
   return parsed;
 }
 
-function parseBackProcessInfo(data: any): IBackProcessInfo {
+function parseBackProcessInfo(parser: IObjectParserProp<any>): IBackProcessInfo {
   let parsed: IBackProcessInfo = {
     path: '',
     filename: '',
     arguments: [],
   };
-  if (data) {
-    parsed.path = str(data.path);
-    parsed.filename = str(data.filename);
-    if (Array.isArray(data.arguments)) { copyFromArrayStr(parsed.arguments, data.arguments); }
-  }
+  parser.prop('path',     path     => parsed.path     = str(path)    );
+  parser.prop('filename', filename => parsed.filename = str(filename));
+  parser.prop('arguments').arrayRaw(item => parsed.arguments.push(str(item)));
   return parsed;
 }
 
@@ -56,14 +57,4 @@ function str(str: any): string {
   return (str || '') + '';
 }
 
-function copyFromArray(dest: Array<IBackProcessInfo>, source: Array<IBackProcessInfo>): void {
-  for (let i = source.length - 1; i >= 0; i--) {
-    dest[i] = parseBackProcessInfo(source[i]);
-  }
-}
-
-function copyFromArrayStr(dest: Array<string>, source: Array<string>): void {
-  for (let i = source.length - 1; i >= 0; i--) {
-    dest[i] = str(source[i]);
-  }
-}
+function noop() {}

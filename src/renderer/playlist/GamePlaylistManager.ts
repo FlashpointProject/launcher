@@ -57,7 +57,7 @@ export class GamePlaylistManager {
           directoryPath: playlistFolderPath,
           fileCallback: async (obj) => {
             const fullPath = path.join(obj.shared.options.directoryPath, obj.relativePath, obj.filename);
-            const result = await loadGamePlaylist(fullPath);
+            const result = await loadGamePlaylist(fullPath, error => logError(`Error while parsing playlist "${path.join(obj.relativePath, obj.filename)}". ${error}`));
             if (result !== LoadGamePlaylistError.FileNotFound &&
                 result !== LoadGamePlaylistError.JSONError) {
               values.push({
@@ -238,4 +238,11 @@ enum CheckIfSameResult {
   FileOtherError,
   SameID,
   DifferentID,
+}
+
+function logError(error: string): void {
+  window.External.log.addEntry({
+    source: 'Playlist',
+    content: error
+  });
 }

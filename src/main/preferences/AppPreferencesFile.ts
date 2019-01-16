@@ -11,12 +11,12 @@ export class AppPreferencesFile {
   private static fileEncoding: string = 'utf8';
 
   /** Read the file, or create a new one using the defaults, and return the preferences */
-  public static async readOrCreate(): Promise<IAppPreferencesData> {
+  public static async readOrCreate(onError?: (error: string) => void): Promise<IAppPreferencesData> {
     let error: Error|undefined,
         data: IAppPreferencesData|undefined;
     // Try to get the data from the file
     try {
-      data = await AppPreferencesFile.readFile();
+      data = await AppPreferencesFile.readFile(onError);
     } catch(e) {
       error = e;
     }
@@ -30,10 +30,10 @@ export class AppPreferencesFile {
     return data;
   }
   
-  public static readFile(): Promise<IAppPreferencesData> {
+  public static readFile(onError?: (error: string) => void): Promise<IAppPreferencesData> {
     return new Promise((resolve, reject) => {
       readJsonFile(AppPreferencesFile.filePath, AppPreferencesFile.fileEncoding)
-      .then(json => resolve(AppPreferencesFile.parseData(json, defaultPreferencesData)))
+      .then(json => resolve(AppPreferencesFile.parseData(json, defaultPreferencesData, onError)))
       .catch(reject);
     });
   }
@@ -50,10 +50,10 @@ export class AppPreferencesFile {
     });
   }
   
-  public static parseData(data: any, defaultData: IAppPreferencesData): IAppPreferencesData {
+  public static parseData(data: any, defaultData: IAppPreferencesData, onError?: (error: string) => void): IAppPreferencesData {
     // This makes sure that only the necessary properties are copied
     // And that the missing ones are set to their default value
-    return overwritePreferenceData(deepCopy(defaultData), data);
+    return overwritePreferenceData(deepCopy(defaultData), data, onError);
   }
   
   public static stringifyData(data: IAppPreferencesData): string {
