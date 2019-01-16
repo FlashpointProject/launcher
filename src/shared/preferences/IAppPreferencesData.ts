@@ -24,15 +24,17 @@ export interface IAppPreferencesData {
   /** If the "Developer" tab should be visible in the header */
   showDeveloperTab: boolean;
   /** Position and size of the main window */
-  mainWindow: {
-    x?: number;
-    y?: number;
-    width?: number;
-    height?: number;
-    maximized: boolean;
-  }
+  mainWindow: IAppPreferencesDataMainWindow;
   /** Sources to show/hide in the log page */
   showLogSource: {
     [key: string]: boolean;
   }
+}
+
+export interface IAppPreferencesDataMainWindow {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  maximized: boolean;
 }

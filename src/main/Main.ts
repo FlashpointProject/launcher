@@ -36,6 +36,8 @@ export class Main {
     // Add IPC event listeners
     ipcMain.on(AppConfigApi.ipcRequestSync, this.onGetConfigSync.bind(this));
     this._log.bindListeners();
+    // Connect preferences to log
+    this._preferences.on('log', this.pushLogData.bind(this));
     // Load config and preferences
     this.loadConfig()
     .then(async () => { await this._preferences.load(); })

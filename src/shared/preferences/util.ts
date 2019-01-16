@@ -1,6 +1,6 @@
-import { IAppPreferencesData } from './IAppPreferencesData';
+import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './IAppPreferencesData';
 import { BrowsePageLayout } from '../BrowsePageLayout';
-import { recursiveReplace } from '../Util';
+import { ObjectParser, IObjectParserProp } from '../utils/ObjectParser';
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze({
@@ -31,21 +31,36 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
  * @param data Object with data to overwrite the source with
  * @returns source object (not a copy)
  */
-export function overwritePreferenceData(source: IAppPreferencesData, data: Partial<IAppPreferencesData>): IAppPreferencesData {
-  // Replace every prop thats already present
-  recursiveReplace(source, data);
-  // Copy "showLogSource"
-  if (data.showLogSource) {
-    copyBooleanMap(source.showLogSource, data.showLogSource);
-  }
-  // Return
+export function overwritePreferenceData(source: IAppPreferencesData, data: Partial<IAppPreferencesData>, onError?: (error: string) => void): IAppPreferencesData {
+  //
+  const parser = new ObjectParser({
+    input: data,
+    onError: onError ? (error => onError(`Error while parsing Config: ${error.toString()}`)) : noop
+  });
+  parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
+  parser.prop('browsePageShowExtreme',       v => source.browsePageShowExtreme       = !!v);
+  parser.prop('enableEditing',               v => source.enableEditing               = !!v);
+  parser.prop('browsePageLayout',            v => source.browsePageLayout            = num(v));
+  parser.prop('browsePageShowLeftSidebar',   v => source.browsePageShowLeftSidebar   = !!v);
+  parser.prop('browsePageShowRightSidebar',  v => source.browsePageShowRightSidebar  = !!v);
+  parser.prop('browsePageLeftSidebarWidth',  v => source.browsePageLeftSidebarWidth  = num(v));
+  parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
+  parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
+  parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
+  parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
   return source;
 }
 
-function copyBooleanMap(source: BooleanMap, data: Partial<BooleanMap>): void {
-  for (let label in data) {
-    source[label] = !!data[label];
-  }
+function parseMainWindow(parser: IObjectParserProp<any>, output: IAppPreferencesDataMainWindow): void {
+  parser.prop('x',         v => output.x         = num(v), true);
+  parser.prop('y',         v => output.y         = num(v), true);
+  parser.prop('width',     v => output.width     = num(v), true);
+  parser.prop('height',    v => output.height    = num(v), true);
+  parser.prop('maximized', v => output.maximized = !!v);
 }
 
-type BooleanMap = { [key: string]: boolean };
+function num(n: any): number {
+  return parseFloat(n) || 0;
+}
+
+function noop() {}
