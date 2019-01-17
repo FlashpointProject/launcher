@@ -3,6 +3,7 @@ import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import GameManager from './game/GameManager';
 import { IUpgradeData } from './upgrade/upgrade';
+import { IGameLibraryFile } from '../shared/library/interfaces';
 
 /** "match" object from 'react-router' and 'history' npm packages */
 export interface IMatch {
@@ -34,6 +35,8 @@ export interface ICentralState {
   playlists: GamePlaylistManager;
   /** @TODO write this comment */
   upgrade: UpgradeState;
+  /** All game libraries */
+  library?: IGameLibraryFile;
   /** If the game collection is done loading */
   gamesDoneLoading: boolean;
   /** If the game collection failed to load */

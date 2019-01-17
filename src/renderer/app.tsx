@@ -18,6 +18,7 @@ import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import { readUpgradeFile, performUpgradeStageChecks, IUpgradeData, IUpgradeStage } from './upgrade/upgrade';
 import { downloadAndInstallUpgrade } from './util/upgrade';
+import { readGameLibraryFile } from '../shared/library/GameLibrary';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -68,6 +69,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             installProgressNote: '',
           },
         },
+        library: undefined,
         gamesDoneLoading: false,
         gamesFailedLoading: false,
         playlistsDoneLoading: false,
@@ -101,6 +103,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('window-maximize', (sender: IpcMessageEvent, isMaximized: boolean) => {
       this.props.preferencesData.mainWindow.maximized = isMaximized;
     });
+    // Load Game Libraries
+    readGameLibraryFile(fullFlashpointPath, log)
+    .then(library => {
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          library
+        })
+      });
+      console.log(library)
+    })
+    .catch(err => log(err+''));
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -110,10 +123,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           playlistsFailedLoading: true,
         })
       });
-      window.External.log.addEntry({
-        source: 'Launcher',
-        content: err+''
-      });
+      log(err+'');
       throw err;
     })
     .then(() => {
@@ -149,7 +159,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       });
     })
     .catch((error) => {
-      console.error(error);
+      log(error+'');
       this.setState({
         central: Object.assign({}, this.state.central, {
           gamesDoneLoading: true,
@@ -362,4 +372,11 @@ function downloadAndInstallStage(stage: IUpgradeStage, filename: string, setStag
     })
     .on('warn', console.warn)
   );
+}
+
+function log(content: string): void {
+  window.External.log.addEntry({
+    source: 'Launcher',
+    content: content
+  });  
 }
