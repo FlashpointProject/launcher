@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
@@ -6,8 +7,10 @@ import * as Util from '../Util';
 import { OpenIcon } from './OpenIcon';
 import { SearchQuery } from '../store/search';
 import { WithPreferencesProps } from '../containers/withPreferences';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 
 interface OwnProps {
+  libraries: IGameLibraryFileItem[];
   searchQuery: SearchQuery;
   onSearch: (text: string, redirect: boolean) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
@@ -40,33 +43,30 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   }
 
   render() {
-    const showLeftSidebar = this.props.preferencesData.browsePageShowLeftSidebar;
-    const showRightSidebar = this.props.preferencesData.browsePageShowRightSidebar;
+    const {
+      preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, showDeveloperTab },
+      onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
+    } = this.props;
     const { searchText } = this.state;
     return (
       <div className='header'>
         {/* Header Menu */}
         <div className='header__wrap'>
           <ul className='header__menu'>
-            <li className='header__menu__item'>
-              <Link to={Paths.HOME} className='header__menu__item__link'>Home</Link>
-            </li>
-            <li className='header__menu__item'>
-              <Link to={Paths.BROWSE} className='header__menu__item__link'>Browse</Link>
-            </li>
-            <li className='header__menu__item'>
-              <Link to={Paths.LOGS} className='header__menu__item__link'>Logs</Link>
-            </li>
-            <li className='header__menu__item'>
-              <Link to={Paths.CONFIG} className='header__menu__item__link'>Config</Link>
-            </li>
-            <li className='header__menu__item'>
-              <Link to={Paths.ABOUT} className='header__menu__item__link'>About</Link>
-            </li>
-            { this.props.preferencesData.showDeveloperTab ? (
-              <li className='header__menu__item'>
-                <Link to={Paths.DEVELOPER} className='header__menu__item__link'>Developer</Link>
-              </li>
+            <MenuItem title='Home' link={Paths.HOME}/>
+            { libraries.length > 0 ? (
+              libraries.map(item => (
+                <MenuItem title={item.title} link={getLibraryRoute(item.route)}
+                          key={item.route}/>
+              )) 
+            ) : (
+              <MenuItem title='Browse' link={Paths.BROWSE}/>
+            ) }
+            <MenuItem title='Logs' link={Paths.LOGS}/>
+            <MenuItem title='Config' link={Paths.CONFIG}/>
+            <MenuItem title='About' link={Paths.ABOUT}/>
+            { showDeveloperTab ? (
+              <MenuItem title='Developer' link={Paths.DEVELOPER}/>
             ) : undefined }
           </ul>
         </div>
@@ -91,7 +91,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         {/* Header Drop-downs */}
         <div className='header__wrap'>
           <div>
-            <GameOrder onChange={this.props.onOrderChange}/>
+            <GameOrder onChange={onOrderChange}/>
           </div>
         </div>
         {/* Right-most portion */}
@@ -99,15 +99,15 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
           <div>
             {/* Toggle Right Sidebar */}
             <div className='header__toggle-sidebar'
-                 title={showRightSidebar ? 'Hide right sidebar' : 'Show right sidebar'}
-                 onClick={this.props.onToggleRightSidebarClick}>
-              <OpenIcon icon={showRightSidebar ? 'collapse-right' : 'expand-right'} />
+                 title={browsePageShowRightSidebar ? 'Hide right sidebar' : 'Show right sidebar'}
+                 onClick={onToggleRightSidebarClick}>
+              <OpenIcon icon={browsePageShowRightSidebar ? 'collapse-right' : 'expand-right'} />
             </div>
             {/* Toggle Left Sidebar */}
             <div className='header__toggle-sidebar'
-                 title={showLeftSidebar ? 'Hide left sidebar' : 'Show left sidebar'}
-                 onClick={this.props.onToggleLeftSidebarClick}>
-              <OpenIcon icon={showLeftSidebar ? 'collapse-left' : 'expand-left'} />
+                 title={browsePageShowLeftSidebar ? 'Hide left sidebar' : 'Show left sidebar'}
+                 onClick={onToggleLeftSidebarClick}>
+              <OpenIcon icon={browsePageShowLeftSidebar ? 'collapse-left' : 'expand-left'} />
             </div>
           </div>
         </div>
@@ -144,4 +144,22 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     this.setState({ searchText: '' });
     this.props.onSearch('', false);
   }
+}
+
+function MenuItem({ title, link }: { title: string, link: string }) {
+  return (
+    <li className='header__menu__item'>
+      <Link to={link} className='header__menu__item__link'>{title}</Link>
+    </li>
+  );
+}
+
+function getLibraryRoute(route: string): string {
+  let cleanRoute = (
+    route
+    .replace(/\//g, '')
+    .replace(/\\/g, '')
+  );
+  if (cleanRoute === '..') { cleanRoute = ''; }
+  return path.posix.join(Paths.BROWSE, cleanRoute);
 }

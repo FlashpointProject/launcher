@@ -236,7 +236,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         {/* "Header" stuff */}
         <HeaderContainer onOrderChange={this.onOrderChange}
                          onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-                         onToggleRightSidebarClick={this.onToggleRightSidebarClick} />
+                         onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+                         libraries={this.state.central.library ? this.state.central.library.libraries : []} />
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter {...routerProps} />
