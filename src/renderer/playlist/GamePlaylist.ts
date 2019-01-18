@@ -30,16 +30,18 @@ export function parseGamePlaylist(data: any, onError?: (error: string) => void):
     description: '',
     author: '',
     icon: undefined,
+    library: undefined,
   };
   const parser = new ObjectParser({
     input: data,
     onError: onError ? (e) => { onError(e.toString()) } : noop,
   });
-  parser.prop('id',          id          => playlist.id          = id+''         );
-  parser.prop('title',       title       => playlist.title       = title+''      );
-  parser.prop('description', description => playlist.description = description+'');
-  parser.prop('author',      author      => playlist.author      = author+''     );
-  parser.prop('icon',        icon        => playlist.icon        = icon+''       );
+  parser.prop('id',          v => playlist.id          = v+'');
+  parser.prop('title',       v => playlist.title       = v+'');
+  parser.prop('description', v => playlist.description = v+'');
+  parser.prop('author',      v => playlist.author      = v+'');
+  parser.prop('icon',        v => playlist.icon        = v+'', true);
+  parser.prop('library',     v => playlist.library     = v+'', true);
   parser.prop('games').array(gameParser => {
     const game = createGamePlaylistEntry();
     gameParser.prop('id',    id    => game.id    = id+''   );

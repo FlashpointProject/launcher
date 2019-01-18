@@ -5,9 +5,11 @@ import { OpenIcon } from './OpenIcon';
 import { IGamePlaylist } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
 import { WithPreferencesProps } from '../containers/withPreferences';
+import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
 
 interface OwnProps {
   central: ICentralState;
+  currentLibrary?: IGameLibraryFileItem;
   /** ID of the playlist that is selected (empty string if none) */
   selectedPlaylistID: string;
   onSelectPlaylist?: (playlist: IGamePlaylist) => void;
@@ -30,12 +32,27 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
       isEditing: false,
     };
   }
+  
+  private filterAndSortPlaylists(): IGamePlaylist[] {
+    const { central, currentLibrary } = this.props;
+    let playlists = central.playlists.playlists.slice();
+    if (currentLibrary) { // (Filter out all playlists that "belong" to other libraries than the current one)
+      const route = currentLibrary.route;
+      if (currentLibrary.default) {
+        playlists = playlists.filter(playlist => !playlist.library || playlist.library === route);
+      } else if (route) {
+        playlists = playlists.filter(playlist => playlist.library === route);
+      }
+    }
+    playlists.sort((a, b) => a.title.localeCompare(b.title));
+    return playlists;
+  }
 
   render() {
     const central = this.props.central;
     const selectedPlaylistID = this.props.selectedPlaylistID;
-    const playlists = this.props.central.playlists.playlists.slice().sort((a, b) => a.title.localeCompare(b.title));
     const editingDisabled = !this.props.preferencesData.enableEditing;
+    const playlists = this.filterAndSortPlaylists();
     return (
       <div className='browse-left-sidebar'>
           {central.playlistsDoneLoading ? (
@@ -148,14 +165,16 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
   }
 
   private onCreatePlaylistClick = (): void => {
-    if (this.props.central.playlistsDoneLoading) {
+    const { central, currentLibrary, onSelectPlaylist } = this.props;
+    if (central.playlistsDoneLoading) {
       // Create and save a new playlist
-      const playlist = this.props.central.playlists.create();
-      this.props.central.playlists.save(playlist);
+      const playlist = central.playlists.create();
+      if (currentLibrary) { playlist.library = currentLibrary.route; }
+      central.playlists.save(playlist);
       // Select the new playlist
       this.forceUpdate();
       setTimeout(() => { // (Give the playlist list item some time to be created before selecting it)
-        this.props.onSelectPlaylist && this.props.onSelectPlaylist(playlist);
+        onSelectPlaylist && onSelectPlaylist(playlist);
         this.setState({ isEditing: false });
       }, 1);
     }

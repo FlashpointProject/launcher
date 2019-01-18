@@ -23,6 +23,7 @@ import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrow
 import { IResizableSidebar, IResizeEvent } from '../IResizableSidebar';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { WithLibraryProps } from '../../containers/withLibrary';
+import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
 
 interface OwnProps {
   central: ICentralState;
@@ -162,6 +163,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                            width={this.props.preferencesData.browsePageLeftSidebarWidth}
                            onResize={this.onLeftSidebarResize}>
           <ConnectedLeftBrowseSidebar central={this.props.central}
+                                      currentLibrary={this.getCurrentLibrary()}
                                       selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
                                       onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
                                       onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
@@ -547,44 +549,49 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     }
   }
 
-  /** Find all the games for the current library - undefined if no library is selected */
-  private getCurrentLibraryGames(): IGameInfo[]|undefined {
+  private getCurrentLibrary(): IGameLibraryFileItem|undefined {
     if (this.props.libraryData) {
       const route = this.props.gameLibraryRoute;
-      const currentLibrary = this.props.libraryData.libraries.find(item => item.route === route);
-      if (currentLibrary) {
-        let games: IGameInfo[] = [];
-        const allPlatforms = this.props.central.games.listPlatforms();
-        if (currentLibrary.default) {
-          // Find all platforms "used" by other libraries
-          const usedPlatforms: GameManagerPlatform[] = [];
-          this.props.libraryData.libraries.forEach(library => {
-            if (library === currentLibrary) { return; }
-            if (library.prefix) {
-              const prefix = library.prefix;
-              allPlatforms.forEach(platform => {
-                if (platform.filename.startsWith(prefix)) { usedPlatforms.push(platform); }
-              });
-            }
-          });
-          // Get all games from all platforms that are not "used" by other libraries
-          const unusedPlatforms = allPlatforms.filter(platform => usedPlatforms.indexOf(platform) === -1);
-          unusedPlatforms.forEach(platform => {
-            if (platform.collection) {
-              Array.prototype.push.apply(games, platform.collection.games);
-            }
-          });
-        } else if (currentLibrary.prefix) {
-          const prefix = currentLibrary.prefix;
-          const platforms = allPlatforms.filter(platform => platform.filename.startsWith(prefix));
-          platforms.forEach(platform => {
-            if (platform.collection) {
-              Array.prototype.push.apply(games, platform.collection.games);
-            }
-          })
-        }
-        return games;
+      return this.props.libraryData.libraries.find(item => item.route === route);
+    }
+    return undefined;
+  }
+
+  /** Find all the games for the current library - undefined if no library is selected */
+  private getCurrentLibraryGames(): IGameInfo[]|undefined {
+    const currentLibrary = this.getCurrentLibrary();
+    if (currentLibrary) {
+      let games: IGameInfo[] = [];
+      const allPlatforms = this.props.central.games.listPlatforms();
+      if (currentLibrary.default) {
+        // Find all platforms "used" by other libraries
+        const usedPlatforms: GameManagerPlatform[] = [];
+        this.props.libraryData.libraries.forEach(library => {
+          if (library === currentLibrary) { return; }
+          if (library.prefix) {
+            const prefix = library.prefix;
+            allPlatforms.forEach(platform => {
+              if (platform.filename.startsWith(prefix)) { usedPlatforms.push(platform); }
+            });
+          }
+        });
+        // Get all games from all platforms that are not "used" by other libraries
+        const unusedPlatforms = allPlatforms.filter(platform => usedPlatforms.indexOf(platform) === -1);
+        unusedPlatforms.forEach(platform => {
+          if (platform.collection) {
+            Array.prototype.push.apply(games, platform.collection.games);
+          }
+        });
+      } else if (currentLibrary.prefix) {
+        const prefix = currentLibrary.prefix;
+        const platforms = allPlatforms.filter(platform => platform.filename.startsWith(prefix));
+        platforms.forEach(platform => {
+          if (platform.collection) {
+            Array.prototype.push.apply(games, platform.collection.games);
+          }
+        })
       }
+      return games;
     }
     return undefined;
   }
