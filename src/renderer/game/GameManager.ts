@@ -102,13 +102,22 @@ class GameManager extends EventEmitter {
   }
   
   public getPlatformByName(platformName: string): GameManagerPlatform|undefined {
-    const targetName = platformName.toLowerCase() + '.xml';
+    return this.getPlatformByFilename(platformName + '.xml');
+  }
+  
+  public getPlatformByFilename(platformFilename: string): GameManagerPlatform|undefined {
+    const targetName = platformFilename.toLowerCase();
     for (let i = this.platforms.length - 1; i >= 0; i--) {
       const platform = this.platforms[i];
       if (targetName === platform.filename.toLowerCase()) {
         return platform;
       }
     }
+  }
+
+  /** Get an array of all the platform names */
+  public listPlatforms(): GameManagerPlatform[] {
+    return this.platforms.slice();
   }
 
   public refreshCollection(): void {

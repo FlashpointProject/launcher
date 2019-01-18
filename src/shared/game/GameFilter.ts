@@ -66,12 +66,10 @@ export function getOrderFunction(order: IGameOrderChangeEvent): OrderFn {
   return orderFn;
 }
 
-export function filterPlatforms(platforms: string[], games: IGameInfo[]): IGameInfo[] {
+export function filterPlatforms(platforms: string[]|undefined, games: IGameInfo[]): IGameInfo[] {
+  if (!platforms) { return games; }
+  if (platforms.length === 0) { return []; }
   console.time('filterPlatforms');
-  if (platforms.length === 0) {
-    console.timeEnd('filterPlatforms');
-    return games;
-  }
   const filteredGames: IGameInfo[] = [];
   for (let game of games) {
     if (platforms.indexOf(game.platform) !== -1) {
@@ -190,7 +188,7 @@ export interface IOrderGamesArgs {
   extreme: boolean;
   broken: boolean;
   playlist?: IGamePlaylist;
-  platforms: string[];
+  platforms?: string[];
   order: IGameOrderChangeEvent;
 }
 

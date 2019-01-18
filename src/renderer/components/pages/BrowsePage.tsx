@@ -546,22 +546,62 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       }
     }
   }
+
+  /** Find all the games for the current library - undefined if no library is selected */
+  private getCurrentLibraryGames(): IGameInfo[]|undefined {
+    if (this.props.libraryData) {
+      const route = this.props.gameLibraryRoute;
+      const currentLibrary = this.props.libraryData.libraries.find(item => item.route === route);
+      if (currentLibrary) {
+        let games: IGameInfo[] = [];
+        const allPlatforms = this.props.central.games.listPlatforms();
+        if (currentLibrary.default) {
+          // Find all platforms "used" by other libraries
+          const usedPlatforms: GameManagerPlatform[] = [];
+          this.props.libraryData.libraries.forEach(library => {
+            if (library === currentLibrary) { return; }
+            if (library.prefix) {
+              const prefix = library.prefix;
+              allPlatforms.forEach(platform => {
+                if (platform.filename.startsWith(prefix)) { usedPlatforms.push(platform); }
+              });
+            }
+          });
+          // Get all games from all platforms that are not "used" by other libraries
+          const unusedPlatforms = allPlatforms.filter(platform => usedPlatforms.indexOf(platform) === -1);
+          unusedPlatforms.forEach(platform => {
+            if (platform.collection) {
+              Array.prototype.push.apply(games, platform.collection.games);
+            }
+          });
+        } else if (currentLibrary.prefix) {
+          const prefix = currentLibrary.prefix;
+          const platforms = allPlatforms.filter(platform => platform.filename.startsWith(prefix));
+          platforms.forEach(platform => {
+            if (platform.collection) {
+              Array.prototype.push.apply(games, platform.collection.games);
+            }
+          })
+        }
+        return games;
+      }
+    }
+    return undefined;
+  }
   
   /**
    * Update the ordered games array if the related props, configs or preferences has been changed
    * @param force If checking for changes in the arguments should be skipped (it always re-orders the games)
    */
   private orderGames(force: boolean = false): void {
-    let platforms: string[] = [];
-    /* @TODO Get a list of all platforms in the current library */
     const args = {
-      games: this.props.central.games.collection.games,
+      games: this.getCurrentLibraryGames() || this.props.central.games.collection.games,
       search: this.props.search ? this.props.search.text : '',
       extreme: !window.External.config.data.disableExtremeGames &&
                this.props.preferencesData.browsePageShowExtreme,
       broken: window.External.config.data.showBrokenGames,
       playlist: this.props.selectedPlaylist,
-      platforms: platforms,
+      platforms: undefined,
       order: this.props.order || BrowsePage.defaultOrder,
     };
     if (force || !checkOrderGamesArgsEqual(args, this.state.orderedGamesArgs)) {
@@ -592,18 +632,20 @@ function calcScale(defHeight: number, scale: number): number {
  */
 function checkOrderGamesArgsEqual(args1: IOrderGamesArgs, args2?: IOrderGamesArgs): boolean {
   if (!args2)                            { return false; }
-  if (args1.games    !== args2.games)    { return false; }
   if (args1.search   !== args2.search)   { return false; }
   if (args1.extreme  !== args2.extreme)  { return false; }
   if (args1.broken   !== args2.broken)   { return false; }
   if (args1.playlist !== args2.playlist) { return false; }
   if (args1.order    !== args2.order)    { return false; }
   if (!checkIfArraysAreEqual(args1.platforms, args2.platforms)) { return false; }
+  if (!checkIfArraysAreEqual(args1.games, args2.games)) { return false; }
   return true;
 }
 
 /** Check if two arrays are of equal length and contains the exact same items in the same order */
-function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
+function checkIfArraysAreEqual(a: any[]|undefined, b: any[]|undefined): boolean {
+  if (a === b) { return true; }
+  if (!a || !b) { return false; }
   if (a.length !== b.length) { return false; }
   for (let i = a.length; i >= 0; i--) {
     if (a[i] !== b[i]) { return false; }
