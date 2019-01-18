@@ -17,6 +17,11 @@ export function readGameLibraryFile(flashpointFolder: string, onError?: (error: 
   });
 }
 
+/** Create the default library data */
+export function createDefaultGameLibrary(): IGameLibraryFile {
+  return createGameLibrary();
+}
+
 function parseGameLibrary(data: any, onError?: (error: string) => void): IGameLibraryFile {
   const parsed = createGameLibrary();
   const parser = new ObjectParser({

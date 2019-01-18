@@ -6,6 +6,7 @@ import * as searchActions from '../store/search/actions';
 import { BrowsePage, IBrowsePageProps } from '../components/pages/BrowsePage';
 import { SearchQuery } from '../store/search';
 import { withPreferences, WithPreferencesProps } from './withPreferences';
+import { withLibrary, WithLibraryProps } from './withLibrary';
 
 interface IStateToProps {
   search: SearchQuery;
@@ -15,7 +16,7 @@ interface IDispatchToProps {
   clearSearch: () => void;
 }
 
-export type IConnectedBrowsePageProps = Subtract<IBrowsePageProps, IStateToProps & IDispatchToProps & WithPreferencesProps>;
+export type IConnectedBrowsePageProps = Subtract<IBrowsePageProps, IStateToProps & IDispatchToProps & WithPreferencesProps & WithLibraryProps>;
 
 const mapStateToProps = ({ search }: ApplicationState): IStateToProps => ({
   search: search.query,
@@ -25,7 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch): IDispatchToProps => bindActionC
   clearSearch: () => searchActions.setQuery({ text: '' }),
 }, dispatch);
 
-export default withPreferences(connect(
+export default withLibrary(withPreferences(connect(
   mapStateToProps,
   mapDispatchToProps
-)(BrowsePage));
+)(BrowsePage)));

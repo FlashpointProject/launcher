@@ -7,10 +7,9 @@ import * as Util from '../Util';
 import { OpenIcon } from './OpenIcon';
 import { SearchQuery } from '../store/search';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { WithLibraryProps } from '../containers/withLibrary';
 
 interface OwnProps {
-  libraries: IGameLibraryFileItem[];
   searchQuery: SearchQuery;
   onSearch: (text: string, redirect: boolean) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
@@ -18,7 +17,7 @@ interface OwnProps {
   onToggleRightSidebarClick?: () => void;
 }
 
-export type IHeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps;
+export type IHeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
 
 export interface IHeaderState {
   searchText: string;
@@ -45,7 +44,8 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   render() {
     const {
       preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, showDeveloperTab },
-      onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
+      libraryData: { libraries },
+      onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick
     } = this.props;
     const { searchText } = this.state;
     return (

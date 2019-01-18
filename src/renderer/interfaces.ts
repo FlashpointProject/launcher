@@ -35,8 +35,6 @@ export interface ICentralState {
   playlists: GamePlaylistManager;
   /** @TODO write this comment */
   upgrade: UpgradeState;
-  /** All game libraries */
-  library?: IGameLibraryFile;
   /** If the game collection is done loading */
   gamesDoneLoading: boolean;
   /** If the game collection failed to load */

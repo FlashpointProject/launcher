@@ -16,15 +16,17 @@ import { SearchQuery } from './store/search';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
-import { readUpgradeFile, performUpgradeStageChecks, IUpgradeData, IUpgradeStage } from './upgrade/upgrade';
+import { readUpgradeFile, performUpgradeStageChecks, IUpgradeStage } from './upgrade/upgrade';
 import { downloadAndInstallUpgrade } from './util/upgrade';
 import { readGameLibraryFile } from '../shared/library/GameLibrary';
+import { Paths } from './Paths';
+import { WithLibraryProps } from './containers/withLibrary';
 
 interface IAppOwnProps {
   search: SearchQuery;
 }
 
-export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProps;
+export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
 
 export interface IAppState {
   central: ICentralState;
@@ -69,7 +71,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             installProgressNote: '',
           },
         },
-        library: undefined,
         gamesDoneLoading: false,
         gamesFailedLoading: false,
         playlistsDoneLoading: false,
@@ -106,12 +107,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // Load Game Libraries
     readGameLibraryFile(fullFlashpointPath, log)
     .then(library => {
-      this.setState({
-        central: Object.assign({}, this.state.central, {
-          library
-        })
-      });
-      console.log(library)
+      this.props.updateLibrary(library);
     })
     .catch(err => log(err+''));
     // Load Playlists
@@ -225,6 +221,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       wasNewGameClicked: this.state.wasNewGameClicked,
       onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
+      gameLibraryRoute: getBrowseSubPath(this.props.location.pathname),
     };
     // Render
     return (
@@ -236,8 +233,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {/* "Header" stuff */}
         <HeaderContainer onOrderChange={this.onOrderChange}
                          onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-                         onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-                         libraries={this.state.central.library ? this.state.central.library.libraries : []} />
+                         onToggleRightSidebarClick={this.onToggleRightSidebarClick} />
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter {...routerProps} />
@@ -373,6 +369,15 @@ function downloadAndInstallStage(stage: IUpgradeStage, filename: string, setStag
     })
     .on('warn', console.warn)
   );
+}
+
+function getBrowseSubPath(urlPath: string): string {
+  if (urlPath.startsWith(Paths.BROWSE)) {
+    let str = urlPath.substr(Paths.BROWSE.length);
+    if (str[0] == '/') { str = str.substring(1); }
+    return str;
+  }
+  return '';
 }
 
 function log(content: string): void {

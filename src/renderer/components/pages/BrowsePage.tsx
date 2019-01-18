@@ -22,6 +22,7 @@ import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowse
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { IResizableSidebar, IResizeEvent } from '../IResizableSidebar';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
+import { WithLibraryProps } from '../../containers/withLibrary';
 
 interface OwnProps {
   central: ICentralState;
@@ -39,9 +40,11 @@ interface OwnProps {
   onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
   clearSearch: () => void;
   wasNewGameClicked: boolean;
+  /** "Route" of the currently selected library (empty string means no library) */
+  gameLibraryRoute: string;
 }
 
-export type IBrowsePageProps = OwnProps & IDefaultProps & WithPreferencesProps;
+export type IBrowsePageProps = OwnProps & IDefaultProps & WithPreferencesProps & WithLibraryProps;
 
 export interface IBrowsePageState {
   /** Current quick search string (used to jump to a game in the list, not to filter the list) */
@@ -77,7 +80,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       quickSearch: '',
       orderedGames: [],
       isEditing: false,
-      isNewGame: false,
+      isNewGame: false
     };
   }
 
@@ -549,6 +552,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
    * @param force If checking for changes in the arguments should be skipped (it always re-orders the games)
    */
   private orderGames(force: boolean = false): void {
+    let platforms: string[] = [];
+    /* @TODO Get a list of all platforms in the current library */
     const args = {
       games: this.props.central.games.collection.games,
       search: this.props.search ? this.props.search.text : '',
@@ -556,6 +561,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                this.props.preferencesData.browsePageShowExtreme,
       broken: window.External.config.data.showBrokenGames,
       playlist: this.props.selectedPlaylist,
+      platforms: platforms,
       order: this.props.order || BrowsePage.defaultOrder,
     };
     if (force || !checkOrderGamesArgsEqual(args, this.state.orderedGamesArgs)) {
@@ -592,5 +598,15 @@ function checkOrderGamesArgsEqual(args1: IOrderGamesArgs, args2?: IOrderGamesArg
   if (args1.broken   !== args2.broken)   { return false; }
   if (args1.playlist !== args2.playlist) { return false; }
   if (args1.order    !== args2.order)    { return false; }
+  if (!checkIfArraysAreEqual(args1.platforms, args2.platforms)) { return false; }
+  return true;
+}
+
+/** Check if two arrays are of equal length and contains the exact same items in the same order */
+function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
+  if (a.length !== b.length) { return false; }
+  for (let i = a.length; i >= 0; i--) {
+    if (a[i] !== b[i]) { return false; }
+  }
   return true;
 }
