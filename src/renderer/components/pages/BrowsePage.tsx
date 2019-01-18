@@ -444,13 +444,19 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     console.time('save');
     const game = this.state.currentGame;
     if (!game) { console.error(`Can't save game. "currentGame" is missing.`); return; }
+    //
+    const currentLibrary = this.getCurrentLibrary();
+    let platformPrefix = '';
+    if (currentLibrary && currentLibrary.prefix) {
+      platformPrefix = currentLibrary.prefix;
+    }
     // Find the platform the game is in (or should be in, if it is not in one already)
     const games = this.props.central.games;
     let platform = games.getPlatformOfGameId(game.id) ||
-                   games.getPlatformByName(game.platform) ||
-                   games.getPlatformByName('Unknown Platform');
+                   games.getPlatformByName(platformPrefix+game.platform) ||
+                   games.getPlatformByName(platformPrefix+'Unknown Platform');
     if (!platform) {
-      platform = new GameManagerPlatform('Unknown Platform.xml');
+      platform = new GameManagerPlatform(platformPrefix+'Unknown Platform.xml');
       platform.collection = new GameCollection();
       platform.data = { LaunchBox: {} };
       games.addPlatform(platform);

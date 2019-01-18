@@ -1,13 +1,12 @@
-import * as path from 'path';
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
 import { Paths } from '../Paths';
-import * as Util from '../Util';
 import { OpenIcon } from './OpenIcon';
 import { SearchQuery } from '../store/search';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithLibraryProps } from '../containers/withLibrary';
+import { getLibraryRoute, easterEgg } from '../Util';
 
 interface OwnProps {
   searchQuery: SearchQuery;
@@ -126,7 +125,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     if (event.key === 'Enter') {
       const value = this.state.searchText;
       this.props.onSearch(value, true);
-      Util.easterEgg(value);
+      easterEgg(value);
     }
   }
 
@@ -152,14 +151,4 @@ function MenuItem({ title, link }: { title: string, link: string }) {
       <Link to={link} className='header__menu__item__link'>{title}</Link>
     </li>
   );
-}
-
-function getLibraryRoute(route: string): string {
-  let cleanRoute = (
-    route
-    .replace(/\//g, '')
-    .replace(/\\/g, '')
-  );
-  if (cleanRoute === '..') { cleanRoute = ''; }
-  return path.posix.join(Paths.BROWSE, cleanRoute);
 }

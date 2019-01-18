@@ -200,6 +200,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (prevState.wasNewGameClicked) {
       this.setState({ wasNewGameClicked: false });
     }
+    // Update preference "lastSelectedLibrary"
+    const gameLibraryRoute = getBrowseSubPath(this.props.location.pathname);
+    if (this.props.location.pathname.startsWith(Paths.BROWSE) &&
+        this.props.preferencesData.lastSelectedLibrary !== gameLibraryRoute) {
+      this.props.updatePreferences({ lastSelectedLibrary: gameLibraryRoute });
+    }
   }
 
   render() {
