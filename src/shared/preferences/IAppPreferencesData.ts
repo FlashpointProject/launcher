@@ -23,6 +23,8 @@ export interface IAppPreferencesData {
   browsePageRightSidebarWidth: number;
   /** If the "Developer" tab should be visible in the header */
   showDeveloperTab: boolean;
+  /** The "route" of the last selected library (empty string selects the default) */
+  lastSelectedLibrary: string;
   /** Position and size of the main window */
   mainWindow: IAppPreferencesDataMainWindow;
   /** Sources to show/hide in the log page */

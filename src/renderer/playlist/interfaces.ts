@@ -7,6 +7,7 @@ export interface IGamePlaylist {
   description: string;
   author: string;
   icon?: string;
+  library?: string;
 }
 
 export interface IGamePlaylistEntry {

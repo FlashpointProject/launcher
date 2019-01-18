@@ -8,6 +8,8 @@ import { Header, IHeaderProps } from '../components/Header';
 import { Paths } from '../Paths';
 import { withPreferences } from './withPreferences';
 import { withSearch, WithSearchProps } from './withSearch';
+import { withLibrary, WithLibraryProps } from './withLibrary';
+import { getLibraryRoute } from '../Util';
 
 interface IStateToProps {
 }
@@ -15,14 +17,15 @@ interface IStateToProps {
 interface IDispatchToProps {
 }
 
-type IHeaderContainerProps = IHeaderProps & IStateToProps & IDispatchToProps & WithSearchProps;
+type IHeaderContainerProps = IHeaderProps & IStateToProps & IDispatchToProps & WithSearchProps & WithLibraryProps;
 
 const HeaderContainer: React.FunctionComponent<IHeaderContainerProps> = (props: IHeaderContainerProps) => {
   const { onSearch, ...rest } = props;
   return (
     <Header
       onSearch={(text: string, redirect: boolean) => {
-        if (redirect) { props.history.push(Paths.BROWSE); }
+        props.preferencesData.lastSelectedLibrary
+        if (redirect) { props.history.push(getLibraryRoute(props.preferencesData.lastSelectedLibrary)); }
         onSearch(text);
       }}
       {...rest}
@@ -38,7 +41,7 @@ const mapDispatchToProps = (dispatch: Dispatch): IDispatchToProps => bindActionC
   onSearch: (text: string) => searchActions.setQuery({ text }),
 }, dispatch);
 
-export default withRouter(withPreferences(withSearch(connect(
+export default withRouter(withLibrary(withPreferences(withSearch(connect(
   mapStateToProps,
   mapDispatchToProps
-)(HeaderContainer))));
+)(HeaderContainer)))));

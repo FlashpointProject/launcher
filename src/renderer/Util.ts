@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { Paths } from './Paths';
 
 export const gameIdDataType: string = 'text/game-id';
 
@@ -58,4 +59,14 @@ export function shuffle<T>(array: T[]): T[] {
     shuffled[i] = temp;
   }
   return shuffled;
+}
+
+export function getLibraryRoute(urlPath: string): string {
+  let cleanRoute = (
+    urlPath
+    .replace(/\//g, '')
+    .replace(/\\/g, '')
+  );
+  if (cleanRoute === '..') { cleanRoute = ''; }
+  return path.posix.join(Paths.BROWSE, cleanRoute);
 }

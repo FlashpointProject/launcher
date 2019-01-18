@@ -16,14 +16,17 @@ import { SearchQuery } from './store/search';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
-import { readUpgradeFile, performUpgradeStageChecks, IUpgradeData, IUpgradeStage } from './upgrade/upgrade';
+import { readUpgradeFile, performUpgradeStageChecks, IUpgradeStage } from './upgrade/upgrade';
 import { downloadAndInstallUpgrade } from './util/upgrade';
+import { readGameLibraryFile } from '../shared/library/GameLibrary';
+import { Paths } from './Paths';
+import { WithLibraryProps } from './containers/withLibrary';
 
 interface IAppOwnProps {
   search: SearchQuery;
 }
 
-export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProps;
+export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
 
 export interface IAppState {
   central: ICentralState;
@@ -101,6 +104,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('window-maximize', (sender: IpcMessageEvent, isMaximized: boolean) => {
       this.props.preferencesData.mainWindow.maximized = isMaximized;
     });
+    // Load Game Libraries
+    readGameLibraryFile(fullFlashpointPath, log)
+    .then(library => {
+      this.props.updateLibrary(library);
+    })
+    .catch(err => log(err+''));
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -110,10 +119,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           playlistsFailedLoading: true,
         })
       });
-      window.External.log.addEntry({
-        source: 'Launcher',
-        content: err+''
-      });
+      log(err+'');
       throw err;
     })
     .then(() => {
@@ -149,7 +155,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       });
     })
     .catch((error) => {
-      console.error(error);
+      log(error+'');
       this.setState({
         central: Object.assign({}, this.state.central, {
           gamesDoneLoading: true,
@@ -194,6 +200,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (prevState.wasNewGameClicked) {
       this.setState({ wasNewGameClicked: false });
     }
+    // Update preference "lastSelectedLibrary"
+    const gameLibraryRoute = getBrowseSubPath(this.props.location.pathname);
+    if (this.props.location.pathname.startsWith(Paths.BROWSE) &&
+        this.props.preferencesData.lastSelectedLibrary !== gameLibraryRoute) {
+      this.props.updatePreferences({ lastSelectedLibrary: gameLibraryRoute });
+    }
   }
 
   render() {
@@ -215,6 +227,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       wasNewGameClicked: this.state.wasNewGameClicked,
       onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
+      gameLibraryRoute: getBrowseSubPath(this.props.location.pathname),
     };
     // Render
     return (
@@ -362,4 +375,20 @@ function downloadAndInstallStage(stage: IUpgradeStage, filename: string, setStag
     })
     .on('warn', console.warn)
   );
+}
+
+function getBrowseSubPath(urlPath: string): string {
+  if (urlPath.startsWith(Paths.BROWSE)) {
+    let str = urlPath.substr(Paths.BROWSE.length);
+    if (str[0] == '/') { str = str.substring(1); }
+    return str;
+  }
+  return '';
+}
+
+function log(content: string): void {
+  window.External.log.addEntry({
+    source: 'Launcher',
+    content: content
+  });  
 }

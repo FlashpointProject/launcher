@@ -13,6 +13,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageLeftSidebarWidth: 320,
   browsePageRightSidebarWidth: 320,
   showDeveloperTab: false,
+  lastSelectedLibrary: '',
   mainWindow: Object.freeze({
     x: undefined,
     y: undefined,
@@ -46,6 +47,7 @@ export function overwritePreferenceData(source: IAppPreferencesData, data: Parti
   parser.prop('browsePageLeftSidebarWidth',  v => source.browsePageLeftSidebarWidth  = num(v));
   parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
   parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
+  parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
   return source;
@@ -61,6 +63,10 @@ function parseMainWindow(parser: IObjectParserProp<any>, output: IAppPreferences
 
 function num(n: any): number {
   return parseFloat(n) || 0;
+}
+
+function str(str: any): string {
+  return (str || '') + '';
 }
 
 function noop() {}

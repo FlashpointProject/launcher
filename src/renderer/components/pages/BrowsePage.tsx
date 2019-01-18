@@ -22,6 +22,8 @@ import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowse
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { IResizableSidebar, IResizeEvent } from '../IResizableSidebar';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
+import { WithLibraryProps } from '../../containers/withLibrary';
+import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
 
 interface OwnProps {
   central: ICentralState;
@@ -39,9 +41,11 @@ interface OwnProps {
   onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
   clearSearch: () => void;
   wasNewGameClicked: boolean;
+  /** "Route" of the currently selected library (empty string means no library) */
+  gameLibraryRoute: string;
 }
 
-export type IBrowsePageProps = OwnProps & IDefaultProps & WithPreferencesProps;
+export type IBrowsePageProps = OwnProps & IDefaultProps & WithPreferencesProps & WithLibraryProps;
 
 export interface IBrowsePageState {
   /** Current quick search string (used to jump to a game in the list, not to filter the list) */
@@ -77,7 +81,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       quickSearch: '',
       orderedGames: [],
       isEditing: false,
-      isNewGame: false,
+      isNewGame: false
     };
   }
 
@@ -159,6 +163,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                            width={this.props.preferencesData.browsePageLeftSidebarWidth}
                            onResize={this.onLeftSidebarResize}>
           <ConnectedLeftBrowseSidebar central={this.props.central}
+                                      currentLibrary={this.getCurrentLibrary()}
                                       selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
                                       onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
                                       onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
@@ -439,13 +444,19 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     console.time('save');
     const game = this.state.currentGame;
     if (!game) { console.error(`Can't save game. "currentGame" is missing.`); return; }
+    //
+    const currentLibrary = this.getCurrentLibrary();
+    let platformPrefix = '';
+    if (currentLibrary && currentLibrary.prefix) {
+      platformPrefix = currentLibrary.prefix;
+    }
     // Find the platform the game is in (or should be in, if it is not in one already)
     const games = this.props.central.games;
     let platform = games.getPlatformOfGameId(game.id) ||
-                   games.getPlatformByName(game.platform) ||
-                   games.getPlatformByName('Unknown Platform');
+                   games.getPlatformByName(platformPrefix+game.platform) ||
+                   games.getPlatformByName(platformPrefix+'Unknown Platform');
     if (!platform) {
-      platform = new GameManagerPlatform('Unknown Platform.xml');
+      platform = new GameManagerPlatform(platformPrefix+'Unknown Platform.xml');
       platform.collection = new GameCollection();
       platform.data = { LaunchBox: {} };
       games.addPlatform(platform);
@@ -543,6 +554,53 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       }
     }
   }
+
+  private getCurrentLibrary(): IGameLibraryFileItem|undefined {
+    if (this.props.libraryData) {
+      const route = this.props.gameLibraryRoute;
+      return this.props.libraryData.libraries.find(item => item.route === route);
+    }
+    return undefined;
+  }
+
+  /** Find all the games for the current library - undefined if no library is selected */
+  private getCurrentLibraryGames(): IGameInfo[]|undefined {
+    const currentLibrary = this.getCurrentLibrary();
+    if (currentLibrary) {
+      let games: IGameInfo[] = [];
+      const allPlatforms = this.props.central.games.listPlatforms();
+      if (currentLibrary.default) {
+        // Find all platforms "used" by other libraries
+        const usedPlatforms: GameManagerPlatform[] = [];
+        this.props.libraryData.libraries.forEach(library => {
+          if (library === currentLibrary) { return; }
+          if (library.prefix) {
+            const prefix = library.prefix;
+            allPlatforms.forEach(platform => {
+              if (platform.filename.startsWith(prefix)) { usedPlatforms.push(platform); }
+            });
+          }
+        });
+        // Get all games from all platforms that are not "used" by other libraries
+        const unusedPlatforms = allPlatforms.filter(platform => usedPlatforms.indexOf(platform) === -1);
+        unusedPlatforms.forEach(platform => {
+          if (platform.collection) {
+            Array.prototype.push.apply(games, platform.collection.games);
+          }
+        });
+      } else if (currentLibrary.prefix) {
+        const prefix = currentLibrary.prefix;
+        const platforms = allPlatforms.filter(platform => platform.filename.startsWith(prefix));
+        platforms.forEach(platform => {
+          if (platform.collection) {
+            Array.prototype.push.apply(games, platform.collection.games);
+          }
+        })
+      }
+      return games;
+    }
+    return undefined;
+  }
   
   /**
    * Update the ordered games array if the related props, configs or preferences has been changed
@@ -550,12 +608,13 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
    */
   private orderGames(force: boolean = false): void {
     const args = {
-      games: this.props.central.games.collection.games,
+      games: this.getCurrentLibraryGames() || this.props.central.games.collection.games,
       search: this.props.search ? this.props.search.text : '',
       extreme: !window.External.config.data.disableExtremeGames &&
                this.props.preferencesData.browsePageShowExtreme,
       broken: window.External.config.data.showBrokenGames,
       playlist: this.props.selectedPlaylist,
+      platforms: undefined,
       order: this.props.order || BrowsePage.defaultOrder,
     };
     if (force || !checkOrderGamesArgsEqual(args, this.state.orderedGamesArgs)) {
@@ -586,11 +645,23 @@ function calcScale(defHeight: number, scale: number): number {
  */
 function checkOrderGamesArgsEqual(args1: IOrderGamesArgs, args2?: IOrderGamesArgs): boolean {
   if (!args2)                            { return false; }
-  if (args1.games    !== args2.games)    { return false; }
   if (args1.search   !== args2.search)   { return false; }
   if (args1.extreme  !== args2.extreme)  { return false; }
   if (args1.broken   !== args2.broken)   { return false; }
   if (args1.playlist !== args2.playlist) { return false; }
   if (args1.order    !== args2.order)    { return false; }
+  if (!checkIfArraysAreEqual(args1.platforms, args2.platforms)) { return false; }
+  if (!checkIfArraysAreEqual(args1.games, args2.games)) { return false; }
+  return true;
+}
+
+/** Check if two arrays are of equal length and contains the exact same items in the same order */
+function checkIfArraysAreEqual(a: any[]|undefined, b: any[]|undefined): boolean {
+  if (a === b) { return true; }
+  if (!a || !b) { return false; }
+  if (a.length !== b.length) { return false; }
+  for (let i = a.length; i >= 0; i--) {
+    if (a[i] !== b[i]) { return false; }
+  }
   return true;
 }

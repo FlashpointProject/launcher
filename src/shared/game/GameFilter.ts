@@ -66,6 +66,20 @@ export function getOrderFunction(order: IGameOrderChangeEvent): OrderFn {
   return orderFn;
 }
 
+export function filterPlatforms(platforms: string[]|undefined, games: IGameInfo[]): IGameInfo[] {
+  if (!platforms) { return games; }
+  if (platforms.length === 0) { return []; }
+  console.time('filterPlatforms');
+  const filteredGames: IGameInfo[] = [];
+  for (let game of games) {
+    if (platforms.indexOf(game.platform) !== -1) {
+      filteredGames.push(game);
+    }
+  }
+  console.timeEnd('filterPlatforms');
+  return filteredGames;
+}
+
 /** Return a new array with all broken games removed (if showBroken is false) */
 export function filterBroken(showBroken: boolean, games: IGameInfo[]): IGameInfo[] {
   if (showBroken) { return games; }
@@ -174,6 +188,7 @@ export interface IOrderGamesArgs {
   extreme: boolean;
   broken: boolean;
   playlist?: IGamePlaylist;
+  platforms?: string[];
   order: IGameOrderChangeEvent;
 }
 
@@ -184,7 +199,13 @@ export function orderGames(args: IOrderGamesArgs): IGameInfo[] {
   games = games.slice(); // (Copy array)
   // -- Filter games --
   const filters = parseFilters(args.search);
-  const filteredGames = filterSearch(filters, filterBroken(args.broken, filterExtreme(args.extreme, filterPlaylist(args.playlist, games))));
+  const filteredGames = (
+    filterSearch(filters,
+    filterBroken(args.broken,
+    filterExtreme(args.extreme,
+    filterPlatforms(args.platforms,
+    filterPlaylist(args.playlist, games)
+  )))));
   // -- Order games --
   let orderedGames = filteredGames;
   if (!args.playlist) { // (Dont order if a playlist is selected - kind of a hack)
