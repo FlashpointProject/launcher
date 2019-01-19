@@ -1,4 +1,7 @@
 import * as React from 'react';
+import * as fs from 'fs';
+import * as path from 'path';
+import { remote, MenuItemConstructorOptions, Menu } from 'electron';
 import { uuid } from '../uuid';
 import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { CheckBox } from './CheckBox';
@@ -15,6 +18,11 @@ import { WithPreferencesProps } from '../containers/withPreferences';
 import { InputField } from './InputField';
 import { DropdownInputField } from './DropdownInputField';
 import { GamePropSuggestions } from '../util/suggestions';
+import { organizeImageFilepaths, firstAvailableImageIndex, formatImageFilename } from '../image/util';
+import { ImageFolderCache } from '../image/ImageFolderCache';
+import { promisify } from 'util';
+
+const copyFile = promisify(fs.copyFile);
 
 interface OwnProps {
   gameImages: GameImageCollection;
@@ -296,7 +304,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             <div className='browse-right-sidebar__row'>
               <img className='browse-right-sidebar__row__screenshot'
                     src={screenshotSrc}
-                    onClick={this.onScreenshotClick} />
+                    onClick={this.onScreenshotClick}
+                    onContextMenu={this.onScreenshotContextMenu} />
             </div>
           </div>
           {/* -- Screenshot Preview -- */}
@@ -346,6 +355,53 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       if (onEditClick) { onEditClick(); }
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
       event.preventDefault();
+    }
+  }
+  
+  private onScreenshotContextMenu = (event: React.MouseEvent) => {
+    const template: MenuItemConstructorOptions[] = [];
+    const e = event.nativeEvent;
+    if (this.props.isEditing) {
+      template.push({
+        label: 'Add Thumbnail',
+        click: () => {
+          if (!this.props.currentGame) { throw new Error('"currentGame" is missing.'); }
+          // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
+          const filePaths = window.External.showOpenDialog({
+            title: 'Select a Thumbnail Image',
+            properties: ['openFile']
+          });
+          if (filePaths && filePaths[0]) {
+            const game = this.props.currentGame;
+            if (!game) { throw new Error('"currentGame" is missing.'); }
+            const cache = this.props.gameImages.getPlatformThumbnailCache(game.platform);
+            if (!cache) { throw new Error('Can not add a new image, the cache is missing.'); }
+            copyImageFile(filePaths[0], game, cache).then(() => { this.forceUpdate(); });
+          }
+        }
+      });
+      template.push({
+        label: 'Add Screenshot',
+        click: () => {
+          if (!this.props.currentGame) { throw new Error('"currentGame" is missing.'); }
+          // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
+          const filePaths = window.External.showOpenDialog({
+            title: 'Select a Screenshot Image',
+            properties: ['openFile']
+          });
+          if (filePaths && filePaths[0]) {
+            const game = this.props.currentGame;
+            if (!game) { throw new Error('"currentGame" is missing.'); }
+            const cache = this.props.gameImages.getPlatformScreenshotCache(game.platform);
+            if (!cache) { throw new Error('Can not add a new image, the cache is missing.'); }
+            copyImageFile(filePaths[0], game, cache).then(() => { this.forceUpdate(); });
+          }
+        }
+      });
+    }
+    if (template.length > 0) {
+      event.preventDefault();
+      openContextMenu(template);
     }
   }
 
@@ -449,4 +505,36 @@ function filterSuggestions(suggestions?: string[]): string[] {
   if (!suggestions) { return []; }
   //if (suggestions.length > 25) { return suggestions.slice(0, 25); }
   return suggestions;
+}
+
+function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
+  const menu = remote.Menu.buildFromTemplate(template);
+  menu.popup({ window: remote.getCurrentWindow() });
+  return menu;
+}
+
+/**
+ * Copy an image file from anywhere to the folder of an "image cache" and for a specific game
+ * @param source File path of the image to copy
+ * @param game Game that the image will "belong" to
+ * @param cache Image cache to store the image in (it is copied to this caches folder)
+ */
+async function copyImageFile(source: string, game: IGameInfo, cache: ImageFolderCache): Promise<void> {
+  const filenames = [ ...cache.getFilePaths(game.id), ...cache.getFilePaths(game.title) ];
+  const firstIndex = firstAvailableImageIndex(organizeImageFilepaths(filenames));
+  if (firstIndex === -1) { throw new Error('Can not add a new image, out of image slots.'); }
+  const outputPath = path.join(
+    cache.getFolderPath(),
+    formatImageFilename(game.title, firstIndex) + getFileExtension(source)
+  );
+  return await copyFile(source, outputPath)
+  .then(() => { cache.refresh(); })
+  .catch(error => { throw error; });
+}
+
+/** Get the file extension of a file (including the dot). Returns an empty string if none. */
+function getFileExtension(filename: string): string {
+  const firstDot = filename.indexOf('.');
+  if (firstDot === -1) { return ''; }
+  return filename.substr(firstDot);
 }

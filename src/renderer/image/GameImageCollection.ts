@@ -1,5 +1,5 @@
-import * as path from 'path';
 import { ImageFolderCache } from './ImageFolderCache';
+import { getScreenshotFolderPath, getThumbnailFolderPath } from './util';
 
 export class GameImageCollection {
   private _flashpointPath: string;
@@ -8,6 +8,14 @@ export class GameImageCollection {
 
   constructor(flashpointPath: string) {
     this._flashpointPath = flashpointPath;
+  }
+
+  public getPlatformScreenshotCache(platform: string): ImageFolderCache|undefined {
+    return this._screenshots[platform.toLowerCase()];
+  }
+
+  public getPlatformThumbnailCache(platform: string): ImageFolderCache|undefined {
+    return this._thumbnails[platform.toLowerCase()];
   }
  
   /**
@@ -27,11 +35,11 @@ export class GameImageCollection {
     // Add thumbnail folder
     const thumbnailFolder = new ImageFolderCache();
     this._thumbnails[lowerPlatform] = thumbnailFolder;
-    thumbnailFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Images/${platform}/Box - Front`));
+    thumbnailFolder.loadFilenames(getThumbnailFolderPath(platform, this._flashpointPath));
     // Add screenshot folder
     const screenshotFolder = new ImageFolderCache();
     this._screenshots[lowerPlatform] = screenshotFolder;
-    screenshotFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Images/${platform}/Screenshot - Gameplay`));
+    screenshotFolder.loadFilenames(getScreenshotFolderPath(platform, this._flashpointPath));
   }
   
   /**
