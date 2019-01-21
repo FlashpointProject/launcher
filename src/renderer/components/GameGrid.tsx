@@ -129,7 +129,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
     const index: number = props.rowIndex * this.columns + props.columnIndex;
     const game = this.props.games[index];
     if (!game) { return; }
-    let thumbnail = this.props.gameImages.getThumbnailPath(game.title, game.platform);
+    let thumbnail = this.props.gameImages.getThumbnailPath(game.platform, game.title, game.id);
     return (
       <GameGridItem key={props.key} {...props} 
                     game={game} 

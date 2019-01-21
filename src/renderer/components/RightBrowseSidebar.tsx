@@ -103,8 +103,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const editDisabled = !this.props.preferencesData.enableEditing;
       const canEdit = !editDisabled && isEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
-      const screenshotSrc = this.props.gameImages.getScreenshotPath(game.title, game.platform);
-      const thumbnailSrc = this.props.gameImages.getThumbnailPath(game.title, game.platform);
+      const screenshotSrc = this.props.gameImages.getScreenshotPath(game.platform, game.title, game.id);
+      const thumbnailSrc = this.props.gameImages.getThumbnailPath(game.platform, game.title, game.id);
       return (
         <div className={'browse-right-sidebar '+
                         (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}>

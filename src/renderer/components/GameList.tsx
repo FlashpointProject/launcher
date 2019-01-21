@@ -98,7 +98,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
     if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     if (!this.props.gameImages) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
     const game = this.props.games[props.index];
-    let thumbnail = this.props.gameImages.getThumbnailPath(game.title, game.platform);
+    let thumbnail = this.props.gameImages.getThumbnailPath(game.platform, game.title, game.id);
     return (
       <GameListItem key={props.key} {...props}
                     game={game}
