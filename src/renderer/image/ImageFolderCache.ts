@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { replaceInvalidFilesystemChars } from './util';
+import { replaceInvalidImageFilenameChars } from './util';
 
 const readdir = promisify(fs.readdir);
 
@@ -22,13 +22,15 @@ export class ImageFolderCache {
   }
   
   /** Refresh the cache (reload all filenames in the folder and remove the cache of titles that are gone) */
-  public refresh(): void {
-    getFilenames(this._folderPath).then(filenames => {
+  public refresh(): Promise<void> {
+    return getFilenames(this._folderPath).then(filenames => {
       this._filenames = filenames;
       for (let identifier in this._cache) {
         const regex = ImageFolderCache.createFindFilenamesRegex(identifier);
         const matchedFilenames = filenames.match(regex);
-        if (!matchedFilenames) { delete this._cache[identifier]; }
+        if (!matchedFilenames || this._cache[identifier] !== matchedFilenames[0]) {
+          delete this._cache[identifier];
+        }
       }
     });
   }
@@ -78,7 +80,7 @@ export class ImageFolderCache {
    * @param flags Regex flags (you probably want to include 'm')
    */
   public static createFindFilenamesRegex(identifier: string, flags: string = 'm') {
-    let clean: string = replaceInvalidFilesystemChars(identifier);
+    let clean: string = replaceInvalidImageFilenameChars(identifier);
     clean = escapeRegExp(clean);
     clean = clean.replace(/ /g, ' +'); // (Allow any number of spaces)
     return new RegExp(`^${clean} *(?:\\..+)?-[0-9]{2}\\..+$`, flags);

@@ -1170,10 +1170,6 @@ body {
 .browse-right-sidebar__row__check-box {
   vertical-align: middle;
 }
-.browse-right-sidebar__row__screenshot {
-  width: 100%;
-  cursor: zoom-in;
-}
 .browse-right-sidebar__row__spacer {
   flex: 1 0 auto;
 }
@@ -1204,6 +1200,91 @@ body {
 }
 .browse-right-sidebar__row__editable-text--multiline.browse-right-sidebar__row__editable-text--edit {
   height: 10em;
+}
+/* Browse-Right-Sidebar Row - Screenshot */
+.browse-right-sidebar__row__screenshot {
+  width: 100%;
+}
+.browse-right-sidebar__row__screenshot img {
+  width: 100%;
+  cursor: zoom-in;
+}
+.browse-right-sidebar__row__screenshot__placeholder {
+  width: 100%;
+  height: 15rem;
+  overflow: hidden;
+  background-color: #1b1b1b;
+  border: 2px #818181 dashed;
+  user-select: none;
+  position: relative;
+}
+.browse-right-sidebar__row__screenshot__placeholder__back {
+  display: flex;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+.browse-right-sidebar__row__screenshot__placeholder__front {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  bottom: 0;
+}
+.browse-right-sidebar__row__screenshot__placeholder__front > :not(:last-child) {
+  margin-bottom: 0.15rem;
+}
+.browse-right-sidebar__row__screenshot__placeholder h1 {
+  font-size: 1.15rem;
+}
+.browse-right-sidebar__row__screenshot__placeholder p {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--theme__text-disabled-color);
+}
+.browse-right-sidebar__row__screenshot img {
+  width: 100%;
+  cursor: zoom-in;
+}
+/* GameImageSplit */
+.game-image-split {
+  --innder-border-color: #313131;
+  flex: 1 1 auto;
+  width: 50%;
+  text-align: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.game-image-split--hover {
+  background-color: #575757;
+}
+.game-image-split:first-child {
+  border-right: 1px var(--innder-border-color) dashed;
+  margin-bottom: -1px;
+}
+.game-image-split:last-child {
+  border-left: 1px var(--innder-border-color) dashed;
+  margin: -1px;
+}
+.game-image-split__buttons {
+  top: 0;
+  padding: 0.5rem;
+}
+.game-image-split__buttons > * {
+  float: right;
+}
+.game-image-split__buttons > p {
+  float: left;
+}
+.game-image-split__buttons__remove-image:hover .icon__use {
+  fill: #aa4b4b;
+}
+.game-image-split__buttons__remove-image--active:hover .icon__use {
+  fill: #8a1212;
+}
+.game-image-split__not-found {
+  display: inline-block;
+  margin-left: 0.1rem;
 }
 /* Browse Right Sidebar Empty (when no game is selected) */
 .browse-right-sidebar-empty {

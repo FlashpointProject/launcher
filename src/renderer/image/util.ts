@@ -20,10 +20,21 @@ export function organizeImageFilepaths(filenames: string[]): StringMap {
   const map: StringMap = {};
   filenames.forEach(filename => {
     const match = filename.match(ImageFolderCache.createGetNumberRegex());
-    if (match) { map[parseFloat(match[1])] = filename; } // (Get the index from the filename)
-    else       { map[1]                    = filename; } // (Use 1 as the index for files without one)
+    if (match) { map[parseInt(match[1])] = filename; } // (Get the index from the filename)
+    else       { map[1]                  = filename; } // (Use 1 as the index for files without one)
   });
   return map;
+}
+
+/**
+ * Get the index of an image filename (or "defaultValue" if no index was found)
+ * @param filename Filename of image
+ * @param defaultValue Returned if no index is found
+ */
+export function getIndexOfImageFilepath(filename: string, defaultValue: number = 1): number {
+  const match = filename.match(ImageFolderCache.createGetNumberRegex());
+  if (match) { return parseInt(match[1]); }
+  else { return defaultValue; }
 }
 
 export function firstAvailableImageIndex(map: StringMap): number {
@@ -34,16 +45,17 @@ export function firstAvailableImageIndex(map: StringMap): number {
 }
 
 /**
- * Replace all invalid filesystem characters with underscores.
+ * Replace all characters that are invalid for image filenames with underscores.
+ * This mimics what filenames Launchbox expects from its images.
  * If they are next to each other, turn the entire group into one underscore.
  * (Example: "Te?<|:st" => "Te_st")
  */
-export function replaceInvalidFilesystemChars(str: string): string {
-  return str.replace(/[/\\?*:|"<>']+/g, '_');
+export function replaceInvalidImageFilenameChars(str: string): string {
+  return str.replace(/[/\\?*:|"<>'&]+/g, '_');
 }
 
 export function formatImageFilename(titleOrId: string, index: number): string {
-  const cleanTitleOrId = titleOrId.replace(/[/\\?*:|"<>']+/g, '_');
+  const cleanTitleOrId = replaceInvalidImageFilenameChars(titleOrId);
   const indexStr = pad(index | 0);
   return `${cleanTitleOrId}-${indexStr}`;
 }
@@ -51,25 +63,3 @@ export function formatImageFilename(titleOrId: string, index: number): string {
 function pad(num: number): string {
   return (num >= 10) ? ''+num : '0'+num;
 }
-
-/*
-export async function getFirstEmptyImageSlot(imageFolder: string, game: IGameInfo): Promise<number> {
-  let index = 0;
-  while (index < 100) { // (hard cap - in case its an infinite loop)
-    const outputPath = path.join(
-      imageFolder,
-      game.id + '-' + index + getFileExtension(source)
-    );
-    console.log(outputPath);
-    const fileExists = exists(outputPath);
-    if (!fileExists) {
-      fs.copyFile(source, outputPath, error => {
-        if (error) { throw error; }
-        this.props.gameImages.refreshPlatform(game.platform);
-        this.forceUpdate();
-      });   
-    }
-    index += 1;
-  }
-}
-*/
