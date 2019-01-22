@@ -380,15 +380,24 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
   
   private onScreenshotContextMenu = (event: React.MouseEvent) => {
+    const { currentGame, gameImages, isEditing } = this.props;
     const template: MenuItemConstructorOptions[] = [];
-    if (this.props.isEditing) {
+    if (isEditing) {
       template.push({
         label: 'Add Thumbnail',
-        click: () => { this.onAddThumbnailClick(); }
+        click: () => { this.onAddThumbnailClick(); },
+        enabled: (
+          currentGame &&
+          gameImages.getThumbnailPath(currentGame.platform, currentGame.title, currentGame.id) === undefined
+        )
       });
       template.push({
         label: 'Add Screenshot',
-        click: () => { this.onAddScreenshotClick(); }
+        click: () => { this.onAddScreenshotClick(); },
+        enabled: (
+          currentGame &&
+          gameImages.getScreenshotPath(currentGame.platform, currentGame.title, currentGame.id) === undefined
+        )
       });
     }
     if (template.length > 0) {
@@ -398,6 +407,14 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   private onAddScreenshotClick = (): void => {
+    this.addScreenshotDialog();
+  }
+
+  private onAddThumbnailClick = (): void => {
+    this.addThumbnailDialog();
+  }
+
+  private addScreenshotDialog() {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select a Screenshot Image',
@@ -412,7 +429,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private onAddThumbnailClick = (): void => {
+  private addThumbnailDialog() {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select a Thumbnail Image',
