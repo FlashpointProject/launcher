@@ -39,53 +39,12 @@ export class GameLauncher {
         // Add text to buffer
         textBuffer += text;
         // Check for exact messages and show the appropriate popup
-        if (textBuffer.endsWith('Failed to set registry keys!\r\nRetry? (Y/n): ')) {
-          electron.remote.dialog.showMessageBox({
-            type: 'warning',
-            title: 'Start Unity - Registry Key Warning',
-            message: 'Failed to set registry keys!'+
-                     '\nRetry?',
-            buttons: ['Yes', 'No'],
-            defaultId: 0,
-            cancelId: 1,
-          }, function(response: number): void {
-            if (response === 0) {
-              proc.stdin.write('Y');
-            } else {
-              proc.stdin.write('n');
-            }
-          });
-          // Clear text buffer
-          textBuffer = '';
-        } else if (textBuffer.endsWith('Invalid parameters!\r\nCorrect usage: startUnity 2.x|5.x URL\r\nIf you need to undo registry changes made by this script, run unityRestoreRegistry.bat. \r\nPress any key to continue . . . ')) {
-          electron.remote.dialog.showMessageBox({
-            type: 'warning',
-            title: 'Start Unity - Invalid Parameters',
-            message: 'Invalid parameters!\n'+
-                     'Correct usage: startUnity 2.x|5.x URL\n'+
-                     'If you need to undo registry changes made by this script, run unityRestoreRegistry.bat.',
-            buttons: ['Ok'],
-            defaultId: 0,
-            cancelId: 0,
-          });
-          // Clear text buffer
-          textBuffer = '';
-        } else if (textBuffer.endsWith('You must close the K-Meleon browser to continue.\r\nIf you have already closed K-Meleon, please wait a moment...\r\n')) {
-          electron.remote.dialog.showMessageBox({
-            type: 'info',
-            title: 'Start Unity - Browser Already Open',
-            message: 'You must close the K-Meleon browser to continue.\n'+
-                     'If you have already closed K-Meleon, please wait a moment...',
-            buttons: ['Ok', 'Cancel'],
-            defaultId: 0,
-            cancelId: 1,
-          }, function(response: number): void {
-            if (response === 1) {
-              proc.kill();
-            }
-          });
-          // Clear text buffer
-          textBuffer = '';
+        for (let response of unityOutputResponses) {
+          if (textBuffer.endsWith(response.text)) {
+            response.func(proc);
+            textBuffer = '';
+            break;
+          }
         }
       });
     }
@@ -189,3 +148,57 @@ function escapeWin(str: string): string {
 function escapeLinuxArgs(str: string): string {
   return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
 }
+
+const unityOutputResponses = [
+  {
+    text: 'Failed to set registry keys!\r\n'+
+          'Retry? (Y/n): ',
+    func(proc: ChildProcess) {
+      electron.remote.dialog.showMessageBox({
+        type: 'warning',
+        title: 'Start Unity - Registry Key Warning',
+        message: 'Failed to set registry keys!\n'+
+                 'Retry?',
+        buttons: ['Yes', 'No'],
+        defaultId: 0,
+        cancelId: 1,
+      }, function(response: number): void {
+        if (response === 0) { proc.stdin.write('Y'); }
+        else                { proc.stdin.write('n'); }
+      });
+    }
+  }, {
+    text: 'Invalid parameters!\r\n'+
+          'Correct usage: startUnity [2.x|5.x] URL\r\n'+
+          'If you need to undo registry changes made by this script, run unityRestoreRegistry.bat. \r\n'+
+          'Press any key to continue . . . ',
+    func(proc: ChildProcess) {
+      electron.remote.dialog.showMessageBox({
+        type: 'warning',
+        title: 'Start Unity - Invalid Parameters',
+        message: 'Invalid parameters!\n'+
+                 'Correct usage: startUnity [2.x|5.x] URL\n'+
+                 'If you need to undo registry changes made by this script, run unityRestoreRegistry.bat.',
+        buttons: ['Ok'],
+        defaultId: 0,
+        cancelId: 0,
+      });
+    }
+  }, {
+    text: 'You must close the Basilisk browser to continue.\r\n'+
+          'If you have already closed Basilisk, please wait a moment...\r\n',
+    func(proc: ChildProcess) {
+      electron.remote.dialog.showMessageBox({
+        type: 'info',
+        title: 'Start Unity - Browser Already Open',
+        message: 'You must close the Basilisk browser to continue.\n'+
+                 'If you have already closed Basilisk, please wait a moment...',
+        buttons: ['Ok', 'Cancel'],
+        defaultId: 0,
+        cancelId: 1,
+      }, function(response: number): void {
+        if (response === 1) { proc.kill(); }
+      });
+    }
+  }
+];
