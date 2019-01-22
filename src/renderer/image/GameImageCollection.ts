@@ -1,5 +1,5 @@
-import * as path from 'path';
 import { ImageFolderCache } from './ImageFolderCache';
+import { getScreenshotFolderPath, getThumbnailFolderPath } from './util';
 
 export class GameImageCollection {
   private _flashpointPath: string;
@@ -8,6 +8,14 @@ export class GameImageCollection {
 
   constructor(flashpointPath: string) {
     this._flashpointPath = flashpointPath;
+  }
+
+  public getPlatformScreenshotCache(platform: string): ImageFolderCache|undefined {
+    return this._screenshots[platform.toLowerCase()];
+  }
+
+  public getPlatformThumbnailCache(platform: string): ImageFolderCache|undefined {
+    return this._thumbnails[platform.toLowerCase()];
   }
  
   /**
@@ -27,42 +35,40 @@ export class GameImageCollection {
     // Add thumbnail folder
     const thumbnailFolder = new ImageFolderCache();
     this._thumbnails[lowerPlatform] = thumbnailFolder;
-    thumbnailFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Images/${platform}/Box - Front`));
+    thumbnailFolder.loadFilenames(getThumbnailFolderPath(platform, this._flashpointPath));
     // Add screenshot folder
     const screenshotFolder = new ImageFolderCache();
     this._screenshots[lowerPlatform] = screenshotFolder;
-    screenshotFolder.loadFilenames(path.posix.join(this._flashpointPath, `./Images/${platform}/Screenshot - Gameplay`));
+    screenshotFolder.loadFilenames(getScreenshotFolderPath(platform, this._flashpointPath));
   }
   
   /**
-   * Get the path to the thumbnail for a given title and platform (returns undefined if not found)
-   * @param gameTitle Title of game
+   * Get the path to the thumbnail for a given identifier and platform (returns undefined if not found)
+   * @param identifier Title or ID of game
    * @param platform Platform of game
    * @returns Path to thumbnail for that game, or undefined if not found
    */
-  public getThumbnailPath(gameTitle: string, platform: string): string|undefined {
-    platform = platform.toLowerCase();
-    const cache = this._thumbnails[platform];
-    if (!cache) {
-      //console.error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`);
-      return undefined;
-    }
-    return cache.getFilePath(gameTitle);
+  public getThumbnailPath(platform: string, ...identifiers: string[]): string|undefined {
+    return this.getFirstFilename(this._thumbnails[platform.toLowerCase()], identifiers);
   }
   
   /**
-   * Get the path to the screenshot for a given title and platform (returns undefined if not found)
-   * @param gameTitle Title of game
+   * Get the path to the screenshot for a given identifier and platform (returns undefined if not found)
+   * @param identifier Title or ID of game
    * @param platform Platform of game
    * @returns Path to screenshot for that game, or undefined if not found
    */
-  public getScreenshotPath(gameTitle: string, platform: string): string|undefined {
-    platform = platform.toLowerCase();
-    const cache = this._screenshots[platform];
-    if (!cache) {
-      //console.error(`Platform not found! (Platform: "${platform}", GameTitle: "${gameTitle}")`);
-      return undefined;
+  public getScreenshotPath(platform: string, ...identifiers: string[]): string|undefined {
+    return this.getFirstFilename(this._screenshots[platform.toLowerCase()], identifiers);
+  }
+
+  private getFirstFilename(cache: ImageFolderCache|undefined, identifiers: string[]): string|undefined {
+    if (cache) {
+      for (let identifier of identifiers) {
+        const filepath = cache.getFilePath(identifier);
+        if (filepath !== undefined) { return filepath; }
+      }
     }
-    return cache.getFilePath(gameTitle);
+    return undefined;
   }
 }

@@ -80,8 +80,12 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
 function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollection): string {
   const timeStart = Date.now(); // Start timing
   // Find all games with missing thumbnails and screenshots
-  const missingThumbnails:  IGameInfo[] = games.filter(game => gameImages.getThumbnailPath(game.title,  game.platform) === undefined);
-  const missingScreenshots: IGameInfo[] = games.filter(game => gameImages.getScreenshotPath(game.title, game.platform) === undefined);
+  const missingThumbnails:  IGameInfo[] = games.filter(game =>
+    gameImages.getThumbnailPath(game.platform, game.title, game.id) === undefined
+  );
+  const missingScreenshots: IGameInfo[] = games.filter(game => 
+    gameImages.getScreenshotPath(game.platform, game.title, game.id) === undefined
+  );
   const timeEnd = Date.now(); // End timing
   // Write log message
   let text = '';
