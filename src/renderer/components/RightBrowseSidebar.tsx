@@ -311,11 +311,11 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                   <div className='browse-right-sidebar__row__screenshot__placeholder'>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
                       <GameImageSplit text='Thumbnail' imgSrc={thumbnailSrc}
-                                      onAddClick={this.onAddThumbnailClick}
+                                      onAddClick={this.addThumbnailDialog}
                                       onRemoveClick={this.onRemoveThumbnailClick}
                                       onDrop={this.onImageDrop}/>
                       <GameImageSplit text='Screenshot' imgSrc={screenshotSrc}
-                                      onAddClick={this.onAddScreenshotClick}
+                                      onAddClick={this.addScreenshotDialog}
                                       onRemoveClick={this.onRemoveScreenshotClick}
                                       onDrop={this.onImageDrop}/>
                     </div>
@@ -380,24 +380,30 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
   
   private onScreenshotContextMenu = (event: React.MouseEvent) => {
-    const { currentGame, gameImages, isEditing } = this.props;
+    const { currentGame, gameImages } = this.props;
     const template: MenuItemConstructorOptions[] = [];
-    if (isEditing) {
+    if (currentGame) {
+      const thumbnailCache = gameImages.getPlatformThumbnailCache(currentGame.platform);
+      const screenshotCache = gameImages.getPlatformScreenshotCache(currentGame.platform);
+      const thumbnailFilename = thumbnailCache && (thumbnailCache.getFilePath(currentGame.title, true) || thumbnailCache.getFilePath(currentGame.id, true));
+      const screenshotFilename = screenshotCache && (screenshotCache.getFilePath(currentGame.title, true) || screenshotCache.getFilePath(currentGame.id, true));
       template.push({
-        label: 'Add Thumbnail',
-        click: () => { this.onAddThumbnailClick(); },
-        enabled: (
-          currentGame &&
-          gameImages.getThumbnailPath(currentGame.platform, currentGame.title, currentGame.id) === undefined
-        )
+        label: 'View Thumbnail in Folder',
+        click: () => {
+          if (!thumbnailCache) { throw new Error('Can not view thumbnail, thumbnail cache not found'); }
+          if (thumbnailFilename === undefined) { throw new Error('Can not view thumbnail, thumbnail filename not found'); }
+          remote.shell.showItemInFolder(thumbnailFilename.replace(/\//g, '\\'));
+        },
+        enabled: thumbnailFilename !== undefined
       });
       template.push({
-        label: 'Add Screenshot',
-        click: () => { this.onAddScreenshotClick(); },
-        enabled: (
-          currentGame &&
-          gameImages.getScreenshotPath(currentGame.platform, currentGame.title, currentGame.id) === undefined
-        )
+        label: 'View Screenshot in Folder',
+        click: () => {
+          if (!screenshotCache) { throw new Error('Can not view screenshot, screenshot cache not found'); }
+          if (screenshotFilename === undefined) { throw new Error('Can not view screenshot, screenshot filename not found'); }
+          remote.shell.showItemInFolder(screenshotFilename.replace(/\//g, '\\'));
+        },
+        enabled: screenshotFilename !== undefined
       });
     }
     if (template.length > 0) {
@@ -406,15 +412,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private onAddScreenshotClick = (): void => {
-    this.addScreenshotDialog();
-  }
-
-  private onAddThumbnailClick = (): void => {
-    this.addThumbnailDialog();
-  }
-
-  private addScreenshotDialog() {
+  private addScreenshotDialog = () => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select a Screenshot Image',
@@ -429,7 +427,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private addThumbnailDialog() {
+  private addThumbnailDialog = () => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select a Thumbnail Image',

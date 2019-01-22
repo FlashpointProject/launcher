@@ -46,12 +46,16 @@ export class ImageFolderCache {
    * Get the file path of an image for a given identifier (title or id)
    * (returns undefined if not found)
    * @param identifier Title or ID of image
+   * @param decode If the filename should be not URI encoded
    * @returns Path to image for that game, or undefined if not found
    */
-  public getFilePath(identifier: string): string|undefined {
+  public getFilePath(identifier: string, decode: boolean = false): string|undefined {
     // Try getting the filename from the "cache"
     const filename = this._cache[identifier];
-    if (filename) { return path.posix.join(this._folderPath, filename); }
+    if (filename) {
+      if (decode) { return path.posix.join(this._folderPath, decodeURIComponent(filename)); }
+      else        { return path.posix.join(this._folderPath, filename); }
+    }
     // Try getting the filename from the filename list
     const regex = ImageFolderCache.createFindFilenamesRegex(identifier);
     const filenames = this._filenames.match(regex);
@@ -60,7 +64,8 @@ export class ImageFolderCache {
       //       out which is most suitable (lowest index, shortest name, etc.)
       const str: string = encodeURIComponent(filenames[0]); // (Makes # in filenames work)
       this._cache[identifier] = str;
-      return path.posix.join(this._folderPath, str);
+      if (decode) { return path.posix.join(this._folderPath, decodeURIComponent(str)); }
+      else        { return path.posix.join(this._folderPath, str); }
     }
     // No image found
     //console.error(`Image was not found for game: "${title}" ` +
