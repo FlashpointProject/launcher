@@ -1247,7 +1247,7 @@ body {
 }
 /* GameImageSplit */
 .game-image-split {
-  --innder-border-color: #313131;
+  --inner-border-color: #313131;
   flex: 1 1 auto;
   width: 50%;
   text-align: center;
@@ -1259,11 +1259,11 @@ body {
   background-color: #575757;
 }
 .game-image-split:first-child {
-  border-right: 1px var(--innder-border-color) dashed;
+  border-right: 1px var(--inner-border-color) dashed;
   margin-bottom: -1px;
 }
 .game-image-split:last-child {
-  border-left: 1px var(--innder-border-color) dashed;
+  border-left: 1px var(--inner-border-color) dashed;
   margin: -1px;
 }
 .game-image-split__buttons {
