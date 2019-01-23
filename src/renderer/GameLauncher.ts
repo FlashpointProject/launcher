@@ -1,16 +1,43 @@
-import * as electron from 'electron';
-import * as path from 'path';
 import { exec, ExecOptions, ChildProcess } from 'child_process';
+import { remote } from 'electron';
 import { EventEmitter } from 'events';
+import * as path from 'path';
 import { IGameInfo, IAdditionalApplicationInfo } from '../shared/game/interfaces';
 import { stringifyArray, padStart } from '../shared/Util';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
-    const appPath: string = relativeToFlashpoint(addApp.applicationPath);
-    const appArgs: string = addApp.commandLine;
-    const proc = GameLauncher.launch(appPath, appArgs, { env: GameLauncher.getEnvironment() });
-    log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.commandLine}" ]`);
+    switch (addApp.applicationPath) {
+      case ':message:':
+        remote.dialog.showMessageBox({
+          type: 'info',
+          title: 'About This Game',
+          message: addApp.commandLine
+        }, () => {});
+        break;
+      case ':extras:':
+        const folderPath = relativeToFlashpoint(path.join('Extras', addApp.commandLine));
+        remote.shell.openExternal(
+          folderPath, { activate: true },
+          error => {
+            if (error) {
+              remote.dialog.showMessageBox({
+                type: 'error',
+                title: 'Failed to Open Extras',
+                message: `${error.toString()}\n`+
+                        `Path: ${folderPath}`
+              }, () => {});              
+            }
+          }
+        );
+        break;
+      default:
+        const appPath: string = relativeToFlashpoint(addApp.applicationPath);
+        const appArgs: string = addApp.commandLine;
+        const proc = GameLauncher.launch(appPath, appArgs, { env: GameLauncher.getEnvironment() });
+        log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.commandLine}" ]`);
+        break;
+    }
   }
 
   /**
@@ -154,7 +181,7 @@ const unityOutputResponses = [
     text: 'Failed to set registry keys!\r\n'+
           'Retry? (Y/n): ',
     func(proc: ChildProcess) {
-      electron.remote.dialog.showMessageBox({
+      remote.dialog.showMessageBox({
         type: 'warning',
         title: 'Start Unity - Registry Key Warning',
         message: 'Failed to set registry keys!\n'+
@@ -173,7 +200,7 @@ const unityOutputResponses = [
           'If you need to undo registry changes made by this script, run unityRestoreRegistry.bat. \r\n'+
           'Press any key to continue . . . ',
     func(proc: ChildProcess) {
-      electron.remote.dialog.showMessageBox({
+      remote.dialog.showMessageBox({
         type: 'warning',
         title: 'Start Unity - Invalid Parameters',
         message: 'Invalid parameters!\n'+
@@ -188,7 +215,7 @@ const unityOutputResponses = [
     text: 'You must close the Basilisk browser to continue.\r\n'+
           'If you have already closed Basilisk, please wait a moment...\r\n',
     func(proc: ChildProcess) {
-      electron.remote.dialog.showMessageBox({
+      remote.dialog.showMessageBox({
         type: 'info',
         title: 'Start Unity - Browser Already Open',
         message: 'You must close the Basilisk browser to continue.\n'+
