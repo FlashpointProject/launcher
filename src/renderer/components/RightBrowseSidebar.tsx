@@ -88,11 +88,11 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   componentDidMount() {
-    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keydown', this.onGlobalKeyDown);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('keydown', this.onGlobalKeyDown);
   }
 
   render() {
@@ -107,7 +107,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const thumbnailSrc = this.props.gameImages.getThumbnailPath(game.platform, game.title, game.id);
       return (
         <div className={'browse-right-sidebar '+
-                        (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}>
+                        (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
+             onKeyDown={this.onLocalKeyDown}>
           {/* -- Title & Developer(s) -- */}
           <div className='browse-right-sidebar__section'>
             <div className='browse-right-sidebar__row'>
@@ -368,13 +369,23 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   /** When a key is pressed down "globally" (and this component is present) */
-  private onKeyDown = (event: KeyboardEvent) => {
+  private onGlobalKeyDown = (event: KeyboardEvent) => {
     const { currentGame, isEditing, onEditClick } = this.props;
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
         !isEditing && currentGame) { // ... while not editing, and a game is selected)
       if (onEditClick) { onEditClick(); }
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
+      event.preventDefault();
+    }
+  }
+  
+  private onLocalKeyDown = (event: React.KeyboardEvent) => {
+    const { currentGame, isEditing, onSaveGame } = this.props;
+    // Save changes
+    if (event.ctrlKey && event.key === 's' && // (CTRL + S ...
+        isEditing && currentGame) { // ... while editing, and a game is selected)
+      if (onSaveGame) { onSaveGame(); }
       event.preventDefault();
     }
   }
