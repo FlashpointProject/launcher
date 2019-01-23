@@ -1,4 +1,4 @@
-import { ipcRenderer, IpcMessageEvent } from 'electron';
+import { ipcRenderer, IpcMessageEvent, remote } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { AppRouter, IAppRouterProps } from './router';
@@ -86,6 +86,30 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   init() {
     const fullFlashpointPath = window.External.config.fullFlashpointPath;
+    // Warn the user when closing the launcher WHILE downloading or installing an upgrade
+    (() => {
+      let askBeforeClosing = true;
+      window.onbeforeunload = event => {
+        const { central } = this.state;
+        if (askBeforeClosing && (central.upgrade.screenshotsState.isInstalling || central.upgrade.techState.isInstalling)) {
+          event.returnValue = 1; // (Prevent closing the window)
+          remote.dialog.showMessageBox({
+            type: 'warning',
+            title: 'Exit Launcher?',
+            message: 'All progress on downloading or installing the upgrade will be lost.\n'+
+                     'Are you sure you want to exit?',
+            buttons: ['Yes', 'No'],
+            defaultId: 1,
+            cancelId: 1,
+          }, response => {
+            if (response === 0) {
+              askBeforeClosing = false;
+              remote.getCurrentWindow().close();
+            }
+          });
+        }
+      };
+    })();
     // Listen for the window to move or resize (and update the preferences when it does)
     ipcRenderer.on('window-move', (sender: IpcMessageEvent, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
