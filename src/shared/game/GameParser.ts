@@ -2,7 +2,7 @@ import { IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot, IRawLaunchBoxAdditionalAp
 import { IGameCollection, IGameInfo, IAdditionalApplicationInfo } from './interfaces';
 
 export class GameParser {
-  public static parse(data: IRawLaunchBoxPlatformRoot): IGameCollection {
+  public static parse(data: IRawLaunchBoxPlatformRoot, filename: string): IGameCollection {
     const collection: IGameCollection = {
       games: [],
       additionalApplications: [],
@@ -11,7 +11,7 @@ export class GameParser {
     if (games) {
       if (!Array.isArray(games)) { games = [ games ]; }
       for (let i = games.length - 1; i >= 0; i--) {
-        collection.games[i] = GameParser.parseGame(games[i]);
+        collection.games[i] = GameParser.parseGame(games[i], filename);
       }
     }
     let apps = data.LaunchBox.AdditionalApplication;
@@ -24,7 +24,7 @@ export class GameParser {
     return collection;
   }
 
-  public static parseGame(data: Partial<IRawLaunchBoxGame>): IGameInfo {
+  public static parseGame(data: Partial<IRawLaunchBoxGame>, filename: string): IGameInfo {
     const title: string = unescapeHTML(data.Title);
     return {
       id: unescapeHTML(data.ID),
@@ -43,6 +43,7 @@ export class GameParser {
       source: unescapeHTML(data.Source),
       applicationPath: unescapeHTML(data.ApplicationPath),
       launchCommand: unescapeHTML(data.CommandLine),
+      filename: filename,
       orderTitle: generateGameOrderTitle(title),
       placeholder: false, // (No loaded game is a placeholder)
     };

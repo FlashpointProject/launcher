@@ -1,12 +1,17 @@
 import * as path from 'path';
 import { ImageFolderCache } from './ImageFolderCache';
 
-export function getScreenshotFolderPath(platform: string, flashpointPath: string): string {
-  return path.posix.join(flashpointPath, `./Images/${platform}/Screenshot - Gameplay`);
+export function getImageFolderName(platform: string, libraryPrefix: string): string {
+  if (libraryPrefix) { return libraryPrefix + platform; }
+  else               { return platform; }
 }
 
-export function getThumbnailFolderPath(platform: string, flashpointPath: string): string {
-  return path.posix.join(flashpointPath, `./Images/${platform}/Box - Front`);
+export function getScreenshotFolderPath(folderName: string, flashpointPath: string): string {
+  return path.posix.join(flashpointPath, `./Images/${folderName}/Screenshot - Gameplay`);
+}
+
+export function getThumbnailFolderPath(folderName: string, flashpointPath: string): string {
+  return path.posix.join(flashpointPath, `./Images/${folderName}/Box - Front`);
 }
 
 type StringMap = { [key: number]: string };

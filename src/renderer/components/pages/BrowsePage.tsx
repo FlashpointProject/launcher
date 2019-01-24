@@ -15,7 +15,7 @@ import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplic
 import GameManagerPlatform from '../../game/GameManagerPlatform';
 import { GameParser, generateGameOrderTitle } from '../../../shared/game/GameParser';
 import { uuid } from '../../uuid';
-import { formatDate } from '../../../shared/Util';
+import { formatDate, removeFileExtension } from '../../../shared/Util';
 import { SearchQuery } from '../../store/search';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
@@ -138,11 +138,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   render() {
-    const games: IGameInfo[] = this.state.orderedGames;
+    const { gameLibraryRoute, selectedGame, selectedPlaylist } = this.props;
+    const { draggedGame, orderedGames } = this.state;
     const order = this.props.order || BrowsePage.defaultOrder;
-    const selectedGame = this.props.selectedGame;
-    const draggedGame = this.state.draggedGame;
-    const selectedPlaylist = this.props.selectedPlaylist;
     const showSidebars: boolean = this.props.central.gamesDoneLoading;
     // Find the selected game in the selected playlist (if both are selected)
     let gamePlaylistEntry: IGamePlaylistEntry|undefined;
@@ -177,7 +175,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
               const height: number = calcScale(350, this.props.gameScale);
               const width: number = (height * 0.666) | 0;
               return (
-                <GameGrid games={games}
+                <GameGrid games={orderedGames}
                           selectedGame={selectedGame}
                           draggedGame={draggedGame}
                           gameImages={this.props.central.gameImages}
@@ -194,7 +192,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
             } else {
               const height: number = calcScale(120, this.props.gameScale);
               return (
-                <GameList games={games}
+                <GameList games={orderedGames}
                           selectedGame={selectedGame}
                           draggedGame={draggedGame}
                           gameImages={this.props.central.gameImages}
@@ -453,7 +451,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     // Find the platform the game is in (or should be in, if it is not in one already)
     const games = this.props.central.games;
     let platform = games.getPlatformOfGameId(game.id) ||
-                   games.getPlatformByName(platformPrefix+game.platform) ||
+                   games.getPlatformByName(removeFileExtension(game.filename)) ||
                    games.getPlatformByName(platformPrefix+'Unknown Platform');
     if (!platform) {
       platform = new GameManagerPlatform(platformPrefix+'Unknown Platform.xml');
@@ -463,6 +461,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     }
     // Update game's order title
     game.orderTitle = generateGameOrderTitle(game.title);
+    // Update game's filename property
+    game.filename = platform.filename;
     // Overwrite the game and additional applications with the changes made
     platform.addOrUpdateGame(game);
     // Override the additional applications

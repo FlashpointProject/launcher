@@ -5,6 +5,7 @@ import { IGameCollection } from '../shared/game/interfaces';
 import * as fastXmlParser from 'fast-xml-parser';
 import { GameParser } from '../shared/game/GameParser';
 import { GameCollection } from '../shared/game/GameCollection';
+import { getFilename } from '../shared/Util';
 
 export class LaunchboxData {
   public static platformsPath = './Data/Platforms';
@@ -105,7 +106,7 @@ export class LaunchboxData {
             return;
           }
           // Format objects to desired format (IGameCollection)
-          const parsed = GameParser.parse(data);
+          const parsed = GameParser.parse(data, getFilename(url));
           // Done
           resolve(parsed);
         })

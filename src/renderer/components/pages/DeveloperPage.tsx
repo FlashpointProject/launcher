@@ -7,6 +7,7 @@ import { GameImageCollection } from '../../image/GameImageCollection';
 import { validateSemiUUID } from '../../uuid';
 import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
 import * as uuidValidate from 'uuid-validate';
+import { removeFileExtension } from '../../../shared/Util';
 
 interface IDeveloperPageProps {
   central: ICentralState;
@@ -81,10 +82,10 @@ function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollect
   const timeStart = Date.now(); // Start timing
   // Find all games with missing thumbnails and screenshots
   const missingThumbnails:  IGameInfo[] = games.filter(game =>
-    gameImages.getThumbnailPath(game.platform, game.title, game.id) === undefined
+    gameImages.getThumbnailPath(removeFileExtension(game.filename), game.title, game.id) === undefined
   );
   const missingScreenshots: IGameInfo[] = games.filter(game => 
-    gameImages.getScreenshotPath(game.platform, game.title, game.id) === undefined
+    gameImages.getScreenshotPath(removeFileExtension(game.filename), game.title, game.id) === undefined
   );
   const timeEnd = Date.now(); // End timing
   // Write log message

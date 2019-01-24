@@ -22,6 +22,7 @@ import { formatImageFilename } from '../image/util';
 import { ImageFolderCache } from '../image/ImageFolderCache';
 import { promisify } from 'util';
 import { GameImageSplit } from './GameImageSplit';
+import { removeFileExtension } from '../../shared/Util';
 
 const copyFile = promisify(fs.copyFile);
 const unlink = promisify(fs.unlink);
@@ -103,8 +104,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const editDisabled = !this.props.preferencesData.enableEditing;
       const canEdit = !editDisabled && isEditing;
       const dateAdded = new Date(game.dateAdded).toUTCString();
-      const screenshotSrc = this.props.gameImages.getScreenshotPath(game.platform, game.title, game.id);
-      const thumbnailSrc = this.props.gameImages.getThumbnailPath(game.platform, game.title, game.id);
+      const screenshotSrc = this.props.gameImages.getScreenshotPath(removeFileExtension(game.filename), game.title, game.id);
+      const thumbnailSrc = this.props.gameImages.getThumbnailPath(removeFileExtension(game.filename), game.title, game.id);
       return (
         <div className={'browse-right-sidebar '+
                         (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
@@ -394,8 +395,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     const { currentGame, gameImages } = this.props;
     const template: MenuItemConstructorOptions[] = [];
     if (currentGame) {
-      const thumbnailCache = gameImages.getPlatformThumbnailCache(currentGame.platform);
-      const screenshotCache = gameImages.getPlatformScreenshotCache(currentGame.platform);
+      const thumbnailCache = gameImages.getThumbnailCache(removeFileExtension(currentGame.filename));
+      const screenshotCache = gameImages.getScreenshotCache(removeFileExtension(currentGame.filename));
       const thumbnailFilename = thumbnailCache && (thumbnailCache.getFilePath(currentGame.title, true) || thumbnailCache.getFilePath(currentGame.id, true));
       const screenshotFilename = screenshotCache && (screenshotCache.getFilePath(currentGame.title, true) || screenshotCache.getFilePath(currentGame.id, true));
       template.push({
@@ -432,7 +433,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     if (filePaths && filePaths[0]) {
       const game = this.props.currentGame;
       if (!game) { throw new Error('"currentGame" is missing.'); }
-      const cache = this.props.gameImages.getPlatformScreenshotCache(game.platform);
+      const cache = this.props.gameImages.getScreenshotCache(removeFileExtension(game.filename));
       if (!cache) { throw new Error('Can not add a new image, the cache is missing.'); }
       copyImageFile(filePaths[0], game, cache).then(() => { this.forceUpdate(); });
     }
@@ -447,7 +448,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     if (filePaths && filePaths[0]) {
       const game = this.props.currentGame;
       if (!game) { throw new Error('"currentGame" is missing.'); }
-      const cache = this.props.gameImages.getPlatformThumbnailCache(game.platform);
+      const cache = this.props.gameImages.getThumbnailCache(removeFileExtension(game.filename));
       if (!cache) { throw new Error('Can not add a new image, the cache is missing.'); }
       copyImageFile(filePaths[0], game, cache).then(() => { this.forceUpdate(); });
     }
@@ -456,7 +457,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   private onRemoveThumbnailClick = (): void => {
     const game = this.props.currentGame;
     if (!game) { throw new Error('Can not remove image file, "currentGame" is missing.'); }
-    const cache = this.props.gameImages.getPlatformThumbnailCache(game.platform);
+    const cache = this.props.gameImages.getThumbnailCache(removeFileExtension(game.filename));
     if (!cache) { throw new Error('Can not remove image file, the cache is missing.'); }
     deleteImageFiles(game, cache).then(() => { this.forceUpdate(); });
   }
@@ -464,7 +465,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   private onRemoveScreenshotClick = (): void => {
     const game = this.props.currentGame;
     if (!game) { throw new Error('Can not remove image file, "currentGame" is missing.'); }
-    const cache = this.props.gameImages.getPlatformScreenshotCache(game.platform);
+    const cache = this.props.gameImages.getScreenshotCache(removeFileExtension(game.filename));
     if (!cache) { throw new Error('Can not remove image file, the cache is missing.'); }
     deleteImageFiles(game, cache).then(() => { this.forceUpdate(); });
   }
@@ -474,9 +475,9 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     const files = copyArrayLike(event.dataTransfer.files);
     const game = this.props.currentGame;
     if (!game) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
-    const thumbnailCache = this.props.gameImages.getPlatformThumbnailCache(game.platform);
+    const thumbnailCache = this.props.gameImages.getThumbnailCache(removeFileExtension(game.filename));
     if (!thumbnailCache) { throw new Error('Can not add a new image, the thumbnail cache is missing.'); }
-    const screenshotCache = this.props.gameImages.getPlatformScreenshotCache(game.platform);
+    const screenshotCache = this.props.gameImages.getScreenshotCache(removeFileExtension(game.filename));
     if (!screenshotCache) { throw new Error('Can not add a new image, the screenshot cache is missing.'); }
     if (files.length > 1) { // (Multiple files)
       copyImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });

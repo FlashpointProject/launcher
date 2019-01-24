@@ -26,6 +26,25 @@ export function readJsonFile(path: string, options: ReadFileOptions): Promise<an
 };
 
 /**
+ * Remove the file extension of a filename
+ * (Remove everything after the last dot, including the dot)
+ */
+export function removeFileExtension(filename: string): string {
+  const lastDotIndex = filename.lastIndexOf('.');
+  if (lastDotIndex === -1) { return filename; }
+  return filename.substr(0, lastDotIndex);
+}
+
+/**
+ * Get the filename of a path or url
+ * (get everything after the last slash symbol)
+ * @param filePath Path to get filename from
+ */
+export function getFilename(filePath: string): string {
+  return filePath.substr(Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')) + 1);
+}
+
+/**
  * Pad a the end of a string with spaces until the string is of a specified length
  * @param str String to pad
  * @param length Target length of string (max number of spaces to add)

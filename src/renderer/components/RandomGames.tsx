@@ -4,8 +4,9 @@ import { GameImageCollection } from '../image/GameImageCollection';
 import { GameGridItem } from './GameGridItem';
 import { shuffle } from '../Util';
 import { filterExtreme, filterBroken } from '../../shared/game/GameFilter';
+import { removeFileExtension } from '../../shared/Util';
 
-export interface IRandomGamesProps {
+interface IRandomGamesProps {
   games: IGameInfo[];
   gameImages: GameImageCollection;
   onLaunchGame: (game: IGameInfo, index: number) => void;
@@ -34,14 +35,13 @@ export class RandomGames extends React.PureComponent<IRandomGamesProps> {
   render() {
     const { gameImages, onLaunchGame } = this.props;
     const randomGames = this.selectRandomGames();
-
     return (
       <div className='random-games'>
         {randomGames.map((game, index) => (
           <GameGridItem
             key={game.id}
             game={game}
-            thumbnail={gameImages.getThumbnailPath(game.platform, game.title, game.id) || ''}
+            thumbnail={gameImages.getThumbnailPath(removeFileExtension(game.filename), game.title, game.id) || ''}
             onDoubleClick={onLaunchGame}
             isSelected={false}
             isDragged={false}

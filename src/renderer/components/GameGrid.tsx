@@ -6,6 +6,7 @@ import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { GameGridItem } from './GameGridItem';
 import { GameImageCollection } from '../image/GameImageCollection';
+import { removeFileExtension } from '../../shared/Util';
 
 export interface IGameGridProps extends IDefaultProps {
   gameImages?: GameImageCollection;
@@ -124,18 +125,19 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
 
   /** Renders a single row / list item */
   cellRenderer = (props: GridCellProps): React.ReactNode => {
-    if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
-    if (!this.props.gameImages) { throw new Error('Trying to render a row in game list, but game image loader is not found?'); }
+    const { draggedGame, games, gameImages, selectedGame } = this.props;
+    if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
+    if (!gameImages) { throw new Error('Trying to render a row in game list, but game image loader is not found?'); }
     const index: number = props.rowIndex * this.columns + props.columnIndex;
-    const game = this.props.games[index];
+    const game = games[index];
     if (!game) { return; }
-    let thumbnail = this.props.gameImages.getThumbnailPath(game.platform, game.title, game.id);
+    const thumbnail = gameImages.getThumbnailPath(removeFileExtension(game.filename), game.title, game.id);
     return (
       <GameGridItem key={props.key} {...props} 
                     game={game} 
                     thumbnail={thumbnail || ''}
-                    isSelected={game === this.props.selectedGame}
-                    isDragged={game === this.props.draggedGame}
+                    isSelected={game === selectedGame}
+                    isDragged={game === draggedGame}
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
                     index={index}

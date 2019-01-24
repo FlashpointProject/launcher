@@ -20,6 +20,7 @@ export class GameInfo {
       source: '',
       applicationPath: '',
       launchCommand: '',
+      filename: '',
       orderTitle: '',
       placeholder: false,
     };

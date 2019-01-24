@@ -158,7 +158,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     .then((filenames) => {
       // Prepare images
       const platforms: string[] = filenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
-      this.state.central.gameImages.addPlatforms(platforms);
+      this.state.central.gameImages.addImageFolders(platforms);
       // Load and parse platform XMLs
       this.state.central.games.loadPlatforms()
       .then(() => {

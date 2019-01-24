@@ -8,8 +8,8 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { Paths } from '../../Paths';
-import { RandomGames } from '../RandomGames';
 import { IUpgradeStage } from '../../upgrade/upgrade';
+import { RandomGames } from '../RandomGames';
 
 interface OwnProps {
   central: ICentralState;

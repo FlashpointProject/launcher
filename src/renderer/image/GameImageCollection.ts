@@ -10,56 +10,55 @@ export class GameImageCollection {
     this._flashpointPath = flashpointPath;
   }
 
-  public getPlatformScreenshotCache(platform: string): ImageFolderCache|undefined {
-    return this._screenshots[platform.toLowerCase()];
+  public getScreenshotCache(folderName: string): ImageFolderCache|undefined {
+    return this._screenshots[folderName.toLowerCase()];
   }
 
-  public getPlatformThumbnailCache(platform: string): ImageFolderCache|undefined {
-    return this._thumbnails[platform.toLowerCase()];
+  public getThumbnailCache(folderName: string): ImageFolderCache|undefined {
+    return this._thumbnails[folderName.toLowerCase()];
   }
  
   /**
-   * Add multiple platforms to the image collection
-   * (This is required for the images of games for that platform to be found)
-   * @param platforms Names of the platforms (NOT their filenames or paths)
+   * Add multiple image folders to the image collection
+   * @param folderName Names of the folders
    */
-  public addPlatforms(platforms: string[]): void {
-    for (let i = 0; i < platforms.length; i++) {
-      this.addPlatform(platforms[i]);
+  public addImageFolders(folderName: string[]): void {
+    for (let i = 0; i < folderName.length; i++) {
+      this.addImageFolder(folderName[i]);
     }
   }
   
-  private addPlatform(platform: string): void {
-    const lowerPlatform: string = platform.toLowerCase();
-    if (this._thumbnails[lowerPlatform]) { throw new Error(`Platform with the same name has already been added (${platform})`); }
+  private addImageFolder(folderName: string): void {
+    const lowerFolderName: string = folderName.toLowerCase();
+    if (this._thumbnails[lowerFolderName]) { throw new Error(`Image Folder with the same name has already been added (${folderName})`); }
     // Add thumbnail folder
     const thumbnailFolder = new ImageFolderCache();
-    this._thumbnails[lowerPlatform] = thumbnailFolder;
-    thumbnailFolder.loadFilenames(getThumbnailFolderPath(platform, this._flashpointPath));
+    this._thumbnails[lowerFolderName] = thumbnailFolder;
+    thumbnailFolder.loadFilenames(getThumbnailFolderPath(folderName, this._flashpointPath));
     // Add screenshot folder
     const screenshotFolder = new ImageFolderCache();
-    this._screenshots[lowerPlatform] = screenshotFolder;
-    screenshotFolder.loadFilenames(getScreenshotFolderPath(platform, this._flashpointPath));
+    this._screenshots[lowerFolderName] = screenshotFolder;
+    screenshotFolder.loadFilenames(getScreenshotFolderPath(folderName, this._flashpointPath));
   }
   
   /**
-   * Get the path to the thumbnail for a given identifier and platform (returns undefined if not found)
+   * Get the path to the thumbnail for a given identifier and folder name (returns undefined if not found)
    * @param identifier Title or ID of game
-   * @param platform Platform of game
+   * @param folderName Name of the image folder
    * @returns Path to thumbnail for that game, or undefined if not found
    */
-  public getThumbnailPath(platform: string, ...identifiers: string[]): string|undefined {
-    return this.getFirstFilename(this._thumbnails[platform.toLowerCase()], identifiers);
+  public getThumbnailPath(folderName: string, ...identifiers: string[]): string|undefined {
+    return this.getFirstFilename(this._thumbnails[folderName.toLowerCase()], identifiers);
   }
   
   /**
-   * Get the path to the screenshot for a given identifier and platform (returns undefined if not found)
+   * Get the path to the screenshot for a given identifier and folder name (returns undefined if not found)
    * @param identifier Title or ID of game
-   * @param platform Platform of game
+   * @param folderName Name of the image folder
    * @returns Path to screenshot for that game, or undefined if not found
    */
-  public getScreenshotPath(platform: string, ...identifiers: string[]): string|undefined {
-    return this.getFirstFilename(this._screenshots[platform.toLowerCase()], identifiers);
+  public getScreenshotPath(folderName: string, ...identifiers: string[]): string|undefined {
+    return this.getFirstFilename(this._screenshots[folderName.toLowerCase()], identifiers);
   }
 
   private getFirstFilename(cache: ImageFolderCache|undefined, identifiers: string[]): string|undefined {

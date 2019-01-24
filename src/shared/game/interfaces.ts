@@ -45,6 +45,8 @@ interface IPureGameInfo {
 
 /** Represents the meta data for a single Game (including temporary data) */
 export interface IGameInfo extends IPureGameInfo {
+  /** The filename of the file this was loaded from / saved to (empty string if not loaded or saved yet) */
+  filename: string;
   /** The title but reconstructed to be suitable for sorting and ordering (and not be shown visually) */
   orderTitle: string;
   /** If the game is a placeholder (and can therefore not be saved) */

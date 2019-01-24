@@ -43,7 +43,7 @@ class GameManager extends EventEmitter {
           LaunchboxData.loadPlatform(path.join(flashpointPath, LaunchboxData.platformsPath, platform.filename))
           .then((data) => {
             platform.data = data;
-            platform.collection = new GameCollection().push(GameParser.parse(data));
+            platform.collection = new GameCollection().push(GameParser.parse(data, platform.filename));
             this.collection.push(platform.collection);
             done++;
             if (done === this.platforms.length) {

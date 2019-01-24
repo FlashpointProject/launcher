@@ -6,6 +6,7 @@ import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { RenderedSection } from 'react-virtualized/dist/es/Grid';
 import { GameImageCollection } from '../image/GameImageCollection';
+import { removeFileExtension } from '../../shared/Util';
 
 export interface IGameListProps extends IDefaultProps {
   gameImages: GameImageCollection;
@@ -95,17 +96,18 @@ export class GameList extends React.Component<IGameListProps, {}> {
 
   /** Renders a single row / list item */
   rowRenderer = (props: ListRowProps): React.ReactNode => {
-    if (!this.props.games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
-    if (!this.props.gameImages) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
-    const game = this.props.games[props.index];
-    let thumbnail = this.props.gameImages.getThumbnailPath(game.platform, game.title, game.id);
+    const { draggedGame, games, gameImages, rowHeight, selectedGame } = this.props;
+    if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
+    if (!gameImages) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
+    const game = games[props.index];
+    let thumbnail = gameImages.getThumbnailPath(removeFileExtension(game.filename), game.title, game.id);
     return (
       <GameListItem key={props.key} {...props}
                     game={game}
                     thumbnail={thumbnail || ''}
-                    height={this.props.rowHeight}
-                    isSelected={game === this.props.selectedGame}
-                    isDragged={game === this.props.draggedGame}
+                    height={rowHeight}
+                    isSelected={game === selectedGame}
+                    isDragged={game === draggedGame}
                     onClick={this.onItemClick}
                     onDoubleClick={this.onItemDoubleClick}
                     onDragStart={this.onItemDragStart}
