@@ -18,7 +18,6 @@ import { WithPreferencesProps } from './containers/withPreferences';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import { readUpgradeFile, performUpgradeStageChecks, IUpgradeStage } from './upgrade/upgrade';
 import { downloadAndInstallUpgrade } from './util/upgrade';
-import { readGameLibraryFile } from '../shared/library/GameLibrary';
 import { Paths } from './Paths';
 import { WithLibraryProps } from './containers/withLibrary';
 
@@ -128,12 +127,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('window-maximize', (sender: IpcMessageEvent, isMaximized: boolean) => {
       this.props.preferencesData.mainWindow.maximized = isMaximized;
     });
-    // Load Game Libraries
-    readGameLibraryFile(fullFlashpointPath, log)
-    .then(library => {
-      this.props.updateLibrary(library);
-    })
-    .catch(err => log(err+''));
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {

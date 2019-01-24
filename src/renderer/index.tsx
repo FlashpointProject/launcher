@@ -5,6 +5,8 @@ import configureStore from './configureStore';
 import { createMemoryHistory } from 'history';
 import { ConnectedRouter } from 'connected-react-router';
 import ConnectedApp from './containers/ConnectedApp';
+import { readGameLibraryFile } from '../shared/library/GameLibrary';
+import { updateLibrary } from './store/library';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -21,6 +23,9 @@ import ConnectedApp from './containers/ConnectedApp';
   const history = createMemoryHistory();
   // Create Redux store
   const store = configureStore(history, { preferences: { data: window.External.preferences.getData() } });
+  // Load Game Library file
+  let library = await readGameLibraryFile(window.External.config.fullFlashpointPath, log).catch(e => log(e+''));
+  if (library) { store.dispatch(updateLibrary(library)); }
   // Render the application
   ReactDOM.render((
       <Provider store={store}>
@@ -32,3 +37,10 @@ import ConnectedApp from './containers/ConnectedApp';
     document.getElementById('root')
   );
 })();
+
+function log(content: string): void {
+  window.External.log.addEntry({
+    source: 'Launcher',
+    content: content
+  });
+}
