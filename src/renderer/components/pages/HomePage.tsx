@@ -179,8 +179,8 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
     const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
     let hof = findHallOfFamePlaylist(this.props.central.playlists.playlists);
-    if (hof && hof.library) { console.log(joinLibraryRoute(hof.library)); return joinLibraryRoute(hof.library); }
-    else                    { console.log(defaultRoute); return defaultRoute;                  }
+    if (hof && hof.library) { return joinLibraryRoute(hof.library); }
+    else                    { return defaultRoute;                  }
   }
 }
 
