@@ -6,7 +6,7 @@ import { OpenIcon } from './OpenIcon';
 import { SearchQuery } from '../store/search';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithLibraryProps } from '../containers/withLibrary';
-import { getLibraryRoute, easterEgg } from '../Util';
+import { joinLibraryRoute, easterEgg } from '../Util';
 
 interface OwnProps {
   searchQuery: SearchQuery;
@@ -55,7 +55,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
             <MenuItem title='Home' link={Paths.HOME}/>
             { libraries.length > 0 ? (
               libraries.map(item => (
-                <MenuItem title={item.title} link={getLibraryRoute(item.route)}
+                <MenuItem title={item.title} link={joinLibraryRoute(item.route)}
                           key={item.route}/>
               )) 
             ) : (

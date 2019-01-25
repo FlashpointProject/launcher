@@ -9,7 +9,7 @@ import { Paths } from '../Paths';
 import { withPreferences } from './withPreferences';
 import { withSearch, WithSearchProps } from './withSearch';
 import { withLibrary, WithLibraryProps } from './withLibrary';
-import { getLibraryRoute } from '../Util';
+import { joinLibraryRoute } from '../Util';
 
 interface IStateToProps {
 }
@@ -25,7 +25,7 @@ const HeaderContainer: React.FunctionComponent<IHeaderContainerProps> = (props: 
     <Header
       onSearch={(text: string, redirect: boolean) => {
         props.preferencesData.lastSelectedLibrary
-        if (redirect) { props.history.push(getLibraryRoute(props.preferencesData.lastSelectedLibrary)); }
+        if (redirect) { props.history.push(joinLibraryRoute(props.preferencesData.lastSelectedLibrary)); }
         onSearch(text);
       }}
       {...rest}

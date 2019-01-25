@@ -10,6 +10,8 @@ import { IGamePlaylist } from '../../playlist/interfaces';
 import { Paths } from '../../Paths';
 import { IUpgradeStage } from '../../upgrade/upgrade';
 import { RandomGames } from '../RandomGames';
+import { WithLibraryProps } from '../../containers/withLibrary';
+import { joinLibraryRoute } from '../../Util';
 
 interface OwnProps {
   central: ICentralState;
@@ -19,7 +21,7 @@ interface OwnProps {
   onDownloadScreenshotsUpgradeClick: () => void;
 }
 
-export type IHomePageProps = OwnProps & WithPreferencesProps;
+export type IHomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps;
 
 export interface IHomePageState {
   /** Delay applied to the logo's animation */
@@ -70,7 +72,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             <div className='home-page__box__head'>Quick Start</div>
             <ul className='home-page__box__body'>
               <QuickStartItem icon='badge'>
-                Don't know what to play? Check out the <Link to={Paths.BROWSE} onClick={this.onHallOfFameClick}>Hall of Fame</Link>!
+                Don't know what to play? Check out the <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>Hall of Fame</Link>!
               </QuickStartItem>
               <QuickStartItem icon='magnifying-glass'>
                 Looking for something specific? View <Link to={Paths.BROWSE} onClick={this.onAllGamesClick}>All Games</Link>.
@@ -163,11 +165,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
   }
 
   private onHallOfFameClick = () => {
-    // Select the "Hall of Fame" playlist
-    const playlists = this.props.central.playlists.playlists;
-    let hof: IGamePlaylist|undefined = playlists.find(
-      (playlist) => (playlist.title === 'Flashpoint Hall of Fame')
-    );
+    let hof = findHallOfFamePlaylist(this.props.central.playlists.playlists);
     this.props.onSelectPlaylist(hof);
   }
 
@@ -175,6 +173,14 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     // Deselect the current playlist and clear the search
     this.props.onSelectPlaylist(undefined);
     this.props.clearSearch();
+  }
+
+  private getHallOfFameBrowseRoute = (): string => {
+    const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
+    const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
+    let hof = findHallOfFamePlaylist(this.props.central.playlists.playlists);
+    if (hof && hof.library) { console.log(joinLibraryRoute(hof.library)); return joinLibraryRoute(hof.library); }
+    else                    { console.log(defaultRoute); return defaultRoute;                  }
   }
 }
 
@@ -191,4 +197,8 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
       </div>
     </li>
   );
+}
+
+function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
+  return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
 }

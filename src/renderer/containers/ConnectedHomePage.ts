@@ -4,18 +4,19 @@ import { Subtract } from 'utility-types';
 import { withPreferences, WithPreferencesProps } from './withPreferences';
 import { HomePage, IHomePageProps } from '../components/pages/HomePage';
 import * as searchActions from '../store/search/actions';
+import { withLibrary, WithLibraryProps } from './withLibrary';
 
 interface IDispatchToProps {
   clearSearch: () => void;
 }
 
-export type IConnectedHomePageProps = Subtract<IHomePageProps, IDispatchToProps & WithPreferencesProps>;
+export type IConnectedHomePageProps = Subtract<IHomePageProps, IDispatchToProps & WithPreferencesProps & WithLibraryProps>;
 
 const mapDispatchToProps = (dispatch: Dispatch): IDispatchToProps => bindActionCreators({
   clearSearch: () => searchActions.setQuery({ text: '' }),
 }, dispatch);
 
-export const ConnectedHomePage = withPreferences(connect(
+export const ConnectedHomePage = withLibrary(withPreferences(connect(
   undefined,
   mapDispatchToProps
-)(HomePage));
+)(HomePage)));

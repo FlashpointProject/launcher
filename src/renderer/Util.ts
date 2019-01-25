@@ -61,9 +61,13 @@ export function shuffle<T>(array: T[]): T[] {
   return shuffled;
 }
 
-export function getLibraryRoute(urlPath: string): string {
+/**
+ * Join a library route with the browse route
+ * @param route Library route
+ */
+export function joinLibraryRoute(route: string): string {
   let cleanRoute = (
-    urlPath
+    route
     .replace(/\//g, '')
     .replace(/\\/g, '')
   );
