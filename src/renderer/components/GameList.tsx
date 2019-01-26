@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { List, AutoSizer, ListRowProps, ArrowKeyStepper, ScrollIndices } from 'react-virtualized';
+import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
+import { RenderedSection } from 'react-virtualized/dist/es/Grid';
+import { IGameInfo } from '../../shared/game/interfaces';
+import { removeFileExtension } from '../../shared/Util';
+import { GameImageCollection } from '../image/GameImageCollection';
 import { IDefaultProps } from '../interfaces';
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from './GameOrder';
-import { IGameInfo } from '../../shared/game/interfaces';
-import { RenderedSection } from 'react-virtualized/dist/es/Grid';
-import { GameImageCollection } from '../image/GameImageCollection';
-import { removeFileExtension } from '../../shared/Util';
 
 export interface IGameListProps extends IDefaultProps {
   gameImages: GameImageCollection;

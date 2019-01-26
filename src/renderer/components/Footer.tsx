@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { IDefaultProps } from '../interfaces';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
-import { gameScaleSpan } from '../Util';
 import { WithPreferencesProps } from '../containers/withPreferences';
+import { IDefaultProps } from '../interfaces';
+import { gameScaleSpan } from '../Util';
 
 interface OwnProps extends IDefaultProps {
   gameCount?: number;

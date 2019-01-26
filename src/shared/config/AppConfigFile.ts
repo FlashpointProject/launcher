@@ -1,7 +1,7 @@
 import * as fs from 'fs';
-import { readJsonFile, deepCopy, stringifyJsonDataFile } from '../Util';
-import { IAppConfigData } from './interfaces';
+import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../Util';
 import { ObjectParser } from '../utils/ObjectParser';
+import { IAppConfigData } from './interfaces';
 
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;

@@ -1,5 +1,5 @@
-import { IGameInfo } from './interfaces';
 import { shallowStrictEquals } from '../Util';
+import { IGameInfo } from './interfaces';
 
 export class GameInfo {
   public static create(): IGameInfo {

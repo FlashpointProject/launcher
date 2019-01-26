@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { CheckBox } from './CheckBox';
-import { OpenIcon } from './OpenIcon';
 import { InputField } from './InputField';
+import { OpenIcon } from './OpenIcon';
 
 export interface IRightBrowseSidebarAddAppProps {
   /** Additional Application to show and edit */

@@ -1,15 +1,14 @@
 import * as React from 'react';
-import { Dispatch, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
-import * as searchActions from '../store/search/actions';
-import { ApplicationState } from '../store';
+import { bindActionCreators, Dispatch } from 'redux';
 import { Header, IHeaderProps } from '../components/Header';
-import { Paths } from '../Paths';
+import { ApplicationState } from '../store';
+import * as searchActions from '../store/search/actions';
+import { joinLibraryRoute } from '../Util';
+import { withLibrary, WithLibraryProps } from './withLibrary';
 import { withPreferences } from './withPreferences';
 import { withSearch, WithSearchProps } from './withSearch';
-import { withLibrary, WithLibraryProps } from './withLibrary';
-import { joinLibraryRoute } from '../Util';
 
 interface IStateToProps {
 }

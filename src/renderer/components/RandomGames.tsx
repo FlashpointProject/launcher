@@ -1,10 +1,10 @@
 import * as React from 'react';
+import { filterBroken, filterExtreme } from '../../shared/game/GameFilter';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { GameImageCollection } from '../image/GameImageCollection';
-import { GameGridItem } from './GameGridItem';
-import { shuffle } from '../Util';
-import { filterExtreme, filterBroken } from '../../shared/game/GameFilter';
 import { removeFileExtension } from '../../shared/Util';
+import { GameImageCollection } from '../image/GameImageCollection';
+import { shuffle } from '../Util';
+import { GameGridItem } from './GameGridItem';
 
 interface IRandomGamesProps {
   games: IGameInfo[];

@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { IGamePlaylist } from './interfaces';
-import { loadGamePlaylist, createGamePlaylist, LoadGamePlaylistError, getPlaylistFolder, saveGamePlaylist } from './GamePlaylist';
-import { recursiveDirectory } from '../../shared/Util';
 import { promisify } from 'util';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
+import { recursiveDirectory } from '../../shared/Util';
+import { createGamePlaylist, getPlaylistFolder, loadGamePlaylist, LoadGamePlaylistError, saveGamePlaylist } from './GamePlaylist';
+import { IGamePlaylist } from './interfaces';
 
 const unlink = promisify(fs.unlink);
 const stat = promisify(fs.stat);

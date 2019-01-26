@@ -1,9 +1,9 @@
-import { exec, ExecOptions, ChildProcess } from 'child_process';
+import { ChildProcess, exec, ExecOptions } from 'child_process';
 import { remote } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import { IGameInfo, IAdditionalApplicationInfo } from '../shared/game/interfaces';
-import { stringifyArray, padStart } from '../shared/Util';
+import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
+import { padStart, stringifyArray } from '../shared/Util';
 
 export class GameLauncher {
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {

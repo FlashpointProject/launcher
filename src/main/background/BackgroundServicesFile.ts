@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { readJsonFile } from '../../shared/Util';
-import { IBackProcessInfoFile, IBackProcessInfo } from './interfaces';
-import { ObjectParser, IObjectParserProp } from '../../shared/utils/ObjectParser';
+import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
+import { IBackProcessInfo, IBackProcessInfoFile } from './interfaces';
 
 export class BackgroundServicesFile {
   /** Path to the background services file (relative to the flashpoint root folder) */

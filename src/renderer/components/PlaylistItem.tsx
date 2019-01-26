@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { IGamePlaylist, IGamePlaylistEntry } from '../playlist/interfaces';
 import { deepCopy } from '../../shared/Util';
-import { ConfirmButton } from './ConfirmButton';
 import { ICentralState } from '../interfaces';
-import { OpenIcon } from './OpenIcon';
-import { EditableTextElement, IEditableTextElementArgs } from './EditableTextElement';
+import { IGamePlaylist, IGamePlaylistEntry } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
+import { ConfirmButton } from './ConfirmButton';
+import { EditableTextElement, IEditableTextElementArgs } from './EditableTextElement';
+import { OpenIcon } from './OpenIcon';
 
 export interface IPlaylistItemProps {
   playlist: IGamePlaylist;

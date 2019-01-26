@@ -1,8 +1,8 @@
-import { Dispatch, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { bindActionCreators, Dispatch } from 'redux';
 import { ApplicationState } from '../store';
-import * as searchActions from '../store/search/actions';
 import { SearchQuery } from '../store/search';
+import * as searchActions from '../store/search/actions';
 
 interface IStateToProps {
   searchQuery: SearchQuery;

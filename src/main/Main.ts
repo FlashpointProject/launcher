@@ -1,15 +1,15 @@
-import { app, session, ipcMain, shell } from 'electron';
+import { app, ipcMain, session, shell } from 'electron';
 import * as path from 'path';
-import MainWindow from './MainWindow';
-import * as Util from './Util';
-import BackgroundServices from './background/BackgroundServices';
 import checkSanity from '../shared/checkSanity';
-import { AppPreferencesMain } from './preferences/AppPreferencesMain';
-import { AppConfig } from '../shared/config/AppConfigFile';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
-import { IAppConfigData, IAppConfigApiFetchData } from '../shared/config/interfaces';
-import { LogMainApi } from '../shared/Log/LogMainApi';
+import { AppConfig } from '../shared/config/AppConfigFile';
+import { IAppConfigApiFetchData, IAppConfigData } from '../shared/config/interfaces';
 import { ILogPreEntry } from '../shared/Log/interface';
+import { LogMainApi } from '../shared/Log/LogMainApi';
+import BackgroundServices from './background/BackgroundServices';
+import MainWindow from './MainWindow';
+import { AppPreferencesMain } from './preferences/AppPreferencesMain';
+import * as Util from './Util';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);

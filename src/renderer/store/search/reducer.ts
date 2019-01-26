@@ -1,5 +1,5 @@
 import { Reducer } from 'redux';
-import { SearchState, SearchActionTypes } from './types';
+import { SearchActionTypes, SearchState } from './types';
 
 const initialState: SearchState = {
   query: { text: '' },

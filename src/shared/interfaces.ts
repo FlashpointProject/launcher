@@ -1,6 +1,6 @@
-import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
+import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 
 export interface IMainWindowExternal {
   /** Get the OS name */

@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
 import { deepCopy } from '../Util';
-import { IAppConfigData, IAppConfigApiFetchData } from './interfaces';
+import { IAppConfigApiFetchData, IAppConfigData } from './interfaces';
 
 export class AppConfigApi extends EventEmitter {
   /** Current Configs Data */

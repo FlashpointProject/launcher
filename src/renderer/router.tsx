@@ -1,18 +1,18 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { NotFoundPage } from './components/pages/NotFoundPage';
-import { ICentralState } from './interfaces';
-import { AboutPage } from './components/pages/AboutPage';
-import { IGameOrderChangeEvent } from './components/GameOrder';
-import { Paths } from './Paths';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
-import { IGamePlaylist } from './playlist/interfaces';
+import { IGameOrderChangeEvent } from './components/GameOrder';
+import { AboutPage } from './components/pages/AboutPage';
+import { DeveloperPage } from './components/pages/DeveloperPage';
+import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage } from './containers/ConnectedConfigPage';
 import { ConnectedHomePage, IConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
-import { DeveloperPage } from './components/pages/DeveloperPage';
+import { ICentralState } from './interfaces';
+import { Paths } from './Paths';
+import { IGamePlaylist } from './playlist/interfaces';
 
 export interface IAppRouterProps {
   central: ICentralState;

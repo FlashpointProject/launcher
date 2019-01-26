@@ -1,5 +1,5 @@
-import { ILogEntry } from './interface';
 import { padStart } from '../Util';
+import { ILogEntry } from './interface';
 
 /** Channel names used by the log api in the Electron IPC */
 export enum LogChannel {

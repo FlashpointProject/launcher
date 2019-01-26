@@ -1,10 +1,10 @@
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import { Subtract } from 'utility-types';
-import { withPreferences, WithPreferencesProps } from './withPreferences';
 import { HomePage, IHomePageProps } from '../components/pages/HomePage';
 import * as searchActions from '../store/search/actions';
 import { withLibrary, WithLibraryProps } from './withLibrary';
+import { withPreferences, WithPreferencesProps } from './withPreferences';
 
 interface IDispatchToProps {
   clearSearch: () => void;

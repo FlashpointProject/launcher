@@ -1,6 +1,6 @@
-import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './IAppPreferencesData';
 import { BrowsePageLayout } from '../BrowsePageLayout';
-import { ObjectParser, IObjectParserProp } from '../utils/ObjectParser';
+import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
+import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './IAppPreferencesData';
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze({

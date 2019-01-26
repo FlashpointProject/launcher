@@ -1,7 +1,7 @@
-import { ipcRenderer, IpcMessageEvent } from 'electron';
+import { IpcMessageEvent, ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
-import { LogChannel, stringifyLogEntries } from './LogCommon';
 import { ILogEntry, ILogPreEntry } from './interface';
+import { LogChannel, stringifyLogEntries } from './LogCommon';
 
 export declare interface LogRendererApi {
   /** @TODO Write this comment */

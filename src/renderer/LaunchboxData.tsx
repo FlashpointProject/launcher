@@ -1,10 +1,10 @@
+import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { IRawLaunchBoxPlatformRoot } from '../shared/launchbox/interfaces';
-import { IGameCollection } from '../shared/game/interfaces';
-import * as fastXmlParser from 'fast-xml-parser';
-import { GameParser } from '../shared/game/GameParser';
 import { GameCollection } from '../shared/game/GameCollection';
+import { GameParser } from '../shared/game/GameParser';
+import { IGameCollection } from '../shared/game/interfaces';
+import { IRawLaunchBoxPlatformRoot } from '../shared/launchbox/interfaces';
 import { getFilename } from '../shared/Util';
 
 export class LaunchboxData {

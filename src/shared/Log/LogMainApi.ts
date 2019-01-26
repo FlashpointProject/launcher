@@ -1,7 +1,7 @@
 import { ipcMain, IpcMessageEvent } from 'electron';
-import { LogChannel } from './LogCommon';
-import { ILogEntry, ILogPreEntry } from './interface';
 import { deepCopy } from '../Util';
+import { ILogEntry, ILogPreEntry } from './interface';
+import { LogChannel } from './LogCommon';
 
 type SendFunc = (channel: string , ...rest: any[]) => boolean;
 

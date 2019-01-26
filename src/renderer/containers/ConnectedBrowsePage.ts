@@ -1,12 +1,12 @@
-import { Dispatch, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { bindActionCreators, Dispatch } from 'redux';
 import { Subtract } from 'utility-types';
-import { ApplicationState } from '../store';
-import * as searchActions from '../store/search/actions';
 import { BrowsePage, IBrowsePageProps } from '../components/pages/BrowsePage';
+import { ApplicationState } from '../store';
 import { SearchQuery } from '../store/search';
-import { withPreferences, WithPreferencesProps } from './withPreferences';
+import * as searchActions from '../store/search/actions';
 import { withLibrary, WithLibraryProps } from './withLibrary';
+import { withPreferences, WithPreferencesProps } from './withPreferences';
 
 interface IStateToProps {
   search: SearchQuery;

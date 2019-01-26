@@ -1,9 +1,9 @@
 import { Reducer } from 'redux';
 import { ActionType, getType } from 'typesafe-actions';
-import { deepCopy } from '../../../shared/Util';
 import { defaultPreferencesData } from '../../../shared/preferences/util';
-import { IPreferencesState } from './types';
+import { deepCopy } from '../../../shared/Util';
 import * as actions from './actions';
+import { IPreferencesState } from './types';
 
 const initialState: IPreferencesState = {
   data: deepCopy(defaultPreferencesData),

@@ -1,7 +1,7 @@
-import { Dispatch, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { ApplicationState } from '../store';
+import { bindActionCreators, Dispatch } from 'redux';
 import { IGameLibraryFile } from '../../shared/library/interfaces';
+import { ApplicationState } from '../store';
 import * as action from '../store/library/actions';
 
 interface IStateToProps {

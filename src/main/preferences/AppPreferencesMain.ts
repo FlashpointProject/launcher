@@ -1,9 +1,9 @@
 import { ipcMain, IpcMessageEvent } from 'electron';
 import { EventEmitter } from 'events';
-import { AppPreferencesFile } from './AppPreferencesFile';
-import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
 import { AppPreferencesApi } from '../../shared/preferences/AppPreferencesApi';
+import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
 import { overwritePreferenceData } from '../../shared/preferences/util';
+import { AppPreferencesFile } from './AppPreferencesFile';
 
 /**
  * Manager of the Preferences Data.

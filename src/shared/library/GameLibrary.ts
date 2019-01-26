@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { readJsonFile } from '../Util';
-import { ObjectParser, IObjectParserProp } from '../utils/ObjectParser';
+import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IGameLibraryFile, IGameLibraryFileItem } from './interfaces';
 
 /** Path to the game library file (relative to the flashpoint root folder) */

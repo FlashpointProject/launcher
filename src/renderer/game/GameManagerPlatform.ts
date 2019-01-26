@@ -1,14 +1,14 @@
+import { EventEmitter } from 'events';
+import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as fastXmlParser from 'fast-xml-parser';
 import { promisify } from 'util';
-import { EventEmitter } from 'events';
-import { IRawLaunchBoxPlatformRoot, IRawLaunchBoxGame, IRawLaunchBoxAdditionalApplication } from '../../shared/launchbox/interfaces';
-import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { LaunchboxData } from '../LaunchboxData';
 import { GameCollection } from '../../shared/game/GameCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
 import { GameParser } from '../../shared/game/GameParser';
+import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
+import { IRawLaunchBoxAdditionalApplication, IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from '../../shared/launchbox/interfaces';
+import { LaunchboxData } from '../LaunchboxData';
 
 const writeFile = promisify(fs.writeFile);
 

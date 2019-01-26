@@ -1,11 +1,11 @@
+import { ConnectedRouter } from 'connected-react-router';
+import { createMemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import configureStore from './configureStore';
-import { createMemoryHistory } from 'history';
-import { ConnectedRouter } from 'connected-react-router';
-import ConnectedApp from './containers/ConnectedApp';
 import { readGameLibraryFile } from '../shared/library/GameLibrary';
+import configureStore from './configureStore';
+import ConnectedApp from './containers/ConnectedApp';
 import { updateLibrary } from './store/library';
 
 (async () => {

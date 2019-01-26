@@ -1,5 +1,5 @@
-import { IAdditionalApplicationInfo } from './interfaces';
 import { shallowStrictEquals } from '../Util';
+import { IAdditionalApplicationInfo } from './interfaces';
 
 export class AdditionalApplicationInfo {
   public static create(): IAdditionalApplicationInfo {

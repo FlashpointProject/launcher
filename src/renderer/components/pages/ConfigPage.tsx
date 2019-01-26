@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
+import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
+import { AppConfig } from '../../../shared/config/AppConfigFile';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { CheckBox } from '../CheckBox';
-import { AppConfig } from '../../../shared/config/AppConfigFile';
-import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
+import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 
 interface OwnProps {
 }

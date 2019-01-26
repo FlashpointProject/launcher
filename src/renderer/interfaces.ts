@@ -1,9 +1,8 @@
 import { ReactNode } from 'react';
+import GameManager from './game/GameManager';
 import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
-import GameManager from './game/GameManager';
 import { IUpgradeData } from './upgrade/upgrade';
-import { IGameLibraryFile } from '../shared/library/interfaces';
 
 /** "match" object from 'react-router' and 'history' npm packages */
 export interface IMatch {

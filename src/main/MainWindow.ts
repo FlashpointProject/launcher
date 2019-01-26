@@ -1,8 +1,8 @@
 import { app, BrowserWindow, IpcMessageEvent } from 'electron';
 import * as path from 'path';
+import * as AppConstants from '../shared/AppConstants';
 import { Main } from './Main';
 import * as Util from './Util';
-import * as AppConstants from '../shared/AppConstants';
 
 export default class MainWindow {
   private _main: Main;

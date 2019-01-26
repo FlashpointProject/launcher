@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
-import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
-import { Paths } from '../Paths';
-import { OpenIcon } from './OpenIcon';
-import { SearchQuery } from '../store/search';
-import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithLibraryProps } from '../containers/withLibrary';
-import { joinLibraryRoute, easterEgg } from '../Util';
+import { WithPreferencesProps } from '../containers/withPreferences';
+import { Paths } from '../Paths';
+import { SearchQuery } from '../store/search';
+import { easterEgg, joinLibraryRoute } from '../Util';
+import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
+import { OpenIcon } from './OpenIcon';
 
 interface OwnProps {
   searchQuery: SearchQuery;

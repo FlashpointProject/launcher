@@ -1,7 +1,7 @@
 import * as fs from 'fs';
-import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../../shared/Util';
 import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
 import { defaultPreferencesData, overwritePreferenceData } from '../../shared/preferences/util';
+import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../../shared/Util';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export class AppPreferencesFile {

@@ -2,13 +2,13 @@ import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { promisify } from 'util';
-import { ManagedChildProcess } from '../ManagedChildProcess';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
-import { BackgroundServicesFile } from './BackgroundServicesFile';
-import { IBackProcessInfoFile, IBackProcessInfo } from './interfaces';
 import { IAppConfigData } from '../../shared/config/interfaces';
 import { ILogPreEntry } from '../../shared/Log/interface';
 import { stringifyArray } from '../../shared/Util';
+import { ManagedChildProcess } from '../ManagedChildProcess';
+import { BackgroundServicesFile } from './BackgroundServicesFile';
+import { IBackProcessInfo, IBackProcessInfoFile } from './interfaces';
 
 const execFile = promisify(child_process.execFile);
 

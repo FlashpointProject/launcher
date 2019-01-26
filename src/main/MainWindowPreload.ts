@@ -1,8 +1,8 @@
 import * as electron from 'electron';
-import { ElectronOpenDialogCallback } from '../shared/interfaces';
-import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
+import { ElectronOpenDialogCallback } from '../shared/interfaces';
 import { LogRendererApi } from '../shared/Log/LogRendererApi';
+import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
 
 // Set up Preferences API
 const preferences = new AppPreferencesApi();

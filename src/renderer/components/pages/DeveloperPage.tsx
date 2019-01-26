@@ -1,13 +1,13 @@
 import * as React from 'react';
+import * as uuidValidate from 'uuid-validate';
+import { IGameInfo } from '../../../shared/game/interfaces';
+import { removeFileExtension } from '../../../shared/Util';
+import { GameImageCollection } from '../../image/GameImageCollection';
+import { ICentralState } from '../../interfaces';
+import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
+import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
 import { SimpleButton } from '../SimpleButton';
-import { ICentralState } from '../../interfaces';
-import { IGameInfo } from '../../../shared/game/interfaces';
-import { GameImageCollection } from '../../image/GameImageCollection';
-import { validateSemiUUID } from '../../uuid';
-import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
-import * as uuidValidate from 'uuid-validate';
-import { removeFileExtension } from '../../../shared/Util';
 
 interface IDeveloperPageProps {
   central: ICentralState;

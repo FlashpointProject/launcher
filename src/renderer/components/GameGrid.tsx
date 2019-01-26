@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { AutoSizer, ArrowKeyStepper, ScrollIndices } from 'react-virtualized';
+import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps } from 'react-virtualized/dist/es/Grid';
-import { IDefaultProps } from '../interfaces';
-import { GameOrderBy, GameOrderReverse } from './GameOrder';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { GameGridItem } from './GameGridItem';
-import { GameImageCollection } from '../image/GameImageCollection';
 import { removeFileExtension } from '../../shared/Util';
+import { GameImageCollection } from '../image/GameImageCollection';
+import { IDefaultProps } from '../interfaces';
+import { GameGridItem } from './GameGridItem';
+import { GameOrderBy, GameOrderReverse } from './GameOrder';
 
 export interface IGameGridProps extends IDefaultProps {
   gameImages?: GameImageCollection;

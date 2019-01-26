@@ -1,7 +1,7 @@
-import { IGameInfo, IGameSearchQuery } from './interfaces';
 import { IGameOrderChangeEvent } from '../../renderer/components/GameOrder';
 import { IGamePlaylist } from '../../renderer/playlist/interfaces';
 import { GameInfo } from './GameInfo';
+import { IGameInfo, IGameSearchQuery } from './interfaces';
 
 export type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
 

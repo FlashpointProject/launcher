@@ -1,10 +1,10 @@
-import { Dispatch, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
-import { ApplicationState } from '../store';
+import { bindActionCreators, Dispatch } from 'redux';
 import { App } from '../app';
-import { withPreferences } from './withPreferences';
+import { ApplicationState } from '../store';
 import { withLibrary } from './withLibrary';
+import { withPreferences } from './withPreferences';
 
 const mapStateToProps = ({ search }: ApplicationState) => ({
   search: search.query

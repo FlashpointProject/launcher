@@ -1,5 +1,5 @@
-import { shallowStrictEquals } from './Util';
 import { ArgumentTypesOf, ReturnTypeOf } from './interfaces';
+import { shallowStrictEquals } from './Util';
 
 /** Callable object, A is the arguments, R is the return value */
 interface Callable<A extends any[], R> extends Function {

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { SimpleButton } from './SimpleButton';
 import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
 import { OpenIcon } from './OpenIcon';
+import { SimpleButton } from './SimpleButton';
 
 interface IGameImageSplitProps {
   text: string;

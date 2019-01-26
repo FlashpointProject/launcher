@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { LogData } from '../LogData';
-import { Dropdown } from '../Dropdown';
-import { WithPreferencesProps } from '../../containers/withPreferences';
+import { ArgumentTypesOf } from '../../../shared/interfaces';
+import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
 import { LogRendererApi } from '../../../shared/Log/LogRendererApi';
 import { memoizeOne } from '../../../shared/memoize';
-import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
-import { ArgumentTypesOf } from '../../../shared/interfaces';
 import { shallowStrictEquals } from '../../../shared/Util';
+import { WithPreferencesProps } from '../../containers/withPreferences';
+import { Dropdown } from '../Dropdown';
+import { LogData } from '../LogData';
 
 interface OwnProps {
 }

@@ -1,8 +1,8 @@
-import * as path from 'path';
 import { EventEmitter } from 'events';
-import { LaunchboxData } from '../LaunchboxData';
-import { GameParser } from '../../shared/game/GameParser';
+import * as path from 'path';
 import { GameCollection } from '../../shared/game/GameCollection';
+import { GameParser } from '../../shared/game/GameParser';
+import { LaunchboxData } from '../LaunchboxData';
 import GameManagerPlatform from './GameManagerPlatform';
 
 declare interface GameManager {

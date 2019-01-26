@@ -1,9 +1,9 @@
 import { Reducer } from 'redux';
 import { ActionType, getType } from 'typesafe-actions';
-import { deepCopy } from '../../../shared/Util';
-import { ILibraryState } from './types';
-import * as actions from './actions';
 import { createDefaultGameLibrary } from '../../../shared/library/GameLibrary';
+import { deepCopy } from '../../../shared/Util';
+import * as actions from './actions';
+import { ILibraryState } from './types';
 
 const initialState: ILibraryState = {
   data: deepCopy(createDefaultGameLibrary()),

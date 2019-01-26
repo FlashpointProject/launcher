@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { InputField, InputFieldProps } from './InputField';
 import { memoizeOne } from '../../shared/memoize';
+import { InputField, InputFieldProps } from './InputField';
 
 type InputElement = HTMLInputElement|HTMLTextAreaElement;
 

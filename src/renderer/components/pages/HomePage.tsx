@@ -1,17 +1,17 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { ICentralState, UpgradeStageState } from '../../interfaces';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { SizeProvider } from '../SizeProvider';
-import { GameLauncher } from '../../GameLauncher';
-import { WithPreferencesProps } from '../../containers/withPreferences';
-import { OpenIcon, OpenIconType } from '../OpenIcon';
-import { IGamePlaylist } from '../../playlist/interfaces';
-import { Paths } from '../../Paths';
-import { IUpgradeStage } from '../../upgrade/upgrade';
-import { RandomGames } from '../RandomGames';
 import { WithLibraryProps } from '../../containers/withLibrary';
+import { WithPreferencesProps } from '../../containers/withPreferences';
+import { GameLauncher } from '../../GameLauncher';
+import { ICentralState, UpgradeStageState } from '../../interfaces';
+import { Paths } from '../../Paths';
+import { IGamePlaylist } from '../../playlist/interfaces';
+import { IUpgradeStage } from '../../upgrade/upgrade';
 import { joinLibraryRoute } from '../../Util';
+import { OpenIcon, OpenIconType } from '../OpenIcon';
+import { RandomGames } from '../RandomGames';
+import { SizeProvider } from '../SizeProvider';
 
 interface OwnProps {
   central: ICentralState;

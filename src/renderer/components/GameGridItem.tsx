@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { GridCellProps } from 'react-virtualized';
-import { IDefaultProps } from '../interfaces';
 import { IGameInfo } from '../../shared/game/interfaces';
+import { IDefaultProps } from '../interfaces';
 import { getPlatformIconPath } from '../Util';
 
 export interface IGameGridItemProps extends Partial<GridCellProps>, IDefaultProps {

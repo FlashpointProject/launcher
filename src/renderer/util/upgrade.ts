@@ -1,11 +1,11 @@
 import { EventEmitter } from 'events';
-import { IncomingMessage } from 'http';
 import * as fs from 'fs';
+import { IncomingMessage } from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
-import { unzip } from '../util/unzip';
 import { IUpgradeStage } from '../upgrade/upgrade';
+import { unzip } from '../util/unzip';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 

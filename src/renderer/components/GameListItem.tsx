@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { IDefaultProps } from '../interfaces';
 import { ListRowProps } from 'react-virtualized';
 import { IGameInfo } from '../../shared/game/interfaces';
+import { IDefaultProps } from '../interfaces';
 import { getPlatformIconPath } from '../Util';
 
 export interface IGameListItemProps extends ListRowProps, IDefaultProps {
