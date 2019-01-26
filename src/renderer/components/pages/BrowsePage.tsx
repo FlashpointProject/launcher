@@ -278,11 +278,15 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onLeftSidebarSelectPlaylist = (playlist: IGamePlaylist): void => {
-    if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(playlist); }
+    const { clearSearch, onSelectPlaylist } = this.props;
+    if (clearSearch)      { clearSearch();              }
+    if (onSelectPlaylist) { onSelectPlaylist(playlist); }
   }
 
   private onLeftSidebarDeselectPlaylist = (): void => {
-    if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(undefined); }
+    const { clearSearch, onSelectPlaylist } = this.props;
+    if (clearSearch)      { clearSearch();               }
+    if (onSelectPlaylist) { onSelectPlaylist(undefined); }
   }
 
   private onLeftSidebarPlaylistChanged = (): void => {
@@ -290,8 +294,9 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onLeftSidebarShowAllClick = (): void => {
-    if (this.props.clearSearch) { this.props.clearSearch(); }
-    if (this.props.onSelectPlaylist) { this.props.onSelectPlaylist(undefined); }
+    const { clearSearch, onSelectPlaylist } = this.props;
+    if (clearSearch)      { clearSearch();               }
+    if (onSelectPlaylist) { onSelectPlaylist(undefined); }
   }
 
   private onLeftSidebarResize = (event: IResizeEvent): void => {
