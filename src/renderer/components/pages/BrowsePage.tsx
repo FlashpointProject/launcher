@@ -23,7 +23,7 @@ import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrow
 import { IResizableSidebar, IResizeEvent } from '../IResizableSidebar';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { WithLibraryProps } from '../../containers/withLibrary';
-import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
+import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 
 interface OwnProps {
   central: ICentralState;
@@ -138,7 +138,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   render() {
-    const { gameLibraryRoute, selectedGame, selectedPlaylist } = this.props;
+    const { selectedGame, selectedPlaylist } = this.props;
     const { draggedGame, orderedGames } = this.state;
     const order = this.props.order || BrowsePage.defaultOrder;
     const showSidebars: boolean = this.props.central.gamesDoneLoading;

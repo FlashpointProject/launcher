@@ -5,7 +5,7 @@ import { OpenIcon } from './OpenIcon';
 import { IGamePlaylist } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 
 interface OwnProps {
   central: ICentralState;
@@ -49,9 +49,9 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
   }
 
   render() {
-    const central = this.props.central;
-    const selectedPlaylistID = this.props.selectedPlaylistID;
-    const editingDisabled = !this.props.preferencesData.enableEditing;
+    const { central, onShowAllClick, preferencesData, selectedPlaylistID } = this.props;
+    const { isEditing } = this.state;
+    const editingDisabled = !preferencesData.enableEditing;
     const playlists = this.filterAndSortPlaylists();
     return (
       <div className='browse-left-sidebar'>
@@ -59,7 +59,7 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
             !central.playlistsFailedLoading ? (
               <div className='playlist-list'>
                 {/* All games */}
-                <div className='playlist-list-fake-item' onClick={this.props.onShowAllClick}>
+                <div className='playlist-list-fake-item' onClick={onShowAllClick}>
                   <div className='playlist-list-fake-item__inner'>
                     <OpenIcon icon='eye' />
                   </div>
@@ -75,8 +75,8 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
                                   playlist={playlist}
                                   expanded={isSelected}
                                   editingDisabled={editingDisabled}
-                                  editing={isSelected && this.state.isEditing}
-                                  central={this.props.central}
+                                  editing={isSelected && isEditing}
+                                  central={central}
                                   onHeadClick={this.onPlaylistItemHeadClick}
                                   onEditClick={this.onPlaylistItemEditClick}
                                   onDeleteClick={this.onPlaylistItemDeleteClick}
