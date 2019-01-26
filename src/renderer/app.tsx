@@ -318,9 +318,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setState({ selectedGames: setMapProp(copyMap(this.state.selectedGames), route, game) });
   }
 
-  private onSelectPlaylist = (playlist?: IGamePlaylist): void => {
+  /** Set the selected playlist for a single "browse route" */
+  private onSelectPlaylist = (playlist?: IGamePlaylist, route?: string): void => {
     const { selectedGames, selectedPlaylists } = this.state;
-    const route = getBrowseSubPath(this.props.location.pathname);
+    if (route === undefined) { route = getBrowseSubPath(this.props.location.pathname); }
     this.setState({
       selectedPlaylists: setMapProp(copyMap(selectedPlaylists), route, playlist),
       selectedGames: deleteMapProp(copyMap(selectedGames), route),

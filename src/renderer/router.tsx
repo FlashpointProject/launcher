@@ -22,7 +22,7 @@ export interface IAppRouterProps {
   selectedGame?: IGameInfo;
   selectedPlaylist?: IGamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
-  onSelectPlaylist: (playlist?: IGamePlaylist) => void;
+  onSelectPlaylist: (playlist?: IGamePlaylist, route?: string) => void;
   wasNewGameClicked: boolean;
   onDownloadTechUpgradeClick: () => void;
   onDownloadScreenshotsUpgradeClick: () => void;

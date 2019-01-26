@@ -12,10 +12,11 @@ import { joinLibraryRoute } from '../../Util';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
+import { findDefaultLibrary } from '../../../shared/library/util';
 
 interface OwnProps {
   central: ICentralState;
-  onSelectPlaylist: (playlist?: IGamePlaylist) => void;
+  onSelectPlaylist: (playlist?: IGamePlaylist, route?: string) => void;
   clearSearch: () => void;
   onDownloadTechUpgradeClick: () => void;
   onDownloadScreenshotsUpgradeClick: () => void;
@@ -78,7 +79,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
                 Looking for something to play? View <Link to={joinLibraryRoute('arcade')} onClick={this.onAllGamesClick}>All Games</Link>.
               </QuickStartItem>
               <QuickStartItem icon='video'>
-                Just want something to watch? View <Link to={joinLibraryRoute('theatre')} onClick={this.onAllGamesClick}>All Animations</Link>.
+                Just want something to watch? View <Link to={joinLibraryRoute('theatre')} onClick={this.onAllAnimationsClick}>All Animations</Link>.
               </QuickStartItem>
               <QuickStartItem icon='wrench'>
                 Want to change something? Go to <Link to={Paths.CONFIG}>Config</Link>.
@@ -167,13 +168,26 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
   }
 
   private onHallOfFameClick = () => {
-    let hof = findHallOfFamePlaylist(this.props.central.playlists.playlists);
-    this.props.onSelectPlaylist(hof);
+    const { central, libraryData, onSelectPlaylist } = this.props;
+    let hof = findHallOfFamePlaylist(central.playlists.playlists);
+    let route: string|undefined = undefined;
+    if (hof) {
+      if (hof.library) { route = hof.library; }
+      else {
+        const defLibrary = findDefaultLibrary(libraryData.libraries);
+        if (defLibrary) { route = defLibrary.route; }
+      }
+    }
+    onSelectPlaylist(hof, route);
   }
 
   private onAllGamesClick = () => {
-    // Deselect the current playlist and clear the search
-    this.props.onSelectPlaylist(undefined);
+    this.props.onSelectPlaylist(undefined, 'arcade');
+    this.props.clearSearch();
+  }
+
+  private onAllAnimationsClick = () => {
+    this.props.onSelectPlaylist(undefined, 'theatre');
     this.props.clearSearch();
   }
 
