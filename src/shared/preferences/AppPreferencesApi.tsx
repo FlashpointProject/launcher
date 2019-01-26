@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
-import { IAppPreferencesData } from './IAppPreferencesData';
 import { deepCopy } from '../Util';
+import { IAppPreferencesData } from './IAppPreferencesData';
 import { overwritePreferenceData } from './util';
 
 /**
