@@ -56,7 +56,7 @@ export function firstAvailableImageIndex(map: StringMap): number {
  * (Example: "Te?<|:st" => "Te_st")
  */
 export function replaceInvalidImageFilenameChars(str: string): string {
-  return str.replace(/[/\\?*:|"<>'&]+/g, '_');
+  return str.replace(/[/\\?*:|"<>']+/g, '_');
 }
 
 export function formatImageFilename(titleOrId: string, index: number): string {
