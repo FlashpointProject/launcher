@@ -21,6 +21,10 @@ import { AppRouter, IAppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
 import { downloadAndInstallUpgrade } from './util/upgrade';
+import { findLibraryByRoute, getLibraryPlatforms } from '../shared/library/util';
+import { memoizeOne } from '../shared/memoize';
+import { IGameLibraryFileItem } from '../shared/library/interfaces';
+import GameManagerPlatform from './game/GameManagerPlatform';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -44,6 +48,8 @@ export interface IAppState {
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
+  private countGamesOfCurrentLibrary = memoizeOne(countGamesOfLibrarysPlatforms);
+
   constructor(props: IAppProps) {
     super(props);
     // Normal constructor stuff
@@ -229,11 +235,15 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   render() {
+    const games = this.state.central.games.collection.games;
+    const libraries = this.props.libraryData.libraries;
+    const platforms = this.state.central.games.listPlatforms();
     const route = getBrowseSubPath(this.props.location.pathname);
+    const library = findLibraryByRoute(libraries, route);
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
     if (this.state.central.gamesDoneLoading) {
-      gameCount = this.state.central.games.collection.games.length;
+      gameCount = games.length;
     }
     // Props to set to the router
     const routerProps: IAppRouterProps = {
@@ -271,7 +281,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           </noscript>
         </div>
         {/* "Footer" stuff */}
-        <ConnectedFooter gameCount={gameCount}
+        <ConnectedFooter showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+                         totalCount={gameCount}
+                         currentLabel={library && library.title}
+                         currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
                          onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
                          onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
                          onNewGameClick={this.onNewGameClick} />
@@ -417,6 +430,15 @@ function log(content: string): void {
     source: 'Launcher',
     content: content
   });
+}
+
+/** Count the number of games in all platforms that "belongs" to the given library */
+function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], libraries: IGameLibraryFileItem[], library?: IGameLibraryFileItem): number {
+  const currentLibraries = library ? getLibraryPlatforms(libraries, platforms, library) : platforms;
+  return currentLibraries.reduce(
+    (acc, platform) => acc + (platform.collection ? platform.collection.games.length : 0),
+    0
+  );
 }
 
 function copyMap<T>(map: IObjectMap<T>): IObjectMap<T> {

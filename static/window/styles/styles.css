@@ -665,7 +665,14 @@ body {
 }
 /* Game Count */
 .footer__game-count {
+  font-size: 0.9rem;
   cursor: default;
+}
+.footer__game-count p {
+  display: inline-block;
+}
+.footer__game-count p:not(:last-child) {
+  padding-right: 0.3rem;
 }
 /* Scale New-Game */
 .footer__new-game {

@@ -5,7 +5,10 @@ import { IDefaultProps } from '../interfaces';
 import { gameScaleSpan } from '../Util';
 
 interface OwnProps extends IDefaultProps {
-  gameCount?: number;
+  showCount: boolean;
+  totalCount?: number;
+  currentLabel?: string;
+  currentCount?: number;
   /** Value of the scale slider (between 0 - 1) */
   scaleSliderValue: number;
   /** When the value of the scale slider is changed (value is between 0 and 1) */
@@ -28,17 +31,23 @@ export class Footer extends React.Component<IFooterProps, {}> {
   }
 
   render() {
-    const scale = Math.min(Math.max(0, this.props.scaleSliderValue), 1);
+    const { currentCount, currentLabel, layout, onNewGameClick, preferencesData, scaleSliderValue, showCount, totalCount } = this.props;
+    const scale = Math.min(Math.max(0, scaleSliderValue), 1);
     return (
       <div className='footer'>
         {/* Left Side */}
         <div className='footer__wrap'>
           {/* Game Count */}
           <div className='footer__game-count'>
-            {(this.props.gameCount !== undefined) ? (
-              <>Games Total: {this.props.gameCount}</>
+            {showCount ? (
+              <>
+                <p>{`Total: ${totalCount}`}</p>
+                { currentLabel !== undefined ? (
+                  <p>{`${currentLabel}: ${currentCount}`}</p>
+                ) : undefined }
+              </>
             ) : (
-              <>No Games Found!</>
+              <>...</>
             )}
           </div>
         </div>
@@ -47,10 +56,10 @@ export class Footer extends React.Component<IFooterProps, {}> {
           <div>
             <div className='footer__right__inner'>
               {/* New Game */}
-              { this.props.preferencesData.enableEditing ? (
+              { preferencesData.enableEditing ? (
                 <div className='footer__wrap'>
                   <div className='simple-center'>
-                    <input type='button' value='New Game' onClick={this.props.onNewGameClick}
+                    <input type='button' value='New Game' onClick={onNewGameClick}
                           className='footer__new-game simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
@@ -58,7 +67,7 @@ export class Footer extends React.Component<IFooterProps, {}> {
               {/* Layout Selector */}
               <div className='footer__wrap'>
                 <div>
-                  <select className='footer__layout-selector simple-selector' value={stringifyBrowsePageLayout(this.props.layout)} onChange={this.onLayoutChange}>
+                  <select className='footer__layout-selector simple-selector' value={stringifyBrowsePageLayout(layout)} onChange={this.onLayoutChange}>
                     <option value='list'>List</option>
                     <option value='grid'>Grid</option>
                   </select>
