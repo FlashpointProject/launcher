@@ -72,10 +72,13 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             <div className='home-page__box__head'>Quick Start</div>
             <ul className='home-page__box__body'>
               <QuickStartItem icon='badge'>
-                Don't know what to play? Check out the <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>Hall of Fame</Link>!
+                Only want the best of the best? Check out the <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>Hall of Fame</Link>!
               </QuickStartItem>
-              <QuickStartItem icon='magnifying-glass'>
-                Looking for something specific? View <Link to={Paths.BROWSE} onClick={this.onAllGamesClick}>All Games</Link>.
+              <QuickStartItem icon='play-circle'>
+                Looking for something to play? View <Link to={joinLibraryRoute('arcade')} onClick={this.onAllGamesClick}>All Games</Link>.
+              </QuickStartItem>
+              <QuickStartItem icon='video'>
+                Just want something to watch? View <Link to={joinLibraryRoute('theatre')} onClick={this.onAllGamesClick}>All Animations</Link>.
               </QuickStartItem>
               <QuickStartItem icon='wrench'>
                 Want to change something? Go to <Link to={Paths.CONFIG}>Config</Link>.
@@ -94,7 +97,6 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
               </div>
             ) : undefined
           }
-
           {/* Notes */}
           <div className='home-page__box'>
             <div className='home-page__box__head'>Notes</div>
