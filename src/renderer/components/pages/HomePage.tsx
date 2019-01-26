@@ -111,7 +111,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
           <SizeProvider width={width} height={height}>
             <div className='home-page__random-games'>
               <div className='home-page__random-games__inner'>
-                <p className='home-page__random-games__title'>Random Games</p>
+                <p className='home-page__random-games__title'>Random Picks</p>
                 { gamesDoneLoading ? (
                   <RandomGames
                     games={games.collection.games}
