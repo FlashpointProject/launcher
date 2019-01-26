@@ -20,6 +20,7 @@ import { readUpgradeFile, performUpgradeStageChecks, IUpgradeStage } from './upg
 import { downloadAndInstallUpgrade } from './util/upgrade';
 import { Paths } from './Paths';
 import { WithLibraryProps } from './containers/withLibrary';
+import { IObjectMap } from '../shared/interfaces';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -34,10 +35,10 @@ export interface IAppState {
   gameScale: number;
   /** Layout of the browse page */
   gameLayout: BrowsePageLayout;
-  /** Currently selected game (if any) */
-  selectedGame?: IGameInfo;
-  /** Currently selected playlist (if any) */
-  selectedPlaylist?: IGamePlaylist;
+  /** Currently selected game (for each browse tab / library) */
+  selectedGames: IObjectMap<IGameInfo>;
+  /** Currently selected playlists (for each browse tab / library) */
+  selectedPlaylists: IObjectMap<IGamePlaylist>;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page) */
   wasNewGameClicked: boolean;
 }
@@ -77,6 +78,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       },
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
+      selectedGames: {},
+      selectedPlaylists: {},
       wasNewGameClicked: false,
     };
     // Initialize app
@@ -226,6 +229,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   render() {
+    const route = getBrowseSubPath(this.props.location.pathname);
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
     if (this.state.central.gamesDoneLoading) {
@@ -237,14 +241,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       order: this.state.order,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
-      selectedGame: this.state.selectedGame,
-      selectedPlaylist: this.state.selectedPlaylist,
+      selectedGame: this.state.selectedGames[route],
+      selectedPlaylist: this.state.selectedPlaylists[route],
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.state.wasNewGameClicked,
       onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
-      gameLibraryRoute: getBrowseSubPath(this.props.location.pathname),
+      gameLibraryRoute: route,
     };
     // Render
     return (
@@ -292,9 +296,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onNewGameClick = (): void => {
+    const route = getBrowseSubPath(this.props.location.pathname);
     this.setState({
       wasNewGameClicked: true,
-      selectedGame: undefined
+      selectedGames: deleteMapProp(copyMap(this.state.selectedGames), route)
     });
   }
 
@@ -309,13 +314,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onSelectGame = (game?: IGameInfo): void => {
-    this.setState({ selectedGame: game });
+    const route = getBrowseSubPath(this.props.location.pathname);
+    this.setState({ selectedGames: setMapProp(copyMap(this.state.selectedGames), route, game) });
   }
 
   private onSelectPlaylist = (playlist?: IGamePlaylist): void => {
+    const { selectedGames, selectedPlaylists } = this.state;
+    const route = getBrowseSubPath(this.props.location.pathname);
     this.setState({
-      selectedPlaylist: playlist,
-      selectedGame: undefined,
+      selectedPlaylists: setMapProp(copyMap(selectedPlaylists), route, playlist),
+      selectedGames: deleteMapProp(copyMap(selectedGames), route),
     });
   }
 
@@ -407,5 +415,19 @@ function log(content: string): void {
   window.External.log.addEntry({
     source: 'Launcher',
     content: content
-  });  
+  });
+}
+
+function copyMap<T>(map: IObjectMap<T>): IObjectMap<T> {
+  return Object.assign({}, map);
+}
+
+function setMapProp<T>(map: IObjectMap<T>, prop: string, value: T|undefined): IObjectMap<T> {
+  map[prop] = value;
+  return map;
+}
+
+function deleteMapProp<T>(map: IObjectMap<T>, prop: string): IObjectMap<T> {
+  if (Object.prototype.hasOwnProperty.call(map, prop)) { delete map[prop]; }
+  return map;
 }

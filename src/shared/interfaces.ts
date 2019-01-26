@@ -44,3 +44,5 @@ export type ReturnTypeOf<T extends Function> = T extends (...args: ArgumentTypes
 export type ArgumentTypesOf<F extends Function> = F extends (...args: infer A) => any ? A : never;
 
 export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
+
+export interface IObjectMap<T> { [key: string]: T|undefined; }
