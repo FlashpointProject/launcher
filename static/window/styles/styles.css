@@ -823,6 +823,9 @@ body {
   text-align: center;
   white-space: pre-line;
 }
+.home-page__box--upgrades .home-page__grayed-out {
+  color: var(--theme__text-disabled-color);
+}
 /* Random Games */
 .home-page__random-games {
   text-align: center;

@@ -147,7 +147,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     return (
       stageState.checksDone ? (
         stageState.alreadyInstalled ? (
-          'Already Installed'
+          <p className='home-page__grayed-out'>Already Installed</p>
         ) : (
           stageState.isInstallationComplete ? (
             'Installation Complete! Restart the launcher!'
