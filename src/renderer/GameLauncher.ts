@@ -25,7 +25,7 @@ export class GameLauncher {
                 type: 'error',
                 title: 'Failed to Open Extras',
                 message: `${error.toString()}\n`+
-                        `Path: ${folderPath}`
+                         `Path: ${folderPath}`
               }, () => {});              
             }
           }
