@@ -13,7 +13,7 @@ export class GameLauncher {
           type: 'info',
           title: 'About This Game',
           message: addApp.commandLine
-        }, () => {});
+        });
         break;
       case ':extras:':
         const folderPath = relativeToFlashpoint(path.join('Extras', addApp.commandLine));
