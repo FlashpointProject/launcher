@@ -17,7 +17,27 @@ export class GameImageCollection {
   public getThumbnailCache(folderName: string): ImageFolderCache|undefined {
     return this._thumbnails[folderName.toLowerCase()];
   }
- 
+
+  /** Get a copy of the screenshot cache "hash map" */
+  public getAllScreenshotCaches(): { [key: string]: ImageFolderCache; } {
+    const cachesCopy: { [key: string]: ImageFolderCache; } = {};
+    for (let key in this._screenshots) {
+      const cache = this._screenshots[key];
+      if (cache) { cachesCopy[key] = cache; }
+    }
+    return cachesCopy;
+  }
+
+  /** Get a copy of the thumbnail cache "hash map" */
+  public getAllThumbnailCaches(): { [key: string]: ImageFolderCache; } {
+    const cachesCopy: { [key: string]: ImageFolderCache; } = {};
+    for (let key in this._thumbnails) {
+      const cache = this._thumbnails[key];
+      if (cache) { cachesCopy[key] = cache; }
+    }
+    return cachesCopy;
+  }
+  
   /**
    * Add multiple image folders to the image collection
    * @param folderName Names of the folders

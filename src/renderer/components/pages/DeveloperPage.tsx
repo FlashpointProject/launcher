@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import * as React from 'react';
 import * as uuidValidate from 'uuid-validate';
 import { IGameInfo } from '../../../shared/game/interfaces';
@@ -8,10 +10,19 @@ import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
 import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
 import { SimpleButton } from '../SimpleButton';
+import { WithLibraryProps } from '../../containers/withLibrary';
+import { promisify } from 'util';
+import { formatImageFilename, organizeImageFilepaths } from '../../image/util';
+import { ImageFolderCache } from 'src/renderer/image/ImageFolderCache';
 
-interface IDeveloperPageProps {
+const rename = promisify(fs.rename);
+const exists = promisify(fs.exists);
+
+interface IOwnProps {
   central: ICentralState;
 }
+
+type IDeveloperPageProps = IOwnProps & WithLibraryProps;
 
 interface IDeveloperPageState {
   text: string;
@@ -44,6 +55,10 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
             <SimpleButton value='Check Playlists' onClick={this.onCheckPlaylistsClick}
                           title='List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs' />
             <LogData className='developer-page__log' logData={text} />
+            <SimpleButton value='Rename Images (Title => ID)' onClick={this.onRenameImagesTitleToIDClick}
+                          title='Find all game images with the games title in their filename, and rename it to use its ID instead.' />
+            <SimpleButton value='Rename Images (ID => Title)' onClick={this.onRenameImagesIDToTitleClick}
+                          title='Find all game images with the games ID in their filename, and rename it to use its title instead.' />
           </div>
         </div>
       </div>
@@ -75,6 +90,24 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
     const playlists = this.props.central.playlists.playlists;
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkPlaylists(playlists, games) });
+  }
+
+  private onRenameImagesTitleToIDClick = (): void => {
+    this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
+    setTimeout(async () => {
+      const games = this.props.central.games.collection.games;
+      const gameImages = this.props.central.gameImages;
+      this.setState({ text: await renameImagesToIDs(games, gameImages) });
+    }, 0);
+  }
+
+  private onRenameImagesIDToTitleClick = (): void => {
+    this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
+    setTimeout(async () => {
+      const games = this.props.central.games.collection.games;
+      const gameImages = this.props.central.gameImages;
+      this.setState({ text: await renameImagesToTitles(games, gameImages) });
+    }, 0);
   }
 }
 
@@ -296,3 +329,148 @@ type FilterFlags<Base, Condition> = {
   [Key in keyof Base]: Base[Key] extends Condition ? Key : never
 };
 type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base];
+
+type GetImageCacheFunc = (folderName: string) => ImageFolderCache | undefined;
+type RenameImagesStats = {
+  totalFiles: number;
+  totalLooped: number;
+  renamedFiles: number;
+  skippedFiles: number;
+  errors: Array<{ game: IGameInfo, error: any }>;
+};
+
+/** Find all game images named after the games Title and rename them after their ID instead */
+async function renameImagesToIDs(games: IGameInfo[], gameImages: GameImageCollection): Promise<string> {
+  // Rename images
+  const start = Date.now();
+  const screenshotStats = await renameImagesToIDsSub(games, folderName => gameImages.getScreenshotCache(folderName));
+  const thumbnailStats  = await renameImagesToIDsSub(games, folderName => gameImages.getThumbnailCache(folderName));
+  const end = Date.now();
+  // Refresh all image caches
+  const screenshotCaches = gameImages.getAllScreenshotCaches();
+  for (let key in screenshotCaches) { screenshotCaches[key].refresh(); }
+  const thumbnailCaches = gameImages.getAllThumbnailCaches();
+  for (let key in thumbnailCaches) { thumbnailCaches[key].refresh(); }
+  // Write message
+  let str = '';
+  str += 'Screenshots:\n';
+  str += stringifyRenameImageStats(screenshotStats);
+  str += '\n\nThumbnails:\n';
+  str += stringifyRenameImageStats(thumbnailStats);
+  str += '\n\n';
+  str += `Finished in ${end - start}ms`;
+  return str;
+}
+
+async function renameImagesToIDsSub(games: IGameInfo[], getCache: GetImageCacheFunc): Promise<RenameImagesStats> {
+  const stats: RenameImagesStats = {
+    totalFiles: games.length,
+    totalLooped: 0,
+    renamedFiles: 0,
+    skippedFiles: 0,
+    errors: [],
+  };
+  for (let game of games) {
+    const cache = getCache(removeFileExtension(game.filename));
+    if (cache && cache.getFolderPath() !== undefined) {
+      const filenames = organizeImageFilepaths(cache.getFilePaths(game.title));
+      if (Object.keys(filenames).length > 0) {
+        for (let index in filenames) {
+          const curFilename = path.join(cache.getFolderPath(), filenames[index]);
+          const newFilename = path.join(
+            cache.getFolderPath(),
+            formatImageFilename(game.id, (index as any)|0) + getFileExtension(filenames[index])
+          );
+          await rename(curFilename, newFilename)
+          .catch(error => { stats.errors.push({ game, error }); })
+          .then(() => { stats.renamedFiles += 1; });
+        }
+      } else { stats.skippedFiles += 1; }      
+    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.filename}")`) }); }
+    // Count number of loops
+    stats.totalLooped += 1;
+  }
+  return stats;
+}
+
+/** Find all game images named after the games ID and rename them after their Title instead */
+async function renameImagesToTitles(games: IGameInfo[], gameImages: GameImageCollection): Promise<string> {
+  // Rename images
+  const start = Date.now();
+  const screenshotStats = await renameImagesToTitlesSub(games, folderName => gameImages.getScreenshotCache(folderName));
+  const thumbnailStats  = await renameImagesToTitlesSub(games, folderName => gameImages.getThumbnailCache(folderName));
+  const end = Date.now();
+  // Refresh all image caches
+  const screenshotCaches = gameImages.getAllScreenshotCaches();
+  for (let key in screenshotCaches) { screenshotCaches[key].refresh(); }
+  const thumbnailCaches = gameImages.getAllThumbnailCaches();
+  for (let key in thumbnailCaches) { thumbnailCaches[key].refresh(); }
+  // Write message
+  let str = '';
+  str += 'Screenshots:\n';
+  str += stringifyRenameImageStats(screenshotStats);
+  str += '\n\nThumbnails:\n';
+  str += stringifyRenameImageStats(thumbnailStats);
+  str += '\n\n';
+  str += `Finished in ${end - start}ms`;
+  return str;
+}
+
+async function renameImagesToTitlesSub(games: IGameInfo[], getCache: GetImageCacheFunc): Promise<RenameImagesStats> {
+  const stats: RenameImagesStats = {
+    totalFiles: games.length,
+    totalLooped: 0,
+    renamedFiles: 0,
+    skippedFiles: 0,
+    errors: [],
+  };
+  for (let game of games) {
+    const cache = getCache(removeFileExtension(game.filename));
+    if (cache && cache.getFolderPath() !== undefined) {
+      const filenames = organizeImageFilepaths(cache.getFilePaths(game.id));
+      if (Object.keys(filenames).length > 0) {
+        for (let index in filenames) {
+          const curFilename = path.join(cache.getFolderPath(), filenames[index]);
+          const newFilename = path.join(
+            cache.getFolderPath(),
+            formatImageFilename(game.title, (index as any)|0) + getFileExtension(filenames[index])
+          );
+          await rename(curFilename, newFilename)
+          .catch(error => { stats.errors.push({ game, error }); })
+          .then(() => { stats.renamedFiles += 1; });
+        }
+      } else { stats.skippedFiles += 1; }      
+    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.filename}")`) }); }
+    // Count number of loops
+    stats.totalLooped += 1;
+  }
+  return stats;
+}
+
+function stringifyRenameImageStats(stats: RenameImagesStats): string {
+  let str = '';
+  str += `    Total: ${stats.totalFiles}\n`;
+  str += `    Loops: ${stats.totalLooped}\n`;
+  str += `    Renamed: ${stats.renamedFiles}\n`;
+  str += `    Skipped: ${stats.skippedFiles}\n`;
+  if (stats.errors.length > 0) {
+    str += `    Errors:\n`;
+    str += stats.errors.reduce((acc, error) => 
+      acc+`      Error: ${(error.error+'').replace(/\n/g, '\n             ')}\n`,
+      ''
+    );
+  }
+  return str;
+}
+
+/** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
+export function removeLastItemOfPath(filePath: string): string {
+  return filePath.substr(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
+}
+
+/** Get the file extension of a file (including the dot). Returns an empty string if none. */
+function getFileExtension(filename: string): string {
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot === -1) { return ''; }
+  return filename.substr(lastDot);
+}

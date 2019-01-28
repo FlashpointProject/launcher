@@ -46,7 +46,7 @@ export class ImageFolderCache {
    * Get the file path of an image for a given identifier (title or id)
    * (returns undefined if not found)
    * @param identifier Title or ID of image
-   * @param decode If the filename should be not URI encoded
+   * @param decode If the returned filename should NOT be URI encoded
    * @returns Path to image for that game, or undefined if not found
    */
   public getFilePath(identifier: string, decode: boolean = false): string|undefined {

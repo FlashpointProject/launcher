@@ -4,7 +4,6 @@ import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IGameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage } from './components/pages/AboutPage';
-import { DeveloperPage } from './components/pages/DeveloperPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage } from './containers/ConnectedConfigPage';
@@ -13,6 +12,7 @@ import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { ICentralState } from './interfaces';
 import { Paths } from './Paths';
 import { IGamePlaylist } from './playlist/interfaces';
+import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 
 export interface IAppRouterProps {
   central: ICentralState;
@@ -58,7 +58,7 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
         <PropsRoute path={Paths.LOGS} component={ConnectedLogsPage} />
         <PropsRoute path={Paths.CONFIG} component={ConnectedConfigPage} />
         <Route path={Paths.ABOUT} component={AboutPage} />
-        <PropsRoute path={Paths.DEVELOPER} component={DeveloperPage}
+        <PropsRoute path={Paths.DEVELOPER} component={ConnectedDeveloperPage}
                     central={this.props.central} />
         <Route component={NotFoundPage} />
       </Switch>
