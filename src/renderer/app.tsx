@@ -21,10 +21,11 @@ import { AppRouter, IAppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
 import { downloadAndInstallUpgrade } from './util/upgrade';
-import { findLibraryByRoute, getLibraryPlatforms } from '../shared/library/util';
+import { findLibraryByRoute, getLibraryPlatforms, findDefaultLibrary } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import GameManagerPlatform from './game/GameManagerPlatform';
+import { joinLibraryRoute } from './Util';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -223,14 +224,31 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   componentDidUpdate(prevProps: IAppProps, prevState: IAppState) {
-    if (prevState.wasNewGameClicked) {
-      this.setState({ wasNewGameClicked: false });
-    }
+    const { history, libraryData, location, preferencesData, updatePreferences } = this.props;
     // Update preference "lastSelectedLibrary"
-    const gameLibraryRoute = getBrowseSubPath(this.props.location.pathname);
-    if (this.props.location.pathname.startsWith(Paths.BROWSE) &&
-        this.props.preferencesData.lastSelectedLibrary !== gameLibraryRoute) {
-      this.props.updatePreferences({ lastSelectedLibrary: gameLibraryRoute });
+    const gameLibraryRoute = getBrowseSubPath(location.pathname);
+    if (location.pathname.startsWith(Paths.BROWSE) &&
+        preferencesData.lastSelectedLibrary !== gameLibraryRoute) {
+      updatePreferences({ lastSelectedLibrary: gameLibraryRoute });
+    }
+    // Create a new game
+    if (this.state.wasNewGameClicked) {
+      let route = '';
+      if (preferencesData.lastSelectedLibrary) {
+        route = preferencesData.lastSelectedLibrary;
+      } else {
+        const defaultLibrary = findDefaultLibrary(libraryData.libraries);
+        if (defaultLibrary) { route = defaultLibrary.route; }
+      }
+      if (!location.pathname.startsWith(Paths.BROWSE)) {
+        history.push(joinLibraryRoute(route));
+      }
+      if (location.pathname.startsWith(Paths.BROWSE)) {
+        this.setState({
+          wasNewGameClicked: false,
+          selectedGames: deleteMapProp(copyMap(this.state.selectedGames), route) // (Deselect the game of the current library)
+        });
+      }
     }
   }
 
@@ -309,11 +327,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onNewGameClick = (): void => {
-    const route = getBrowseSubPath(this.props.location.pathname);
-    this.setState({
-      wasNewGameClicked: true,
-      selectedGames: deleteMapProp(copyMap(this.state.selectedGames), route)
-    });
+    this.setState({ wasNewGameClicked: true });
   }
 
   private onToggleLeftSidebarClick = (): void => {
@@ -416,6 +430,7 @@ function downloadAndInstallStage(stage: IUpgradeStage, filename: string, setStag
   );
 }
 
+/** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
 function getBrowseSubPath(urlPath: string): string {
   if (urlPath.startsWith(Paths.BROWSE)) {
     let str = urlPath.substr(Paths.BROWSE.length);

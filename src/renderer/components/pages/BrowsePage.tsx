@@ -89,6 +89,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.props.central.games.on('change', this.onGamesCollectionChange);
     this.orderGames(true);
     this.updateCurrentGameAndAddApps();
+    this.createNewGameIfClicked(false);
   }
 
   componentWillUnmount() {
@@ -96,44 +97,55 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   componentDidUpdate(prevProps: IBrowsePageProps, prevState: IBrowsePageState) {
+    const { central, gameLibraryRoute, onSelectGame, selectedGame, selectedPlaylist } = this.props;
+    const { isEditing, orderedGames, quickSearch } = this.state;
     this.orderGames();
     // Check if it ended editing
-    if (!this.state.isEditing && prevState.isEditing) {
+    if (!isEditing && prevState.isEditing) {
       this.updateCurrentGameAndAddApps();
       this.setState({ suggestions: undefined });
     }
     // Check if it started editing
-    if (this.state.isEditing && !prevState.isEditing) {
+    if (isEditing && !prevState.isEditing) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ suggestions: getSuggestions(this.props.central.games.collection) });
+      this.setState({ suggestions: getSuggestions(central.games.collection) });
     }
     // Update current game and add-apps if the selected game changes
-    if (this.props.selectedGame !== prevProps.selectedGame) {
+    if (selectedGame && selectedGame !== prevProps.selectedGame) {
       this.updateCurrentGameAndAddApps();
       this.setState({ isEditing: false });
     }
-    // Create a new game if the "New Game" button is pushed
-    if (this.props.wasNewGameClicked && !prevProps.wasNewGameClicked) {
-      const newGame = GameInfo.create();
-      newGame.id = uuid();
-      newGame.dateAdded = formatDate(new Date());
+    // Update current game and add-apps if the selected game changes
+    if (gameLibraryRoute === prevProps.gameLibraryRoute &&
+        selectedPlaylist !== prevProps.selectedPlaylist) {
       this.setState({
-        currentGame: newGame,
-        currentAddApps: [],
-        isEditing: true,
-        isNewGame: true,
+        currentGame: undefined,
+        currentAddApps: undefined,
+        isNewGame: false,
+        isEditing: false
       });
     }
     // Check if quick search string changed, and if it isn't empty
-    if (prevState.quickSearch !== this.state.quickSearch && this.state.quickSearch !== '') {
-      const games: IGameInfo[] = this.state.orderedGames;
+    if (prevState.quickSearch !== quickSearch && quickSearch !== '') {
+      const games: IGameInfo[] = orderedGames;
       for (let index = 0; index < games.length; index++) {
         const game: IGameInfo = games[index];
-        if (game.title.toLowerCase().startsWith(this.state.quickSearch)) {
-          if (this.props.onSelectGame) { this.props.onSelectGame(game); }
+        if (game.title.toLowerCase().startsWith(quickSearch)) {
+          if (onSelectGame) { onSelectGame(game); }
           break;
         }
       }
+    }
+    // Create a new game if the "New Game" button is pushed
+    this.createNewGameIfClicked(prevProps.wasNewGameClicked);
+    // Check the library selection changed (and no game is selected)
+    if (!selectedGame && gameLibraryRoute !== prevProps.gameLibraryRoute) {
+      this.setState({
+        currentGame: undefined,
+        currentAddApps: undefined,
+        isNewGame: false,
+        isEditing: false
+      });
     }
   }
 
@@ -297,6 +309,12 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     const { clearSearch, onSelectPlaylist } = this.props;
     if (clearSearch)      { clearSearch();               }
     if (onSelectPlaylist) { onSelectPlaylist(undefined); }
+    this.setState({
+      isEditing: false,
+      isNewGame: false,
+      currentGame: undefined,
+      currentAddApps: undefined
+    });
   }
 
   private onLeftSidebarResize = (event: IResizeEvent): void => {
@@ -414,17 +432,19 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     this.forceUpdate();
   }
 
+  /** Replace the "current game" with the selected game (in the appropriate circumstances) */
   private updateCurrentGameAndAddApps(): void {
-    const game = this.props.selectedGame;
-    // Find additional applications for the selected game (if any)
-    let addApps: IAdditionalApplicationInfo[]|undefined;
-    if (game) { addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id); }
-    // Update State
-    this.setState({
-      currentGame: game && GameInfo.duplicate(game),
-      currentAddApps: addApps && addApps.map(AdditionalApplicationInfo.duplicate),
-      isNewGame: false,
-    });
+    const { central, selectedGame } = this.props;
+    if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
+      // Find additional applications for the selected game (if any)
+      let addApps = GameCollection.findAdditionalApplicationsByGameId(central.games.collection, selectedGame.id);
+      // Update State
+      this.setState({
+        currentGame: selectedGame && GameInfo.duplicate(selectedGame),
+        currentAddApps: addApps && addApps.map(AdditionalApplicationInfo.duplicate),
+        isNewGame: false,
+      });      
+    }
   }
 
   private onStartEditClick = (): void => {
@@ -432,7 +452,13 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   private onDiscardEditClick = (): void => {
-    this.setState({ isEditing: false });
+    const { currentAddApps, currentGame, isNewGame } = this.state;
+    this.setState({
+      isEditing: false,
+      isNewGame: false,
+      currentGame:    isNewGame ? undefined : currentGame,
+      currentAddApps: isNewGame ? undefined : currentAddApps,
+    });
   }
 
   private onSaveEditClick = (): void => {
@@ -633,6 +659,23 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   private onGamesCollectionChange = (): void => {
     this.orderGames(true);
+  }
+
+  /** Create a new game if the "New Game" button was clicked */
+  private createNewGameIfClicked(prevWasNewGameClicked: boolean): void {
+    const { wasNewGameClicked } = this.props;
+    // Create a new game if the "New Game" button is pushed
+    if (wasNewGameClicked && !prevWasNewGameClicked) {
+      const newGame = GameInfo.create();
+      newGame.id = uuid();
+      newGame.dateAdded = formatDate(new Date());
+      this.setState({
+        currentGame: newGame,
+        currentAddApps: [],
+        isEditing: true,
+        isNewGame: true,
+      });
+    }
   }
 
   private static defaultOrder: Readonly<IGameOrderChangeEvent> = {
