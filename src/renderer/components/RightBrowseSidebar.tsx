@@ -23,6 +23,7 @@ import { ImagePreview } from './ImagePreview';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
+import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
 
 const copyFile = promisify(fs.copyFile);
 const unlink = promisify(fs.unlink);
@@ -34,6 +35,8 @@ interface OwnProps {
   currentGame?: IGameInfo;
   /** Additional Applications of the currently selected game (if any) */
   currentAddApps?: IAdditionalApplicationInfo[];
+  /* */
+  currentLibrary?: IGameLibraryFileItem;
   /** Currently selected game entry (if any) */
   gamePlaylistEntry?: IGamePlaylistEntry;
   /** Called when the selected game is deleted by this */
@@ -99,13 +102,14 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   render() {
     const game: IGameInfo|undefined = this.props.currentGame;
     if (game) {
-      const { currentAddApps, gamePlaylistEntry, isEditing, isNewGame, suggestions } = this.props;
+      const { currentAddApps, gameImages, gamePlaylistEntry, isEditing, isNewGame, preferencesData, suggestions } = this.props;
       const isPlaceholder = game.placeholder;
-      const editDisabled = !this.props.preferencesData.enableEditing;
+      const editDisabled = !preferencesData.enableEditing;
       const canEdit = !editDisabled && isEditing;
+      const imageFolderName = this.getImageFolderName();
       const dateAdded = new Date(game.dateAdded).toUTCString();
-      const screenshotSrc = this.props.gameImages.getScreenshotPath(removeFileExtension(game.filename), game.title, game.id);
-      const thumbnailSrc = this.props.gameImages.getThumbnailPath(removeFileExtension(game.filename), game.title, game.id);
+      const screenshotSrc = gameImages.getScreenshotPath(imageFolderName, game.title, game.id);
+      const thumbnailSrc = gameImages.getThumbnailPath(imageFolderName, game.title, game.id);
       return (
         <div className={'browse-right-sidebar '+
                         (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
@@ -315,11 +319,13 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                       <GameImageSplit text='Thumbnail' imgSrc={thumbnailSrc}
                                       onAddClick={this.addThumbnailDialog}
                                       onRemoveClick={this.onRemoveThumbnailClick}
-                                      onDrop={this.onImageDrop}/>
+                                      onDrop={this.onImageDrop}
+                                      disabled={!imageFolderName}/>
                       <GameImageSplit text='Screenshot' imgSrc={screenshotSrc}
                                       onAddClick={this.addScreenshotDialog}
                                       onRemoveClick={this.onRemoveScreenshotClick}
-                                      onDrop={this.onImageDrop}/>
+                                      onDrop={this.onImageDrop}
+                                      disabled={!imageFolderName}/>
                     </div>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
                       <p>Drop an image here to add it.</p>
@@ -395,8 +401,9 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     const { currentGame, gameImages } = this.props;
     const template: MenuItemConstructorOptions[] = [];
     if (currentGame) {
-      const thumbnailCache = gameImages.getThumbnailCache(removeFileExtension(currentGame.filename));
-      const screenshotCache = gameImages.getScreenshotCache(removeFileExtension(currentGame.filename));
+      const imageFolderName = this.getImageFolderName();
+      const thumbnailCache = gameImages.getThumbnailCache(imageFolderName);
+      const screenshotCache = gameImages.getScreenshotCache(imageFolderName);
       const thumbnailFilename = thumbnailCache && (thumbnailCache.getFilePath(currentGame.title, true) || thumbnailCache.getFilePath(currentGame.id, true));
       const screenshotFilename = screenshotCache && (screenshotCache.getFilePath(currentGame.title, true) || screenshotCache.getFilePath(currentGame.id, true));
       template.push({
@@ -424,60 +431,72 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private addScreenshotDialog = () => {
+  private deleteImage(cache: ImageFolderCache|undefined): void {
+    const { currentGame } = this.props;
+    if (!currentGame) { throw new Error('Failed to delete image file. The currently selected game could not be found.'); }
+    if (!cache)       { throw new Error('Failed to delete image file. The image cache could not be found.'); }
+    deleteImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
+  }
+
+  private addScreenshotDialog = async () => {
+    const { currentGame, gameImages } = this.props;
+      if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select a Screenshot Image',
       properties: ['openFile']
     });
     if (filePaths && filePaths[0]) {
-      const game = this.props.currentGame;
-      if (!game) { throw new Error('"currentGame" is missing.'); }
-      const cache = this.props.gameImages.getScreenshotCache(removeFileExtension(game.filename));
-      if (!cache) { throw new Error('Can not add a new image, the cache is missing.'); }
-      copyImageFile(filePaths[0], game, cache).then(() => { this.forceUpdate(); });
+      const imageFolderName = this.getImageFolderName();
+      let cache = gameImages.getScreenshotCache(imageFolderName);
+      if (!cache) {
+        await gameImages.createImageFolder(imageFolderName).catch(() => { throw new Error(`Failed to create new image folder "${imageFolderName}".`); });
+        gameImages.addImageFolder(imageFolderName);
+        cache = gameImages.getScreenshotCache(imageFolderName);
+        if (!cache) { throw new Error('Failed to add new image.'); }
+      }
+      copyImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
     }
   }
 
-  private addThumbnailDialog = () => {
+  private addThumbnailDialog = async () => {
+    const { currentGame, gameImages } = this.props;
+      if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select a Thumbnail Image',
       properties: ['openFile']
     });
     if (filePaths && filePaths[0]) {
-      const game = this.props.currentGame;
-      if (!game) { throw new Error('"currentGame" is missing.'); }
-      const cache = this.props.gameImages.getThumbnailCache(removeFileExtension(game.filename));
-      if (!cache) { throw new Error('Can not add a new image, the cache is missing.'); }
-      copyImageFile(filePaths[0], game, cache).then(() => { this.forceUpdate(); });
+      const imageFolderName = this.getImageFolderName();
+      let cache = gameImages.getThumbnailCache(imageFolderName);
+      if (!cache) {
+        await gameImages.createImageFolder(imageFolderName).catch(() => { throw new Error(`Failed to create new image folder "${imageFolderName}".`); });
+        gameImages.addImageFolder(imageFolderName);
+        cache = gameImages.getThumbnailCache(imageFolderName);
+        if (!cache) { throw new Error('Failed to add new image.'); }
+      }
+      copyImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
     }
   }
   
-  private onRemoveThumbnailClick = (): void => {
-    const game = this.props.currentGame;
-    if (!game) { throw new Error('Can not remove image file, "currentGame" is missing.'); }
-    const cache = this.props.gameImages.getThumbnailCache(removeFileExtension(game.filename));
-    if (!cache) { throw new Error('Can not remove image file, the cache is missing.'); }
-    deleteImageFiles(game, cache).then(() => { this.forceUpdate(); });
+  private onRemoveScreenshotClick = (): void => {
+    this.deleteImage(this.props.gameImages.getScreenshotCache(this.getImageFolderName()));
   }
   
-  private onRemoveScreenshotClick = (): void => {
-    const game = this.props.currentGame;
-    if (!game) { throw new Error('Can not remove image file, "currentGame" is missing.'); }
-    const cache = this.props.gameImages.getScreenshotCache(removeFileExtension(game.filename));
-    if (!cache) { throw new Error('Can not remove image file, the cache is missing.'); }
-    deleteImageFiles(game, cache).then(() => { this.forceUpdate(); });
+  private onRemoveThumbnailClick = (): void => {
+    this.deleteImage(this.props.gameImages.getThumbnailCache(this.getImageFolderName()));
   }
 
   private onImageDrop = (event: React.DragEvent, text: string): void => {
     event.preventDefault();
     const files = copyArrayLike(event.dataTransfer.files);
     const game = this.props.currentGame;
+    const imageFolderName = this.getImageFolderName();
     if (!game) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
-    const thumbnailCache = this.props.gameImages.getThumbnailCache(removeFileExtension(game.filename));
+    const thumbnailCache = this.props.gameImages.getThumbnailCache(imageFolderName);
     if (!thumbnailCache) { throw new Error('Can not add a new image, the thumbnail cache is missing.'); }
-    const screenshotCache = this.props.gameImages.getScreenshotCache(removeFileExtension(game.filename));
+    const screenshotCache = this.props.gameImages.getScreenshotCache(imageFolderName);
     if (!screenshotCache) { throw new Error('Can not add a new image, the screenshot cache is missing.'); }
     if (files.length > 1) { // (Multiple files)
       copyImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
@@ -591,6 +610,18 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       }
     }
   }
+
+  /** Get the image folder name of the current game */
+  private getImageFolderName(): string {
+    const { currentGame, currentLibrary, isNewGame } = this.props;
+    const prefix = (currentLibrary && currentLibrary.prefix) ? currentLibrary.prefix : '';
+    if (currentGame) {
+      if (isNewGame) {
+        if (currentGame.platform) { return prefix+currentGame.platform; }
+        else                      { return ''; }
+      } else { return removeFileExtension(currentGame.filename); }
+    } else { return ''; }
+  }
 }
 
 function filterSuggestions(suggestions?: string[]): string[] {
@@ -616,7 +647,7 @@ async function copyImageFile(source: string, game: IGameInfo, cache: ImageFolder
   // Copy the image to index 1
   const outputPath = path.join(
     cache.getFolderPath(),
-    formatImageFilename(game.title, 1) + getFileExtension(source)
+    formatImageFilename(game.id, 1) + getFileExtension(source)
   );
   return await copyFile(source, outputPath, fs.constants.COPYFILE_EXCL)
   .then(() => cache.refresh())

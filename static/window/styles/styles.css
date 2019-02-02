@@ -1268,6 +1268,9 @@ body {
 .game-image-split--hover {
   background-color: #575757;
 }
+.game-image-split--disabled {
+  background-color: #141414;
+}
 .game-image-split:first-child {
   border-right: 1px var(--inner-border-color) dashed;
   margin-bottom: -1px;

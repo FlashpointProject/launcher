@@ -35,11 +35,11 @@ export class ImageFolderCache {
     });
   }
 
-  public loadFilenames(folderPath: string): void {
+  public loadFilenames(folderPath: string): Promise<void> {
     // Clean up the path
     this._folderPath = path.posix.normalize(folderPath).replace(/\\/g, '/');
     // Get the names of all files in the folder
-    getFilenames(this._folderPath).then(filenames => { this._filenames = filenames; });
+    return getFilenames(this._folderPath).then(filenames => { this._filenames = filenames; });
   }
   
   /**

@@ -152,6 +152,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   render() {
     const { selectedGame, selectedPlaylist } = this.props;
     const { draggedGame, orderedGames } = this.state;
+    const currentLibrary = this.getCurrentLibrary();
     const order = this.props.order || BrowsePage.defaultOrder;
     const showSidebars: boolean = this.props.central.gamesDoneLoading;
     // Find the selected game in the selected playlist (if both are selected)
@@ -173,7 +174,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                            width={this.props.preferencesData.browsePageLeftSidebarWidth}
                            onResize={this.onLeftSidebarResize}>
           <ConnectedLeftBrowseSidebar central={this.props.central}
-                                      currentLibrary={this.getCurrentLibrary()}
+                                      currentLibrary={currentLibrary}
                                       selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
                                       onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
                                       onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
@@ -227,6 +228,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                            onResize={this.onRightSidebarResize}>
           <ConnectedRightBrowseSidebar currentGame={this.state.currentGame}
                                        currentAddApps={this.state.currentAddApps}
+                                       currentLibrary={currentLibrary}
                                        gameImages={this.props.central.gameImages}
                                        games={this.props.central.games}
                                        onDeleteSelectedGame={this.onDeleteSelectedGame}

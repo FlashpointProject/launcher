@@ -9,6 +9,7 @@ interface IGameImageSplitProps {
   onAddClick: () => void;
   onRemoveClick: () => void;
   onDrop: (event: React.DragEvent, text: string) => void;
+  disabled?: boolean;
 }
 
 interface IGameImageSplitState {
@@ -22,12 +23,13 @@ export class GameImageSplit extends React.Component<IGameImageSplitProps, IGameI
   }
 
   render() {
-    const { text, imgSrc, onAddClick, onRemoveClick } = this.props;
+    const { disabled, imgSrc, onAddClick, onRemoveClick, text } = this.props;
     const { hover } = this.state;
     return (
       <div className={'game-image-split' +
                       ((imgSrc === undefined) ? ' simple-center' : '') +
-                      (hover ? ' game-image-split--hover' : '')}
+                      (hover ? ' game-image-split--hover' : '') +
+                      (disabled ? ' game-image-split--disabled' : '')}
           style={{ backgroundImage: `url("${imgSrc}")` }}
           onDragOver={this.onDragOver}
           onDragLeave={this.onDragLeave}
@@ -35,7 +37,7 @@ export class GameImageSplit extends React.Component<IGameImageSplitProps, IGameI
         { (imgSrc === undefined) ? (
           <div className='game-image-split__not-found'>
             <h1>{`No ${text} Found`}</h1>
-            <SimpleButton value={`Add ${text}`} onClick={onAddClick}/>
+            <SimpleButton value={`Add ${text}`} onClick={onAddClick} disabled={disabled}/>
           </div>
         ) : (
           <div className='game-image-split__buttons'>
