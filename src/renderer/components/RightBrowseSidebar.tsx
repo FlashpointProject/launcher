@@ -231,7 +231,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                 <div className='browse-right-sidebar__row'>
                   <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onBrokenChange}>
                     <CheckBox checked={game.broken} className='browse-right-sidebar__row__check-box' />
-                    <p> Broken</p>
+                    <p> Broken (in Infinity)</p>
                   </div>
                 </div>
                 <div className='browse-right-sidebar__row'>
