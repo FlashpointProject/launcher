@@ -6,7 +6,7 @@ import { removeFileExtension } from '../../shared/Util';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { IDefaultProps } from '../interfaces';
 import { GameListItem } from './GameListItem';
-import { GameOrderBy, GameOrderReverse } from './GameOrder';
+import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 
 export interface IGameListProps extends IDefaultProps {
   gameImages: GameImageCollection;

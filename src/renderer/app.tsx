@@ -35,7 +35,7 @@ export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProp
 
 export interface IAppState {
   central: ICentralState;
-  order?: IGameOrderChangeEvent;
+  order: IGameOrderChangeEvent;
   /** Scale of games at the browse page */
   gameScale: number;
   /** Layout of the browse page */
@@ -88,6 +88,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
+      order: {
+        orderBy: preferencesData.gamesOrderBy,
+        orderReverse: preferencesData.gamesOrder
+      }
     };
     // Initialize app
     this.init();
@@ -288,7 +292,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         {/* "Header" stuff */}
         <HeaderContainer onOrderChange={this.onOrderChange}
                          onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-                         onToggleRightSidebarClick={this.onToggleRightSidebarClick} />
+                         onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+                         order={this.state.order}/>
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter {...routerProps} />
@@ -312,6 +317,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onOrderChange = (event: IGameOrderChangeEvent): void => {
     this.setState({ order: event });
+    // Update Preferences Data (this is to make it get saved on disk)
+    this.props.updatePreferences({
+      gamesOrderBy: event.orderBy,
+      gamesOrder: event.orderReverse
+    });
   }
 
   private onScaleSliderChange = (value: number): void => {

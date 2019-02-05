@@ -1,4 +1,5 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
+import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
 
 /**
  * Contains state of all non-config settings the user can change in the application.
@@ -25,6 +26,10 @@ export interface IAppPreferencesData {
   showDeveloperTab: boolean;
   /** The "route" of the last selected library (empty string selects the default) */
   lastSelectedLibrary: string;
+  /** What property to order the games by */
+  gamesOrderBy: GameOrderBy;
+  /** What order the games should appear in */
+  gamesOrder: GameOrderReverse;
   /** Position and size of the main window */
   mainWindow: IAppPreferencesDataMainWindow;
   /** Sources to show/hide in the log page */

@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { IDefaultProps } from '../interfaces';
+import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 
 export interface IGameOrderProps extends IDefaultProps {
   onChange?: (event: IGameOrderChangeEvent) => void;
-}
-export interface IGameOrderState {
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
 }
@@ -14,28 +13,16 @@ export interface IGameOrderChangeEvent {
   orderReverse: GameOrderReverse;
 }
 
-interface IOptionalGameOrderState {
-  orderBy?: GameOrderBy;
-  orderReverse?: GameOrderReverse;
-}
-
-export type GameOrderBy = 'dateAdded'|'genre'|'platform'|'series'|'title';
-export type GameOrderReverse = 'ascending'|'descending';
-
-export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState> {
+export class GameOrder extends React.Component<IGameOrderProps> {
   constructor(props: IGameOrderProps) {
     super(props);
-    this.state = {
-      orderBy: 'title',
-      orderReverse: 'ascending',
-    };
   }
 
   render() {
     return (
       <>
         {/* Order By */}
-        <select className='simple-selector' value={this.state.orderBy} onChange={this.onOrderByChange}>
+        <select className='simple-selector' value={this.props.orderBy} onChange={this.onOrderByChange}>
           <option value='dateAdded'>Date Added</option>
           <option value='genre'>Genre</option>
           <option value='platform'>Platform</option>
@@ -43,7 +30,7 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
           <option value='title'>Title</option>
         </select>
         {/* Order Reverse */}
-        <select className='simple-selector' value={this.state.orderReverse} onChange={this.onOrderReverseChange}>
+        <select className='simple-selector' value={this.props.orderReverse} onChange={this.onOrderReverseChange}>
           <option value='ascending'>Ascending</option>
           <option value='descending'>Descending</option>
         </select>
@@ -52,27 +39,24 @@ export class GameOrder extends React.Component<IGameOrderProps, IGameOrderState>
   }
 
   private onOrderByChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.updateState({
+    this.updateOrder({
       orderBy: this.parseOrderBy(event.target.value),
     });
   }
 
   private onOrderReverseChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.updateState({
+    this.updateOrder({
       orderReverse: this.parseOrderReverse(event.target.value),
     });
   }
 
-  private updateState(data: IOptionalGameOrderState): void {
-    // (The state and event are currently identical, so if this uses just one of their interfaces)
-    const newStateAndEvent: IGameOrderChangeEvent = {
-      orderBy:      data.orderBy      || this.state.orderBy,
-      orderReverse: data.orderReverse || this.state.orderReverse,
-    }
+  private updateOrder(data: Partial<IGameOrderChangeEvent>): void {
     if (this.props.onChange) {
-      this.props.onChange(newStateAndEvent);
+      this.props.onChange({
+        orderBy:      data.orderBy      || this.props.orderBy,
+        orderReverse: data.orderReverse || this.props.orderReverse,
+      });
     }
-    this.setState(newStateAndEvent);
   }
 
   /** Parse GameOrderBy from a string (error if invalid) */

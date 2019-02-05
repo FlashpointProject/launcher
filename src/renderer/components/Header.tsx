@@ -10,6 +10,7 @@ import { OpenIcon } from './OpenIcon';
 
 interface OwnProps {
   searchQuery: SearchQuery;
+  order: IGameOrderChangeEvent;
   onSearch: (text: string, redirect: boolean) => void;
   onOrderChange?: (event: IGameOrderChangeEvent) => void;
   onToggleLeftSidebarClick?: () => void;
@@ -90,7 +91,9 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         {/* Header Drop-downs */}
         <div className='header__wrap'>
           <div>
-            <GameOrder onChange={onOrderChange}/>
+            <GameOrder onChange={onOrderChange}
+                       orderBy={this.props.order.orderBy}
+                       orderReverse={this.props.order.orderReverse}/>
           </div>
         </div>
         {/* Right-most portion */}

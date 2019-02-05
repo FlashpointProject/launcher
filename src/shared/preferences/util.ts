@@ -1,9 +1,10 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './IAppPreferencesData';
+import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 
 /** Default Preferences Data used for values that are not found in the file */
-export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze({
+export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze<IAppPreferencesData>({
   browsePageGameScale: 0.087,
   browsePageShowExtreme: false,
   enableEditing: true,
@@ -14,6 +15,8 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageRightSidebarWidth: 320,
   showDeveloperTab: false,
   lastSelectedLibrary: '',
+  gamesOrderBy: 'title',
+  gamesOrder: 'ascending',
   mainWindow: Object.freeze({
     x: undefined,
     y: undefined,
@@ -48,6 +51,8 @@ export function overwritePreferenceData(source: IAppPreferencesData, data: Parti
   parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
   parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
+  parser.prop('gamesOrderBy',                v => source.gamesOrderBy                = strOpt(v, gameOrderByOptions,      'title'    ));
+  parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ascending'));
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
   return source;
@@ -67,6 +72,14 @@ function num(n: any): number {
 
 function str(str: any): string {
   return (str || '') + '';
+}
+
+function strOpt<T extends string>(text: any, options: T[], defaultOption: T): T {
+  text = str(text);
+  for (let option of options) {
+    if (text === option) { return text; }
+  }
+  return defaultOption;
 }
 
 function noop() {}
