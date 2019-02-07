@@ -3,7 +3,7 @@ import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IGameOrderChangeEvent } from './components/GameOrder';
-import { AboutPage } from './components/pages/AboutPage';
+import { AboutPage, IAboutPageProps } from './components/pages/AboutPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage } from './containers/ConnectedConfigPage';
@@ -13,9 +13,12 @@ import { ICentralState } from './interfaces';
 import { Paths } from './Paths';
 import { IGamePlaylist } from './playlist/interfaces';
 import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
+import { ICreditsData } from './credits/interfaces';
 
 export interface IAppRouterProps {
   central: ICentralState;
+  creditsData?: ICreditsData;
+  creditsDoneLoading: boolean;
   order?: IGameOrderChangeEvent;
   gameScale: number;
   gameLayout: BrowsePageLayout;
@@ -49,6 +52,10 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibraryRoute: this.props.gameLibraryRoute,
     };
+    const aboutProps: IAboutPageProps = {
+      creditsData: this.props.creditsData,
+      creditsDoneLoading: this.props.creditsDoneLoading
+    };
     return (
       <Switch>
         <PropsRoute exact path={Paths.HOME} component={ConnectedHomePage}
@@ -57,7 +64,8 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
                     {...browseProps} />
         <PropsRoute path={Paths.LOGS} component={ConnectedLogsPage} />
         <PropsRoute path={Paths.CONFIG} component={ConnectedConfigPage} />
-        <Route path={Paths.ABOUT} component={AboutPage} />
+        <PropsRoute path={Paths.ABOUT} component={AboutPage}
+                    {...aboutProps} />
         <PropsRoute path={Paths.DEVELOPER} component={ConnectedDeveloperPage}
                     central={this.props.central} />
         <Route component={NotFoundPage} />

@@ -1,12 +1,27 @@
 import * as React from 'react';
 import { appVersionString } from '../../../shared/AppConstants';
+import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
 
-export const AboutPage: React.StatelessComponent<{}> = () => {
+export interface IAboutPageProps {
+  creditsData?: ICreditsData;
+  creditsDoneLoading: boolean;
+}
+
+export const AboutPage: React.StatelessComponent<IAboutPageProps> = (props) => {
   return (
     <div className='about-page simple-scroll'>
       <div className='about-page__inner'>
         <div className="about-page__top">
           <h1 className='about-page__title'>About</h1>
+          <div className='about-page__credits'>
+            <div className='about-page__credits__profiles'>
+              { (props.creditsDoneLoading && props.creditsData) ? (
+                props.creditsData.profiles.map((profile, index) => (
+                  <CreditsIcon profile={profile} key={index} />
+                ))
+              ) : ('...') }
+            </div>
+          </div>
           <div className='about-page__section'>
             <p className='about-page__section__title'>Flashpoint Launcher</p>
             <div className='about-page__section__content'>
@@ -47,3 +62,16 @@ export const AboutPage: React.StatelessComponent<{}> = () => {
 function link(title: string, url: string): JSX.Element {
   return (<a href={url} title={url}>{title}</a>);
 }
+
+interface ICreditsIconProps {
+  profile: ICreditsDataProfile;
+}
+
+const CreditsIcon: React.StatelessComponent<ICreditsIconProps> = (props) => {
+  return (
+    <div className='about-page__credits__profile'
+         style={{ backgroundImage: `url("${props.profile.icon}")` }}
+         title={props.profile.title}>
+    </div>
+  );
+};

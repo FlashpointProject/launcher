@@ -26,6 +26,8 @@ import { memoizeOne } from '../shared/memoize';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import GameManagerPlatform from './game/GameManagerPlatform';
 import { joinLibraryRoute } from './Util';
+import { readCreditsFile } from './credits/Credits';
+import { ICreditsData } from './credits/interfaces';
 
 interface IAppOwnProps {
   search: SearchQuery;
@@ -35,6 +37,8 @@ export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProp
 
 export interface IAppState {
   central: ICentralState;
+  creditsData?: ICreditsData;
+  creditsDoneLoading: boolean;
   order: IGameOrderChangeEvent;
   /** Scale of games at the browse page */
   gameScale: number;
@@ -83,6 +87,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
+      creditsData: undefined,
+      creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
       selectedGames: {},
@@ -220,6 +226,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       console.error(error);
       this.setUpgradeState({ doneLoading: true });
     });
+    // Load Credits
+    readCreditsFile(fullFlashpointPath, log)
+    .then((data) => {
+      this.setState({
+        creditsData: data,
+        creditsDoneLoading: true
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      log(`Failed to load credits.\n${error}`);
+      this.setState({ creditsDoneLoading: true });
+    });
   }
 
   componentDidMount() {
@@ -270,6 +289,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     // Props to set to the router
     const routerProps: IAppRouterProps = {
       central: this.state.central,
+      creditsData: this.state.creditsData,
+      creditsDoneLoading: this.state.creditsDoneLoading,
       order: this.state.order,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,

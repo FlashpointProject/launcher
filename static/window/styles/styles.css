@@ -922,6 +922,25 @@ body {
 .about-page__section__links :not(:last-child) {
   margin-right: 1rem;
 }
+/* Credits */
+.about-page__credits {
+  
+}
+.about-page__credits__profiles {
+  
+}
+.about-page__credits__profile {
+  --size: 3rem;
+  width: var(--size);
+  height: var(--size);
+  margin: 0.25rem;
+  clip-path: circle();
+  display: inline-block;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
 
 
 /* ------ Log ------ */
