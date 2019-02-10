@@ -29,9 +29,11 @@ export class CreditsTooltip extends React.PureComponent<ICreditsTooltipProps> {
             { profile.note ? (
               <p className='about-page__credits__tooltip__note'>{profile.note}</p>
             ) : undefined }
-              <ul>
+              <ul className='about-page__credits__tooltip__roles'>
                 { profile.roles.map((role, index) => (
-                  <li key={index} style={{ color: CreditsTooltip.getRoleColor(role) }}>{role}</li>
+                  <li key={index} style={{ color: CreditsTooltip.getRoleColor(role) }}>
+                    <p>{role}</p>
+                  </li>
                 )) }
               </ul>
           </>

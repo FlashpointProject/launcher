@@ -956,10 +956,14 @@ body {
   color: var(--theme__text-disabled-color);
   font-style: italic;
 }
-.about-page__credits__tooltip ul {
+.about-page__credits__tooltip__roles {
   --indent: 0.5em;
   margin-left: calc(0.5rem + var(--indent));
   text-indent: calc(0px    - var(--indent));
+}
+.about-page__credits__tooltip__roles p {
+  display: inline;
+  background-color: #000000;
 }
 
 
