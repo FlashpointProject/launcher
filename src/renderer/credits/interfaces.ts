@@ -4,6 +4,12 @@ export interface ICreditsData {
 }
 
 export interface ICreditsDataProfile {
+  /** Title of the person */
   title: string;
-  icon: string;
+  /** Roles of the person (in the Discord server) */
+  roles: string[];
+  /** Note about the person */
+  note?: string;
+  /** Base64 encoded image */
+  icon?: string;
 }

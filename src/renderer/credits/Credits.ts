@@ -24,7 +24,9 @@ function createEmptyCreditsData(): ICreditsData {
 function createEmptyCreditsDataProfile(): ICreditsDataProfile {
   return {
     title: '',
-    icon: ''
+    roles: [],
+    note: undefined,
+    icon: undefined
   };
 }
 
@@ -42,7 +44,9 @@ function parseCreditsData(data: any, onError?: (error: string) => void): ICredit
 function parseProfile(parser: IObjectParserProp<any>): ICreditsDataProfile {
   const parsed = createEmptyCreditsDataProfile();
   parser.prop('title', v => parsed.title = str(v));
-  parser.prop('icon',  v => parsed.icon  = str(v));
+  parser.prop('icon',  v => parsed.icon  = str(v), true);
+  parser.prop('note',  v => parsed.note  = str(v), true);
+  parser.prop('roles').arrayRaw(role => parsed.roles.push(str(role)));
   return parsed;
 }
 

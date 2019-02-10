@@ -924,11 +924,12 @@ body {
 }
 /* Credits */
 .about-page__credits {
-  
+  margin-bottom: 2rem;
 }
-.about-page__credits__profiles {
-  
+.about-page__credits__title {
+  font-size: 1.5rem;
 }
+.about-page__credits__profiles {}
 .about-page__credits__profile {
   --size: 3rem;
   width: var(--size);
@@ -940,6 +941,25 @@ body {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+}
+.about-page__credits__tooltip {
+  max-width: 20rem;
+  padding: 0.5rem;
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  border: 1px solid black;
+  background-color: #000000DD;
+}
+.about-page__credits__tooltip__title {}
+.about-page__credits__tooltip__note {
+  color: var(--theme__text-disabled-color);
+  font-style: italic;
+}
+.about-page__credits__tooltip ul {
+  --indent: 0.5em;
+  margin-left: calc(0.5rem + var(--indent));
+  text-indent: calc(0px    - var(--indent));
 }
 
 
