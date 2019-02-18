@@ -15,8 +15,6 @@ const config = {
 
 /* ------ Watch ------ */
 
-gulp.task('watch', ['watch-main', 'watch-renderer', 'watch-static', 'copy-static']);
-
 gulp.task('watch-main', () => {
   execute('npx tsc --project tsconfig-main.json --watch --preserveWatchOutput --pretty');
 });
@@ -27,12 +25,11 @@ gulp.task('watch-renderer', () => {
 });
 
 gulp.task('watch-static', () => {
-  gulp.watch([config.static.src+'/**/*'], ['copy-static']);
+  gulp.watch(config.static.src+'/**/*', gulp.task('copy-static'));
 });
 
-/* ------ Build ------ */
 
-gulp.task('build', ['build-main', 'build-renderer', 'copy-static']);
+/* ------ Build ------ */
 
 gulp.task('build-main', () => {
   execute('npx tsc --project tsconfig-main.json --pretty');
@@ -100,6 +97,12 @@ gulp.task('pack', () => {
   .then((appPaths) => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); });
 });
+
+/* ------ Meta Tasks ------*/
+
+gulp.task('watch', gulp.parallel('watch-main', 'watch-renderer', 'watch-static', 'copy-static'));
+
+gulp.task('build', gulp.parallel('build-main', 'build-renderer', 'copy-static'));
 
 /* ------ Misc ------*/
 
