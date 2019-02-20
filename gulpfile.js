@@ -15,13 +15,13 @@ const config = {
 
 /* ------ Watch ------ */
 
-gulp.task('watch-main', () => {
-  execute('npx tsc --project tsconfig-main.json --watch --preserveWatchOutput --pretty');
+gulp.task('watch-main', (done) => {
+  execute('npx tsc --project tsconfig-main.json --watch --preserveWatchOutput --pretty', done);
 });
 
-gulp.task('watch-renderer', () => {
+gulp.task('watch-renderer', (done) => {
   const mode = config.isRelease ? 'production' : 'development';
-  execute(`npx webpack --color true --mode "${mode}" --watch`);
+  execute(`npx webpack --color true --mode "${mode}" --watch`, done);
 });
 
 gulp.task('watch-static', () => {
@@ -31,13 +31,13 @@ gulp.task('watch-static', () => {
 
 /* ------ Build ------ */
 
-gulp.task('build-main', () => {
-  execute('npx tsc --project tsconfig-main.json --pretty');
+gulp.task('build-main', (done) => {
+  execute('npx tsc --project tsconfig-main.json --pretty', done);
 });
 
-gulp.task('build-renderer', () => {
+gulp.task('build-renderer', (done) => {
   const mode = config.isRelease ? 'production' : 'development';
-  execute(`npx webpack --color true --mode "${mode}"`);
+  execute(`npx webpack --color true --mode "${mode}"`, done);
 });
 
 gulp.task('copy-static', () => {
@@ -46,7 +46,7 @@ gulp.task('copy-static', () => {
 
 /* ------ Pack ------ */
 
-gulp.task('pack', () => {
+gulp.task('pack', (done) => {
   packager({
     dir: './build/',
     out: './dist/',
@@ -95,7 +95,8 @@ gulp.task('pack', () => {
     ])],
   })
   .then((appPaths) => { console.log('Pack - Done!');         })
-  .catch((error)   => { console.log('Pack - Error!', error); });
+  .catch((error)   => { console.log('Pack - Error!', error); })
+  .then(done);
 });
 
 /* ------ Meta Tasks ------*/
@@ -106,8 +107,11 @@ gulp.task('build', gulp.parallel('build-main', 'build-renderer', 'copy-static'))
 
 /* ------ Misc ------*/
 
-function execute(command) {
+function execute(command, callback) {
   const child = exec(command);
   child.stderr.on('data', data => { console.log(data); });
   child.stdout.on('data', data => { console.log(data); });
+  if (callback) {
+    child.once('exit', () => { callback(); });
+  }
 }
