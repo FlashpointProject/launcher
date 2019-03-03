@@ -4,14 +4,14 @@ import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IGameLibraryFile, IGameLibraryFileItem } from './interfaces';
 
 /** Path to the game library file (relative to the flashpoint root folder) */
-const filePath: string = './Data/libraries.json';
+const filePath: string = './libraries.json';
 /** Encoding used by game library file */
 const fileEncoding: string = 'utf8';
 
 /** Read and parse a platform library file asynchronously */
-export function readGameLibraryFile(flashpointFolder: string, onError?: (error: string) => void): Promise<IGameLibraryFile> {
+export function readGameLibraryFile(jsonFolder: string, onError?: (error: string) => void): Promise<IGameLibraryFile> {
   return new Promise((resolve, reject) => {
-    readJsonFile(path.join(flashpointFolder, filePath), fileEncoding)
+    readJsonFile(path.join(jsonFolder, filePath), fileEncoding)
     .then(json => resolve(parseGameLibrary(json, onError)))
     .catch(reject);
   });

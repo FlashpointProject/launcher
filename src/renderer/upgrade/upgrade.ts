@@ -35,9 +35,9 @@ export async function performUpgradeStageChecks(stage: IUpgradeStage, flashpoint
 }
 
 /** Read and parse the file asynchronously */
-export function readUpgradeFile(flashpointFolder: string): Promise<IUpgradeData> {
+export function readUpgradeFile(jsonFolder: string): Promise<IUpgradeData> {
   return new Promise((resolve, reject) => {
-    readJsonFile(path.join(flashpointFolder, upgradeFilePath), 
+    readJsonFile(path.join(jsonFolder, upgradeFilePath), 
                  upgradeFileEncoding)
     .then(json => resolve(parseUpgradeFile(json)))
     .catch(reject);

@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
+import * as path from 'path';
 import { deepCopy } from '../Util';
 import { IAppConfigApiFetchData, IAppConfigData } from './interfaces';
 
@@ -10,6 +11,8 @@ export class AppConfigApi extends EventEmitter {
   private _isInit: boolean = false;
   /** Full path to the flashpoint folder */
   private _fullFlashpointPath?: string;
+  /** Full path to the json folder */
+  private _fullJsonFolderPath?: string;
 
   public get data(): IAppConfigData {
     if (!this._dataCache) { throw new Error('Yo must not access AppConfigApi.data before it has loaded'); }
@@ -21,6 +24,11 @@ export class AppConfigApi extends EventEmitter {
     return this._fullFlashpointPath;
   }
 
+  public get fullJsonFolderPath(): string {
+    if (this._fullJsonFolderPath === undefined) { throw new Error('Yo must not access AppConfigApi.data before it has loaded'); }
+    return this._fullJsonFolderPath;
+  }
+
   /** Initialize (this should be called after construction, and before accessing the data object) */
   public async initialize() {
     return new Promise(async () => {
@@ -30,6 +38,7 @@ export class AppConfigApi extends EventEmitter {
       // Keep data
       this._dataCache = deepCopy<IAppConfigData>(data.data);
       this._fullFlashpointPath = data.fullFlashpointPath;
+      this._fullJsonFolderPath = path.posix.join(data.fullFlashpointPath, data.data.jsonFolderPath);
       // Done
       this._isInit = true; // Update Flag
       this.emit('init'); // Emit event

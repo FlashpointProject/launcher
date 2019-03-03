@@ -10,9 +10,9 @@ export class BackgroundServicesFile {
   private static fileEncoding: string = 'utf8';
 
   /** Read and parse the file asynchronously */
-  public static readFile(flashpointFolder: string, onError?: (error: string) => void): Promise<IBackProcessInfoFile> {
+  public static readFile(jsonFolder: string, onError?: (error: string) => void): Promise<IBackProcessInfoFile> {
     return new Promise((resolve, reject) => {
-      readJsonFile(path.join(flashpointFolder, BackgroundServicesFile.filePath), 
+      readJsonFile(path.join(jsonFolder, BackgroundServicesFile.filePath), 
                    BackgroundServicesFile.fileEncoding)
       .then(json => resolve(parseBackProcessInfoFile(json, onError)))
       .catch(reject);

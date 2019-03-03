@@ -1,4 +1,5 @@
 import { IpcMessageEvent, ipcRenderer, remote } from 'electron';
+import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as AppConstants from '../shared/AppConstants';
@@ -105,6 +106,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   init() {
     const fullFlashpointPath = window.External.config.fullFlashpointPath;
+    const fullJsonFolderPath = window.External.config.fullJsonFolderPath;
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
     (() => {
       let askBeforeClosing = true;
@@ -201,7 +203,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       });
     });
     //
-    readUpgradeFile(fullFlashpointPath)
+    readUpgradeFile(fullJsonFolderPath)
     .then((data) => {
       this.setUpgradeState({
         data: data,
@@ -227,7 +229,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.setUpgradeState({ doneLoading: true });
     });
     // Load Credits
-    readCreditsFile(fullFlashpointPath, log)
+    readCreditsFile(fullJsonFolderPath, log)
     .then((data) => {
       this.setState({
         creditsData: data,

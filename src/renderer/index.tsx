@@ -24,7 +24,7 @@ import { updateLibrary } from './store/library';
   // Create Redux store
   const store = configureStore(history, { preferences: { data: window.External.preferences.getData() } });
   // Load Game Library file
-  let library = await readGameLibraryFile(window.External.config.fullFlashpointPath, log).catch(e => log(e+''));
+  let library = await readGameLibraryFile(window.External.config.fullJsonFolderPath, log).catch(e => log(e+''));
   if (library) { store.dispatch(updateLibrary(library)); }
   // Render the application
   ReactDOM.render((

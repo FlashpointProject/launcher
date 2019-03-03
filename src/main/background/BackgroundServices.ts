@@ -56,8 +56,8 @@ class BackgroundServices extends EventEmitter {
     // Load background service info from file
     let serviceInfo: IBackProcessInfoFile;
     try {
-      serviceInfo = await BackgroundServicesFile.readFile(config.flashpointPath,
-                                                          error => this.logContent(error));
+      const jsonFolder = path.posix.join(config.flashpointPath, config.jsonFolderPath);
+      serviceInfo = await BackgroundServicesFile.readFile(jsonFolder, error => this.logContent(error));
     } catch(error) {
       this.logContent(`An error occurred while loading the background services file:\n  ${error.toString()}`);
       this.startDone();

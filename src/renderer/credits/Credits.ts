@@ -3,12 +3,12 @@ import { ICreditsData, ICreditsDataProfile } from './interfaces';
 import { ObjectParser, IObjectParserProp } from '../../shared/utils/ObjectParser';
 import { readJsonFile } from '../../shared/Util';
 
-const creditsFilePath: string = './Data/credits.json';
+const creditsFilePath: string = './credits.json';
 const creditsFileEncoding: string = 'utf8';
 
-export function readCreditsFile(flashpointFolder: string, onError?: (error: string) => void): Promise<ICreditsData> {
+export function readCreditsFile(jsonFolder: string, onError?: (error: string) => void): Promise<ICreditsData> {
   return new Promise((resolve, reject) => {
-    readJsonFile(path.join(flashpointFolder, creditsFilePath), 
+    readJsonFile(path.join(jsonFolder, creditsFilePath), 
                  creditsFileEncoding)
     .then(json => resolve(parseCreditsData(json, onError)))
     .catch(reject);

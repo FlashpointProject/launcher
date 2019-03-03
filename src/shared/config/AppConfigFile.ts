@@ -49,6 +49,7 @@ export class AppConfig {
     parser.prop('imageFolderPath',     v => parsed.imageFolderPath     = str(v));
     parser.prop('logoFolderPath',      v => parsed.logoFolderPath      = str(v));
     parser.prop('playlistFolderPath',  v => parsed.playlistFolderPath  = str(v));
+    parser.prop('jsonFolderPath',      v => parsed.jsonFolderPath      = str(v));
     parser.prop('useCustomTitlebar',   v => parsed.useCustomTitlebar   = !!v);
     parser.prop('startRouter',         v => parsed.startRouter         = !!v);
     parser.prop('startRedirector',     v => parsed.startRedirector     = !!v);
@@ -85,6 +86,7 @@ export class AppConfig {
     imageFolderPath: 'Data/Images',
     logoFolderPath: 'Data/Logos',
     playlistFolderPath: 'Data/Playlists',
+    jsonFolderPath: 'Data',
     useCustomTitlebar: false,
     startRouter: true,
     startRedirector: true,
