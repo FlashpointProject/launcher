@@ -2,6 +2,12 @@
 export interface IAppConfigData {
   /** Path to the FlashPoint root folder (relative or absolute) */
   flashpointPath: string;
+  /** Path to the image folder (relative to the flashpoint path) */
+  imageFolderPath: string;
+  /** Path to the logo folder (relative to the flashpoint path) */
+  logoFolderPath: string;
+  /** Path to the playlist folder (relative to the flashpoint path) */
+  playlistFolderPath: string;
   /** If the custom title bar should be used in MainWindow */
   useCustomTitlebar: boolean;
   /** If the Router should be started, and closed, together with this application */

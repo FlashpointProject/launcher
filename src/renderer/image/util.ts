@@ -7,11 +7,16 @@ export function getImageFolderName(platform: string, libraryPrefix: string): str
 }
 
 export function getScreenshotFolderPath(folderName: string, flashpointPath: string): string {
-  return path.posix.join(flashpointPath, `./Images/${folderName}/Screenshot - Gameplay`);
+  return path.posix.join(getImageFolderPath(flashpointPath), `./${folderName}/Screenshot - Gameplay`);
 }
 
 export function getThumbnailFolderPath(folderName: string, flashpointPath: string): string {
-  return path.posix.join(flashpointPath, `./Images/${folderName}/Box - Front`);
+  return path.posix.join(getImageFolderPath(flashpointPath), `./${folderName}/Box - Front`);
+}
+
+function getImageFolderPath(flashpointPath: string, imageFolderPath?: string) {
+  if (imageFolderPath === undefined) { imageFolderPath = window.External.config.data.imageFolderPath; }
+  return path.posix.join(flashpointPath, imageFolderPath);
 }
 
 type StringMap = { [key: number]: string };

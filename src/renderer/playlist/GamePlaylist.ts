@@ -95,7 +95,7 @@ export function saveGamePlaylist(filePath: string, playlist: IGamePlaylist): Pro
  */
 export function getPlaylistFolder(flashpointFolder?: string): string {
   if (!flashpointFolder) { flashpointFolder = window.External.config.fullFlashpointPath; }
-  return path.join(flashpointFolder, 'Playlists');
+  return path.join(flashpointFolder, window.External.config.data.playlistFolderPath);
 }
 
 export enum LoadGamePlaylistError {

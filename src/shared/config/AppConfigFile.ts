@@ -45,7 +45,10 @@ export class AppConfig {
       input: data,
       onError: onError ? (error => onError(`Error while parsing Config: ${error.toString()}`)) : noop
     });
-    parser.prop('flashpointPath',      v => parsed.flashpointPath      = v+'');
+    parser.prop('flashpointPath',      v => parsed.flashpointPath      = str(v));
+    parser.prop('imageFolderPath',     v => parsed.imageFolderPath     = str(v));
+    parser.prop('logoFolderPath',      v => parsed.logoFolderPath      = str(v));
+    parser.prop('playlistFolderPath',  v => parsed.playlistFolderPath  = str(v));
     parser.prop('useCustomTitlebar',   v => parsed.useCustomTitlebar   = !!v);
     parser.prop('startRouter',         v => parsed.startRouter         = !!v);
     parser.prop('startRedirector',     v => parsed.startRedirector     = !!v);
@@ -79,6 +82,9 @@ export class AppConfig {
    */
   private static readonly configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
     flashpointPath: '',
+    imageFolderPath: 'Data/Images',
+    logoFolderPath: 'Data/Logos',
+    playlistFolderPath: 'Data/Playlists',
     useCustomTitlebar: false,
     startRouter: true,
     startRedirector: true,
@@ -102,6 +108,11 @@ export class AppConfig {
     }, AppConfig.configDataDefaultBase)),
     // ...
   }
+}
+
+/** Coerce anything to a string */
+function str(str: any): string {
+  return (str || '') + '';
 }
 
 function noop() {}

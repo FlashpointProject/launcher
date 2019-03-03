@@ -32,7 +32,12 @@ export function lerp(from: number, to: number, value: number): number {
  * @param platform Platform to get icon of (case sensitive)
  */
 export function getPlatformIconPath(platform: string): string {
-  return path.join(window.External.config.fullFlashpointPath, '/Logos/', platform+'.png').replace(/\\/g, '/');
+  return path.join(getLogosFolderPath(window.External.config.fullFlashpointPath), platform+'.png').replace(/\\/g, '/');
+}
+
+function getLogosFolderPath(flashpointPath: string, logosFolderPath?: string) {
+  if (logosFolderPath === undefined) { logosFolderPath = window.External.config.data.logoFolderPath; }
+  return path.join(flashpointPath, logosFolderPath);
 }
 
 export function easterEgg(search: string) {
