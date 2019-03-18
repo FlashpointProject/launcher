@@ -13,10 +13,13 @@ import { SimpleButton } from '../SimpleButton';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { promisify } from 'util';
 import { formatImageFilename, organizeImageFilepaths } from '../../image/util';
-import { ImageFolderCache } from 'src/renderer/image/ImageFolderCache';
+import { ImageFolderCache } from '../../image/ImageFolderCache';
+import { GameCollection } from '../../../shared/game/GameCollection';
+import { LaunchboxData } from '../../LaunchboxData';
 
 const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
+const mkdir  = promisify(fs.mkdir);
 
 interface IOwnProps {
   central: ICentralState;
@@ -59,6 +62,8 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
                           title='Find all game images with the games title in their filename, and rename it to use its ID instead.' />
             <SimpleButton value='Rename Images (ID => Title)' onClick={this.onRenameImagesIDToTitleClick}
                           title='Find all game images with the games ID in their filename, and rename it to use its title instead.' />
+            <SimpleButton value='Create Missing Folders' onClick={this.onCreateMissingFoldersClick}
+                          title='Find all missing folders in the Flashpoint folder structure and create them.' />
           </div>
         </div>
       </div>
@@ -107,6 +112,13 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
       const games = this.props.central.games.collection.games;
       const gameImages = this.props.central.gameImages;
       this.setState({ text: await renameImagesToTitles(games, gameImages) });
+    }, 0);
+  }
+
+  private onCreateMissingFoldersClick = (): void => {
+    setTimeout(async () => {
+      const collection = this.props.central.games.collection;
+      this.setState({ text: await createMissingFolders(collection) });
     }, 0);
   }
 }
@@ -461,6 +473,101 @@ function stringifyRenameImageStats(stats: RenameImagesStats): string {
     );
   }
   return str;
+}
+
+type FolderStructure = { [key: string]: FolderStructure | string[] } | string[];
+async function createMissingFolders(collection: GameCollection): Promise<string> {
+  let str = '';
+  const log = (text?: string) => { str += (typeof text === 'string') ? text+'\n' : '\n'; };
+  const fullFlashpointPath = window.External.config.fullFlashpointPath;
+  // Create "static" folder structure (folders that should always exist)
+  log('Creating "static" folders:');
+  log('(Folders that should be in every Flashpoint folder)\n');
+  log(fullFlashpointPath);
+  await createFolderStructure(
+    fullFlashpointPath, {
+      'Data': [
+        'Images',
+        'Logos',
+        'Platforms',
+        'Playlists',
+      ],
+      'Extras': [],
+      'FPSoftware': [],
+      'Launcher': [],
+      'Server': [],
+    }, log, 2
+  ).catch(logError);
+  log('\n');
+  // Create image folders
+  log('Creating image folders:\n');
+  log(path.join(fullFlashpointPath, 'Data/Images'));
+  const imageFolders = await findPlatformFolderImageNames();
+  if (imageFolders.length > 0) {
+    const imageFolderStructure: FolderStructure = {};
+    imageFolders.forEach(folderName => { imageFolderStructure[folderName] = ['Box - Front', 'Screenshot - Gameplay']; });
+    await createFolderStructure(
+      path.join(fullFlashpointPath, 'Data/Images'),
+      imageFolderStructure,
+      log, 2
+    ).catch(logError);    
+  } else { log('\n  No image folder names found (each platform ".xml" file get its own image folder).'); }
+  // Return string
+  log(); // Add final new line
+  return str;
+  
+  /** Create all the folders that are missing in a folder structure. */
+  async function createFolderStructure(rootPath: string, structure: FolderStructure, log: (text: string) => void, depth: number = 0) {
+    const pad = '| '.repeat(depth - 1);
+    if (Array.isArray(structure)) {
+      for (let i = 0; i < structure.length; i++) {
+        const folderName = structure[i];
+        const folderPath = path.join(rootPath, folderName);
+        const success = await createMissingFolder(folderPath);
+        log(folderLogMessage(folderName, success));
+      }
+    } else {
+      for (let key in structure) {
+        const folderPath = path.join(rootPath, key);
+        const success = await createMissingFolder(folderPath);
+        log(folderLogMessage(key, success));
+        await createFolderStructure(folderPath, structure[key], log, depth + 1);
+      }
+    }
+    /** */
+    function folderLogMessage(folderName: string, success: boolean): string {
+      let str = `${pad}+ ${folderName}`;
+      str += ' '.repeat(Math.max(1, 40 - str.length));
+      str += success ? 'Created!' : 'Exists.';
+      return str;
+    }
+    /** Create a folder if it is missing. */
+    async function createMissingFolder(folderPath: string): Promise<boolean> {
+      if (!await exists(folderPath)) { // Folder does not already exist
+        if (folderPath.startsWith(rootPath)) { // Folder is a sub-folder of it's root (no "../" climbing allowed)
+          await mkdir(folderPath).catch(logError);
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+  /** Find the image folder names of all the current platforms platforms. */
+  async function findPlatformFolderImageNames() {
+    // Get the platform filenames
+    let platformFilenames: string[];
+    try { platformFilenames = await LaunchboxData.fetchPlatformFilenames(fullFlashpointPath); }
+    catch(error) { return []; }
+    // Convert to image folder names
+    return (
+      platformFilenames // [ "Flash.xml", "HTML5.xml" etc. ]
+      .map(filename => filename.split('.')[0]) // "Flash.xml" => "Flash"
+    );
+  }
+  /** Log error (if there is any). */
+  function logError(error: any): void {
+    if (error) { console.warn(error); }
+  }
 }
 
 /** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
