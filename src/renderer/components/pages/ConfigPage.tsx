@@ -118,6 +118,22 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                   <p>Which software to use for redirecting the game traffic to the local web server. Neither is used on Linux.</p>
                 </div>
               </div>
+              {/* Wine */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>Use Wine</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <CheckBox checked={this.props.preferencesData.useWine} onChange={this.useWineChange} />
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>Launch applications with Wine. Only enable this if Wine is installed.</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -125,7 +141,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
           <div className='setting'>
             <p className='setting__title'>Window</p>
             <div className='setting__body'>
-              {/* -- Custom Title Bar -- */}
+              {/* Custom Title Bar */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
@@ -133,8 +149,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox checked={this.state.useCustomTitlebar} 
-                                onChange={this.onUseCustomTitlebarChange} />
+                      <CheckBox checked={this.state.useCustomTitlebar} onChange={this.onUseCustomTitlebarChange} />
                     </div>
                   </div>
                 </div>
@@ -149,7 +164,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
           <div className='setting'>
             <p className='setting__title'>Advanced</p>
             <div className='setting__body'>
-              {/* -- Show Developer Tab -- */}
+              {/* Show Developer Tab */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
@@ -204,7 +219,11 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     this.setState({ isFlashpointPathValid: isValid });
   }
   
-  /** When the different toggles are checked/unchecked */
+  private useWineChange = (isChecked: boolean): void => {
+    this.props.updatePreferences({ useWine: isChecked });
+    this.forceUpdate();
+  }
+  
   private onUseCustomTitlebarChange = (isChecked: boolean): void => {
     this.setState({ useCustomTitlebar: isChecked });
   }

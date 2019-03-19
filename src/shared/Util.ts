@@ -68,21 +68,60 @@ export function padStart(str: string|number, length: number): string {
   return ' '.repeat(Math.max(0, length - str.length)) + str;
 }
 
+type StringifyArrayOpts = {
+  /** If spaces and new lines should be trimmed from the start and end of strings in the array. */
+  trimStrings?: boolean;
+};
+
 /**
  * Write an array to a string in a pretty and readable way
  * Ex. [0,'test',null] => "[ 0, 'test', null ]"
  * @param array Array to "stringify"
  * @returns Readable text representation of the array
  */
-export function stringifyArray(array: Array<any>): string {
+export function stringifyArray(array: Array<any>, opts?: StringifyArrayOpts): string {
+  const trimStrings = opts && opts.trimStrings || false;
+  // Build string
   let str = '[ ';
   for (let i = 0; i < array.length; i++) {
     let element = array[i];
-    str += isString(element) ? `"${element}"` : element+'';
+    if (isString(element)) {
+      str += `"${trimStrings ? trim(element) : element}"`;
+    } else { str += element; }
     if (i !== array.length - 1) { str += ', '; }
   }
   str += ' ]';
   return str;
+}
+
+/** Remove all spaces and new line characters at the start and end of the string. */
+function trim(str: string): string {
+  let first: number = 0;
+  let last: number = str.length;
+  // Find the first non-space non-new-line character
+  for (let i = 0; i < str.length; i++) {
+    if (!isSpaceOrNewLine(str[i])) {
+      first = i;
+      break;
+    }
+  }
+  // Find the last non-space non-new-line character
+  for (let i = str.length - 1; i >= first; i--) {
+    if (!isSpaceOrNewLine(str[i])) {
+      last = i;
+      break;
+    }
+  }
+  // Get the character between the first and last (including them)
+  return str.substring(first, last);
+}
+
+function isSpaceOrNewLine(char: string): boolean {
+  switch (char) {
+    case ' ':
+    case '\n': return true;
+    default:   return false;
+  }
 }
 
 /**
