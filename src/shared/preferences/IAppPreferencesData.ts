@@ -24,6 +24,8 @@ export interface IAppPreferencesData {
   browsePageRightSidebarWidth: number;
   /** If the "Developer" tab should be visible in the header */
   showDeveloperTab: boolean;
+  /** If Wine should be used to launch game applications */
+  useWine: boolean;
   /** The "route" of the last selected library (empty string selects the default) */
   lastSelectedLibrary: string;
   /** What property to order the games by */

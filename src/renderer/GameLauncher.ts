@@ -16,7 +16,7 @@ export class GameLauncher {
         });
         break;
       case ':extras:':
-        const folderPath = relativeToFlashpoint(path.join('Extras', addApp.commandLine));
+        const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.commandLine)));
         remote.shell.openExternal(
           folderPath, { activate: true },
           error => {
@@ -32,9 +32,10 @@ export class GameLauncher {
         );
         break;
       default:
-        const appPath: string = relativeToFlashpoint(addApp.applicationPath);
+        const appPath: string = fixSlashes(relativeToFlashpoint(addApp.applicationPath));
         const appArgs: string = addApp.commandLine;
-        const proc = GameLauncher.launch(appPath, appArgs, { env: GameLauncher.getEnvironment() });
+        const useWine = window.External.preferences.getData().useWine;
+        const proc = GameLauncher.launch(GameLauncher.createCommand(appPath, appArgs, useWine), { env: GameLauncher.getEnvironment() });
         log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.commandLine}" ]`);
         break;
     }
@@ -54,10 +55,15 @@ export class GameLauncher {
       }
     });
     // Launch game
-    const gamePath: string = relativeToFlashpoint(GameLauncher.getApplicationPath(game));
-    let gameArgs: string = game.launchCommand;
-    const proc = GameLauncher.launch(gamePath, gameArgs, { env: GameLauncher.getEnvironment() });
-    log(`Launch Game "${game.title}" (PID: ${proc.pid}) [ path: "${game.applicationPath}", arg: "${game.launchCommand}" ]`);
+    const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game)));
+    const gameArgs: string = game.launchCommand;
+    const useWine: boolean = window.External.preferences.getData().useWine;
+    const command: string = GameLauncher.createCommand(gamePath, gameArgs, useWine);
+    const proc = GameLauncher.launch(command, { env: GameLauncher.getEnvironment() });
+    log(`Launch Game "${game.title}" (PID: ${proc.pid}) [\n`+
+        `    applicationPath: "${game.applicationPath}",\n`+
+        `    launchCommand:   "${game.launchCommand}",\n`+
+        `    command:         "${command}" ]`);
     // Show popups for Unity games
     // (This is written specifically for the "startUnity.bat" batch file)
     if (game.platform === 'Unity') {
@@ -84,13 +90,6 @@ export class GameLauncher {
   private static getApplicationPath(game: IGameInfo): string {
     // @TODO Let the user change these paths from a file or something (services.json?).
     if (window.External.platform === 'linux')  {
-      if (game.platform === 'Flash') {
-        // Note that this assumes that `flash_player_sa_linux.x86_64.tar.gz`
-        // has been extracted using:
-        //   $ cd Arcade/Games
-        //   $ tar xf flash_player_sa_linux.x86_64.tar.gz flashplayer
-        return 'Games/flashplayer';
-      }
       if (game.platform === 'Java') {
         return 'Games/startJava.sh';
       }
@@ -110,27 +109,36 @@ export class GameLauncher {
       : process.env;
   }
 
-  private static launch(filename: string, args: string, opts: ExecOptions): ChildProcess {
+  private static createCommand(filename: string, args: string, useWine: boolean): string {
     // Escape filename and args
     let escFilename: string = filename;
     let escArgs: string = args;
-    switch (window.External.platform) {
-      case 'win32':
-        escFilename = escapeWin(filename);
-        escArgs = escapeWin(args);
-        break;
-      case 'linux':
-        escFilename = filename;
-        escArgs = escapeLinuxArgs(args);
-        break;
+    if (useWine) {
+      escFilename = 'wine';
+      escArgs = `start /unix "${filename}" "${args}"`;
+    } else {
+      switch (window.External.platform) {
+        case 'win32':
+          escFilename = escapeWin(filename);
+          escArgs = escapeWin(args);
+          break;
+        case 'linux':
+          escFilename = filename;
+          escArgs = escapeLinuxArgs(args);
+          break;
+      }
     }
+    // Return
+    return `"${escFilename}" ${escArgs}`;
+  }
+
+  private static launch(command: string, opts: ExecOptions): ChildProcess {
     // Run
-    const str: string = `"${escFilename}" ${escArgs}`;
-    const proc = exec(str, opts);
+    const proc = exec(command, opts);
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     const logStuff = (event: string, args: any[]): void => {
-      log(`${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args)}`);
+      log(`${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
     };
     doStuffs(proc, [/*'close',*/ 'disconnect', 'error', 'exit', 'message'], logStuff);
     proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); });
@@ -139,6 +147,10 @@ export class GameLauncher {
     return proc;
   }
 }
+
+const stringifyArrayOpts = {
+  trimStrings: true,
+};
 
 function relativeToFlashpoint(filePath: string): string {
   return path.posix.join(window.External.config.fullFlashpointPath, filePath);
@@ -160,6 +172,11 @@ function log(str: string): void {
   });
 }
 
+/** Replace all back-slashes with forward slashes. */
+function fixSlashes(str: string): string {
+  return str.replace(/\\/g, '/');
+}
+
 /**
  * Escape a string that will be used in a Windows shell (command line)
  * ( According to this: http://www.robvanderwoude.com/escapechars.php )
@@ -169,7 +186,7 @@ function escapeWin(str: string): string {
 }
 
 /**
- * Escape a the arguments that will be used in a Linux shell (command line)
+ * Escape arguments that will be used in a Linux shell (command line)
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
  */
 function escapeLinuxArgs(str: string): string {
