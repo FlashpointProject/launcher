@@ -1,3 +1,5 @@
+import { remote } from 'electron';
+import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { IGameInfo } from '../../../shared/game/interfaces';
@@ -84,6 +86,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
               <QuickStartItem icon='wrench'>
                 Want to change something? Go to <Link to={Paths.CONFIG}>Config</Link>.
               </QuickStartItem>
+              <QuickStartItem icon='info'>
+                Need help? <Link to='#' onClick={this.onHelpClick}>Read the readme</Link>.
+              </QuickStartItem>
             </ul>
           </div>
           {/* Upgrades */}
@@ -165,6 +170,11 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
 
   private onLaunchGame(game: IGameInfo, index: number): void {
     GameLauncher.launchGame(game);
+  }
+
+  private onHelpClick = () => {
+    const fullFlashpointPath = window.External.config.fullFlashpointPath;
+    remote.shell.openItem(path.join(fullFlashpointPath, 'readme.txt'));
   }
 
   private onHallOfFameClick = () => {
