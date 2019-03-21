@@ -153,7 +153,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                                             children={this.renderRemoveFromPlaylistButton} />
                           ) : undefined }
                           {/* "Delete Game" Button */}
-                          { (isPlaceholder || isNewGame) ? undefined : (
+                          { (isPlaceholder || isNewGame || gamePlaylistEntry) ? undefined : (
                             <ConfirmElement onConfirm={this.onDeleteGameClick}
                                             children={this.renderDeleteGameButton} />
                           ) }
