@@ -41,7 +41,7 @@ export class RandomGames extends React.PureComponent<IRandomGamesProps> {
           <GameGridItem
             key={game.id}
             game={game}
-            thumbnail={gameImages.getThumbnailPath(removeFileExtension(game.filename), game.title, game.id) || ''}
+            thumbnail={gameImages.getThumbnailPath(removeFileExtension(game.filename), game.id, game.title) || ''}
             onDoubleClick={onLaunchGame}
             isSelected={false}
             isDragged={false}
