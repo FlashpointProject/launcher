@@ -25,6 +25,11 @@ import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 
+type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
+type StateCallback0 = Pick<IBrowsePageState, 'orderedGames'|'orderedGamesArgs'>;
+type StateCallback1 = Pick<IBrowsePageState, 'currentGame'|'currentAddApps'|'isEditing'|'isNewGame'>;
+type StateCallback2 = Pick<IBrowsePageState, 'currentGame'|'currentAddApps'|'isNewGame'>;
+
 interface OwnProps {
   central: ICentralState;
   search: SearchQuery;
@@ -72,24 +77,28 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   /** A timestamp of the previous the the quick search string was updated */
   private _prevQuickSearchUpdate: number = 0;
   private gameBrowserRef: React.RefObject<HTMLDivElement> = React.createRef();
+  private boundSetState = this.setState.bind(this);
 
   private static readonly quickSearchTimeout: number = 1500;
 
   constructor(props: IBrowsePageProps) {
     super(props);
-    this.state = {
+    // Set initial state (this is set up to remove all "setState" calls)
+    const initialState: IBrowsePageState = {
       quickSearch: '',
       orderedGames: [],
       isEditing: false,
       isNewGame: false
     };
+    const assignToState = <T extends keyof IBrowsePageState>(state: Pick<IBrowsePageState, T>) => { Object.assign(initialState, state); };
+    this.orderGames(true, assignToState);
+    this.updateCurrentGameAndAddApps(assignToState);
+    this.createNewGameIfClicked(false, assignToState);
+    this.state = initialState;
   }
 
   componentDidMount() {
     this.props.central.games.on('change', this.onGamesCollectionChange);
-    this.orderGames(true);
-    this.updateCurrentGameAndAddApps();
-    this.createNewGameIfClicked(false);
   }
 
   componentWillUnmount() {
@@ -435,17 +444,17 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances) */
-  private updateCurrentGameAndAddApps(): void {
+  private updateCurrentGameAndAddApps(cb: (state: StateCallback2) => void = this.boundSetState): void {
     const { central, selectedGame } = this.props;
     if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
       // Find additional applications for the selected game (if any)
       let addApps = GameCollection.findAdditionalApplicationsByGameId(central.games.collection, selectedGame.id);
       // Update State
-      this.setState({
+      cb({
         currentGame: selectedGame && GameInfo.duplicate(selectedGame),
         currentAddApps: addApps && addApps.map(AdditionalApplicationInfo.duplicate),
         isNewGame: false,
-      });      
+      });
     }
   }
 
@@ -640,7 +649,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
    * Update the ordered games array if the related props, configs or preferences has been changed
    * @param force If checking for changes in the arguments should be skipped (it always re-orders the games)
    */
-  private orderGames(force: boolean = false): void {
+  private orderGames(force: boolean = false, cb: (state: StateCallback0) => void = this.boundSetState): void {
     const args = {
       games: this.getCurrentLibraryGames() || this.props.central.games.collection.games,
       search: this.props.search ? this.props.search.text : '',
@@ -652,7 +661,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       order: this.props.order || BrowsePage.defaultOrder,
     };
     if (force || !checkOrderGamesArgsEqual(args, this.state.orderedGamesArgs)) {
-      this.setState({
+      cb({
         orderedGames: orderGames(args),
         orderedGamesArgs: args,
       });
@@ -664,14 +673,14 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   }
 
   /** Create a new game if the "New Game" button was clicked */
-  private createNewGameIfClicked(prevWasNewGameClicked: boolean): void {
+  private createNewGameIfClicked(prevWasNewGameClicked: boolean, cb: (state: StateCallback1) => void = this.boundSetState): void {
     const { wasNewGameClicked } = this.props;
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
       const newGame = GameInfo.create();
       newGame.id = uuid();
       newGame.dateAdded = formatDate(new Date());
-      this.setState({
+      cb({
         currentGame: newGame,
         currentAddApps: [],
         isEditing: true,
