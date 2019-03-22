@@ -2,7 +2,6 @@ import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
 import { RenderedSection } from 'react-virtualized/dist/es/Grid';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { removeFileExtension } from '../../shared/Util';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { IDefaultProps } from '../interfaces';
 import { GameListItem } from './GameListItem';
@@ -100,7 +99,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
     if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     if (!gameImages) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
     const game = games[props.index];
-    let thumbnail = gameImages.getThumbnailPath(removeFileExtension(game.filename), game.id, game.title);
+    let thumbnail = gameImages.getThumbnailPath(game);
     return (
       <GameListItem key={props.key} {...props}
                     game={game}

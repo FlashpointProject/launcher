@@ -2,13 +2,17 @@ import * as fs from 'fs-extra';
 import { promisify } from 'util';
 import { ImageFolderCache } from './ImageFolderCache';
 import { getScreenshotFolderPath, getThumbnailFolderPath } from './util';
+import { IGameInfo } from '../../shared/game/interfaces';
+import { removeFileExtension } from '../../shared/Util';
 
 const ensureDir = promisify(fs.ensureDir);
 
+type PartialDict<T> = { [key: string]: T | undefined; };
+
 export class GameImageCollection {
   private _flashpointPath: string;
-  private _thumbnails: { [key: string]: ImageFolderCache|undefined; } = {};
-  private _screenshots: { [key: string]: ImageFolderCache|undefined; } = {};
+  private _thumbnails: PartialDict<ImageFolderCache> = {};
+  private _screenshots: PartialDict<ImageFolderCache> = {};
 
   constructor(flashpointPath: string) {
     this._flashpointPath = flashpointPath;
@@ -80,31 +84,31 @@ export class GameImageCollection {
   }
   
   /**
-   * Get the path to the thumbnail for a given identifier and folder name (returns undefined if not found)
-   * @param identifier Title or ID of game
-   * @param folderName Name of the image folder
-   * @returns Path to thumbnail for that game, or undefined if not found
+   * Get the path to the thumbnail for a given game (returns undefined if not found).
+   * @param game Game to get the thumbnail of.
+   * @returns Path to the thumbnail for that game, or undefined if not found.
    */
-  public getThumbnailPath(folderName: string, ...identifiers: string[]): string|undefined {
-    return this.getFirstFilename(this._thumbnails[folderName.toLowerCase()], identifiers);
+  public getThumbnailPath(game: IGameInfo): string|undefined {
+    return this.getImage(this._thumbnails, game);
   }
   
   /**
-   * Get the path to the screenshot for a given identifier and folder name (returns undefined if not found)
-   * @param identifier Title or ID of game
-   * @param folderName Name of the image folder
-   * @returns Path to screenshot for that game, or undefined if not found
+   * Get the path to the screenshot for a given game (returns undefined if not found).
+   * @param game Game to get the screenshot of.
+   * @returns Path to the screenshot for that game, or undefined if not found.
    */
-  public getScreenshotPath(folderName: string, ...identifiers: string[]): string|undefined {
-    return this.getFirstFilename(this._screenshots[folderName.toLowerCase()], identifiers);
+  public getScreenshotPath(game: IGameInfo): string|undefined {
+    return this.getImage(this._screenshots, game);
   }
-
-  private getFirstFilename(cache: ImageFolderCache|undefined, identifiers: string[]): string|undefined {
+  
+  /** Internal shared implementation of the "get*PathOfGame" functions. */
+  getImage(dict: PartialDict<ImageFolderCache>, game: IGameInfo): string|undefined {
+    const cache = dict[removeFileExtension(game.filename).toLowerCase()];
     if (cache) {
-      for (let identifier of identifiers) {
-        const filepath = cache.getFilePath(identifier);
-        if (filepath !== undefined) { return filepath; }
-      }
+      let filepath = cache.getFilePath(game.id);
+      if (filepath) { return filepath; }
+      filepath = cache.getFilePath(game.title);
+      return filepath;
     }
     return undefined;
   }

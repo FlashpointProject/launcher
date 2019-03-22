@@ -127,10 +127,10 @@ function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollect
   const timeStart = Date.now(); // Start timing
   // Find all games with missing thumbnails and screenshots
   const missingThumbnails:  IGameInfo[] = games.filter(game =>
-    gameImages.getThumbnailPath(removeFileExtension(game.filename), game.id, game.title) === undefined
+    gameImages.getThumbnailPath(game) === undefined
   );
   const missingScreenshots: IGameInfo[] = games.filter(game => 
-    gameImages.getScreenshotPath(removeFileExtension(game.filename), game.id, game.title) === undefined
+    gameImages.getScreenshotPath(game) === undefined
   );
   const timeEnd = Date.now(); // End timing
   // Write log message

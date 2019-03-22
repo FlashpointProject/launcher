@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { filterBroken, filterExtreme } from '../../shared/game/GameFilter';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { removeFileExtension } from '../../shared/Util';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { shuffle } from '../Util';
 import { GameGridItem } from './GameGridItem';
@@ -41,7 +40,7 @@ export class RandomGames extends React.PureComponent<IRandomGamesProps> {
           <GameGridItem
             key={game.id}
             game={game}
-            thumbnail={gameImages.getThumbnailPath(removeFileExtension(game.filename), game.id, game.title) || ''}
+            thumbnail={gameImages.getThumbnailPath(game) || ''}
             onDoubleClick={onLaunchGame}
             isSelected={false}
             isDragged={false}

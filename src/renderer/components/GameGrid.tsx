@@ -2,7 +2,6 @@ import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps } from 'react-virtualized/dist/es/Grid';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { removeFileExtension } from '../../shared/Util';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { IDefaultProps } from '../interfaces';
 import { GameGridItem } from './GameGridItem';
@@ -131,7 +130,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
     const index: number = props.rowIndex * this.columns + props.columnIndex;
     const game = games[index];
     if (!game) { return; }
-    const thumbnail = gameImages.getThumbnailPath(removeFileExtension(game.filename), game.id, game.title);
+    const thumbnail = gameImages.getThumbnailPath(game);
     return (
       <GameGridItem key={props.key} {...props} 
                     game={game} 

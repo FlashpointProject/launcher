@@ -108,8 +108,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const canEdit = !editDisabled && isEditing;
       const imageFolderName = this.getImageFolderName();
       const dateAdded = new Date(game.dateAdded).toUTCString();
-      const screenshotSrc = gameImages.getScreenshotPath(imageFolderName, game.id, game.title);
-      const thumbnailSrc = gameImages.getThumbnailPath(imageFolderName, game.id, game.title);
+      const screenshotSrc = gameImages.getScreenshotPath(game);
+      const thumbnailSrc = gameImages.getThumbnailPath(game);
       return (
         <div className={'browse-right-sidebar '+
                         (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
@@ -401,15 +401,11 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     const { currentGame, gameImages } = this.props;
     const template: MenuItemConstructorOptions[] = [];
     if (currentGame) {
-      const imageFolderName = this.getImageFolderName();
-      const thumbnailCache = gameImages.getThumbnailCache(imageFolderName);
-      const screenshotCache = gameImages.getScreenshotCache(imageFolderName);
-      const thumbnailFilename = thumbnailCache && (thumbnailCache.getFilePath(currentGame.title, true) || thumbnailCache.getFilePath(currentGame.id, true));
-      const screenshotFilename = screenshotCache && (screenshotCache.getFilePath(currentGame.title, true) || screenshotCache.getFilePath(currentGame.id, true));
+      const thumbnailFilename = gameImages.getThumbnailPath(currentGame);
+      const screenshotFilename = gameImages.getScreenshotPath(currentGame);
       template.push({
         label: 'View Thumbnail in Folder',
         click: () => {
-          if (!thumbnailCache) { throw new Error('Can not view thumbnail, thumbnail cache not found'); }
           if (thumbnailFilename === undefined) { throw new Error('Can not view thumbnail, thumbnail filename not found'); }
           remote.shell.showItemInFolder(thumbnailFilename.replace(/\//g, '\\'));
         },
@@ -418,7 +414,6 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       template.push({
         label: 'View Screenshot in Folder',
         click: () => {
-          if (!screenshotCache) { throw new Error('Can not view screenshot, screenshot cache not found'); }
           if (screenshotFilename === undefined) { throw new Error('Can not view screenshot, screenshot filename not found'); }
           remote.shell.showItemInFolder(screenshotFilename.replace(/\//g, '\\'));
         },
