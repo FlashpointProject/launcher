@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "jsx": "react"
+  },
+  "extends": "../../tsconfig.json",
+  "include": [
+    "../../typings/**/*",
+    "./**/*",
+  ]
+}

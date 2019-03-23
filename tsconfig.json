@@ -2,17 +2,19 @@
   "compilerOptions": {
     "module": "commonjs",
     "noImplicitAny": true,
-    "jsx": "react",
     "sourceMap": true,
-    "outDir": "build",
+    "outDir": "build/if_this_folder_exists_the_tsconfigs_are_improperly_set_up",
     "baseUrl": ".",
-    "target": "es6",
-    "lib": ["es2015", "es5", "dom"],
+    "target": "esnext",
+    "lib": ["es6", "es2015", "dom"],
     "strict": true
   },
   "exclude": [
     "node_modules",
     "dist",
     "build"
+  ],
+  "include": [
+    "./typings/**/*",
   ]
 }

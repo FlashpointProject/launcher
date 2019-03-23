@@ -10,13 +10,16 @@ const config = {
   static: {
     src: './static',
     dest: './build',
+  },
+  main: {
+    src: './src/main',
   }
 };
 
 /* ------ Watch ------ */
 
 gulp.task('watch-main', (done) => {
-  execute('npx tsc --project tsconfig-main.json --watch --preserveWatchOutput --pretty', done);
+  execute(`npx tsc --project "${config.main.src}" --pretty --watch`, done);
 });
 
 gulp.task('watch-renderer', (done) => {
@@ -32,7 +35,7 @@ gulp.task('watch-static', () => {
 /* ------ Build ------ */
 
 gulp.task('build-main', (done) => {
-  execute('npx tsc --project tsconfig-main.json --pretty', done);
+  execute(`npx tsc --project "${config.main.src}" --pretty`, done);
 });
 
 gulp.task('build-renderer', (done) => {

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "../../build"
+  },
+  "extends": "../../tsconfig.json",
+  "include": [
+    "../../typings/**/*",
+    "./**/*",
+  ]
+}
