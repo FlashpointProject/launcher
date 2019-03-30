@@ -1,5 +1,13 @@
 # Flashpoint Launcher
 
+The launcher for BlueMaxima's Flashpoint (aka the Flashpoint Project).
+
+![Screenshot](https://user-images.githubusercontent.com/10117720/55276674-a24e8c80-52f6-11e9-8b59-4fb396c36026.png)
+
+### Links
+* [Flashpoint](http://bluemaxima.org/flashpoint) - Download Flashpoint here
+* [Trello](https://trello.com/b/Tu9E5GLk/launcher) - Upcoming features, known bugs etc.
+
 ## Setup
 1. Download the project (and extract it, if it was downloaded as an archive).
 2. Open a command prompt and navigate it to the projects root folder.
