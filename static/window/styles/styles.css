@@ -1549,6 +1549,7 @@ body {
   text-overflow: ellipsis;
   font-size: calc((16 / 188) * var(--height) * 1px);
   line-height: 1.2;
+  word-break: break-word;
   /* Pimp */
   font-weight: bold;
   user-select: none;
