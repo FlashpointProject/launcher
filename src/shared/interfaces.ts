@@ -38,10 +38,13 @@ export interface IMainWindowExternal {
 export type ElectronOpenDialogCallback = (filePaths?: string[], bookmarks?: string[]) => void;
 
 /** Obtain the return type of a function */
-export type ReturnTypeOf<T extends Function> = T extends (...args: ArgumentTypesOf<T>) => infer R ? R : any;
+export type ReturnTypeOf<T extends AnyFunction> = T extends (...args: ArgumentTypesOf<T>) => infer R ? R : any;
 
 /** Obtain the argument types of a function */
-export type ArgumentTypesOf<F extends Function> = F extends (...args: infer A) => any ? A : never;
+export type ArgumentTypesOf<F extends AnyFunction> = F extends (...args: infer A) => any ? A : never;
+
+/** Any function. */
+export type AnyFunction = (...args: any[]) => any;
 
 export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 

@@ -1,4 +1,4 @@
-import { ArgumentTypesOf, ReturnTypeOf } from './interfaces';
+import { ArgumentTypesOf, ReturnTypeOf, AnyFunction } from './interfaces';
 import { shallowStrictEquals } from './Util';
 
 /** Callable object, A is the arguments, R is the return value */
@@ -7,7 +7,7 @@ interface Callable<A extends any[], R> extends Function {
 }
 
 /** A short-hand for a callable function that has the same argument and return types as a "normal" function */
-type CallableWrap<T extends Function> = Callable<ArgumentTypesOf<T>, ReturnTypeOf<T>>;
+type CallableWrap<T extends AnyFunction> = Callable<ArgumentTypesOf<T>, ReturnTypeOf<T>>;
 
 type EqualsCheck<T extends any[]> = (newArgs: T, prevArgs: T) => boolean;
 
@@ -18,7 +18,7 @@ type EqualsCheck<T extends any[]> = (newArgs: T, prevArgs: T) => boolean;
  * @param equalsFunc Function that compares the the new and previous arguments
  * @returns Memoized function
  */
-export function memoizeOne<T extends CallableWrap<T>>(func: T, equalsFunc: EqualsCheck<ArgumentTypesOf<T>> = defaultEqualsFunc): CallableWrap<T> {
+export function memoizeOne<T extends AnyFunction>(func: T, equalsFunc: EqualsCheck<ArgumentTypesOf<T>> = defaultEqualsFunc): CallableWrap<T> {
   let prevArgs: ArgumentTypesOf<T>;
   let prevReturn: ReturnTypeOf<T>;
   let firstCall: boolean = true;
