@@ -51,11 +51,11 @@ export class LogMainApi {
     }
   }
 
-  private onRefreshEntries = (event: IpcMessageEvent, length: number) => {
+  private onRefreshEntries = (event: IpcMessageEvent, start: number) => {
     event.sender.send(
       LogChannel.refreshEntriesReply,
-      length,
-      this.entries.slice(length)
+      start,
+      this.entries.slice(start)
     );
   }
 

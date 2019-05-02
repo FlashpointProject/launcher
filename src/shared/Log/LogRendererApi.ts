@@ -51,7 +51,7 @@ export class LogRendererApi extends EventEmitter {
   }
 
   public refreshEntries(): void {
-    ipcRenderer.send(LogChannel.refreshEntries, this.entries.length);
+    ipcRenderer.send(LogChannel.refreshEntries, 0);
   }
   
   public clearEntries(): void {
