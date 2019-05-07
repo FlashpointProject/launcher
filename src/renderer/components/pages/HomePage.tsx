@@ -15,6 +15,7 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
 import { findDefaultLibrary } from '../../../shared/library/util';
+import { WithSearchProps } from '../../containers/withSearch';
 
 interface OwnProps {
   central: ICentralState;
@@ -24,7 +25,7 @@ interface OwnProps {
   onDownloadScreenshotsUpgradeClick: () => void;
 }
 
-export type IHomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps;
+export type IHomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps & WithSearchProps;
 
 export interface IHomePageState {
   /** Delay applied to the logo's animation */
@@ -103,6 +104,47 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
               </div>
             ) : undefined
           }
+          {/* Additional info - Trello request */}
+          <div className='home-page__box'>
+            <div className='home-page__box__head'>Extras</div>
+            <ul className='home-page__box__body'>
+              <QuickStartItem>
+                <Link to={this.getFavoriteBrowseRoute()} onClick={this.onFavoriteClick}>Favorites Playlist</Link>
+              </QuickStartItem>
+              <QuickStartItem>
+                <a href="http://bluemaxima.org/flashpoint/datahub/Genres" target="_top">Genre List</a>
+              </QuickStartItem>
+              <br></br>
+              <QuickStartItem>
+              Filter by platform:  
+              </QuickStartItem>
+              <QuickStartItem>
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onFlashClick}>Flash</Link> 
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onShockwaveClick}>Shockwave</Link>
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onGrooveClick}>3D Groove GX</Link>
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.on3dviaClick}>3DVIA Player</Link>
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onHtml5Click}>HTML5</Link>
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onJavaClick}>Java Applets</Link>
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onPopcapClick}>PopCap Plugin</Link>
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onSilverlightClick}>Silverlight</Link>
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onUnityClick}>Unity</Link>
+                {', '}
+                <Link to={joinLibraryRoute('arcade')} onClick={this.onActivexClick}>ActiveX</Link>
+              </QuickStartItem>
+              <br></br>
+              <QuickStartItem>
+                <a href="https://trello.com/b/Tu9E5GLk/launcher" target="_top">Check out our planned features!</a>
+              </QuickStartItem>
+            </ul>
+          </div>
           {/* Notes */}
           <div className='home-page__box'>
             <div className='home-page__box__head'>Notes</div>
@@ -191,6 +233,20 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     onSelectPlaylist(hof, route);
   }
 
+  private onFavoriteClick = () => {
+    const { central, libraryData, onSelectPlaylist } = this.props;
+    let hof = findFavoritePlaylist(central.playlists.playlists);
+    let route: string|undefined = undefined;
+    if (hof) {
+      if (hof.library) { route = hof.library; }
+      else {
+        const defLibrary = findDefaultLibrary(libraryData.libraries);
+        if (defLibrary) { route = defLibrary.route; }
+      }
+    }
+    onSelectPlaylist(hof, route);
+  }
+
   private onAllGamesClick = () => {
     this.props.onSelectPlaylist(undefined, 'arcade');
     this.props.clearSearch();
@@ -201,10 +257,58 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     this.props.clearSearch();
   }
 
+  private onFlashClick = () => {
+    this.props.onSearch('!flash');
+  }
+
+  private onShockwaveClick = () => {
+    this.props.onSearch('!shockwave');
+  }
+
+  private onGrooveClick = () => {
+    this.props.onSearch('!3d groove gx');
+  }
+
+  private on3dviaClick = () => {
+    this.props.onSearch('!3dvia');
+  }
+
+  private onActivexClick = () => {
+    this.props.onSearch('!activex');
+  }
+
+  private onHtml5Click = () => {
+    this.props.onSearch('!html5');
+  }
+
+  private onJavaClick = () => {
+    this.props.onSearch('!java');
+  }
+
+  private onPopcapClick = () => {
+    this.props.onSearch('!popcap');
+  }
+
+  private onSilverlightClick = () => {
+    this.props.onSearch('!silverlight');
+  }
+
+  private onUnityClick = () => {
+    this.props.onSearch('!unity');
+  }
+
   private getHallOfFameBrowseRoute = (): string => {
     const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
     const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
     let hof = findHallOfFamePlaylist(this.props.central.playlists.playlists);
+    if (hof && hof.library) { return joinLibraryRoute(hof.library); }
+    else                    { return defaultRoute;                  }
+  }
+
+  private getFavoriteBrowseRoute = (): string => {
+    const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
+    const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
+    let hof = findFavoritePlaylist(this.props.central.playlists.playlists);
     if (hof && hof.library) { return joinLibraryRoute(hof.library); }
     else                    { return defaultRoute;                  }
   }
@@ -227,4 +331,8 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
 
 function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
   return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
+}
+
+function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
+  return playlists.find(playlist => playlist.title === '*Favorites*');
 }
