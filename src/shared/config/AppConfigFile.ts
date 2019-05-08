@@ -87,6 +87,7 @@ export class AppConfig {
     logoFolderPath: 'Data/Logos',
     playlistFolderPath: 'Data/Playlists',
     jsonFolderPath: 'Data',
+    themeFolderPath: 'Data/Themes',
     useCustomTitlebar: false,
     startRouter: true,
     startRedirector: true,

@@ -1,12 +1,19 @@
 import * as React from 'react';
+import * as path from 'path';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { AppConfig } from '../../../shared/config/AppConfigFile';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
+import { DropdownInputField } from '../DropdownInputField';
+import { IThemeListItem } from '../../theme/ThemeManager';
 
 interface OwnProps {
+  /** Filenames of all files in the themes folder. */
+  themeItems: IThemeListItem[];
+  /** Load and apply a theme. */
+  reloadTheme(themePath: string | undefined): void;
 }
 
 export type IConfigPageProps = OwnProps & WithPreferencesProps;
@@ -87,7 +94,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <p className='setting__row__title'>Flashpoint Path</p>
-                  <div className='setting__row__content setting__row__content--flashpoint-path'>
+                  <div className='setting__row__content setting__row__content--filepath-path'>
                     <ConfigFlashpointPathInput input={this.state.flashpointPath}
                                                onInputChange={this.onFlashpointPathChange}
                                                isValid={this.state.isFlashpointPathValid} />
@@ -137,9 +144,9 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
             </div>
           </div>
 
-          {/* -- Window -- */}
+          {/* -- Visuals -- */}
           <div className='setting'>
-            <p className='setting__title'>Window</p>
+            <p className='setting__title'>Visuals</p>
             <div className='setting__body'>
               {/* Custom Title Bar */}
               <div className='setting__row'>
@@ -155,6 +162,29 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                 </div>
                 <div className='setting__row__bottom'>
                   <p>Use a custom title bar at the top of this window.</p>
+                </div>
+              </div>
+              {/* Theme */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>Theme</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--input-field setting__row__content--theme-input-field'>
+                    <DropdownInputField
+                      text={this.props.preferencesData.currentTheme || ''}
+                      placeholder='No Theme'
+                      onChange={this.onCurrentThemeChange}
+                      canEdit={true}
+                      onKeyDown={this.onCurrentThemeKeyDown}
+                      items={[ ...this.props.themeItems.map(formatThemeItemName), 'No Theme' ]}
+                      onItemSelect={this.onCurrentThemeItemSelect}
+                      />
+                    <input type='button' value='Browse' className='simple-button' onClick={this.onCurrentThemeBrowseClick} />
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>File path of the theme to use (relative to the themes folder).</p>
                 </div>
               </div>
             </div>
@@ -233,6 +263,48 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     this.forceUpdate();
   }
 
+  private onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
+    this.props.updatePreferences({ currentTheme: event.currentTarget.value });
+  }
+
+  private onCurrentThemeKeyDown = (event: React.KeyboardEvent): void => {
+    if (event.key === 'Enter') {
+      this.props.reloadTheme(this.props.preferencesData.currentTheme);
+    }
+  }
+
+  private onCurrentThemeItemSelect = (text: string, index: number): void => {
+    // Note: Suggestions with index 0 to "length - 1" are filenames of themes.
+    //       Directly after that comes the "No Theme" suggestion.
+    let theme: string | undefined;
+    if (index < this.props.themeItems.length) { // (Select a Theme)
+      theme = this.props.themeItems[index].entryPath;
+    } else { theme = undefined; } // (Deselect the current theme)
+    this.props.updatePreferences({ currentTheme: theme });
+    this.props.reloadTheme(theme);
+  }
+
+  private onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
+    // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
+    const filePaths = window.External.showOpenDialog({
+      title: 'Select a theme file',
+      properties: ['openFile'],
+    });
+    if (filePaths) {
+      // Get the selected files path relative to the themes folder
+      const filePath = filePaths[0] || '';
+      const themeFolderPath = path.join(
+        window.External.config.fullFlashpointPath,
+        window.External.config.data.themeFolderPath
+      );
+      const relativePath = path.relative(themeFolderPath, filePath);
+      // Update current theme
+      this.props.updatePreferences({ currentTheme: relativePath });
+      // Reload theme
+      this.props.reloadTheme(relativePath);
+    }
+  }
+
   /** When the "Save & Restart" button is clicked */
   private onSaveAndRestartClick = () => {
     // Create new config
@@ -246,4 +318,8 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     .then(() => { window.External.restart(); })
     .catch((error: Error) => { console.log(error); });
   }
+}
+
+function formatThemeItemName(item: IThemeListItem): string {
+  return `${item.metaData.name} (${item.filename})`;
 }

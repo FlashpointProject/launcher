@@ -26,6 +26,8 @@ export interface IAppPreferencesData {
   showDeveloperTab: boolean;
   /** If Wine should be used to launch game applications */
   useWine: boolean;
+  /** Filename of the current theme. */
+  currentTheme: string | undefined;
   /** The "route" of the last selected library (empty string selects the default) */
   lastSelectedLibrary: string;
   /** What property to order the games by */

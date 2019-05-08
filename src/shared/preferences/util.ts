@@ -15,6 +15,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageRightSidebarWidth: 320,
   showDeveloperTab: false,
   useWine: false,
+  currentTheme: undefined,
   lastSelectedLibrary: '',
   gamesOrderBy: 'title',
   gamesOrder: 'ascending',
@@ -52,6 +53,7 @@ export function overwritePreferenceData(source: IAppPreferencesData, data: Parti
   parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
   parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
   parser.prop('useWine',                     v => source.useWine                     = !!v);
+  parser.prop('currentTheme',                v => source.currentTheme                = str(v), true);
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
   parser.prop('gamesOrderBy',                v => source.gamesOrderBy                = strOpt(v, gameOrderByOptions,      'title'    ));
   parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ascending'));

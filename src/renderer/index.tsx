@@ -3,10 +3,13 @@ import { createMemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
+import * as path from 'path';
 import { readGameLibraryFile } from '../shared/library/GameLibrary';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { updateLibrary } from './store/library';
+import { ThemeManager } from './theme/ThemeManager';
+import { Theme } from './theme/Theme';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -19,10 +22,19 @@ import { updateLibrary } from './store/library';
   // Wait for the preferences and config to initialize
   await window.External.config.waitUtilInitialized();
   await window.External.preferences.waitUtilInitialized();
+  // Get preferences data
+  const preferencesData = window.External.preferences.getData();
+  // Watch themes folder & Load current theme file
+  const themes = new ThemeManager(path.join(window.External.config.fullFlashpointPath, window.External.config.data.themeFolderPath));
+  if (preferencesData.currentTheme) { // (If there is a current theme and it is not an empty string)
+    const themeOrError = await themes.load(preferencesData.currentTheme);
+    if (typeof themeOrError !== 'number') { Theme.set(themeOrError); }
+    else { log(Theme.toError(themeOrError) || ''); }
+  }
   // Create history
   const history = createMemoryHistory();
   // Create Redux store
-  const store = configureStore(history, { preferences: { data: window.External.preferences.getData() } });
+  const store = configureStore(history, { preferences: { data: preferencesData } });
   // Load Game Library file
   let library = await readGameLibraryFile(window.External.config.fullJsonFolderPath, log).catch(e => log(e+''));
   if (library) { store.dispatch(updateLibrary(library)); }
@@ -30,7 +42,7 @@ import { updateLibrary } from './store/library';
   ReactDOM.render((
       <Provider store={store}>
         <ConnectedRouter history={history}>
-            <ConnectedApp />
+            <ConnectedApp themes={themes} />
         </ConnectedRouter>
       </Provider>
     ),

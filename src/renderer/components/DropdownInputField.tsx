@@ -73,7 +73,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 
   /** Renders the list of items in the drop-down menu. */
-  private renderItems = memoizeOne((items: string[]) => {
+  private renderItems = memoizeOne<(items: string[]) => JSX.Element[]>((items: string[]) => {
     return items.map((text, index) => (
       <label key={index} data-dropdown-index={index} tabIndex={0}>
         {text}

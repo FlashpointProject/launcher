@@ -6,7 +6,7 @@ import { IGameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, IAboutPageProps } from './components/pages/AboutPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { IConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
-import { ConnectedConfigPage } from './containers/ConnectedConfigPage';
+import { ConnectedConfigPage, IConnectedConfigPageProps } from './containers/ConnectedConfigPage';
 import { ConnectedHomePage, IConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { ICentralState } from './interfaces';
@@ -14,6 +14,7 @@ import { Paths } from './Paths';
 import { IGamePlaylist } from './playlist/interfaces';
 import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ICreditsData } from './credits/interfaces';
+import { IThemeListItem } from './theme/ThemeManager';
 
 export interface IAppRouterProps {
   central: ICentralState;
@@ -30,6 +31,8 @@ export interface IAppRouterProps {
   onDownloadTechUpgradeClick: () => void;
   onDownloadScreenshotsUpgradeClick: () => void;
   gameLibraryRoute: string;
+  themeItems: IThemeListItem[];
+  reloadTheme: (themePath: string | undefined) => void;
 }
 
 export class AppRouter extends React.Component<IAppRouterProps, {}> {
@@ -52,6 +55,10 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibraryRoute: this.props.gameLibraryRoute,
     };
+    const configProps: IConnectedConfigPageProps = {
+      themeItems: this.props.themeItems,
+      reloadTheme: this.props.reloadTheme
+    };
     const aboutProps: IAboutPageProps = {
       creditsData: this.props.creditsData,
       creditsDoneLoading: this.props.creditsDoneLoading
@@ -63,7 +70,8 @@ export class AppRouter extends React.Component<IAppRouterProps, {}> {
         <PropsRoute path={Paths.BROWSE} component={ConnectedBrowsePage}
                     {...browseProps} />
         <PropsRoute path={Paths.LOGS} component={ConnectedLogsPage} />
-        <PropsRoute path={Paths.CONFIG} component={ConnectedConfigPage} />
+        <PropsRoute path={Paths.CONFIG} component={ConnectedConfigPage}
+                    {...configProps} />
         <PropsRoute path={Paths.ABOUT} component={AboutPage}
                     {...aboutProps} />
         <PropsRoute path={Paths.DEVELOPER} component={ConnectedDeveloperPage}
