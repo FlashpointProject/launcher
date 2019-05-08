@@ -95,7 +95,6 @@ export namespace Theme {
    * @returns Entry path of the theme, or undefined if no entry file was found.
    */
   export async function getEntryPath(filepath: string): Promise<string | undefined> {
-    console.log(await getFileType(filepath));
     switch (await getFileType(filepath)) {
       case FileType.FILE: return filepath;
       case FileType.FOLDER:

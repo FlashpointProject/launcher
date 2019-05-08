@@ -65,7 +65,6 @@ export class ThemeManager extends WrappedEventEmitter {
     this.itemsQueue.push(async () => {
       // Find entry file
       const entryPath = await Theme.getEntryPath(this.toAbsoluteThemePath(filename));
-      console.log(this.toAbsoluteThemePath(filename), entryPath)
       if (entryPath !== undefined) {
         // Load theme data
         const theme = await Theme.load(entryPath);
@@ -78,7 +77,6 @@ export class ThemeManager extends WrappedEventEmitter {
           };
           this.items.push(item);
           this.emit('add', item);
-          console.log(item)
         }
       }
     });
