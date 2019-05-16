@@ -91,10 +91,10 @@ export class GameLauncher {
     // @TODO Let the user change these paths from a file or something (services.json?).
     if (window.External.platform === 'linux')  {
       if (game.platform === 'Java') {
-        return 'Games/startJava.sh';
+        return 'FPSoftware/startJava.sh';
       }
       if (game.platform === 'Unity') {
-        return 'Games/startUnity.sh';
+        return 'FPSoftware/startUnity.sh';
       }
     }
     return game.applicationPath;
