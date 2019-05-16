@@ -1,5 +1,5 @@
 
-type EventFunction = () => void | Promise<any>;
+type EventFunction = (() => void) | Promise<any>;
 
 /** Executes a queue of asynchronous functions, one at a time. */
 export class EventQueue {
@@ -39,7 +39,10 @@ export class EventQueue {
   private async executeNext(): Promise<void> {
     const event = this.queue.shift();
     if (event) {
-      try { await event(); }
+      try {
+        if (typeof event === 'function') { await event(); }
+        else                             { await Promise.resolve(event); }
+      }
       catch (error) { /* Emit event? */ }
       await this.executeNext();
     }
