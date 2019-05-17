@@ -74,6 +74,8 @@ export interface IBrowsePageState {
 }
 
 export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageState> {
+  /** Reference of the game grid/list element. */
+  private gameGridOrListRef: HTMLDivElement | null = null;
   /** A timestamp of the previous the the quick search string was updated */
   private _prevQuickSearchUpdate: number = 0;
   private gameBrowserRef: React.RefObject<HTMLDivElement> = React.createRef();
@@ -209,7 +211,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
                           cellWidth={width}
-                          cellHeight={height}/>
+                          cellHeight={height}
+                          gridRef={this.gameGridOrListRefFunc} />
               );
             } else {
               const height: number = calcScale(120, this.props.gameScale);
@@ -225,7 +228,8 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           onGameDragEnd={this.onGameDragEnd}
                           orderBy={order.orderBy}
                           orderReverse={order.orderReverse}
-                          rowHeight={height} />
+                          rowHeight={height}
+                          listRef={this.gameGridOrListRefFunc} />
               );
             }
           })()}
@@ -396,6 +400,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
   private onDeleteSelectedGame = (): void => {
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
+    this.focusGameGridOrList();
   }
 
   private onRemoveSelectedGameFromPlaylist = (): void => {
@@ -470,6 +475,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       currentGame:    isNewGame ? undefined : currentGame,
       currentAddApps: isNewGame ? undefined : currentAddApps,
     });
+    this.focusGameGridOrList();
   }
 
   private onSaveEditClick = (): void => {
@@ -478,6 +484,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
       isEditing: false,
       isNewGame: false
     });
+    this.focusGameGridOrList();
   }
   
   private saveGameAndAddApps(): void {
@@ -687,6 +694,18 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
         isNewGame: true,
       });
     }
+  }
+
+  /** Focus the game grid/list (if this has a reference to one). */
+  private focusGameGridOrList() {
+    // Focus the game grid/list (to make the keyboard inputs work)
+    setTimeout(() => {
+      if (this.gameGridOrListRef) { this.gameGridOrListRef.focus(); }
+    }, 0);
+  }
+  
+  private gameGridOrListRefFunc = (ref: HTMLDivElement | null): void => {
+    this.gameGridOrListRef = ref;
   }
 
   private static defaultOrder: Readonly<IGameOrderChangeEvent> = {

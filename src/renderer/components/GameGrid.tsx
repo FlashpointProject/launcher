@@ -7,6 +7,9 @@ import { IDefaultProps } from '../interfaces';
 import { GameGridItem } from './GameGridItem';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 
+/** A function that receives an HTML element. */
+type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
+
 export interface IGameGridProps extends IDefaultProps {
   gameImages?: GameImageCollection;
   /** All games that will be shown in the list */
@@ -32,6 +35,8 @@ export interface IGameGridProps extends IDefaultProps {
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
+  /** Function for getting a reference to grid element. Called whenever the reference could change. */
+  gridRef?: RefFunc<HTMLDivElement>;
 }
 
 export class GameGrid extends React.Component<IGameGridProps, {}> {
@@ -46,10 +51,12 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
 
   componentDidMount(): void {
     this.updateCssVars();
+    this.updatePropRefs();
   }
 
   componentDidUpdate(): void {
     this.updateCssVars();
+    this.updatePropRefs();
   }
 
   render() {
@@ -203,5 +210,21 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
     if (!wrapper) { throw new Error('Browse Page wrapper div not found'); }
     wrapper.style.setProperty('--width', this.props.cellWidth+'');
     wrapper.style.setProperty('--height', this.props.cellHeight+'');
+  }
+
+  /**
+   * Call the "ref" property functions.
+   * Do this whenever there's a possibility that the referenced elements has been replaced.
+   */
+  updatePropRefs(): void {
+    if (this.props.gridRef) {
+      // Find the grid element
+      let ref: HTMLDivElement | null = null;
+      if (this._wrapper.current) {
+        const inner = this._wrapper.current.querySelector('.game-grid');
+        if (inner) { ref = inner as HTMLDivElement; }
+      }
+      this.props.gridRef(ref);
+    }
   }
 }

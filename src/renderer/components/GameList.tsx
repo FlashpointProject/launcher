@@ -7,6 +7,9 @@ import { IDefaultProps } from '../interfaces';
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 
+/** A function that receives an HTML element. */
+type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
+
 export interface IGameListProps extends IDefaultProps {
   gameImages: GameImageCollection;
   /** All games that will be shown in the list */
@@ -30,6 +33,8 @@ export interface IGameListProps extends IDefaultProps {
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
+  /** Function for getting a reference to list element. Called whenever the reference could change. */
+  listRef?: RefFunc<HTMLDivElement>;
 }
 
 export class GameList extends React.Component<IGameListProps, {}> {
@@ -185,6 +190,22 @@ export class GameList extends React.Component<IGameListProps, {}> {
     const wrapper = this._wrapper.current;
     if (!wrapper) { throw new Error('Browse Page wrapper div not found'); }
     wrapper.style.setProperty('--height', this.props.rowHeight+'');
+  }
+
+  /**
+   * Call the "ref" property functions.
+   * Do this whenever there's a possibility that the referenced elements has been replaced.
+   */
+  updatePropRefs(): void {
+    if (this.props.listRef) {
+      // Find the list element
+      let ref: HTMLDivElement | null = null;
+      if (this._wrapper.current) {
+        const inner = this._wrapper.current.querySelector('.game-list');
+        if (inner) { ref = inner as HTMLDivElement; }
+      }
+      this.props.listRef(ref);
+    }
   }
 }
 
