@@ -10,7 +10,7 @@ export type FolderWatcherOptions = {
   recursionDepth?: number;
 };
 
-export type ChangeEventType = 'rename' | 'change';
+type ChangeEventType = 'rename' | 'change';
 
 export interface FolderWatcher {
   on  (event: string, listener: (...args: any[]) => void): this;
@@ -18,15 +18,15 @@ export interface FolderWatcher {
   /** Emitted after the folder has been set and all filenames has been fetched (does NOT include contents of sub-folders). */
   on  (event: 'ready', listener: () => void): this;
   once(event: 'ready', listener: () => void): this;
-  /** Emitted any time a file inside the folder has been changed. */
-  on  (event: 'change', listener: (eventType: ChangeEventType, filename: string, offsetPath: string) => void): this;
-  once(event: 'change', listener: (eventType: ChangeEventType, filename: string, offsetPath: string) => void): this;
+  /** Emitted when a file has been changed (does NOT include "rename"). */
+  on  (event: 'change', listener: (filename: string, offsetPath: string) => void): this;
+  once(event: 'change', listener: (filename: string, offsetPath: string) => void): this;
   /** Emitted when an file is added (or renamed to this). */
   on  (event: 'add', listener: (filename: string, offsetPath: string) => void): this;
   once(event: 'add', listener: (filename: string, offsetPath: string) => void): this;
   /** Emitted when a file is removed (or renamed to something else). */
-  on  (event: 'remove', listener: (filename: string, offsetPath: string) => void): this;
-  once(event: 'remove', listener: (filename: string, offsetPath: string) => void): this;
+  on  (event: 'remove', listener: (filename: string, stats: fs.Stats, offsetPath: string) => void): this;
+  once(event: 'remove', listener: (filename: string, stats: fs.Stats, offsetPath: string) => void): this;
   /** Emitted any time an uncaught error occurs. */
   on  (event: 'error', listener: (error: Error) => void): this;
   once(event: 'error', listener: (error: Error) => void): this;
@@ -194,9 +194,8 @@ export class FolderWatcher extends WrappedEventEmitter {
       } else { // (Existing file was renamed from this)
         this.removeFile(filename);
       }
-    } else { // ('change')
-      // Emit change
-      this.emit('change', eventType, filename, this._pathOffset);      
+    } else { // (Change)
+      this.emit('change', filename, this._pathOffset);
     }
   }
 

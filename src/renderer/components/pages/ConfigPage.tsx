@@ -27,6 +27,9 @@ export interface IConfigPageState {
 }
 
 export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageState> {
+  /** Reference to the input element of the "current theme" drop-down field. */
+  private currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
+
   constructor(props: IConfigPageProps) {
     super(props);
     const configData = window.External.config.data;
@@ -179,6 +182,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                       onKeyDown={this.onCurrentThemeKeyDown}
                       items={[ ...this.props.themeItems.map(formatThemeItemName), 'No Theme' ]}
                       onItemSelect={this.onCurrentThemeItemSelect}
+                      inputRef={this.currentThemeInputRefFunc}
                       />
                     <input type='button' value='Browse' className='simple-button' onClick={this.onCurrentThemeBrowseClick} />
                   </div>
@@ -269,6 +273,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
 
   private onCurrentThemeKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
+      // Load the entered theme
       this.props.reloadTheme(this.props.preferencesData.currentTheme);
     }
   }
@@ -282,6 +287,10 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
     } else { theme = undefined; } // (Deselect the current theme)
     this.props.updatePreferences({ currentTheme: theme });
     this.props.reloadTheme(theme);
+    // Select the input field
+    if (this.currentThemeInputRef) {
+      this.currentThemeInputRef.focus();
+    }
   }
 
   private onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
@@ -304,6 +313,10 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
       this.props.reloadTheme(relativePath);
     }
   }
+  
+  private currentThemeInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
+    this.currentThemeInputRef = ref;
+  }
 
   /** When the "Save & Restart" button is clicked */
   private onSaveAndRestartClick = () => {
@@ -321,5 +334,5 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
 }
 
 function formatThemeItemName(item: IThemeListItem): string {
-  return `${item.metaData.name} (${item.filename})`;
+  return `${item.metaData.name} (${item.basename})`;
 }

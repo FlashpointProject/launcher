@@ -25,6 +25,9 @@ export namespace Theme {
    */
   const globalThemeAttribute = 'data-theme';
 
+  /** Filename of the entry file inside a theme folder. */
+  export const entryFilename = 'theme.css';
+
   /**
    * Set the theme data of the "global" theme style element.
    * @param theme Theme data to set.
@@ -81,7 +84,7 @@ export namespace Theme {
       for (let i = children.length; i >= 0; i--) {
         const child = children.item(i) as HTMLElement;
         if (child) {
-          // Check if the child has the unqiue "global theme element" attribute
+          // Check if the child has the unique "global theme element" attribute
           const attribute = child.getAttribute(globalThemeAttribute);
           if (attribute) { return child; }
         }
@@ -91,14 +94,14 @@ export namespace Theme {
 
   /**
    * Get the entry path of a theme from its file or folder name.
-   * @param filepath Filepath of the theme.
+   * @param filepath File path of the theme.
    * @returns Entry path of the theme, or undefined if no entry file was found.
    */
   export async function getEntryPath(filepath: string): Promise<string | undefined> {
     switch (await getFileType(filepath)) {
       case FileType.FILE: return filepath;
       case FileType.FOLDER:
-        const entryPath = path.join(filepath, '/theme.css');
+        const entryPath = path.join(filepath, entryFilename);
         const entryType = await getFileType(entryPath);
         return (entryType === FileType.FILE) ? entryPath : undefined;
       case FileType.NONE: return undefined;

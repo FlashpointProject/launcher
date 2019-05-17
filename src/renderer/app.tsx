@@ -29,7 +29,7 @@ import GameManagerPlatform from './game/GameManagerPlatform';
 import { joinLibraryRoute } from './Util';
 import { readCreditsFile } from './credits/Credits';
 import { ICreditsData } from './credits/interfaces';
-import { ThemeManager } from './theme/ThemeManager';
+import { ThemeManager, IThemeListItem } from './theme/ThemeManager';
 import { Theme } from './theme/Theme';
 
 interface IAppOwnProps {
@@ -154,16 +154,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.preferencesData.mainWindow.maximized = isMaximized;
     });
     // Listen for changes to the theme files
-    this.props.themes.on('change', (eventType, filename) => {
-      if (eventType === 'change') {
-        // Reload the current theme (whenever its edited)
-        if (filename === this.props.preferencesData.currentTheme) {
-          this.reloadTheme(filename);
-        }        
+    this.props.themes.on('change', item => {
+      if (item.entryPath === this.props.preferencesData.currentTheme) {
+        this.reloadTheme(item.entryPath); 
       }
     });
-    this.props.themes.on('add',    filename => { this.forceUpdate(); });
-    this.props.themes.on('remove', filename => { this.forceUpdate(); });
+    this.props.themes.on('add',    item => { this.forceUpdate(); });
+    this.props.themes.on('remove', item => { this.forceUpdate(); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -448,9 +445,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (themePath) { // (Apply another theme)
       this.props.themes.load(themePath)
       .then((theme) => {
-        Theme.clear(Theme.findGlobal());
         if (typeof theme !== 'number') { Theme.set(theme); }
-        else { log(Theme.toError(theme) || ''); }
+        else {
+          Theme.clear(Theme.findGlobal());
+          log(Theme.toError(theme) || '');
+        }
       })
       .catch(console.error);
     } else { // (Clear the current theme)
