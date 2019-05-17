@@ -1,6 +1,6 @@
 import { IpcMessageEvent, ipcRenderer, remote } from 'electron';
-import * as path from 'path';
 import * as React from 'react';
+import * as path from 'path';
 import { RouteComponentProps } from 'react-router-dom';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
@@ -29,9 +29,13 @@ import GameManagerPlatform from './game/GameManagerPlatform';
 import { joinLibraryRoute } from './Util';
 import { readCreditsFile } from './credits/Credits';
 import { ICreditsData } from './credits/interfaces';
+import { ThemeManager, IThemeListItem } from './theme/ThemeManager';
+import { Theme } from './theme/Theme';
 
 interface IAppOwnProps {
   search: SearchQuery;
+  /** Theme manager. */
+  themes: ThemeManager;
 }
 
 export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
@@ -149,6 +153,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('window-maximize', (sender: IpcMessageEvent, isMaximized: boolean) => {
       this.props.preferencesData.mainWindow.maximized = isMaximized;
     });
+    // Listen for changes to the theme files
+    this.props.themes.on('change', item => {
+      if (item.entryPath === this.props.preferencesData.currentTheme) {
+        this.reloadTheme(item.entryPath); 
+      }
+    });
+    this.props.themes.on('add',    item => { this.forceUpdate(); });
+    this.props.themes.on('remove', item => { this.forceUpdate(); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -304,6 +316,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
       gameLibraryRoute: route,
+      themeItems: this.props.themes.items,
+      reloadTheme: this.reloadTheme,
     };
     // Render
     return (
@@ -420,6 +434,27 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.setUpgradeState({
       screenshotsState: Object.assign({}, screenshotsState, state),
     });
+  }
+  
+  /**
+   * Apply another theme or clear the current theme.
+   * @param themePath Path to the theme to apply (relative to the themes folder).
+   *                  If undefined, the current theme will be cleared and no theme will be applied.
+   */
+  private reloadTheme = (themePath: string | undefined): void => {
+    if (themePath) { // (Apply another theme)
+      this.props.themes.load(themePath)
+      .then((theme) => {
+        if (typeof theme !== 'number') { Theme.set(theme); }
+        else {
+          Theme.clear(Theme.findGlobal());
+          log(Theme.toError(theme) || '');
+        }
+      })
+      .catch(console.error);
+    } else { // (Clear the current theme)
+      Theme.clear(Theme.findGlobal());
+    }
   }
 }
 

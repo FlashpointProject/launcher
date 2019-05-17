@@ -20,21 +20,21 @@ export function InputField(props: InputFieldProps) {
       return (
         <textarea value={text} placeholder={placeholder} ref={reference}
                   onChange={onChange || noop} onKeyDown={onKeyDown || noop}
-                  className={'browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--multiline browse-right-sidebar__row__editable-text--edit simple-input simple-scroll'+
+                  className={'input-field input-field--multiline input-field--edit simple-input simple-scroll'+
                              (className ? ' '+className : '')} />
       );
     } else {
       return (
         <input value={text} placeholder={placeholder} ref={reference}
                onChange={onChange || noop} onKeyDown={onKeyDown || noop}
-               className={'browse-right-sidebar__row__editable-text browse-right-sidebar__row__editable-text--edit simple-input'+
+               className={'input-field input-field--edit simple-input'+
                           (className ? ' '+className : '')} />
       );
     }
   } else {
-    let cn = 'browse-right-sidebar__row__editable-text';
+    let cn = 'input-field';
     if (!text)     { cn += ' simple-disabled-text'; }
-    if (multiline) { cn += ' browse-right-sidebar__row__editable-text--multiline'; }
+    if (multiline) { cn += ' input-field--multiline'; }
     if (className) { cn += ' '+className; }
     return (
       <p title={props.text} className={cn} ref={reference}>

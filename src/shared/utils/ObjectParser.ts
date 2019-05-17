@@ -30,7 +30,7 @@ export interface IObjectParserProp<P> {
    * (This uses the raw values of the object - it does NOT wrap the properties in "ObjectParserProp")
    * @param func Called for each property of this object
    */
-  mapRaw(func: (item: P[keyof P], label: keyof P) => void): this;
+  mapRaw(func: (item: P[Extract<keyof P, string>], label: Extract<keyof P, string>) => void): this;
 
   /**
    * Call a function for each element in this array.
@@ -105,7 +105,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
   }
 
   /** @inheritdoc */
-  public mapRaw(func: (item: P[keyof P], label: keyof P) => void): this {
+  public mapRaw(func: (item: P[Extract<keyof P, string>], label: Extract<keyof P, string>) => void): this {
     const prop = this._property;
     if (typeof prop === 'object' && prop !== null && !Array.isArray(prop)) {
       for (let label in prop) {

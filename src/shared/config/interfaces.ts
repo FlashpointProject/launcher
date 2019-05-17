@@ -10,6 +10,8 @@ export interface IAppConfigData {
   playlistFolderPath: string;
   /** Path to the json folder (relative to the flashpoint path) */
   jsonFolderPath: string;
+  /** Path to the theme folder (relative to the flashpoint path) */
+  themeFolderPath: string;
   /** If the custom title bar should be used in MainWindow */
   useCustomTitlebar: boolean;
   /** If the Router should be started, and closed, together with this application */

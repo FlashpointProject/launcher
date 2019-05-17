@@ -2,6 +2,9 @@ import * as React from 'react';
 import { memoizeOne } from '../../shared/memoize';
 import { InputField, InputFieldProps } from './InputField';
 
+/** A function that receives an HTML element. */
+type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
+
 type InputElement = HTMLInputElement|HTMLTextAreaElement;
 
 export interface DropdownInputFieldProps extends InputFieldProps {
@@ -11,6 +14,8 @@ export interface DropdownInputFieldProps extends InputFieldProps {
   items: string[];
   /** Called when a list item is clicked or otherwise "selected" */
   onItemSelect?: (text: string, index: number) => void;
+  /** Function for getting a reference to the input element. Called whenever the reference could change. */
+  inputRef?: RefFunc<InputElement>;
 }
 
 interface DropdownInputFieldState {
@@ -32,11 +37,17 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   componentDidMount() {
     document.addEventListener('mousedown', this.onGlobalMouseDown);
     document.addEventListener('keydown', this.onGlobalKeyDown);
+    this.updatePropRefs();
+  }
+
+  componentDidUpdate() {
+    this.updatePropRefs();
   }
 
   componentWillUnmount() {
     document.removeEventListener('mousedown', this.onGlobalMouseDown);
     document.removeEventListener('keydown', this.onGlobalKeyDown);
+    this.updatePropRefs();
   }
 
   render() {
@@ -73,7 +84,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 
   /** Renders the list of items in the drop-down menu. */
-  private renderItems = memoizeOne((items: string[]) => {
+  private renderItems = memoizeOne<(items: string[]) => JSX.Element[]>((items: string[]) => {
     return items.map((text, index) => (
       <label key={index} data-dropdown-index={index} tabIndex={0}>
         {text}
@@ -174,6 +185,16 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
 
   onExpandButtonMouseDown = (): void => {
     this.setState({ expanded: !this.state.expanded });
+  }
+
+  /**
+   * Call the "ref" property functions.
+   * Do this whenever there's a possibility that the referenced elements has been replaced.
+   */
+  updatePropRefs(): void {
+    if (this.props.inputRef) {
+      this.props.inputRef(this.inputRef.current || null);
+    }
   }
 }
 

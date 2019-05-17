@@ -21,7 +21,7 @@ html, body {
 :root {
   /* Root font size (Scales most stuff) */
   font-size: 1em;
-  /* Variables */
+  /* Theme Variables */
   --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   --theme__text-color: #f1f1f1;
   --theme__text-disabled-color: #9b9b9b;
@@ -37,6 +37,19 @@ html, body {
   --theme__slider__color-active: #2e2f33;
   --theme__browse-sidebar__background-color: #181819;
   --theme__browse-sidebar__divider__background-color: #131313;
+  --theme__header__background-color: #2d2d30;
+  --theme__footer__background-color: #2a2a2b;
+  --theme__playlist-list-item-even__background-color: #1e1e1f;
+  --theme__playlist-list-fake-item__background-color: #19191b;
+  --theme__game-item__color: #aaaaaa;
+  --theme__game-item__color-hover: #e6e6e6;
+  --theme__game-item__color-selected: #cecece;
+  --theme__game-item__color-selected-hover: #e6e6e6;
+  --theme__game-item__background-color-hover: #3c3c41;
+  --theme__game-item__background-color-selected: #791c76;
+  --theme__game-item__background-color-selected-hover: #a72aa2;
+  --theme__game-list-item__background-color-even: #1e1e1f;
+  --theme__game-item-thumb__image-rendering: normal;
   /* Pimp */
   color: var(--theme__text-color);
   font-weight: 100;
@@ -206,6 +219,27 @@ body {
   font-style: italic;
   color: #868686;
 }
+/* Input Field */
+.input-field {
+  font-size: inherit;
+  font-family: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+}
+.input-field--edit {
+  width: 100%;
+}
+.input-field.input-field--multiline {
+  display: block;
+  font-size: 0.9em;
+  width: 100%;
+  min-height: 1rem;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+.input-field--multiline.input-field--edit {
+  height: 10em;
+}
 /* Checkbox Dropdown */
 .checkbox-dropdown {
   --width: 11rem;
@@ -251,6 +285,7 @@ body {
 /* Input Dropdown */
 .input-dropdown {
   position: relative;
+  height: 100%;
   /* Pimp */
   font-family: var(--theme__font-family);
   background-color: var(--theme__background-color);
@@ -520,7 +555,7 @@ body {
   padding: var(--header-padding);
   padding-bottom: 0.4em;
   /* Pimp */
-  background-color: #2d2d30;
+  background-color: var(--theme__header__background-color);
 }
 .header__wrap {
   min-height: 2rem;
@@ -572,7 +607,7 @@ body {
   overflow: hidden;
   /* Pimp */
   border: 1px solid var(--theme__search-bar__outline-color);
-  background-color: var(--theme__background-color);
+  background-color: var(--theme__search-bar__background-color);
 }
 .header__search__left {
   flex: 1 1 auto;
@@ -660,7 +695,7 @@ body {
   padding: 0.05rem 0.2rem;
   /* Pimp */
   user-select: none;
-  background-color: #2a2a2b;
+  background-color: var(--theme__footer__background-color);
 }
 .footer__wrap {
   padding: 0.025rem;
@@ -1260,26 +1295,6 @@ body {
   user-select: text;
   padding-left: 0.25rem;
 }
-.browse-right-sidebar__row__editable-text {
-  font-size: inherit;
-  font-family: inherit;
-  font-style: inherit;
-  font-weight: inherit;
-}
-.browse-right-sidebar__row__editable-text--edit {
-  width: 100%;
-}
-.browse-right-sidebar__row__editable-text.browse-right-sidebar__row__editable-text--multiline {
-  display: block;
-  font-size: 0.9em;
-  width: 100%;
-  min-height: 1rem;
-  resize: vertical;
-  white-space: pre-wrap;
-}
-.browse-right-sidebar__row__editable-text--multiline.browse-right-sidebar__row__editable-text--edit {
-  height: 10em;
-}
 /* Browse-Right-Sidebar Row - Screenshot */
 .browse-right-sidebar__row__screenshot {
   width: 100%;
@@ -1394,27 +1409,27 @@ body {
   /* Pimp */
   list-style: none;
   background-color: var(--theme__background-color);
-  color: #aaa;
+  color: var(--theme__game-item__color);
 }
 .game-list-item--even {
   /* Pimp */
-  background-color: #1e1e1f
+  background-color: var(--theme__game-list-item__background-color-even);
 }
 .game-list-item:hover {
   /* Pimp */
-  background-color: #3c3c41;
-  color: #e6e6e6;
+  background-color: var(--theme__game-item__background-color-hover);
+  color: var(--theme__game-item__color-hover);
   cursor: pointer;
 }
 .game-list-item--selected {
   /* Pimp */
-  background-color: #791c76;
-  color: #cecece;
+  background-color: var(--theme__game-item__background-color-selected);
+  color: var(--theme__game-item__color-selected);
 }
 .game-list-item--selected:hover {
   /* Pimp */
-  background-color: #a72aa2;
-  color: #e6e6e6;
+  background-color: var(--theme__game-item__background-color-selected-hover);
+  color: var(--theme__game-item__color-selected-hover);
 }
 .game-list-item--dragged {
   opacity: 0.4;
@@ -1427,6 +1442,7 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  image-rendering: var(--theme__game-item-thumb__image-rendering);
 }
 /* GameList Item Right */
 .game-list-item__right {
@@ -1481,23 +1497,23 @@ body {
   height: calc(1px * var(--height));
   /* Pimp */
   list-style: none;
-  color: #aaa;
+  color: var(--theme__game-item__color);
 }
 .game-grid-item:hover {
   /* Pimp */
-  background-color: #3c3c41;
-  color: #e6e6e6;
+  background-color: var(--theme__game-item__background-color-hover);
+  color: var(--theme__game-item__color-hover);
   cursor: pointer;
 }
 .game-grid-item--selected {
   /* Pimp */
-  background-color: #791c76;
-  color: #cecece;
+  background-color: var(--theme__game-item__background-color-selected);
+  color: var(--theme__game-item__color-selected);
 }
 .game-grid-item--selected:hover {
   /* Pimp */
-  background-color: #a72aa2;
-  color: #e6e6e6;
+  background-color: var(--theme__game-item__background-color-selected-hover);
+  color: var(--theme__game-item__color-selected-hover);
 }
 .game-grid-item--dragged {
   opacity: 0.4;
@@ -1520,6 +1536,7 @@ body {
   background-color: #242428;
   border: 1px solid #141417;
   box-shadow: 0px 2px 4px 0px #09090a;
+  image-rendering: var(--theme__game-item-thumb__image-rendering);
 }
 .game-grid-item__thumb__icons {
   width: 100%;
@@ -1588,7 +1605,7 @@ body {
   color: #aaa;
 }
 .playlist-list-item:nth-child(2n) {
-  background-color: #1e1e1f;
+  background-color: var(--theme__playlist-list-item-even__background-color);
 }
 .playlist-list-item:hover,
 .playlist-list-item.playlist-list-item--drag-over {
@@ -1768,7 +1785,7 @@ body {
   padding: var(--image-padding);
   padding-left: 0.5rem;
   /* Pimp */
-  background-color: #19191b;
+  background-color: var(--theme__playlist-list-fake-item__background-color);
   --color: #aaaaaa;
 }
 .playlist-list-fake-item:hover {
@@ -1905,23 +1922,23 @@ body {
 .setting__row__content {
   flex: 1 1 auto;
 }
-/* Setting Row Content - FlashPoint Path */
-.setting__row__content--flashpoint-path {
+/* Setting Row Content - FilePoint Path */
+.setting__row__content--filepath-path {
   display: flex;
   height: fit-content;
   margin-left: 0.5rem;
 }
-.setting__row__content--flashpoint-path .flashpoint-path__input {
+.setting__row__content--filepath-path .flashpoint-path__input {
   flex: 1;
   border: 1px solid var(--theme__search-bar__outline-color);
 }
-.setting__row__content--flashpoint-path .flashpoint-path__input--valid {
+.setting__row__content--filepath-path .flashpoint-path__input--valid {
   background-color: #009600;
 }
-.setting__row__content--flashpoint-path .flashpoint-path__input--invalid {
+.setting__row__content--filepath-path .flashpoint-path__input--invalid {
   background-color: #840000;
 }
-.setting__row__content--flashpoint-path .flashpoint-path__input input[type="text"] {
+.setting__row__content--filepath-path .flashpoint-path__input input[type="text"] {
   width: 100%;
   font-size: 1em;
   background: none;
@@ -1945,4 +1962,21 @@ body {
 }
 .setting__row__content--redirector input {
   margin-right: 0.2rem;
+}
+/* Setting Row Content - Input Field */
+.setting__row__content--input-field {
+  display: flex;
+  height: fit-content;
+  margin-left: 0.5rem;
+}
+.setting__row__content--input-field > :first-child {
+  width: 100%;
+}
+.setting__row__content--input-field > :first-child > * {
+  border: 1px solid var(--theme__search-bar__outline-color);
+}
+/* Setting Row Content - Theme Input Field */
+.setting__row__content--theme-input-field label:last-child {
+  /* Change the color of the "No Theme" suggestion in the drop-down list. */
+  color: #bfbfbf;
 }

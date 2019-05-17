@@ -491,6 +491,7 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
         'Logos',
         'Platforms',
         'Playlists',
+        'Themes',
       ],
       'Extras': [],
       'FPSoftware': [],
