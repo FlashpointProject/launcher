@@ -25,9 +25,19 @@ export type IFooterProps = OwnProps & IDefaultProps & WithPreferencesProps;
 
 export class Footer extends React.Component<IFooterProps, {}> {
   private static scaleSliderMax: number = 1000;
+  /** Reference to the scale slider. */
+  private _scaleSliderRef: React.RefObject<HTMLInputElement> = React.createRef();
 
   constructor(props: IFooterProps) {
     super(props);
+  }
+
+  componentDidMount() {
+    window.addEventListener('keydown', this.onGlobalKeydown);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.onGlobalKeydown);
   }
 
   render() {
@@ -85,7 +95,7 @@ export class Footer extends React.Component<IFooterProps, {}> {
                   </div>
                   <input type='range' className='footer__scale-slider__input hidden-slider'
                          value={scale * Footer.scaleSliderMax} min={0} max={Footer.scaleSliderMax}
-                         onChange={this.onScaleSliderChange} />
+                         ref={this._scaleSliderRef} onChange={this.onScaleSliderChange} />
                 </div>
               </div>
               {/* Slider Percent */}
@@ -100,9 +110,7 @@ export class Footer extends React.Component<IFooterProps, {}> {
   }
   
   onScaleSliderChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    if (this.props.onScaleSliderChange) {
-      this.props.onScaleSliderChange(event.target.valueAsNumber / Footer.scaleSliderMax);
-    }
+    this.scaleSliderChange(event.target);
   }
   
   onLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -110,6 +118,44 @@ export class Footer extends React.Component<IFooterProps, {}> {
       const value = parseBrowsePageLayout(event.target.value);
       if (value === undefined) { throw new Error(`Layout selector option has an invalid value (${event.target.value})`); }
       this.props.onLayoutChange(value);
+    }
+  }
+
+  onGlobalKeydown = (event: KeyboardEvent): void => {
+    const scaleDif = 0.1; // How much the scale should change per increase/decrease
+    // Increase Game Scale (CTRL PLUS)
+    if (event.ctrlKey && event.key === '+') {
+      const scale = this.props.preferencesData.browsePageGameScale;
+      this.setScaleSliderValue(scale + scaleDif);
+      event.preventDefault();
+    }
+    // Decrease Game Scale (CTRL MINUS)
+    if (event.ctrlKey && event.key === '-') {
+      const scale = this.props.preferencesData.browsePageGameScale;
+      this.setScaleSliderValue(scale - scaleDif);
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Call this after the scale slider element has changed value.
+   * @param element Scale slider element.
+   */
+  scaleSliderChange(element: HTMLInputElement): void {
+    if (this.props.onScaleSliderChange) {
+      this.props.onScaleSliderChange(element.valueAsNumber / Footer.scaleSliderMax);
+    }
+  }
+  
+  /**
+   * Set the value of the scale slider.
+   * @param scale Value (between 0 and 1).
+   */
+  setScaleSliderValue(scale: number): void {
+    if (this._scaleSliderRef.current) {
+      const value = Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax;
+      this._scaleSliderRef.current.value = value+'';
+      this.scaleSliderChange(this._scaleSliderRef.current);
     }
   }
 }
