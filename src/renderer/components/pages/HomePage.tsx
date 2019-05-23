@@ -235,16 +235,16 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
 
   private onFavoriteClick = () => {
     const { central, libraryData, onSelectPlaylist } = this.props;
-    let hof = findFavoritePlaylist(central.playlists.playlists);
+    let fav = findFavoritePlaylist(central.playlists.playlists);
     let route: string|undefined = undefined;
-    if (hof) {
-      if (hof.library) { route = hof.library; }
+    if (fav) {
+      if (fav.library) { route = fav.library; }
       else {
         const defLibrary = findDefaultLibrary(libraryData.libraries);
         if (defLibrary) { route = defLibrary.route; }
       }
     }
-    onSelectPlaylist(hof, route);
+    onSelectPlaylist(fav, route);
   }
 
   private onAllGamesClick = () => {
@@ -308,8 +308,8 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
   private getFavoriteBrowseRoute = (): string => {
     const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
     const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
-    let hof = findFavoritePlaylist(this.props.central.playlists.playlists);
-    if (hof && hof.library) { return joinLibraryRoute(hof.library); }
+    let fav = findFavoritePlaylist(this.props.central.playlists.playlists);
+    if (fav && fav.library) { return joinLibraryRoute(fav.library); }
     else                    { return defaultRoute;                  }
   }
 }
