@@ -35,6 +35,10 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     const title: string = game.title || '';
     const size: string = (this.props.height || 0)+'px';
     const platformIcon = getPlatformIconPath(game.platform);
+    // Set element attributes
+    const attributes: any = {};
+    attributes[GameListItem.idAttribute] = game.id;
+    // Pick class names
     let className: string = 'game-list-item';
     if (this.props.index % 2 === 0) { className += ' game-list-item--even';     }
     if (this.props.isSelected)      { className += ' game-list-item--selected'; }
@@ -44,7 +48,8 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
       <li style={this.props.style} className={className} 
           onDragStart={this.onDragStart} onDragEnd={this.onDragEnd}
           draggable={!!this.props.onDragStart}
-          onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
+          onClick={this.onClick} onDoubleClick={this.onDoubleClick}
+          { ...attributes }>
         <div className='game-list-item__thumb' style={{
           backgroundImage: `url("${this.props.thumbnail}")`,
           width: size,
@@ -87,5 +92,29 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     if (this.props.onDragEnd) {
       this.props.onDragEnd(event, this.props.game, this.props.index);
     }
+  }
+
+  /** ID of the attribute used to store the game's id. */
+  public static idAttribute: string = 'data-game-id';
+  
+  /**
+   * Get the id of the game displayed in a GameListItem element (or throw an error if it fails).
+   * @param element GameListItem element.
+   */
+  public static getId(element: Element): string {
+    const value = element.getAttribute(GameListItem.idAttribute);
+    if (typeof value !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
+    return value;
+  }
+  
+  /**
+   * Check if an element is the top element of GameListItem or not.
+   * @param element Potential element to check.
+   */
+  public static isElement(element: Element | null | undefined): boolean {
+    if (element) {
+      const value = element.getAttribute(GameListItem.idAttribute);
+      return (typeof value === 'string');
+    } else { return false; }
   }
 }

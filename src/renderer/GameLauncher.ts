@@ -6,6 +6,111 @@ import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces
 import { padStart, stringifyArray } from '../shared/Util';
 
 export class GameLauncher {
+  /**
+   * Try to get the ("entry"/"main") file path of a game.
+   * Because how the file's path is declared in the launch command between different games and platforms,
+   * this function may fail (and return undefined).
+   * @param game Game to get path from.
+   * @returns The file path of the game (or undefind if no file path could be extracted).
+   */
+  public static getGamePath(game: IGameInfo): string | undefined {
+    // @TODO Because some strings can be interpreted as different paths/URLs, maybe this should return an array
+    //       of strings with all the possible paths of the "main" file?
+    //       Example: Some web server files are stored in "Server/htdocs" while other are stored in "Server/cgi-bin".
+    const ffpPath = window.External.config.fullFlashpointPath;
+    const htdocsPath = 'Server/htdocs'; // (Path to the file servers content)
+    const shockwavePath = 'FPSoftware/Shockwave/PJX'; // (Path to a shockwave executable)
+    const groovePath = 'FPSoftware/3DGrooveGX'; // (Path to the 3D Groove GZ executable)
+    // Extract file path from the game's launch command
+    const platform = game.platform.toLowerCase();
+    switch(platform) {
+      // Example: 5.x http://example.com/games/cool_game.html
+      case 'unity':
+        // Extract the URL (get the content after the first space, or the whole string if there is no space)
+        var str: string | undefined = undefined;
+        var index = game.launchCommand.indexOf(' ');
+        if (index >= 0) { str = game.launchCommand.substring(index + 1); }
+        else            { str = game.launchCommand; }
+        // Create URL
+        var url = toForcedURL(str);
+        if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
+        break;
+      // Relative path to a ".ini" file
+      // Example: game.ini
+      case '3d groove gx':
+        return path.join(ffpPath, groovePath, game.launchCommand);
+      // Examples: -J-Dfile.encoding=UTF8 -J-Duser.language=ja -J-Duser.country=JP http://www.example.jp/game.html
+      //           http://www.example.com/game.html
+      //           "http://www.example.com/game.html"
+      case 'java':
+        // Extract the path/url from the launch command
+        var str: string | undefined = undefined;
+        if (game.launchCommand[0] === '"') { // (URL wrappen in quotation marks)
+          // Get the contents between the first pair of quotation marks
+          const index = game.launchCommand.indexOf('"', 1);
+          if (index >= 0) { str = game.launchCommand.substring(1, index); }
+        } else {
+          // Get the content after the last space (or the while string if there is no space)
+          const index = game.launchCommand.lastIndexOf(' ');
+          if (index >= 0) { str = game.launchCommand.substring(index); }
+          else            { str = game.launchCommand; }
+        }
+        // Create a full path from the extracted url
+        if (str !== undefined) {
+          const url = toForcedURL(str);
+          if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
+        }
+        break;
+      // Examples: http://example.com/game.dcr --forceTheExitLock 0
+      //           "http://example.com/game.dcr" --do "member('gameUrl').text = 'http://example.com/other_thing.dcr'"
+      //           ..\Games\game_folder\game_file.dcr
+      case 'shockwave':
+        // Extract the path/url from the launch command
+        var str: string | undefined = undefined;
+        if (game.launchCommand[0] === '"') { // (Path/URL wrappen in quotation marks)
+          // Get the contents between the first pair of quotation marks
+          const index = game.launchCommand.indexOf('"', 1);
+          if (index >= 0) { str = game.launchCommand.substring(1, index); }
+        } else {
+          // Get the content before the first space (or the while string if there is no space)
+          const index = game.launchCommand.indexOf(' ');
+          if (index >= 0) { str = game.launchCommand.substring(0, index); }
+          else            { str = game.launchCommand; }
+        }
+        // Create a full path from the extracted path/url
+        if (str !== undefined) {
+          // Note: Because some strings could either be a path or URL ("localflash/game.swf" for example), this will assume that
+          //       all URLs start with a protocol ("http://"). This will probably make this function not work for some games.
+          const url = toURL(str);
+          if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
+          else     { return path.join(ffpPath, shockwavePath, str); }
+        }
+        break;
+      // Launch Command contains 
+      // Example: http://www.example.com/game.html example\game.dll
+      case 'activex':
+        // Extract everything before the first space
+        var str: string | undefined = undefined;
+        var index = game.launchCommand.lastIndexOf(' ');
+        if (index >= 0) { str = game.launchCommand.substring(0, index); }
+        else            { str = game.launchCommand; }
+        // Create a full path from the extracted url
+        var url = toForcedURL(str);
+        if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
+        break;
+      // Launch Commands that only contain a URL
+      // Example: http://example.com/games/cool_game.html
+      case '3dvia player':
+      case 'flash':
+      case 'html5':
+      case 'popcap plugin':
+      case 'silverlight':
+        var url = toForcedURL(game.launchCommand);
+        if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
+        break;
+    }
+  }
+
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
     switch (addApp.applicationPath) {
       case ':message:':
@@ -146,6 +251,31 @@ export class GameLauncher {
     // Return process
     return proc;
   }
+}
+
+/** Convert a URL to the file path in the server's local folder structure. */
+function urlToFilePath(url: URL): string {
+  return decodeURIComponent(path.join(url.hostname, url.pathname));
+}
+
+/**
+ * Create a URL object from a string.
+ * @param str URL string.
+ * @returns A URL object of the string, or undefined if it failed to create the object.
+ */
+function toURL(str: string): URL | undefined {
+  try { return new URL(str); }
+  catch { return undefined; }
+}
+
+/**
+ * Create a URL object from a string.
+ * First try creating it normally, if that fails try again with the 'http' protocol string at the start of the string.
+ * @param str URL string.
+ * @returns A URL object of the string, or undefined if it failed to create the object.
+ */
+function toForcedURL(str: string): URL | undefined {
+  return toURL(str) || toURL('http://'+str);
 }
 
 const stringifyArrayOpts = {

@@ -32,6 +32,10 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
   render() {
     const game = this.props.game;
     const platformIcon = getPlatformIconPath(game.platform);
+    // Set element attributes
+    const attributes: any = {};
+    attributes[GameGridItem.idAttribute] = game.id;
+    // Pick class names
     let className: string = 'game-grid-item';
     if (this.props.isSelected) { className += ' game-grid-item--selected'; }
     if (this.props.isDragged)  { className += ' game-grid-item--dragged';  }
@@ -40,7 +44,8 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
       <li style={this.props.style} className={className} 
           onClick={this.onClick} onDoubleClick={this.onDoubleClick}
           onDragStart={this.onDragStart} onDragEnd={this.onDragEnd}
-          draggable={!!this.props.onDragStart}>
+          draggable={!!this.props.onDragStart}
+          { ...attributes }>
         <div className='game-grid-item__thumb'>
           <div className='game-grid-item__thumb__image' style={{
             backgroundImage: `url('${this.props.thumbnail}')`
@@ -83,5 +88,29 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     if (this.props.onDragEnd) {
       this.props.onDragEnd(event, this.props.game, this.props.index);
     }
+  }
+
+  /** ID of the attribute used to store the game's id. */
+  public static idAttribute: string = 'data-game-id';
+  
+  /**
+   * Get the id of the game displayed in a GameGridItem element (or throw an error if it fails).
+   * @param element GameGridItem element.
+   */
+  public static getId(element: Element): string {
+    const value = element.getAttribute(GameGridItem.idAttribute);
+    if (typeof value !== 'string') { throw new Error('Failed to get ID from GameGridItem element. Attribute not found.'); }
+    return value;
+  }
+  
+  /**
+   * Check if an element is the top element of GameGridItem or not.
+   * @param element Potential element to check.
+   */
+  public static isElement(element: Element | null | undefined): boolean {
+    if (element) {
+      const value = element.getAttribute(GameGridItem.idAttribute);
+      return (typeof value === 'string');
+    } else { return false; }
   }
 }

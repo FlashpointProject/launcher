@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { MenuItemConstructorOptions, remote, Menu } from 'electron';
+import * as fs from 'fs';
 import { IDefaultProps, ICentralState } from '../../interfaces';
 import { GameList } from '../GameList';
 import { IGameOrderChangeEvent } from '../GameOrder';
@@ -206,6 +208,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           onGameLaunch={this.onGameLaunch}
+                          onContextMenu={this.onGameContextMenu}
                           onGameDragStart={this.onGameDragStart}
                           onGameDragEnd={this.onGameDragEnd}
                           orderBy={order.orderBy}
@@ -224,6 +227,7 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
                           noRowsRenderer={this.noRowsRenderer}
                           onGameSelect={this.onGameSelect}
                           onGameLaunch={this.onGameLaunch}
+                          onContextMenu={this.onGameContextMenu}
                           onGameDragStart={this.onGameDragStart}
                           onGameDragEnd={this.onGameDragEnd}
                           orderBy={order.orderBy}
@@ -363,6 +367,45 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
   private onGameLaunch = (game: IGameInfo): void => {
     const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
     GameLauncher.launchGame(game, addApps);
+  }
+
+  private onGameContextMenu = (game: IGameInfo): void => {
+    const template: MenuItemConstructorOptions[] = [];
+    template.push({
+      label: 'Open File Location',
+      click: () => {
+        // Extract the game's "entry"/"main" file path
+        const gamePath = GameLauncher.getGamePath(game);
+        if (gamePath !== undefined) {
+          // Check if the file exists
+          fs.exists(gamePath, exists => {
+            if (exists) { remote.shell.showItemInFolder(gamePath); }
+            else {
+              remote.dialog.showMessageBox({
+                type: 'warning',
+                title: 'File not found!',
+                message: 'Failed to find the game file.\n'+
+                         'If you are using Flashpoint Infinity, make sure you download the game first.\n'+
+                         '\n'+
+                         `Path: "${gamePath}"\n`+
+                         '\n'+
+                         'Note: If the path is too long, some portion will be replaced with three dots ("...").',
+                
+              }, function() { /* Make this non-blocking. */ });
+            }
+          });
+        } else {
+          remote.dialog.showMessageBox({
+            type: 'warning',
+            title: 'No Path Found!',
+            message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
+                     `Game: "${game.title}"`,
+          }, function() { /* Make this non-blocking. */ });
+        }
+      },
+      enabled: true
+    });
+    openContextMenu(template);
   }
 
   private onCenterKeyDown = (event: React.KeyboardEvent): void => {
@@ -716,6 +759,12 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
 
 function calcScale(defHeight: number, scale: number): number {
   return (defHeight + (scale - 0.5) * 2 * defHeight * gameScaleSpan) | 0;
+}
+
+function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
+  const menu = remote.Menu.buildFromTemplate(template);
+  menu.popup({ window: remote.getCurrentWindow() });
+  return menu;
 }
 
 /**

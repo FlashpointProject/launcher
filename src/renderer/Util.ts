@@ -79,3 +79,32 @@ export function joinLibraryRoute(route: string): string {
   if (cleanRoute === '..') { cleanRoute = ''; }
   return path.posix.join(Paths.BROWSE, cleanRoute);
 }
+
+/** (HTML)Element but only with the "parentElement" property. */
+type ElementBase<T extends ElementBase<T>> = { parentElement: T | null; };
+
+/**
+ * @param target Current target element for testing.
+ * @param count Number of steps up the ancestry chain the target is (0 means it's the input element, 1 means it's the input element's parent).
+ * @param input The element the search started from.
+ * @returns If the target element is the ancestor the function is looking for.
+ */
+export type ElementAncestorFunction<T extends ElementBase<T>> = (target: T, count: number, input: T) => boolean;
+
+/**
+ * Find the first ancestor of an element where "fn" returns true (starting with the parent of the input element).
+ * @param element The input element.
+ * @param fn Function that is called for each ancestor of element until it returns true, or runs out of ancestors.
+ * @returns The found ancestor, or undefined if "fn" returned false for all ancestors (or if the element has no ancestors).
+ */
+export function findElementAncestor<T extends ElementBase<T>>(element: T, fn: ElementAncestorFunction<T>): T | undefined {
+  let current: T | null = element.parentElement;
+  let count = 0;
+  while (true) {
+    if (!current) { break; }
+    if (fn(current, count, element)) { return current; }
+    current = current.parentElement;
+    count += 1;
+  }
+  return undefined;
+}

@@ -16,6 +16,7 @@ import { formatImageFilename, organizeImageFilepaths } from '../../image/util';
 import { ImageFolderCache } from '../../image/ImageFolderCache';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { LaunchboxData } from '../../LaunchboxData';
+import { GameLauncher } from '../../GameLauncher';
 
 const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
@@ -47,6 +48,7 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
           <h1 className='developer-page__title'>Developer</h1>
           This is where all the useful developer tools will go.
           <div className='developer-page__buttons'>
+            {/* Top Buttons */}
             <SimpleButton value='Check Missing Images' onClick={this.onCheckMissingImagesClick}
                           title='List all games without a thumbnail or screenshot.' />
             <SimpleButton value='Check Game IDs' onClick={this.onCheckGameIDsClick}
@@ -57,7 +59,11 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
                           title='List all games with empty fields (of the fields that should not be empty)' />
             <SimpleButton value='Check Playlists' onClick={this.onCheckPlaylistsClick}
                           title='List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs' />
+            <SimpleButton value='Check Game File Location' onClick={this.onCheckFileLocation}
+                          title='List all games with launch commands that can not be parsed into file paths (this is related to the "Open File Location" function, not launching the game).' />
+            {/* Log */}
             <LogData className='developer-page__log' logData={text} />
+            {/* Bottom Buttons */}
             <SimpleButton value='Rename Images (Title => ID)' onClick={this.onRenameImagesTitleToIDClick}
                           title='Find all game images with the games title in their filename, and rename it to use its ID instead.' />
             <SimpleButton value='Rename Images (ID => Title)' onClick={this.onRenameImagesIDToTitleClick}
@@ -95,6 +101,11 @@ export class DeveloperPage extends React.Component<IDeveloperPageProps, IDevelop
     const playlists = this.props.central.playlists.playlists;
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkPlaylists(playlists, games) });
+  }
+
+  private onCheckFileLocation = (): void => {
+    const games = this.props.central.games.collection.games;
+    this.setState({ text: checkFileLocation(games) });
   }
 
   private onRenameImagesTitleToIDClick = (): void => {
@@ -335,6 +346,47 @@ function checkDupes<T extends { [key in U]: string }, U extends string>(array: T
   const clean: { [key: string]: T[] } = {};
   dupes.forEach(dupe => { clean[dupe] = registry[dupe]; });
   return clean;
+}
+
+function checkFileLocation(games: IGameInfo[]): string {
+  const timeStart = Date.now(); // Start timing
+  const pathFailed: IGameInfo[] = []; // (Games that it failed to get the path from)
+  const pathError: [ IGameInfo, Error ][] = []; // (Games that it threw an error while attempting to get the path)
+  let skippedCount: number = 0; // (Number of skipped games)
+  // Try getting the path from all games
+  for (let game of games) {
+    if (game.broken) { skippedCount += 1; }
+    else {
+      try {
+        const gamePath = GameLauncher.getGamePath(game);
+        if (gamePath === undefined) { pathFailed.push(game); }
+      } catch (error) {
+        pathError.push([ game, error ]);
+      }      
+    }
+  }
+  const timeEnd = Date.now(); // End timing
+  // Write log message
+  let text = '';
+  text += `Checked all games to see if their "launch command" could be parsed into a file path (in ${timeEnd - timeStart}ms)\n`;
+  text += '\n';
+  text += `Total games that failed: ${pathFailed.length + pathError.length}\n`;
+  text += `Path not found: ${pathFailed.length}\n`;
+  text += `Error while getting path: ${pathError.length}\n`;
+  text += `Games skipped (all "broken" games are skipped): ${skippedCount}\n`;
+  text += '\n';
+  text += `Path not found (${pathFailed.length}):\n`;
+  for (let game of pathFailed) {
+    text += `"${game.title}" (Platform: "${game.platform}", ID: ${game.id})\n`;
+  }
+  text += '\n';
+  text += `Error while getting path (${pathError.length}):\n`;
+  for (let [ game, error ] of pathError) {
+    text += `"${game.title}" (Platform: "${game.platform}", ID: "${game.id}")\n`+
+            `    ${error.toString()}\n`;
+  }
+  // Done
+  return text;
 }
 
 type FilterFlags<Base, Condition> = {

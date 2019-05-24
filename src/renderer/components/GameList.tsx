@@ -6,6 +6,7 @@ import { GameImageCollection } from '../image/GameImageCollection';
 import { IDefaultProps } from '../interfaces';
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
+import { findElementAncestor } from '../Util';
 
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -26,6 +27,8 @@ export interface IGameListProps extends IDefaultProps {
   onGameSelect?: (game?: IGameInfo) => void;
   /** Called when a game is launched */
   onGameLaunch: (game: IGameInfo) => void;
+  /** Called when a context menu should be opened */
+  onContextMenu?: (game: IGameInfo) => void;
   /** Called when a game is dragged */
   onGameDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
   /** Called when a game is ending being dragged */
@@ -62,7 +65,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
     }
     // Render
     return (
-      <div className='game-browser__center__inner' ref={this._wrapper} onKeyPress={this.onKeyPress}>
+      <div className='game-browser__center__inner' ref={this._wrapper} onKeyPress={this.onKeyPress} onContextMenu={this.onContextMenu}>
         <AutoSizer>
           {({ width, height }) => (
             <ArrowKeyStepper
@@ -125,6 +128,21 @@ export class GameList extends React.Component<IGameListProps, {}> {
       if (this.props.selectedGame) {
         this.props.onGameLaunch(this.props.selectedGame);
       }
+    }
+  }
+
+  onContextMenu = (event: React.MouseEvent<HTMLElement>): void => {
+    const element = findElementAncestor(event.target as Element, target => GameListItem.isElement(target));
+    if (element) {
+      const id = GameListItem.getId(element);
+      // Get props
+      const { games, onContextMenu } = this.props;
+      if (!games)         { throw new Error('Failed to open context menu. Prop "games" not found.');         }
+      if (!onContextMenu) { throw new Error('Failed to open context menu. Prop "onContextMenu" not found.'); }
+      // Find game and call back
+      const game = games.find(item => item.id === id);
+      if (!game) { throw new Error('Failed to open context menu. Game not found.'); }
+      onContextMenu(game);
     }
   }
 
