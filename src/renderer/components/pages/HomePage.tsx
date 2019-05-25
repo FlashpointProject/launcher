@@ -16,6 +16,7 @@ import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
 import { findDefaultLibrary } from '../../../shared/library/util';
 import { WithSearchProps } from '../../containers/withSearch';
+import { getPlatform } from '../../util/platform';
 
 interface OwnProps {
   central: ICentralState;
@@ -61,6 +62,18 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     const { showBrokenGames } = window.External.config.data;
     const { disableExtremeGames } = window.External.config.data;
     const { logoDelay } = this.state;
+
+    // Grabs a dynamic list of supported platforms and preformats them as Links
+    const platformList = getPlatform(this.props.central.games.collection);
+    const formatPlatforms = platformList.map((list) =>
+      <span>
+        <Link to={joinLibraryRoute('arcade')} onClick={this.onPlatformClick(list)} style={{ backgroundColor: '#404040', textDecorationLine: 'none'}}>
+          {list}
+        </Link>
+        {', '}
+      </span>
+    );
+    
     // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
     const height: number = 140;
     const width: number = (height * 0.666) | 0;
@@ -108,39 +121,21 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
           <div className='home-page__box'>
             <div className='home-page__box__head'>Extras</div>
             <ul className='home-page__box__body'>
-              <QuickStartItem>
+              <QuickStartItem icon='heart'>
                 <Link to={this.getFavoriteBrowseRoute()} onClick={this.onFavoriteClick}>Favorites Playlist</Link>
               </QuickStartItem>
-              <QuickStartItem>
+              <QuickStartItem icon='list'>
                 <a href="http://bluemaxima.org/flashpoint/datahub/Genres" target="_top">Genre List</a>
               </QuickStartItem>
-              <br></br>
-              <QuickStartItem>
-              Filter by platform:  
+                <br></br>
+              <QuickStartItem icon='tag'>
+                Filter by platform: 
               </QuickStartItem>
               <QuickStartItem>
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onFlashClick}>Flash</Link> 
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onShockwaveClick}>Shockwave</Link>
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onGrooveClick}>3D Groove GX</Link>
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.on3dviaClick}>3DVIA Player</Link>
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onHtml5Click}>HTML5</Link>
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onJavaClick}>Java Applets</Link>
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onPopcapClick}>PopCap Plugin</Link>
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onSilverlightClick}>Silverlight</Link>
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onUnityClick}>Unity</Link>
-                {', '}
-                <Link to={joinLibraryRoute('arcade')} onClick={this.onActivexClick}>ActiveX</Link>
+                { formatPlatforms }
               </QuickStartItem>
-              <br></br>
-              <QuickStartItem>
+                <br></br>
+              <QuickStartItem icon='code'>
                 <a href="https://trello.com/b/Tu9E5GLk/launcher" target="_top">Check out our planned features!</a>
               </QuickStartItem>
             </ul>
@@ -210,7 +205,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     );
   }
 
-  private onLaunchGame(game: IGameInfo, index: number): void {
+  private onLaunchGame(game: IGameInfo): void {
     GameLauncher.launchGame(game);
   }
 
@@ -257,44 +252,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     this.props.clearSearch();
   }
 
-  private onFlashClick = () => {
-    this.props.onSearch('!flash');
-  }
-
-  private onShockwaveClick = () => {
-    this.props.onSearch('!shockwave');
-  }
-
-  private onGrooveClick = () => {
-    this.props.onSearch('!3d groove gx');
-  }
-
-  private on3dviaClick = () => {
-    this.props.onSearch('!3dvia');
-  }
-
-  private onActivexClick = () => {
-    this.props.onSearch('!activex');
-  }
-
-  private onHtml5Click = () => {
-    this.props.onSearch('!html5');
-  }
-
-  private onJavaClick = () => {
-    this.props.onSearch('!java');
-  }
-
-  private onPopcapClick = () => {
-    this.props.onSearch('!popcap');
-  }
-
-  private onSilverlightClick = () => {
-    this.props.onSearch('!silverlight');
-  }
-
-  private onUnityClick = () => {
-    this.props.onSearch('!unity');
+  // Gets the platform as a string and performs a search dynamically for each platform generated
+  private onPlatformClick = (platform: string) => (event: any) => {
+    this.props.onSearch('!' + platform);
   }
 
   private getHallOfFameBrowseRoute = (): string => {
