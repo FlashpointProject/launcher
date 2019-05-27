@@ -118,7 +118,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             ) : undefined
           }
           {/* Additional info - Trello request */}
-          <div className='home-page__box'>
+          <div className='home-page__box home-page__box--extras'>
             <div className='home-page__box__head'>Extras</div>
             <ul className='home-page__box__body'>
               <QuickStartItem icon='heart'>
@@ -131,7 +131,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
               <QuickStartItem icon='tag'>
                 Filter by platform: 
               </QuickStartItem>
-              <QuickStartItem className="home-page__box--extras">
+              <QuickStartItem>
                 { formatPlatforms }
               </QuickStartItem>
                 <br></br>
