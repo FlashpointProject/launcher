@@ -841,6 +841,11 @@ body {
 .home-page__box--upgrades .home-page__grayed-out {
   color: var(--theme__text-disabled-color);
 }
+/* HomePage Box - Extras */
+.home-page__box--extras span a {
+  background: #404040;
+  text-decoration: none;
+}
 /* Random Games */
 .home-page__random-games {
   text-align: center;

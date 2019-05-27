@@ -1,33 +1,15 @@
 /** platform.ts is suggestion.ts modified for retreival of platform type */
 import { GameCollection } from '../../shared/game/GameCollection';
 
-/** Properties that are suggested */
-type PlatformProps = (
-  | 'platform'
-);
-
-/** Temporarily used to store the values as keys/props for performance reasons */
-type GamePropPlatformMap = {
-  [P in PlatformProps]: {
-    [key: string]: true
-  }
-};
-
-export type GamePropPlatform = {
-  [P in PlatformProps]: string[]
-};
-
-export function getPlatform(collection: GameCollection): string [] {
+export function getPlatforms(collection: GameCollection): string [] {
   // Get the values from the game collection
-  const map: GamePropPlatformMap = {
-    platform: {}
-  };
+  const map: { [key: string]: true } = {};
   for (let key in collection.games) {
     const game = collection.games[key];
-    getGamePropValues(map.platform,game.platform);
+    getGamePropValues(map, game.platform);
   }
   // Create a more usable object to store the values in
-  const plat: string [] = Object.keys(map.platform).filter(val => val !== '').sort();
+  const plat: string [] = Object.keys(map).filter(val => val !== '').sort();
   return plat;
 }
 

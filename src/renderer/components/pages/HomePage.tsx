@@ -16,7 +16,7 @@ import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
 import { findDefaultLibrary } from '../../../shared/library/util';
 import { WithSearchProps } from '../../containers/withSearch';
-import { getPlatform } from '../../util/platform';
+import { getPlatforms } from '../../util/platform';
 
 interface OwnProps {
   central: ICentralState;
@@ -64,13 +64,13 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     const { logoDelay } = this.state;
 
     // Grabs a dynamic list of supported platforms and preformats them as Links
-    const platformList = getPlatform(this.props.central.games.collection);
-    const formatPlatforms = platformList.map((list) =>
-      <span>
-        <Link to={joinLibraryRoute('arcade')} onClick={this.onPlatformClick(list)} style={{ backgroundColor: '#404040', textDecorationLine: 'none'}}>
-          {list}
+    const platformList = getPlatforms(this.props.central.games.collection);
+    const formatPlatforms = platformList.map((platform, index) =>
+      <span key={index}> 
+        <Link to={joinLibraryRoute('arcade')} onClick={this.onPlatformClick(platform)}>
+          {platform}
         </Link>
-        {', '}
+        { (index < platformList.length -1) ? ', ' : undefined }
       </span>
     );
     
@@ -131,7 +131,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
               <QuickStartItem icon='tag'>
                 Filter by platform: 
               </QuickStartItem>
-              <QuickStartItem>
+              <QuickStartItem className="home-page__box--extras">
                 { formatPlatforms }
               </QuickStartItem>
                 <br></br>
