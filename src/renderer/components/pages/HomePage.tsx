@@ -15,6 +15,8 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
 import { findDefaultLibrary } from '../../../shared/library/util';
+import { WithSearchProps } from '../../containers/withSearch';
+import { getPlatforms } from '../../util/platform';
 
 interface OwnProps {
   central: ICentralState;
@@ -24,7 +26,7 @@ interface OwnProps {
   onDownloadScreenshotsUpgradeClick: () => void;
 }
 
-export type IHomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps;
+export type IHomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps & WithSearchProps;
 
 export interface IHomePageState {
   /** Delay applied to the logo's animation */
@@ -60,6 +62,18 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     const { showBrokenGames } = window.External.config.data;
     const { disableExtremeGames } = window.External.config.data;
     const { logoDelay } = this.state;
+
+    // Grabs a dynamic list of supported platforms and preformats them as Links
+    const platformList = getPlatforms(this.props.central.games.collection);
+    const formatPlatforms = platformList.map((platform, index) =>
+      <span key={index}> 
+        <Link to={joinLibraryRoute('arcade')} onClick={this.onPlatformClick(platform)}>
+          {platform}
+        </Link>
+        { (index < platformList.length -1) ? ', ' : undefined }
+      </span>
+    );
+    
     // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
     const height: number = 140;
     const width: number = (height * 0.666) | 0;
@@ -103,6 +117,29 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
               </div>
             ) : undefined
           }
+          {/* Additional info - Trello request */}
+          <div className='home-page__box home-page__box--extras'>
+            <div className='home-page__box__head'>Extras</div>
+            <ul className='home-page__box__body'>
+              <QuickStartItem icon='heart'>
+                <Link to={this.getFavoriteBrowseRoute()} onClick={this.onFavoriteClick}>Favorites Playlist</Link>
+              </QuickStartItem>
+              <QuickStartItem icon='list'>
+                <a href="http://bluemaxima.org/flashpoint/datahub/Genres" target="_top">Genre List</a>
+              </QuickStartItem>
+                <br></br>
+              <QuickStartItem icon='tag'>
+                Filter by platform: 
+              </QuickStartItem>
+              <QuickStartItem>
+                { formatPlatforms }
+              </QuickStartItem>
+                <br></br>
+              <QuickStartItem icon='code'>
+                <a href="https://trello.com/b/Tu9E5GLk/launcher" target="_top">Check out our planned features!</a>
+              </QuickStartItem>
+            </ul>
+          </div>
           {/* Notes */}
           <div className='home-page__box'>
             <div className='home-page__box__head'>Notes</div>
@@ -191,6 +228,20 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     onSelectPlaylist(hof, route);
   }
 
+  private onFavoriteClick = () => {
+    const { central, libraryData, onSelectPlaylist } = this.props;
+    let fav = findFavoritePlaylist(central.playlists.playlists);
+    let route: string|undefined = undefined;
+    if (fav) {
+      if (fav.library) { route = fav.library; }
+      else {
+        const defLibrary = findDefaultLibrary(libraryData.libraries);
+        if (defLibrary) { route = defLibrary.route; }
+      }
+    }
+    onSelectPlaylist(fav, route);
+  }
+
   private onAllGamesClick = () => {
     this.props.onSelectPlaylist(undefined, 'arcade');
     this.props.clearSearch();
@@ -201,11 +252,24 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     this.props.clearSearch();
   }
 
+  // Gets the platform as a string and performs a search dynamically for each platform generated
+  private onPlatformClick = (platform: string) => (event: any) => {
+    this.props.onSearch('!' + platform);
+  }
+
   private getHallOfFameBrowseRoute = (): string => {
     const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
     const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
     let hof = findHallOfFamePlaylist(this.props.central.playlists.playlists);
     if (hof && hof.library) { return joinLibraryRoute(hof.library); }
+    else                    { return defaultRoute;                  }
+  }
+
+  private getFavoriteBrowseRoute = (): string => {
+    const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
+    const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
+    let fav = findFavoritePlaylist(this.props.central.playlists.playlists);
+    if (fav && fav.library) { return joinLibraryRoute(fav.library); }
     else                    { return defaultRoute;                  }
   }
 }
@@ -227,4 +291,8 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
 
 function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
   return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
+}
+
+function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
+  return playlists.find(playlist => playlist.title === '*Favorites*');
 }
