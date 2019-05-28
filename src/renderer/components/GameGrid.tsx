@@ -7,6 +7,7 @@ import { IDefaultProps } from '../interfaces';
 import { GameGridItem } from './GameGridItem';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { findElementAncestor } from '../Util';
+import { GameItemContainer } from './GameItemContainer';
 
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -32,9 +33,9 @@ export interface IGameGridProps extends IDefaultProps {
   /** Called when a context menu should be opened */
   onContextMenu?: (game: IGameInfo) => void;
   /** Called when a game is started being dragged */
-  onGameDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
+  onGameDragStart?: (event: React.DragEvent, game: IGameInfo) => void;
   /** Called when a game is ending being dragged */
-  onGameDragEnd?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
+  onGameDragEnd?: (event: React.DragEvent, game: IGameInfo) => void;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -65,7 +66,15 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
   render() {
     const games = this.props.games || [];
     return (
-      <div className='game-browser__center__inner' ref={this._wrapper} onKeyPress={this.onKeyPress} onContextMenu={this.onContextMenu}>
+      <GameItemContainer className='game-browser__center__inner'
+                         onGameSelect={this.onGameSelect}
+                         onGameLaunch={this.onGameLaunch}
+                         onGameContextMenu={this.onGameContextMenu}
+                         onGameDragStart={this.onGameDragStart}
+                         onGameDragEnd={this.onGameDragEnd}
+                         findGameId={this.findGameId}
+                         realRef={this._wrapper}
+                         onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => {
             // Calculate and set column/row count
@@ -128,7 +137,7 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
             );
           }}
         </AutoSizer>
-      </div>
+      </GameItemContainer>
     );
   }
 
@@ -142,16 +151,13 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
     if (!game) { return; }
     const thumbnail = gameImages.getThumbnailPath(game);
     return (
-      <GameGridItem key={props.key} {...props}
+      <GameGridItem key={props.key}
+                    {...props}
                     game={game} 
                     thumbnail={thumbnail || ''}
+                    isDraggable={true}
                     isSelected={game === selectedGame}
-                    isDragged={game === draggedGame}
-                    onClick={this.onItemClick}
-                    onDoubleClick={this.onItemDoubleClick}
-                    index={index}
-                    onDragStart={this.onItemDragStart}
-                    onDragEnd={this.onItemDragEnd} />
+                    isDragged={game === draggedGame} />
     );
   }
 
@@ -164,62 +170,70 @@ export class GameGrid extends React.Component<IGameGridProps, {}> {
     }
   }
 
-  onContextMenu = (event: React.MouseEvent<HTMLElement>): void => {
-    const element = findElementAncestor(event.target as Element, target => GameGridItem.isElement(target));
-    if (element) {
-      const id = GameGridItem.getId(element);
-      // Get props
-      const { games, onContextMenu } = this.props;
-      if (!games)         { throw new Error('Failed to open context menu. Prop "games" not found.');         }
-      if (!onContextMenu) { throw new Error('Failed to open context menu. Prop "onContextMenu" not found.'); }
-      // Find game and call back
-      const game = games.find(item => item.id === id);
-      if (!game) { throw new Error('Failed to open context menu. Game not found.'); }
-      onContextMenu(game);
-    }
+  /** When a game item is clicked. */
+  onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
+    this.onGameSelected(this.findGame(gameId));
+  }
+  
+  /** When a list item is double clicked. */
+  onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
+    const game = this.findGame(gameId);
+    if (game) { this.props.onGameLaunch(game); }
   }
 
-  /** When a list item is clicked */
-  onItemClick = (game: IGameInfo, index: number): void => {
-    this.onGameSelect(game);
+  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined): void => {
+    if (this.props.onContextMenu) {
+      const game = this.findGame(gameId);
+      if (game) { this.props.onContextMenu(game); }
+    }
   }
   
-  /** When a list item is double clicked */
-  onItemDoubleClick = (game: IGameInfo, index: number): void => {
-    this.props.onGameLaunch(game);
-  }
-  
-  /** When a grid item is started to being dragged */
-  onItemDragStart = (event: React.DragEvent, game: IGameInfo, index: number): void => {
+  /** When a grid item is started to being dragged. */
+  onGameDragStart = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragStart) {
-      this.props.onGameDragStart(event, game, index);
+      const game = this.findGame(gameId);
+      if (game) { this.props.onGameDragStart(event, game); }
     }
   }
   
-  /** When a grid item is ended to being dragged */
-  onItemDragEnd = (event: React.DragEvent, game: IGameInfo, index: number): void => {
+  /** When a grid item is ended to being dragged. */
+  onGameDragEnd = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragEnd) {
-      this.props.onGameDragEnd(event, game, index);
+      const game = this.findGame(gameId);
+      if (game) { this.props.onGameDragEnd(event, game); }
     }
   }
 
-  /** When a row/item is selected */
+  /** When a row/item is selected. */
   onScrollToChange = (params: ScrollIndices): void => {
     if (!this.props.games) { throw new Error('Games array is missing.'); }
     if (params.scrollToColumn === -1 || params.scrollToRow === -1) {
-      this.onGameSelect(undefined);
+      this.onGameSelected(undefined);
     } else {
       const game = this.props.games[params.scrollToRow * this.columns + params.scrollToColumn];
       if (game) {
-        this.onGameSelect(game);
+        this.onGameSelected(game);
       }
     }
   }
 
-  onGameSelect(game?: IGameInfo): void {
+  onGameSelected(game?: IGameInfo): void {
     if (this.props.onGameSelect) {
       this.props.onGameSelect(game);
     }
+  }
+
+  /** Find the game with a specific ID. */
+  findGame(gameId: string | undefined): IGameInfo | undefined {
+    if (gameId !== undefined && this.props.games) {
+      return this.props.games.find(game => game.id === gameId);
+    }
+  }
+
+  /** Find a game's ID. */
+  findGameId = (element: EventTarget): string | undefined => {
+    const game = findElementAncestor(element as Element, target => GameGridItem.isElement(target), true);
+    if (game) { return GameGridItem.getId(game); }
   }
 
   /** Update CSS Variables */

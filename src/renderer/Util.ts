@@ -95,10 +95,11 @@ export type ElementAncestorFunction<T extends ElementBase<T>> = (target: T, coun
  * Find the first ancestor of an element where "fn" returns true (starting with the parent of the input element).
  * @param element The input element.
  * @param fn Function that is called for each ancestor of element until it returns true, or runs out of ancestors.
+ * @param checkElement If the input element should also be checked. Defaults to false.
  * @returns The found ancestor, or undefined if "fn" returned false for all ancestors (or if the element has no ancestors).
  */
-export function findElementAncestor<T extends ElementBase<T>>(element: T, fn: ElementAncestorFunction<T>): T | undefined {
-  let current: T | null = element.parentElement;
+export function findElementAncestor<T extends ElementBase<T>>(element: T, fn: ElementAncestorFunction<T>, checkElement: boolean = false): T | undefined {
+  let current = checkElement ? element : element.parentElement;
   let count = 0;
   while (true) {
     if (!current) { break; }

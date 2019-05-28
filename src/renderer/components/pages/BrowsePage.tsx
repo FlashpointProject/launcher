@@ -431,12 +431,12 @@ export class BrowsePage extends React.Component<IBrowsePageProps, IBrowsePageSta
     }
   }
 
-  private onGameDragStart = (event: React.DragEvent, game: IGameInfo, index: number): void => {
+  private onGameDragStart = (event: React.DragEvent, game: IGameInfo): void => {
     this.setState({ draggedGame: game });
     event.dataTransfer.setData(gameIdDataType, game.id);
   }
 
-  private onGameDragEnd = (event: React.DragEvent, game: IGameInfo, index: number): void => {
+  private onGameDragEnd = (event: React.DragEvent, game: IGameInfo): void => {
     this.setState({ draggedGame: undefined });
     event.dataTransfer.clearData(gameIdDataType);
   }

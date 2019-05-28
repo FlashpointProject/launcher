@@ -2,13 +2,14 @@ import * as React from 'react';
 import { filterBroken, filterExtreme } from '../../shared/game/GameFilter';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { GameImageCollection } from '../image/GameImageCollection';
-import { shuffle } from '../Util';
+import { shuffle, findElementAncestor } from '../Util';
 import { GameGridItem } from './GameGridItem';
+import { GameItemContainer } from './GameItemContainer';
 
 interface IRandomGamesProps {
   games: IGameInfo[];
   gameImages: GameImageCollection;
-  onLaunchGame: (game: IGameInfo, index: number) => void;
+  onLaunchGame: (game: IGameInfo) => void;
   showExtreme: boolean;
   showBroken: boolean;
 }
@@ -35,18 +36,27 @@ export class RandomGames extends React.PureComponent<IRandomGamesProps> {
     const { gameImages, onLaunchGame } = this.props;
     const randomGames = this.selectRandomGames();
     return (
-      <div className='random-games'>
-        {randomGames.map((game, index) => (
+      <GameItemContainer className='random-games'
+                         onGameLaunch={(event, gameId) => {
+                           const game = randomGames.find(game => game.id === gameId);
+                           if (game) { onLaunchGame(game); }
+                         }}
+                         findGameId={this.findGameId}>
+        {randomGames.map(game => (
           <GameGridItem
             key={game.id}
             game={game}
             thumbnail={gameImages.getThumbnailPath(game) || ''}
-            onDoubleClick={onLaunchGame}
             isSelected={false}
-            isDragged={false}
-            index={index} />
+            isDragged={false} />
         ))}
-      </div>
+      </GameItemContainer>
     );
+  }
+
+  /** Find a game's ID. */
+  private findGameId = (element: EventTarget): string | undefined => {
+    const game = findElementAncestor(element as Element, target => GameGridItem.isElement(target), true);
+    if (game) { return GameGridItem.getId(game); }
   }
 }

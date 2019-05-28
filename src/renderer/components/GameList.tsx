@@ -7,6 +7,7 @@ import { IDefaultProps } from '../interfaces';
 import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { findElementAncestor } from '../Util';
+import { GameItemContainer } from './GameItemContainer';
 
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -29,10 +30,10 @@ export interface IGameListProps extends IDefaultProps {
   onGameLaunch: (game: IGameInfo) => void;
   /** Called when a context menu should be opened */
   onContextMenu?: (game: IGameInfo) => void;
-  /** Called when a game is dragged */
-  onGameDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
+  /** Called when a game is started being dragged */
+  onGameDragStart?: (event: React.DragEvent, game: IGameInfo) => void;
   /** Called when a game is ending being dragged */
-  onGameDragEnd?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
+  onGameDragEnd?: (event: React.DragEvent, game: IGameInfo) => void;
   // React-Virtualized Pass-through
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -65,7 +66,15 @@ export class GameList extends React.Component<IGameListProps, {}> {
     }
     // Render
     return (
-      <div className='game-browser__center__inner' ref={this._wrapper} onKeyPress={this.onKeyPress} onContextMenu={this.onContextMenu}>
+      <GameItemContainer className='game-browser__center__inner'
+                         onGameSelect={this.onGameSelect}
+                         onGameLaunch={this.onGameLaunch}
+                         onGameContextMenu={this.onGameContextMenu}
+                         onGameDragStart={this.onGameDragStart}
+                         onGameDragEnd={this.onGameDragEnd}
+                         findGameId={this.findGameId}
+                         realRef={this._wrapper}
+                         onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => (
             <ArrowKeyStepper
@@ -97,7 +106,7 @@ export class GameList extends React.Component<IGameListProps, {}> {
             </ArrowKeyStepper>
           )}
         </AutoSizer>
-      </div>
+      </GameItemContainer>
     );
   }
 
@@ -109,16 +118,14 @@ export class GameList extends React.Component<IGameListProps, {}> {
     const game = games[props.index];
     let thumbnail = gameImages.getThumbnailPath(game);
     return (
-      <GameListItem key={props.key} {...props}
+      <GameListItem key={props.key}
+                    {...props}
                     game={game}
                     thumbnail={thumbnail || ''}
                     height={rowHeight}
+                    isDraggable={true}
                     isSelected={game === selectedGame}
-                    isDragged={game === draggedGame}
-                    onClick={this.onItemClick}
-                    onDoubleClick={this.onItemDoubleClick}
-                    onDragStart={this.onItemDragStart}
-                    onDragEnd={this.onItemDragEnd} />
+                    isDragged={game === draggedGame} />
     );
   }
 
@@ -128,6 +135,40 @@ export class GameList extends React.Component<IGameListProps, {}> {
       if (this.props.selectedGame) {
         this.props.onGameLaunch(this.props.selectedGame);
       }
+    }
+  }
+
+  /** When a game item is clicked. */
+  onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
+    this.onGameSelected(this.findGame(gameId));
+  }
+  
+  /** When a list item is double clicked */
+  onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
+    const game = this.findGame(gameId);
+    if (game) { this.props.onGameLaunch(game); }
+  }
+
+  onGameContextMenu = (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined): void => {
+    if (this.props.onContextMenu) {
+      const game = this.findGame(gameId);
+      if (game) { this.props.onContextMenu(game); }
+    }
+  }
+  
+  /** When a list item is started to being dragged. */
+  onGameDragStart = (event: React.DragEvent, gameId: string | undefined): void => {
+    if (this.props.onGameDragStart) {
+      const game = this.findGame(gameId);
+      if (game) { this.props.onGameDragStart(event, game); }
+    }
+  }
+  
+  /** When a list item is ended to being dragged. */
+  onGameDragEnd = (event: React.DragEvent, gameId: string | undefined): void => {
+    if (this.props.onGameDragEnd) {
+      const game = this.findGame(gameId);
+      if (game) { this.props.onGameDragEnd(event, game); }
     }
   }
 
@@ -146,39 +187,15 @@ export class GameList extends React.Component<IGameListProps, {}> {
     }
   }
 
-  /** When a list item is clicked */
-  onItemClick = (game: IGameInfo, index: number): void => {
-    this.onGameSelect(game);
-  }
-  
-  /** When a list item is double clicked */
-  onItemDoubleClick = (game: IGameInfo, index: number): void => {
-    this.props.onGameLaunch(game);
-  }
-  
-  /** When a list item is started to being dragged */
-  onItemDragStart = (event: React.DragEvent, game: IGameInfo, index: number): void => {
-    if (this.props.onGameDragStart) {
-      this.props.onGameDragStart(event, game, index);
-    }
-  }
-  
-  /** When a list item is ended to being dragged */
-  onItemDragEnd = (event: React.DragEvent, game: IGameInfo, index: number): void => {
-    if (this.props.onGameDragEnd) {
-      this.props.onGameDragEnd(event, game, index);
-    }
-  }
-
   /** When a row/item is selected */
   onScrollToChange = (params: ScrollIndices): void => {
     if (!this.props.games) { throw new Error('Games array is missing.'); }
     if (params.scrollToRow === -1) {
-      this.onGameSelect(undefined);
+      this.onGameSelected(undefined);
     } else {
       const game = this.props.games[params.scrollToRow];
       if (game) {
-        this.onGameSelect(game);
+        this.onGameSelected(game);
       }
     }
   }
@@ -197,10 +214,23 @@ export class GameList extends React.Component<IGameListProps, {}> {
     });
   }
 
-  onGameSelect(game?: IGameInfo): void {
+  onGameSelected(game?: IGameInfo): void {
     if (this.props.onGameSelect) {
       this.props.onGameSelect(game);
     }
+  }
+
+  /** Find the game with a specific ID. */
+  findGame(gameId: string | undefined): IGameInfo | undefined {
+    if (gameId !== undefined && this.props.games) {
+      return this.props.games.find(game => game.id === gameId);
+    }
+  }
+
+  /** Find a game's ID. */
+  findGameId = (element: EventTarget): string | undefined => {
+    const game = findElementAncestor(element as Element, target => GameListItem.isElement(target), true);
+    if (game) { return GameListItem.getId(game); }
   }
 
   /** Update CSS Variables */

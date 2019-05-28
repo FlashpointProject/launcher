@@ -9,19 +9,12 @@ export interface IGameGridItemProps extends Partial<GridCellProps>, IDefaultProp
   game: IGameInfo;
   /** Path to the games thumbnail */
   thumbnail: string;
-  /** Called when the item is clicked */
-  onClick?: (game: IGameInfo, index: number) => void;
-  /** Called when the item is double clicked */
-  onDoubleClick?: (game: IGameInfo, index: number) => void;
-  /** Called when starting to "drag" this element (if set, the element will be flagged as "draggable") */
-  onDragStart?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
-  /** Called when ending to "drag" this element */
-  onDragEnd?: (event: React.DragEvent, game: IGameInfo, index: number) => void;
+  /** If the grid item can be dragged (defaults to false) */
+  isDraggable?: boolean;
   /** If the grid item is selected */
   isSelected: boolean;
   /** If the grid item is being dragged */
   isDragged: boolean;
-  index: number;
 }
 
 export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
@@ -41,10 +34,9 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     if (this.props.isDragged)  { className += ' game-grid-item--dragged';  }
     // Render
     return (
-      <li style={this.props.style} className={className} 
-          onClick={this.onClick} onDoubleClick={this.onDoubleClick}
-          onDragStart={this.onDragStart} onDragEnd={this.onDragEnd}
-          draggable={!!this.props.onDragStart}
+      <li style={this.props.style}
+          className={className}
+          draggable={this.props.isDraggable}
           { ...attributes }>
         <div className='game-grid-item__thumb'>
           <div className='game-grid-item__thumb__image' style={{
@@ -64,30 +56,6 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
         </div>
       </li>
     );
-  }
-
-  private onClick = (): void => {
-    if (this.props.onClick) {
-      this.props.onClick(this.props.game, this.props.index);
-    }
-  }
-
-  private onDoubleClick = (): void => {
-    if (this.props.onDoubleClick) {
-      this.props.onDoubleClick(this.props.game, this.props.index);
-    }
-  }
-  
-  private onDragStart = (event: React.DragEvent): void => {
-    if (this.props.onDragStart) {
-      this.props.onDragStart(event, this.props.game, this.props.index);
-    }
-  }
-
-  private onDragEnd = (event: React.DragEvent): void => {
-    if (this.props.onDragEnd) {
-      this.props.onDragEnd(event, this.props.game, this.props.index);
-    }
   }
 
   /** ID of the attribute used to store the game's id. */

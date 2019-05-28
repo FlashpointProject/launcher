@@ -168,7 +168,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     );
   }
 
-  private onLaunchGame(game: IGameInfo, index: number): void {
+  private onLaunchGame(game: IGameInfo): void {
     GameLauncher.launchGame(game);
   }
 
