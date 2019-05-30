@@ -3,6 +3,7 @@ import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { CheckBox } from './CheckBox';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
 
 export interface IRightBrowseSidebarAddAppProps {
   /** Additional Application to show and edit */
@@ -67,14 +68,23 @@ export class RightBrowseSidebarAddApp extends React.Component<IRightBrowseSideba
               </div>
               {/* Delete Button */}
               { !editDisabled ? (
-                <div className='browse-right-sidebar__additional-application__delete-button'
-                    onClick={this.onDeleteClick}>
-                  <OpenIcon icon='trash' />
-                </div>            
+                <ConfirmElement onConfirm={this.onDeleteClick}
+                                children={this.renderDeleteButton} />
               ) : undefined}
             </div>
           </>
         ) }
+      </div>
+    );
+  }
+
+  private renderDeleteButton({ activate, activationCounter, reset }: IConfirmElementArgs): JSX.Element {
+    const className = 'browse-right-sidebar__additional-application__delete-button';
+    return (
+      <div className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
+           title='Delete Additional Application'
+           onClick={activate} onMouseLeave={reset}>
+        <OpenIcon icon='trash' />
       </div>
     );
   }
