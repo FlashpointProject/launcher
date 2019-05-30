@@ -1,0 +1,590 @@
+/* ------ General ------ */
+:root {
+  /* ------- Layout Variables ------- */
+  --color__aaa: var(--layout__secondary-text-color);
+  --color__playlist-description-while-edititng: #ffffff;
+  --color__no-theme-suggestion: #bfbfbf;
+  /* Text */
+  --layout__primary-text-color: #f1f1f1;
+  --layout__secondary-text-color: #aaaaaa;
+  --layout__highlighted-text-color: #ffffff;
+  --layout__disabled-text-color: #9b9b9b;
+  /* Background */
+  --layout__primary-background: #1b1b1c;
+  --layout__secondary-background: #2d2d30;
+  /* Theme Variables */
+  --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  --theme__text-disabled-color: #9b9b9b;
+  --theme__background-color: #1b1b1c;
+  --theme__search-bar__background-color: #1b1b1d;
+  --theme__search-bar__outline-color: #47474d;
+  --theme__title-bar__background-color: #141417;
+  --theme__scrollbar__color: #585858;
+  --theme__scrollbar__color-hover: #505050;
+  --theme__scrollbar__color-active: #404040;
+  --theme__slider__color: #4d4f55;
+  --theme__slider__color-hover: #43454b;
+  --theme__slider__color-active: #2e2f33;
+  --theme__browse-sidebar__background-color: #181819;
+  --theme__browse-sidebar__divider__background-color: #131313;
+  --theme__header__background-color: #2d2d30;
+  --theme__footer__background-color: #2a2a2b;
+  --theme__playlist-list-item-even__background-color: #1e1e1f;
+  --theme__playlist-list-fake-item__background-color: #19191b;
+  --theme__game-item__color: #aaaaaa;
+  --theme__game-item__color-hover: #e6e6e6;
+  --theme__game-item__color-selected: #cecece;
+  --theme__game-item__color-selected-hover: #e6e6e6;
+  --theme__game-item__background-color-hover: #3c3c41;
+  --theme__game-item__background-color-selected: #791c76;
+  --theme__game-item__background-color-selected-hover: #a72aa2;
+  --theme__game-list-item__background-color-even: #1e1e1f;
+  --theme__game-item-thumb__image-rendering: normal;
+  /* Pimp */
+  color: var(--layout__primary-text-color);
+}
+
+body {
+  background-color: var(--theme__background-color);
+  font-family: var(--theme__font-family);
+}
+
+:link {
+  color: var(--layout__highlighted-text-color);
+}
+
+
+/* ------ Icons ------ */
+.icon__use {
+  fill: var(--layout__highlighted-text-color);
+}
+
+
+/* ------ Generic & Re-usable ------ */
+/* Simple Button */
+.simple-button {
+  background-color: #2d2d30;
+  border-color: var(--theme__search-bar__outline-color);
+  color: var(--layout__primary-text-color);
+}
+.simple-button:hover {
+  background-color: #434346;
+  border-color: #6f6f75;
+}
+.simple-button:disabled {
+  color: var(--theme__text-disabled-color);
+}
+.simple-button--red {
+  background-color: #5a1010;
+  border-color: #731919;
+}
+.simple-button--red:hover {
+  background-color: #731616;
+  border-color: #a22020;
+}
+/* Simple Selector */
+.simple-selector {
+  border-color: var(--theme__search-bar__outline-color);
+  /* Pimp */
+  font-family: var(--theme__font-family);
+  background-color: var(--theme__background-color);
+  color: var(--layout__primary-text-color);
+}
+/* Simple Scroll(bar) */
+.simple-scroll::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 calc(0.25 * var(--scrollbar-size)) rgba(0, 0, 0, 0.25);
+  background-color: rgba(0, 0, 0, 0.085);
+  border-radius: calc(0.5 * var(--scrollbar-size));
+}
+.simple-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--theme__scrollbar__color-hover);
+}
+.simple-scroll::-webkit-scrollbar-thumb:active {
+  background-color: var(--theme__scrollbar__color-active);
+}
+/* Simple Input (Input text field) */
+.simple-input {
+  color: var(--layout__primary-text-color);
+  background-color: #313131;
+}
+/* Simple Disabled Text */
+.simple-disabled-text {
+  color: var(--layout__disabled-text-color);
+}
+/* Checkbox Dropdown */
+.checkbox-dropdown {
+  font-family: var(--theme__font-family);
+  background-color: var(--theme__background-color);
+  color: var(--layout__primary-text-color);
+}
+.checkbox-dropdown__select-box {
+  background-color: var(--theme__background-color);
+  color: var(--layout__primary-text-color);
+  border-color: var(--theme__search-bar__outline-color);
+}
+.checkbox-dropdown__content {
+  background-color: var(--theme__background-color);
+  color: var(--layout__primary-text-color);
+  border-color: var(--theme__search-bar__outline-color);
+}
+.checkbox-dropdown__content label:hover {
+  background-color: #1e90ff;
+}
+/* Input Dropdown */
+.input-dropdown {
+  font-family: var(--theme__font-family);
+  background-color: var(--theme__background-color);
+  color: var(--layout__primary-text-color);
+}
+.input-dropdown__input-field__back {
+  background-color: #313131;
+  color: var(--layout__primary-text-color);
+}
+.input-dropdown__content {
+  background-color: #313131;
+  color: var(--layout__primary-text-color);
+  border-color: var(--theme__search-bar__outline-color);
+}
+.input-dropdown__content label:hover,
+.input-dropdown__content label:focus {
+  background-color: #1e90ff;
+}
+/* Log */
+.log {
+  color: #ffffff;
+}
+.log__time-stamp {
+  color: #857df3;
+}
+.log__source {
+  color: #d4d4d4; /* Default color of sources, used on the unknown/unspecified sources */
+}
+.log__source--background-services {
+  color: #8d8d8d;
+}
+.log__source--game-launcher {
+  color: #ffd900;
+}
+.log__source--router {
+  color: #00ff00;
+}
+.log__source--redirector {
+  color: #00ffff;
+}
+
+
+/* ------ Image Preview ------ */
+.image-preview {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+
+/* ------ Main Layout ------ */
+.root {
+  background-color: var(--theme__title-bar__background-color);
+}
+.main {
+  background-color: var(--theme__background-color);
+}
+
+
+/* ------ TitleBar ------ */
+.title-bar {
+  background-color: var(--theme__title-bar__background-color);
+}
+/* Minimize Button */
+.title-bar__button-bar__min {
+  background-image: url('../images/min.png');
+}
+.title-bar__button-bar__min:hover {
+  background-color: #242428;
+}
+/* Maximize Button */
+.title-bar__button-bar__max {
+  background-image: url('../images/max.png');
+}
+.title-bar__button-bar__max:hover {
+  background-color: #242428;
+}
+/* Cross Button */
+.title-bar__button-bar__cross {
+  background-image: url('../images/cross.png');
+}
+.title-bar__button-bar__cross:hover {
+  background-color: #eb4b4b;
+}
+
+
+/* ------ Header ------ */
+.header {
+  background-color: var(--theme__header__background-color);
+}
+.header__menu__item__link {
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--layout__primary-text-color);
+}
+.header__menu__item__link:hover {
+  background-color: #3c2d4b;
+  border-color: #d33682;
+}
+.header__search {
+  border: 1px solid var(--theme__search-bar__outline-color);
+  background-color: var(--theme__search-bar__background-color);
+}
+.header__search__icon .icon__use {
+  fill: var(--layout__primary-text-color);
+}
+.header__search__icon:hover .icon__use--circle-x {
+  fill: #b1b1b1;
+}
+/* Header Toggle-Sidebar */
+.header__toggle-sidebar .icon__use {
+  fill: #ccc;
+}
+.header__toggle-sidebar:hover .icon__use {
+  fill: #fff;
+}
+.header__toggle-sidebar:active .icon__use {
+  fill: var(--color__aaa);
+}
+
+
+/* ------ Footer ------ */
+.footer {
+  background-color: var(--theme__footer__background-color);
+}
+/* Scale Slider */
+.footer__scale-slider__inner {
+  background-color: #353838;
+  box-shadow: inset 0 0 calc(0.5 * var(--slider-size)) rgba(0, 0, 0, 0.05);
+  border-radius: calc(0.5 * var(--slider-size));
+}
+.footer__scale-slider__icon {
+  font-family: monospace;
+  font-weight: bold;
+  color: var(color__foot-slider-icon);
+}
+.footer__scale-slider__icon--center {
+  background-color: var(color__foot-slider-icon);
+}
+.footer__scale-slider__input {
+  background: none;
+}
+.footer__scale-slider__input::-webkit-slider-runnable-track {
+  background: none;
+}
+.footer__scale-slider__input::-webkit-slider-thumb {
+  box-shadow: inset 0 0 calc(0.5 * var(--slider-size));
+  border-radius: 50%;
+  background-color: var(--theme__slider__color);
+  color: rgba(0, 0, 0, 0.05);
+}
+.footer__scale-slider__input::-webkit-slider-thumb:hover {
+  background-color: var(--theme__slider__color-hover);
+}
+.footer__scale-slider__input::-webkit-slider-thumb:active {
+  background-color: var(--theme__slider__color-active);
+}
+
+
+/* ------ Home ------ */
+/* Logo */
+.home-page__logo__image {
+  /* Mask the background color with the FP logo */
+  -webkit-mask: url('../images/logo-solid.svg');
+  -webkit-mask-size: var(--size);
+  -webkit-mask-repeat: no-repeat;
+  /* Cool colors yall */
+  background:
+    linear-gradient(#00000000, var(--theme__background-color)),
+    linear-gradient(90deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400);
+  background-size: var(--zoom) 100%;
+  -webkit-animation: home-page__logo__slide 1200s linear infinite;
+}
+@-webkit-keyframes home-page__logo__slide {
+     0% { background-position-x:          0%; }
+   100% { background-position-x: var(--zoom); }
+}
+/* HomePage Box */
+.home-page__box {
+  border-color: #3f3f3f;
+  background-color: #252525;
+}
+.home-page__box__head {
+  border-bottom-color: #3f3f3f;
+}
+/* HomePage Box - Upgrades */
+.home-page__box--upgrades .home-page__grayed-out {
+  color: var(--theme__text-disabled-color);
+}
+/* HomePage Box - Extras */
+.home-page__box--extras span a {
+  text-decoration: none;
+}
+
+
+/* ------ About ------ */
+.about-page__section__title {
+  background-color: #141417;
+}
+/* Credits */
+.about-page__credits__tooltip {
+  border-color: #000000;
+  background-color: #000000DD;
+}
+.about-page__credits__tooltip__note {
+  color: var(--theme__text-disabled-color);
+  font-style: italic;
+}
+.about-page__credits__tooltip__roles p {
+  background-color: #000000;
+}
+
+
+/* ------ Log ------ */
+/* Log-Page Bar */
+.log-page__bar {
+  background-color: #222222;
+}
+
+
+/* ------ Browse ------ */
+.game-browser {
+  background-color: var(--theme__background-color);
+}
+/* Sidebar */
+.game-browser__sidebar {
+  background-color: var(--theme__browse-sidebar__background-color);
+}
+.game-browser__sidebar__divider {
+  background-color: var(--theme__browse-sidebar__divider__background-color);
+}
+/* Browse-Right-Sidebar Additional-Application */
+.browse-right-sidebar__additional-application:nth-child(2n) {
+  background-color: #141417;
+}
+/* BrowseSidebar Title-Row Buttons */
+.browse-right-sidebar__title-row__buttons .icon__use {
+  fill: var(--layout__primary-text-color);
+}
+.browse-right-sidebar__title-row__buttons :hover .icon__use {
+  fill: #b1b1b1;
+}
+/* BrowseSidebar Title-Row Delete-Game */
+.browse-right-sidebar__title-row__buttons__delete-game:hover .icon__use {
+  fill: #aa4b4b;
+}
+.browse-right-sidebar__title-row__buttons__delete-game--active:hover .icon__use {
+  fill: #8a1212;
+}
+/* BrowseSidebar Title-Row Remove-From-Playlist */
+.browse-right-sidebar__title-row__buttons__remove-from-playlist:hover .icon__use {
+  fill: #aa4b4b;
+}
+.browse-right-sidebar__title-row__buttons__remove-from-playlist--active:hover .icon__use {
+  fill: #8a1212;
+}
+/* BrowseSidebar Title-Row Edit */
+.browse-right-sidebar__title-row__buttons__edit-button:hover .icon__use {
+  fill: #5cb468;
+}
+/* BrowseSidebar Title-Row Discard */
+.browse-right-sidebar__title-row__buttons__discard-button:hover .icon__use {
+  fill: #aa4b4b;
+}
+/* BrowseSidebar Title-Row Save */
+.browse-right-sidebar__title-row__buttons__save-button:hover .icon__use {
+  fill: #5cb468;
+}
+/* Browse-Right-Sidebar Row - Screenshot */
+.browse-right-sidebar__row__screenshot__placeholder {
+  background-color: #1b1b1b;
+  border-color: #818181;
+}
+.browse-right-sidebar__row__screenshot__placeholder p {
+  color: var(--theme__text-disabled-color);
+}
+/* GameImageSplit */
+.game-image-split {
+  --inner-border-color: #313131;
+}
+.game-image-split--hover {
+  background-color: #575757;
+}
+.game-image-split--disabled {
+  background-color: #141414;
+}
+.game-image-split:first-child {
+  border-right-color: var(--inner-border-color);
+}
+.game-image-split:last-child {
+  border-left-color: var(--inner-border-color);
+}
+.game-image-split__buttons__remove-image:hover .icon__use {
+  fill: #aa4b4b;
+}
+.game-image-split__buttons__remove-image--active:hover .icon__use {
+  fill: #8a1212;
+}
+
+
+/* GameList Item */
+.game-list-item {
+  list-style: none;
+  background-color: var(--theme__background-color);
+  color: var(--theme__game-item__color);
+}
+.game-list-item--even {
+  background-color: var(--theme__game-list-item__background-color-even);
+}
+.game-list-item:hover {
+  background-color: var(--theme__game-item__background-color-hover);
+  color: var(--theme__game-item__color-hover);
+}
+.game-list-item--selected {
+  background-color: var(--theme__game-item__background-color-selected);
+  color: var(--theme__game-item__color-selected);
+}
+.game-list-item--selected:hover {
+  background-color: var(--theme__game-item__background-color-selected-hover);
+  color: var(--theme__game-item__color-selected-hover);
+}
+/* GameList Item Thumb */
+.game-list-item__thumb {
+  image-rendering: var(--theme__game-item-thumb__image-rendering);
+}
+
+
+/* GameGrid */
+.game-grid-item {
+  color: var(--theme__game-item__color);
+}
+.game-grid-item:hover {
+  background-color: var(--theme__game-item__background-color-hover);
+  color: var(--theme__game-item__color-hover);
+}
+.game-grid-item--selected {
+  background-color: var(--theme__game-item__background-color-selected);
+  color: var(--theme__game-item__color-selected);
+}
+.game-grid-item--selected:hover {
+  background-color: var(--theme__game-item__background-color-selected-hover);
+  color: var(--theme__game-item__color-selected-hover);
+}
+.game-grid-item__thumb__image {
+  border-radius: 0.2em;
+  background-color: #242428;
+  border-color: #141417;
+  box-shadow: 0px 2px 4px 0px #09090a;
+  image-rendering: var(--theme__game-item-thumb__image-rendering);
+}
+
+/* Playlist-List-Item */
+.playlist-list-item {
+  background-color: var(--theme__background-color);
+  color: var(--color__aaa);
+}
+.playlist-list-item:nth-child(2n) {
+  background-color: var(--theme__playlist-list-item-even__background-color);
+}
+.playlist-list-item:hover,
+.playlist-list-item.playlist-list-item--drag-over {
+  background-color: #3c3c41;
+}
+.playlist-list-item--editing {
+  background-color: #151f14;
+}
+.playlist-list-item--editing:nth-child(2n) {
+  background-color: #192519;
+}
+.playlist-list-item--editing:hover,
+.playlist-list-item--editing.playlist-list-item--drag-over {
+  background-color: #20301f;
+}
+.playlist-list-item--drag-over .playlist-list-item__drag-overlay {
+  border-color: #818181;
+}
+/* Playlist-List-Item Head */
+.playlist-list-item__head {
+  --color: var(--color__aaa);
+  color: var(--color);
+}
+.playlist-list-item__head:hover,
+.playlist-list-item--drag-over .playlist-list-item__head {
+  --color: #e6e6e6;
+}
+.playlist-list-item__head__icon__no-image__icon .icon__use {
+  fill: var(--color);
+}
+/* Playlist-List-Item Content */
+.playlist-list-item__content {
+  background-color: #242425;
+}
+.playlist-list-item--editing .playlist-list-item__content {
+  background-color: #1c291b;
+  color: var(--color__playlist-description-while-edititng);
+}
+.playlist-list-item__content__description-edit {
+  background-color: #3a5637;
+}
+/* Playlist-List-Fake-Item */
+.playlist-list-fake-item {
+  background-color: var(--theme__playlist-list-fake-item__background-color);
+  --color: #aaaaaa;
+}
+.playlist-list-fake-item:hover {
+  background-color: #343438;
+  --color: #ffffff;
+}
+.playlist-list-fake-item__inner .icon__use {
+  fill: var(--color);
+}
+.playlist-list-fake-item__inner__title {
+  color: var(--color);
+}
+
+
+/** ------ Developer ------ */
+.developer-page__log {
+  background-color: #313133;
+  border-color: #353535;
+}
+
+
+/** ------ Config ------ */
+/* Setting */
+.setting__body {
+  background-color: #242428;
+  border-color: #141417;
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
+/* Setting Row */
+.setting__row {
+  padding: 0.75em;
+}
+.setting__row:not(:first-child) {
+  border-top-color: #141417;
+}
+/* Setting Row Content - FilePoint Path */
+.setting__row__content--filepath-path .flashpoint-path__input {
+  border-color: var(--theme__search-bar__outline-color);
+}
+.setting__row__content--filepath-path .flashpoint-path__input--valid {
+  background-color: #009600;
+}
+.setting__row__content--filepath-path .flashpoint-path__input--invalid {
+  background-color: #840000;
+}
+.setting__row__content--filepath-path .flashpoint-path__input input[type="text"] {
+  color: var(--layout__primary-text-color);
+}
+/* Setting Row Content - Input Field */
+.setting__row__content--input-field > :first-child > * {
+  border-color: var(--theme__search-bar__outline-color);
+}
+/* Setting Row Content - Theme Input Field */
+.setting__row__content--theme-input-field label:last-child {
+  /* Change the color of the "No Theme" suggestion in the drop-down list. */
+  color: var(--color__no-theme-suggestion);
+}
