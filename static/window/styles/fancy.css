@@ -4,6 +4,7 @@
   --color__aaa: var(--layout__secondary-text-color);
   --color__playlist-description-while-edititng: #ffffff;
   --color__no-theme-suggestion: #bfbfbf;
+  --color__foot-slider-icon: #0f1010;
   /* Text */
   --layout__primary-text-color: #f1f1f1;
   --layout__secondary-text-color: #aaaaaa;
@@ -263,10 +264,10 @@ body {
 .footer__scale-slider__icon {
   font-family: monospace;
   font-weight: bold;
-  color: var(color__foot-slider-icon);
+  color: var(--color__foot-slider-icon);
 }
 .footer__scale-slider__icon--center {
-  background-color: var(color__foot-slider-icon);
+  background-color: var(--color__foot-slider-icon);
 }
 .footer__scale-slider__input {
   background: none;
