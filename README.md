@@ -13,6 +13,12 @@ The launcher for BlueMaxima's Flashpoint (aka the Flashpoint Project).
 2. Open a command prompt and navigate it to the projects root folder.
 3. Run ``npm install``
 
+## Linux dependencies
+* `libgtk-3-0`
+* `libnss3`
+
+Install by running ``sudo apt install libgtk-3-0 libnss3``
+
 ## Development
 1. Open a command prompt and run ``npm run watch`` and wait for it to finish building
 2. Open another command prompt and wait for ``build`` to complete, then run ``npm run start``
