@@ -1,3 +1,12 @@
+/* ====== CORE ======
+ * 
+ * Contains all styles that are necessary for the application to be used.
+ * This includes styles that set things like position, size, "user-select" etc.
+ * 
+ * The application should be completely usable with this stylesheet only.
+ * 
+ */
+
 /* ------ General ------ */
 * {
   margin: 0;
@@ -1490,6 +1499,9 @@ body {
 /* Setting Row */
 .setting__row {
   padding: 0.75em;
+}
+.setting__row:not(:first-child) {
+  border-top: 1px solid;
 }
 .setting__row__top {
   display: flex;

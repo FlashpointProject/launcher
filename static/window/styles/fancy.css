@@ -1,11 +1,29 @@
+/* ====== FANCY ======
+ * 
+ * Contains all styles that enhance the visuals of the application.
+ * This includes things like text/background/border colors, fonts etc.
+ *
+ * This stylesheet should be compleley optional.
+ * 
+ */
+
 /* ------ General ------ */
 :root {
   /* ------- Layout Variables ------- */
-  --color__aaa: var(--layout__secondary-text-color);
-  --color__playlist-description-while-edititng: #ffffff;
-  --color__no-theme-suggestion: #bfbfbf;
-  --color__foot-slider-icon: #0f1010;
-  /* Text */
+  /* Font */
+  --layout__primary-font: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  /* Confirm */
+  /*--layout__confirm-dark-color:   #5cb468;
+  --layout__confirm-medium-color: #5cb468;*/
+  --layout__confirm-bright-color: #5cb468;
+  /* Warning */
+  --layout__warning-dark-color:   #5a1010;
+  --layout__warning-medium-color: #731919;
+  --layout__warning-bright-color: #a22020;
+  /* Valid / Invalid */
+  --layout__valid-color:   #009600;
+  --layout__invalid-color: #840000;
+  /* Text Color */
   --layout__primary-text-color: #f1f1f1;
   --layout__secondary-text-color: #aaaaaa;
   --layout__highlighted-text-color: #ffffff;
@@ -13,41 +31,44 @@
   /* Background */
   --layout__primary-background: #1b1b1c;
   --layout__secondary-background: #2d2d30;
-  /* Theme Variables */
-  --theme__font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  --theme__text-disabled-color: #9b9b9b;
-  --theme__background-color: #1b1b1c;
-  --theme__search-bar__background-color: #1b1b1d;
-  --theme__search-bar__outline-color: #47474d;
-  --theme__title-bar__background-color: #141417;
-  --theme__scrollbar__color: #585858;
-  --theme__scrollbar__color-hover: #505050;
-  --theme__scrollbar__color-active: #404040;
-  --theme__slider__color: #4d4f55;
-  --theme__slider__color-hover: #43454b;
-  --theme__slider__color-active: #2e2f33;
-  --theme__browse-sidebar__background-color: #181819;
-  --theme__browse-sidebar__divider__background-color: #131313;
-  --theme__header__background-color: #2d2d30;
-  --theme__footer__background-color: #2a2a2b;
-  --theme__playlist-list-item-even__background-color: #1e1e1f;
-  --theme__playlist-list-fake-item__background-color: #19191b;
-  --theme__game-item__color: #aaaaaa;
-  --theme__game-item__color-hover: #e6e6e6;
-  --theme__game-item__color-selected: #cecece;
-  --theme__game-item__color-selected-hover: #e6e6e6;
-  --theme__game-item__background-color-hover: #3c3c41;
-  --theme__game-item__background-color-selected: #791c76;
-  --theme__game-item__background-color-selected-hover: #a72aa2;
-  --theme__game-list-item__background-color-even: #1e1e1f;
-  --theme__game-item-thumb__image-rendering: normal;
-  /* Pimp */
-  color: var(--layout__primary-text-color);
+  --layout__tertiary-backround: #141417;
+  --layout__four-background: #242428;
+  /* Outline Color */
+  --layout__primary-outline-color: #47474d;
+  /* Scrollbar */
+  --layout__scroll-thumb-color: #585858;
+  --layout__scroll-thumb-color-hover: #505050;
+  --layout__scroll-thumb-color-active: #404040;
+  /* Slider */
+  --layout__slider-background: #4d4f55;
+  --layout__slider-background-hover: #43454b;
+  --layout__slider-background-active: #2e2f33;
+  /* Game Item */
+  --layout__game-item-color: var(--layout__secondary-text-color);
+  --layout__game-item-color-hover: var(--layout__primary-text-color);
+  --layout__game-item-color-selected: #cecece;
+  --layout__game-item-color-selected-hover: var(--layout__game-item-color-hover);
+  --layout__game-list-item-background-even: #1e1e1f; /* Only used in "list" mode. */
+  --layout__game-item-background-hover: #3c3c41;
+  --layout__game-item-background-selected: #791c76;
+  --layout__game-item-background-selected-hover: #a72aa2;
+  --layout__game-item-thumb-image-rendering: normal; /* Used to set the "image-rendering" of the thumbnail. */
+  /* Browse Sidebar */
+  --layout__browse-sidebar-background: #181819;
+  --layout__browse-sidebar-divider-background: #131313;
+  /* Playlist List */
+  --layout__playlist-list-item-even-background: #1e1e1f;
+  --layout__playlist-list-fake-even-background: #19191b;
+  /* Misc */
+  --layout__title-bar-cross-color: #eb4b4b;
+  --layout__no-theme-suggestion-color: #bfbfbf;
+  --layout__footer-scale-slider-icon-color: #0f1010;
 }
 
 body {
-  background-color: var(--theme__background-color);
-  font-family: var(--theme__font-family);
+  color: var(--layout__primary-text-color);
+  background-color: var(--layout__primary-background);
+  font-family: var(--layout__primary-font);
 }
 
 :link {
@@ -64,8 +85,8 @@ body {
 /* ------ Generic & Re-usable ------ */
 /* Simple Button */
 .simple-button {
-  background-color: #2d2d30;
-  border-color: var(--theme__search-bar__outline-color);
+  background-color: var(--layout__secondary-background);
+  border-color: var(--layout__primary-outline-color);
   color: var(--layout__primary-text-color);
 }
 .simple-button:hover {
@@ -73,22 +94,22 @@ body {
   border-color: #6f6f75;
 }
 .simple-button:disabled {
-  color: var(--theme__text-disabled-color);
+  color: var(--layout__disabled-text-color);
 }
 .simple-button--red {
-  background-color: #5a1010;
-  border-color: #731919;
+  background-color: var(--layout__warning-dark-color);
+  border-color: var(--layout__warning-medium-color);
 }
 .simple-button--red:hover {
-  background-color: #731616;
-  border-color: #a22020;
+  background-color: var(--layout__warning-medium-color);
+  border-color: var(--layout__warning-bright-color);
 }
 /* Simple Selector */
 .simple-selector {
-  border-color: var(--theme__search-bar__outline-color);
+  border-color: var(--layout__primary-outline-color);
   /* Pimp */
-  font-family: var(--theme__font-family);
-  background-color: var(--theme__background-color);
+  font-family: var(--layout__primary-font);
+  background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
 }
 /* Simple Scroll(bar) */
@@ -97,16 +118,22 @@ body {
   background-color: rgba(0, 0, 0, 0.085);
   border-radius: calc(0.5 * var(--scrollbar-size));
 }
+.simple-scroll::-webkit-scrollbar-thumb {
+  box-shadow: inset 0 0 calc(0.5 * var(--scrollbar-size));
+  border-radius: calc(0.5 * var(--scrollbar-size));
+  background-color: var(--layout__scroll-thumb-color);
+  color: rgba(0, 0, 0, 0.15);
+}
 .simple-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: var(--theme__scrollbar__color-hover);
+  background-color: var(--layout__scroll-thumb-color-hover);
 }
 .simple-scroll::-webkit-scrollbar-thumb:active {
-  background-color: var(--theme__scrollbar__color-active);
+  background-color: var(--layout__scroll-thumb-color-active);
 }
 /* Simple Input (Input text field) */
 .simple-input {
   color: var(--layout__primary-text-color);
-  background-color: #313131;
+  background-color: var(--layout__secondary-background);
 }
 /* Simple Disabled Text */
 .simple-disabled-text {
@@ -114,37 +141,37 @@ body {
 }
 /* Checkbox Dropdown */
 .checkbox-dropdown {
-  font-family: var(--theme__font-family);
-  background-color: var(--theme__background-color);
+  font-family: var(--layout__primary-font);
+  background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
 }
 .checkbox-dropdown__select-box {
-  background-color: var(--theme__background-color);
+  background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
-  border-color: var(--theme__search-bar__outline-color);
+  border-color: var(--layout__primary-outline-color);
 }
 .checkbox-dropdown__content {
-  background-color: var(--theme__background-color);
+  background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
-  border-color: var(--theme__search-bar__outline-color);
+  border-color: var(--layout__primary-outline-color);
 }
 .checkbox-dropdown__content label:hover {
   background-color: #1e90ff;
 }
 /* Input Dropdown */
 .input-dropdown {
-  font-family: var(--theme__font-family);
-  background-color: var(--theme__background-color);
+  font-family: var(--layout__primary-font);
+  background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
 }
 .input-dropdown__input-field__back {
-  background-color: #313131;
+  background-color: var(--layout__secondary-background);
   color: var(--layout__primary-text-color);
 }
 .input-dropdown__content {
-  background-color: #313131;
+  background-color: var(--layout__secondary-background);
   color: var(--layout__primary-text-color);
-  border-color: var(--theme__search-bar__outline-color);
+  border-color: var(--layout__primary-outline-color);
 }
 .input-dropdown__content label:hover,
 .input-dropdown__content label:focus {
@@ -152,7 +179,7 @@ body {
 }
 /* Log */
 .log {
-  color: #ffffff;
+  color: var(--layout__highlighted-text-color);
 }
 .log__time-stamp {
   color: #857df3;
@@ -182,43 +209,43 @@ body {
 
 /* ------ Main Layout ------ */
 .root {
-  background-color: var(--theme__title-bar__background-color);
+  background-color: var(--layout__tertiary-backround);
 }
 .main {
-  background-color: var(--theme__background-color);
+  background-color: var(--layout__primary-background);
 }
 
 
 /* ------ TitleBar ------ */
 .title-bar {
-  background-color: var(--theme__title-bar__background-color);
+  background-color: var(--layout__tertiary-backround);
 }
 /* Minimize Button */
 .title-bar__button-bar__min {
   background-image: url('../images/min.png');
 }
 .title-bar__button-bar__min:hover {
-  background-color: #242428;
+  background-color: var(--layout__four-background);
 }
 /* Maximize Button */
 .title-bar__button-bar__max {
   background-image: url('../images/max.png');
 }
 .title-bar__button-bar__max:hover {
-  background-color: #242428;
+  background-color: var(--layout__four-background);
 }
 /* Cross Button */
 .title-bar__button-bar__cross {
   background-image: url('../images/cross.png');
 }
 .title-bar__button-bar__cross:hover {
-  background-color: #eb4b4b;
+  background-color: var(--layout__title-bar-cross-color);
 }
 
 
 /* ------ Header ------ */
 .header {
-  background-color: var(--theme__header__background-color);
+  background-color: var(--layout__secondary-background);
 }
 .header__menu__item__link {
   cursor: pointer;
@@ -230,8 +257,11 @@ body {
   border-color: #d33682;
 }
 .header__search {
-  border: 1px solid var(--theme__search-bar__outline-color);
-  background-color: var(--theme__search-bar__background-color);
+  border: 1px solid var(--layout__primary-outline-color);
+  background-color: var(--layout__primary-background);
+}
+.header__search__input {
+  color: var(--layout__primary-text-color);
 }
 .header__search__icon .icon__use {
   fill: var(--layout__primary-text-color);
@@ -244,16 +274,16 @@ body {
   fill: #ccc;
 }
 .header__toggle-sidebar:hover .icon__use {
-  fill: #fff;
+  fill: var(--layout__highlighted-text-color);
 }
 .header__toggle-sidebar:active .icon__use {
-  fill: var(--color__aaa);
+  fill: var(--layout__secondary-text-color);
 }
 
 
 /* ------ Footer ------ */
 .footer {
-  background-color: var(--theme__footer__background-color);
+  background-color: var(--layout__secondary-background);
 }
 /* Scale Slider */
 .footer__scale-slider__inner {
@@ -264,10 +294,10 @@ body {
 .footer__scale-slider__icon {
   font-family: monospace;
   font-weight: bold;
-  color: var(--color__foot-slider-icon);
+  color: var(--layout__footer-scale-slider-icon-color);
 }
 .footer__scale-slider__icon--center {
-  background-color: var(--color__foot-slider-icon);
+  background-color: var(--layout__footer-scale-slider-icon-color);
 }
 .footer__scale-slider__input {
   background: none;
@@ -278,14 +308,14 @@ body {
 .footer__scale-slider__input::-webkit-slider-thumb {
   box-shadow: inset 0 0 calc(0.5 * var(--slider-size));
   border-radius: 50%;
-  background-color: var(--theme__slider__color);
+  background-color: var(--layout__slider-background);
   color: rgba(0, 0, 0, 0.05);
 }
 .footer__scale-slider__input::-webkit-slider-thumb:hover {
-  background-color: var(--theme__slider__color-hover);
+  background-color: var(--layout__slider-background-hover);
 }
 .footer__scale-slider__input::-webkit-slider-thumb:active {
-  background-color: var(--theme__slider__color-active);
+  background-color: var(--layout__slider-background-active);
 }
 
 
@@ -298,7 +328,7 @@ body {
   -webkit-mask-repeat: no-repeat;
   /* Cool colors yall */
   background:
-    linear-gradient(#00000000, var(--theme__background-color)),
+    linear-gradient(#00000000, var(--layout__primary-background)),
     linear-gradient(90deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400);
   background-size: var(--zoom) 100%;
   -webkit-animation: home-page__logo__slide 1200s linear infinite;
@@ -317,7 +347,7 @@ body {
 }
 /* HomePage Box - Upgrades */
 .home-page__box--upgrades .home-page__grayed-out {
-  color: var(--theme__text-disabled-color);
+  color: var(--layout__disabled-text-color);
 }
 /* HomePage Box - Extras */
 .home-page__box--extras span a {
@@ -327,7 +357,7 @@ body {
 
 /* ------ About ------ */
 .about-page__section__title {
-  background-color: #141417;
+  background-color: var(--layout__tertiary-backround);
 }
 /* Credits */
 .about-page__credits__tooltip {
@@ -335,7 +365,7 @@ body {
   background-color: #000000DD;
 }
 .about-page__credits__tooltip__note {
-  color: var(--theme__text-disabled-color);
+  color: var(--layout__disabled-text-color);
   font-style: italic;
 }
 .about-page__credits__tooltip__roles p {
@@ -352,18 +382,18 @@ body {
 
 /* ------ Browse ------ */
 .game-browser {
-  background-color: var(--theme__background-color);
+  background-color: var(--layout__primary-background);
 }
 /* Sidebar */
 .game-browser__sidebar {
-  background-color: var(--theme__browse-sidebar__background-color);
+  background-color: var(--layout__browse-sidebar-background);
 }
 .game-browser__sidebar__divider {
-  background-color: var(--theme__browse-sidebar__divider__background-color);
+  background-color: var(--layout__browse-sidebar-divider-background);
 }
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application:nth-child(2n) {
-  background-color: #141417;
+  background-color: var(--layout__tertiary-backround);
 }
 /* BrowseSidebar Title-Row Buttons */
 .browse-right-sidebar__title-row__buttons .icon__use {
@@ -374,29 +404,36 @@ body {
 }
 /* BrowseSidebar Title-Row Delete-Game */
 .browse-right-sidebar__title-row__buttons__delete-game:hover .icon__use {
-  fill: #aa4b4b;
+  fill: var(--layout__warning-bright-color);
 }
 .browse-right-sidebar__title-row__buttons__delete-game--active:hover .icon__use {
-  fill: #8a1212;
+  fill: var(--layout__warning-medium-color);
 }
 /* BrowseSidebar Title-Row Remove-From-Playlist */
 .browse-right-sidebar__title-row__buttons__remove-from-playlist:hover .icon__use {
-  fill: #aa4b4b;
+  fill: var(--layout__warning-bright-color);
 }
 .browse-right-sidebar__title-row__buttons__remove-from-playlist--active:hover .icon__use {
-  fill: #8a1212;
+  fill: var(--layout__warning-medium-color);
 }
 /* BrowseSidebar Title-Row Edit */
 .browse-right-sidebar__title-row__buttons__edit-button:hover .icon__use {
-  fill: #5cb468;
+  fill: var(--layout__confirm-bright-color);
 }
 /* BrowseSidebar Title-Row Discard */
 .browse-right-sidebar__title-row__buttons__discard-button:hover .icon__use {
-  fill: #aa4b4b;
+  fill: var(--layout__warning-bright-color);
 }
 /* BrowseSidebar Title-Row Save */
 .browse-right-sidebar__title-row__buttons__save-button:hover .icon__use {
-  fill: #5cb468;
+  fill: var(--layout__confirm-bright-color);
+}
+/* Browse-Right-Sidebar Row - Additional Application */
+.browse-right-sidebar__additional-application__delete-button:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.browse-right-sidebar__additional-application__delete-button--active:hover .icon__use {
+  fill: var(--layout__confirm-bright-color);
 }
 /* Browse-Right-Sidebar Row - Screenshot */
 .browse-right-sidebar__row__screenshot__placeholder {
@@ -404,11 +441,11 @@ body {
   border-color: #818181;
 }
 .browse-right-sidebar__row__screenshot__placeholder p {
-  color: var(--theme__text-disabled-color);
+  color: var(--layout__disabled-text-color);
 }
 /* GameImageSplit */
 .game-image-split {
-  --inner-border-color: #313131;
+  --inner-border-color: var(--layout__secondary-background);
 }
 .game-image-split--hover {
   background-color: #575757;
@@ -423,71 +460,71 @@ body {
   border-left-color: var(--inner-border-color);
 }
 .game-image-split__buttons__remove-image:hover .icon__use {
-  fill: #aa4b4b;
+  fill: var(--layout__warning-bright-color);
 }
 .game-image-split__buttons__remove-image--active:hover .icon__use {
-  fill: #8a1212;
+  fill: var(--layout__warning-medium-color);
 }
 
 
 /* GameList Item */
 .game-list-item {
   list-style: none;
-  background-color: var(--theme__background-color);
-  color: var(--theme__game-item__color);
+  background-color: var(--layout__primary-background);
+  color: var(--layout__game-item-color);
 }
 .game-list-item--even {
-  background-color: var(--theme__game-list-item__background-color-even);
+  background-color: var(--layout__game-list-item-background-even);
 }
 .game-list-item:hover {
-  background-color: var(--theme__game-item__background-color-hover);
-  color: var(--theme__game-item__color-hover);
+  background-color: var(--layout__game-item-background-hover);
+  color: var(--layout__game-item-color-hover);
 }
 .game-list-item--selected {
-  background-color: var(--theme__game-item__background-color-selected);
-  color: var(--theme__game-item__color-selected);
+  background-color: var(--layout__game-item-background-selected);
+  color: var(--layout__game-item-color-selected);
 }
 .game-list-item--selected:hover {
-  background-color: var(--theme__game-item__background-color-selected-hover);
-  color: var(--theme__game-item__color-selected-hover);
+  background-color: var(--layout__game-item-background-selected-hover);
+  color: var(--layout__game-item-color-selected-hover);
 }
 /* GameList Item Thumb */
 .game-list-item__thumb {
-  image-rendering: var(--theme__game-item-thumb__image-rendering);
+  image-rendering: var(--layout__game-item-thumb-image-rendering);
 }
 
 
 /* GameGrid */
 .game-grid-item {
-  color: var(--theme__game-item__color);
+  color: var(--layout__game-item-color);
 }
 .game-grid-item:hover {
-  background-color: var(--theme__game-item__background-color-hover);
-  color: var(--theme__game-item__color-hover);
+  background-color: var(--layout__game-item-background-hover);
+  color: var(--layout__game-item-color-hover);
 }
 .game-grid-item--selected {
-  background-color: var(--theme__game-item__background-color-selected);
-  color: var(--theme__game-item__color-selected);
+  background-color: var(--layout__game-item-background-selected);
+  color: var(--layout__game-item-color-selected);
 }
 .game-grid-item--selected:hover {
-  background-color: var(--theme__game-item__background-color-selected-hover);
-  color: var(--theme__game-item__color-selected-hover);
+  background-color: var(--layout__game-item-background-selected-hover);
+  color: var(--layout__game-item-color-selected-hover);
 }
 .game-grid-item__thumb__image {
   border-radius: 0.2em;
-  background-color: #242428;
-  border-color: #141417;
+  background-color: var(--layout__four-background);
+  border-color: var(--layout__tertiary-backround);
   box-shadow: 0px 2px 4px 0px #09090a;
-  image-rendering: var(--theme__game-item-thumb__image-rendering);
+  image-rendering: var(--layout__game-item-thumb-image-rendering);
 }
 
 /* Playlist-List-Item */
 .playlist-list-item {
-  background-color: var(--theme__background-color);
-  color: var(--color__aaa);
+  background-color: var(--layout__primary-background);
+  color: var(--layout__secondary-text-color);
 }
 .playlist-list-item:nth-child(2n) {
-  background-color: var(--theme__playlist-list-item-even__background-color);
+  background-color: var(--layout__playlist-list-item-even-background);
 }
 .playlist-list-item:hover,
 .playlist-list-item.playlist-list-item--drag-over {
@@ -508,7 +545,7 @@ body {
 }
 /* Playlist-List-Item Head */
 .playlist-list-item__head {
-  --color: var(--color__aaa);
+  --color: var(--layout__secondary-text-color);
   color: var(--color);
 }
 .playlist-list-item__head:hover,
@@ -524,19 +561,19 @@ body {
 }
 .playlist-list-item--editing .playlist-list-item__content {
   background-color: #1c291b;
-  color: var(--color__playlist-description-while-edititng);
+  color: var(--layout__highlighted-text-color);
 }
 .playlist-list-item__content__description-edit {
   background-color: #3a5637;
 }
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
-  background-color: var(--theme__playlist-list-fake-item__background-color);
-  --color: #aaaaaa;
+  background-color: var(--layout__playlist-list-fake-even-background);
+  --color: var(--layout__secondary-text-color);
 }
 .playlist-list-fake-item:hover {
   background-color: #343438;
-  --color: #ffffff;
+  --color: var(--layout__highlighted-text-color);
 }
 .playlist-list-fake-item__inner .icon__use {
   fill: var(--color);
@@ -556,8 +593,8 @@ body {
 /** ------ Config ------ */
 /* Setting */
 .setting__body {
-  background-color: #242428;
-  border-color: #141417;
+  background-color: var(--layout__four-background);
+  border-color: var(--layout__tertiary-backround);
   box-shadow: 0px 2px 4px 0px #09090a;
 }
 /* Setting Row */
@@ -565,27 +602,27 @@ body {
   padding: 0.75em;
 }
 .setting__row:not(:first-child) {
-  border-top-color: #141417;
+  border-top-color: var(--layout__tertiary-backround);
 }
 /* Setting Row Content - FilePoint Path */
 .setting__row__content--filepath-path .flashpoint-path__input {
-  border-color: var(--theme__search-bar__outline-color);
+  border-color: var(--layout__primary-outline-color);
 }
 .setting__row__content--filepath-path .flashpoint-path__input--valid {
-  background-color: #009600;
+  background-color: var(--layout__valid-color);
 }
 .setting__row__content--filepath-path .flashpoint-path__input--invalid {
-  background-color: #840000;
+  background-color: var(--layout__invalid-color);
 }
 .setting__row__content--filepath-path .flashpoint-path__input input[type="text"] {
   color: var(--layout__primary-text-color);
 }
 /* Setting Row Content - Input Field */
 .setting__row__content--input-field > :first-child > * {
-  border-color: var(--theme__search-bar__outline-color);
+  border-color: var(--layout__primary-outline-color);
 }
 /* Setting Row Content - Theme Input Field */
 .setting__row__content--theme-input-field label:last-child {
   /* Change the color of the "No Theme" suggestion in the drop-down list. */
-  color: var(--color__no-theme-suggestion);
+  color: var(--layout__no-theme-suggestion-color);
 }
