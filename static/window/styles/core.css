@@ -1331,7 +1331,7 @@ body {
 }
 /* Playlist-List-Item Content */
 .playlist-list-item__content {
-  max-height: 0; /* Overriden with JavaScript when expanded */
+  max-height: 0; /* Overridden with JavaScript when expanded. */
   overflow: hidden;
   transition: max-height 0.2s ease-in-out;
 }

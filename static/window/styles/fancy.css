@@ -13,9 +13,7 @@
   /* Font */
   --layout__primary-font: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   /* Confirm */
-  /*--layout__confirm-dark-color:   #5cb468;
-  --layout__confirm-medium-color: #5cb468;*/
-  --layout__confirm-bright-color: #5cb468;
+  --layout__confirm-color: #5cb468;
   /* Warning */
   --layout__warning-dark-color:   #5a1010;
   --layout__warning-medium-color: #731919;
@@ -24,44 +22,44 @@
   --layout__valid-color:   #009600;
   --layout__invalid-color: #840000;
   /* Text Color */
-  --layout__primary-text-color: #f1f1f1;
-  --layout__secondary-text-color: #aaaaaa;
+  --layout__primary-text-color:     #f1f1f1;
+  --layout__secondary-text-color:   #aaaaaa;
   --layout__highlighted-text-color: #ffffff;
-  --layout__disabled-text-color: #9b9b9b;
+  --layout__disabled-text-color:    #9b9b9b;
   /* Background */
-  --layout__primary-background: #1b1b1c;
+  --layout__primary-background:   #1b1b1c;
   --layout__secondary-background: #2d2d30;
-  --layout__tertiary-backround: #141417;
-  --layout__four-background: #242428;
+  --layout__tertiary-background:   #141417;
+  --layout__four-background:      #242428;
   /* Outline Color */
   --layout__primary-outline-color: #47474d;
   /* Scrollbar */
-  --layout__scroll-thumb-color: #585858;
-  --layout__scroll-thumb-color-hover: #505050;
+  --layout__scroll-thumb-color:        #585858;
+  --layout__scroll-thumb-color-hover:  #505050;
   --layout__scroll-thumb-color-active: #404040;
   /* Slider */
-  --layout__slider-background: #4d4f55;
-  --layout__slider-background-hover: #43454b;
+  --layout__slider-background:        #4d4f55;
+  --layout__slider-background-hover:  #43454b;
   --layout__slider-background-active: #2e2f33;
   /* Game Item */
   --layout__game-item-color: var(--layout__secondary-text-color);
   --layout__game-item-color-hover: var(--layout__primary-text-color);
-  --layout__game-item-color-selected: #cecece;
+  --layout__game-item-color-selected:            #cecece;
   --layout__game-item-color-selected-hover: var(--layout__game-item-color-hover);
-  --layout__game-list-item-background-even: #1e1e1f; /* Only used in "list" mode. */
-  --layout__game-item-background-hover: #3c3c41;
-  --layout__game-item-background-selected: #791c76;
+  --layout__game-list-item-background-even:      #1e1e1f; /* Only used in "list" mode. */
+  --layout__game-item-background-hover:          #3c3c41;
+  --layout__game-item-background-selected:       #791c76;
   --layout__game-item-background-selected-hover: #a72aa2;
-  --layout__game-item-thumb-image-rendering: normal; /* Used to set the "image-rendering" of the thumbnail. */
+  --layout__game-item-thumb-image-rendering:       normal; /* Used to set the "image-rendering" of the thumbnail. */
   /* Browse Sidebar */
-  --layout__browse-sidebar-background: #181819;
+  --layout__browse-sidebar-background:         #181819;
   --layout__browse-sidebar-divider-background: #131313;
   /* Playlist List */
   --layout__playlist-list-item-even-background: #1e1e1f;
   --layout__playlist-list-fake-even-background: #19191b;
   /* Misc */
-  --layout__title-bar-cross-color: #eb4b4b;
-  --layout__no-theme-suggestion-color: #bfbfbf;
+  --layout__title-bar-cross-color:          #eb4b4b;
+  --layout__no-theme-suggestion-color:      #bfbfbf;
   --layout__footer-scale-slider-icon-color: #0f1010;
 }
 
@@ -209,7 +207,7 @@ body {
 
 /* ------ Main Layout ------ */
 .root {
-  background-color: var(--layout__tertiary-backround);
+  background-color: var(--layout__tertiary-background);
 }
 .main {
   background-color: var(--layout__primary-background);
@@ -218,7 +216,7 @@ body {
 
 /* ------ TitleBar ------ */
 .title-bar {
-  background-color: var(--layout__tertiary-backround);
+  background-color: var(--layout__tertiary-background);
 }
 /* Minimize Button */
 .title-bar__button-bar__min {
@@ -357,7 +355,7 @@ body {
 
 /* ------ About ------ */
 .about-page__section__title {
-  background-color: var(--layout__tertiary-backround);
+  background-color: var(--layout__tertiary-background);
 }
 /* Credits */
 .about-page__credits__tooltip {
@@ -393,7 +391,7 @@ body {
 }
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application:nth-child(2n) {
-  background-color: var(--layout__tertiary-backround);
+  background-color: var(--layout__tertiary-background);
 }
 /* BrowseSidebar Title-Row Buttons */
 .browse-right-sidebar__title-row__buttons .icon__use {
@@ -418,7 +416,7 @@ body {
 }
 /* BrowseSidebar Title-Row Edit */
 .browse-right-sidebar__title-row__buttons__edit-button:hover .icon__use {
-  fill: var(--layout__confirm-bright-color);
+  fill: var(--layout__confirm-color);
 }
 /* BrowseSidebar Title-Row Discard */
 .browse-right-sidebar__title-row__buttons__discard-button:hover .icon__use {
@@ -426,14 +424,14 @@ body {
 }
 /* BrowseSidebar Title-Row Save */
 .browse-right-sidebar__title-row__buttons__save-button:hover .icon__use {
-  fill: var(--layout__confirm-bright-color);
+  fill: var(--layout__confirm-color);
 }
 /* Browse-Right-Sidebar Row - Additional Application */
 .browse-right-sidebar__additional-application__delete-button:hover .icon__use {
   fill: var(--layout__warning-bright-color);
 }
 .browse-right-sidebar__additional-application__delete-button--active:hover .icon__use {
-  fill: var(--layout__confirm-bright-color);
+  fill: var(--layout__confirm-color);
 }
 /* Browse-Right-Sidebar Row - Screenshot */
 .browse-right-sidebar__row__screenshot__placeholder {
@@ -513,7 +511,7 @@ body {
 .game-grid-item__thumb__image {
   border-radius: 0.2em;
   background-color: var(--layout__four-background);
-  border-color: var(--layout__tertiary-backround);
+  border-color: var(--layout__tertiary-background);
   box-shadow: 0px 2px 4px 0px #09090a;
   image-rendering: var(--layout__game-item-thumb-image-rendering);
 }
@@ -594,7 +592,7 @@ body {
 /* Setting */
 .setting__body {
   background-color: var(--layout__four-background);
-  border-color: var(--layout__tertiary-backround);
+  border-color: var(--layout__tertiary-background);
   box-shadow: 0px 2px 4px 0px #09090a;
 }
 /* Setting Row */
@@ -602,7 +600,7 @@ body {
   padding: 0.75em;
 }
 .setting__row:not(:first-child) {
-  border-top-color: var(--layout__tertiary-backround);
+  border-top-color: var(--layout__tertiary-background);
 }
 /* Setting Row Content - FilePoint Path */
 .setting__row__content--filepath-path .flashpoint-path__input {
