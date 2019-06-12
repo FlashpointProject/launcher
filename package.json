@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "5.0.4",
-    "@types/jest": "^24.0.13",
+    "@types/jest": "24.0.13",
     "@types/node": "10.12.5",
     "@types/react": "16.8.8",
     "@types/react-dom": "16.8.3",
@@ -55,11 +55,11 @@
     "cross-env": "5.2.0",
     "electron-packager": "12.2.0",
     "gulp": "4.0.0",
-    "jest": "^24.8.0",
-    "ts-jest": "^24.0.2",
+    "jest": "24.8.0",
+    "ts-jest": "24.0.2",
     "ts-loader": "5.3.0",
     "tslint": "5.11.0",
-    "typescript": "^3.1.6",
+    "typescript": "3.1.6",
     "webpack": "4.28.1",
     "webpack-cli": "3.2.1"
   }
