@@ -1,27 +1,23 @@
 import * as React from 'react';
 import { GridCellProps } from 'react-virtualized';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { IDefaultProps } from '../interfaces';
 import { getPlatformIconPath } from '../Util';
 
-export interface IGameGridItemProps extends Partial<GridCellProps>, IDefaultProps {
-  /** Game to show */
+export type GameGridItemProps = Partial<GridCellProps> & {
+  /** Game to display. */
   game: IGameInfo;
-  /** Path to the games thumbnail */
+  /** Path to the game's thumbnail. */
   thumbnail: string;
-  /** If the grid item can be dragged (defaults to false) */
+  /** If the cell can be dragged (defaults to false). */
   isDraggable?: boolean;
-  /** If the grid item is selected */
+  /** If the cell is selected. */
   isSelected: boolean;
-  /** If the grid item is being dragged */
+  /** If the cell is being dragged. */
   isDragged: boolean;
-}
+};
 
-export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
-  constructor(props: IGameGridItemProps) {
-    super(props);
-  }
-
+/** Displays a single game. Meant to be rendered inside a grid. */
+export class GameGridItem extends React.Component<GameGridItemProps, {}> {
   render() {
     const game = this.props.game;
     const platformIcon = getPlatformIconPath(game.platform);
@@ -34,19 +30,20 @@ export class GameGridItem extends React.Component<IGameGridItemProps, {}> {
     if (this.props.isDragged)  { className += ' game-grid-item--dragged';  }
     // Render
     return (
-      <li style={this.props.style}
-          className={className}
-          draggable={this.props.isDraggable}
-          { ...attributes }>
+      <li
+        style={this.props.style}
+        className={className}
+        draggable={this.props.isDraggable}
+        { ...attributes }>
         <div className='game-grid-item__thumb'>
-          <div className='game-grid-item__thumb__image' style={{
-            backgroundImage: `url('${this.props.thumbnail}')`
-          }}>
+          <div
+            className='game-grid-item__thumb__image'
+            style={{ backgroundImage: `url('${this.props.thumbnail}')` }}>
             <div className='game-grid-item__thumb__icons'>
               {(platformIcon) ? (
-                <div className='game-grid-item__thumb__icons__icon' style={{
-                  backgroundImage: `url('${platformIcon}')`
-                }} />
+                <div
+                  className='game-grid-item__thumb__icons__icon'
+                  style={{ backgroundImage: `url('${platformIcon}')` }} />
               ) : undefined }
             </div>
           </div>

@@ -9,28 +9,28 @@ import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
 import { IThemeListItem } from '../../theme/ThemeManager';
 
-interface OwnProps {
+type OwnProps = {
   /** Filenames of all files in the themes folder. */
   themeItems: IThemeListItem[];
   /** Load and apply a theme. */
   reloadTheme(themePath: string | undefined): void;
-}
+};
 
-export type IConfigPageProps = OwnProps & WithPreferencesProps;
+export type ConfigPageProps = OwnProps & WithPreferencesProps;
 
-export interface IConfigPageState {
+type ConfigPageState = {
   isFlashpointPathValid?: boolean;
   // -- Configs --
   flashpointPath: string;
   useCustomTitlebar: boolean;
   useFiddler: boolean;
-}
+};
 
-export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageState> {
+export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
   private currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
 
-  constructor(props: IConfigPageProps) {
+  constructor(props: ConfigPageProps) {
     super(props);
     const configData = window.External.config.data;
     this.state = {
@@ -61,7 +61,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                       </div>
                       <div className='setting__row__content setting__row__content--toggle'>
                         <div>
-                          <CheckBox checked={this.props.preferencesData.browsePageShowExtreme} onChange={this.onShowExtremeChange} />
+                          <CheckBox checked={this.props.preferencesData.browsePageShowExtreme} onToggle={this.onShowExtremeChange} />
                         </div>
                       </div>
                     </div>
@@ -78,7 +78,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                     </div>
                     <div className='setting__row__content setting__row__content--toggle'>
                       <div>
-                        <CheckBox checked={this.props.preferencesData.enableEditing} onChange={this.onEnableEditingChange} />
+                        <CheckBox checked={this.props.preferencesData.enableEditing} onToggle={this.onEnableEditingChange} />
                       </div>
                     </div>
                   </div>
@@ -115,11 +115,11 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                   </div>
                   <div className='setting__row__content setting__row__content--redirector'>
                     <div>
-                      <input type="radio" checked={!this.state.useFiddler} onChange={this.onRedirectorRedirectorChange}/>
+                      <input type='radio' checked={!this.state.useFiddler} onChange={this.onRedirectorRedirectorChange}/>
                       <p>Redirector</p>
                     </div>
                     <div>
-                      <input type="radio" checked={this.state.useFiddler} onChange={this.onRedirectorFiddlerChange}/>
+                      <input type='radio' checked={this.state.useFiddler} onChange={this.onRedirectorFiddlerChange}/>
                       <p>Fiddler</p>
                     </div>
                   </div>
@@ -136,7 +136,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox checked={this.props.preferencesData.useWine} onChange={this.useWineChange} />
+                      <CheckBox checked={this.props.preferencesData.useWine} onToggle={this.useWineChange} />
                     </div>
                   </div>
                 </div>
@@ -159,7 +159,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox checked={this.state.useCustomTitlebar} onChange={this.onUseCustomTitlebarChange} />
+                      <CheckBox checked={this.state.useCustomTitlebar} onToggle={this.onUseCustomTitlebarChange} />
                     </div>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export class ConfigPage extends React.Component<IConfigPageProps, IConfigPageSta
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox checked={this.props.preferencesData.showDeveloperTab} onChange={this.onShowDeveloperTab} />
+                      <CheckBox checked={this.props.preferencesData.showDeveloperTab} onToggle={this.onShowDeveloperTab} />
                     </div>
                   </div>
                 </div>

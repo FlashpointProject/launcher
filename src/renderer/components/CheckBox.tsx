@@ -1,27 +1,28 @@
 import * as React from 'react';
+import { useCallback } from 'react';
+import { Omit } from '../../shared/interfaces';
 
-export interface ICheckBoxProps {
-  className?: string;
-  style?: React.CSSProperties;
-  /** If this is checked (defaults to false if undefined) */
-  checked?: boolean;
-  /** Called when this becomes checked or unchecked */
-  onChange?: (isChecked: boolean) => void;
-}
+/** Props for an input element. */
+type InputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
 
-export class CheckBox extends React.Component<ICheckBoxProps, {}> {
-  constructor(props: ICheckBoxProps) {
-    super(props);
-  }
+export type CheckBoxProps = Omit<InputProps, 'type'> & {
+  /** Called when the checkbox becomes checked or unchecked. This is called right after "onChange". */
+  onToggle?: (isChecked: boolean) => void;
+};
 
-  render() {
-    return (
-      <input type='checkbox' checked={this.props.checked} onChange={this.onChange}
-             className={this.props.className} style={this.props.style} />
-    );
-  }
-
-  onChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    if (this.props.onChange) { this.props.onChange(event.target.checked); }
-  }
+/** Basic checkbox element. Wrapper around the <input> element. */
+export function CheckBox(props: CheckBoxProps) {
+  const { onToggle, onChange, ...rest } = props;
+  // Hooks
+  const onChangeCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    if (onChange) { onChange(event); }
+    if (onToggle) { onToggle(event.target.checked); }
+  }, [onToggle, onChange]);
+  // Render
+  return (
+    <input
+      { ...rest }
+      type='checkbox'
+      onChange={onChangeCallback} />
+  );
 }

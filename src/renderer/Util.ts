@@ -109,3 +109,18 @@ export function findElementAncestor<T extends ElementBase<T>>(element: T, fn: El
   }
   return undefined;
 }
+
+/**
+ * Check if an element is the same as another element, or an ancestor of it.
+ * @param start First element to compare to (it will climb up the parents of this recursively).
+ * @param target Element to find.
+ * @returns If the "target" element was found.
+ */
+export function checkIfAncestor(start: Element | null, target: Element | null): boolean {
+  let element: Element | null = start;
+  while (element) {
+    if (element === target) { return true; }
+    element = element.parentElement;
+  }
+  return false;
+}

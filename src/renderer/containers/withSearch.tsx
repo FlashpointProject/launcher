@@ -4,17 +4,19 @@ import { ApplicationState } from '../store';
 import { SearchQuery } from '../store/search';
 import * as searchActions from '../store/search/actions';
 
-interface IStateToProps {
+type StateToProps = {
+  /** Query of the most recent search. */
   searchQuery: SearchQuery;
-}
+};
 
-interface IDispatchToProps {
+type DispatchToProps = {
+  /** Called when the user attempts to make a search. */
   onSearch: (text: string) => void;
-}
+};
 
-export type WithSearchProps = IStateToProps & IDispatchToProps;
+export type WithSearchProps = StateToProps & DispatchToProps;
 
-const mapStateToProps = ({ search }: ApplicationState): IStateToProps => ({
+const mapStateToProps = ({ search }: ApplicationState): StateToProps => ({
   searchQuery: search.query,
 });
 

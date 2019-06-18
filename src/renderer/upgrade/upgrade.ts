@@ -6,19 +6,19 @@ import { doAsyncParallel } from '../util/async';
 const upgradeFilePath: string = './upgrade.json';
 const upgradeFileEncoding: string = 'utf8';
 
-export interface IUpgradeData {
+export type IUpgradeData = {
   tech: IUpgradeStage;
   screenshots: IUpgradeStage;
-}
+};
 
-export interface IUpgradeStage {
+export type IUpgradeStage = {
   title: string;
   description: string;
   /** Paths of files that should exist if the stage is "installed" (paths are relative to the flashpoint root) */
   checks: string[];
   /** URLs from where the stage can be downloaded (only one will be downloaded, the other are "backups") */
   sources: string[];
-}
+};
 
 /** Check if all the "checks" of a stage are present */
 export async function performUpgradeStageChecks(stage: IUpgradeStage, flashpointFolder: string): Promise<boolean[]> {

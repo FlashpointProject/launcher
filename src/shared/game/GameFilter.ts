@@ -1,4 +1,4 @@
-import { IGameOrderChangeEvent } from '../../renderer/components/GameOrder';
+import { GameOrderChangeEvent } from '../../renderer/components/GameOrder';
 import { IGamePlaylist } from '../../renderer/playlist/interfaces';
 import { GameInfo } from './GameInfo';
 import { IGameInfo, IGameSearchQuery } from './interfaces';
@@ -51,7 +51,7 @@ export function reverseOrder(compareFn: OrderFn): OrderFn {
 }
 
 /** Get the order function for a given game order */
-export function getOrderFunction(order: IGameOrderChangeEvent): OrderFn {
+export function getOrderFunction(order: GameOrderChangeEvent): OrderFn {
   let orderFn: OrderFn;
   switch (order.orderBy) {
     case 'dateAdded': orderFn = orderByDateAdded; break;
@@ -189,7 +189,7 @@ export interface IOrderGamesArgs {
   broken: boolean;
   playlist?: IGamePlaylist;
   platforms?: string[];
-  order: IGameOrderChangeEvent;
+  order: GameOrderChangeEvent;
 }
 
 export function orderGames(args: IOrderGamesArgs): IGameInfo[] {

@@ -1,74 +1,53 @@
-import { ReactNode } from 'react';
 import GameManager from './game/GameManager';
 import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { IUpgradeData } from './upgrade/upgrade';
 
-/** "match" object from 'react-router' and 'history' npm packages */
-export interface IMatch {
-  /** Key/value pairs parsed from the URL corresponding to the dynamic segments of the path */
-  params: any;
-  /** true if the entire URL was matched (no trailing characters) */
-  isExact: boolean;
-  /** The path pattern used to match. Useful for building nested <Route>s */
-  path: string;
-  /** The matched portion of the URL. Useful for building nested <Link>s */
-  url: string;
-}
-
-export interface IDefaultProps {
-  children?: ReactNode;
-}
-
 /**
- * An object that contains useful stuff and is passed throughout the react app as a prop/state
- * (This should be temporary and used for quick and dirty testing and implementation)
- * (Replace this with something more thought out and maintainable once the project has more structure)
+ * An object created and managed by the "root" component (App) and is passed down deep into many different components.
+ * This is sort of a hacky and temporary solution. It should be phased out.
  */
-export interface ICentralState {
-  /** All playlists */
+export type CentralState = {
+  /** Manager of all the games, and container of the loaded and parsed game data. */
   games: GameManager;
-  /** Lookup table for all games images filenames */
+  /** Manager of all the game image folders, and container of their data. */
   gameImages: GameImageCollection;
-  /** All playlists */
+  /** Manager of all playlists. */
   playlists: GamePlaylistManager;
-  /** @TODO write this comment */
+  /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrade: UpgradeState;
-  /** If the game collection is done loading */
+  /** If all the games are done loading (even if it was unsuccessful). */
   gamesDoneLoading: boolean;
-  /** If the game collection failed to load */
+  /** If the games failed to load (this value is only meaningful after the games are done loading). */
   gamesFailedLoading: boolean;
-  /** If the playlist collection is done loading */
+  /** If all the playlists are done loading (even if it was unsuccessful). */
   playlistsDoneLoading: boolean;
-  /** If the playlist failed to load */
+  /** If the playlists failed to load (this value is only meaningful after the playlists are done loading). */
   playlistsFailedLoading: boolean;
-}
+};
 
-/**
- * State of the current search.
- */
-export interface SearchState {
-  input: string;
-}
-
-/** @TODO write this comment */
-export interface UpgradeState {
+/** Data and state used for the upgrade system. */
+export type UpgradeState = {
+  /** Data from the upgrade file (or the defaults if it failed to load or parse). */
   data?: IUpgradeData;
+  /** State of the tech stage. */
   techState: UpgradeStageState;
+  /** State of the screenshots stage. */
   screenshotsState: UpgradeStageState;
-  /** If the "upgrade" file has been loaded and parsed (or if it failed and the default values were used instead) */
+  /** If the upgrade JSON is done loading (even if it was unsuccessful). */
   doneLoading: boolean;
-}
+};
 
-export interface UpgradeStageState {
-  /** If the stage was already installed when the launcher started up */
+/** State of a single "stage" in the upgrade system (each individual downloadable upgrade is called a "stage"). */
+export type UpgradeStageState = {
+  /** If the stage was already installed when the launcher started up (this value is only meaningful if the stage checks are done). */
   alreadyInstalled: boolean;
-  /** If the checks has been performed */
+  /** If the checks has been performed (this is to check if the stage has already been installed). */
   checksDone: boolean;
-  /** If the stage is currently being downloaded / installed */
+  /** If the stage is currently being downloaded or installed. */
   isInstalling: boolean;
-  /** If the stage was installed during this session (this is so it can tell the user to restart) */
+  /** If the stage was installed during this session (this is so the user can be told to restart the application). */
   isInstallationComplete: boolean;
-  /** Progress note of the installation (if its being installed) */
+  /** Current progress note of the installation (visible text meant to inform the user about the current progress of the download or install). */
   installProgressNote: string;
-}
+};

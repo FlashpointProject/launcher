@@ -1,36 +1,36 @@
 import * as React from 'react';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { IDefaultProps } from '../interfaces';
 import { gameScaleSpan } from '../Util';
 
-interface OwnProps extends IDefaultProps {
+type OwnProps = {
+  /** If the "total" and "current label" counts should be shown. */
   showCount: boolean;
+  /** Total number of games. */
   totalCount?: number;
+  /** Label of the current browse library (if any). */
   currentLabel?: string;
+  /** Number of games in the current browse library (if there is a current browse library). */
   currentCount?: number;
-  /** Value of the scale slider (between 0 - 1) */
+  /** Value of the scale slider (between 0 and 1). */
   scaleSliderValue: number;
-  /** When the value of the scale slider is changed (value is between 0 and 1) */
+  /** Called when the value of the scale slider is changed (value is between 0 and 1). */
   onScaleSliderChange?: (value: number) => void;
-  /** BrowsePage layout */
+  /** Current BrowsePage layout. */
   layout: BrowsePageLayout;
-  /** When the value of the layout selector is changed */
+  /** Called when the value of the layout selector is changed. */
   onLayoutChange?: (value: BrowsePageLayout) => void;
-  /** When the "New Game" button is clicked */
+  /** Called when the "New Game" button is clicked. */
   onNewGameClick?: () => void;
-}
+};
 
-export type IFooterProps = OwnProps & IDefaultProps & WithPreferencesProps;
+export type FooterProps = OwnProps & WithPreferencesProps;
 
-export class Footer extends React.Component<IFooterProps, {}> {
-  private static scaleSliderMax: number = 1000;
+/** The footer that is always visible at the bottom of the main window. */
+export class Footer extends React.Component<FooterProps, {}> {
+  static scaleSliderMax: number = 1000;
   /** Reference to the scale slider. */
-  private _scaleSliderRef: React.RefObject<HTMLInputElement> = React.createRef();
-
-  constructor(props: IFooterProps) {
-    super(props);
-  }
+  scaleSliderRef: React.RefObject<HTMLInputElement> = React.createRef();
 
   componentDidMount() {
     window.addEventListener('keydown', this.onGlobalKeydown);
@@ -69,15 +69,21 @@ export class Footer extends React.Component<IFooterProps, {}> {
               { preferencesData.enableEditing ? (
                 <div className='footer__wrap'>
                   <div className='simple-center'>
-                    <input type='button' value='New Game' onClick={onNewGameClick}
-                          className='footer__new-game simple-button simple-center__vertical-inner' />
+                    <input
+                      type='button'
+                      value='New Game'
+                      onClick={onNewGameClick}
+                      className='footer__new-game simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
               ) : undefined }
               {/* Layout Selector */}
               <div className='footer__wrap'>
                 <div>
-                  <select className='footer__layout-selector simple-selector' value={stringifyBrowsePageLayout(layout)} onChange={this.onLayoutChange}>
+                  <select
+                    className='footer__layout-selector simple-selector'
+                    value={stringifyBrowsePageLayout(layout)}
+                    onChange={this.onLayoutChange}>
                     <option value='list'>List</option>
                     <option value='grid'>Grid</option>
                   </select>
@@ -93,9 +99,14 @@ export class Footer extends React.Component<IFooterProps, {}> {
                   <div className='footer__scale-slider__icon footer__scale-slider__icon--right simple-center'>
                     <div>+</div>
                   </div>
-                  <input type='range' className='footer__scale-slider__input hidden-slider'
-                         value={scale * Footer.scaleSliderMax} min={0} max={Footer.scaleSliderMax}
-                         ref={this._scaleSliderRef} onChange={this.onScaleSliderChange} />
+                  <input
+                    type='range'
+                    className='footer__scale-slider__input hidden-slider'
+                    value={scale * Footer.scaleSliderMax}
+                    min={0}
+                    max={Footer.scaleSliderMax}
+                    ref={this.scaleSliderRef}
+                    onChange={this.onScaleSliderChange} />
                 </div>
               </div>
               {/* Slider Percent */}
@@ -152,10 +163,10 @@ export class Footer extends React.Component<IFooterProps, {}> {
    * @param scale Value (between 0 and 1).
    */
   setScaleSliderValue(scale: number): void {
-    if (this._scaleSliderRef.current) {
+    if (this.scaleSliderRef.current) {
       const value = Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax;
-      this._scaleSliderRef.current.value = value+'';
-      this.scaleSliderChange(this._scaleSliderRef.current);
+      this.scaleSliderRef.current.value = value+'';
+      this.scaleSliderChange(this.scaleSliderRef.current);
     }
   }
 }

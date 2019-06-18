@@ -4,17 +4,19 @@ import { IGameLibraryFile } from '../../shared/library/interfaces';
 import { ApplicationState } from '../store';
 import * as action from '../store/library/actions';
 
-interface IStateToProps {
+type StateToProps = {
+  /** Data of the current library. */
   readonly libraryData: Readonly<IGameLibraryFile>;
-}
+};
 
-interface IDispatchToProps {
+type DispatchToProps = {
+  /** Update the data of the current library (in the state, not the file). */
   readonly updateLibrary: (data: Partial<IGameLibraryFile>) => void;
-}
+};
 
-export type WithLibraryProps = IStateToProps & IDispatchToProps;
+export type WithLibraryProps = StateToProps & DispatchToProps;
 
-const mapStateToProps = ({ library }: ApplicationState): IStateToProps => ({
+const mapStateToProps = ({ library }: ApplicationState): StateToProps => ({
   libraryData: library.data,
 });
 

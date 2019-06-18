@@ -1,28 +1,33 @@
 import * as React from 'react';
-import { IDefaultProps } from '../interfaces';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 
-export interface IGameOrderProps extends IDefaultProps {
-  onChange?: (event: IGameOrderChangeEvent) => void;
+export type GameOrderProps = {
+  /** Called when the either the property to order by, or what way to order in, is changed. */
+  onChange?: (event: GameOrderChangeEvent) => void;
+  /** What property to order the games by. */
+  orderBy: GameOrderBy;
+  /** What way to order the games in. */
+  orderReverse: GameOrderReverse;
+};
+
+export type GameOrderChangeEvent = {
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
-}
+};
 
-export interface IGameOrderChangeEvent {
-  orderBy: GameOrderBy;
-  orderReverse: GameOrderReverse;
-}
-
-export class GameOrder extends React.Component<IGameOrderProps> {
-  constructor(props: IGameOrderProps) {
-    super(props);
-  }
-
+/**
+ * Two drop down lists, the first for selecting what to order the games by, and
+ * the second for selecting what way to order the games in.
+ */
+export class GameOrder extends React.Component<GameOrderProps> {
   render() {
     return (
       <>
         {/* Order By */}
-        <select className='simple-selector' value={this.props.orderBy} onChange={this.onOrderByChange}>
+        <select
+          className='simple-selector'
+          value={this.props.orderBy}
+          onChange={this.onOrderByChange}>
           <option value='dateAdded'>Date Added</option>
           <option value='genre'>Genre</option>
           <option value='platform'>Platform</option>
@@ -30,7 +35,10 @@ export class GameOrder extends React.Component<IGameOrderProps> {
           <option value='title'>Title</option>
         </select>
         {/* Order Reverse */}
-        <select className='simple-selector' value={this.props.orderReverse} onChange={this.onOrderReverseChange}>
+        <select
+          className='simple-selector'
+          value={this.props.orderReverse}
+          onChange={this.onOrderReverseChange}>
           <option value='ascending'>Ascending</option>
           <option value='descending'>Descending</option>
         </select>
@@ -38,19 +46,19 @@ export class GameOrder extends React.Component<IGameOrderProps> {
     );
   }
 
-  private onOrderByChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+  onOrderByChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     this.updateOrder({
-      orderBy: this.parseOrderBy(event.target.value),
+      orderBy: validateOrderBy(event.target.value),
     });
   }
 
-  private onOrderReverseChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+  onOrderReverseChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     this.updateOrder({
-      orderReverse: this.parseOrderReverse(event.target.value),
+      orderReverse: validateOrderReverse(event.target.value),
     });
   }
 
-  private updateOrder(data: Partial<IGameOrderChangeEvent>): void {
+  updateOrder(data: Partial<GameOrderChangeEvent>): void {
     if (this.props.onChange) {
       this.props.onChange({
         orderBy:      data.orderBy      || this.props.orderBy,
@@ -59,24 +67,33 @@ export class GameOrder extends React.Component<IGameOrderProps> {
     }
   }
 
-  /** Parse GameOrderBy from a string (error if invalid) */
-  private parseOrderBy(value: string): GameOrderBy {
-    switch (value) {
-      case 'dateAdded': return 'dateAdded';
-      case 'genre':     return 'genre';
-      case 'platform':  return 'platform';
-      case 'series':    return 'series';
-      case 'title':     return 'title';
-      default: throw new Error(`"${value}" is not a valid GameOrderBy`);
-    }
-  }
+}
 
-  /** Parse GameOrderReverse from a string (error if invalid) */
-  private parseOrderReverse(value: string): GameOrderReverse {
-    switch (value) {
-      case 'ascending':  return 'ascending';
-      case 'descending': return 'descending';
-      default: throw new Error(`"${value}" is not a valid GameOrderReverse`);
-    }
+/**
+ * Validate a value to be a "GameOrderBy" string (throws an error if invalid).
+ * @param value Value to validate.
+ * @returns The same value as the first argument.
+ */
+function validateOrderBy(value: string): GameOrderBy {
+  switch (value) {
+    case 'dateAdded': return 'dateAdded';
+    case 'genre':     return 'genre';
+    case 'platform':  return 'platform';
+    case 'series':    return 'series';
+    case 'title':     return 'title';
+    default: throw new Error(`"${value}" is not a valid GameOrderBy`);
+  }
+}
+
+/**
+ * Validate a value to be a "GameOrderReverse" string (throws an error if invalid).
+ * @param value Value to validate.
+ * @returns The same value as the first argument.
+ */
+function validateOrderReverse(value: string): GameOrderReverse {
+  switch (value) {
+    case 'ascending':  return 'ascending';
+    case 'descending': return 'descending';
+    default: throw new Error(`"${value}" is not a valid GameOrderReverse`);
   }
 }

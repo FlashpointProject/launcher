@@ -16,7 +16,7 @@ import { IGamePlaylistEntry } from '../playlist/interfaces';
 import { GamePropSuggestions } from '../util/suggestions';
 import { uuid } from '../uuid';
 import { CheckBox } from './CheckBox';
-import { ConfirmElement, IConfirmElementArgs } from './ConfirmElement';
+import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
@@ -28,7 +28,7 @@ import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
 const copyFile = promisify(fs.copyFile);
 const unlink = promisify(fs.unlink);
 
-interface OwnProps {
+type OwnProps = {
   gameImages: GameImageCollection;
   games: GameManager;
   /** Currently selected game (if any) */
@@ -55,36 +55,36 @@ interface OwnProps {
   onEditClick?: () => void;
   onDiscardClick?: () => void;
   onSaveGame?: () => void;
-}
+};
 
-export type IRightBrowseSidebarProps = OwnProps & WithPreferencesProps;
+export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps;
 
-export interface IRightBrowseSidebarState {
-  /** If a preview of the current games screenshot should be shown */
+type RightBrowseSidebarState = {
+  /** If a preview of the current game's screenshot should be shown. */
   showPreview: boolean;
-}
+};
 
-/** Sidebar on the right side of BrowsePage */
-export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps, IRightBrowseSidebarState> {
-  // Bound "on done" handlers
-  private onTitleChange           = this.wrapOnTextChange((game, text) => { game.title = text; });
-  private onDeveloperChange       = this.wrapOnTextChange((game, text) => { game.developer = text; });
-  private onGenreChange           = this.wrapOnTextChange((game, text) => { game.genre = text; });
-  private onSeriesChange          = this.wrapOnTextChange((game, text) => { game.series = text; });
-  private onSourceChange          = this.wrapOnTextChange((game, text) => { game.source = text; });
-  private onPublisherChange       = this.wrapOnTextChange((game, text) => { game.publisher = text; });
-  private onPlatformChange        = this.wrapOnTextChange((game, text) => { game.platform = text; });
-  private onPlayModeChange        = this.wrapOnTextChange((game, text) => { game.playMode = text; });
-  private onStatusChange          = this.wrapOnTextChange((game, text) => { game.status = text; });
-  private onLaunchCommandChange   = this.wrapOnTextChange((game, text) => { game.launchCommand = text; });
-  private onApplicationPathChange = this.wrapOnTextChange((game, text) => { game.applicationPath = text; });
-  private onNotesChange           = this.wrapOnTextChange((game, text) => { game.notes = text; });
-  private onBrokenChange          = this.wrapOnCheckBoxChange((game) => { game.broken = !game.broken; });
-  private onExtremeChange         = this.wrapOnCheckBoxChange((game) => { game.extreme = !game.extreme; });
+/** Sidebar on the right side of BrowsePage. */
+export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
+  // Bound "on done" handlers for various input elements
+  onTitleChange           = this.wrapOnTextChange((game, text) => { game.title           = text; });
+  onDeveloperChange       = this.wrapOnTextChange((game, text) => { game.developer       = text; });
+  onGenreChange           = this.wrapOnTextChange((game, text) => { game.genre           = text; });
+  onSeriesChange          = this.wrapOnTextChange((game, text) => { game.series          = text; });
+  onSourceChange          = this.wrapOnTextChange((game, text) => { game.source          = text; });
+  onPublisherChange       = this.wrapOnTextChange((game, text) => { game.publisher       = text; });
+  onPlatformChange        = this.wrapOnTextChange((game, text) => { game.platform        = text; });
+  onPlayModeChange        = this.wrapOnTextChange((game, text) => { game.playMode        = text; });
+  onStatusChange          = this.wrapOnTextChange((game, text) => { game.status          = text; });
+  onLaunchCommandChange   = this.wrapOnTextChange((game, text) => { game.launchCommand   = text; });
+  onApplicationPathChange = this.wrapOnTextChange((game, text) => { game.applicationPath = text; });
+  onNotesChange           = this.wrapOnTextChange((game, text) => { game.notes           = text; });
+  onBrokenChange          = this.wrapOnCheckBoxChange(game => { game.broken  = !game.broken;  });
+  onExtremeChange         = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
 
-  private launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
+  launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
-  constructor(props: IRightBrowseSidebarProps) {
+  constructor(props: RightBrowseSidebarProps) {
     super(props);
     this.state = {
       showPreview: false,
@@ -100,7 +100,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   render() {
-    const game: IGameInfo|undefined = this.props.currentGame;
+    const game: IGameInfo | undefined = this.props.currentGame;
     if (game) {
       const { currentAddApps, gameImages, gamePlaylistEntry, isEditing, isNewGame, preferencesData, suggestions } = this.props;
       const isPlaceholder = game.placeholder;
@@ -111,16 +111,19 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
       const screenshotSrc = gameImages.getScreenshotPath(game);
       const thumbnailSrc = gameImages.getThumbnailPath(game);
       return (
-        <div className={'browse-right-sidebar '+
-                        (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
-             onKeyDown={this.onLocalKeyDown}>
+        <div
+          className={'browse-right-sidebar ' + (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
+          onKeyDown={this.onLocalKeyDown}>
           {/* -- Title & Developer(s) -- */}
           <div className='browse-right-sidebar__section'>
             <div className='browse-right-sidebar__row'>
               <div className='browse-right-sidebar__title-row'>
                 <div className='browse-right-sidebar__title-row__title'>
-                  <InputField text={game.title} placeholder='No Title'
-                              onChange={this.onTitleChange} canEdit={canEdit} />
+                  <InputField
+                    text={game.title}
+                    placeholder='No Title'
+                    onChange={this.onTitleChange}
+                    canEdit={canEdit} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
                   { editDisabled ? undefined : (
@@ -128,13 +131,17 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                       { isEditing ? ( /* While Editing */
                         <>
                           {/* "Save" Button */}
-                          <div className='browse-right-sidebar__title-row__buttons__save-button'
-                              title='Save Changes' onClick={this.props.onSaveGame}>
+                          <div
+                            className='browse-right-sidebar__title-row__buttons__save-button'
+                            title='Save Changes'
+                            onClick={this.props.onSaveGame}>
                             <OpenIcon icon='check' />
                           </div>
                           {/* "Discard" Button */}
-                          <div className='browse-right-sidebar__title-row__buttons__discard-button'
-                              title='Discard Changes' onClick={this.props.onDiscardClick}>
+                          <div
+                            className='browse-right-sidebar__title-row__buttons__discard-button'
+                            title='Discard Changes'
+                            onClick={this.props.onDiscardClick}>
                             <OpenIcon icon='x' />
                           </div>
                         </>
@@ -142,20 +149,24 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                         <>
                           {/* "Edit" Button */}
                           { isPlaceholder ? undefined : (
-                            <div className='browse-right-sidebar__title-row__buttons__edit-button'
-                                 title='Edit Game' onClick={this.props.onEditClick}>
+                            <div
+                              className='browse-right-sidebar__title-row__buttons__edit-button'
+                              title='Edit Game'
+                              onClick={this.props.onEditClick}>
                               <OpenIcon icon='pencil' />
                             </div>
                           ) }
                           {/* "Remove From Playlist" Button */}
                           { gamePlaylistEntry ? (
-                            <ConfirmElement onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
-                                            children={this.renderRemoveFromPlaylistButton} />
+                            <ConfirmElement
+                              onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
+                              children={this.renderRemoveFromPlaylistButton} />
                           ) : undefined }
                           {/* "Delete Game" Button */}
                           { (isPlaceholder || isNewGame || gamePlaylistEntry) ? undefined : (
-                            <ConfirmElement onConfirm={this.onDeleteGameClick}
-                                            children={this.renderDeleteGameButton} />
+                            <ConfirmElement
+                              onConfirm={this.onDeleteGameClick}
+                              children={this.renderDeleteGameButton} />
                           ) }
                         </>
                       ) }
@@ -167,8 +178,12 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             { isPlaceholder ? undefined : (
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>by </p>
-                <InputField text={game.developer} placeholder='No Developer'
-                            onChange={this.onDeveloperChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown} />
+                <InputField
+                  text={game.developer}
+                  placeholder='No Developer'
+                  onChange={this.onDeveloperChange}
+                  canEdit={canEdit}
+                  onKeyDown={this.onInputKeyDown} />
               </div>
             ) }
           </div>
@@ -178,65 +193,99 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Genre: </p>
-                  <DropdownInputField text={game.genre} placeholder='No Genre'
-                                      onChange={this.onGenreChange} canEdit={canEdit}
-                                      items={suggestions && filterSuggestions(suggestions.genre) || []}
-                                      onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
-                                      onKeyDown={this.onInputKeyDown} />
+                  <DropdownInputField
+                    text={game.genre}
+                    placeholder='No Genre'
+                    onChange={this.onGenreChange}
+                    canEdit={canEdit}
+                    items={suggestions && filterSuggestions(suggestions.genre) || []}
+                    onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
+                    onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Series: </p>
-                  <InputField text={game.series} placeholder='No Series'
-                              onChange={this.onSeriesChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown} />
+                  <InputField
+                    text={game.series}
+                    placeholder='No Series'
+                    onChange={this.onSeriesChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Publisher: </p>
-                  <InputField text={game.publisher} placeholder='No Publisher'
-                              onChange={this.onPublisherChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown} />
+                  <InputField
+                    text={game.publisher}
+                    placeholder='No Publisher'
+                    onChange={this.onPublisherChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Source: </p>
-                  <InputField text={game.source} placeholder='No Source'
-                              onChange={this.onSourceChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown} />
+                  <InputField
+                    text={game.source}
+                    placeholder='No Source'
+                    onChange={this.onSourceChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Platform: </p>
-                  <DropdownInputField text={game.platform} placeholder='No Platform'
-                                      onChange={this.onPlatformChange} canEdit={canEdit}
-                                      items={suggestions && filterSuggestions(suggestions.platform) || []}
-                                      onItemSelect={text => { game.platform = text; this.forceUpdate(); }}
-                                      onKeyDown={this.onInputKeyDown} />
+                  <DropdownInputField
+                    text={game.platform}
+                    placeholder='No Platform'
+                    onChange={this.onPlatformChange}
+                    canEdit={canEdit}
+                    items={suggestions && filterSuggestions(suggestions.platform) || []}
+                    onItemSelect={text => { game.platform = text; this.forceUpdate(); }}
+                    onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Play Mode: </p>
-                  <DropdownInputField text={game.playMode} placeholder='No Play Mode'
-                                      onChange={this.onPlayModeChange} canEdit={canEdit}
-                                      items={suggestions && filterSuggestions(suggestions.playMode) || []}
-                                      onItemSelect={text => { game.playMode = text; this.forceUpdate(); }}
-                                      onKeyDown={this.onInputKeyDown} />
+                  <DropdownInputField
+                    text={game.playMode}
+                    placeholder='No Play Mode'
+                    onChange={this.onPlayModeChange}
+                    canEdit={canEdit}
+                    items={suggestions && filterSuggestions(suggestions.playMode) || []}
+                    onItemSelect={text => { game.playMode = text; this.forceUpdate(); }}
+                    onKeyDown={this.onInputKeyDown} />
 
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Status: </p>
-                  <DropdownInputField text={game.status} placeholder='No Status'
-                                      onChange={this.onStatusChange} canEdit={canEdit}
-                                      items={suggestions && filterSuggestions(suggestions.status) || []}
-                                      onItemSelect={text => { game.status = text; this.forceUpdate(); }}
-                                      onKeyDown={this.onInputKeyDown} />
+                  <DropdownInputField
+                    text={game.status}
+                    placeholder='No Status'
+                    onChange={this.onStatusChange}
+                    canEdit={canEdit}
+                    items={suggestions && filterSuggestions(suggestions.status) || []}
+                    onItemSelect={text => { game.status = text; this.forceUpdate(); }}
+                    onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Date Added: </p>
-                  <p className='browse-right-sidebar__row__date-added' title={dateAdded}>{dateAdded}</p>
+                  <p
+                    className='browse-right-sidebar__row__date-added'
+                    title={dateAdded}>{dateAdded}</p>
                 </div>
                 <div className='browse-right-sidebar__row'>
-                  <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onBrokenChange}>
-                    <CheckBox checked={game.broken} className='browse-right-sidebar__row__check-box' />
+                  <div
+                    className='browse-right-sidebar__row__check-box-wrapper'
+                    onClick={this.onBrokenChange}>
+                    <CheckBox
+                      checked={game.broken}
+                      className='browse-right-sidebar__row__check-box' />
                     <p> Broken (in Infinity)</p>
                   </div>
                 </div>
                 <div className='browse-right-sidebar__row'>
-                  <div className='browse-right-sidebar__row__check-box-wrapper' onClick={this.onExtremeChange}>
-                    <CheckBox checked={game.extreme} className='browse-right-sidebar__row__check-box' />
+                  <div
+                    className='browse-right-sidebar__row__check-box-wrapper'
+                    onClick={this.onExtremeChange}>
+                    <CheckBox
+                      checked={game.extreme}
+                      className='browse-right-sidebar__row__check-box' />
                     <p> Extreme</p>                
                   </div>
                 </div>
@@ -248,8 +297,12 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>Playlist Notes: </p>
-                <InputField text={gamePlaylistEntry.notes || ''} placeholder='No Playlist Notes'
-                            onChange={this.onEditPlaylistNotes} canEdit={canEdit} multiline={true} />
+                <InputField
+                  text={gamePlaylistEntry.notes || ''}
+                  placeholder='No Playlist Notes'
+                  onChange={this.onEditPlaylistNotes}
+                  canEdit={canEdit}
+                  multiline={true} />
               </div>
             </div>
           ) : undefined }
@@ -258,8 +311,12 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>Notes: </p>
-                <InputField text={game.notes} placeholder='No Notes'
-                            onChange={this.onNotesChange} canEdit={canEdit} multiline={true} />
+                <InputField
+                  text={game.notes}
+                  placeholder='No Notes'
+                  onChange={this.onNotesChange}
+                  canEdit={canEdit}
+                  multiline={true} />
               </div>
             </div>
           ) : undefined }
@@ -269,14 +326,21 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
               <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                 <p>Additional Applications:</p>
                 { canEdit ? (
-                  <input type='button' value='New' className='simple-button' onClick={this.onNewAddAppClick} />
+                  <input
+                    type='button'
+                    value='New'
+                    className='simple-button'
+                    onClick={this.onNewAddAppClick} />
                 ) : undefined }
               </div>
-              { currentAddApps && currentAddApps.map((addApp) => {
-                return <RightBrowseSidebarAddApp key={addApp.id} addApp={addApp} editDisabled={!canEdit}
-                                                 onLaunch={this.onAddAppLaunch}
-                                                 onDelete={this.onAddAppDelete} />;
-              }) }
+              { currentAddApps && currentAddApps.map((addApp) => (
+                <RightBrowseSidebarAddApp
+                  key={addApp.id}
+                  addApp={addApp}
+                  editDisabled={!canEdit}
+                  onLaunch={this.onAddAppLaunch}
+                  onDelete={this.onAddAppDelete} />
+              )) }
             </div>
           ) : undefined }
           {/* -- Application Path & Launch Command -- */}
@@ -284,17 +348,24 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Application Path: </p>
-                <DropdownInputField text={game.applicationPath} placeholder='No Application Path'
-                                    onChange={this.onApplicationPathChange} canEdit={canEdit}
-                                    items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
-                                    onItemSelect={text => { game.applicationPath = text; this.forceUpdate(); }}
-                                    onKeyDown={this.onInputKeyDown} />
+                <DropdownInputField
+                  text={game.applicationPath}
+                  placeholder='No Application Path'
+                  onChange={this.onApplicationPathChange}
+                  canEdit={canEdit}
+                  items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
+                  onItemSelect={text => { game.applicationPath = text; this.forceUpdate(); }}
+                  onKeyDown={this.onInputKeyDown} />
               </div>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Launch Command: </p>
-                <InputField text={game.launchCommand} placeholder='No Launch Command'
-                            onChange={this.onLaunchCommandChange} canEdit={canEdit} onKeyDown={this.onInputKeyDown}
-                            reference={this.launchCommandRef} />
+                <InputField
+                  text={game.launchCommand}
+                  placeholder='No Launch Command'
+                  onChange={this.onLaunchCommandChange}
+                  canEdit={canEdit}
+                  onKeyDown={this.onInputKeyDown}
+                  reference={this.launchCommandRef} />
               </div>
             </div>
           ) : undefined }
@@ -316,30 +387,38 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
                 { isEditing ? (
                   <div className='browse-right-sidebar__row__screenshot__placeholder'>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
-                      <GameImageSplit text='Thumbnail' imgSrc={thumbnailSrc}
-                                      onAddClick={this.addThumbnailDialog}
-                                      onRemoveClick={this.onRemoveThumbnailClick}
-                                      onDrop={this.onImageDrop}
-                                      disabled={!imageFolderName}/>
-                      <GameImageSplit text='Screenshot' imgSrc={screenshotSrc}
-                                      onAddClick={this.addScreenshotDialog}
-                                      onRemoveClick={this.onRemoveScreenshotClick}
-                                      onDrop={this.onImageDrop}
-                                      disabled={!imageFolderName}/>
+                      <GameImageSplit
+                        text='Thumbnail'
+                        imgSrc={thumbnailSrc}
+                        onAddClick={this.addThumbnailDialog}
+                        onRemoveClick={this.onRemoveThumbnailClick}
+                        onDrop={this.onImageDrop}
+                        disabled={!imageFolderName} />
+                      <GameImageSplit
+                        text='Screenshot'
+                        imgSrc={screenshotSrc}
+                        onAddClick={this.addScreenshotDialog}
+                        onRemoveClick={this.onRemoveScreenshotClick}
+                        onDrop={this.onImageDrop}
+                        disabled={!imageFolderName} />
                     </div>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
                       <p>Drop an image here to add it.</p>
                     </div>
                   </div>
                 ) : (
-                  <img src={screenshotSrc} onClick={this.onScreenshotClick} />
+                  <img
+                    src={screenshotSrc}
+                    onClick={this.onScreenshotClick} />
                 ) }
               </div>
             </div>
           </div>
           {/* -- Screenshot Preview -- */}
           { this.state.showPreview ? (
-            <ImagePreview src={screenshotSrc} onCancel={this.onScreenshotPreviewClick} />
+            <ImagePreview
+              src={screenshotSrc}
+              onCancel={this.onScreenshotPreviewClick} />
           ) : undefined }
         </div>
       );
@@ -353,30 +432,38 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private renderDeleteGameButton({ activate, activationCounter, reset }: IConfirmElementArgs): JSX.Element {
+  renderDeleteGameButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
     return (
-      <div className={'browse-right-sidebar__title-row__buttons__delete-game'+
-                      ((activationCounter>0)?' browse-right-sidebar__title-row__buttons__delete-game--active simple-vertical-shake':'')}
-           title='Delete Game (and Additional Applications)'
-           onClick={activate} onMouseLeave={reset}>
+      <div
+        className={
+          'browse-right-sidebar__title-row__buttons__delete-game' +
+          ((activationCounter > 0) ? ' browse-right-sidebar__title-row__buttons__delete-game--active simple-vertical-shake' : '')
+        }
+        title='Delete Game (and Additional Applications)'
+        onClick={activate}
+        onMouseLeave={reset}>
         <OpenIcon icon='trash' />
       </div>
     );
   }
 
-  private renderRemoveFromPlaylistButton({ activate, activationCounter, reset }: IConfirmElementArgs): JSX.Element {
+  renderRemoveFromPlaylistButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
     return (
-      <div className={'browse-right-sidebar__title-row__buttons__remove-from-playlist'+
-                      ((activationCounter>0)?' browse-right-sidebar__title-row__buttons__remove-from-playlist--active simple-vertical-shake':'')}
-           title='Remove Game from Playlist'
-           onClick={activate} onMouseLeave={reset}>
+      <div
+        className={
+          'browse-right-sidebar__title-row__buttons__remove-from-playlist' +
+          ((activationCounter > 0) ? ' browse-right-sidebar__title-row__buttons__remove-from-playlist--active simple-vertical-shake' : '')
+        }
+        title='Remove Game from Playlist'
+        onClick={activate}
+        onMouseLeave={reset}>
         <OpenIcon icon='circle-x' />
       </div>
     );
   }
 
   /** When a key is pressed down "globally" (and this component is present) */
-  private onGlobalKeyDown = (event: KeyboardEvent) => {
+  onGlobalKeyDown = (event: KeyboardEvent) => {
     const { currentGame, isEditing, onEditClick } = this.props;
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
@@ -387,7 +474,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
   
-  private onLocalKeyDown = (event: React.KeyboardEvent) => {
+  onLocalKeyDown = (event: React.KeyboardEvent) => {
     const { currentGame, isEditing, onSaveGame } = this.props;
     // Save changes
     if (event.ctrlKey && event.key === 's' && // (CTRL + S ...
@@ -397,7 +484,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
   
-  private onScreenshotContextMenu = (event: React.MouseEvent) => {
+  onScreenshotContextMenu = (event: React.MouseEvent) => {
     const { currentGame, gameImages } = this.props;
     const template: MenuItemConstructorOptions[] = [];
     if (currentGame) {
@@ -426,14 +513,14 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private deleteImage(cache: ImageFolderCache|undefined): void {
+  deleteImage(cache: ImageFolderCache|undefined): void {
     const { currentGame } = this.props;
     if (!currentGame) { throw new Error('Failed to delete image file. The currently selected game could not be found.'); }
     if (!cache)       { throw new Error('Failed to delete image file. The image cache could not be found.'); }
     deleteImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
   }
 
-  private addScreenshotDialog = async () => {
+  addScreenshotDialog = async () => {
     const { currentGame, gameImages } = this.props;
       if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
@@ -454,7 +541,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private addThumbnailDialog = async () => {
+  addThumbnailDialog = async () => {
     const { currentGame, gameImages } = this.props;
       if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
@@ -475,15 +562,15 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
   
-  private onRemoveScreenshotClick = (): void => {
+  onRemoveScreenshotClick = (): void => {
     this.deleteImage(this.props.gameImages.getScreenshotCache(this.getImageFolderName()));
   }
   
-  private onRemoveThumbnailClick = (): void => {
+  onRemoveThumbnailClick = (): void => {
     this.deleteImage(this.props.gameImages.getThumbnailCache(this.getImageFolderName()));
   }
 
-  private onImageDrop = (event: React.DragEvent, text: string): void => {
+  onImageDrop = (event: React.DragEvent, text: string): void => {
     event.preventDefault();
     const files = copyArrayLike(event.dataTransfer.files);
     const game = this.props.currentGame;
@@ -511,7 +598,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private onDeleteGameClick = (): void => {
+  onDeleteGameClick = (): void => {
     console.time('delete');
     const game = this.props.currentGame;
     if (!game) { throw new Error('Can not delete a game when no game is selected.'); }
@@ -531,11 +618,11 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  private onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
+  onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
     GameLauncher.launchAdditionalApplication(addApp);
   }
 
-  private onAddAppDelete = (addApp: IAdditionalApplicationInfo): void => {
+  onAddAppDelete = (addApp: IAdditionalApplicationInfo): void => {
     const addApps = this.props.currentAddApps;
     if (!addApps) { throw new Error('editAddApps is missing.'); }
     // Find and remove add-app
@@ -551,7 +638,7 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.forceUpdate();
   }
 
-  private onNewAddAppClick = (): void => {
+  onNewAddAppClick = (): void => {
     if (!this.props.currentAddApps) { throw new Error(`Unable to add a new AddApp. "currentAddApps" is missing.`); }
     if (!this.props.currentGame)    { throw new Error(`Unable to add a new AddApp. "currentGame" is missing.`); }
     const newAddApp = AdditionalApplicationInfo.create();
@@ -561,15 +648,15 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     this.forceUpdate();
   }
 
-  private onScreenshotClick = (): void => {
+  onScreenshotClick = (): void => {
     this.setState({ showPreview: true });
   }
 
-  private onScreenshotPreviewClick = (): void => {
+  onScreenshotPreviewClick = (): void => {
     this.setState({ showPreview: false });
   }
 
-  private onEditPlaylistNotes = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
+  onEditPlaylistNotes = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
     if (this.props.onEditPlaylistNotes) {
       this.props.onEditPlaylistNotes(event.currentTarget.value);
       this.forceUpdate();
@@ -577,14 +664,14 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
   }
 
   /** When a key is pressed while an input field is selected (except for multiline fields) */
-  private onInputKeyDown = (event: React.KeyboardEvent): void => {
+  onInputKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.onSaveGame) { this.props.onSaveGame(); }
     }
   }
 
-  /** Create a wrapper for a EditableTextWrap's onChange callback (this is to reduce redundancy) */
-  private wrapOnTextChange(func: (game: IGameInfo, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
+  /** Create a wrapper for a EditableTextWrap's onChange callback (this is to reduce redundancy). */
+  wrapOnTextChange(func: (game: IGameInfo, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
     return (event) => {
       const game = this.props.currentGame;
       if (game) {
@@ -594,8 +681,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy) */
-  private wrapOnCheckBoxChange(func: (game: IGameInfo) => void): () => void {
+  /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
+  wrapOnCheckBoxChange(func: (game: IGameInfo) => void): () => void {
     return () => {
       const game = this.props.currentGame;
       const canEdit = this.props.preferencesData.enableEditing && this.props.isEditing;
@@ -606,8 +693,8 @@ export class RightBrowseSidebar extends React.Component<IRightBrowseSidebarProps
     }
   }
 
-  /** Get the image folder name of the current game */
-  private getImageFolderName(): string {
+  /** Get the name of the image folder for the current game. */
+  getImageFolderName(): string {
     const { currentGame, currentLibrary, isNewGame } = this.props;
     const prefix = (currentLibrary && currentLibrary.prefix) ? currentLibrary.prefix : '';
     if (currentGame) {
@@ -625,6 +712,7 @@ function filterSuggestions(suggestions?: string[]): string[] {
   return suggestions;
 }
 
+/** Open a context menu, built from the specified template. */
 function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   const menu = remote.Menu.buildFromTemplate(template);
   menu.popup({ window: remote.getCurrentWindow() });
@@ -632,14 +720,15 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
 }
 
 /**
- * Copy an image file from anywhere to the folder of an "image cache" and for a specific game
- * @param source File path of the image to copy
- * @param game Game that the image will "belong" to
- * @param cache Image cache to store the image in (it is copied to this caches folder)
+ * Copy an image file from anywhere to the folder of an "image cache" and for a specific game.
+ * @param source File path of the image to copy.
+ * @param game Game that the image will "belong" to.
+ * @param cache Image cache to store the image in (it is copied to this caches folder).
  */
 async function copyImageFile(source: string, game: IGameInfo, cache: ImageFolderCache): Promise<void> {
+  // Delete the current image(s)
   deleteImageFiles(game, cache);
-  // Copy the image to index 1
+  // Copy image file (and give it index 1, since only one screenshot per game is supported at the moment)
   const outputPath = path.join(
     cache.getFolderPath(),
     formatImageFilename(game.id, 1) + getFileExtension(source)
@@ -656,6 +745,11 @@ function getFileExtension(filename: string): string {
   return filename.substr(firstDot);
 }
 
+/**
+ * Create a new array and populate it with the properties and values from another array or array like object.
+ * @param arrayLike Array or array like object to copy properties and values from.
+ * @returns New array with the same properties and values as the argument.
+ */
 function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
   const array: T[] = [];
   for (let key in arrayLike) {
@@ -665,9 +759,9 @@ function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
 }
 
 /**
- * Delete all images of the given game in the given cache
- * @param game Game to delete images of
- * @param cache Cache to delete image from
+ * Delete all image files of a game in the specified cache.
+ * @param game The game to delete all the image files of.
+ * @param cache Cache of the image folder to delete the files from.
  */
 async function deleteImageFiles(game: IGameInfo, cache: ImageFolderCache): Promise<void> {
   // Find and delete all of the games images in the cache

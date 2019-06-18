@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ICentralState } from '../interfaces';
+import { CentralState } from '../interfaces';
 import { PlaylistItem } from './PlaylistItem';
 import { OpenIcon } from './OpenIcon';
 import { IGamePlaylist } from '../playlist/interfaces';
@@ -7,26 +7,33 @@ import { gameIdDataType } from '../Util';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 
-interface OwnProps {
-  central: ICentralState;
+type OwnProps = {
+  /** Semi-global prop. */
+  central: CentralState;
+  /** The current library. */
   currentLibrary?: IGameLibraryFileItem;
-  /** ID of the playlist that is selected (empty string if none) */
+  /** ID of the playlist that is selected (empty string if none). */
   selectedPlaylistID: string;
+  /** Called when a playlist is selected. */
   onSelectPlaylist?: (playlist: IGamePlaylist) => void;
+  /** Called when a the current playlist is deselected (and no playlist is selected in its place). */
   onDeselectPlaylist?: () => void;
+  /** Called when a displayed playlist has been changed (by means that doesn't already re-render). */
   onPlaylistChanged?: (playlist: IGamePlaylist) => void;
+  /** Called when the "Show All" button is clicked. */
   onShowAllClick?: () => void;
-}
+};
 
-export type ILeftBrowseSidebarProps = OwnProps & WithPreferencesProps;
+export type LeftBrowseSidebarProps = OwnProps & WithPreferencesProps;
 
-export interface ILeftBrowseSidebarState {
+type LeftBrowseSidebarState = {
+  /** If the selected playlist is being edited. */
   isEditing: boolean;
-}
+};
 
-/** Sidebar on the left side of BrowsePage */
-export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, ILeftBrowseSidebarState> {
-  constructor(props: ILeftBrowseSidebarProps) {
+/** Sidebar on the left side of BrowsePage. */
+export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, LeftBrowseSidebarState> {
+  constructor(props: LeftBrowseSidebarProps) {
     super(props);
     this.state = {
       isEditing: false,
@@ -59,7 +66,9 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
             !central.playlistsFailedLoading ? (
               <div className='playlist-list'>
                 {/* All games */}
-                <div className='playlist-list-fake-item' onClick={onShowAllClick}>
+                <div
+                  className='playlist-list-fake-item'
+                  onClick={onShowAllClick}>
                   <div className='playlist-list-fake-item__inner'>
                     <OpenIcon icon='eye' />
                   </div>
@@ -71,23 +80,26 @@ export class LeftBrowseSidebar extends React.Component<ILeftBrowseSidebarProps, 
                 {playlists.map((playlist) => {
                   const isSelected = playlist.id === selectedPlaylistID;
                   return (
-                    <PlaylistItem key={playlist.id} 
-                                  playlist={playlist}
-                                  expanded={isSelected}
-                                  editingDisabled={editingDisabled}
-                                  editing={isSelected && isEditing}
-                                  central={central}
-                                  onHeadClick={this.onPlaylistItemHeadClick}
-                                  onEditClick={this.onPlaylistItemEditClick}
-                                  onDeleteClick={this.onPlaylistItemDeleteClick}
-                                  onSaveClick={this.onPlaylistItemSaveClick}
-                                  onDrop={this.onPlaylistItemDrop}
-                                  onDragOver={this.onPlaylistItemDragOver} />
+                    <PlaylistItem
+                      key={playlist.id} 
+                      playlist={playlist}
+                      expanded={isSelected}
+                      editingDisabled={editingDisabled}
+                      editing={isSelected && isEditing}
+                      central={central}
+                      onHeadClick={this.onPlaylistItemHeadClick}
+                      onEditClick={this.onPlaylistItemEditClick}
+                      onDeleteClick={this.onPlaylistItemDeleteClick}
+                      onSaveClick={this.onPlaylistItemSaveClick}
+                      onDrop={this.onPlaylistItemDrop}
+                      onDragOver={this.onPlaylistItemDragOver} />
                   );
                 })}
                 {/* Create New Playlist */}
                 { editingDisabled ? undefined : (
-                  <div className='playlist-list-fake-item' onClick={this.onCreatePlaylistClick}>
+                  <div
+                    className='playlist-list-fake-item'
+                    onClick={this.onCreatePlaylistClick}>
                     <div className='playlist-list-fake-item__inner'>
                       <OpenIcon icon='plus' />
                     </div>

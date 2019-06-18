@@ -4,17 +4,19 @@ import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesDat
 import { ApplicationState } from '../store';
 import * as action from '../store/preferences/actions';
 
-interface IStateToProps {
+type StateToProps = {
+  /** Current preference data. */
   readonly preferencesData: Readonly<IAppPreferencesData>;
-}
+};
 
-interface IDispatchToProps {
+type DispatchToProps = {
+  /** Update the entire, or parts of the, preference data object. */
   readonly updatePreferences: (data: Partial<IAppPreferencesData>) => void;
-}
+};
 
-export type WithPreferencesProps = IStateToProps & IDispatchToProps;
+export type WithPreferencesProps = StateToProps & DispatchToProps;
 
-const mapStateToProps = ({ preferences }: ApplicationState): IStateToProps => ({
+const mapStateToProps = ({ preferences }: ApplicationState): StateToProps => ({
   preferencesData: preferences.data,
 });
 

@@ -1,53 +1,64 @@
 import * as React from 'react';
 import { deepCopy } from '../../shared/Util';
-import { ICentralState } from '../interfaces';
+import { CentralState } from '../interfaces';
 import { IGamePlaylist, IGamePlaylistEntry } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
 import { ConfirmButton } from './ConfirmButton';
-import { EditableTextElement, IEditableTextElementArgs } from './EditableTextElement';
+import { EditableTextElement, EditableTextElementArgs } from './EditableTextElement';
 import { OpenIcon } from './OpenIcon';
 
-export interface IPlaylistItemProps {
+export type PlaylistItemProps = {
+  /** Playlist to display. */
   playlist: IGamePlaylist;
+  /** If the element is expanded (revealing the content sub-element). */
   expanded?: boolean;
+  /** If this is in "edit mode". */
   editing?: boolean;
+  /** If entering "edit mode" should not be allowed (defaults to false). */
   editingDisabled?: boolean;
-  central: ICentralState;
+  /** Semi-global prop. */
+  central: CentralState;
+  /** Called when the head element is clicked (the part that is always visible). */
   onHeadClick?: (playlist: IGamePlaylist) => void;
+  /** Called when the "edit" button is clicked. */
   onEditClick?: (playlist: IGamePlaylist) => void;
+  /** Called when the "delete" button is clicked. */
   onDeleteClick?: (playlist: IGamePlaylist) => void;
+  /** Called when the "save" button is clicked. */
   onSaveClick?: (playlist: IGamePlaylist, edit: IGamePlaylist) => void;
+  /** Called when a game is dropped on, and successfully added to, this playlist. */
   onDrop?: (event: React.DragEvent, playlist: IGamePlaylist) => void;
+  /** Called when anything is dragged over this element. */
   onDragOver?: (event: React.DragEvent, playlist: IGamePlaylist) => void;
-}
+};
 
-export interface IPlaylistItemState {
-  /** If any unsaved changes has been made to the playlist (the buffer) */
+type PlaylistItemState = {
+  /** If any unsaved changes has been made to the playlist (buffer). */
   hasChanged: boolean;
-  /** Buffer for the playlist (stores all changes are made to it until edit is saved) */
+  /** Buffer for the playlist (stores all changes are made to it, until the edit is saved). */
   editPlaylist?: IGamePlaylist;
-  /** If something is being dragged over this element */
+  /** If something is being dragged over this element. */
   dragOver: boolean;
-}
+};
 
-export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistItemState> {
+export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistItemState> {
   //
-  private onTitleEditDone        = this.wrapOnEditDone((edit, text) => { edit.title = text; });
-  private onAuthorEditDone       = this.wrapOnEditDone((edit, text) => { edit.author = text; });
-  private onDescriptionEditDone  = this.wrapOnEditDone((edit, text) => { edit.description = text; });
+  onTitleEditDone        = this.wrapOnEditDone((edit, text) => { edit.title = text; });
+  onAuthorEditDone       = this.wrapOnEditDone((edit, text) => { edit.author = text; });
+  onDescriptionEditDone  = this.wrapOnEditDone((edit, text) => { edit.description = text; });
   //
-  private renderTitle  = this.wrapRenderEditableText('No Title', 'Title...');
-  private renderAuthor = this.wrapRenderEditableText('No Author', 'Author...');
+  renderTitle  = this.wrapRenderEditableText('No Title', 'Title...');
+  renderAuthor = this.wrapRenderEditableText('No Author', 'Author...');
   //
-  private contentRef: React.RefObject<HTMLDivElement> = React.createRef();
-  private contentHeight: number = 0;
-  private updateContentHeightInterval: number = -1;
+  contentRef: React.RefObject<HTMLDivElement> = React.createRef();
+  contentHeight: number = 0;
+  updateContentHeightInterval: number = -1;
   //
-  private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
-  private width: number = 0;
-  private height: number = 0;
+  wrapperRef: React.RefObject<HTMLDivElement> = React.createRef();
+  width: number = 0;
+  height: number = 0;
 
-  constructor(props: IPlaylistItemProps) {
+  constructor(props: PlaylistItemProps) {
     super(props);
     this.state = {
       hasChanged: false,
@@ -67,7 +78,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     if (this.props.expanded) { this.forceUpdate(); }
   }
 
-  componentDidUpdate(prevProps: IPlaylistItemProps, prevState: IPlaylistItemState) {
+  componentDidUpdate(prevProps: PlaylistItemProps, prevState: PlaylistItemState) {
     this.updateContentHeight();
     this.updateEdit();
     this.updateCssVars();
@@ -89,28 +100,42 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     if (this.state.dragOver) { className += ' playlist-list-item--drag-over' }
     const maxHeight = this.props.expanded && this.contentHeight || undefined;
     return (
-      <div className={className} onDrop={this.onDrop} onDragOver={this.onDragOver}
-           onDragEnter={this.onDragEnter} onDragLeave={this.onDragLeave}>
+      <div
+        className={className}
+        onDrop={this.onDrop}
+        onDragOver={this.onDragOver}
+        onDragEnter={this.onDragEnter}
+        onDragLeave={this.onDragLeave}>
         {/* Drag Overlay */}
         <div className='playlist-list-item__drag-overlay' />
         {/* Head */}
-        <div className='playlist-list-item__head' onClick={(!editing)?this.onHeadClick:undefined}>
-          {(playlist.icon) ? (
+        <div
+          className='playlist-list-item__head'
+          onClick={editing ? undefined : this.onHeadClick}>
+          { playlist.icon ? (
             <div className='playlist-list-item__head__icon'>
-              <div className='playlist-list-item__head__icon__image'
-                   style={{ backgroundImage: playlist.icon ? `url('${playlist.icon}')` : undefined }}
-                   onClick={this.onIconClick} />
+              <div
+                className='playlist-list-item__head__icon__image'
+                style={{ backgroundImage: playlist.icon ? `url('${playlist.icon}')` : undefined }}
+                onClick={this.onIconClick} />
             </div>
           ) : (
-            <div className='playlist-list-item__head__icon simple-center' onClick={this.onIconClick}>
+            <div
+              className='playlist-list-item__head__icon simple-center'
+              onClick={this.onIconClick}>
               <div className='playlist-list-item__head__icon__no-image simple-center__inner'>
-                <OpenIcon icon='question-mark' className='playlist-list-item__head__icon__no-image__icon' />
+                <OpenIcon
+                  icon='question-mark'
+                  className='playlist-list-item__head__icon__no-image__icon' />
               </div>
             </div>
-          )}
+          ) }
           <div className='playlist-list-item__head__title simple-center'>
-            <EditableTextElement text={playlist.title} onEditConfirm={this.onTitleEditDone}
-                                 editable={editing} children={this.renderTitle} />
+            <EditableTextElement
+              text={playlist.title}
+              onEditConfirm={this.onTitleEditDone}
+              editable={editing}
+              children={this.renderTitle} />
           </div>
           { editing || playlist.author ? (
             <>
@@ -118,15 +143,20 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
                 <p className='simple-center__inner'>by</p>
               </div>
               <div className='playlist-list-item__head__author simple-center'>
-                <EditableTextElement text={playlist.author} onEditConfirm={this.onAuthorEditDone}
-                                     editable={editing} children={this.renderAuthor} />
+                <EditableTextElement
+                  text={playlist.author}
+                  onEditConfirm={this.onAuthorEditDone}
+                  editable={editing}
+                  children={this.renderAuthor} />
               </div>    
             </>
           ) : undefined }
         </div>
         {/* Content */}
-        <div className='playlist-list-item__content' ref={this.contentRef}
-             style={{ maxHeight }}>
+        <div
+          className='playlist-list-item__content'
+          ref={this.contentRef}
+          style={{ maxHeight }}>
           <div className='playlist-list-item__content__inner'>
             { editingDisabled ? undefined : (
               <div className='playlist-list-item__content__edit'>
@@ -139,54 +169,84 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
                 <div className='playlist-list-item__content__buttons'>
                   {/* Save Button */}
                   { editing ? (
-                    <input type='button' value='Save' className='simple-button'
-                           title='Save changes made and stop editing'
-                           onClick={this.onSaveClick} disabled={!this.state.hasChanged} />
+                    <input
+                      type='button'
+                      value='Save'
+                      className='simple-button'
+                      title='Save changes made and stop editing'
+                      onClick={this.onSaveClick}
+                      disabled={!this.state.hasChanged} />
                   ) : undefined }
                   {/* Edit / Discard Button */}
                   { editing ? (
-                    <ConfirmButton props={{ value: 'Discard', title: 'Discard the changes made and stop editing',
-                                            className: 'simple-button', }}
-                                   confirm={{ value: 'Are you sure?',
-                                              className: 'simple-button simple-button--red simple-vertical-shake', }}
-                                   skipConfirm={!this.state.hasChanged}
-                                   onConfirm={this.onEditClick} />
+                    <ConfirmButton
+                      props={{
+                        value: 'Discard',
+                        title: 'Discard the changes made and stop editing',
+                        className: 'simple-button'
+                      }}
+                      confirm={{
+                        value: 'Are you sure?',
+                        className: 'simple-button simple-button--red simple-vertical-shake'
+                      }}
+                      skipConfirm={!this.state.hasChanged}
+                      onConfirm={this.onEditClick} />
                   ) : (
-                    <input type='button' value='Edit' className='simple-button'
-                           title='Start editing this playlist'
-                           onClick={this.onEditClick} />
+                    <input
+                      type='button'
+                      value='Edit'
+                      className='simple-button'
+                      title='Start editing this playlist'
+                      onClick={this.onEditClick} />
                   ) }
                   {/* Delete Button */}
-                  <ConfirmButton props={{ value: 'Delete', title: 'Delete this playlist', className: 'simple-button', }}
-                                 confirm={{ value: 'Are you sure?',
-                                            className: 'simple-button simple-button--red simple-vertical-shake', }}
-                                 onConfirm={this.onDeleteClick} />
+                  <ConfirmButton
+                    props={{
+                      value: 'Delete',
+                      title: 'Delete this playlist',
+                      className: 'simple-button'
+                    }}
+                    confirm={{
+                      value: 'Are you sure?',
+                      className: 'simple-button simple-button--red simple-vertical-shake'
+                    }}
+                    onConfirm={this.onDeleteClick} />
                 </div>
               </div>
             ) }
             {/* Description */}
-            <EditableTextElement text={playlist.description} onEditConfirm={this.onDescriptionEditDone}
-                                 editable={editing} children={this.renderDescription} />
+            <EditableTextElement
+              text={playlist.description}
+              onEditConfirm={this.onDescriptionEditDone}
+              editable={editing}
+              children={this.renderDescription} />
           </div>
         </div>
       </div>
     );
   }
 
-  private wrapRenderEditableText(placeholderText: string, placeholderEdit: string) {
-    return function(o: IEditableTextElementArgs) {
+  wrapRenderEditableText(placeholderText: string, placeholderEdit: string) {
+    return function(o: EditableTextElementArgs) {
       if (o.editing) {
         return (
-        <input value={o.text} placeholder={placeholderEdit}
-               onChange={o.onInputChange} onKeyDown={o.onInputKeyDown} 
-               autoFocus onBlur={o.cancelEdit}
-               className='playlist-list-item__editable-text simple-vertical-inner simple-input' />
+        <input
+          value={o.text}
+          placeholder={placeholderEdit}
+          onChange={o.onInputChange}
+          onKeyDown={o.onInputKeyDown} 
+          autoFocus
+          onBlur={o.cancelEdit}
+          className='playlist-list-item__editable-text simple-vertical-inner simple-input' />
         );
       } else {
         let className = 'playlist-list-item__editable-text simple-vertical-inner';
         if (!o.text) { className += ' simple-disabled-text'; }
         return (
-          <p onClick={o.startEdit} title={o.text} className={className}>
+          <p
+            onClick={o.startEdit}
+            title={o.text}
+            className={className}>
             {o.text || placeholderText}
           </p>
         );
@@ -194,26 +254,32 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     };
   }
   
-  private renderDescription = (o: IEditableTextElementArgs) => {
+  renderDescription = (o: EditableTextElementArgs) => {
     if (o.editing) {
       return (
-        <textarea value={o.text} placeholder='Enter a description here...'
-                  onChange={o.onInputChange} onKeyDown={o.onInputKeyDown}
-                  autoFocus onBlur={o.cancelEdit}
-                  className='playlist-list-item__content__description-edit playlist-list-item__editable-text simple-input simple-scroll' />
+        <textarea
+          value={o.text}
+          placeholder='Enter a description here...'
+          onChange={o.onInputChange}
+          onKeyDown={o.onInputKeyDown}
+          autoFocus
+          onBlur={o.cancelEdit}
+          className='playlist-list-item__content__description-edit playlist-list-item__editable-text simple-input simple-scroll' />
       );
     } else {
       let className = 'playlist-list-item__content__description-text';
       if (!o.text) { className += ' simple-disabled-text'; }
       return (
-        <p onClick={o.startEdit} className={className}>
+        <p
+          onClick={o.startEdit}
+          className={className}>
           {o.text || '< No Description >'}
         </p>
       );
     }
   }
 
-  private updateContentHeight(): boolean {
+  updateContentHeight(): boolean {
     if (this.contentRef.current) {
       const oldHeight = this.contentHeight;
       this.contentHeight = this.contentRef.current.scrollHeight;
@@ -222,7 +288,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     return false;
   }
 
-  private updateEdit() {
+  updateEdit() {
     if (this.props.editing && !this.props.editingDisabled) {
       if (!this.state.editPlaylist) {
         this.setState({ editPlaylist: deepCopy(this.props.playlist) });
@@ -237,33 +303,33 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  private onHeadClick = () => {
+  onHeadClick = () => {
     if (this.props.onHeadClick) {
       this.props.onHeadClick(this.props.playlist);
     }
   }
 
-  private onEditClick = () => {
+  onEditClick = () => {
     if (this.props.onEditClick) {
       this.props.onEditClick(this.props.playlist);
     }
     
   }
 
-  private onDeleteClick = () => {
+  onDeleteClick = () => {
     if (this.props.onDeleteClick) {
       this.props.onDeleteClick(this.props.playlist);
     }
   }
 
-  private onSaveClick = () => {
+  onSaveClick = () => {
     if (this.props.onSaveClick) {
       if (!this.state.editPlaylist) { throw new Error('editPlaylist is missing wtf?'); }
       this.props.onSaveClick(this.props.playlist, this.state.editPlaylist);
     }
   }
 
-  private onIconClick = () => {
+  onIconClick = () => {
     const edit = this.state.editPlaylist;
     if (this.props.editing && edit) {
       // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
@@ -281,7 +347,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  private onDrop = (event: React.DragEvent): void => {
+  onDrop = (event: React.DragEvent): void => {
     if (this.state.dragOver) {
       this.setState({ dragOver: false });
     }
@@ -317,13 +383,13 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  private onDragOver = (event: React.DragEvent): void => {
+  onDragOver = (event: React.DragEvent): void => {
     if (this.props.onDragOver) {
       this.props.onDragOver(event, this.props.playlist);
     }
   }
 
-  private onDragEnter = (event: React.DragEvent): void => {
+  onDragEnter = (event: React.DragEvent): void => {
     if (!this.state.dragOver) {
       if (!findParent(event.currentTarget, event.relatedTarget as Element)) {
         this.setState({ dragOver: true });
@@ -332,7 +398,7 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  private onDragLeave = (event: React.DragEvent): void => {
+  onDragLeave = (event: React.DragEvent): void => {
     if (this.state.dragOver) {
       if (!findParent(event.currentTarget, event.relatedTarget as Element)) {
         this.setState({ dragOver: false });
@@ -341,8 +407,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
 
-  /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy) */
-  private wrapOnEditDone(func: (edit: IGamePlaylist, text: string) => void): (text: string) => void {
+  /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy). */
+  wrapOnEditDone(func: (edit: IGamePlaylist, text: string) => void): (text: string) => void {
     return (text: string) => {
       const edit = this.state.editPlaylist;
       if (edit) {
@@ -352,10 +418,10 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
     }
   }
   
-  /** Update CSS Variables */
+  /** Update CSS Variables. */
   updateCssVars() {
     // Set CCS vars
-    const wrapper = this._wrapper.current;
+    const wrapper = this.wrapperRef.current;
     if (wrapper) {
       wrapper.style.setProperty('--width', this.width+'');
       wrapper.style.setProperty('--height', this.height+'');
@@ -363,8 +429,8 @@ export class PlaylistItem extends React.Component<IPlaylistItemProps, IPlaylistI
   }
 }
 
-/** Check if an element or one of its parents is the same as another element */
-function findParent(parent: Element, leafElement: Element|null): boolean {
+/** Check if an element or one of its parents is the same as another element. */
+function findParent(parent: Element, leafElement: Element | null): boolean {
   let element: Element|null = leafElement;
   for (let i = 20; i >= 0; i--) { // (Depth limit - to stop endless looping)
     if (!element) { return false; }
@@ -374,12 +440,19 @@ function findParent(parent: Element, leafElement: Element|null): boolean {
   return false;
 }
 
-function toDataURL(url: string) {
+type FileReaderResult = typeof FileReader['prototype']['result'];
+
+/**
+ * Convert the body of a URL to a data URL.
+ * This will reject if the request or conversion fails.
+ * @param url URL of content to convert.
+ */
+function toDataURL(url: string): Promise<FileReaderResult> {
   return fetch(url)
   .then(response => response.blob())
-  .then(blob => new Promise((resolve, reject) => {
+  .then(blob => new Promise<FileReaderResult>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as any);
+    reader.onloadend = () => { resolve(reader.result); };
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   }))

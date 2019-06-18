@@ -1,32 +1,35 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-export interface IImagePreviewProps {
-  /** Source of the image to show */
+export type ImagePreviewProps = {
+  /** Source of the image to display. */
   src?: string;
-  /** Called when the image preview should be cancelled */
+  /** Called when the user attempts to cancel/close image preview. */
   onCancel?: () => void;
-}
+};
 
-export interface IImagePreviewState {
-  /** If the image should be scaled up if its smaller than the size it can take up */
+export type ImagePreviewState = {
+  /** If the image should be scaled up to fill the entire preview space (if it is smaller than that space). */
   scaleUp: boolean;
-  /** Original width of image */
+  /** Original width of image (in pixels). */
   imageWidth: number;
-  /** Original height of image */
+  /** Original height of image (in pixels). */
   imageHeight: number;
-  /** Width of border */
+  /** Width of border (in pixels). The border is the area between the preview space and the edge of the window. */
   borderWidth: number;
-  /** Height of border */
+  /** Height of border (in pixels). The border is the area between the preview space and the edge of the window. */
   borderHeight: number;
-}
+};
 
-export class ImagePreview extends React.Component<IImagePreviewProps, IImagePreviewState> {
-  private borderRef: React.RefObject<HTMLDivElement> = React.createRef();
-  private parent: HTMLElement;
-  private element: HTMLElement;
+/** An overlay that covers the entire window and displays an image in the center. */
+export class ImagePreview extends React.Component<ImagePreviewProps, ImagePreviewState> {
+  borderRef: React.RefObject<HTMLDivElement> = React.createRef();
+  /** Parent element of the overlay root element. */
+  parent: HTMLElement;
+  /** Root element of the overlay. */
+  element: HTMLElement;
 
-  constructor(props: IImagePreviewProps) {
+  constructor(props: ImagePreviewProps) {
     super(props);
     this.state = {
       scaleUp: false,
@@ -39,7 +42,7 @@ export class ImagePreview extends React.Component<IImagePreviewProps, IImagePrev
     this.element = document.createElement('div');
   }
 
-  componentDidUpdate(prevProps: IImagePreviewProps, prevState: IImagePreviewState) {
+  componentDidUpdate(prevProps: ImagePreviewProps, prevState: ImagePreviewState) {
     if (this.props.src !== prevProps.src) {
       this.updateBorderSize();
     }
@@ -57,22 +60,31 @@ export class ImagePreview extends React.Component<IImagePreviewProps, IImagePrev
   }
 
   render() {
-    const { scaleUp } = this.state;
-    return ReactDOM.createPortal(
-      (<div className='image-preview' onClick={this.onClickBackground}>
-        <div className='image-preview__border simple-center' onClick={this.onClickBackground} ref={this.borderRef}>
-          <div className='simple-center__inner simple-center__vertical-inner' onClick={this.onClickBackground}>
-            <img className={'image-preview__image' + (scaleUp ? ' image-preview__image--fill' : ' image-preview__image--fit')}
-                 src={this.props.src} onClick={this.onClickImage} onLoad={this.onLoad} style={{...this.calculateSize()}} />
+    return ReactDOM.createPortal((
+      <div
+        className='image-preview'
+        onClick={this.onClickBackground}>
+        <div
+          className='image-preview__border simple-center'
+          onClick={this.onClickBackground}
+          ref={this.borderRef}>
+          <div
+            className='simple-center__inner simple-center__vertical-inner'
+            onClick={this.onClickBackground}>
+            <img
+              className={'image-preview__image' + (this.state.scaleUp ? ' image-preview__image--fill' : ' image-preview__image--fit')}
+              src={this.props.src}
+              onClick={this.onClickImage}
+              onLoad={this.onLoad}
+              style={{ ...this.calculateSize() }} />
           </div>
         </div>
-      </div>),
-      this.element,
-    );
+      </div>
+    ), this.element);
   }
 
-  /** Calculate the size the image should have, depending on the current state */
-  private calculateSize(): { width: number, height: number } {
+  /** Calculate the size the image should have, depending on the current state. */
+  calculateSize(): { width: number, height: number } {
     const { scaleUp, imageWidth, imageHeight, borderWidth, borderHeight } = this.state;
     let width = imageWidth;
     let height = imageHeight;
@@ -84,17 +96,17 @@ export class ImagePreview extends React.Component<IImagePreviewProps, IImagePrev
     return { width, height };
   }
 
-  private onClickImage = (): void => {
+  onClickImage = (): void => {
     this.setState({ scaleUp: !this.state.scaleUp });
   }
 
-  private onClickBackground = (event: React.MouseEvent): void => {
+  onClickBackground = (event: React.MouseEvent): void => {
     if (event.target === event.currentTarget) {
       if (this.props.onCancel) { this.props.onCancel(); }
     }
   }
 
-  private updateBorderSize = (): void => {
+  updateBorderSize = (): void => {
     const border = this.borderRef.current;
     if (!border) { throw new Error('Border is missing.'); }
     this.setState({
@@ -103,7 +115,7 @@ export class ImagePreview extends React.Component<IImagePreviewProps, IImagePrev
     });
   }
   
-  private onLoad = (event: React.SyntheticEvent<HTMLImageElement>): void => {
+  onLoad = (event: React.SyntheticEvent<HTMLImageElement>): void => {
     this.setState({
       imageWidth: event.currentTarget.naturalWidth,
       imageHeight: event.currentTarget.naturalHeight,

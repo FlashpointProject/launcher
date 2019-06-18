@@ -1,64 +1,35 @@
 import * as React from 'react';
+import { useConfirm } from '../hooks/useConfirm';
 
-export interface IConfirmElementArgs {
+export type ConfirmElementArgs = {
   /** Number of times this has been activated since the last reset. */
   activationCounter: number;
-  /** Increments "activationCounter" then fires "onConfirm" if the counter exceeds "activationLimit". */
+  /** Increments "activationCounter" (and then calls "onConfirm" if the counter exceeds "activationLimit"). */
   activate: () => void;
   /** Calls the "onConfirm" callback (does not change or reset "activationCounter") */
   confirm: () => void;
   /** Resets "activationCounter". */
   reset: () => void;
-}
+};
 
-export interface IConfirmElementProps {
-  children?: (args: IConfirmElementArgs) => JSX.Element|void;
+export type ConfirmElementProps = {
+  /** Function that renders the element (render prop). */
+  children?: (args: ConfirmElementArgs) => JSX.Element | void;
+  /** Number of activations needed to confirm. */
   activationLimit?: number;
+  /** Called when confirmed. */
   onConfirm?: () => void;
-}
+};
 
-export interface IConfirmButtonState {
-  activationCounter: number;
-}
-
-export class ConfirmElement extends React.Component<IConfirmElementProps, IConfirmButtonState> {
-  constructor(props: IConfirmElementProps) {
-    super(props);
-    this.state = {
-      activationCounter: 0,
-    };
-  }
-
-  render() {
-    if (!this.props.children) { return (<></>); }
-    return this.props.children({
-      activationCounter: this.state.activationCounter,
-      activate: this.activate,
-      reset: this.reset,
-      confirm: this.confirm,
-    }) || (<></>);
-  }
-
-  private activate = (): void => {
-    let limit = (this.props.activationLimit !== undefined) ? this.props.activationLimit : 1;
-    let nextCount = this.state.activationCounter + 1;
-    if (nextCount > limit) {
-      this.confirm();
-      this.reset();
-    } else {
-      this.setState({ activationCounter: nextCount });
-    }
-  }
-
-  private confirm = (): void => {
-    if (this.props.onConfirm) {
-      this.props.onConfirm();
-    }
-  }
-
-  private reset = (): void => {
-    if (this.state.activationCounter !== 0) {
-      this.setState({ activationCounter: 0 });
-    }
-  }
+/** Wrapper component around the "useConfirm" hook. */
+export function ConfirmElement(props: ConfirmElementProps) {
+  // Hooks
+  const [count, activate, confirm, reset] = useConfirm(props.activationLimit, props.onConfirm);
+  // Render
+  return props.children && props.children({
+    activationCounter: count,
+    activate: activate,
+    reset: reset,
+    confirm: confirm,
+  }) || (<></>);
 }

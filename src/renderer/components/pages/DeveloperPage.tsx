@@ -5,7 +5,7 @@ import * as uuidValidate from 'uuid-validate';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { removeFileExtension } from '../../../shared/Util';
 import { GameImageCollection } from '../../image/GameImageCollection';
-import { ICentralState } from '../../interfaces';
+import { CentralState } from '../../interfaces';
 import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
 import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
@@ -22,18 +22,20 @@ const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
 const mkdir  = promisify(fs.mkdir);
 
-interface IOwnProps {
-  central: ICentralState;
-}
+type OwnProps = {
+  /** Semi-global prop. */
+  central: CentralState;
+};
 
-type IDeveloperPageProps = IOwnProps & WithLibraryProps;
+type DeveloperPageProps = OwnProps & WithLibraryProps;
 
-interface IDeveloperPageState {
+type DeveloperPageState = {
+  /** Text of the log. */
   text: string;
-}
+};
 
-export class DeveloperPage extends React.Component<IDeveloperPageProps, IDeveloperPageState> {
-  constructor(props: IDeveloperPageProps) {
+export class DeveloperPage extends React.Component<DeveloperPageProps, DeveloperPageState> {
+  constructor(props: DeveloperPageProps) {
     super(props);
     this.state = {
       text: '',

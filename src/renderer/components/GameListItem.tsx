@@ -1,29 +1,25 @@
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { IDefaultProps } from '../interfaces';
 import { getPlatformIconPath } from '../Util';
 
-export interface IGameListItemProps extends ListRowProps, IDefaultProps {
-  /** Game to show */
+export type GameListItemProps = ListRowProps & {
+  /** Game to display. */
   game: IGameInfo;
-  /** Path to the games thumbnail */
+  /** Path to the game's thumbnail. */
   thumbnail: string;
-  /** Height of the list item (in pixels) */
+  /** Height of the row (in pixels) */
   height: number;
-  /** If the grid item can be dragged (defaults to false) */
+  /** If the row can be dragged (defaults to false). */
   isDraggable?: boolean;
-  /** If the grid item is selected */
+  /** If the row is selected. */
   isSelected: boolean;
-  /** If the grid item is being dragged */
+  /** If the row is being dragged. */
   isDragged: boolean;
-}
+};
 
-export class GameListItem extends React.Component<IGameListItemProps, {}> {
-  constructor(props: IGameListItemProps) {
-    super(props);
-  }
-
+/** Displays a single game. Meant to be rendered inside a list. */
+export class GameListItem extends React.Component<GameListItemProps, {}> {
   render() {
     const game = this.props.game;
     const title: string = game.title || '';
@@ -39,23 +35,30 @@ export class GameListItem extends React.Component<IGameListItemProps, {}> {
     if (this.props.isDragged)       { className += ' game-list-item--dragged';  }
     // Render
     return (
-      <li style={this.props.style}
-          className={className} 
-          draggable={this.props.isDraggable}
-          { ...attributes }>
-        <div className='game-list-item__thumb' style={{
-          backgroundImage: `url("${this.props.thumbnail}")`,
-          width: size,
-          height: size,
-        }} />
+      <li
+        style={this.props.style}
+        className={className} 
+        draggable={this.props.isDraggable}
+        { ...attributes }>
+        <div
+          className='game-list-item__thumb'
+          style={{
+            backgroundImage: `url("${this.props.thumbnail}")`,
+            width: size,
+            height: size,
+          }} />
         <div className='game-list-item__right'>
-          <p className='game-list-item__right__title' title={title}>{title}</p>
+          <p
+            className='game-list-item__right__title'
+            title={title}>
+            {title}
+          </p>
           <p className='game-list-item__right__genre'>{game.genre}</p>
           <div className='game-list-item__right__icons'>
             {(platformIcon) ? (
-              <div className='game-list-item__right__icons__icon' style={{
-                backgroundImage: `url("${platformIcon}")`
-              }} />
+              <div
+                className='game-list-item__right__icons__icon'
+                style={{ backgroundImage: `url("${platformIcon}")` }} />
             ) : undefined }
           </div>
         </div>

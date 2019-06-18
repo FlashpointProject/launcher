@@ -1,31 +1,39 @@
 import * as React from 'react';
 import { memoizeOne } from '../../shared/memoize';
 import { InputField, InputFieldProps } from './InputField';
+import { checkIfAncestor } from '../Util';
 
-/** A function that receives an HTML element. */
+/** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
-type InputElement = HTMLInputElement|HTMLTextAreaElement;
+/** Input element types used by this component. */
+type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
-export interface DropdownInputFieldProps extends InputFieldProps {
-  /** If this can be edited or not (if not true, it will be shown as a normal text element) */
+export type DropdownInputFieldProps = InputFieldProps & {
+  /**
+   * If the text element can be edited or not.
+   * If true, the text element will be an input or text area element (depending on of multiline is enabled).
+   * If false or undefined, the text element will be a paragraph element (<p>).
+   */
   canEdit?: boolean;
-  /** Items to show in the list */
+  /** Items to show in the drop-down list. */
   items: string[];
-  /** Called when a list item is clicked or otherwise "selected" */
+  /** Called when a drop-down list item is clicked or otherwise "selected". */
   onItemSelect?: (text: string, index: number) => void;
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
   inputRef?: RefFunc<InputElement>;
-}
+};
 
-interface DropdownInputFieldState {
+type DropdownInputFieldState = {
+  /** If the drop-down content is "expanded" (visible). */
   expanded: boolean;
-}
+};
 
+/** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
 export class DropdownInputField extends React.Component<DropdownInputFieldProps, DropdownInputFieldState> {
-  private rootRef: React.RefObject<HTMLDivElement> = React.createRef();
-  private contentRef: React.RefObject<HTMLDivElement> = React.createRef();
-  private inputRef: React.RefObject<any> = React.createRef();
+  rootRef: React.RefObject<HTMLDivElement> = React.createRef();
+  contentRef: React.RefObject<HTMLDivElement> = React.createRef();
+  inputRef: React.RefObject<InputElement> = React.createRef();
 
   constructor(props: DropdownInputFieldProps) {
     super(props);
@@ -54,26 +62,36 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
     const { items, className, canEdit } = this.props;
     const { expanded } = this.state;
     const inputField = (
-      <InputField { ...this.props }
-        className={className+' input-dropdown__input-field__input__inner'}
+      <InputField
+        { ...this.props }
+        className={(className || '') + ' input-dropdown__input-field__input__inner'}
         onChange={this.onInputChange}
         onKeyDown={this.onInputKeyDown}
         reference={this.inputRef} />
     );
     if (canEdit) {
       return (
-        <div className='input-dropdown' ref={this.rootRef} onBlur={this.onBlur}>
+        <div
+          className='input-dropdown'
+          ref={this.rootRef}
+          onBlur={this.onBlur}>
           <div className='input-dropdown__input-field'>
-            <input className='input-dropdown__input-field__back' tabIndex={-1} readOnly={true} />
+            <input
+              className='input-dropdown__input-field__back'
+              tabIndex={-1}
+              readOnly={true} />
             <div className='input-dropdown__input-field__input'>
               { inputField }
             </div>
-            <div className='input-dropdown__input-field__button'
-                 onMouseDown={this.onExpandButtonMouseDown} />
+            <div
+              className='input-dropdown__input-field__button'
+              onMouseDown={this.onExpandButtonMouseDown} />
           </div>
-          <div className={'input-dropdown__content simple-scroll' +  (expanded?'':' input-dropdown__content--hidden')}
-               onClick={this.onListItemClick} onKeyDown={this.onListItemKeyDown}
-               ref={this.contentRef}>
+          <div
+            className={'input-dropdown__content simple-scroll' + (expanded ? '' : ' input-dropdown__content--hidden')}
+            onClick={this.onListItemClick}
+            onKeyDown={this.onListItemKeyDown}
+            ref={this.contentRef}>
             { this.renderItems(items) }
           </div>
         </div>
@@ -84,9 +102,12 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 
   /** Renders the list of items in the drop-down menu. */
-  private renderItems = memoizeOne<(items: string[]) => JSX.Element[]>((items: string[]) => {
+  renderItems = memoizeOne<(items: string[]) => JSX.Element[]>((items: string[]) => {
     return items.map((text, index) => (
-      <label key={index} data-dropdown-index={index} tabIndex={0}>
+      <label
+        key={index}
+        data-dropdown-index={index}
+        tabIndex={0}>
         {text}
       </label>
     ));
@@ -94,16 +115,9 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
     return checkIfArraysAreEqual(itemsA, itemsB);
   });
 
-  onBoxMouseDown = (event: React.MouseEvent): void => {
-    if (event.button === 0) {
-      this.setState({ expanded: !this.state.expanded });
-      event.preventDefault();
-    }
-  }
-
   onGlobalMouseDown = (event: MouseEvent) => {
     if (this.state.expanded && !event.defaultPrevented) {
-      if (!checkIfAncestor(event.target as Element|null, this.rootRef.current)) {
+      if (!checkIfAncestor(event.target as Element | null, this.rootRef.current)) {
         this.setState({ expanded: false });
       }
     }
@@ -198,17 +212,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 }
 
-/** Check if an element is the ancestor of another element */
-function checkIfAncestor(start: Element|null, target: Element|null): boolean {
-  let element: Element|null = start;
-  while (element) {
-    if (element === target) { return true; }
-    element = element.parentElement;
-  }
-  return false;
-}
-
-/** Get the index of an item element (or -1 if index was not found) */
+/** Get the index of an item element (or -1 if index was not found). */
 function getListItemIndex(target: any): number {
   if (target instanceof Element || target instanceof HTMLElement) {
     return parseInt(target.getAttribute('data-dropdown-index') || '-1', 10);
@@ -216,7 +220,7 @@ function getListItemIndex(target: any): number {
   return -1;
 }
 
-/** Check if two arrays are of equal length and contains the exact same items in the same order */
+/** Check if two arrays are of equal length and contains the exact same items in the same order. */
 function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
   if (a.length !== b.length) { return false; }
   for (let i = a.length; i >= 0; i--) {
