@@ -6,6 +6,7 @@ The launcher for BlueMaxima's Flashpoint (the web preservation project).
 ### Links
 * [BlueMaxima's Flashpoint](http://bluemaxima.org/flashpoint) - Download Flashpoint here (the launcher is bundled with it)
 * [Trello](https://trello.com/b/Tu9E5GLk/launcher) - Upcoming features, known bugs etc.
+* [Launcher Releases](https://github.com/FlashpointProject/launcher/releases) - Download release builds of the launcher here
 
 ## About
 The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for BlueMaxima's Flashpoint, which is a web preservation project.
@@ -17,7 +18,6 @@ How to setup a development environment:
 3. Run ``npm install``
 
 ## Linux Dependencies
-
 * `libgtk-3-0`
 * `libnss3`
 
