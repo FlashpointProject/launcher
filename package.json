@@ -1,7 +1,7 @@
 {
   "name": "flashpoint-launcher",
   "version": "0.0.1",
-  "description": "A desktop application used to browse, manage and play games from the Flashpoint project",
+  "description": "A desktop application used to browse, manage and play games from BlueMaxima's Flashpoint",
   "main": "main/index.js",
   "scripts": {
     "start": "npx electron ./build/main/index.js",

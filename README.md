@@ -1,30 +1,35 @@
 # Flashpoint Launcher
-
-The launcher for BlueMaxima's Flashpoint (aka the Flashpoint Project).
+The launcher for BlueMaxima's Flashpoint (the web preservation project).
 
 ![Screenshot](https://user-images.githubusercontent.com/10117720/55276674-a24e8c80-52f6-11e9-8b59-4fb396c36026.png)
 
 ### Links
-* [Flashpoint](http://bluemaxima.org/flashpoint) - Download Flashpoint here
+* [BlueMaxima's Flashpoint](http://bluemaxima.org/flashpoint) - Download Flashpoint here (the launcher is bundled with it)
 * [Trello](https://trello.com/b/Tu9E5GLk/launcher) - Upcoming features, known bugs etc.
 
+## About
+The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for BlueMaxima's Flashpoint, which is a web preservation project.
+
 ## Setup
-1. Download the project (and extract it, if it was downloaded as an archive).
-2. Open a command prompt and navigate it to the projects root folder.
+How to setup a development environment:
+1. Download the project (and extract it, if it was downloaded as an archive)
+2. Open a command prompt and navigate it to the projects root folder
 3. Run ``npm install``
 
-## Linux dependencies
+## Linux Dependencies
+
 * `libgtk-3-0`
 * `libnss3`
 
 Install by running ``sudo apt install libgtk-3-0 libnss3``
 
 ## Development
-1. Open a command prompt and run ``npm run watch`` and wait for it to finish building
-2. Open another command prompt and wait for ``build`` to complete, then run ``npm run start``
+Recommended setup for development:
+1. Open a command prompt and run ``npm run build`` and wait for it to finish
+2. In the same command prompt as before, run ``npm run watch`` and let the prompt stay open
+3. Open a second command prompt and run ``npm run start``
 
 ## Package Scripts
-
 * ``build`` - Build the launcher (build main & renderer and copy static files to ``./build/``)
 * ``watch`` - Build the launcher and incrementally rebuild it when the source or static files change
 * ``pack`` - Pack the latest build (and put the packaged file with the executable electron app in ``./dist/``)
