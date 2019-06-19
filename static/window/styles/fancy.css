@@ -1,0 +1,673 @@
+/* ====== FANCY ======
+ * 
+ * Contains all styles that enhance the visuals of the application.
+ * This includes things like text/background/border colors, fonts etc.
+ *
+ * This style-sheet should be completely optional.
+ * 
+ */
+
+/* ------ General ------ */
+:root {
+  /* ------- Layout Variables ------- */
+  /* Font */
+  --layout__primary-font: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  /* Confirm */
+  --layout__confirm-color: #5cb468;
+  /* Warning */
+  --layout__warning-dark-color:   #5a1010;
+  --layout__warning-medium-color: #731919;
+  --layout__warning-bright-color: #a22020;
+  /* Valid / Invalid */
+  --layout__valid-color:   #009600;
+  --layout__invalid-color: #840000;
+  /* Text Color */
+  --layout__primary-text-color:     #f1f1f1;
+  --layout__secondary-text-color:   #aaaaaa;
+  --layout__highlighted-text-color: #ffffff;
+  --layout__disabled-text-color:    #9b9b9b;
+  /* Background */
+  --layout__primary-background:    #1b1b1c;
+  --layout__secondary-background:  #2d2d30;
+  --layout__tertiary-background:   #141417;
+  --layout__quaternary-background: #242428;
+  /* Outline Color */
+  --layout__primary-outline-color: #47474d;
+  /* Scrollbar */
+  --layout__scroll-thumb-color:        #585858;
+  --layout__scroll-thumb-color-hover:  #505050;
+  --layout__scroll-thumb-color-active: #404040;
+  /* Slider */
+  --layout__slider-background:        #4d4f55;
+  --layout__slider-background-hover:  #43454b;
+  --layout__slider-background-active: #2e2f33;
+  /* Game Item */
+  --layout__game-item-color: var(--layout__secondary-text-color);
+  --layout__game-item-color-hover: var(--layout__primary-text-color);
+  --layout__game-item-color-selected:            #cecece;
+  --layout__game-item-color-selected-hover: var(--layout__game-item-color-hover);
+  --layout__game-list-item-background-even:      #1e1e1f; /* Only used in "list" mode. */
+  --layout__game-item-background-hover:          #3c3c41;
+  --layout__game-item-background-selected:       #791c76;
+  --layout__game-item-background-selected-hover: #a72aa2;
+  --layout__game-item-thumb-image-rendering:       normal; /* Used to set the "image-rendering" of the thumbnail. */
+  /* Browse Sidebar(s) */
+  --layout__browse-sidebar-background:         #181819;
+  --layout__browse-sidebar-divider-background: #131313;
+  /* Right Browse Sidebar */
+  --layout__browse-right-sidebar-screenshot-placeholder-background: #1b1b1b;
+  --layout__browse-right-sidebar-screenshot-placeholder-border:     #818181;
+  /* Playlist List */
+  --layout__playlist-list-item-even-background:                #1e1e1f;
+  --layout__playlist-list-fake-even-background:                #19191b;
+  --layout__playlist-list-item-content-background:             #242425;
+  --layout__playlist-list-item-hover-color:                    #e6e6e6;
+  --layout__playlist-list-fake-hover-background:               #343438;
+  --layout__playlist-list-item-drag-over-background:           #3c3c41;
+  --layout__playlist-list-item-drag-over-border:               #818181;
+  --layout__playlist-list-item-editing-odd-background:         #151f14;
+  --layout__playlist-list-item-editing-even-background:        #192519;
+  --layout__playlist-list-item-editing-drag-over-background:   #20301f;
+  --layout__playlist-list-item-editing-content-background:     #1c291b;
+  --layout__playlist-list-item-editing-description-background: #3a5637;
+  /* Game Image Split */
+  --layout__game-image-split-hover-color:    #575757;
+  --layout__game-image-split-disabled-color: #141414;
+  /* Home Page */
+  --layout__home-page-box-border:     #3f3f3f;
+  --layout__home-page-box-background: #252525;
+  /* Log (at the Log Page) */
+  --layout__log-time-stamp:                 #857df3;
+  --layout__log-source:                     #d4d4d4;
+  --layout__log-source-background-services: #8d8d8d;
+  --layout__log-source-game-launcher:       #ffd900;
+  --layout__log-source-redirector:          #00ffff;
+  --layout__log-source-router:              #00ff00;
+  /* Credits */
+  --layout__credits-tooltip-border:           #000000;
+  --layout__credits-tooltip-background:       #000000DD;
+  --layout__credits-tooltip-roles-background: #000000;
+  /* Log Page */
+  --layout__log-page-bar-background: #222222;
+  /* Developer Page */
+  --layout__developer-page-log-background: #313133;
+  --layout__developer-page-log-border:     #353535;
+  /* Simple Button */
+  --layout__simple-button-background: #434346;
+  --layout__simple-button-border: #6f6f75;
+  /* Header Menu Item */
+  --layout__header-menu-item-hover-background: #3c2d4b;
+  --layout__header-menu-item-hover-border: #d33682;
+  /* Misc */
+  --layout__title-bar-cross-color:                 #eb4b4b;
+  --layout__no-theme-suggestion-color:             #bfbfbf;
+  --layout__footer-scale-slider-icon-color:        #0f1010;
+  --layout__footer-scale-slider-background:        #353838;
+  --layout__icon-button-hover-fill:                #b1b1b1; /* Color of "icon buttons" while the cursor is hovering over them. */
+  --layout__toggle-sidebar-fill:                   #cccccc;
+  --layout__drop-down-content-background-selected: #1e90ff;
+}
+
+body {
+  color: var(--layout__primary-text-color);
+  background-color: var(--layout__primary-background);
+  font-family: var(--layout__primary-font);
+}
+
+:link {
+  color: var(--layout__highlighted-text-color);
+}
+
+
+/* ------ Icons ------ */
+.icon__use {
+  fill: var(--layout__highlighted-text-color);
+}
+
+
+/* ------ Generic & Re-usable ------ */
+/* Simple Button */
+.simple-button {
+  background-color: var(--layout__secondary-background);
+  border-color: var(--layout__primary-outline-color);
+  color: var(--layout__primary-text-color);
+}
+.simple-button:hover {
+  background-color: var(--layout__simple-button-background);
+  border-color: var(--layout__simple-button-border);
+}
+.simple-button:disabled {
+  color: var(--layout__disabled-text-color);
+}
+.simple-button--red {
+  background-color: var(--layout__warning-dark-color);
+  border-color: var(--layout__warning-medium-color);
+}
+.simple-button--red:hover {
+  background-color: var(--layout__warning-medium-color);
+  border-color: var(--layout__warning-bright-color);
+}
+/* Simple Selector */
+.simple-selector {
+  border-color: var(--layout__primary-outline-color);
+  /* Pimp */
+  font-family: var(--layout__primary-font);
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+}
+/* Simple Scroll(bar) */
+.simple-scroll::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 calc(0.25 * var(--scrollbar-size)) rgba(0, 0, 0, 0.25);
+  background-color: rgba(0, 0, 0, 0.085);
+  border-radius: calc(0.5 * var(--scrollbar-size));
+}
+.simple-scroll::-webkit-scrollbar-thumb {
+  box-shadow: inset 0 0 calc(0.5 * var(--scrollbar-size));
+  border-radius: calc(0.5 * var(--scrollbar-size));
+  background-color: var(--layout__scroll-thumb-color);
+  color: rgba(0, 0, 0, 0.15);
+}
+.simple-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--layout__scroll-thumb-color-hover);
+}
+.simple-scroll::-webkit-scrollbar-thumb:active {
+  background-color: var(--layout__scroll-thumb-color-active);
+}
+/* Simple Input (Input text field) */
+.simple-input {
+  color: var(--layout__primary-text-color);
+  background-color: var(--layout__secondary-background);
+}
+/* Simple Disabled Text */
+.simple-disabled-text {
+  color: var(--layout__disabled-text-color);
+}
+/* Checkbox Dropdown */
+.checkbox-dropdown {
+  font-family: var(--layout__primary-font);
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+}
+.checkbox-dropdown__select-box {
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+  border-color: var(--layout__primary-outline-color);
+}
+.checkbox-dropdown__content {
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+  border-color: var(--layout__primary-outline-color);
+}
+.checkbox-dropdown__content label:hover {
+  background-color: var(--layout__drop-down-content-background-selected);
+}
+/* Input Dropdown */
+.input-dropdown {
+  font-family: var(--layout__primary-font);
+  background-color: var(--layout__primary-background);
+  color: var(--layout__primary-text-color);
+}
+.input-dropdown__input-field__back {
+  background-color: var(--layout__secondary-background);
+  color: var(--layout__primary-text-color);
+}
+.input-dropdown__content {
+  background-color: var(--layout__secondary-background);
+  color: var(--layout__primary-text-color);
+  border-color: var(--layout__primary-outline-color);
+}
+.input-dropdown__content label:hover,
+.input-dropdown__content label:focus {
+  background-color: var(--layout__drop-down-content-background-selected);
+}
+/* Log */
+.log {
+  color: var(--layout__highlighted-text-color);
+}
+.log__time-stamp {
+  color: var(layout__log-time-stamp);
+}
+.log__source {
+  /* Default color of sources, used on the unknown/unspecified sources */
+  color: var(--layout__log-source);
+}
+.log__source--background-services {
+  color: var(--layout__log-source-background-services);
+}
+.log__source--game-launcher {
+  color: var(--layout__log-source-game-launcher);
+}
+.log__source--redirector {
+  color: var(--layout__log-source-redirector);
+}
+.log__source--router {
+  color: var(--layout__log-source-router);
+}
+
+
+/* ------ Image Preview ------ */
+.image-preview {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+
+/* ------ Main Layout ------ */
+.root {
+  background-color: var(--layout__tertiary-background);
+}
+.main {
+  background-color: var(--layout__primary-background);
+}
+
+
+/* ------ TitleBar ------ */
+.title-bar {
+  background-color: var(--layout__tertiary-background);
+}
+/* Minimize Button */
+.title-bar__button-bar__min {
+  background-image: url('../images/min.png');
+}
+.title-bar__button-bar__min:hover {
+  background-color: var(--layout__quaternary-background);
+}
+/* Maximize Button */
+.title-bar__button-bar__max {
+  background-image: url('../images/max.png');
+}
+.title-bar__button-bar__max:hover {
+  background-color: var(--layout__quaternary-background);
+}
+/* Cross Button */
+.title-bar__button-bar__cross {
+  background-image: url('../images/cross.png');
+}
+.title-bar__button-bar__cross:hover {
+  background-color: var(--layout__title-bar-cross-color);
+}
+
+
+/* ------ Header ------ */
+.header {
+  background-color: var(--layout__secondary-background);
+}
+.header__menu__item__link {
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--layout__primary-text-color);
+}
+.header__menu__item__link:hover {
+  background-color: var(--layout__header-menu-item-hover-background);
+  border-color: var(--layout__header-menu-item-hover-border);
+}
+.header__search {
+  border: 1px solid var(--layout__primary-outline-color);
+  background-color: var(--layout__primary-background);
+}
+.header__search__input {
+  color: var(--layout__primary-text-color);
+}
+.header__search__icon .icon__use {
+  fill: var(--layout__primary-text-color);
+}
+.header__search__icon:hover .icon__use--circle-x {
+  fill: var(--layout__icon-button-hover-fill);
+}
+/* Header Toggle-Sidebar */
+.header__toggle-sidebar .icon__use {
+  fill: var(--layout__toggle-sidebar-fill);
+}
+.header__toggle-sidebar:hover .icon__use {
+  fill: var(--layout__highlighted-text-color);
+}
+.header__toggle-sidebar:active .icon__use {
+  fill: var(--layout__secondary-text-color);
+}
+
+
+/* ------ Footer ------ */
+.footer {
+  background-color: var(--layout__secondary-background);
+}
+/* Scale Slider */
+.footer__scale-slider__inner {
+  background-color: var(--layout__footer-scale-slider-background);
+  box-shadow: inset 0 0 calc(0.5 * var(--slider-size)) rgba(0, 0, 0, 0.05);
+  border-radius: calc(0.5 * var(--slider-size));
+}
+.footer__scale-slider__icon {
+  font-family: monospace;
+  font-weight: bold;
+  color: var(--layout__footer-scale-slider-icon-color);
+}
+.footer__scale-slider__icon--center {
+  background-color: var(--layout__footer-scale-slider-icon-color);
+}
+.footer__scale-slider__input {
+  background: none;
+}
+.footer__scale-slider__input::-webkit-slider-runnable-track {
+  background: none;
+}
+.footer__scale-slider__input::-webkit-slider-thumb {
+  box-shadow: inset 0 0 calc(0.5 * var(--slider-size));
+  border-radius: 50%;
+  background-color: var(--layout__slider-background);
+  color: rgba(0, 0, 0, 0.05);
+}
+.footer__scale-slider__input::-webkit-slider-thumb:hover {
+  background-color: var(--layout__slider-background-hover);
+}
+.footer__scale-slider__input::-webkit-slider-thumb:active {
+  background-color: var(--layout__slider-background-active);
+}
+
+
+/* ------ Home ------ */
+/* Logo */
+.home-page__logo__image {
+  /* Mask the background color with the FP logo */
+  -webkit-mask: url('../images/logo-solid.svg');
+  -webkit-mask-size: var(--size);
+  -webkit-mask-repeat: no-repeat;
+  /* Cool colors yall */
+  background:
+    linear-gradient(rgba(0, 0, 0, 0), var(--layout__primary-background)),
+    linear-gradient(90deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400);
+  background-size: var(--zoom) 100%;
+  -webkit-animation: home-page__logo__slide 1200s linear infinite;
+}
+@-webkit-keyframes home-page__logo__slide {
+     0% { background-position-x:          0%; }
+   100% { background-position-x: var(--zoom); }
+}
+/* HomePage Box */
+.home-page__box {
+  border-color: var(--layout__home-page-box-border);
+  background-color: var(--layout__home-page-box-background);
+}
+.home-page__box__head {
+  border-bottom-color: var(--layout__home-page-box-border);
+}
+/* HomePage Box - Upgrades */
+.home-page__box--upgrades .home-page__grayed-out {
+  color: var(--layout__disabled-text-color);
+}
+/* HomePage Box - Extras */
+.home-page__box--extras span a {
+  text-decoration: none;
+}
+
+
+/* ------ About ------ */
+.about-page__section__title {
+  background-color: var(--layout__tertiary-background);
+}
+/* Credits */
+.about-page__credits__tooltip {
+  border-color: var(--layout__credits-tooltip-border);
+  background-color: var(--layout__credits-tooltip-background);
+}
+.about-page__credits__tooltip__note {
+  color: var(--layout__disabled-text-color);
+  font-style: italic;
+}
+.about-page__credits__tooltip__roles p {
+  background-color: var(--layout__credits-tooltip-roles-background);
+}
+
+
+/* ------ Log ------ */
+/* Log-Page Bar */
+.log-page__bar {
+  background-color: var(--layout__log-page-bar-background);
+}
+
+
+/* ------ Browse ------ */
+.game-browser {
+  background-color: var(--layout__primary-background);
+}
+/* Sidebar */
+.game-browser__sidebar {
+  background-color: var(--layout__browse-sidebar-background);
+}
+.game-browser__sidebar__divider {
+  background-color: var(--layout__browse-sidebar-divider-background);
+}
+/* Browse-Right-Sidebar Additional-Application */
+.browse-right-sidebar__additional-application:nth-child(2n) {
+  background-color: var(--layout__tertiary-background);
+}
+/* BrowseSidebar Title-Row Buttons */
+.browse-right-sidebar__title-row__buttons .icon__use {
+  fill: var(--layout__primary-text-color);
+}
+.browse-right-sidebar__title-row__buttons :hover .icon__use {
+  fill: var(--layout__icon-button-hover-fill);
+}
+/* BrowseSidebar Title-Row Delete-Game */
+.browse-right-sidebar__title-row__buttons__delete-game:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.browse-right-sidebar__title-row__buttons__delete-game--active:hover .icon__use {
+  fill: var(--layout__warning-medium-color);
+}
+/* BrowseSidebar Title-Row Remove-From-Playlist */
+.browse-right-sidebar__title-row__buttons__remove-from-playlist:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.browse-right-sidebar__title-row__buttons__remove-from-playlist--active:hover .icon__use {
+  fill: var(--layout__warning-medium-color);
+}
+/* BrowseSidebar Title-Row Edit */
+.browse-right-sidebar__title-row__buttons__edit-button:hover .icon__use {
+  fill: var(--layout__confirm-color);
+}
+/* BrowseSidebar Title-Row Discard */
+.browse-right-sidebar__title-row__buttons__discard-button:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+/* BrowseSidebar Title-Row Save */
+.browse-right-sidebar__title-row__buttons__save-button:hover .icon__use {
+  fill: var(--layout__confirm-color);
+}
+/* Browse-Right-Sidebar Row - Additional Application */
+.browse-right-sidebar__additional-application__delete-button:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.browse-right-sidebar__additional-application__delete-button--active:hover .icon__use {
+  fill: var(--layout__confirm-color);
+}
+/* Browse-Right-Sidebar Row - Screenshot */
+.browse-right-sidebar__row__screenshot__placeholder {
+  background-color: var(--layout__browse-right-sidebar-screenshot-placeholder-background);
+  border-color: var(--layout__browse-right-sidebar-screenshot-placeholder-border);
+}
+.browse-right-sidebar__row__screenshot__placeholder p {
+  color: var(--layout__disabled-text-color);
+}
+/* GameImageSplit */
+.game-image-split {
+  --inner-border-color: var(--layout__secondary-background);
+}
+.game-image-split--hover {
+  background-color: var(--layout__game-image-split-hover-color);
+}
+.game-image-split--disabled {
+  background-color: var(--layout__game-image-split-disabled-color);
+}
+.game-image-split:first-child {
+  border-right-color: var(--inner-border-color);
+}
+.game-image-split:last-child {
+  border-left-color: var(--inner-border-color);
+}
+.game-image-split__buttons__remove-image:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.game-image-split__buttons__remove-image--active:hover .icon__use {
+  fill: var(--layout__warning-medium-color);
+}
+
+
+/* GameList Item */
+.game-list-item {
+  list-style: none;
+  background-color: var(--layout__primary-background);
+  color: var(--layout__game-item-color);
+}
+.game-list-item--even {
+  background-color: var(--layout__game-list-item-background-even);
+}
+.game-list-item:hover {
+  background-color: var(--layout__game-item-background-hover);
+  color: var(--layout__game-item-color-hover);
+}
+.game-list-item--selected {
+  background-color: var(--layout__game-item-background-selected);
+  color: var(--layout__game-item-color-selected);
+}
+.game-list-item--selected:hover {
+  background-color: var(--layout__game-item-background-selected-hover);
+  color: var(--layout__game-item-color-selected-hover);
+}
+/* GameList Item Thumb */
+.game-list-item__thumb {
+  image-rendering: var(--layout__game-item-thumb-image-rendering);
+}
+
+
+/* GameGrid */
+.game-grid-item {
+  color: var(--layout__game-item-color);
+}
+.game-grid-item:hover {
+  background-color: var(--layout__game-item-background-hover);
+  color: var(--layout__game-item-color-hover);
+}
+.game-grid-item--selected {
+  background-color: var(--layout__game-item-background-selected);
+  color: var(--layout__game-item-color-selected);
+}
+.game-grid-item--selected:hover {
+  background-color: var(--layout__game-item-background-selected-hover);
+  color: var(--layout__game-item-color-selected-hover);
+}
+.game-grid-item__thumb__image {
+  border-radius: 0.2em;
+  background-color: var(--layout__quaternary-background);
+  border-color: var(--layout__tertiary-background);
+  box-shadow: 0px 2px 4px 0px #09090a;
+  image-rendering: var(--layout__game-item-thumb-image-rendering);
+}
+
+/* Playlist-List-Item */
+.playlist-list-item {
+  background-color: var(--layout__primary-background);
+  color: var(--layout__secondary-text-color);
+}
+.playlist-list-item:nth-child(2n) {
+  background-color: var(--layout__playlist-list-item-even-background);
+}
+.playlist-list-item:hover,
+.playlist-list-item.playlist-list-item--drag-over {
+  background-color: var(--layout__playlist-list-item-drag-over-background);
+}
+.playlist-list-item--editing {
+  background-color: var(--layout__playlist-list-item-editing-odd-background);
+}
+.playlist-list-item--editing:nth-child(2n) {
+  background-color: var(--layout__playlist-list-item-editing-even-background);
+}
+.playlist-list-item--editing:hover,
+.playlist-list-item--editing.playlist-list-item--drag-over {
+  background-color: var(--layout__playlist-list-item-editing-drag-over-background);
+}
+.playlist-list-item--drag-over .playlist-list-item__drag-overlay {
+  border-color: var(--layout__playlist-list-item-drag-over-border);
+}
+/* Playlist-List-Item Head */
+.playlist-list-item__head {
+  --color: var(--layout__secondary-text-color);
+  color: var(--color);
+}
+.playlist-list-item__head:hover,
+.playlist-list-item--drag-over .playlist-list-item__head {
+  --color: var(--layout__playlist-list-item-hover-color);
+}
+.playlist-list-item__head__icon__no-image__icon .icon__use {
+  fill: var(--color);
+}
+/* Playlist-List-Item Content */
+.playlist-list-item__content {
+  background-color: var(--layout__playlist-list-item-content-background);
+}
+.playlist-list-item--editing .playlist-list-item__content {
+  background-color: var(--layout__playlist-list-item-editing-content-background);
+  color: var(--layout__highlighted-text-color);
+}
+.playlist-list-item__content__description-edit {
+  background-color: var(--layout__playlist-list-item-editing-description-background);
+}
+/* Playlist-List-Fake-Item */
+.playlist-list-fake-item {
+  background-color: var(--layout__playlist-list-fake-even-background);
+  --color: var(--layout__secondary-text-color);
+}
+.playlist-list-fake-item:hover {
+  background-color: var(--layout__playlist-list-fake-hover-background);
+  --color: var(--layout__highlighted-text-color);
+}
+.playlist-list-fake-item__inner .icon__use {
+  fill: var(--color);
+}
+.playlist-list-fake-item__inner__title {
+  color: var(--color);
+}
+
+
+/** ------ Developer ------ */
+.developer-page__log {
+  background-color: var(--layout__developer-page-log-background);
+  border-color: var(--layout__developer-page-log-border);
+}
+
+
+/** ------ Config ------ */
+/* Setting */
+.setting__body {
+  background-color: var(--layout__quaternary-background);
+  border-color: var(--layout__tertiary-background);
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
+/* Setting Row */
+.setting__row {
+  padding: 0.75em;
+}
+.setting__row:not(:first-child) {
+  border-top-color: var(--layout__tertiary-background);
+}
+/* Setting Row Content - FilePoint Path */
+.setting__row__content--filepath-path .flashpoint-path__input {
+  border-color: var(--layout__primary-outline-color);
+}
+.setting__row__content--filepath-path .flashpoint-path__input--valid {
+  background-color: var(--layout__valid-color);
+}
+.setting__row__content--filepath-path .flashpoint-path__input--invalid {
+  background-color: var(--layout__invalid-color);
+}
+.setting__row__content--filepath-path .flashpoint-path__input input[type="text"] {
+  color: var(--layout__primary-text-color);
+}
+/* Setting Row Content - Input Field */
+.setting__row__content--input-field .input-dropdown__input-field,
+.setting__row__content--input-field .input-dropdown__content {
+  border-color: var(--layout__primary-outline-color);
+}
+/* Setting Row Content - Theme Input Field */
+.setting__row__content--theme-input-field label:last-child {
+  /* Change the color of the "No Theme" suggestion in the drop-down list. */
+  color: var(--layout__no-theme-suggestion-color);
+}
