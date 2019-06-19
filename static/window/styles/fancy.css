@@ -27,10 +27,10 @@
   --layout__highlighted-text-color: #ffffff;
   --layout__disabled-text-color:    #9b9b9b;
   /* Background */
-  --layout__primary-background:   #1b1b1c;
-  --layout__secondary-background: #2d2d30;
+  --layout__primary-background:    #1b1b1c;
+  --layout__secondary-background:  #2d2d30;
   --layout__tertiary-background:   #141417;
-  --layout__four-background:      #242428;
+  --layout__quaternary-background: #242428;
   /* Outline Color */
   --layout__primary-outline-color: #47474d;
   /* Scrollbar */
@@ -51,16 +51,61 @@
   --layout__game-item-background-selected:       #791c76;
   --layout__game-item-background-selected-hover: #a72aa2;
   --layout__game-item-thumb-image-rendering:       normal; /* Used to set the "image-rendering" of the thumbnail. */
-  /* Browse Sidebar */
+  /* Browse Sidebar(s) */
   --layout__browse-sidebar-background:         #181819;
   --layout__browse-sidebar-divider-background: #131313;
+  /* Right Browse Sidebar */
+  --layout__browse-right-sidebar-screenshot-placeholder-background: #1b1b1b;
+  --layout__browse-right-sidebar-screenshot-placeholder-border:     #818181;
   /* Playlist List */
-  --layout__playlist-list-item-even-background: #1e1e1f;
-  --layout__playlist-list-fake-even-background: #19191b;
+  --layout__playlist-list-item-even-background:                #1e1e1f;
+  --layout__playlist-list-fake-even-background:                #19191b;
+  --layout__playlist-list-item-content-background:             #242425;
+  --layout__playlist-list-item-hover-color:                    #e6e6e6;
+  --layout__playlist-list-fake-hover-background:               #343438;
+  --layout__playlist-list-item-drag-over-background:           #3c3c41;
+  --layout__playlist-list-item-drag-over-border:               #818181;
+  --layout__playlist-list-item-editing-odd-background:         #151f14;
+  --layout__playlist-list-item-editing-even-background:        #192519;
+  --layout__playlist-list-item-editing-drag-over-background:   #20301f;
+  --layout__playlist-list-item-editing-content-background:     #1c291b;
+  --layout__playlist-list-item-editing-description-background: #3a5637;
+  /* Game Image Split */
+  --layout__game-image-split-hover-color:    #575757;
+  --layout__game-image-split-disabled-color: #141414;
+  /* Home Page */
+  --layout__home-page-box-border:     #3f3f3f;
+  --layout__home-page-box-background: #252525;
+  /* Log (at the Log Page) */
+  --layout__log-time-stamp:                 #857df3;
+  --layout__log-source:                     #d4d4d4;
+  --layout__log-source-background-services: #8d8d8d;
+  --layout__log-source-game-launcher:       #ffd900;
+  --layout__log-source-redirector:          #00ffff;
+  --layout__log-source-router:              #00ff00;
+  /* Credits */
+  --layout__credits-tooltip-border:           #000000;
+  --layout__credits-tooltip-background:       #000000DD;
+  --layout__credits-tooltip-roles-background: #000000;
+  /* Log Page */
+  --layout__log-page-bar-background: #222222;
+  /* Developer Page */
+  --layout__developer-page-log-background: #313133;
+  --layout__developer-page-log-border:     #353535;
+  /* Simple Button */
+  --layout__simple-button-background: #434346;
+  --layout__simple-button-border: #6f6f75;
+  /* Header Menu Item */
+  --layout__header-menu-item-hover-background: #3c2d4b;
+  --layout__header-menu-item-hover-border: #d33682;
   /* Misc */
-  --layout__title-bar-cross-color:          #eb4b4b;
-  --layout__no-theme-suggestion-color:      #bfbfbf;
-  --layout__footer-scale-slider-icon-color: #0f1010;
+  --layout__title-bar-cross-color:                 #eb4b4b;
+  --layout__no-theme-suggestion-color:             #bfbfbf;
+  --layout__footer-scale-slider-icon-color:        #0f1010;
+  --layout__footer-scale-slider-background:        #353838;
+  --layout__icon-button-hover-fill:                #b1b1b1; /* Color of "icon buttons" while the cursor is hovering over them. */
+  --layout__toggle-sidebar-fill:                   #cccccc;
+  --layout__drop-down-content-background-selected: #1e90ff;
 }
 
 body {
@@ -88,8 +133,8 @@ body {
   color: var(--layout__primary-text-color);
 }
 .simple-button:hover {
-  background-color: #434346;
-  border-color: #6f6f75;
+  background-color: var(--layout__simple-button-background);
+  border-color: var(--layout__simple-button-border);
 }
 .simple-button:disabled {
   color: var(--layout__disabled-text-color);
@@ -154,7 +199,7 @@ body {
   border-color: var(--layout__primary-outline-color);
 }
 .checkbox-dropdown__content label:hover {
-  background-color: #1e90ff;
+  background-color: var(--layout__drop-down-content-background-selected);
 }
 /* Input Dropdown */
 .input-dropdown {
@@ -173,29 +218,30 @@ body {
 }
 .input-dropdown__content label:hover,
 .input-dropdown__content label:focus {
-  background-color: #1e90ff;
+  background-color: var(--layout__drop-down-content-background-selected);
 }
 /* Log */
 .log {
   color: var(--layout__highlighted-text-color);
 }
 .log__time-stamp {
-  color: #857df3;
+  color: var(layout__log-time-stamp);
 }
 .log__source {
-  color: #d4d4d4; /* Default color of sources, used on the unknown/unspecified sources */
+  /* Default color of sources, used on the unknown/unspecified sources */
+  color: var(--layout__log-source);
 }
 .log__source--background-services {
-  color: #8d8d8d;
+  color: var(--layout__log-source-background-services);
 }
 .log__source--game-launcher {
-  color: #ffd900;
-}
-.log__source--router {
-  color: #00ff00;
+  color: var(--layout__log-source-game-launcher);
 }
 .log__source--redirector {
-  color: #00ffff;
+  color: var(--layout__log-source-redirector);
+}
+.log__source--router {
+  color: var(--layout__log-source-router);
 }
 
 
@@ -223,14 +269,14 @@ body {
   background-image: url('../images/min.png');
 }
 .title-bar__button-bar__min:hover {
-  background-color: var(--layout__four-background);
+  background-color: var(--layout__quaternary-background);
 }
 /* Maximize Button */
 .title-bar__button-bar__max {
   background-image: url('../images/max.png');
 }
 .title-bar__button-bar__max:hover {
-  background-color: var(--layout__four-background);
+  background-color: var(--layout__quaternary-background);
 }
 /* Cross Button */
 .title-bar__button-bar__cross {
@@ -251,8 +297,8 @@ body {
   color: var(--layout__primary-text-color);
 }
 .header__menu__item__link:hover {
-  background-color: #3c2d4b;
-  border-color: #d33682;
+  background-color: var(--layout__header-menu-item-hover-background);
+  border-color: var(--layout__header-menu-item-hover-border);
 }
 .header__search {
   border: 1px solid var(--layout__primary-outline-color);
@@ -265,11 +311,11 @@ body {
   fill: var(--layout__primary-text-color);
 }
 .header__search__icon:hover .icon__use--circle-x {
-  fill: #b1b1b1;
+  fill: var(--layout__icon-button-hover-fill);
 }
 /* Header Toggle-Sidebar */
 .header__toggle-sidebar .icon__use {
-  fill: #ccc;
+  fill: var(--layout__toggle-sidebar-fill);
 }
 .header__toggle-sidebar:hover .icon__use {
   fill: var(--layout__highlighted-text-color);
@@ -285,7 +331,7 @@ body {
 }
 /* Scale Slider */
 .footer__scale-slider__inner {
-  background-color: #353838;
+  background-color: var(--layout__footer-scale-slider-background);
   box-shadow: inset 0 0 calc(0.5 * var(--slider-size)) rgba(0, 0, 0, 0.05);
   border-radius: calc(0.5 * var(--slider-size));
 }
@@ -326,7 +372,7 @@ body {
   -webkit-mask-repeat: no-repeat;
   /* Cool colors yall */
   background:
-    linear-gradient(#00000000, var(--layout__primary-background)),
+    linear-gradient(rgba(0, 0, 0, 0), var(--layout__primary-background)),
     linear-gradient(90deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400);
   background-size: var(--zoom) 100%;
   -webkit-animation: home-page__logo__slide 1200s linear infinite;
@@ -337,11 +383,11 @@ body {
 }
 /* HomePage Box */
 .home-page__box {
-  border-color: #3f3f3f;
-  background-color: #252525;
+  border-color: var(--layout__home-page-box-border);
+  background-color: var(--layout__home-page-box-background);
 }
 .home-page__box__head {
-  border-bottom-color: #3f3f3f;
+  border-bottom-color: var(--layout__home-page-box-border);
 }
 /* HomePage Box - Upgrades */
 .home-page__box--upgrades .home-page__grayed-out {
@@ -359,22 +405,22 @@ body {
 }
 /* Credits */
 .about-page__credits__tooltip {
-  border-color: #000000;
-  background-color: #000000DD;
+  border-color: var(--layout__credits-tooltip-border);
+  background-color: var(--layout__credits-tooltip-background);
 }
 .about-page__credits__tooltip__note {
   color: var(--layout__disabled-text-color);
   font-style: italic;
 }
 .about-page__credits__tooltip__roles p {
-  background-color: #000000;
+  background-color: var(--layout__credits-tooltip-roles-background);
 }
 
 
 /* ------ Log ------ */
 /* Log-Page Bar */
 .log-page__bar {
-  background-color: #222222;
+  background-color: var(--layout__log-page-bar-background);
 }
 
 
@@ -398,7 +444,7 @@ body {
   fill: var(--layout__primary-text-color);
 }
 .browse-right-sidebar__title-row__buttons :hover .icon__use {
-  fill: #b1b1b1;
+  fill: var(--layout__icon-button-hover-fill);
 }
 /* BrowseSidebar Title-Row Delete-Game */
 .browse-right-sidebar__title-row__buttons__delete-game:hover .icon__use {
@@ -435,8 +481,8 @@ body {
 }
 /* Browse-Right-Sidebar Row - Screenshot */
 .browse-right-sidebar__row__screenshot__placeholder {
-  background-color: #1b1b1b;
-  border-color: #818181;
+  background-color: var(--layout__browse-right-sidebar-screenshot-placeholder-background);
+  border-color: var(--layout__browse-right-sidebar-screenshot-placeholder-border);
 }
 .browse-right-sidebar__row__screenshot__placeholder p {
   color: var(--layout__disabled-text-color);
@@ -446,10 +492,10 @@ body {
   --inner-border-color: var(--layout__secondary-background);
 }
 .game-image-split--hover {
-  background-color: #575757;
+  background-color: var(--layout__game-image-split-hover-color);
 }
 .game-image-split--disabled {
-  background-color: #141414;
+  background-color: var(--layout__game-image-split-disabled-color);
 }
 .game-image-split:first-child {
   border-right-color: var(--inner-border-color);
@@ -510,7 +556,7 @@ body {
 }
 .game-grid-item__thumb__image {
   border-radius: 0.2em;
-  background-color: var(--layout__four-background);
+  background-color: var(--layout__quaternary-background);
   border-color: var(--layout__tertiary-background);
   box-shadow: 0px 2px 4px 0px #09090a;
   image-rendering: var(--layout__game-item-thumb-image-rendering);
@@ -526,20 +572,20 @@ body {
 }
 .playlist-list-item:hover,
 .playlist-list-item.playlist-list-item--drag-over {
-  background-color: #3c3c41;
+  background-color: var(--layout__playlist-list-item-drag-over-background);
 }
 .playlist-list-item--editing {
-  background-color: #151f14;
+  background-color: var(--layout__playlist-list-item-editing-odd-background);
 }
 .playlist-list-item--editing:nth-child(2n) {
-  background-color: #192519;
+  background-color: var(--layout__playlist-list-item-editing-even-background);
 }
 .playlist-list-item--editing:hover,
 .playlist-list-item--editing.playlist-list-item--drag-over {
-  background-color: #20301f;
+  background-color: var(--layout__playlist-list-item-editing-drag-over-background);
 }
 .playlist-list-item--drag-over .playlist-list-item__drag-overlay {
-  border-color: #818181;
+  border-color: var(--layout__playlist-list-item-drag-over-border);
 }
 /* Playlist-List-Item Head */
 .playlist-list-item__head {
@@ -548,21 +594,21 @@ body {
 }
 .playlist-list-item__head:hover,
 .playlist-list-item--drag-over .playlist-list-item__head {
-  --color: #e6e6e6;
+  --color: var(--layout__playlist-list-item-hover-color);
 }
 .playlist-list-item__head__icon__no-image__icon .icon__use {
   fill: var(--color);
 }
 /* Playlist-List-Item Content */
 .playlist-list-item__content {
-  background-color: #242425;
+  background-color: var(--layout__playlist-list-item-content-background);
 }
 .playlist-list-item--editing .playlist-list-item__content {
-  background-color: #1c291b;
+  background-color: var(--layout__playlist-list-item-editing-content-background);
   color: var(--layout__highlighted-text-color);
 }
 .playlist-list-item__content__description-edit {
-  background-color: #3a5637;
+  background-color: var(--layout__playlist-list-item-editing-description-background);
 }
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
@@ -570,7 +616,7 @@ body {
   --color: var(--layout__secondary-text-color);
 }
 .playlist-list-fake-item:hover {
-  background-color: #343438;
+  background-color: var(--layout__playlist-list-fake-hover-background);
   --color: var(--layout__highlighted-text-color);
 }
 .playlist-list-fake-item__inner .icon__use {
@@ -583,15 +629,15 @@ body {
 
 /** ------ Developer ------ */
 .developer-page__log {
-  background-color: #313133;
-  border-color: #353535;
+  background-color: var(--layout__developer-page-log-background);
+  border-color: var(--layout__developer-page-log-border);
 }
 
 
 /** ------ Config ------ */
 /* Setting */
 .setting__body {
-  background-color: var(--layout__four-background);
+  background-color: var(--layout__quaternary-background);
   border-color: var(--layout__tertiary-background);
   box-shadow: 0px 2px 4px 0px #09090a;
 }
@@ -616,7 +662,8 @@ body {
   color: var(--layout__primary-text-color);
 }
 /* Setting Row Content - Input Field */
-.setting__row__content--input-field > :first-child > * {
+.setting__row__content--input-field .input-dropdown__input-field,
+.setting__row__content--input-field .input-dropdown__content {
   border-color: var(--layout__primary-outline-color);
 }
 /* Setting Row Content - Theme Input Field */

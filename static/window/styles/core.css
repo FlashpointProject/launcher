@@ -1564,6 +1564,7 @@ body {
 .setting__row__content--input-field > :first-child {
   width: 100%;
 }
-.setting__row__content--input-field > :first-child > * {
+.setting__row__content--input-field .input-dropdown__input-field,
+.setting__row__content--input-field .input-dropdown__content {
   border: 1px solid;
 }
