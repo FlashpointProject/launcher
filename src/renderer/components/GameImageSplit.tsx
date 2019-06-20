@@ -4,18 +4,30 @@ import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
 type GameImageSplitProps = {
+  /** What to call the image (perhaps the type or purpose of the image). */
   text: string;
+  /** Source of the image (undefined if there is no image). */
   imgSrc?: string;
+  /** Called when the "add" button is clicked. This button is only shown while there is no image. */
   onAddClick: () => void;
+  /** Called when the "remove" button is clicked. This button is only shown while there is an image. */
   onRemoveClick: () => void;
+  /** Called when something is dropped on this component. */
   onDrop: (event: React.DragEvent, text: string) => void;
+  /** If the user should not be able to add a new image. */
   disabled?: boolean;
 };
 
 type GameImageSplitState = {
+  /** If the cursor is dragging something over this element. */
   hover: boolean;
 };
 
+/**
+ * An "image slot" inside the "game image split" area.
+ * This component will either display a text and an "add" button, or an image and a "remove" button (depending on if the image source is undefined).
+ * It's meant to be used for displaying the current, or allowing the user to add a new, image for a game.
+ */
 export class GameImageSplit extends React.Component<GameImageSplitProps, GameImageSplitState> {
   constructor(props: GameImageSplitProps) {
     super(props);

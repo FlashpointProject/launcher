@@ -10,7 +10,7 @@ export type ConfigFlashpointPathInputProps = {
 };
 
 /** Text input element made specifically for setting the Flashpoint path at the config page. */
-export class ConfigFlashpointPathInput extends React.Component<ConfigFlashpointPathInputProps, {}> {
+export class ConfigFlashpointPathInput extends React.Component<ConfigFlashpointPathInputProps> {
   componentDidMount() {
     if (this.props.onInputChange) { this.props.onInputChange(this.props.input || ''); }
   }

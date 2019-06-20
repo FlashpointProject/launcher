@@ -85,12 +85,14 @@ export type BrowsePageState = {
   suggestions?: Partial<GamePropSuggestions>;
 };
 
+/** Page displaying the games and playlists. */
 export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState> {
   /** Reference of the game grid/list element. */
   gameGridOrListRef: HTMLDivElement | null = null;
   /** A timestamp of the previous the the quick search string was updated */
   _prevQuickSearchUpdate: number = 0;
   gameBrowserRef: React.RefObject<HTMLDivElement> = React.createRef();
+  /** The "setState" function but bound to this instance. */
   boundSetState = this.setState.bind(this);
 
   /** Time it takes before the current "quick search" string to reset after a change was made (in milliseconds). */

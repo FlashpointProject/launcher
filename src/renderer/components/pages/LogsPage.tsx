@@ -19,6 +19,7 @@ const labels = [
   'Router',
 ];
 
+/** Page displaying this launcher's log. */
 export class LogsPage extends React.Component<LogsPageProps> {
   stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
 

@@ -19,16 +19,25 @@ type OwnProps = {
 export type ConfigPageProps = OwnProps & WithPreferencesProps;
 
 type ConfigPageState = {
+  /** If the currently entered Flashpoint path points to a "valid" Flashpoint folder (it exists and "looks" like a Flashpoint folder). */
   isFlashpointPathValid?: boolean;
-  // -- Configs --
+  /** Currently entered Flashpoint path. */
   flashpointPath: string;
+  /** If the "use custom title bar" checkbox is checked. */
   useCustomTitlebar: boolean;
+  /** If the "use fiddler" checkbox is checked. */
   useFiddler: boolean;
 };
 
+/**
+ * A page displaying some of the current "configs" / "preferences", as well as a way of changing them.
+ * All changed "configs" (settings stored in "config.json") require you to "Save & Restart" to take effect.
+ * The changed "preferences" (settings stored in "preferences.json") do not require a restart, and are updated directly.
+ * @TODO Make it clear which settings are "configs" and which are "preferences" (or at least which require you to "save & restart")?
+ */
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
-  private currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
+  currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -61,7 +70,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       </div>
                       <div className='setting__row__content setting__row__content--toggle'>
                         <div>
-                          <CheckBox checked={this.props.preferencesData.browsePageShowExtreme} onToggle={this.onShowExtremeChange} />
+                          <CheckBox
+                            checked={this.props.preferencesData.browsePageShowExtreme}
+                            onToggle={this.onShowExtremeChange} />
                         </div>
                       </div>
                     </div>
@@ -78,7 +89,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                     </div>
                     <div className='setting__row__content setting__row__content--toggle'>
                       <div>
-                        <CheckBox checked={this.props.preferencesData.enableEditing} onToggle={this.onEnableEditingChange} />
+                        <CheckBox
+                          checked={this.props.preferencesData.enableEditing}
+                          onToggle={this.onEnableEditingChange} />
                       </div>
                     </div>
                   </div>
@@ -98,9 +111,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 <div className='setting__row__top'>
                   <p className='setting__row__title'>Flashpoint Path</p>
                   <div className='setting__row__content setting__row__content--filepath-path'>
-                    <ConfigFlashpointPathInput input={this.state.flashpointPath}
-                                               onInputChange={this.onFlashpointPathChange}
-                                               isValid={this.state.isFlashpointPathValid} />
+                    <ConfigFlashpointPathInput
+                      input={this.state.flashpointPath}
+                      onInputChange={this.onFlashpointPathChange}
+                      isValid={this.state.isFlashpointPathValid} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
@@ -115,11 +129,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                   <div className='setting__row__content setting__row__content--redirector'>
                     <div>
-                      <input type='radio' checked={!this.state.useFiddler} onChange={this.onRedirectorRedirectorChange}/>
+                      <input
+                        type='radio'
+                        checked={!this.state.useFiddler}
+                        onChange={this.onRedirectorRedirectorChange} />
                       <p>Redirector</p>
                     </div>
                     <div>
-                      <input type='radio' checked={this.state.useFiddler} onChange={this.onRedirectorFiddlerChange}/>
+                      <input
+                        type='radio'
+                        checked={this.state.useFiddler}
+                        onChange={this.onRedirectorFiddlerChange} />
                       <p>Fiddler</p>
                     </div>
                   </div>
@@ -136,7 +156,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox checked={this.props.preferencesData.useWine} onToggle={this.useWineChange} />
+                      <CheckBox
+                        checked={this.props.preferencesData.useWine}
+                        onToggle={this.useWineChange} />
                     </div>
                   </div>
                 </div>
@@ -159,7 +181,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox checked={this.state.useCustomTitlebar} onToggle={this.onUseCustomTitlebarChange} />
+                      <CheckBox
+                        checked={this.state.useCustomTitlebar}
+                        onToggle={this.onUseCustomTitlebarChange} />
                     </div>
                   </div>
                 </div>
@@ -184,7 +208,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       onItemSelect={this.onCurrentThemeItemSelect}
                       inputRef={this.currentThemeInputRefFunc}
                       />
-                    <input type='button' value='Browse' className='simple-button' onClick={this.onCurrentThemeBrowseClick} />
+                    <input
+                      type='button'
+                      value='Browse'
+                      className='simple-button'
+                      onClick={this.onCurrentThemeBrowseClick} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
@@ -206,7 +234,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox checked={this.props.preferencesData.showDeveloperTab} onToggle={this.onShowDeveloperTab} />
+                      <CheckBox
+                        checked={this.props.preferencesData.showDeveloperTab}
+                        onToggle={this.onShowDeveloperTab} />
                     </div>
                   </div>
                 </div>
@@ -220,7 +250,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           {/* -- Save & Restart -- */}
           <div className='setting'>
             <div className='setting__row'>
-              <input type='button' value='Save & Restart' className='simple-button save-and-restart' onClick={this.onSaveAndRestartClick} />
+              <input
+                type='button'
+                value='Save & Restart'
+                className='simple-button save-and-restart'
+                onClick={this.onSaveAndRestartClick} />
             </div>
           </div>
         </div>
@@ -228,57 +262,57 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     );
   }
   
-  private onShowExtremeChange = (isChecked: boolean): void => {
+  onShowExtremeChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ browsePageShowExtreme: isChecked });
     this.forceUpdate();
   }
 
-  private onEnableEditingChange = (isChecked: boolean): void => {
+  onEnableEditingChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ enableEditing: isChecked });
     this.forceUpdate();
   }
 
-  private onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ useFiddler: !event.target.checked });
   }
-  private onRedirectorFiddlerChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  onRedirectorFiddlerChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ useFiddler: event.target.checked });
   }
 
-  /** When the "FlashPoint Folder Path" input text is changed */
-  private onFlashpointPathChange = async (filePath: string): Promise<void> => {
+  /** When the "FlashPoint Folder Path" input text is changed. */
+  onFlashpointPathChange = async (filePath: string): Promise<void> => {
     this.setState({ flashpointPath: filePath });
     // Check if the file-path points at a valid FlashPoint folder
     const isValid = await isFlashpointValidCheck(filePath);
     this.setState({ isFlashpointPathValid: isValid });
   }
   
-  private useWineChange = (isChecked: boolean): void => {
+  useWineChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ useWine: isChecked });
     this.forceUpdate();
   }
   
-  private onUseCustomTitlebarChange = (isChecked: boolean): void => {
+  onUseCustomTitlebarChange = (isChecked: boolean): void => {
     this.setState({ useCustomTitlebar: isChecked });
   }
   
-  private onShowDeveloperTab = (isChecked: boolean): void => {
+  onShowDeveloperTab = (isChecked: boolean): void => {
     this.props.updatePreferences({ showDeveloperTab: isChecked });
     this.forceUpdate();
   }
 
-  private onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
+  onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
     this.props.updatePreferences({ currentTheme: event.currentTarget.value });
   }
 
-  private onCurrentThemeKeyDown = (event: React.KeyboardEvent): void => {
+  onCurrentThemeKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       // Load the entered theme
       this.props.reloadTheme(this.props.preferencesData.currentTheme);
     }
   }
 
-  private onCurrentThemeItemSelect = (text: string, index: number): void => {
+  onCurrentThemeItemSelect = (text: string, index: number): void => {
     // Note: Suggestions with index 0 to "length - 1" are filenames of themes.
     //       Directly after that comes the "No Theme" suggestion.
     let theme: string | undefined;
@@ -293,7 +327,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
   }
 
-  private onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
+  onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialog({
       title: 'Select a theme file',
@@ -314,12 +348,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
   }
   
-  private currentThemeInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
+  currentThemeInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
     this.currentThemeInputRef = ref;
   }
 
-  /** When the "Save & Restart" button is clicked */
-  private onSaveAndRestartClick = () => {
+  /** When the "Save & Restart" button is clicked. */
+  onSaveAndRestartClick = () => {
     // Create new config
     let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
       flashpointPath: this.state.flashpointPath,
@@ -333,6 +367,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 }
 
+/** Format a theme item into a displayable name for the themes drop-down. */
 function formatThemeItemName(item: IThemeListItem): string {
   return `${item.metaData.name} (${item.basename})`;
 }

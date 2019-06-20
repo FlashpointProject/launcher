@@ -32,6 +32,7 @@ type OwnProps = {
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps & WithSearchProps;
 
+/** Page shown as soon as the application starts up. */
 export class HomePage extends React.Component<HomePageProps> {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   logoDelay = (Date.now() * -0.001) + 's';
@@ -113,7 +114,7 @@ export class HomePage extends React.Component<HomePageProps> {
               </div>
             ) : undefined
           }
-          {/* Additional info - Trello request */}
+          {/* Extras */}
           <div className='home-page__box home-page__box--extras'>
             <div className='home-page__box__head'>Extras</div>
             <ul className='home-page__box__body'>
@@ -229,7 +230,7 @@ export class HomePage extends React.Component<HomePageProps> {
   onHallOfFameClick = () => {
     const { central, libraryData, onSelectPlaylist } = this.props;
     let hof = findHallOfFamePlaylist(central.playlists.playlists);
-    let route: string|undefined = undefined;
+    let route: string | undefined = undefined;
     if (hof) {
       if (hof.library) { route = hof.library; }
       else {
@@ -264,7 +265,7 @@ export class HomePage extends React.Component<HomePageProps> {
     this.props.clearSearch();
   }
 
-  // Gets the platform as a string and performs a search dynamically for each platform generated
+  /** Gets the platform as a string and performs a search dynamically for each platform generated. */
   onPlatformClick = (platform: string) => (event: any) => {
     this.props.onSearch('!' + platform);
   }
@@ -301,10 +302,10 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   );
 }
 
-function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
+function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | undefined {
   return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
 }
 
-function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
+function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | undefined {
   return playlists.find(playlist => playlist.title === '*Favorites*');
 }

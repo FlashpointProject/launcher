@@ -34,6 +34,11 @@ type DeveloperPageState = {
   text: string;
 };
 
+/**
+ * Page made for developers or advanced users only.
+ * It has various "tools" that the user can run to gather information about the current Flashpoint folders data (games, playlists, images etc.), or edit that data on mass.
+ * New tools are added as needed.
+ */
 export class DeveloperPage extends React.Component<DeveloperPageProps, DeveloperPageState> {
   constructor(props: DeveloperPageProps) {
     super(props);
@@ -51,66 +56,86 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
           This is where all the useful developer tools will go.
           <div className='developer-page__buttons'>
             {/* Top Buttons */}
-            <SimpleButton value='Check Missing Images' onClick={this.onCheckMissingImagesClick}
-                          title='List all games without a thumbnail or screenshot.' />
-            <SimpleButton value='Check Game IDs' onClick={this.onCheckGameIDsClick}
-                          title='List all games with duplicate or invalid IDs' />
-            <SimpleButton value='Check Game Titles' onClick={this.onCheckGameNamesClick}
-                          title='List all games with duplicate titles' />
-            <SimpleButton value='Check Game Fields' onClick={this.onCheckGameFieldsClick}
-                          title='List all games with empty fields (of the fields that should not be empty)' />
-            <SimpleButton value='Check Playlists' onClick={this.onCheckPlaylistsClick}
-                          title='List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs' />
-            <SimpleButton value='Check Game File Location' onClick={this.onCheckFileLocation}
-                          title='List all games with launch commands that can not be parsed into file paths (this is related to the "Open File Location" function, not launching the game).' />
+            <SimpleButton
+              value='Check Missing Images'
+              title='List all games without a thumbnail or screenshot.'
+              onClick={this.onCheckMissingImagesClick} />
+            <SimpleButton
+              value='Check Game IDs'
+              title='List all games with duplicate or invalid IDs'
+              onClick={this.onCheckGameIDsClick} />
+            <SimpleButton
+              value='Check Game Titles'
+              title='List all games with duplicate titles'
+              onClick={this.onCheckGameNamesClick} />
+            <SimpleButton
+              value='Check Game Fields'
+              title='List all games with empty fields (of the fields that should not be empty)'
+              onClick={this.onCheckGameFieldsClick} />
+            <SimpleButton
+              value='Check Playlists'
+              title='List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs'
+              onClick={this.onCheckPlaylistsClick} />
+            <SimpleButton
+              value='Check Game File Location'
+              title='List all games with launch commands that can not be parsed into file paths (this is related to the "Open File Location" function, not launching the game).'
+              onClick={this.onCheckFileLocation} />
             {/* Log */}
-            <LogData className='developer-page__log' logData={text} />
+            <LogData
+              className='developer-page__log'
+              logData={text} />
             {/* Bottom Buttons */}
-            <SimpleButton value='Rename Images (Title => ID)' onClick={this.onRenameImagesTitleToIDClick}
-                          title='Find all game images with the games title in their filename, and rename it to use its ID instead.' />
-            <SimpleButton value='Rename Images (ID => Title)' onClick={this.onRenameImagesIDToTitleClick}
-                          title='Find all game images with the games ID in their filename, and rename it to use its title instead.' />
-            <SimpleButton value='Create Missing Folders' onClick={this.onCreateMissingFoldersClick}
-                          title='Find all missing folders in the Flashpoint folder structure and create them.' />
+            <SimpleButton
+              value='Rename Images (Title => ID)'
+              title='Find all game images with the games title in their filename, and rename it to use its ID instead.'
+              onClick={this.onRenameImagesTitleToIDClick} />
+            <SimpleButton
+              value='Rename Images (ID => Title)'
+              title='Find all game images with the games ID in their filename, and rename it to use its title instead.'
+              onClick={this.onRenameImagesIDToTitleClick} />
+            <SimpleButton
+              value='Create Missing Folders'
+              title='Find all missing folders in the Flashpoint folder structure and create them.'
+              onClick={this.onCreateMissingFoldersClick} />
           </div>
         </div>
       </div>
     );
   }
 
-  private onCheckMissingImagesClick = (): void => {
+  onCheckMissingImagesClick = (): void => {
     const games = this.props.central.games.collection.games;
     const gameImages = this.props.central.gameImages;
     this.setState({ text: checkMissingGameImages(games, gameImages) });
   }
 
-  private onCheckGameIDsClick = (): void => {
+  onCheckGameIDsClick = (): void => {
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkGameIDs(games) });
   }
 
-  private onCheckGameNamesClick = (): void => {
+  onCheckGameNamesClick = (): void => {
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkGameTitles(games) });
   }
 
-  private onCheckGameFieldsClick = (): void => {
+  onCheckGameFieldsClick = (): void => {
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkGameEmptyFields(games) });
   }
 
-  private onCheckPlaylistsClick = (): void => {
+  onCheckPlaylistsClick = (): void => {
     const playlists = this.props.central.playlists.playlists;
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkPlaylists(playlists, games) });
   }
 
-  private onCheckFileLocation = (): void => {
+  onCheckFileLocation = (): void => {
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkFileLocation(games) });
   }
 
-  private onRenameImagesTitleToIDClick = (): void => {
+  onRenameImagesTitleToIDClick = (): void => {
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
       const games = this.props.central.games.collection.games;
@@ -119,7 +144,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     }, 0);
   }
 
-  private onRenameImagesIDToTitleClick = (): void => {
+  onRenameImagesIDToTitleClick = (): void => {
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
       const games = this.props.central.games.collection.games;
@@ -128,7 +153,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     }, 0);
   }
 
-  private onCreateMissingFoldersClick = (): void => {
+  onCreateMissingFoldersClick = (): void => {
     setTimeout(async () => {
       const collection = this.props.central.games.collection;
       this.setState({ text: await createMissingFolders(collection) });

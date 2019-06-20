@@ -16,7 +16,13 @@ export type AboutPageState = {
   profile?: ICreditsDataProfile;
 };
 
+/** Page displaying information about this launcher, the "BlueMaxima's Flashpoint" project and its contributors. */
 export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
+  constructor(props: AboutPageProps) {
+    super(props);
+    this.state = {};
+  }
+
   render() {
     const { profile } = this.state;
     const { creditsData, creditsDoneLoading } = this.props;

@@ -40,7 +40,7 @@ export type GameListProps = {
 };
 
 /** A list of rows, where each rows displays a game. */
-export class GameList extends React.Component<GameListProps, {}> {
+export class GameList extends React.Component<GameListProps> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
 
   componentDidMount(): void {

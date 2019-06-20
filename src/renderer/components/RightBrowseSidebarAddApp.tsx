@@ -19,7 +19,7 @@ export type RightBrowseSidebarAddAppProps = {
 };
 
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
-export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps, {}> {
+export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps> {
   onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
   onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
   onCommandLineEditDone     = this.wrapOnTextChange((addApp, text) => { addApp.commandLine = text; });

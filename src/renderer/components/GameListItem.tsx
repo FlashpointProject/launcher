@@ -19,7 +19,7 @@ export type GameListItemProps = ListRowProps & {
 };
 
 /** Displays a single game. Meant to be rendered inside a list. */
-export class GameListItem extends React.Component<GameListItemProps, {}> {
+export class GameListItem extends React.Component<GameListItemProps> {
   render() {
     const game = this.props.game;
     const title: string = game.title || '';

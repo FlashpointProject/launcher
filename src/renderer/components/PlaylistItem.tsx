@@ -41,6 +41,7 @@ type PlaylistItemState = {
   dragOver: boolean;
 };
 
+/** Displays the information about a single playlist. Meant to be used in a list. */
 export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistItemState> {
   //
   onTitleEditDone        = this.wrapOnEditDone((edit, text) => { edit.title = text; });
@@ -89,7 +90,6 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
   }
 
   render() {
-    // Normal rendering stuff
     const playlist = this.state.editPlaylist || this.props.playlist;
     const expanded = !!this.props.expanded;
     const editingDisabled = !!this.props.editingDisabled;

@@ -37,7 +37,7 @@ export type AppRouterProps = {
   reloadTheme: (themePath: string | undefined) => void;
 };
 
-export class AppRouter extends React.Component<AppRouterProps, {}> {
+export class AppRouter extends React.Component<AppRouterProps> {
   render() {
     const homeProps: ConnectedHomePageProps = {
       central: this.props.central,

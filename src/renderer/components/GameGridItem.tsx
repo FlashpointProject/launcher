@@ -17,7 +17,7 @@ export type GameGridItemProps = Partial<GridCellProps> & {
 };
 
 /** Displays a single game. Meant to be rendered inside a grid. */
-export class GameGridItem extends React.Component<GameGridItemProps, {}> {
+export class GameGridItem extends React.Component<GameGridItemProps> {
   render() {
     const game = this.props.game;
     const platformIcon = getPlatformIconPath(game.platform);
