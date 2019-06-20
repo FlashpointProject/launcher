@@ -1,28 +1,30 @@
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import { Subtract } from 'utility-types';
-import { BrowsePage, IBrowsePageProps } from '../components/pages/BrowsePage';
+import { BrowsePage, BrowsePageProps } from '../components/pages/BrowsePage';
 import { ApplicationState } from '../store';
 import { SearchQuery } from '../store/search';
 import * as searchActions from '../store/search/actions';
 import { withLibrary, WithLibraryProps } from './withLibrary';
 import { withPreferences, WithPreferencesProps } from './withPreferences';
 
-interface IStateToProps {
+type StateToProps = {
+  /** The most recent search query. */
   search: SearchQuery;
-}
+};
 
-interface IDispatchToProps {
+type DispatchToProps = {
+  /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
-}
+};
 
-export type IConnectedBrowsePageProps = Subtract<IBrowsePageProps, IStateToProps & IDispatchToProps & WithPreferencesProps & WithLibraryProps>;
+export type ConnectedBrowsePageProps = Subtract<BrowsePageProps, StateToProps & DispatchToProps & WithPreferencesProps & WithLibraryProps>;
 
-const mapStateToProps = ({ search }: ApplicationState): IStateToProps => ({
+const mapStateToProps = ({ search }: ApplicationState): StateToProps => ({
   search: search.query,
 });
 
-const mapDispatchToProps = (dispatch: Dispatch): IDispatchToProps => bindActionCreators({
+const mapDispatchToProps = (dispatch: Dispatch): DispatchToProps => bindActionCreators({
   clearSearch: () => searchActions.setQuery({ text: '' }),
 }, dispatch);
 

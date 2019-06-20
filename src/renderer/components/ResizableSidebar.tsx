@@ -1,42 +1,43 @@
 import * as React from 'react';
-import { IDefaultProps } from '../interfaces';
 
-interface IResizableSidebarProps extends IDefaultProps {
+type ResizableSidebarProps = {
   className?: string;
-  none: boolean;
-  /** If the sidebar should not be visible */
+  /** If the sidebar should not be visible. */
   hide: boolean;
-  /** Where the divider should be located */
+  /** Where the divider should be located (relative to the sidebar). */
   divider: DividerOrientation;
-  /** Width of the whole sidebar */
+  /** Width of the whole sidebar (in pixels). */
   width?: number | string;
-  /** Called when starting to resize the sidebar (when the divider is grabbed) */
+  /** Called when starting to resize the sidebar (when the divider is grabbed). */
   onResizeStart?: () => void;
-  /** Called when the sidebar is resized (when the cursor is moving while the divider is grabbed) */
-  onResize?: (event: IResizeEvent) => void;
-  /** Called when ending the resize the sidebar (when the divider is released) */
+  /** Called when the sidebar is resized (when the cursor is moving while the divider is grabbed). */
+  onResize?: (event: SidebarResizeEvent) => void;
+  /** Called when ending the resize the sidebar (when the divider is released). */
   onResizeEnd?: () => void;
-}
+};
 
-export interface IResizableSidebarState {
-  /** If the divider is grabbed */
+type ResizableSidebarState = {
+  /** If the divider is grabbed. */
   isDragging: boolean;
-  /** Cursors x position when it grabbed the divider */
+  /** The cursor's x position when it grabbed the divider (in pixels). */
   startX: number;
-  /** Width of the whole sidebar when the divider is grabbed */
+  /** Width of the whole sidebar when the divider was grabbed. */
   startWidth: number;
-}
+};
 
-export interface IResizeEvent {
+export type SidebarResizeEvent = {
+  /** Underlying mouse event. */
   event: MouseEvent;
+  /** The cursor's x position when it grabbed the divider (in pixels). */
   startX: number;
+  /** Width of the whole sidebar when the divider was grabbed. */
   startWidth: number;
-}
+};
 
-export class IResizableSidebar extends React.Component<IResizableSidebarProps, IResizableSidebarState> {
-  private sidebarRef: React.RefObject<HTMLDivElement> = React.createRef();
+export class ResizableSidebar extends React.Component<ResizableSidebarProps, ResizableSidebarState> {
+  sidebarRef: React.RefObject<HTMLDivElement> = React.createRef();
   
-  constructor(props: IResizableSidebarProps) {
+  constructor(props: ResizableSidebarProps) {
     super(props);
     this.state = {
       isDragging: false,
@@ -56,14 +57,16 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
   }
 
   render() {
-    const { none, hide, className, divider, width } = this.props;
+    const { hide, className, divider, width } = this.props;
     return (
-      <div className={'game-browser__sidebar'+
-                      (className?' '+className+' ':'')+
-                      (none?'':' game-browser__sidebar--none')+
-                      (hide?'':' game-browser__sidebar--hidden')}
-            style={{ width }}
-            ref={this.sidebarRef}>
+      <div
+        className={
+          'game-browser__sidebar' +
+          (className ? ' '+className+' ' : '') +
+          (hide ? '' : ' game-browser__sidebar--hidden')
+        }
+        style={{ width }}
+        ref={this.sidebarRef}>
         <div className='game-browser__sidebar__inner'>
           { divider === 'before' && this.renderDivider() }
           <div className='game-browser__sidebar__content simple-scroll'>
@@ -75,7 +78,7 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
     );
   }
 
-  private renderDivider() {
+  renderDivider() {
     return (
       <div className='game-browser__sidebar__divider'
            onMouseDown={this.onDividerMouseDown}>
@@ -83,7 +86,7 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
     );
   }
 
-  private onDividerMouseDown = (event: React.MouseEvent): void => {
+  onDividerMouseDown = (event: React.MouseEvent): void => {
     if (event.button === 0 && !this.state.isDragging) {
       if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
       if (!this.sidebarRef.current) { throw new Error('sidebar div is missing.'); }
@@ -97,7 +100,7 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
     }
   }
 
-  private onMouseUp = (event: MouseEvent): void => {
+  onMouseUp = (event: MouseEvent): void => {
     if (event.button === 0 && this.state.isDragging) {
       this.setState({ isDragging: false });
       if (this.props.onResizeEnd) { this.props.onResizeEnd(); }
@@ -105,7 +108,7 @@ export class IResizableSidebar extends React.Component<IResizableSidebarProps, I
     }
   }
 
-  private onMouseMove = (event: MouseEvent): void => {
+  onMouseMove = (event: MouseEvent): void => {
     if (this.state.isDragging) {
       const { startX, startWidth } = this.state;
       if (this.props.onResize) { this.props.onResize({ event, startX, startWidth }); }

@@ -1,12 +1,11 @@
 import { IpcMessageEvent, ipcRenderer, remote } from 'electron';
 import * as React from 'react';
-import * as path from 'path';
 import { RouteComponentProps } from 'react-router-dom';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap } from '../shared/interfaces';
-import { IGameOrderChangeEvent } from './components/GameOrder';
+import { GameOrderChangeEvent } from './components/GameOrder';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
@@ -14,11 +13,11 @@ import { WithLibraryProps } from './containers/withLibrary';
 import { WithPreferencesProps } from './containers/withPreferences';
 import GameManager from './game/GameManager';
 import { GameImageCollection } from './image/GameImageCollection';
-import { ICentralState, UpgradeStageState, UpgradeState } from './interfaces';
+import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
 import { Paths } from './Paths';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { IGamePlaylist } from './playlist/interfaces';
-import { AppRouter, IAppRouterProps } from './router';
+import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
 import { downloadAndInstallUpgrade } from './util/upgrade';
@@ -29,38 +28,42 @@ import GameManagerPlatform from './game/GameManagerPlatform';
 import { joinLibraryRoute } from './Util';
 import { readCreditsFile } from './credits/Credits';
 import { ICreditsData } from './credits/interfaces';
-import { ThemeManager, IThemeListItem } from './theme/ThemeManager';
+import { ThemeManager } from './theme/ThemeManager';
 import { Theme } from './theme/Theme';
 
-interface IAppOwnProps {
+type AppOwnProps = {
+  /** Most recent search query. */
   search: SearchQuery;
   /** Theme manager. */
   themes: ThemeManager;
-}
+};
 
-export type IAppProps = IAppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
 
-export interface IAppState {
-  central: ICentralState;
+export type AppState = {
+  /** Semi-global prop. */
+  central: CentralState;
+  /** Credits data (if any). */
   creditsData?: ICreditsData;
   creditsDoneLoading: boolean;
-  order: IGameOrderChangeEvent;
-  /** Scale of games at the browse page */
+  /** Current parameters for ordering games. */
+  order: GameOrderChangeEvent;
+  /** Scale of the games. */
   gameScale: number;
   /** Layout of the browse page */
   gameLayout: BrowsePageLayout;
-  /** Currently selected game (for each browse tab / library) */
+  /** Currently selected game (for each browse tab / library). */
   selectedGames: IObjectMap<IGameInfo>;
-  /** Currently selected playlists (for each browse tab / library) */
+  /** Currently selected playlists (for each browse tab / library). */
   selectedPlaylists: IObjectMap<IGamePlaylist>;
-  /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page) */
+  /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
-}
+};
 
-export class App extends React.Component<IAppProps, IAppState> {
+export class App extends React.Component<AppProps, AppState> {
   private countGamesOfCurrentLibrary = memoizeOne(countGamesOfLibrarysPlatforms);
 
-  constructor(props: IAppProps) {
+  constructor(props: AppProps) {
     super(props);
     // Normal constructor stuff
     const preferencesData = this.props.preferencesData;
@@ -260,7 +263,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     window.External.log.refreshEntries();
   }
 
-  componentDidUpdate(prevProps: IAppProps, prevState: IAppState) {
+  componentDidUpdate(prevProps: AppProps, prevState: AppState) {
     const { history, libraryData, location, preferencesData, updatePreferences } = this.props;
     // Update preference "lastSelectedLibrary"
     const gameLibraryRoute = getBrowseSubPath(location.pathname);
@@ -301,7 +304,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       gameCount = games.length;
     }
     // Props to set to the router
-    const routerProps: IAppRouterProps = {
+    const routerProps: AppRouterProps = {
       central: this.state.central,
       creditsData: this.state.creditsData,
       creditsDoneLoading: this.state.creditsDoneLoading,
@@ -333,7 +336,7 @@ export class App extends React.Component<IAppProps, IAppState> {
                          order={this.state.order}/>
         {/* "Main" / "Content" stuff */}
         <div className='main'>
-          <AppRouter {...routerProps} />
+          <AppRouter { ...routerProps } />
           <noscript className='nojs'>
             <div style={{textAlign:'center'}}>
               This website requires JavaScript to be enabled.
@@ -352,7 +355,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     );
   }
 
-  private onOrderChange = (event: IGameOrderChangeEvent): void => {
+  private onOrderChange = (event: GameOrderChangeEvent): void => {
     this.setState({ order: event });
     // Update Preferences Data (this is to make it get saved on disk)
     this.props.updatePreferences({

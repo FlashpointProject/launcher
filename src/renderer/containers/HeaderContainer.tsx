@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { bindActionCreators, Dispatch } from 'redux';
-import { Header, IHeaderProps } from '../components/Header';
+import { Header, HeaderProps } from '../components/Header';
 import { ApplicationState } from '../store';
 import * as searchActions from '../store/search/actions';
 import { joinLibraryRoute } from '../Util';
@@ -10,15 +10,13 @@ import { withLibrary, WithLibraryProps } from './withLibrary';
 import { withPreferences } from './withPreferences';
 import { withSearch, WithSearchProps } from './withSearch';
 
-interface IStateToProps {
-}
+type StateToProps = {};
 
-interface IDispatchToProps {
-}
+type DispatchToProps = {};
 
-type IHeaderContainerProps = IHeaderProps & IStateToProps & IDispatchToProps & WithSearchProps & WithLibraryProps;
+type HeaderContainerProps = HeaderProps & StateToProps & DispatchToProps & WithSearchProps & WithLibraryProps;
 
-const HeaderContainer: React.FunctionComponent<IHeaderContainerProps> = (props: IHeaderContainerProps) => {
+const HeaderContainer: React.FunctionComponent<HeaderContainerProps> = (props: HeaderContainerProps) => {
   const { onSearch, ...rest } = props;
   return (
     <Header
@@ -27,16 +25,16 @@ const HeaderContainer: React.FunctionComponent<IHeaderContainerProps> = (props: 
         if (redirect) { props.history.push(joinLibraryRoute(props.preferencesData.lastSelectedLibrary)); }
         onSearch(text);
       }}
-      {...rest}
+      { ...rest }
     />
   );  
 }
 
-const mapStateToProps = ({ search }: ApplicationState): IStateToProps => ({
+const mapStateToProps = ({ search }: ApplicationState): StateToProps => ({
   search: search.query
 });
 
-const mapDispatchToProps = (dispatch: Dispatch): IDispatchToProps => bindActionCreators({
+const mapDispatchToProps = (dispatch: Dispatch): DispatchToProps => bindActionCreators({
   onSearch: (text: string) => searchActions.setQuery({ text }),
 }, dispatch);
 

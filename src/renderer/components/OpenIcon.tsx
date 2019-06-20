@@ -1,27 +1,35 @@
 import * as React from 'react';
 
-export interface IIconProps {
+export type IconProps = {
+  /** The icon to display. */
   icon: OpenIconType;
+  /** CSS class name(s) of the <svg> element. */
   className?: string;
+  /** CSS class name(s) of the <use> element. */
   useClassName?: string;
-  shapeRendering?: string|number;
+  /** Shape rendering attribute of the <svg> element. */
+  shapeRendering?: string | number;
+  /** Miscellaneous props for the <svg> element (these overrides all the other props). */
   props?: React.HTMLAttributes<SVGElement>;
 };
 
-/** A SVG Icon from the "Open Iconic" collection */
-export const OpenIcon = function(props: IIconProps) {
+/** A SVG Icon from the "Open Iconic" collection. */
+export function OpenIcon (props: IconProps) {
   return (
-    <svg viewBox='0 0 8 8' shapeRendering={props.shapeRendering}
-         className={`icon icon--${props.icon} ${props.className||''}`}
-         {...props.props}>
-      <use xlinkHref={`svg/open-iconic.svg#${props.icon}`}
-           className={`icon__use icon__use--${props.icon} ${props.useClassName||''}`} />
+    <svg
+      viewBox='0 0 8 8'
+      shapeRendering={props.shapeRendering}
+      className={`icon icon--${props.icon} ${props.className || ''}`}
+      { ...props.props }>
+      <use
+        xlinkHref={`svg/open-iconic.svg#${props.icon}`}
+        className={`icon__use icon__use--${props.icon} ${props.useClassName || ''}`} />
     </svg>
   );
 }
 
-/** An icon from the "Open Iconic" collection */
-export type OpenIconType =
+/** An icon from the "Open Iconic" collection. */
+export type OpenIconType = (
     'account-login'
   | 'account-logout'
   | 'action-redo'
@@ -244,4 +252,5 @@ export type OpenIconType =
   | 'x'
   | 'yen'
   | 'zoom-in'
-  | 'zoom-out';
+  | 'zoom-out'
+);

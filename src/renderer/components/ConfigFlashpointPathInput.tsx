@@ -1,22 +1,22 @@
 import * as React from 'react';
 
-export interface IConfigFlashpointPathInputProps {
-  /** Value of the input field */
+export type ConfigFlashpointPathInputProps = {
+  /** Initial value of the input field. */
   input?: string;
-  /** If the current input is valid */
+  /** If the current input is valid. */
   isValid?: boolean;
-  /** Called when the input is changed */
+  /** Called when the value of the input field is changed. */
   onInputChange?: (input: string) => void;
-}
+};
 
-export class ConfigFlashpointPathInput extends React.Component<IConfigFlashpointPathInputProps, {}> {
-  constructor(props: IConfigFlashpointPathInputProps) {
-    super(props);
-    if (props.onInputChange) { props.onInputChange(this.props.input || ''); }
+/** Text input element made specifically for setting the Flashpoint path at the config page. */
+export class ConfigFlashpointPathInput extends React.Component<ConfigFlashpointPathInputProps> {
+  componentDidMount() {
+    if (this.props.onInputChange) { this.props.onInputChange(this.props.input || ''); }
   }
 
   render() {
-    const isValid = this.props.isValid;
+    const { input, isValid } = this.props;
     let className: string = 'flashpoint-path__input';
     if (isValid !== undefined) {
       className += isValid ? ' flashpoint-path__input--valid' : ' flashpoint-path__input--invalid';
@@ -24,9 +24,16 @@ export class ConfigFlashpointPathInput extends React.Component<IConfigFlashpoint
     return (
       <>
         <div className={className}>
-          <input type='text' onChange={this.onInputChange} value={this.props.input} />
+          <input
+            type='text'
+            onChange={this.onInputChange}
+            value={input} />
         </div>
-        <input type='button' value='Browse' className='simple-button' onClick={this.onBrowseClick} />
+        <input
+          type='button'
+          value='Browse'
+          className='simple-button'
+          onClick={this.onBrowseClick} />
       </>
     );
   }

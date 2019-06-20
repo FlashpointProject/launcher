@@ -6,7 +6,7 @@ import { IGameInfo } from '../../../shared/game/interfaces';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { GameLauncher } from '../../GameLauncher';
-import { ICentralState, UpgradeStageState } from '../../interfaces';
+import { CentralState, UpgradeStageState } from '../../interfaces';
 import { Paths } from '../../Paths';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { IUpgradeStage } from '../../upgrade/upgrade';
@@ -18,28 +18,24 @@ import { findDefaultLibrary } from '../../../shared/library/util';
 import { WithSearchProps } from '../../containers/withSearch';
 import { getPlatforms } from '../../util/platform';
 
-interface OwnProps {
-  central: ICentralState;
+type OwnProps = {
+  /** Semi-global prop. */
+  central: CentralState;
   onSelectPlaylist: (playlist?: IGamePlaylist, route?: string) => void;
+  /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
+  /** Called when the "download tech" button is clicked. */
   onDownloadTechUpgradeClick: () => void;
+  /** Called when the "download screenshots" button is clicked. */
   onDownloadScreenshotsUpgradeClick: () => void;
-}
+};
 
-export type IHomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps & WithSearchProps;
+export type HomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps & WithSearchProps;
 
-export interface IHomePageState {
-  /** Delay applied to the logo's animation */
-  logoDelay: string;
-}
-
-export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
-  constructor(props: IHomePageProps) {
-    super(props);
-    this.state = {
-      logoDelay: (Date.now() * -0.001) + 's', // (Offset the animation with the current time stamp)
-    };
-  }
+/** Page shown as soon as the application starts up. */
+export class HomePage extends React.Component<HomePageProps> {
+  /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
+  logoDelay = (Date.now() * -0.001) + 's';
 
   render() {
     const {
@@ -61,19 +57,18 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     const upgradeData = this.props.central.upgrade.data;
     const { showBrokenGames } = window.External.config.data;
     const { disableExtremeGames } = window.External.config.data;
-    const { logoDelay } = this.state;
-
-    // Grabs a dynamic list of supported platforms and preformats them as Links
+    // Grabs a dynamic list of supported platforms and pre-formats them as Links
     const platformList = getPlatforms(this.props.central.games.collection);
     const formatPlatforms = platformList.map((platform, index) =>
       <span key={index}> 
-        <Link to={joinLibraryRoute('arcade')} onClick={this.onPlatformClick(platform)}>
+        <Link
+          to={joinLibraryRoute('arcade')}
+          onClick={this.onPlatformClick(platform)}>
           {platform}
         </Link>
         { (index < platformList.length -1) ? ', ' : undefined }
       </span>
     );
-    
     // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
     const height: number = 140;
     const width: number = (height * 0.666) | 0;
@@ -82,7 +77,9 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
         <div className='home-page__inner'>
           {/* Logo */}
           <div className='home-page__logo'>
-            <div className='home-page__logo__image' style={{ animationDelay:logoDelay }} />
+            <div
+              className='home-page__logo__image'
+              style={{ animationDelay: this.logoDelay }} />
           </div>
           {/* Quick Start */}
           <div className='home-page__box'>
@@ -117,26 +114,38 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
               </div>
             ) : undefined
           }
-          {/* Additional info - Trello request */}
+          {/* Extras */}
           <div className='home-page__box home-page__box--extras'>
             <div className='home-page__box__head'>Extras</div>
             <ul className='home-page__box__body'>
               <QuickStartItem icon='heart'>
-                <Link to={this.getFavoriteBrowseRoute()} onClick={this.onFavoriteClick}>Favorites Playlist</Link>
+                <Link
+                  to={this.getFavoriteBrowseRoute()}
+                  onClick={this.onFavoriteClick}>
+                  Favorites Playlist
+                </Link>
               </QuickStartItem>
               <QuickStartItem icon='list'>
-                <a href="http://bluemaxima.org/flashpoint/datahub/Genres" target="_top">Genre List</a>
+                <a
+                  href='http://bluemaxima.org/flashpoint/datahub/Genres'
+                  target='_top'>
+                  Genre List
+                </a>
               </QuickStartItem>
-                <br></br>
+              <br />
               <QuickStartItem icon='tag'>
                 Filter by platform: 
               </QuickStartItem>
               <QuickStartItem>
                 { formatPlatforms }
               </QuickStartItem>
-                <br></br>
+              <br />
               <QuickStartItem icon='code'>
-                <a href="https://trello.com/b/Tu9E5GLk/launcher" target="_top">Check out our planned features!</a>
+                <a
+                  href='https://trello.com/b/Tu9E5GLk/launcher'
+                  target='_top'>
+                  Check out our planned features!
+                </a>
               </QuickStartItem>
             </ul>
           </div>
@@ -175,7 +184,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     );
   }
 
-  private renderStageSection(stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
+  renderStageSection(stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
     return (
       <>
         <QuickStartItem><b>{stageData && stageData.title || '...'}</b></QuickStartItem>
@@ -185,7 +194,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     );
   }
 
-  private renderStageButton(stageState: UpgradeStageState, onClick: () => void) {
+  renderStageButton(stageState: UpgradeStageState, onClick: () => void) {
     return (
       stageState.checksDone ? (
         stageState.alreadyInstalled ? (
@@ -197,7 +206,11 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
             stageState.isInstalling ? (
               <p>{stageState.installProgressNote}</p>
             ) : (
-              <a className='simple-button' onClick={onClick}>Download</a>
+              <a
+                className='simple-button'
+                onClick={onClick}>
+                Download
+              </a>
             )            
           )
         )
@@ -205,19 +218,19 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     );
   }
 
-  private onLaunchGame(game: IGameInfo): void {
+  onLaunchGame(game: IGameInfo): void {
     GameLauncher.launchGame(game);
   }
 
-  private onHelpClick = () => {
+  onHelpClick = () => {
     const fullFlashpointPath = window.External.config.fullFlashpointPath;
     remote.shell.openItem(path.join(fullFlashpointPath, 'readme.txt'));
   }
 
-  private onHallOfFameClick = () => {
+  onHallOfFameClick = () => {
     const { central, libraryData, onSelectPlaylist } = this.props;
     let hof = findHallOfFamePlaylist(central.playlists.playlists);
-    let route: string|undefined = undefined;
+    let route: string | undefined = undefined;
     if (hof) {
       if (hof.library) { route = hof.library; }
       else {
@@ -228,10 +241,10 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     onSelectPlaylist(hof, route);
   }
 
-  private onFavoriteClick = () => {
+  onFavoriteClick = () => {
     const { central, libraryData, onSelectPlaylist } = this.props;
     let fav = findFavoritePlaylist(central.playlists.playlists);
-    let route: string|undefined = undefined;
+    let route: string | undefined = undefined;
     if (fav) {
       if (fav.library) { route = fav.library; }
       else {
@@ -242,22 +255,22 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     onSelectPlaylist(fav, route);
   }
 
-  private onAllGamesClick = () => {
+  onAllGamesClick = () => {
     this.props.onSelectPlaylist(undefined, 'arcade');
     this.props.clearSearch();
   }
 
-  private onAllAnimationsClick = () => {
+  onAllAnimationsClick = () => {
     this.props.onSelectPlaylist(undefined, 'theatre');
     this.props.clearSearch();
   }
 
-  // Gets the platform as a string and performs a search dynamically for each platform generated
-  private onPlatformClick = (platform: string) => (event: any) => {
+  /** Gets the platform as a string and performs a search dynamically for each platform generated. */
+  onPlatformClick = (platform: string) => (event: any) => {
     this.props.onSearch('!' + platform);
   }
 
-  private getHallOfFameBrowseRoute = (): string => {
+  getHallOfFameBrowseRoute = (): string => {
     const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
     const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
     let hof = findHallOfFamePlaylist(this.props.central.playlists.playlists);
@@ -265,7 +278,7 @@ export class HomePage extends React.Component<IHomePageProps, IHomePageState> {
     else                    { return defaultRoute;                  }
   }
 
-  private getFavoriteBrowseRoute = (): string => {
+  getFavoriteBrowseRoute = (): string => {
     const defaultLibrary = this.props.libraryData.libraries.find(library => !!library.default);
     const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary.route) : Paths.BROWSE;
     let fav = findFavoritePlaylist(this.props.central.playlists.playlists);
@@ -289,10 +302,10 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   );
 }
 
-function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
+function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | undefined {
   return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
 }
 
-function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist|undefined {
+function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | undefined {
   return playlists.find(playlist => playlist.title === '*Favorites*');
 }

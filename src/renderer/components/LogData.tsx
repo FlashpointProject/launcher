@@ -1,15 +1,16 @@
 import * as React from 'react';
 
-export interface ILogDataProps {
+export type LogDataProps = {
   className?: string;
+  /** Text to show in the log. */
   logData: string;
-  /** If the "logData" should be displayed as HTML or plain text (defaults to plain text) */
+  /** If the "logData" should be displayed as HTML or plain text (defaults to plain text). */
   isLogDataHTML?: boolean;
-}
+};
 
-export interface ILogDataSnapshot {
+type LogDataSnapshot = {
   scrolledToBottom: boolean;
-}
+};
 
 /**
  * Renders the log data.
@@ -18,14 +19,14 @@ export interface ILogDataSnapshot {
  * scrolling is automatically disabled when the user scrolls up, and
  * automatically re-enabled when the user scrolls all the way down.
  */
-export class LogData extends React.Component<ILogDataProps> {
-  private preNodeRef = React.createRef<HTMLPreElement>();
+export class LogData extends React.Component<LogDataProps> {
+  preNodeRef = React.createRef<HTMLPreElement>();
 
   /**
    * Detect if we are scrolled all the way to the bottom before the logs are
    * updated. The return value is passed on the componentDidUpdate.
    */
-  getSnapshotBeforeUpdate(): ILogDataSnapshot | null {
+  getSnapshotBeforeUpdate(): LogDataSnapshot | null {
     const preNode = this.preNodeRef.current;
     if (!preNode) { throw Error('<pre> is not mounted'); }
     return {
@@ -47,29 +48,31 @@ export class LogData extends React.Component<ILogDataProps> {
    * before the update.
    * @param snapshot The return value of `getSnapshotBeforeUpdate`
    */
-  componentDidUpdate(prevProps: ILogDataProps, prevState: {}, snapshot: ILogDataSnapshot) {
-    if (snapshot === null) { return; }
-    if (!snapshot.scrolledToBottom) { return; }
-    this.scrollAllTheDown();
+  componentDidUpdate(prevProps: LogDataProps, prevState: {}, snapshot: LogDataSnapshot) {
+    if (snapshot && snapshot.scrolledToBottom) {
+      this.scrollAllTheDown();
+    }
   }
-
-  private scrollAllTheDown() {
+  
+  /** Scroll to the bottom of the log (jumping to the latest logged data). */
+  scrollAllTheDown() {
     const preNode = this.preNodeRef.current;
-    if (!preNode) throw Error('<pre> is not mounted');
+    if (!preNode) { throw new Error('<pre> is not mounted'); }
     preNode.scrollTop = preNode.scrollHeight;
   }
 
   render() {
     const { className, logData, isLogDataHTML } = this.props;
-    const logContent =  isLogDataHTML ? {
-      dangerouslySetInnerHTML: { __html: this.props.logData }
-    } : {
-      children: logData
-    };
+    // Render the log content as html or as plain text
+    const logContent = isLogDataHTML ?
+      { dangerouslySetInnerHTML: { __html: this.props.logData } } :
+      { children: logData };
+    // Render
     return (
-      <pre className={(className||'')+' log simple-scroll'}
-           ref={this.preNodeRef}
-           {...logContent} />
+      <pre
+        className={(className || '') + ' log simple-scroll'}
+        ref={this.preNodeRef}
+        { ...logContent } />
     );
   }
 }

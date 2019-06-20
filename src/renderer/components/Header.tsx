@@ -5,28 +5,36 @@ import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
 import { SearchQuery } from '../store/search';
 import { easterEgg, joinLibraryRoute } from '../Util';
-import { GameOrder, IGameOrderChangeEvent } from './GameOrder';
+import { GameOrder, GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 
-interface OwnProps {
+type OwnProps = {
+  /** The most recent search query. */
   searchQuery: SearchQuery;
-  order: IGameOrderChangeEvent;
+  /** The current parameters for ordering games. */
+  order: GameOrderChangeEvent;
+  /** Called when a search is made. */
   onSearch: (text: string, redirect: boolean) => void;
-  onOrderChange?: (event: IGameOrderChangeEvent) => void;
+  /** Called when any of the ordering parameters are changed (by the header or a sub-component). */
+  onOrderChange?: (event: GameOrderChangeEvent) => void;
+  /** Called when the left sidebar toggle button is clicked. */
   onToggleLeftSidebarClick?: () => void;
+  /** Called when the right sidebar toggle button is clicked. */
   onToggleRightSidebarClick?: () => void;
-}
+};
 
-export type IHeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
+export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
 
-export interface IHeaderState {
+type HeaderState = {
+  /** Current text in the search field. */
   searchText: string;
-}
+};
 
-export class Header extends React.Component<IHeaderProps, IHeaderState> {
-  private searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
+/** The header that is always visible at the top of the main window (just below the title bar). */
+export class Header extends React.Component<HeaderProps, HeaderState> {
+  searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
 
-  constructor(props: IHeaderProps) {
+  constructor(props: HeaderProps) {
     super(props);
     this.state = {
       searchText: this.props.searchQuery.text,
@@ -53,20 +61,32 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         {/* Header Menu */}
         <div className='header__wrap'>
           <ul className='header__menu'>
-            <MenuItem title='Home' link={Paths.HOME}/>
+            <MenuItem title='Home' link={Paths.HOME} />
             { libraries.length > 0 ? (
               libraries.map(item => (
-                <MenuItem title={item.title} link={joinLibraryRoute(item.route)}
-                          key={item.route}/>
+                <MenuItem
+                  key={item.route}
+                  title={item.title}
+                  link={joinLibraryRoute(item.route)} />
               )) 
             ) : (
-              <MenuItem title='Browse' link={Paths.BROWSE}/>
+              <MenuItem
+                title='Browse'
+                link={Paths.BROWSE} />
             ) }
-            <MenuItem title='Logs' link={Paths.LOGS}/>
-            <MenuItem title='Config' link={Paths.CONFIG}/>
-            <MenuItem title='About' link={Paths.ABOUT}/>
+            <MenuItem
+              title='Logs'
+              link={Paths.LOGS} />
+            <MenuItem
+              title='Config'
+              link={Paths.CONFIG} />
+            <MenuItem
+              title='About'
+              link={Paths.ABOUT} />
             { showDeveloperTab ? (
-              <MenuItem title='Developer' link={Paths.DEVELOPER}/>
+              <MenuItem
+                title='Developer'
+                link={Paths.DEVELOPER} />
             ) : undefined }
           </ul>
         </div>
@@ -75,14 +95,21 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
           <div>
             <div className='header__search'>
               <div className='header__search__left'>
-                <input className='header__search__input' ref={this.searchInputRef}
-                       value={searchText} placeholder='Search...'
-                       onChange={this.onSearchChange} onKeyDown={this.onSearchKeyDown} />                
+                <input
+                  className='header__search__input'
+                  ref={this.searchInputRef}
+                  value={searchText}
+                  placeholder='Search...'
+                  onChange={this.onSearchChange}
+                  onKeyDown={this.onSearchKeyDown} />                
               </div>
-              <div className='header__search__right'
-                   onClick={ searchText ? this.onClearClick : undefined }>
+              <div
+                className='header__search__right'
+                onClick={ searchText ? this.onClearClick : undefined }>
                 <div className='header__search__right__inner'>
-                  <OpenIcon className='header__search__icon' icon={ searchText ? 'circle-x' : 'magnifying-glass' } />
+                  <OpenIcon
+                    className='header__search__icon'
+                    icon={ searchText ? 'circle-x' : 'magnifying-glass' } />
                 </div>
               </div>
             </div>
@@ -91,24 +118,27 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         {/* Header Drop-downs */}
         <div className='header__wrap'>
           <div>
-            <GameOrder onChange={onOrderChange}
-                       orderBy={this.props.order.orderBy}
-                       orderReverse={this.props.order.orderReverse}/>
+            <GameOrder
+              onChange={onOrderChange}
+              orderBy={this.props.order.orderBy}
+              orderReverse={this.props.order.orderReverse} />
           </div>
         </div>
         {/* Right-most portion */}
         <div className='header__wrap header__right'>
           <div>
             {/* Toggle Right Sidebar */}
-            <div className='header__toggle-sidebar'
-                 title={browsePageShowRightSidebar ? 'Hide right sidebar' : 'Show right sidebar'}
-                 onClick={onToggleRightSidebarClick}>
+            <div
+              className='header__toggle-sidebar'
+              title={browsePageShowRightSidebar ? 'Hide right sidebar' : 'Show right sidebar'}
+              onClick={onToggleRightSidebarClick}>
               <OpenIcon icon={browsePageShowRightSidebar ? 'collapse-right' : 'expand-right'} />
             </div>
             {/* Toggle Left Sidebar */}
-            <div className='header__toggle-sidebar'
-                 title={browsePageShowLeftSidebar ? 'Hide left sidebar' : 'Show left sidebar'}
-                 onClick={onToggleLeftSidebarClick}>
+            <div
+              className='header__toggle-sidebar'
+              title={browsePageShowLeftSidebar ? 'Hide left sidebar' : 'Show left sidebar'}
+              onClick={onToggleLeftSidebarClick}>
               <OpenIcon icon={browsePageShowLeftSidebar ? 'collapse-left' : 'expand-left'} />
             </div>
           </div>
@@ -117,14 +147,14 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     );
   }
 
-  private onSearchChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  onSearchChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const value = event.target.value;
     this.setState({ searchText: value });
     // "Clear" the search when the search field gets empty
     if (value === '') { this.props.onSearch('', false); }
   }
 
-  private onSearchKeyDown = (event: React.KeyboardEvent): void => {
+  onSearchKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       const value = this.state.searchText;
       this.props.onSearch(value, true);
@@ -132,7 +162,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     }
   }
 
-  private onKeypress = (event: KeyboardEvent): void => {
+  onKeypress = (event: KeyboardEvent): void => {
     if (event.ctrlKey && event.code === 'KeyF') {
       const element = this.searchInputRef.current;
       if (element) {
@@ -142,12 +172,14 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     }
   }
 
-  private onClearClick = (): void => {
+  onClearClick = (): void => {
     this.setState({ searchText: '' });
     this.props.onSearch('', false);
   }
 }
 
+
+/** An item in the header menu. Used as buttons to switch between tabs/pages. */
 function MenuItem({ title, link }: { title: string, link: string }) {
   return (
     <li className='header__menu__item'>

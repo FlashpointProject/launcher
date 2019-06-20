@@ -20,35 +20,32 @@ export type GameItemContainerProps = HTMLDivProps & {
 };
 
 /**
- * A DIV element with additional props that listenes for "game item" events that bubbles up.
+ * A DIV element with additional props that listens for "game item" events that bubbles up.
  * This is more efficient than listening for events on each "game item" individually.
  */
 export class GameItemContainer extends React.Component<GameItemContainerProps> {
-  constructor(props: GameItemContainerProps) {
-    super(props);
-  }
-  
   render() {
     return (
-      <div { ...filterDivProps(this.props) }
-           ref={this.props.realRef}
-           onClick={this.onClick}
-           onDoubleClick={this.onDoubleClick}
-           onContextMenu={this.onContextMenu}
-           onDragStart={this.onDragStart}
-           onDragEnd={this.onDragEnd}
-           children={this.props.children} />
+      <div
+        { ...filterDivProps(this.props) }
+        ref={this.props.realRef}
+        onClick={this.onClick}
+        onDoubleClick={this.onDoubleClick}
+        onContextMenu={this.onContextMenu}
+        onDragStart={this.onDragStart}
+        onDragEnd={this.onDragEnd}
+        children={this.props.children} />
     );
   }
 
-  private onClick = (event: React.MouseEvent<HTMLDivElement>) => {
+  onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onClick) { this.props.onClick(event); }
     if (this.props.onGameSelect) {
       this.props.onGameSelect(event, this.findGameId(event.target));
     }
   }
 
-  private onDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+  onDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onDoubleClick) { this.props.onDoubleClick(event); }
     if (this.props.onGameLaunch) {
       const gameId = this.findGameId(event.target);
@@ -56,7 +53,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
     }
   }
 
-  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+  onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.onContextMenu) { this.props.onContextMenu(event); }
     if (this.props.onGameContextMenu) {
       const gameId = this.findGameId(event.target);
@@ -64,7 +61,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
     }
   }
 
-  private onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
+  onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     if (this.props.onDragStart) { this.props.onDragStart(event); }
     if (this.props.onGameDragStart) {
       const gameId = this.findGameId(event.target);
@@ -72,7 +69,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
     }
   }
 
-  private onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
+  onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
     if (this.props.onDragEnd) { this.props.onDragEnd(event); }
     if (this.props.onGameDragEnd) {
       const gameId = this.findGameId(event.target);
@@ -81,7 +78,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
   }
 
   /** Short-hand for "props.findGameId". */
-  private findGameId(target: EventTarget): string | undefined {
+  findGameId(target: EventTarget): string | undefined {
     return this.props.findGameId(target);
   }
 }

@@ -8,10 +8,9 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { Dropdown } from '../Dropdown';
 import { LogData } from '../LogData';
 
-interface OwnProps {
-}
+type OwnProps = {};
 
-export type ILogsPageProps = OwnProps & WithPreferencesProps;
+export type LogsPageProps = OwnProps & WithPreferencesProps;
 
 const labels = [
   'Background Services',
@@ -20,14 +19,11 @@ const labels = [
   'Router',
 ];
 
-export class LogsPage extends React.Component<ILogsPageProps> {
-  private stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
+/** Page displaying this launcher's log. */
+export class LogsPage extends React.Component<LogsPageProps> {
+  stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
 
-  constructor(props: ILogsPageProps) {
-    super(props);
-  }
-
-  private getLogString() {
+  getLogString() {
     const logEntries = Object.assign([], window.External.log.entries);
     const filter = Object.assign({}, this.props.preferencesData.showLogSource);
     return this.stringifyLogEntriesMemo(logEntries, filter);
@@ -54,9 +50,11 @@ export class LogsPage extends React.Component<ILogsPageProps> {
               { labels.map((label, index) => (
                 <label key={index}>
                   <div className='simple-center'>
-                    <input type='checkbox' checked={getBoolean(showLogSource[label])}
-                           onChange={() => this.onCheckboxClick(index)}
-                           className='simple-center__vertical-inner' />               
+                    <input
+                      type='checkbox'
+                      checked={getBoolean(showLogSource[label])}
+                      onChange={() => this.onCheckboxClick(index)}
+                      className='simple-center__vertical-inner' />               
                   </div>
                   <div className='simple-center'>
                     <p className='simple-center__vertical-inner'>{label}</p>                  
@@ -72,15 +70,21 @@ export class LogsPage extends React.Component<ILogsPageProps> {
                 {/* Copy Button */}
                 <div className='log-page__bar__wrap'>
                   <div>
-                    <input type='button' value='Copy Text' onClick={this.onCopyClick}
-                           className='simple-button simple-center__vertical-inner' />
+                    <input
+                      type='button'
+                      value='Copy Text'
+                      onClick={this.onCopyClick}
+                      className='simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
                 {/* Clear Button */}
                 <div className='log-page__bar__wrap'>
                   <div className='simple-center'>
-                    <input type='button' value='Clear Log' onClick={this.onClearClick}
-                           className='simple-button simple-center__vertical-inner' />
+                    <input
+                      type='button'
+                      value='Clear Log'
+                      onClick={this.onClearClick}
+                      className='simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
                 {/* Add more right stuff here ... */}
@@ -89,22 +93,25 @@ export class LogsPage extends React.Component<ILogsPageProps> {
           </div>
         </div>
         {/* Content */}
-        <LogData className='log-page__content' logData={logData} isLogDataHTML={true} />
+        <LogData
+          className='log-page__content'
+          logData={logData}
+          isLogDataHTML={true} />
       </div>
     );
   }
 
-  private onCopyClick = (): void => {
+  onCopyClick = (): void => {
     if (!navigator.clipboard) { throw new Error('Clipboard API is not available.'); }
     const logData = this.getLogString();
     navigator.clipboard.writeText(parseHtmlToText(logData));
   }
 
-  private onClearClick = (): void => {
+  onClearClick = (): void => {
     window.External.log.clearEntries();
   }
 
-  private onCheckboxClick = (index: number): void => {
+  onCheckboxClick = (index: number): void => {
     const label = labels[index];
     const { showLogSource } = this.props.preferencesData;
     this.props.updatePreferences({
@@ -116,15 +123,15 @@ export class LogsPage extends React.Component<ILogsPageProps> {
     });
   }
 
-  private onLogDataUpdate = (log: LogRendererApi): void => {
+  onLogDataUpdate = (log: LogRendererApi): void => {
     this.forceUpdate();
   }
 }
 
 /**
- * Parse a HTML string into plain text (potentially unsafe)
- * @param text HTML string
- * @returns text representation of HTML
+ * Parse a HTML string into plain text (potentially unsafe).
+ * @param text HTML string.
+ * @returns text representation of HTML.
  */
 function parseHtmlToText(text: string): string {
   const element = document.createElement('div');
@@ -132,6 +139,7 @@ function parseHtmlToText(text: string): string {
   return element.innerText;
 }
 
+/** Convert "boolean | undefined" to "boolean" (undefined is converted to true). */
 function getBoolean(value?: boolean): boolean {
   return (value === undefined) ? true : value;
 }

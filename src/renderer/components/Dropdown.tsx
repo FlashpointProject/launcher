@@ -1,71 +1,50 @@
 import * as React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { checkIfAncestor } from '../Util';
 
-export interface IDropdownProps {
-  /** Text to show on the button */
+export type DropdownProps = {
+  /** Element(s) to show in the drop-down element (only visible when expanded). */
+  children: React.ReactNode;
+  /** Text to show in the text field (always visible). */
   text: string;
-}
+};
 
-export interface IDropdownState {
-  expanded: boolean;
-}
-
-export class Dropdown extends React.Component<IDropdownProps, IDropdownState> {
-  private contentRef: React.RefObject<HTMLDivElement> = React.createRef();
-
-  constructor(props: IDropdownProps) {
-    super(props);
-    this.state = {
-      expanded: false,
-    };
-  }
-
-  componentDidMount() {
-    document.addEventListener('mousedown', this.onGlobalMouseDown);
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('mousedown', this.onGlobalMouseDown);
-  }
-
-  render() {
-    const { text, children } = this.props;
-    const { expanded } = this.state;
-    return (
-      <div className='checkbox-dropdown'>
-        <div className='checkbox-dropdown__select-box' onMouseDown={this.onBoxMouseDown}
-             tabIndex={0}>
-          {text}
-        </div>
-        <div className={'checkbox-dropdown__content' +  (expanded?'':' checkbox-dropdown__content--hidden')}
-             ref={this.contentRef}>
-          { children }
-        </div>
+/** A text element, with a drop-down element that can be shown/hidden. */
+export function Dropdown(props: DropdownProps) {
+  // Hooks
+  const [expanded, setExpanded] = useState<boolean>(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { // ("Hide" the drop-downs content if the user clicks outside the content element)
+    if (expanded) {
+      const onGlobalMouseDown = (event: MouseEvent) => {
+        if (!event.defaultPrevented) {
+          if (!checkIfAncestor(event.target as HTMLElement | null, contentRef.current)) {
+            setExpanded(false);
+          }
+        }
+      };
+      document.addEventListener('mousedown', onGlobalMouseDown);
+      return () => { document.removeEventListener('mousedown', onGlobalMouseDown); };      
+    }
+  }, [expanded, contentRef]);
+  const onClick = useCallback((event: React.MouseEvent) => {
+    setExpanded(!expanded);
+    event.preventDefault();
+  }, [expanded]);
+  // Render
+  return (
+    <div className='checkbox-dropdown'>
+      <div
+        className='checkbox-dropdown__select-box'
+        onClick={onClick}
+        tabIndex={0}>
+        { props.text }
       </div>
-    );
-  }
-
-  onBoxMouseDown = (event: React.MouseEvent): void => {
-    if (event.button === 0) {
-      this.setState({ expanded: !this.state.expanded });
-      event.preventDefault();
-    }
-  }
-
-  onGlobalMouseDown = (event: MouseEvent) => {
-    if (this.state.expanded && !event.defaultPrevented) {
-      if (!checkIfAncestor(event.target as HTMLElement|null, this.contentRef.current)) {
-        this.setState({ expanded: false });
-      }
-    }
-  }
-}
-
-/** Check if an element is the ancestor of another element */
-function checkIfAncestor(start: HTMLElement|null, target: HTMLElement|null): boolean {
-  let element: HTMLElement|null = start;
-  while (element) {
-    if (element === target) { return true; }
-    element = element.parentElement;
-  }
-  return false;
+      <div
+        className={'checkbox-dropdown__content' + (expanded ? '' : ' checkbox-dropdown__content--hidden')}
+        ref={contentRef}>
+        { props.children }
+      </div>
+    </div>
+  );
 }
