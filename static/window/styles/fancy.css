@@ -225,7 +225,7 @@ body {
   color: var(--layout__highlighted-text-color);
 }
 .log__time-stamp {
-  color: var(layout__log-time-stamp);
+  color: var(--layout__log-time-stamp);
 }
 .log__source {
   /* Default color of sources, used on the unknown/unspecified sources */
