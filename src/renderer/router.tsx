@@ -15,6 +15,7 @@ import { IGamePlaylist } from './playlist/interfaces';
 import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ICreditsData } from './credits/interfaces';
 import { IThemeListItem } from './theme/ThemeManager';
+import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
 
 export type AppRouterProps = {
   /** Semi-global prop. */
@@ -65,6 +66,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       creditsData: this.props.creditsData,
       creditsDoneLoading: this.props.creditsDoneLoading
     };
+    const curateProps: CuratePageProps = {
+      /* ... */
+    };
     return (
       <Switch>
         <PropsRoute
@@ -87,6 +91,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
           path={Paths.ABOUT}
           component={AboutPage}
           { ...aboutProps } />
+        <PropsRoute
+          path={Paths.CURATE}
+          component={CuratePage}
+          { ...curateProps } />
         <PropsRoute
           path={Paths.DEVELOPER}
           component={ConnectedDeveloperPage}

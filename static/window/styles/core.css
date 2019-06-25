@@ -776,6 +776,70 @@ body {
   display: inline;
 }
 
+/* ------ Curate ------ */
+.curate-page {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+.curate-page__inner {
+  width: 40rem;
+  margin: 0 auto;
+}
+.curate-page__top {
+  margin: 0.25rem;
+}
+.curate-page__top > * {
+  margin-right: 0.25rem;
+}
+/* Curate Box */
+.curate-box {
+  margin: 1.5rem 0;
+}
+.curate-box__image {
+  width: 100px;
+  height: 100px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+/* Curate Box Images */
+.curate-box-images {
+  display: flex;
+  height: 8rem;
+}
+.curate-box-images__image {
+  flex: 1 1 auto;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+/* Curate Box Row */
+.curate-box-row {
+  display: flex;
+  margin-bottom: 0.2rem;
+}
+.curate-box-row__title {
+  padding-right: 0.4em;
+  user-select: none;
+}
+.curate-box-row__content {
+  flex: 1 1;
+}
+/* Curate Box Files */
+.curate-box-files {
+  
+}
+.curate-box-files__head {
+  
+}
+.curate-box-files__body {
+  
+}
+.curate-box-files__entry {
+  
+}
+
 
 /* ------ Log ------ */
 .log-page {

@@ -83,6 +83,9 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             <MenuItem
               title='About'
               link={Paths.ABOUT} />
+            <MenuItem
+              title='Curate'
+              link={Paths.CURATE} />
             { showDeveloperTab ? (
               <MenuItem
                 title='Developer'

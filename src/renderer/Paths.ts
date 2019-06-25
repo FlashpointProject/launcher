@@ -5,5 +5,6 @@ export enum Paths {
   LOGS      = '/logs',
   CONFIG    = '/config',
   ABOUT     = '/about',
+  CURATE    = '/curate',
   DEVELOPER = '/developer',
 }
