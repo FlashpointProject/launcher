@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
 import { InputField } from './InputField';
-import { YomamaAction, EditCuration } from './pages/CuratePage';
+import { CurationAction, EditCuration } from './pages/CuratePage';
 import { sizeToString } from '../Util';
 import { CurateBoxImage } from './CurateBoxImage';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -13,7 +13,7 @@ export type CurateBoxProps = {
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
-  dispatch: React.Dispatch<YomamaAction>;
+  dispatch: React.Dispatch<CurationAction>;
 };
 
 /** A box that displays and lets the user edit a curation. */
@@ -175,7 +175,7 @@ export function CurateBox(props: CurateBoxProps) {
  * @param property Property the input field should change.
  * @param dispatch Dispatcher to use.
  */
-function useOnInputChance(property: keyof IOldCurationMeta, key: string | undefined, dispatch: React.Dispatch<YomamaAction>) {
+function useOnInputChance(property: keyof IOldCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
   return useCallback((event: React.ChangeEvent<InputElement>) => {
     if (key !== undefined) {
       dispatch({
