@@ -51,11 +51,3 @@ export type UpgradeStageState = {
   /** Current progress note of the installation (visible text meant to inform the user about the current progress of the download or install). */
   installProgressNote: string;
 };
-
-/** Generic reducer action with a type and a payload. */
-export type ReducerAction<T extends string, P = undefined> = {
-  /** Identifier of what type of action this is. */
-  type: T;
-  /** Arguments or data passed along the action. */
-  payload: P;
-};

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
 import { InputField } from './InputField';
-import { CurationAction, EditCuration } from './pages/CuratePage';
+import { EditCuration, CurationAction } from '../context/CurationContext';
 import { sizeToString } from '../Util';
 import { CurateBoxImage } from './CurateBoxImage';
 import { CurateBoxRow } from './CurateBoxRow';

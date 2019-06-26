@@ -10,6 +10,8 @@ import ConnectedApp from './containers/ConnectedApp';
 import { updateLibrary } from './store/library';
 import { ThemeManager } from './theme/ThemeManager';
 import { Theme } from './theme/Theme';
+import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
+import { CurationContext } from './context/CurationContext';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -41,9 +43,11 @@ import { Theme } from './theme/Theme';
   // Render the application
   ReactDOM.render((
       <Provider store={store}>
-        <ConnectedRouter history={history}>
-            <ConnectedApp themes={themes} />
-        </ConnectedRouter>
+        <ContextReducerProvider context={CurationContext}>
+          <ConnectedRouter history={history}>
+              <ConnectedApp themes={themes} />
+          </ConnectedRouter>
+        </ContextReducerProvider>
       </Provider>
     ),
     document.getElementById('root')

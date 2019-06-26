@@ -1,19 +1,18 @@
 import * as React from 'react';
-import { useCallback, useReducer } from 'react';
-import { IOldCurationMeta, parseOldCurationMeta } from '../../curate/oldFormat';
-import { ReducerAction } from '../../interfaces';
+import { useCallback, useContext } from 'react';
+import { parseOldCurationMeta } from '../../curate/oldFormat';
 import { SimpleButton } from '../SimpleButton';
 import { CurateBox } from '../CurateBox';
-import { indexCurationArchive, CurationIndexContent, CurationIndexImage } from '../../curate/indexCuration';
+import { indexCurationArchive } from '../../curate/indexCuration';
 import { uuid } from '../../uuid';
-import { deepCopy } from '../../../shared/Util';
+import { CurationContext } from '../../context/CurationContext';
 
 export type CuratePageProps = {
 };
 
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
-  const [state, dispatch] = useReducer(curationReducer, curationDefaultState);
+  const [state, dispatch] = useContext(CurationContext.context);
   const canEdit = true;
   // Load Curation Archive Callback
   const onLoadCurationArchiveClick = useCallback(async () => {
@@ -130,75 +129,3 @@ export function CuratePage(props: CuratePageProps) {
     </div>
   );
 }
-
-type CurationsState = {
-  curations: EditCuration[];
-};
-
-export type CurationAction = (
-  /** Add a curation object. */
-  ReducerAction<'add-curation', {
-    curation: EditCuration,
-  }> |
-  /** Remove a curation object. */
-  ReducerAction<'remove-curation', {
-    /** Index of the curation object. */
-    index: number;
-  }> |
-  /** Edit the value of a curation's meta's property. */
-  ReducerAction<'edit-curation-meta', {
-    /** Key of the curation to change. */
-    key: string;
-    /** Name of the property to change. */
-    property: keyof IOldCurationMeta;
-    /** Value to set the proeprty to. */
-    value: IOldCurationMeta[keyof IOldCurationMeta];
-  }>
-);
-
-const curationDefaultState: CurationsState = {
-  /** Currently loaded curations. */
-  curations: [],
-};
-
-function curationReducer(prevState: CurationsState, action: CurationAction): CurationsState {
-  switch (action.type) {
-    default: throw new Error(`Invalid or not-yet-supported action type (type: "${(action as any).type}").`);
-    // Add curation
-    case 'add-curation':
-      return { ...prevState, curations: [ ...prevState.curations, action.payload.curation ] };
-    // Remove curation
-    case 'remove-curation':
-      var nextCurations = [ ...prevState.curations ];
-      var index = action.payload.index;
-      if (index >= 0 && index < nextCurations.length) {
-        nextCurations.splice(action.payload.index, 1);
-      }
-      return { ...prevState, curations: nextCurations };
-    // Edit curation's meta
-    case 'edit-curation-meta':
-      var nextCurations = [ ...prevState.curations ];
-      var index = prevState.curations.findIndex(c => c.key === action.payload.key);
-      if (index >= 0 && index < prevState.curations.length) {
-        const prevCuration = prevState.curations[index];
-        const curation = deepCopy(prevCuration);
-        curation.meta[action.payload.property] = action.payload.value;
-        nextCurations[index] = curation;
-      }
-      return { ...prevState, curations: nextCurations };
-  }
-}
-
-/** Data of a curation in the curation importer. */
-export type EditCuration = {
-  /** Unique key of the curation (UUIDv4). Generated when loaded. */
-  key: string;
-  /** Meta data of the curation. */
-  meta: IOldCurationMeta;
-  /** Data of each file in the content folder (and sub-folderss). */
-  content: CurationIndexContent[];
-  /** Screenshot. */
-  screenshot: CurationIndexImage;
-  /** Thumbnail. */
-  thumbnail: CurationIndexImage;
-};
