@@ -34,11 +34,14 @@ export type CurationIndexImage = {
   source?: string;
   /** If the images was found. */
   exists: boolean;
+  /** Name and path of the file (relative to the content folder). */
+  fileName?: string;
 };
 
 export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
   return new Promise((resolve, reject) => {
     const curation = createCurationIndex();
+    // @TODO Index the folder
     resolve(curation);
   });
 }
@@ -149,12 +152,14 @@ function createCurationIndex(): CurationIndex {
     meta: {},
     content: [],
     errors: [],
-    screenshot: {
-      exists: false
-    },
-    thumbnail: {
-      exists: false,
-    },
+    screenshot: createCurationIndexImage(),
+    thumbnail: createCurationIndexImage(),
+  };
+}
+
+function createCurationIndexImage(): CurationIndexImage {
+  return {
+    exists: false,
   };
 }
 
@@ -182,6 +187,11 @@ function createBufferStream(buffer: Buffer) {
   });
 }
 
+/**
+ * Copy a buffers data to a base64 string.
+ * @param buffer Buffer to copy data from.
+ * @returns Base64 string.
+ */
 function bufferToBase64(buffer: Buffer): string {
   var binary = '';
   var bytes = new Uint8Array(buffer);

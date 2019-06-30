@@ -89,6 +89,8 @@
   --layout__credits-tooltip-roles-background: #000000;
   /* Log Page */
   --layout__log-page-bar-background: #222222;
+  /* Curate Page */
+  --layout__curate-entry-collision-color: #efef98;
   /* Developer Page */
   --layout__developer-page-log-background: #313133;
   --layout__developer-page-log-border:     #353535;
@@ -414,6 +416,21 @@ body {
 }
 .about-page__credits__tooltip__roles p {
   background-color: var(--layout__credits-tooltip-roles-background);
+}
+
+
+/* ------ Curate ------ */
+/* Curate Box */
+.curate-box {
+  background-color: var(--layout__tertiary-background);
+  border-color: var(--layout__primary-outline-color);
+}
+/* Curate Box Files */
+.curate-box-files__head-collision-count {
+  color: var(--layout__curate-entry-collision-color);
+}
+.curate-box-files__entry-collision {
+  color: var(--layout__curate-entry-collision-color);
 }
 
 

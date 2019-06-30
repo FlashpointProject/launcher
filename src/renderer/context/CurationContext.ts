@@ -15,6 +15,7 @@ export const CurationContext = createContextReducer(
   curationDefaultState
 );
 
+/** Reducer for the curation state. */
 function curationReducer(prevState: CurationsState, action: CurationAction): CurationsState {
   switch (action.type) {
     default: throw new Error(`Invalid or not-yet-supported action type (type: "${(action as any).type}").`);
@@ -24,9 +25,9 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
     // Remove curation
     case 'remove-curation':
       var nextCurations = [ ...prevState.curations ];
-      var index = action.payload.index;
+      var index = prevState.curations.findIndex(c => c.key === action.payload.key);
       if (index >= 0 && index < nextCurations.length) {
-        nextCurations.splice(action.payload.index, 1);
+        nextCurations.splice(index, 1);
       }
       return { ...prevState, curations: nextCurations };
     // Edit curation's meta
@@ -43,10 +44,12 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
   }
 }
 
+/** State of the current curations. */
 type CurationsState = {
   curations: EditCuration[];
 };
 
+/** Combined type with all actions for the curation reducer. */
 export type CurationAction = (
   /** Add a curation object. */
   ReducerAction<'add-curation', {
@@ -54,8 +57,8 @@ export type CurationAction = (
   }> |
   /** Remove a curation object. */
   ReducerAction<'remove-curation', {
-    /** Index of the curation object. */
-    index: number;
+    /** Key of the curation to remove. */
+    key: string;
   }> |
   /** Edit the value of a curation's meta's property. */
   ReducerAction<'edit-curation-meta', {
