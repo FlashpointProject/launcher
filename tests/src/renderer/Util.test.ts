@@ -27,6 +27,10 @@ describe('Util.joinLibraryRoute()', function (){
     const route: string = "..";
     expect(joinLibraryRoute(route)).toBe('/browse');
   });
+  test("Double dots with slashes", () => {
+    const route: string = "a/../b//c";
+    expect(joinLibraryRoute(route)).toBe('/browse/a..bc');
+  });
 });
 
 // findElementAncestor() - to be tested (may need mocks)
