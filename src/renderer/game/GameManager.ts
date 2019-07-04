@@ -84,8 +84,10 @@ class GameManager extends EventEmitter {
     // Overwrite the game and additional applications with the changes made
     platform.addOrUpdateGame(game);
     // Override the additional applications
-    const currentAddApps = GameCollection.findAdditionalApplicationsByGameId(this.collection, game.id);
-    this.updateAddApps(addApps, currentAddApps, platform);
+    if (addApps) {
+      const currentAddApps = GameCollection.findAdditionalApplicationsByGameId(this.collection, game.id);
+      this.updateAddApps(addApps, currentAddApps, platform);      
+    }
     // Refresh games collection
     this.refreshCollection();
     // Save changes to file
@@ -101,13 +103,12 @@ class GameManager extends EventEmitter {
    * @param currentAddApps All the current additional applications of a game.
    * @param platform Platform the additional applications are in.
    */
-  private updateAddApps(editApps: IAdditionalApplicationInfo[] | undefined, currentAddApps: IAdditionalApplicationInfo[], platform: GameManagerPlatform): void {
+  private updateAddApps(editApps: IAdditionalApplicationInfo[], currentAddApps: IAdditionalApplicationInfo[], platform: GameManagerPlatform): void {
     // @TODO Clean this code up. It is horrific.
     if (!platform.collection) { throw new Error('Platform does not have a collection.'); }
     // 1. Save the changes made to add-apps
     // 2. Save any new add-apps
     // 3. Delete any removed add-apps
-    if (!editApps) { throw new Error('editAddApps is missing'); }
     if (!currentAddApps) { throw new Error('selectedAddApps is missing'); }
     // -- Categorize add-apps --
     // Put all new add-apps in an array
