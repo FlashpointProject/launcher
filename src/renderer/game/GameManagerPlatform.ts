@@ -9,6 +9,7 @@ import { GameParser } from '../../shared/game/GameParser';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { IRawLaunchBoxAdditionalApplication, IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from '../../shared/launchbox/interfaces';
 import { LaunchboxData } from '../LaunchboxData';
+import { formatUnknownPlatformName } from './util';
 
 const writeFile = promisify(fs.writeFile);
 
@@ -238,6 +239,17 @@ class GameManagerPlatform extends EventEmitter {
       }
     }
     return -1;
+  }
+
+  /**
+   * Create an "Unknown Platform" that is ready to receive games and can later be saved.
+   * @param libraryPrefix Prefix of the library the platform is for.
+   */
+  public static createUnknown(libraryPrefix: string): GameManagerPlatform {
+    const platform = new GameManagerPlatform(formatUnknownPlatformName(libraryPrefix));
+    platform.collection = new GameCollection();
+    platform.data = { LaunchBox: {} };
+    return platform;
   }
 }
 
