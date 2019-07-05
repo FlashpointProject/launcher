@@ -25,6 +25,8 @@ const mkdir  = promisify(fs.mkdir);
 type OwnProps = {
   /** Semi-global prop. */
   central: CentralState;
+  /** Collection to get game images from. */
+  gameImages: GameImageCollection;
 };
 
 type DeveloperPageProps = OwnProps & WithLibraryProps;
@@ -105,7 +107,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onCheckMissingImagesClick = (): void => {
     const games = this.props.central.games.collection.games;
-    const gameImages = this.props.central.gameImages;
+    const gameImages = this.props.gameImages;
     this.setState({ text: checkMissingGameImages(games, gameImages) });
   }
 
@@ -139,7 +141,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
       const games = this.props.central.games.collection.games;
-      const gameImages = this.props.central.gameImages;
+      const gameImages = this.props.gameImages;
       this.setState({ text: await renameImagesToIDs(games, gameImages) });
     }, 0);
   }
@@ -148,7 +150,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
       const games = this.props.central.games.collection.games;
-      const gameImages = this.props.central.gameImages;
+      const gameImages = this.props.gameImages;
       this.setState({ text: await renameImagesToTitles(games, gameImages) });
     }, 0);
   }

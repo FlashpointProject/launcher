@@ -16,6 +16,7 @@ import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ICreditsData } from './credits/interfaces';
 import { IThemeListItem } from './theme/ThemeManager';
 import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
+import { GameImageCollection } from './image/GameImageCollection';
 
 export type AppRouterProps = {
   /** Semi-global prop. */
@@ -26,6 +27,7 @@ export type AppRouterProps = {
   order?: GameOrderChangeEvent;
   gameScale: number;
   gameLayout: BrowsePageLayout;
+  gameImages: GameImageCollection;
   selectedGame?: IGameInfo;
   selectedPlaylist?: IGamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
@@ -43,6 +45,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const homeProps: ConnectedHomePageProps = {
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
+      gameImages: this.props.gameImages,
       onDownloadTechUpgradeClick: this.props.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.props.onDownloadScreenshotsUpgradeClick,
     };
@@ -51,6 +54,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
+      gameImages: this.props.gameImages,
       selectedGame: this.props.selectedGame,
       selectedPlaylist: this.props.selectedPlaylist,
       onSelectGame: this.props.onSelectGame,

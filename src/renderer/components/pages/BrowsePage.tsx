@@ -43,6 +43,8 @@ type OwnProps = {
   gameScale: number;
   /** Layout of the games. */
   gameLayout: BrowsePageLayout;
+  /** Collection to get game images from, and save game images to. */
+  gameImages: GameImageCollection;
   /** Currently selected game (if any). */
   selectedGame?: IGameInfo;
   /** Currently selected playlist (if any). */
@@ -223,7 +225,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   games={orderedGames}
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
-                  gameImages={this.props.central.gameImages}
+                  gameImages={this.props.gameImages}
                   noRowsRenderer={this.noRowsRenderer}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
@@ -243,7 +245,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   games={orderedGames}
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
-                  gameImages={this.props.central.gameImages}
+                  gameImages={this.props.gameImages}
                   noRowsRenderer={this.noRowsRenderer}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
@@ -267,7 +269,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             currentGame={this.state.currentGame}
             currentAddApps={this.state.currentAddApps}
             currentLibrary={currentLibrary}
-            gameImages={this.props.central.gameImages}
+            gameImages={this.props.gameImages}
             games={this.props.central.games}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
