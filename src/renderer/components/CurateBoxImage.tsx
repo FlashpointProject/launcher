@@ -7,7 +7,7 @@ type CurateBoxImageProps = {
   image?: CurationIndexImage;
 };
 
-/** An image inside a curate box (screenshot or thunbnail). */
+/** An image inside a curate box (screenshot or thumbnail). */
 export function CurateBoxImage(props: CurateBoxImageProps) {
   // If the preview should be displayed
   const [showPreview, setShowPreview] = useState(false);

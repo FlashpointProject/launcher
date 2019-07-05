@@ -1,7 +1,7 @@
 import { ReducerAction } from '../context-reducer/interfaces';
 import { deepCopy } from '../../shared/Util';
 import { IOldCurationMeta } from '../curate/oldFormat';
-import { CurationIndexContent, CurationIndexImage } from '../curate/indexCuration';
+import { CurationIndexContent, CurationIndexImage, createCurationIndexImage } from '../curate/indexCuration';
 import { createContextReducer } from '../context-reducer/contextReducer';
 
 const curationDefaultState: CurationsState = {
@@ -44,6 +44,21 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
   }
 }
 
+/** Create an "empty" edit curation. */
+export function createEditCuration(): EditCuration {
+  return {
+    key: '',
+    meta: {},
+    moreData: {
+      platform: '',
+      applicationPath: '',
+    },
+    content: [],
+    thumbnail: createCurationIndexImage(),
+    screenshot: createCurationIndexImage(),
+  };
+}
+
 /** State of the current curations. */
 type CurationsState = {
   curations: EditCuration[];
@@ -66,7 +81,7 @@ export type CurationAction = (
     key: string;
     /** Name of the property to change. */
     property: keyof IOldCurationMeta;
-    /** Value to set the proeprty to. */
+    /** Value to set the property to. */
     value: IOldCurationMeta[keyof IOldCurationMeta];
   }>
 );
@@ -77,10 +92,20 @@ export type EditCuration = {
   key: string;
   /** Meta data of the curation. */
   meta: IOldCurationMeta;
-  /** Data of each file in the content folder (and sub-folderss). */
+  /** Data used for the game that is not from the meta. */
+  moreData: EditCurationMoreData;
+  /** Data of each file in the content folder (and sub-folders). */
   content: CurationIndexContent[];
   /** Screenshot. */
   screenshot: CurationIndexImage;
   /** Thumbnail. */
   thumbnail: CurationIndexImage;
 };
+
+/** Additional data of a curation in the curation importer. */
+export type EditCurationMoreData = {
+  /** Platform of the imported curation. */
+  platform: string;
+  /** Application path of the imported curation. */
+  applicationPath: string;
+}

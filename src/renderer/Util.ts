@@ -136,3 +136,10 @@ export function sizeToString(size: number, precision: number = 3): string {
   if (size < 1000000000) { return `${(size / 1000000).toPrecision(precision)}MB`; }
   return `${(size / 1000000000).toPrecision(precision)}GB`;
 }
+
+/** Get the file extension of a file (including the dot). Returns an empty string if none. */
+export function getFileExtension(filename: string): string {
+  const firstDot = filename.lastIndexOf('.');
+  if (firstDot === -1) { return ''; }
+  return filename.substr(firstDot);
+}

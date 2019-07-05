@@ -8,6 +8,7 @@ import { removeFileExtension } from '../../shared/Util';
 const ensureDir = promisify(fs.ensureDir);
 
 type PartialDict<T> = { [key: string]: T | undefined; };
+type GetCache = (folderName: string) => ImageFolderCache | undefined;
 
 export class GameImageCollection {
   private _flashpointPath: string;
@@ -21,6 +22,7 @@ export class GameImageCollection {
   public getScreenshotCache(folderName: string): ImageFolderCache|undefined {
     return this._screenshots[folderName.toLowerCase()];
   }
+
 
   public getThumbnailCache(folderName: string): ImageFolderCache|undefined {
     return this._thumbnails[folderName.toLowerCase()];
@@ -44,6 +46,50 @@ export class GameImageCollection {
       if (cache) { cachesCopy[key] = cache; }
     }
     return cachesCopy;
+  }
+
+  /**
+   * Get a screenshot cache (synchronously).
+   * If it doesn't exist, create a new image folder and then get the cache (asynchronously).
+   * @param imageFolderName Name of the image folder the cache is in.
+   */
+  public getOrCreateScreenshotCache(imageFolderName: string): ImageFolderCache | Promise<ImageFolderCache> {
+    return this.getOrCreateCache(this.getScreenshotCache.bind(this), imageFolderName);
+  }
+
+  /**
+   * Get a thumbnail cache (synchronously).
+   * If it doesn't exist, create a new image folder and then get the cache (asynchronously).
+   * @param imageFolderName Name of the image folder the cache is in.
+   */
+  public getOrCreateThumbnailCache(imageFolderName: string): ImageFolderCache | Promise<ImageFolderCache> {
+    return this.getOrCreateCache(this.getThumbnailCache.bind(this), imageFolderName);
+  }
+
+  /**
+   * Try to get cache. If that fails, create a new image folder and return the cache from in there.
+   * Internal implementation of the "getOrCreate...Cache" functions.
+   * @param getCache Function that tried to get the cache.
+   * @param imageFolderName Name of the image folder the cache is in.
+   */
+  private getOrCreateCache(getCache: GetCache, imageFolderName: string): ImageFolderCache | Promise<ImageFolderCache> {
+    // Try getting the cache
+    const cache = getCache(imageFolderName);
+    if (cache) {
+      return cache;
+    } else {
+      // Create a new image folder and add it (caches are inside image folders)
+      return new Promise((resolve, reject) => {
+        this.createImageFolder(imageFolderName)
+        .then(() => {
+          this.addImageFolder(imageFolderName);
+          const cache = getCache(imageFolderName);
+          if (cache) { resolve(cache); }
+          else       { reject(new Error(`Failed to get cache after creating it (image folder: "${imageFolderName}").`)); }
+        })
+        .catch(() => { reject(new Error(`Failed to create new image folder "${imageFolderName}".`)); });
+      });
+    }
   }
 
   /**

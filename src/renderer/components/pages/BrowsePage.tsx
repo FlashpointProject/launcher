@@ -15,9 +15,8 @@ import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/in
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
 import GameManagerPlatform from '../../game/GameManagerPlatform';
-import { GameParser, generateGameOrderTitle } from '../../../shared/game/GameParser';
 import { uuid } from '../../uuid';
-import { formatDate, removeFileExtension } from '../../../shared/Util';
+import { formatDate } from '../../../shared/Util';
 import { SearchQuery } from '../../store/search';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
@@ -26,6 +25,7 @@ import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
+import { GameImageCollection } from '../../image/GameImageCollection';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback0 = Pick<BrowsePageState, 'orderedGames'|'orderedGamesArgs'>;

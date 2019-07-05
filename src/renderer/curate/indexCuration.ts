@@ -3,7 +3,7 @@ import * as yauzl from 'yauzl';
 import { IOldCurationMeta, parseOldCurationMeta } from './oldFormat';
 
 export type CurationIndex = {
-  /** Data of each file in the content folder (and sub-folderss). */
+  /** Data of each file in the content folder (and sub-folders). */
   content: CurationIndexContent[];
   /** Errors that occurred while indexing. */
   errors: CurationIndexError[];
@@ -28,8 +28,10 @@ export type CurationIndexError = {
 };
 
 export type CurationIndexImage = {
-  /** Data of the image file (in case it was extracted from an archive) */
+  /** Base64 encoded data of the image file (in case it was extracted from an archive). */
   data?: string;
+  /** Raw data of the image file (in case it was extracted from an archive). */
+  rawData?: Buffer;
   /** Location of the image file (in case the image file is accessible). */
   source?: string;
   /** If the images was found. */
@@ -100,7 +102,9 @@ export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
             const isThumbnail = splitFileName[1].startsWith('logo.');
             const image: CurationIndexImage = {
               exists: true,
+              fileName: entry.fileName,
               data: bufferToBase64(buffer),
+              rawData: buffer,
             };
             if (isThumbnail) { curation.thumbnail  = image; }
             else             { curation.screenshot = image; }
@@ -127,7 +131,7 @@ export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
 /**
  * Stream the contents of an entry into a buffer and return it.
  * @param zip Zip to read from.
- * @param entry Entry to read the conents of.
+ * @param entry Entry to read the contents of.
  */
 function readEntryContent(zip: yauzl.ZipFile, entry: yauzl.Entry): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -157,7 +161,8 @@ function createCurationIndex(): CurationIndex {
   };
 }
 
-function createCurationIndexImage(): CurationIndexImage {
+/** Create an "empty" curation index image. */
+export function createCurationIndexImage(): CurationIndexImage {
   return {
     exists: false,
   };
@@ -193,10 +198,10 @@ function createBufferStream(buffer: Buffer) {
  * @returns Base64 string.
  */
 function bufferToBase64(buffer: Buffer): string {
-  var binary = '';
-  var bytes = new Uint8Array(buffer);
-  var len = bytes.byteLength;
-  for (var i = 0; i < len; i++) {
+  let binary = '';
+  let bytes = new Uint8Array(buffer);
+  let len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
   return window.btoa(binary);

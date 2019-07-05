@@ -5,15 +5,20 @@ import { SimpleButton } from '../SimpleButton';
 import { CurateBox } from '../CurateBox';
 import { indexCurationArchive } from '../../curate/indexCuration';
 import { uuid } from '../../uuid';
-import { CurationContext } from '../../context/CurationContext';
+import { CurationContext, EditCuration, createEditCuration } from '../../context/CurationContext';
+import GameManager from '../../game/GameManager';
+import { GameImageCollection } from '../../image/GameImageCollection';
 
 export type CuratePageProps = {
+  /** Game manager to add imported curations to. */
+  games?: GameManager;
+  /** Game images collection to add imported images to. */
+  gameImages?: GameImageCollection;
 };
 
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
   const [state, dispatch] = useContext(CurationContext.context);
-  const canEdit = true;
   // Load Curation Archive Callback
   const onLoadCurationArchiveClick = useCallback(async () => {
     // Show dialog
@@ -34,13 +39,13 @@ export function CuratePage(props: CuratePageProps) {
           dispatch({
             type: 'add-curation',
             payload: {
-              curation: {
+              curation: Object.assign(createEditCuration(), {
                 key: uuid(),
                 meta: curationIndex.meta,
                 content: curationIndex.content,
                 thumbnail: curationIndex.thumbnail,
                 screenshot: curationIndex.screenshot,
-              }
+              })
             }
           });
         }
@@ -81,13 +86,10 @@ export function CuratePage(props: CuratePageProps) {
           dispatch({
             type: 'add-curation',
             payload: {
-              curation: {
+              curation: Object.assign(createEditCuration(), {
                 key: uuid(),
                 meta: meta,
-                content: [],
-                thumbnail: { exists: false },
-                screenshot: { exists: false },
-              }
+              })
             }
           });
         })
@@ -101,9 +103,11 @@ export function CuratePage(props: CuratePageProps) {
       <CurateBox
         key={index}
         curation={curation}
-        dispatch={dispatch} />
+        dispatch={dispatch}
+        games={props.games}
+        gameImages={props.gameImages} />
     ));
-  }, [state.curations]);
+  }, [state.curations, props.games]);
   // Render
   return (
     <div className='curate-page simple-scroll'>

@@ -71,7 +71,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
       creditsDoneLoading: this.props.creditsDoneLoading
     };
     const curateProps: CuratePageProps = {
-      /* ... */
+      games: this.props.central.games,
+      gameImages: this.props.gameImages
     };
     return (
       <Switch>

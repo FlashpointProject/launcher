@@ -4,19 +4,29 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
 import { InputField } from './InputField';
 import { EditCuration, CurationAction } from '../context/CurationContext';
-import { sizeToString } from '../Util';
+import { sizeToString, getFileExtension } from '../Util';
 import { CurateBoxImage } from './CurateBoxImage';
 import { CurateBoxRow } from './CurateBoxRow';
 import { IOldCurationMeta } from '../curate/oldFormat';
 import { SimpleButton } from './SimpleButton';
 import { GameLauncher } from '../GameLauncher';
-import { CurationIndexContent } from '../curate/indexCuration';
+import { CurationIndexContent, CurationIndexImage } from '../curate/indexCuration';
+import GameManager from '../game/GameManager';
+import { IGameInfo } from '../../shared/game/interfaces';
+import { formatDate, removeFileExtension } from '../../shared/Util';
+import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
+import { GameImageCollection } from '../image/GameImageCollection';
+import { ImageFolderCache } from '../image/ImageFolderCache';
 
 const fsStat = promisify(fs.stat);
 
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
 export type CurateBoxProps = {
+  /** Game manager to add imported curations to. */
+  games?: GameManager;
+  /** Game images collection to add imported images to. */
+  gameImages?: GameImageCollection;
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
@@ -25,7 +35,7 @@ export type CurateBoxProps = {
 
 /** A box that displays and lets the user edit a curation. */
 export function CurateBox(props: CurateBoxProps) {
-  //
+  // Content file collisions
   const [contentCollisions, setContentCollisions] = useState<ContentCollision[] | undefined>(undefined);
   // Check for content file collisions
   useEffect(() => {
@@ -56,12 +66,32 @@ export function CurateBox(props: CurateBoxProps) {
   const onAuthorNotesChange   = useOnInputChance('authorNotes',   key, props.dispatch);
   // Callback for the fields (onInputKeyDown)
   const onInputKeyDown = useCallback(() => {
+    // @TODO Add keyboard shortcuts for things like importing and removing the curation.
     // ...
   }, []);
   // Callback for when the import button is clicked
-  const onImportClick = useCallback(() => {
-    // @TODO (just do it already)
-  }, [props.curation]);
+  const onImportClick = useCallback(async () => {
+    console.log(props.curation, props.games, props.gameImages)
+    if (props.curation && props.games && props.gameImages) {
+      // @TODO Add support for selecting what library to save the game to
+      const libraryPrefix = '';
+      // Create and add game
+      const game = createGameFromCuration(props.curation);
+      props.games.addOrUpdateGame(game);
+      // Copy/Extract the image files
+      const imageFolderName = libraryPrefix + removeFileExtension(game.filename);
+      // (Thumbnail)
+      const thumbnailCache = await props.gameImages.getOrCreateThumbnailCache(imageFolderName);
+      importGameImage(props.curation.thumbnail, thumbnailCache, game)
+      .then(() => { thumbnailCache.refresh(); });
+      // (Screenshot)
+      const screenshotCache = await props.gameImages.getOrCreateScreenshotCache(imageFolderName);
+      importGameImage(props.curation.screenshot, screenshotCache, game)
+      .then(() => { screenshotCache.refresh(); });
+      // Copy content files
+      // ...
+    }
+  }, [props.curation, props.games, props.gameImages]);
   // Callback for when the remove button is clicked
   const onRemoveClick = useCallback(() => {
     if (props.curation) {
@@ -259,6 +289,7 @@ function useOnInputChance(property: keyof IOldCurationMeta, key: string | undefi
   }, [dispatch]);
 }
 
+/** Data about a file that collided with a content file from a curation. */
 type ContentCollision = {
   fileName: string;
   fileSize: number;
@@ -266,10 +297,7 @@ type ContentCollision = {
   isFolder: boolean;
 }
 
-/**
- * Check all the "collisions" (the files that will be overwritten if the curation is imported)
- * @param content 
- */
+/** Check all the "collisions" (the files that will be overwritten if the curation is imported) */
 async function checkCollisions(content: CurationIndexContent[]) {
   const collisions: ContentCollision[] = [];
   for (let i = 0; i < content.length; i++) {
@@ -301,4 +329,69 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
   try      { value = await promise; }
   catch(e) { error = e;             }
   return [value, error];
+}
+
+/**
+ * Create a game info object from a curation.
+ * @param curation Curation to get data from.
+ */
+function createGameFromCuration(curation: EditCuration): IGameInfo {
+  const meta = curation.meta;
+  const data = curation.moreData;
+  return {
+    id:              curation.key, // (Re-use the id of the curation)
+    title:           meta.title           || '',
+    series:          meta.series          || '',
+    developer:       meta.developer       || '',
+    publisher:       meta.publisher       || '',
+    dateAdded:       formatDate(new Date()),
+    platform:        data.platform        || '',
+    broken:          false,
+    extreme:         !!stringToBool(meta.extreme || ''),
+    playMode:        'Single Player',
+    status:          meta.status          || '',
+    notes:           meta.notes           || '',
+    genre:           meta.genre           || '',
+    source:          meta.source          || '',
+    applicationPath: data.applicationPath || '',
+    launchCommand:   meta.launchCommand   || '',
+    filename: '', // This will be set when saved
+    orderTitle: '', // This will be set when saved
+    placeholder: false,
+  };
+}
+
+/**
+ * Convert a string to a boolean (case insensitive).
+ * "Yes" is true. "No" is false. Anything else is undefined.
+ * @param str String to convert.
+ */
+function stringToBool(str: string): boolean | undefined {
+  const lowerStr = str.toLowerCase();
+  if (lowerStr === 'yes') { return true;  }
+  if (lowerStr === 'no' ) { return false; }
+}
+
+/**
+ * Convert a boolean to a string ("Yes" or "No").
+ * @param bool Boolean to convert.
+ */
+function boolToString(bool: boolean): string {
+  return bool ? 'Yes' : 'No';
+}
+
+/**
+ * Import a game image (thumbnail or screenshot).
+ * @param image Image to import.
+ * @param game Game the image "belongs" to.
+ * @param cache Cache to import the image to.
+ */
+async function importGameImage(image: CurationIndexImage, cache: ImageFolderCache, game: IGameInfo): Promise<void> {
+  if (image.exists) {
+    if (image.rawData !== undefined && image.fileName !== undefined) {
+      await createGameImageFileFromData(image.rawData, getFileExtension(image.fileName), game, cache);
+    } else if (image.source !== undefined) {
+      await copyGameImageFile(image.source, game, cache);
+    }
+  }
 }

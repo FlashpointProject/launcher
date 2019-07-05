@@ -1,8 +1,5 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as React from 'react';
-import { promisify } from 'util';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { removeFileExtension } from '../../shared/Util';
@@ -11,7 +8,6 @@ import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
-import { formatImageFilename } from '../image/util';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
 import { GamePropSuggestions } from '../util/suggestions';
 import { uuid } from '../uuid';
@@ -23,10 +19,8 @@ import { ImagePreview } from './ImagePreview';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
-import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
-
-const copyFile = promisify(fs.copyFile);
-const unlink = promisify(fs.unlink);
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { deleteGameImageFiles, copyGameImageFile } from '../util/game';
 
 type OwnProps = {
   gameImages: GameImageCollection;
@@ -517,7 +511,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const { currentGame } = this.props;
     if (!currentGame) { throw new Error('Failed to delete image file. The currently selected game could not be found.'); }
     if (!cache)       { throw new Error('Failed to delete image file. The image cache could not be found.'); }
-    deleteImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
+    deleteGameImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
   }
 
   addScreenshotDialog = async () => {
@@ -530,14 +524,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
     if (filePaths && filePaths[0]) {
       const imageFolderName = this.getImageFolderName();
-      let cache = gameImages.getScreenshotCache(imageFolderName);
-      if (!cache) {
-        await gameImages.createImageFolder(imageFolderName).catch(() => { throw new Error(`Failed to create new image folder "${imageFolderName}".`); });
-        gameImages.addImageFolder(imageFolderName);
-        cache = gameImages.getScreenshotCache(imageFolderName);
-        if (!cache) { throw new Error('Failed to add new image.'); }
-      }
-      copyImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
+      const cache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
+      copyGameImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
     }
   }
 
@@ -551,14 +539,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
     if (filePaths && filePaths[0]) {
       const imageFolderName = this.getImageFolderName();
-      let cache = gameImages.getThumbnailCache(imageFolderName);
-      if (!cache) {
-        await gameImages.createImageFolder(imageFolderName).catch(() => { throw new Error(`Failed to create new image folder "${imageFolderName}".`); });
-        gameImages.addImageFolder(imageFolderName);
-        cache = gameImages.getThumbnailCache(imageFolderName);
-        if (!cache) { throw new Error('Failed to add new image.'); }
-      }
-      copyImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
+      const cache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
+      copyGameImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
     }
   }
   
@@ -581,15 +563,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const screenshotCache = this.props.gameImages.getScreenshotCache(imageFolderName);
     if (!screenshotCache) { throw new Error('Can not add a new image, the screenshot cache is missing.'); }
     if (files.length > 1) { // (Multiple files)
-      copyImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
-      copyImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
+      copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+      copyGameImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
     } else { // (Single file)
       switch(text) {
         case 'Thumbnail':
-          copyImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+          copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
           break;
         case 'Screenshot':
-          copyImageFile(files[0].path, game, screenshotCache).then(() => { this.forceUpdate(); });
+          copyGameImageFile(files[0].path, game, screenshotCache).then(() => { this.forceUpdate(); });
           break;
         default:
           console.warn('No "add-single-file" case for the "text" of the GameImageSplit the file was dropped on.');
@@ -720,32 +702,6 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
 }
 
 /**
- * Copy an image file from anywhere to the folder of an "image cache" and for a specific game.
- * @param source File path of the image to copy.
- * @param game Game that the image will "belong" to.
- * @param cache Image cache to store the image in (it is copied to this caches folder).
- */
-async function copyImageFile(source: string, game: IGameInfo, cache: ImageFolderCache): Promise<void> {
-  // Delete the current image(s)
-  deleteImageFiles(game, cache);
-  // Copy image file (and give it index 1, since only one screenshot per game is supported at the moment)
-  const outputPath = path.join(
-    cache.getFolderPath(),
-    formatImageFilename(game.id, 1) + getFileExtension(source)
-  );
-  return await copyFile(source, outputPath, fs.constants.COPYFILE_EXCL)
-  .then(() => cache.refresh())
-  .catch(error => { throw error; });
-}
-
-/** Get the file extension of a file (including the dot). Returns an empty string if none. */
-function getFileExtension(filename: string): string {
-  const firstDot = filename.lastIndexOf('.');
-  if (firstDot === -1) { return ''; }
-  return filename.substr(firstDot);
-}
-
-/**
  * Create a new array and populate it with the properties and values from another array or array like object.
  * @param arrayLike Array or array like object to copy properties and values from.
  * @returns New array with the same properties and values as the argument.
@@ -756,18 +712,4 @@ function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
     array[key] = arrayLike[key];
   }
   return array;
-}
-
-/**
- * Delete all image files of a game in the specified cache.
- * @param game The game to delete all the image files of.
- * @param cache Cache of the image folder to delete the files from.
- */
-async function deleteImageFiles(game: IGameInfo, cache: ImageFolderCache): Promise<void> {
-  // Find and delete all of the games images in the cache
-  const filenames = [ ...cache.getFilePaths(game.id), ...cache.getFilePaths(game.title) ];
-  for (let filename of filenames) {
-    await unlink(path.join(cache.getFolderPath(), filename));
-  }
-  if (filenames.length > 0) { await cache.refresh(); }
 }

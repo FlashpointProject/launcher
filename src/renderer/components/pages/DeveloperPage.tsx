@@ -17,6 +17,7 @@ import { ImageFolderCache } from '../../image/ImageFolderCache';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { LaunchboxData } from '../../LaunchboxData';
 import { GameLauncher } from '../../GameLauncher';
+import { getFileExtension } from '../../Util';
 
 const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
@@ -655,11 +656,4 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
 /** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
 export function removeLastItemOfPath(filePath: string): string {
   return filePath.substr(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
-}
-
-/** Get the file extension of a file (including the dot). Returns an empty string if none. */
-function getFileExtension(filename: string): string {
-  const lastDot = filename.lastIndexOf('.');
-  if (lastDot === -1) { return ''; }
-  return filename.substr(lastDot);
 }
