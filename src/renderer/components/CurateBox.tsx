@@ -10,13 +10,14 @@ import { CurateBoxRow } from './CurateBoxRow';
 import { IOldCurationMeta } from '../curate/oldFormat';
 import { SimpleButton } from './SimpleButton';
 import { GameLauncher } from '../GameLauncher';
-import { CurationIndexContent, CurationIndexImage } from '../curate/indexCuration';
+import { CurationIndexContent, CurationIndexImage, isInCurationFolder } from '../curate/indexCuration';
 import GameManager from '../game/GameManager';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { formatDate, removeFileExtension } from '../../shared/Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
+import { unzip } from '../util/unzip';
 
 const fsStat = promisify(fs.stat);
 
@@ -71,27 +72,41 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
   // Callback for when the import button is clicked
   const onImportClick = useCallback(async () => {
-    console.log(props.curation, props.games, props.gameImages)
-    if (props.curation && props.games && props.gameImages) {
+    const { curation, games, gameImages } = props;
+    if (curation && games && gameImages) {
       // @TODO Add support for selecting what library to save the game to
       const libraryPrefix = '';
       // Create and add game
-      const game = createGameFromCuration(props.curation);
-      props.games.addOrUpdateGame(game);
+      const game = createGameFromCuration(curation);
+      games.addOrUpdateGame(game);
       // Copy/Extract the image files
       const imageFolderName = libraryPrefix + removeFileExtension(game.filename);
       // (Thumbnail)
-      const thumbnailCache = await props.gameImages.getOrCreateThumbnailCache(imageFolderName);
-      importGameImage(props.curation.thumbnail, thumbnailCache, game)
+      const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
+      importGameImage(curation.thumbnail, thumbnailCache, game)
       .then(() => { thumbnailCache.refresh(); });
       // (Screenshot)
-      const screenshotCache = await props.gameImages.getOrCreateScreenshotCache(imageFolderName);
-      importGameImage(props.curation.screenshot, screenshotCache, game)
+      const screenshotCache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
+      importGameImage(curation.screenshot, screenshotCache, game)
       .then(() => { screenshotCache.refresh(); });
       // Copy content files
-      // ...
+      unzip({
+        source: curation.source,
+        output: GameLauncher.getHtdocsPath(),
+        // Remove the path leading up to and including the content folder
+        generateOutputPath: (entry, opts) => removeFoldersStart(entry.fileName, 2),
+        // Only allow files/folders inside the curation folder
+        filter: (entry, opts) => isInCurationFolder(entry.fileName),
+      })
+      .once('done', () => {
+        // Remove the curation
+        props.dispatch({
+          type: 'remove-curation',
+          payload: { key: curation.key }
+        });
+      });
     }
-  }, [props.curation, props.games, props.gameImages]);
+  }, [props.dispatch, props.curation, props.games, props.gameImages]);
   // Callback for when the remove button is clicked
   const onRemoveClick = useCallback(() => {
     if (props.curation) {
@@ -394,4 +409,17 @@ async function importGameImage(image: CurationIndexImage, cache: ImageFolderCach
       await copyGameImageFile(image.source, game, cache);
     }
   }
+}
+
+/**
+ * Remove a number of folders from the start of a path.
+ * Example: ("a/b/c/d.txt", 2) => "c/d.txt"
+ * @param filePath Path to remove folders from.
+ * @param count Number of folders to remove.
+ * @param separator Separator between file and folder names.
+ */
+function removeFoldersStart(filePath: string, count: number, separator: string = '/'): string {
+  const splits = filePath.split(separator);
+  splits.splice(0, count);
+  return splits.join(separator);
 }

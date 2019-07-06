@@ -29,8 +29,9 @@ export function CuratePage(props: CuratePageProps) {
     });
     if (filePaths) {
       for (let i = 0; i < filePaths.length; i++) {
+        const source = filePaths[i];
         // Read and index the archive
-        const curationIndex = await indexCurationArchive(filePaths[i]);
+        const curationIndex = await indexCurationArchive(source);
         // Check for errors
         if (curationIndex.errors.length > 0) {
           // @TODO Display errors
@@ -41,6 +42,7 @@ export function CuratePage(props: CuratePageProps) {
             payload: {
               curation: Object.assign(createEditCuration(), {
                 key: uuid(),
+                source: source,
                 meta: curationIndex.meta,
                 content: curationIndex.content,
                 thumbnail: curationIndex.thumbnail,
@@ -88,6 +90,7 @@ export function CuratePage(props: CuratePageProps) {
             payload: {
               curation: Object.assign(createEditCuration(), {
                 key: uuid(),
+                source: filepath,
                 meta: meta,
               })
             }

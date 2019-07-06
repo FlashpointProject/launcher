@@ -206,3 +206,20 @@ function bufferToBase64(buffer: Buffer): string {
   }
   return window.btoa(binary);
 }
+
+/**
+ * Check if a file (inside an archive file) is inside a curation folder.
+ * @param filePath Path of the file (inside the archive).
+ */
+export function isInCurationFolder(filePath: string): boolean {
+  const split = filePath.toLowerCase().split('/');
+  return (
+    // Check if the file is two or more folders deep
+    split.length > 2 &&
+    // Check if the second folder in the path is the content folder
+    // (The first folder is usually named after the name)
+    split[1] === 'content' &&
+    // Check if the third name is not empty (if it is, then this is a folder)
+    split[2] !== ''
+  );
+}
