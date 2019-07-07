@@ -184,6 +184,10 @@ body {
 .simple-disabled-text {
   color: var(--layout__disabled-text-color);
 }
+/* Input Field */
+.input-field--warn {
+  background-color: var(--layout__warning-medium-color);
+}
 /* Checkbox Dropdown */
 .checkbox-dropdown {
   font-family: var(--layout__primary-font);
@@ -431,6 +435,10 @@ body {
 }
 .curate-box-files__entry-collision {
   color: var(--layout__curate-entry-collision-color);
+}
+/* Curate Box Images */
+.curate-box-images__image {
+  cursor: zoom-in;
 }
 
 

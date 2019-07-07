@@ -1,5 +1,4 @@
 import { ReducerAction } from '../context-reducer/interfaces';
-import { IOldCurationMeta } from '../curate/oldFormat';
 import { CurationIndexContent, CurationIndexImage, createCurationIndexImage } from '../curate/indexCuration';
 import { createContextReducer } from '../context-reducer/contextReducer';
 
@@ -53,10 +52,6 @@ export function createEditCuration(): EditCuration {
     key: '',
     source: '',
     meta: {},
-    moreData: {
-      platform: '',
-      applicationPath: '',
-    },
     content: [],
     thumbnail: createCurationIndexImage(),
     screenshot: createCurationIndexImage(),
@@ -84,9 +79,9 @@ export type CurationAction = (
     /** Key of the curation to change. */
     key: string;
     /** Name of the property to change. */
-    property: keyof IOldCurationMeta;
+    property: keyof EditCurationMeta;
     /** Value to set the property to. */
-    value: IOldCurationMeta[keyof IOldCurationMeta];
+    value: EditCurationMeta[keyof EditCurationMeta];
   }>
 );
 
@@ -97,9 +92,7 @@ export type EditCuration = {
   /** Path of the folder or archive file the curation was loaded from. */
   source: string;
   /** Meta data of the curation. */
-  meta: IOldCurationMeta;
-  /** Data used for the game that is not from the meta. */
-  moreData: EditCurationMoreData;
+  meta: EditCurationMeta;
   /** Data of each file in the content folder (and sub-folders). */
   content: CurationIndexContent[];
   /** Screenshot. */
@@ -108,10 +101,19 @@ export type EditCuration = {
   thumbnail: CurationIndexImage;
 };
 
-/** Additional data of a curation in the curation importer. */
-export type EditCurationMoreData = {
-  /** Platform of the imported curation. */
-  platform: string;
-  /** Application path of the imported curation. */
-  applicationPath: string;
+/** Meta data of a curation (loaded from a meta file). */
+export type EditCurationMeta = {
+  title?: string;
+  series?: string;
+  developer?: string;
+  publisher?: string;
+  status?: string;
+  extreme?: string;
+  genre?: string;
+  source?: string;
+  launchCommand?: string;
+  notes?: string;
+  authorNotes?: string;
+  platform?: string;
+  applicationPath?: string;
 }

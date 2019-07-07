@@ -3,11 +3,10 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
 import { InputField } from './InputField';
-import { EditCuration, CurationAction } from '../context/CurationContext';
+import { EditCuration, CurationAction, EditCurationMeta } from '../context/CurationContext';
 import { sizeToString, getFileExtension } from '../Util';
 import { CurateBoxImage } from './CurateBoxImage';
 import { CurateBoxRow } from './CurateBoxRow';
-import { IOldCurationMeta } from '../curate/oldFormat';
 import { SimpleButton } from './SimpleButton';
 import { GameLauncher } from '../GameLauncher';
 import { CurationIndexContent, CurationIndexImage, isInCurationFolder } from '../curate/indexCuration';
@@ -18,6 +17,10 @@ import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
 import { unzip } from '../util/unzip';
+import { CheckBox } from './CheckBox';
+import { DropdownInputField } from './DropdownInputField';
+import { GamePropSuggestions } from '../util/suggestions';
+import { CurationWarnings, CurateBoxWarnings } from './CurateBoxWarnings';
 
 const fsStat = promisify(fs.stat);
 
@@ -32,6 +35,8 @@ export type CurateBoxProps = {
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
   dispatch: React.Dispatch<CurationAction>;
+  /** Suggestions for the drop-down input fields. */
+  suggestions?: Partial<GamePropSuggestions> | undefined;
 };
 
 /** A box that displays and lets the user edit a curation. */
@@ -54,17 +59,23 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation && props.curation.content]);
   // Callbacks for the fields (onChange)
   const key = props.curation ? props.curation.key : undefined;
-  const onTitleChange         = useOnInputChance('title',         key, props.dispatch);
-  const onSeriesChange        = useOnInputChance('series',        key, props.dispatch);
-  const onDeveloperChange     = useOnInputChance('developer',     key, props.dispatch);
-  const onPublisherChange     = useOnInputChance('publisher',     key, props.dispatch);
-  const onStatusChange        = useOnInputChance('status',        key, props.dispatch);
-  const onExtremeChange       = useOnInputChance('extreme',       key, props.dispatch);
-  const onGenreChange         = useOnInputChance('genre',         key, props.dispatch);
-  const onSourceChange        = useOnInputChance('source',        key, props.dispatch);
-  const onLaunchCommandChange = useOnInputChance('launchCommand', key, props.dispatch);
-  const onNotesChange         = useOnInputChance('notes',         key, props.dispatch);
-  const onAuthorNotesChange   = useOnInputChance('authorNotes',   key, props.dispatch);
+  const onTitleChange           = useOnInputChange('title',           key, props.dispatch);
+  const onSeriesChange          = useOnInputChange('series',          key, props.dispatch);
+  const onDeveloperChange       = useOnInputChange('developer',       key, props.dispatch);
+  const onPublisherChange       = useOnInputChange('publisher',       key, props.dispatch);
+  const onStatusChange          = useOnInputChange('status',          key, props.dispatch);
+  const onGenreChange           = useOnInputChange('genre',           key, props.dispatch);
+  const onSourceChange          = useOnInputChange('source',          key, props.dispatch);
+  const onPlatformChange        = useOnInputChange('platform',        key, props.dispatch);
+  const onApplicationPathChange = useOnInputChange('applicationPath', key, props.dispatch);
+  const onLaunchCommandChange   = useOnInputChange('launchCommand',   key, props.dispatch);
+  const onNotesChange           = useOnInputChange('notes',           key, props.dispatch);
+  const onAuthorNotesChange     = useOnInputChange('authorNotes',     key, props.dispatch);
+  const onExtremeChange         = useOnCheckboxToggle('extreme',      key, props.dispatch);
+  // Callbacks for the fields (onItemSelect)
+  const onGenreItemSelect           = useCallback(transformOnItemSelect(onGenreChange),           [onGenreChange]);
+  const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
+  const onApplicationPathItemSelect = useCallback(transformOnItemSelect(onApplicationPathChange), [onPlatformChange]);
   // Callback for the fields (onInputKeyDown)
   const onInputKeyDown = useCallback(() => {
     // @TODO Add keyboard shortcuts for things like importing and removing the curation.
@@ -132,13 +143,13 @@ export function CurateBox(props: CurateBoxProps) {
       // Render content element
       const contentElement = (
         <span className='curate-box-files__entry'>
-          {content.fileName + (isFolder ? '' : `(${sizeToString(content.fileSize)})`)}
+          {content.fileName + (isFolder ? '' : ` (${sizeToString(content.fileSize)})`)}
         </span>
       );
       // Render collision element
       const collisionElement = (collision && collision.fileExists) ? (
         <span className='curate-box-files__entry-collision'>
-          {' - Already Exists ' + (collision.isFolder ? '' : `(${sizeToString(content.fileSize)})`)}
+          {' - Already Exists' + (collision.isFolder ? '' : ` (${sizeToString(content.fileSize)})`)}
         </span>
       ) : undefined;
       // Render
@@ -151,7 +162,18 @@ export function CurateBox(props: CurateBoxProps) {
       );
     });
   }, [props.curation && props.curation.content, contentCollisions]);
-  //
+  // Generate Warnings
+  const warnings = useMemo(() => {
+    const warns: CurationWarnings = {};
+    if (props.curation) {
+      // Check HTTP
+      warns.isNotHttp = !isHttp(props.curation.meta.launchCommand || '');
+    }
+    return warns;
+  }, [props.curation && props.curation.meta]);
+  // Meta
+  const authorNotes = props.curation && props.curation.meta.authorNotes || '';
+  // Misc.
   const canEdit = true;
   // Render
   return (
@@ -198,27 +220,21 @@ export function CurateBox(props: CurateBoxProps) {
           canEdit={canEdit}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
+      <CurateBoxRow title='Genre:'>
+        <DropdownInputField
+          text={props.curation && props.curation.meta.genre || ''}
+          placeholder='No Genre'
+          onChange={onGenreChange}
+          canEdit={canEdit}
+          onKeyDown={onInputKeyDown}
+          items={props.suggestions && props.suggestions.genre || []}
+          onItemSelect={onGenreItemSelect} />
+      </CurateBoxRow>
       <CurateBoxRow title='Status:'>
         <InputField
           text={props.curation && props.curation.meta.status || ''}
           placeholder='No Status'
           onChange={onStatusChange}
-          canEdit={canEdit}
-          onKeyDown={onInputKeyDown} />
-      </CurateBoxRow>
-      <CurateBoxRow title='Extreme:'>
-        <InputField
-          text={props.curation && props.curation.meta.extreme || ''}
-          placeholder='No Extreme'
-          onChange={onExtremeChange}
-          canEdit={canEdit}
-          onKeyDown={onInputKeyDown} />
-      </CurateBoxRow>
-      <CurateBoxRow title='Genre:'>
-        <InputField
-          text={props.curation && props.curation.meta.genre || ''}
-          placeholder='No Genre'
-          onChange={onGenreChange}
           canEdit={canEdit}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
@@ -230,13 +246,34 @@ export function CurateBox(props: CurateBoxProps) {
           canEdit={canEdit}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
+      <CurateBoxRow title='Platform:'>
+        <DropdownInputField
+          text={props.curation && props.curation.meta.platform || ''}
+          placeholder='No Platform'
+          onChange={onPlatformChange}
+          canEdit={canEdit}
+          onKeyDown={onInputKeyDown}
+          items={props.suggestions && props.suggestions.platform || []}
+          onItemSelect={onPlatformItemSelect} />
+      </CurateBoxRow>
+      <CurateBoxRow title='Application Path:'>
+        <DropdownInputField
+          text={props.curation && props.curation.meta.applicationPath || ''}
+          placeholder='No Application Path'
+          onChange={onApplicationPathChange}
+          canEdit={canEdit}
+          onKeyDown={onInputKeyDown}
+          items={props.suggestions && props.suggestions.applicationPath || []}
+          onItemSelect={onApplicationPathItemSelect} />
+      </CurateBoxRow>
       <CurateBoxRow title='Launch Command:'>
         <InputField
           text={props.curation && props.curation.meta.launchCommand || ''}
           placeholder='No Launch Command'
           onChange={onLaunchCommandChange}
           canEdit={canEdit}
-          onKeyDown={onInputKeyDown} />
+          onKeyDown={onInputKeyDown}
+          className={warnings.isNotHttp ? 'input-field--warn' : ''} />
       </CurateBoxRow>
       <CurateBoxRow title='Notes:'>
         <InputField
@@ -244,15 +281,24 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Notes'
           onChange={onNotesChange}
           canEdit={canEdit}
-          onKeyDown={onInputKeyDown} />
+          onKeyDown={onInputKeyDown}
+          multiline={true} />
       </CurateBoxRow>
       <CurateBoxRow title='Author Notes:'>
         <InputField
-          text={props.curation && props.curation.meta.authorNotes || ''}
+          text={authorNotes}
           placeholder='No Author Notes'
           onChange={onAuthorNotesChange}
           canEdit={canEdit}
-          onKeyDown={onInputKeyDown} />
+          onKeyDown={onInputKeyDown}
+          multiline={true}
+          className={authorNotes.length > 0 ? 'input-field--warn' : ''} />
+      </CurateBoxRow>
+      <CurateBoxRow title='Extreme:'>
+        <CheckBox
+          checked={stringToBool(props.curation && props.curation.meta.extreme || 'No')}
+          onToggle={onExtremeChange}
+          />
       </CurateBoxRow>
       {/* Content */}
       <div className='curate-box-files'>
@@ -268,6 +314,8 @@ export function CurateBox(props: CurateBoxProps) {
           {contentFilenames}
         </pre>
       </div>
+      {/* Warnings */}
+      <CurateBoxWarnings warnings={warnings} />
       {/* Buttons */}
       <div className='curate-box-buttons'>
         <SimpleButton
@@ -283,14 +331,28 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
+/** Subset of the input elements on change event, with only the properties used by the callbacks. */
+type InputElementOnChangeEvent = {
+  currentTarget: {
+    value: React.ChangeEvent<InputElement>['currentTarget']['value']
+  }
+}
+
+function transformOnItemSelect(callback: (event: InputElementOnChangeEvent) => void) {
+  return (text: string) => {
+    callback({ currentTarget: { value: text } });
+  }
+}
+
 /**
  * Create a callback for InputField's onChange.
  * When called, the callback will set the value of a metadata property to the value of the input field.
  * @param property Property the input field should change.
+ * @param key Key of the curation to edit.
  * @param dispatch Dispatcher to use.
  */
-function useOnInputChance(property: keyof IOldCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
-  return useCallback((event: React.ChangeEvent<InputElement>) => {
+function useOnInputChange(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
+  return useCallback((event: InputElementOnChangeEvent) => {
     if (key !== undefined) {
       dispatch({
         type: 'edit-curation-meta',
@@ -301,7 +363,22 @@ function useOnInputChance(property: keyof IOldCurationMeta, key: string | undefi
         }
       });
     }
-  }, [dispatch]);
+  }, [dispatch, key]);
+}
+
+function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
+  return useCallback((checked: boolean) => {
+    if (key !== undefined) {
+      dispatch({
+        type: 'edit-curation-meta',
+        payload: {
+          key: key,
+          property: property,
+          value: boolToString(checked)
+        }
+      });
+    }
+  }, [dispatch, key]);
 }
 
 /** Data about a file that collided with a content file from a curation. */
@@ -352,7 +429,6 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
  */
 function createGameFromCuration(curation: EditCuration): IGameInfo {
   const meta = curation.meta;
-  const data = curation.moreData;
   return {
     id:              curation.key, // (Re-use the id of the curation)
     title:           meta.title           || '',
@@ -360,7 +436,7 @@ function createGameFromCuration(curation: EditCuration): IGameInfo {
     developer:       meta.developer       || '',
     publisher:       meta.publisher       || '',
     dateAdded:       formatDate(new Date()),
-    platform:        data.platform        || '',
+    platform:        meta.platform        || '',
     broken:          false,
     extreme:         !!stringToBool(meta.extreme || ''),
     playMode:        'Single Player',
@@ -368,7 +444,7 @@ function createGameFromCuration(curation: EditCuration): IGameInfo {
     notes:           meta.notes           || '',
     genre:           meta.genre           || '',
     source:          meta.source          || '',
-    applicationPath: data.applicationPath || '',
+    applicationPath: meta.applicationPath || '',
     launchCommand:   meta.launchCommand   || '',
     filename: '', // This will be set when saved
     orderTitle: '', // This will be set when saved
@@ -378,13 +454,14 @@ function createGameFromCuration(curation: EditCuration): IGameInfo {
 
 /**
  * Convert a string to a boolean (case insensitive).
- * "Yes" is true. "No" is false. Anything else is undefined.
- * @param str String to convert.
+ * @param str String to convert ("Yes" is true, "No" is false).
+ * @param defaultVal Value returned if the string is neither true nor false.
  */
-function stringToBool(str: string): boolean | undefined {
+function stringToBool(str: string, defaultVal: boolean = false): boolean {
   const lowerStr = str.toLowerCase();
   if (lowerStr === 'yes') { return true;  }
   if (lowerStr === 'no' ) { return false; }
+  return defaultVal;
 }
 
 /**
@@ -422,4 +499,13 @@ function removeFoldersStart(filePath: string, count: number, separator: string =
   const splits = filePath.split(separator);
   splits.splice(0, count);
   return splits.join(separator);
+}
+
+/**
+ * Check if a url uses the http protocol.
+ * @param url Url to check.
+ */
+function isHttp(url: string): boolean {
+  try { return new URL(url).protocol.toLowerCase() === 'http:'; }
+  catch(e) { return false; }
 }

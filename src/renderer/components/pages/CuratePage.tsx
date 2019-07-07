@@ -1,13 +1,14 @@
 import * as React from 'react';
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { parseOldCurationMeta } from '../../curate/oldFormat';
 import { SimpleButton } from '../SimpleButton';
 import { CurateBox } from '../CurateBox';
 import { indexCurationArchive } from '../../curate/indexCuration';
 import { uuid } from '../../uuid';
-import { CurationContext, EditCuration, createEditCuration } from '../../context/CurationContext';
+import { CurationContext, createEditCuration } from '../../context/CurationContext';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
+import { getSuggestions } from '../../util/suggestions';
 
 export type CuratePageProps = {
   /** Game manager to add imported curations to. */
@@ -100,6 +101,10 @@ export function CuratePage(props: CuratePageProps) {
       }
     }
   }, [dispatch]);
+  // Game property suggestions
+  const suggestions = useMemo(() => {
+    return props.games && getSuggestions(props.games.collection);
+  }, [props.games]);
   // Render CurateBox
   const curateBoxes = React.useMemo(() => {
     return state.curations.map((curation, index) => (
@@ -108,9 +113,10 @@ export function CuratePage(props: CuratePageProps) {
         curation={curation}
         dispatch={dispatch}
         games={props.games}
-        gameImages={props.gameImages} />
+        gameImages={props.gameImages}
+        suggestions={suggestions} />
     ));
-  }, [state.curations, props.games]);
+  }, [state.curations, props.games, suggestions]);
   // Render
   return (
     <div className='curate-page simple-scroll'>
@@ -121,10 +127,10 @@ export function CuratePage(props: CuratePageProps) {
             value='Load Archive'
             title='Load one or more Curation archives.'
             onClick={onLoadCurationArchiveClick} />
-          <SimpleButton
+          {/* <SimpleButton
             value='Load Folder'
             title='Load one or more Curation folders.'
-            onClick={onLoadCurationFolderClick} />
+            onClick={onLoadCurationFolderClick} /> */}
           <SimpleButton
             value='Load Meta'
             title='Load one or more Curation meta files.'
