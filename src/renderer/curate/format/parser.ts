@@ -10,15 +10,11 @@ export type CurationFormatObject = {
  * @param tokens Tokens to parse into an object.
  */
 export function parseCurationFormat(tokens: CFTokenizer.AnyToken[]): CurationFormatObject {
-  try {
-    return parseObject(tokens, {
-      startIndex: 0,
-      lastIndex: -1
-    });
-  } catch (error) {
-    console.error(tokens)
-    throw error;
-  }
+  return parseObject(tokens, {
+    startIndex: 0,
+    lastIndex: -1,
+    indentOverflow: 0,
+  });
 }
 
 /**
@@ -74,6 +70,10 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
       // End object
       case CFTokenizer.TokenType.INDENT_CHANGE:
         if (token.delta < 0) {
+          index += 1;
+          // Set the indent overflow
+          state.indentOverflow = Math.abs(token.delta) - 1;
+          // End the current object
           break mainLoop; // (Exit the main loop)
         } else {
           throw createError(
@@ -87,64 +87,79 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
         // Get the next non-comment token
         const nextTokenIndex = indexOfNonComment(tokens, index + 1);
         const nextToken = tokens[nextTokenIndex];
+        // Check if there is no next token
         if (!nextToken) {
-          throw createError(
-            'Failed to assign value to identifier. Unexpected end of tokens.',
-            token
-          );
-        }
-        // Assign the contents of the token as the value
-        switch(nextToken.type) {
-          // Assign a string value
-          case CFTokenizer.TokenType.VALUE:
-            parsed[token.name] = nextToken.value;
-            index += 2;
-            break;
-          // Assign a list
-          case CFTokenizer.TokenType.LIST_ITEM: {
-            const list: string[] = [];
-            for (var i = nextTokenIndex; i < tokens.length; i++) {
-              const itemToken = tokens[i];
-              if (itemToken.type === CFTokenizer.TokenType.LIST_ITEM) {
-                list.push(itemToken.value);
-              } else { break; }
-            }
-            parsed[token.name] = list;
-            // Set the index to the token after the last list item
-            index = i;
-          } break;
-          // Assign an object (or end this object)
-          case CFTokenizer.TokenType.INDENT_CHANGE:
-            // Check if this is the start of a new object
-            if (nextToken.delta > 0) {
-              // Parse and assign the child object
-              const childState: ParseState = {
-                startIndex: nextTokenIndex + 1,
-                lastIndex: -1,
-              };
-              parsed[token.name] = parseObject(tokens, childState);
-              // Update the index to skip the tokens parsed by the child object
-              index = childState.lastIndex;
-            }
-            // Check if this is the end of the current object
-            else if (nextToken.delta < 0) {
-              // Assign an empty string
+          // Assign an empty value
+          // (Empty values are not tokenized, so assume that it was just removed)
+          parsed[token.name] = '';
+          index += 1;
+        } else {
+          // Assign the contents of the token as the value
+          switch(nextToken.type) {
+            // Assign a string value
+            case CFTokenizer.TokenType.VALUE:
+              parsed[token.name] = nextToken.value;
+              index += 2;
+              break;
+            // Assign a list
+            case CFTokenizer.TokenType.LIST_ITEM: {
+              const list: string[] = [];
+              for (var i = nextTokenIndex; i < tokens.length; i++) {
+                const itemToken = tokens[i];
+                if (itemToken.type === CFTokenizer.TokenType.LIST_ITEM) {
+                  list.push(itemToken.value);
+                } else { break; }
+              }
+              parsed[token.name] = list;
+              // Set the index to the token after the last list item
+              index = i;
+            } break;
+            // Assign an object (or end this object)
+            case CFTokenizer.TokenType.INDENT_CHANGE:
+              // Check if this is the start of a new object
+              if (nextToken.delta === 1) {
+                // Parse and assign the child object
+                const childState: ParseState = {
+                  startIndex: nextTokenIndex + 1,
+                  lastIndex: -1,
+                  indentOverflow: 0,
+                };
+                parsed[token.name] = parseObject(tokens, childState);
+                // Update the index to skip the tokens parsed by the child object
+                index = childState.lastIndex;
+                // Check if there was any indentation overflow (if multiple objects ended at once)
+                if (childState.indentOverflow > 0) {
+                  // Set the indent overflow
+                  state.indentOverflow = childState.indentOverflow - 1;
+                  // End the current object
+                  break mainLoop; // (Exit the main loop)
+                }
+              }
+              // Check if this is the end of the current object
+              else if (nextToken.delta < 0) {
+                index = nextTokenIndex;
+                // Assign an empty string
+                parsed[token.name] = '';
+                // Set the indent overflow
+                state.indentOverflow = Math.abs(nextToken.delta) - 1;
+                // End the current object
+                break mainLoop; // (Exit the main loop)
+              } else {
+                throw createError(
+                  'Failed to assign value to identifier. '+
+                  (nextToken.delta > 0) ? 'Index Token has a delta higher than 1.' :
+                                          'Indent Token has a delta of 0.',
+                  nextToken
+                );
+              }
+              break;
+            // Assign an empty value
+            // (Empty values are not tokenized, so assume that it was just removed)
+            default:
               parsed[token.name] = '';
-              // End the current object
-              break mainLoop; // (Exit the main loop)
-            } else {
-              throw createError(
-                'Failed to assign value to identifier. Indent Token has a delta of 0.',
-                nextToken
-              );
-            }
-            break;
-          // Unexpected token type
-          default:
-            throw createError(
-              'Failed to assign value to identifier. Unexpected token type.',
-              token
-            );
+              index += 1;
+              break;
+          }          
         }
       } break;
     }
@@ -167,6 +182,12 @@ type ParseState = {
    * This is an "additional return value" for the parser function.
    */
   lastIndex: number;
+  /**
+   * Number of negative indentation levels that overflowed (after ending the parsed object).
+   * (If the object ended with an indentation change of -3, this will be set to 2).
+   * This is an "additional return value" for the parser function.
+   */
+  indentOverflow: number;
 };
 
 /**

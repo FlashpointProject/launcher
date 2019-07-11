@@ -103,17 +103,18 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
     } else {
       // Count spaces and indents
       const spaces = countSpacesLeft(line);
-      const indent = spacesToIndent(spaces);
+      const indent = calculateIndent(line);
       // Check if the indentation level changed
       if (indent !== state.indent) {
         // Check if the previous token is an indent token
-        const prevToken = tokens[i - 1];
+        const prevTokenIndex = tokens.length - 1;
+        const prevToken = tokens[prevTokenIndex];
         if (prevToken && prevToken.type === CFTokenizer.TokenType.INDENT_CHANGE) {
           // Add current delta to the previous token
           prevToken.delta += indent - state.indent;
           // Remove token if delta is 0
           if (prevToken.delta === 0) {
-            tokens.splice(i - 1, 1);
+            tokens.splice(prevTokenIndex, 1);
           }
         } else {
           // Add indent token
@@ -133,7 +134,7 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
       // Tokenize the remaining contents of the line
       if (state.inMultiLine) {
         // Copy data to state chunks
-        state.multiLineChunks.push(line.substring(indentToSpaces(indent)));
+        state.multiLineChunks.push(line.substring(spaces));
       } else {
         // Check if it is a list item
         if (line[spaces] === '-' && line[spaces + 1] === ' ') {
@@ -240,19 +241,28 @@ function countSpacesLeft(str: string): number {
 }
 
 /**
- * Calculate the indentation level for a number of spaces.
- * @param spaces Number of spaces.
- * @returns The indentation that number of spaces makes up.
+ * Calculate the indentation level of a line of text.
+ * @param line Line of text (using the Curation Format).
  */
-function spacesToIndent(spaces: number): number {
-  return (spaces * 0.25) | 0;
-}
-
-/**
- * Calculate the number of spaces from an indentation level.
- * @param indent Indentation level.
- * @returns The number of spaces that makes up that indentation level.
- */
-function indentToSpaces(indent: number): number {
-  return (indent * 4) | 0;
+function calculateIndent(line: string): number {
+  let count = 0;
+  // (This is a "label", it here to make it possible to break out of the loop from
+  // inside the nested switch statement)
+  characterLoop:
+  for (let i = 0; i < line.length; i++) {
+    switch (line[i]) {
+      // Single space
+      case ' ':
+        count += 1;
+        break;
+      // Tab
+      case '\t':
+        count += 4;
+        break;
+      // Not a space character
+      default: break characterLoop;
+    }
+  }
+  // Convert and return the count
+  return (count / 4) | 0;
 }
