@@ -114,6 +114,24 @@ export class GameParser {
     Version: '',
     WaitForExit: false,
   };
+
+  /**
+   * Split a field value from a game into an array.
+   * Some field values store multiple values, each value separated by a semicolon.
+   * @param value Value to split.
+   */
+  public static splitFieldValue(value: string): string[] {
+    return value.split(/\s?;\s?/);
+  }
+
+  /**
+   * Join multiple values into a single field value.
+   * Some field values store multiple values, each value separated by a semicolon.
+   * @param value Value to join.
+   */
+  public static joinFieldValue(value: string[]): string {
+    return value.join('; ');
+  }
 }
 
 /** Generate a title suitable for ordering (only used for ordering and sorting, not visual) */

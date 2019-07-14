@@ -1,6 +1,6 @@
 import * as stream from 'stream';
 import * as yauzl from 'yauzl';
-import { IOldCurationMeta, parseOldCurationMeta } from './oldFormat';
+import { parseCurationMeta, ParsedCurationMeta } from './parse';
 
 export type CurationIndex = {
   /** Data of each file in the content folder (and sub-folders). */
@@ -8,7 +8,7 @@ export type CurationIndex = {
   /** Errors that occurred while indexing. */
   errors: CurationIndexError[];
   /** Meta data of the curation. */
-  meta: IOldCurationMeta;
+  meta: ParsedCurationMeta;
   /** Screenshot. */
   screenshot: CurationIndexImage;
   /** Thumbnail. */
@@ -69,7 +69,7 @@ export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
           // Try to read and parse the file
           readEntryContent(zip, entry)
           .then((buffer) => {
-            curation.meta = parseOldCurationMeta(buffer.toString());
+            curation.meta = parseCurationMeta(buffer.toString());
             zip.readEntry();
           })
           .catch(error => {
@@ -153,7 +153,10 @@ function readEntryContent(zip: yauzl.ZipFile, entry: yauzl.Entry): Promise<Buffe
 /** Create an "empty" curation index object. */
 function createCurationIndex(): CurationIndex {
   return {
-    meta: {},
+    meta: {
+      game: {},
+      addApps: [],
+    },
     content: [],
     errors: [],
     screenshot: createCurationIndexImage(),

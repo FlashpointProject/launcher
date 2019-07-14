@@ -11,10 +11,12 @@ type CurateBoxImageProps = {
 export function CurateBoxImage(props: CurateBoxImageProps) {
   // If the preview should be displayed
   const [showPreview, setShowPreview] = useState(false);
+  // If the image should be able to be previewed
+  const previewable = props.image && props.image.exists;
   // Callback for when the image is clicked
   const onImageClick = useCallback(() => {
-    setShowPreview(true);
-  }, [setShowPreview]);
+    if (previewable) { setShowPreview(true); }
+  }, [setShowPreview, previewable]);
   // Callback for when the preview is cancelled
   const onPreviewCancel = useCallback(() => {
     setShowPreview(false);
@@ -26,7 +28,7 @@ export function CurateBoxImage(props: CurateBoxImageProps) {
     <>
       {/* Image */}
       <div
-        className='curate-box-images__image'
+        className={'curate-box-images__image' + (!previewable ? ' curate-box-images__image--placeholder' : '')}
         onClick={onImageClick}
         style={{ backgroundImage: image }}
         />
@@ -47,7 +49,7 @@ export function CurateBoxImage(props: CurateBoxImageProps) {
  *          The first source is formatted to be used as the value of "background-image".
  *          The second source is formatted to be used as the "src" of an <img> element.
  */
-function useImageSource(image?: CurationIndexImage) {
+function useImageSource(image?: CurationIndexImage): [string?, string?] {
   return useMemo((): [string?, string?] => {
     if (image) {
       if (image.data) {

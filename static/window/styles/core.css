@@ -835,6 +835,11 @@ body {
   background-repeat: no-repeat;
   background-position: center;
 }
+/* Curate Box Divider */
+.curate-box-divider {
+  margin: 0.4rem 0;
+  border-width: 1px;
+}
 /* Curate Box Row */
 .curate-box-row {
   display: flex;
@@ -847,6 +852,11 @@ body {
 .curate-box-row__content {
   flex: 1 1;
 }
+/* Curate Box Add-App */
+.curate-box-add-app {
+  margin: 0.5rem 0;
+  padding: 0.4rem;
+}
 /* Curate Box Files */
 .curate-box-files {
   margin-bottom: 0.2rem;
@@ -854,8 +864,6 @@ body {
 .curate-box-files__head {
   user-select: none;
 }
-.curate-box-files__body {}
-.curate-box-files__entry {}
 /* Curate Box Warnings */
 .curate-box-warnings {
   margin-bottom: 0.2rem;
@@ -866,8 +874,6 @@ body {
 .curate-box-warnings__head {
   user-select: none;
 }
-.curate-box-files__body {}
-.curate-box-files__entry {}
 /* Curate Box Buttons */
 .curate-box-buttons {
   text-align: right;

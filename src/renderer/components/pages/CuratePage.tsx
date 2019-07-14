@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
-import { parseOldCurationMeta } from '../../curate/oldFormat';
 import { SimpleButton } from '../SimpleButton';
 import { CurateBox } from '../CurateBox';
 import { indexCurationArchive } from '../../curate/indexCuration';
@@ -9,6 +8,7 @@ import { CurationContext, createEditCuration } from '../../context/CurationConte
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getSuggestions } from '../../util/suggestions';
+import { parseCurationMeta } from '../../curate/parse';
 
 export type CuratePageProps = {
   /** Game manager to add imported curations to. */
@@ -44,7 +44,11 @@ export function CuratePage(props: CuratePageProps) {
               curation: Object.assign(createEditCuration(), {
                 key: uuid(),
                 source: source,
-                meta: curationIndex.meta,
+                meta: curationIndex.meta.game,
+                addApps: curationIndex.meta.addApps.map(meta => ({
+                  key: uuid(),
+                  meta: meta,
+                })),
                 content: curationIndex.content,
                 thumbnail: curationIndex.thumbnail,
                 screenshot: curationIndex.screenshot,
@@ -84,16 +88,21 @@ export function CuratePage(props: CuratePageProps) {
         .then(response => response.text())
         .then((text) => {
           // Parse the file
-          const meta = parseOldCurationMeta(text);
+          const meta = parseCurationMeta(text);
           // Add curation
           dispatch({
             type: 'add-curation',
             payload: {
-              curation: Object.assign(createEditCuration(), {
+              curation: {
+                ...createEditCuration(),
                 key: uuid(),
                 source: filepath,
-                meta: meta,
-              })
+                meta: meta.game,
+                addApps: meta.addApps.map(meta => ({
+                  key: uuid(),
+                  meta: meta,
+                })),
+              }
             }
           });
         })

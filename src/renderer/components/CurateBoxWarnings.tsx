@@ -30,16 +30,23 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
         </span>
       ) : undefined)
   ), [warnings]);
+  // Misc.
+  const isEmpty = warningCount === 0;
   // Render
   return (
-    <div className={'curate-box-warnings' + ((warningCount === 0) ? ' curate-box-warnings--empty' : '')}>
-      <div className='curate-box-warnings__head'>
-        Warnings: {warningCount}
+    <>
+      {/* Warnings */}
+      <div className={'curate-box-warnings' + (isEmpty ? ' curate-box-warnings--empty' : '')}>
+        <div className='curate-box-warnings__head'>
+          Warnings: {warningCount}
+        </div>
+        <pre className='curate-box-warnings__body'>
+          {warningElements}
+        </pre>
       </div>
-      <pre className='curate-box-warnings__body'>
-        {warningElements}
-      </pre>
-    </div>
+      {/* Divider */}
+      { !isEmpty ? <hr className='curate-box-divider' /> : undefined }
+    </>
   );
 }
 

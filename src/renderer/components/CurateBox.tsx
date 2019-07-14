@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
 import { InputField } from './InputField';
-import { EditCuration, CurationAction, EditCurationMeta } from '../context/CurationContext';
+import { EditCuration, CurationAction, EditCurationMeta, EditAddAppCurationMeta } from '../context/CurationContext';
 import { sizeToString, getFileExtension } from '../Util';
 import { CurateBoxImage } from './CurateBoxImage';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -11,7 +11,7 @@ import { SimpleButton } from './SimpleButton';
 import { GameLauncher } from '../GameLauncher';
 import { CurationIndexContent, CurationIndexImage, isInCurationFolder } from '../curate/indexCuration';
 import GameManager from '../game/GameManager';
-import { IGameInfo } from '../../shared/game/interfaces';
+import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { formatDate, removeFileExtension } from '../../shared/Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { GameImageCollection } from '../image/GameImageCollection';
@@ -21,10 +21,9 @@ import { CheckBox } from './CheckBox';
 import { DropdownInputField } from './DropdownInputField';
 import { GamePropSuggestions } from '../util/suggestions';
 import { CurationWarnings, CurateBoxWarnings } from './CurateBoxWarnings';
+import { CurateBoxAddApp } from './CurateBoxAddApp';
 
 const fsStat = promisify(fs.stat);
-
-type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
 export type CurateBoxProps = {
   /** Game manager to add imported curations to. */
@@ -77,7 +76,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
   const onApplicationPathItemSelect = useCallback(transformOnItemSelect(onApplicationPathChange), [onPlatformChange]);
   // Callback for the fields (onInputKeyDown)
-  const onInputKeyDown = useCallback(() => {
+  const onInputKeyDown = useCallback((event: React.KeyboardEvent<InputElement>) => {
     // @TODO Add keyboard shortcuts for things like importing and removing the curation.
     // ...
   }, []);
@@ -88,8 +87,9 @@ export function CurateBox(props: CurateBoxProps) {
       // @TODO Add support for selecting what library to save the game to
       const libraryPrefix = '';
       // Create and add game
-      const game = createGameFromCuration(curation);
-      games.addOrUpdateGame(game);
+      const game = createGameFromCurationMeta(curation);
+      const addApps = createAddAppsFromCurationMeta(curation);
+      games.addOrUpdateGame(game, addApps);
       // Copy/Extract the image files
       const imageFolderName = libraryPrefix + removeFileExtension(game.filename);
       // (Thumbnail)
@@ -127,6 +127,23 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
+  // Render additional application elements
+  const addApps = useMemo(() => (
+    (props.curation && props.curation.addApps.length > 0) ? (
+      <>
+        Additional Applications:
+        { props.curation.addApps.map(addApp => (
+          <CurateBoxAddApp
+            key={addApp.key}
+            curationKey={props.curation && props.curation.key || ''}
+            curation={addApp}
+            dispatch={props.dispatch}
+            onInputKeyDown={onInputKeyDown} />
+        )) }
+        <hr className='curate-box-divider' />
+      </>      
+    ) : undefined
+  ), [props.curation && props.curation.addApps, props.curation && props.curation.key, props.dispatch]);
   // Count the number of collisions
   const collisionCount: number | undefined = useMemo(() => {
     return contentCollisions && contentCollisions.reduce((v, c) => v + (c.fileExists ? 1 : 0), 0);
@@ -187,6 +204,7 @@ export function CurateBox(props: CurateBoxProps) {
         <CurateBoxImage image={props.curation && props.curation.thumbnail} />
         <CurateBoxImage image={props.curation && props.curation.screenshot} />
       </div>
+      <hr className='curate-box-divider' />
       {/* Fields */}
       <CurateBoxRow title='Title:'>
         <InputField
@@ -296,10 +314,15 @@ export function CurateBox(props: CurateBoxProps) {
       </CurateBoxRow>
       <CurateBoxRow title='Extreme:'>
         <CheckBox
-          checked={stringToBool(props.curation && props.curation.meta.extreme || 'No')}
+          checked={stringToBool(props.curation && props.curation.meta.extreme || '')}
           onToggle={onExtremeChange}
           />
       </CurateBoxRow>
+      <hr className='curate-box-divider' />
+      {/* Additional Application */}
+      <div className='curate-box-add-apps'>
+        {addApps}
+      </div>
       {/* Content */}
       <div className='curate-box-files'>
         <div className='curate-box-files__head'>
@@ -314,6 +337,7 @@ export function CurateBox(props: CurateBoxProps) {
           {contentFilenames}
         </pre>
       </div>
+      <hr className='curate-box-divider' />
       {/* Warnings */}
       <CurateBoxWarnings warnings={warnings} />
       {/* Buttons */}
@@ -330,6 +354,8 @@ export function CurateBox(props: CurateBoxProps) {
     </div>
   );
 }
+
+type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
 /** Subset of the input elements on change event, with only the properties used by the callbacks. */
 type InputElementOnChangeEvent = {
@@ -424,10 +450,10 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
 }
 
 /**
- * Create a game info object from a curation.
+ * Create a game info from a curation.
  * @param curation Curation to get data from.
  */
-function createGameFromCuration(curation: EditCuration): IGameInfo {
+function createGameFromCurationMeta(curation: EditCuration): IGameInfo {
   const meta = curation.meta;
   return {
     id:              curation.key, // (Re-use the id of the curation)
@@ -450,6 +476,25 @@ function createGameFromCuration(curation: EditCuration): IGameInfo {
     orderTitle: '', // This will be set when saved
     placeholder: false,
   };
+}
+
+/**
+ * Create an array of additional application infos from a curation.
+ * @param curation Curation to get data from.
+ */
+function createAddAppsFromCurationMeta(curation: EditCuration): IAdditionalApplicationInfo[] {
+  return curation.addApps.map<IAdditionalApplicationInfo>(addApp => {
+    const meta = addApp.meta;
+    return {
+      id: addApp.key,
+      gameId: curation.key,
+      applicationPath: meta.applicationPath || '',
+      commandLine: meta.launchCommand || '',
+      name: meta.heading || '',
+      autoRunBefore: false,
+      waitForExit: false,
+    };
+  });
 }
 
 /**
