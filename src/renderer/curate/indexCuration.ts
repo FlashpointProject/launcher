@@ -1,6 +1,13 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import * as stream from 'stream';
+import { promisify } from 'util';
 import * as yauzl from 'yauzl';
 import { parseCurationMeta, ParsedCurationMeta } from './parse';
+
+const fsReadFile = promisify(fs.readFile);
+const fsReaddir = promisify(fs.readdir);
+const fsStat = promisify(fs.stat);
 
 export type CurationIndex = {
   /** Data of each file in the content folder (and sub-folders). */
@@ -32,22 +39,64 @@ export type CurationIndexImage = {
   data?: string;
   /** Raw data of the image file (in case it was extracted from an archive). */
   rawData?: Buffer;
-  /** Location of the image file (in case the image file is accessible). */
-  source?: string;
   /** If the images was found. */
   exists: boolean;
-  /** Name and path of the file (relative to the content folder). */
+  /** Name and path of the file (relative to the curation folder). */
   fileName?: string;
+  /** Full path of the image (in case it was loaded from a folder). */
+  filePath?: string;
 };
 
+/**
+ * Index a curation folder (index all content files, load and parse meta etc.)
+ * @param filepath Path of the folder to index.
+ */
 export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
   return new Promise((resolve, reject) => {
     const curation = createCurationIndex();
-    // @TODO Index the folder
-    resolve(curation);
+    return Promise.all([
+      // Index content files and folders
+      new Promise((resolve, reject) => {
+        const contentPath = path.join(filepath, 'content');
+        indexContentFolder(contentPath, contentPath, curation)
+        .then(() => { resolve(); })
+        .catch(() => { reject(); });
+      }),
+      // Check if the image files exist
+      (async () => {
+        const filenames = await fsReaddir(filepath);
+        for (let filename of filenames) {
+          const lowerFilename = filename.toLowerCase();
+          let image: CurationIndexImage | undefined = undefined;
+          // Check which image the file is (if any)
+          if (lowerFilename.startsWith('logo.')) {
+            image = curation.thumbnail;
+          } else if (lowerFilename.startsWith('ss.')) {
+            image = curation.screenshot;
+          }
+          // Check if it was an image file
+          if (image) {
+            image.exists = true;
+            image.fileName = filename;
+            image.filePath = fixSlashes(path.join(filepath, filename));
+          }
+        }
+      })(),
+      // Read and parse the meta
+      (async () => {
+        const metaFileData = await fsReadFile(path.join(filepath, 'meta.txt'));
+        curation.meta = parseCurationMeta(metaFileData.toString());
+      })(),
+    ])
+    .then(() => { resolve(curation); })
+    .catch(error => { reject(error); });
   });
 }
 
+/**
+ * Index a curation archive (index all content files, load and parse meta etc.)
+ * @param filepath Path of the archive to index.
+ */
 export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
   return new Promise((resolve, reject) => {
     const curation = createCurationIndex();
@@ -225,4 +274,44 @@ export function isInCurationFolder(filePath: string): boolean {
     // Check if the third name is not empty (if it is, then this is a folder)
     split[2] !== ''
   );
+}
+
+/**
+ * Recursively index the content folder (or one of it's sub-folders, at any depth).
+ * @param folderPath Path of the folder to index.
+ * @param contentPath Path of the content folder of the curation.
+ * @param curation Curation index to add the indexed content to.
+ * @returns A promise that is resolved once the index is done.
+ */
+function indexContentFolder(folderPath: string, contentPath: string, curation: CurationIndex) {
+  return (
+    // List all sub-files (and folders)
+    fsReaddir(folderPath)
+    // Run a promise on each file (and wait for all to finish)
+    .then(files => Promise.all(
+      files.map(fileName => {
+        const filePath = path.join(folderPath, fileName);
+        return fsStat(filePath)
+        .then(stats => new Promise<void>((resolve, reject) => {
+          const isDirectory = stats.isDirectory();
+          // Add content index
+          curation.content.push({
+            fileName: fixSlashes(path.relative(contentPath, filePath)) + (isDirectory ? '/' : ''),
+            fileSize: stats.size,
+          });
+          // Check if it should recurse
+          if (isDirectory) {
+            indexContentFolder(filePath, contentPath, curation)
+            .then(() => { resolve(); })
+            .catch(error => { reject(error); });
+          } else { resolve(); } // (It's a file, don't recurse)
+        }));
+      })
+    ))
+  );
+}
+
+/** Replace all back-slashes with forward slashes. */
+function fixSlashes(str: string): string {
+  return str.replace(/\\/g, '/');
 }

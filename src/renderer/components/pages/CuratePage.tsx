@@ -2,9 +2,9 @@ import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import { SimpleButton } from '../SimpleButton';
 import { CurateBox } from '../CurateBox';
-import { indexCurationArchive } from '../../curate/indexCuration';
+import { indexCurationArchive, indexCurationFolder, CurationIndex } from '../../curate/indexCuration';
 import { uuid } from '../../uuid';
-import { CurationContext, createEditCuration } from '../../context/CurationContext';
+import { CurationContext, createEditCuration, CurationSource, CurationAction } from '../../context/CurationContext';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getSuggestions } from '../../util/suggestions';
@@ -33,43 +33,29 @@ export function CuratePage(props: CuratePageProps) {
         const source = filePaths[i];
         // Read and index the archive
         const curationIndex = await indexCurationArchive(source);
-        // Check for errors
-        if (curationIndex.errors.length > 0) {
-          // @TODO Display errors
-        } else {
-          // Add curation
-          dispatch({
-            type: 'add-curation',
-            payload: {
-              curation: Object.assign(createEditCuration(), {
-                key: uuid(),
-                source: source,
-                meta: curationIndex.meta.game,
-                addApps: curationIndex.meta.addApps.map(meta => ({
-                  key: uuid(),
-                  meta: meta,
-                })),
-                content: curationIndex.content,
-                thumbnail: curationIndex.thumbnail,
-                screenshot: curationIndex.screenshot,
-              })
-            }
-          });
-        }
+        // Add curation index
+        addCurationIndex(source, curationIndex, dispatch);
       }
     }
   }, [dispatch]);
   // Load Curation Folder Callback
-  const onLoadCurationFolderClick = useCallback(() => {
+  const onLoadCurationFolderClick = useCallback(async () => {
     // Show dialog
     const filePaths = window.External.showOpenDialog({
       title: 'Select the curation folder(s) to load',
       properties: ['openDirectory', 'multiSelections'],
     });
     if (filePaths) {
-      for (let i = 0; i < filePaths.length; i++) {
-        // ...
-      }
+      await Promise.all(
+        filePaths.map(source => (
+          // Read and index the folder
+          indexCurationFolder(source)
+          // Add curation index
+          .then(curationIndex => {
+            addCurationIndex(source, curationIndex, dispatch)
+          })
+        ))
+      );
     }
   }, [dispatch]);
   // Load Meta Callback
@@ -136,10 +122,10 @@ export function CuratePage(props: CuratePageProps) {
             value='Load Archive'
             title='Load one or more Curation archives.'
             onClick={onLoadCurationArchiveClick} />
-          {/* <SimpleButton
+          <SimpleButton
             value='Load Folder'
             title='Load one or more Curation folders.'
-            onClick={onLoadCurationFolderClick} /> */}
+            onClick={onLoadCurationFolderClick} />
           <SimpleButton
             value='Load Meta'
             title='Load one or more Curation meta files.'
@@ -150,4 +136,31 @@ export function CuratePage(props: CuratePageProps) {
       </div>
     </div>
   );
+}
+
+async function addCurationIndex(source: string, curation: CurationIndex, dispatch: React.Dispatch<CurationAction>): Promise<void> {
+  // Check for errors
+  if (curation.errors.length > 0) {
+    // @TODO Display errors
+  } else {
+    // Add curation
+    dispatch({
+      type: 'add-curation',
+      payload: {
+        curation: Object.assign(createEditCuration(), {
+          key: uuid(),
+          source: source,
+          sourceType: CurationSource.FOLDER,
+          meta: curation.meta.game,
+          addApps: curation.meta.addApps.map(meta => ({
+            key: uuid(),
+            meta: meta,
+          })),
+          content: curation.content,
+          thumbnail: curation.thumbnail,
+          screenshot: curation.screenshot,
+        })
+      }
+    });
+  }
 }

@@ -82,6 +82,7 @@ export function createEditCuration(): EditCuration {
   return {
     key: '',
     source: '',
+    sourceType: CurationSource.NONE,
     meta: {},
     content: [],
     addApps: [],
@@ -137,6 +138,8 @@ export type EditCuration = {
   key: string;
   /** Path of the folder or archive file the curation was loaded from. */
   source: string;
+  /** Type of source the curation was loaded from. */
+  sourceType: CurationSource;
   /** Meta data of the curation. */
   meta: EditCurationMeta;
   /** Keys of additional applications that belong to this game. */
@@ -181,4 +184,14 @@ export type EditAddAppCurationMeta = {
   heading?: string;
   applicationPath?: string;
   launchCommand?: string;
+};
+
+/** Types of sources for a loaded curation. */
+export enum CurationSource {
+  /** No source (or not yet decided). */
+  NONE,
+  /** Archive (zip file). */
+  ARCHIVE,
+  /** Folder. */
+  FOLDER,
 };

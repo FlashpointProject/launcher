@@ -55,8 +55,8 @@ function useImageSource(image?: CurationIndexImage): [string?, string?] {
       if (image.data) {
         const base64 = 'data:image/png;base64,' + image.data;
         return [`url("${base64}")`, base64];
-      } else if (image.source) {
-        return [image.source, image.source];
+      } else if (image.filePath) {
+        return [`url("${image.filePath}")`, image.filePath];
       } else {
         // Image file not found
         return [];

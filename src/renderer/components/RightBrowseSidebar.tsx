@@ -2,7 +2,6 @@ import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as React from 'react';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { removeFileExtension } from '../../shared/Util';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
@@ -21,6 +20,7 @@ import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { deleteGameImageFiles, copyGameImageFile } from '../util/game';
+import { getImageFolderName } from '../image/util';
 
 type OwnProps = {
   gameImages: GameImageCollection;
@@ -678,12 +678,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   /** Get the name of the image folder for the current game. */
   getImageFolderName(): string {
     const { currentGame, currentLibrary, isNewGame } = this.props;
-    const prefix = (currentLibrary && currentLibrary.prefix) ? currentLibrary.prefix : '';
     if (currentGame) {
-      if (isNewGame) {
-        if (currentGame.platform) { return prefix+currentGame.platform; }
-        else                      { return ''; }
-      } else { return removeFileExtension(currentGame.filename); }
+      const prefix = currentLibrary && currentLibrary.prefix || '';
+      return getImageFolderName(currentGame, prefix, isNewGame);
     } else { return ''; }
   }
 }

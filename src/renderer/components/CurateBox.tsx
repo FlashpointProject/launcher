@@ -3,25 +3,21 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
 import { InputField } from './InputField';
-import { EditCuration, CurationAction, EditCurationMeta, EditAddAppCurationMeta } from '../context/CurationContext';
-import { sizeToString, getFileExtension } from '../Util';
+import { EditCuration, CurationAction, EditCurationMeta } from '../context/CurationContext';
+import { sizeToString } from '../Util';
 import { CurateBoxImage } from './CurateBoxImage';
 import { CurateBoxRow } from './CurateBoxRow';
 import { SimpleButton } from './SimpleButton';
 import { GameLauncher } from '../GameLauncher';
-import { CurationIndexContent, CurationIndexImage, isInCurationFolder } from '../curate/indexCuration';
+import { CurationIndexContent } from '../curate/indexCuration';
 import GameManager from '../game/GameManager';
-import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
-import { formatDate, removeFileExtension } from '../../shared/Util';
-import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { GameImageCollection } from '../image/GameImageCollection';
-import { ImageFolderCache } from '../image/ImageFolderCache';
-import { unzip } from '../util/unzip';
 import { CheckBox } from './CheckBox';
 import { DropdownInputField } from './DropdownInputField';
 import { GamePropSuggestions } from '../util/suggestions';
 import { CurationWarnings, CurateBoxWarnings } from './CurateBoxWarnings';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
+import { importCuration, stringToBool } from '../curate/importCuration';
 
 const fsStat = promisify(fs.stat);
 
@@ -84,32 +80,9 @@ export function CurateBox(props: CurateBoxProps) {
   const onImportClick = useCallback(async () => {
     const { curation, games, gameImages } = props;
     if (curation && games && gameImages) {
-      // @TODO Add support for selecting what library to save the game to
-      const libraryPrefix = '';
-      // Create and add game
-      const game = createGameFromCurationMeta(curation);
-      const addApps = createAddAppsFromCurationMeta(curation);
-      games.addOrUpdateGame(game, addApps);
-      // Copy/Extract the image files
-      const imageFolderName = libraryPrefix + removeFileExtension(game.filename);
-      // (Thumbnail)
-      const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
-      importGameImage(curation.thumbnail, thumbnailCache, game)
-      .then(() => { thumbnailCache.refresh(); });
-      // (Screenshot)
-      const screenshotCache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
-      importGameImage(curation.screenshot, screenshotCache, game)
-      .then(() => { screenshotCache.refresh(); });
-      // Copy content files
-      unzip({
-        source: curation.source,
-        output: GameLauncher.getHtdocsPath(),
-        // Remove the path leading up to and including the content folder
-        generateOutputPath: (entry, opts) => removeFoldersStart(entry.fileName, 2),
-        // Only allow files/folders inside the curation folder
-        filter: (entry, opts) => isInCurationFolder(entry.fileName),
-      })
-      .once('done', () => {
+      // Import the curation
+      importCuration(curation, games, gameImages)
+      .then(() => {
         // Remove the curation
         props.dispatch({
           type: 'remove-curation',
@@ -450,100 +423,11 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
 }
 
 /**
- * Create a game info from a curation.
- * @param curation Curation to get data from.
- */
-function createGameFromCurationMeta(curation: EditCuration): IGameInfo {
-  const meta = curation.meta;
-  return {
-    id:              curation.key, // (Re-use the id of the curation)
-    title:           meta.title           || '',
-    series:          meta.series          || '',
-    developer:       meta.developer       || '',
-    publisher:       meta.publisher       || '',
-    dateAdded:       formatDate(new Date()),
-    platform:        meta.platform        || '',
-    broken:          false,
-    extreme:         !!stringToBool(meta.extreme || ''),
-    playMode:        'Single Player',
-    status:          meta.status          || '',
-    notes:           meta.notes           || '',
-    genre:           meta.genre           || '',
-    source:          meta.source          || '',
-    applicationPath: meta.applicationPath || '',
-    launchCommand:   meta.launchCommand   || '',
-    filename: '', // This will be set when saved
-    orderTitle: '', // This will be set when saved
-    placeholder: false,
-  };
-}
-
-/**
- * Create an array of additional application infos from a curation.
- * @param curation Curation to get data from.
- */
-function createAddAppsFromCurationMeta(curation: EditCuration): IAdditionalApplicationInfo[] {
-  return curation.addApps.map<IAdditionalApplicationInfo>(addApp => {
-    const meta = addApp.meta;
-    return {
-      id: addApp.key,
-      gameId: curation.key,
-      applicationPath: meta.applicationPath || '',
-      commandLine: meta.launchCommand || '',
-      name: meta.heading || '',
-      autoRunBefore: false,
-      waitForExit: false,
-    };
-  });
-}
-
-/**
- * Convert a string to a boolean (case insensitive).
- * @param str String to convert ("Yes" is true, "No" is false).
- * @param defaultVal Value returned if the string is neither true nor false.
- */
-function stringToBool(str: string, defaultVal: boolean = false): boolean {
-  const lowerStr = str.toLowerCase();
-  if (lowerStr === 'yes') { return true;  }
-  if (lowerStr === 'no' ) { return false; }
-  return defaultVal;
-}
-
-/**
  * Convert a boolean to a string ("Yes" or "No").
  * @param bool Boolean to convert.
  */
 function boolToString(bool: boolean): string {
   return bool ? 'Yes' : 'No';
-}
-
-/**
- * Import a game image (thumbnail or screenshot).
- * @param image Image to import.
- * @param game Game the image "belongs" to.
- * @param cache Cache to import the image to.
- */
-async function importGameImage(image: CurationIndexImage, cache: ImageFolderCache, game: IGameInfo): Promise<void> {
-  if (image.exists) {
-    if (image.rawData !== undefined && image.fileName !== undefined) {
-      await createGameImageFileFromData(image.rawData, getFileExtension(image.fileName), game, cache);
-    } else if (image.source !== undefined) {
-      await copyGameImageFile(image.source, game, cache);
-    }
-  }
-}
-
-/**
- * Remove a number of folders from the start of a path.
- * Example: ("a/b/c/d.txt", 2) => "c/d.txt"
- * @param filePath Path to remove folders from.
- * @param count Number of folders to remove.
- * @param separator Separator between file and folder names.
- */
-function removeFoldersStart(filePath: string, count: number, separator: string = '/'): string {
-  const splits = filePath.split(separator);
-  splits.splice(0, count);
-  return splits.join(separator);
 }
 
 /**
