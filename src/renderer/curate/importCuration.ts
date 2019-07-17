@@ -1,5 +1,6 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
+import { promisify } from 'util';
 import { EditCuration, CurationSource } from '../context/CurationContext';
 import GameManager from '../game/GameManager';
 import { GameImageCollection } from '../image/GameImageCollection';
@@ -13,6 +14,9 @@ import { GameLauncher } from '../GameLauncher';
 import { unzip } from '../util/unzip';
 import { getImageFolderName } from '../image/util';
 import { formatUnknownPlatformName } from '../game/util';
+
+const ensureDir = promisify(fs.ensureDir);
+const copyFile = promisify(fs.copyFile);
 
 /**
  * Import a curation.
@@ -70,28 +74,31 @@ export async function importCuration(
           });
           break;
         case CurationSource.FOLDER:
-          // Create promises that copies one content file each
-          const promises: Promise<void>[] = [];
           const contentPath = path.join(curation.source, 'content');
-          for (let content of curation.content) {
-            // Check if the content is a file (all folders end with "/")
-            if (!content.fileName.endsWith('/')) {
-              // Create promise
-              promises.push(new Promise((resolve, reject) => {
-                // Copy file from the curation source folder
-                fs.copyFile(
-                  path.join(contentPath, content.fileName),
-                  path.join(GameLauncher.getHtdocsPath(), content.fileName),
-                  error => {
-                    if (error) { reject(error); }
-                    else       { resolve();     }
-                  }
-                );
-              }));
-            }
-          }
-          // Run all promises
-          await Promise.all(promises);
+          // Create promises that copies one content file/folder each
+          await Promise.all(
+            curation.content.map(content => {
+              // Check if the content is a folder (all folders end with "/")
+              if (content.fileName.endsWith('/')) { // (Folder)
+                return (async () => {
+                  // Create the folder if it is missing
+                  try { await ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName)); }
+                  catch(e) { /* Ignore error */ }
+                })();
+              } else { // (File)
+                return (async () => {
+                  // Copy file from the curation source folder
+                  const source = path.join(contentPath, content.fileName);
+                  const output = path.join(GameLauncher.getHtdocsPath(), content.fileName);
+                  // Ensure that the folders leading up to the file exists
+                  try { await ensureDir(path.dirname(output)); }
+                  catch(e) { /* Ignore error */ }
+                  // Copy the file
+                  await copyFile(source, output);
+                })();
+              }
+            })
+          );
           break;
       }
     })(),
