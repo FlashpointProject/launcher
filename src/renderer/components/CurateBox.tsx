@@ -80,6 +80,14 @@ export function CurateBox(props: CurateBoxProps) {
   const onImportClick = useCallback(async () => {
     const { curation, games, gameImages } = props;
     if (curation && games && gameImages) {
+      // Lock the curation (so it can't be edited while importing)
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: curation.key,
+          lock: true,
+        },
+      });
       // Import the curation
       importCuration(curation, games, gameImages)
       .then(() => {
@@ -87,6 +95,18 @@ export function CurateBox(props: CurateBoxProps) {
         props.dispatch({
           type: 'remove-curation',
           payload: { key: curation.key }
+        });
+      })
+      .catch((error) => {
+        // Log error
+        console.error(error);
+        // Unlock the curation
+        props.dispatch({
+          type: 'change-curation-lock',
+          payload: {
+            key: curation.key,
+            lock: false,
+          },
         });
       });
     }
@@ -100,6 +120,9 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
+  // Input props
+  const canEdit = true;
+  const disabled = props.curation ? props.curation.locked : false;
   // Render additional application elements
   const addApps = useMemo(() => (
     (props.curation && props.curation.addApps.length > 0) ? (
@@ -111,12 +134,18 @@ export function CurateBox(props: CurateBoxProps) {
             curationKey={props.curation && props.curation.key || ''}
             curation={addApp}
             dispatch={props.dispatch}
+            disabled={disabled}
             onInputKeyDown={onInputKeyDown} />
         )) }
         <hr className='curate-box-divider' />
       </>      
     ) : undefined
-  ), [props.curation && props.curation.addApps, props.curation && props.curation.key, props.dispatch]);
+  ), [
+    props.curation && props.curation.addApps,
+    props.curation && props.curation.key,
+    props.dispatch,
+    disabled
+  ]);
   // Count the number of collisions
   const collisionCount: number | undefined = useMemo(() => {
     return contentCollisions && contentCollisions.reduce((v, c) => v + (c.fileExists ? 1 : 0), 0);
@@ -163,8 +192,6 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation && props.curation.meta]);
   // Meta
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
-  // Misc.
-  const canEdit = true;
   // Render
   return (
     <div className='curate-box'>
@@ -185,6 +212,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Title'
           onChange={onTitleChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
       <CurateBoxRow title='Series:'>
@@ -193,6 +221,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Series'
           onChange={onSeriesChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
       <CurateBoxRow title='Developer:'>
@@ -201,6 +230,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Developer'
           onChange={onDeveloperChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
       <CurateBoxRow title='Publisher:'>
@@ -209,6 +239,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Publisher'
           onChange={onPublisherChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
       <CurateBoxRow title='Genre:'>
@@ -217,6 +248,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Genre'
           onChange={onGenreChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown}
           items={props.suggestions && props.suggestions.genre || []}
           onItemSelect={onGenreItemSelect} />
@@ -227,6 +259,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Status'
           onChange={onStatusChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
       <CurateBoxRow title='Source:'>
@@ -235,6 +268,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Source'
           onChange={onSourceChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown} />
       </CurateBoxRow>
       <CurateBoxRow title='Platform:'>
@@ -243,6 +277,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Platform'
           onChange={onPlatformChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown}
           items={props.suggestions && props.suggestions.platform || []}
           onItemSelect={onPlatformItemSelect} />
@@ -253,6 +288,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Application Path'
           onChange={onApplicationPathChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown}
           items={props.suggestions && props.suggestions.applicationPath || []}
           onItemSelect={onApplicationPathItemSelect} />
@@ -263,6 +299,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Launch Command'
           onChange={onLaunchCommandChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown}
           className={warnings.isNotHttp ? 'input-field--warn' : ''} />
       </CurateBoxRow>
@@ -272,6 +309,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Notes'
           onChange={onNotesChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown}
           multiline={true} />
       </CurateBoxRow>
@@ -281,6 +319,7 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder='No Author Notes'
           onChange={onAuthorNotesChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={onInputKeyDown}
           multiline={true}
           className={authorNotes.length > 0 ? 'input-field--warn' : ''} />
@@ -289,6 +328,7 @@ export function CurateBox(props: CurateBoxProps) {
         <CheckBox
           checked={stringToBool(props.curation && props.curation.meta.extreme || '')}
           onToggle={onExtremeChange}
+          disabled={disabled}
           />
       </CurateBoxRow>
       <hr className='curate-box-divider' />

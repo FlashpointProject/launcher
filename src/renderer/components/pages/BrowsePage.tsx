@@ -562,7 +562,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const library = this.getCurrentLibrary();
     // Add or update game
     console.time('save');
-    games.addOrUpdateGame(currentGame, currentAddApps, library)
+    games.addOrUpdateGame({
+      game: currentGame,
+      addApps: currentAddApps,
+      library: library,
+      saveToFile: true,
+    })
     .then(() => { console.timeEnd('save'); });
     // If a new game was created, select the new game
     if ((selectedGame && selectedGame.id) !== currentGame.id) {

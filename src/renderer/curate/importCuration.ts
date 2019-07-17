@@ -36,7 +36,7 @@ export async function importCuration(
   );
   // Copy/extract content and image files
   await Promise.all([
-    games.addOrUpdateGame(game, addApps),
+    games.addOrUpdateGame({ game, addApps, saveToFile: true }),
     // Copy Thumbnail
     (async () => {
       const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);

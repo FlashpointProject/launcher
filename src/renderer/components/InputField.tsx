@@ -8,8 +8,10 @@ export type InputFieldProps = {
   text: string;
   /** Placeholder text (used to set the "placeholder" attribute). */
   placeholder?: string;
-  /** If the text can be edited. */
+  /** If the text should be shown in an editable element (input / text area). */
   canEdit?: boolean;
+  /** If the text element should be disabled (only applicable to editable elements). */
+  disabled?: boolean;
   /** If the text field should support multi-line text. */
   multiline?: boolean;
   /** Class names of the element. */
@@ -24,14 +26,16 @@ export type InputFieldProps = {
 
 /** A generic input field. */
 export function InputField(props: InputFieldProps) {
-  const { canEdit, className, multiline, onChange, onKeyDown, placeholder, reference, text } = props;
-  const cleanClassName = (className ? ' '+className : '');
+  const { canEdit, className, disabled, multiline, onChange, onKeyDown, placeholder, reference, text } = props;
+  let cleanClassName = (className ? ' '+className : '');
+  if (disabled) { cleanClassName += ' simple-input--disabled'; }
   if (canEdit) {
     if (multiline) {
       return (
         <textarea
           value={text}
           placeholder={placeholder}
+          disabled={disabled}
           ref={reference}
           onChange={onChange}
           onKeyDown={onKeyDown}
@@ -42,6 +46,7 @@ export function InputField(props: InputFieldProps) {
         <input
           value={text}
           placeholder={placeholder}
+          disabled={disabled}
           ref={reference}
           onChange={onChange}
           onKeyDown={onKeyDown}

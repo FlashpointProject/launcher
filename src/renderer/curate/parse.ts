@@ -34,7 +34,7 @@ export function parseCurationMeta(text: string): ParsedCurationMeta {
     rawMeta = {};
   }
   // Convert the raw meta to a programmer friendly object
-  return convertMeta(rawMeta, console.error);
+  return convertMeta(rawMeta);
 }
 
 /**
@@ -74,6 +74,7 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
   // @TODO "Hacked"
   // @TODO "Curation Notes"
   // @TODO "Original Description"
+  // @TODO "Play Mode"
   // Genres
   const genres: string[] = [];
   parser.prop('Genres').arrayRaw(v => genres.push(str(v)));

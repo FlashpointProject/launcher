@@ -9,6 +9,8 @@ export type CurateBoxAddAppProps = {
   curationKey: string;
   /** Meta data for the additional application to display. */
   curation: EditAddAppCuration;
+  /** If editing any fields of this should be disabled. */
+  disabled?: boolean;
   /** Dispatcher for the curate page state reducer. */
   dispatch: React.Dispatch<CurationAction>;
   /** Callback for the "onKeyDown" event for all input fields. */
@@ -24,6 +26,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   const onLaunchCommandChange   = useOnInputChange('launchCommand',   key, curationKey, props.dispatch);
   // Misc.
   const canEdit = true;
+  const disabled = props.disabled;
   // Render
   return (
     <div className='curate-box-add-app'>
@@ -33,6 +36,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           placeholder='No Heading'
           onChange={onHeadingChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
       <CurateBoxRow title='Application Path:'>
@@ -41,6 +45,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           placeholder='No Application Path'
           onChange={onApplicationPathChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
       <CurateBoxRow title='Launch Command:'>
@@ -49,6 +54,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           placeholder='No Launch Command'
           onChange={onLaunchCommandChange}
           canEdit={canEdit}
+          disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
     </div>

@@ -67,11 +67,11 @@ class GameManager extends EventEmitter {
 
   /**
    * Add a new game or update it if it already exists.
-   * @param game Game to add or update.
-   * @param addApps All additional applications of the game (if undefined, the add-apps will not be added or updated).
-   * @param library Library the game belongs to.
+   * @param opts Options object.
+   * @returns A promise that resolves when the game has been added (and saved to file).
    */
-  public addOrUpdateGame(game: IGameInfo, addApps?: IAdditionalApplicationInfo[] | undefined, library?: IGameLibraryFileItem): Promise<void> {
+  public async addOrUpdateGame(opts: AddOrUpdateGameOpts): Promise<void> {
+    let { game, addApps, library, saveToFile } = opts;
     // Get the library prefix
     const libraryPrefix = (library && library.prefix) ? library.prefix : '';
     // Find the platform the game is in (or should be in, if it is not in one already)
@@ -90,8 +90,10 @@ class GameManager extends EventEmitter {
     }
     // Refresh games collection
     this.refreshCollection();
-    // Save changes to file
-    return platform.saveToFile();
+    // Save changes to file (if enabled)
+    if (saveToFile) {
+      await platform.saveToFile();
+    }
   }
 
   /**
@@ -286,5 +288,16 @@ class GameManager extends EventEmitter {
     this.refreshCollection();
   }
 }
+
+type AddOrUpdateGameOpts = {
+  /** Game to add or update. */
+  game: IGameInfo;
+  /** All additional applications of the game (if undefined, the add-apps will not be added or updated). */
+  addApps?: IAdditionalApplicationInfo[];
+  /** Library the game belongs to. */
+  library?: IGameLibraryFileItem;
+  /** If the changes should be saved to file immediately. Defaults to false. */
+  saveToFile?: boolean;
+};
 
 export default GameManager;

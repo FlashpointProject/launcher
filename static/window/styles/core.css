@@ -233,6 +233,9 @@ body {
   flex: 0 0 auto;
   cursor: pointer;
 }
+.input-dropdown--disabled .input-dropdown__input-field__button {
+  cursor: default;
+}
 .input-dropdown__content {
   width: 100%;
   display: block;

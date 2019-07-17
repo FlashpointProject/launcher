@@ -180,6 +180,9 @@ body {
   color: var(--layout__primary-text-color);
   background-color: var(--layout__secondary-background);
 }
+.simple-input--disabled {
+  color: var(--layout__disabled-text-color);
+}
 /* Simple Disabled Text */
 .simple-disabled-text {
   color: var(--layout__disabled-text-color);
@@ -212,6 +215,9 @@ body {
   font-family: var(--layout__primary-font);
   background-color: var(--layout__primary-background);
   color: var(--layout__primary-text-color);
+}
+.input-dropdown--disabled {
+  color: var(--layout__disabled-text-color);
 }
 .input-dropdown__input-field__back {
   background-color: var(--layout__secondary-background);

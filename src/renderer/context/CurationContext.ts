@@ -74,6 +74,21 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
+    // Change the lock status of a curation
+    case 'change-curation-lock':
+      // Find the curation
+      var nextCurations = [ ...prevState.curations ]; // (New curations array to replace the current)
+      var index = nextCurations.findIndex(c => c.key === action.payload.key);
+      if (index >= 0) {
+        // Copy the previous curation
+        const prevCuration = nextCurations[index];
+        const nextCuration = { ...prevCuration };
+        // Replace the locked value
+        nextCuration.locked = action.payload.lock;
+        // Replace the previous curation with the new (in the copied array)
+        nextCurations[index] = nextCuration;
+      }
+      return { ...prevState, curations: nextCurations };
   }
 }
 
@@ -88,6 +103,7 @@ export function createEditCuration(): EditCuration {
     addApps: [],
     thumbnail: createCurationIndexImage(),
     screenshot: createCurationIndexImage(),
+    locked: false,
   };
 }
 
@@ -129,6 +145,13 @@ export type CurationAction = (
     property: keyof EditAddAppCurationMeta;
     /** Value to set the property to. */
     value: EditAddAppCurationMeta[keyof EditAddAppCurationMeta];
+  }> |
+  /** Change the lock status of a curation. */
+  ReducerAction<'change-curation-lock', {
+    /** Key of the curation to change the lock status of. */
+    key: string;
+    /** Lock status to set the curation to. */
+    lock: boolean;
   }>
 );
 
@@ -150,6 +173,8 @@ export type EditCuration = {
   screenshot: CurationIndexImage;
   /** Thumbnail. */
   thumbnail: CurationIndexImage;
+  /** If the curation and its additional applications are locked (and can not be edited). */
+  locked: boolean;
 };
 
 /** Meta data of a curation. */
