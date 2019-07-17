@@ -193,8 +193,12 @@ export type EditCurationMeta = {
   authorNotes?: string;
   platform?: string;
   applicationPath?: string;
+  playMode?: string;
+  releaseDate?: string;
+  version?: string;
+  originalDescription?: string;
+  language?: string;
 }
-
 
 /** Data of an additional application curation in the curation importer. */
 export type EditAddAppCuration = {

@@ -61,20 +61,24 @@ type RightBrowseSidebarState = {
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
   // Bound "on done" handlers for various input elements
-  onTitleChange           = this.wrapOnTextChange((game, text) => { game.title           = text; });
-  onDeveloperChange       = this.wrapOnTextChange((game, text) => { game.developer       = text; });
-  onGenreChange           = this.wrapOnTextChange((game, text) => { game.genre           = text; });
-  onSeriesChange          = this.wrapOnTextChange((game, text) => { game.series          = text; });
-  onSourceChange          = this.wrapOnTextChange((game, text) => { game.source          = text; });
-  onPublisherChange       = this.wrapOnTextChange((game, text) => { game.publisher       = text; });
-  onPlatformChange        = this.wrapOnTextChange((game, text) => { game.platform        = text; });
-  onPlayModeChange        = this.wrapOnTextChange((game, text) => { game.playMode        = text; });
-  onStatusChange          = this.wrapOnTextChange((game, text) => { game.status          = text; });
-  onLaunchCommandChange   = this.wrapOnTextChange((game, text) => { game.launchCommand   = text; });
-  onApplicationPathChange = this.wrapOnTextChange((game, text) => { game.applicationPath = text; });
-  onNotesChange           = this.wrapOnTextChange((game, text) => { game.notes           = text; });
-  onBrokenChange          = this.wrapOnCheckBoxChange(game => { game.broken  = !game.broken;  });
-  onExtremeChange         = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
+  onTitleChange               = this.wrapOnTextChange((game, text) => { game.title               = text; });
+  onDeveloperChange           = this.wrapOnTextChange((game, text) => { game.developer           = text; });
+  onGenreChange               = this.wrapOnTextChange((game, text) => { game.genre               = text; });
+  onSeriesChange              = this.wrapOnTextChange((game, text) => { game.series              = text; });
+  onSourceChange              = this.wrapOnTextChange((game, text) => { game.source              = text; });
+  onPublisherChange           = this.wrapOnTextChange((game, text) => { game.publisher           = text; });
+  onPlatformChange            = this.wrapOnTextChange((game, text) => { game.platform            = text; });
+  onPlayModeChange            = this.wrapOnTextChange((game, text) => { game.playMode            = text; });
+  onStatusChange              = this.wrapOnTextChange((game, text) => { game.status              = text; });
+  onVersionChange             = this.wrapOnTextChange((game, text) => { game.version             = text; });
+  onReleaseDateChange         = this.wrapOnTextChange((game, text) => { game.releaseDate         = text; });
+  onLanguageChange            = this.wrapOnTextChange((game, text) => { game.language            = text; });
+  onLaunchCommandChange       = this.wrapOnTextChange((game, text) => { game.launchCommand       = text; });
+  onApplicationPathChange     = this.wrapOnTextChange((game, text) => { game.applicationPath     = text; });
+  onNotesChange               = this.wrapOnTextChange((game, text) => { game.notes               = text; });
+  onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => { game.originalDescription = text; });
+  onBrokenChange              = this.wrapOnCheckBoxChange(game => { game.broken  = !game.broken;  });
+  onExtremeChange             = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
@@ -258,6 +262,33 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Version: </p>
+                  <InputField
+                    text={game.version}
+                    placeholder='No Version'
+                    onChange={this.onVersionChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Release Date: </p>
+                  <InputField
+                    text={game.releaseDate}
+                    placeholder='No Release Date'
+                    onChange={this.onReleaseDateChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Language: </p>
+                  <InputField
+                    text={game.language}
+                    placeholder='No Language'
+                    onChange={this.onLanguageChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Date Added: </p>
                   <p
                     className='browse-right-sidebar__row__date-added'
@@ -309,6 +340,20 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   text={game.notes}
                   placeholder='No Notes'
                   onChange={this.onNotesChange}
+                  canEdit={canEdit}
+                  multiline={true} />
+              </div>
+            </div>
+          ) : undefined }
+          {/* -- Original Description -- */}
+          { (!editDisabled || game.originalDescription) && !isPlaceholder ? (
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row'>
+                <p>Original Description: </p>
+                <InputField
+                  text={game.originalDescription}
+                  placeholder='No Original Description'
+                  onChange={this.onOriginalDescriptionChange}
                   canEdit={canEdit}
                   multiline={true} />
               </div>

@@ -64,7 +64,7 @@ export interface IRawLaunchBoxGame {
   Rating?: string; // (String)
   // RatingImage?: Image; // (Image)
   Region?: string; // (String)
-  // ReleaseDate?: Date; // (Nullable<DateTime>)
+  ReleaseDate?: string; // (Nullable<DateTime>)
   // ReleaseYear?: number; // (Nullable<int>)
   RootFolder?: string; // (String)
   // ScreenshotImagePath?: string; // (String)
@@ -106,6 +106,9 @@ export interface IRawLaunchBoxGame {
   MissingScreenshotImage?: boolean;
   MissingClearLogoImage?: boolean;
   MissingBackgroundImage?: boolean;
+  // -- Custom fields -- //
+  OriginalDescription?: string;
+  Language?: string;
 }
 
 /**

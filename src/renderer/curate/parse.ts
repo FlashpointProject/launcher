@@ -52,33 +52,35 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
     onError: onError && (error => onError(`Error while converting Curation Meta: ${error.toString()}`))
   });
   // -- Old curation format --
-  parser.prop('Notes',               v => parsed.game.notes           = str(v));
-  parser.prop('Genre',               v => parsed.game.genre           = str(v));
+  parser.prop('Notes',                v => parsed.game.notes               = str(v));
+  parser.prop('Genre',                v => parsed.game.genre               = str(v));
+  parser.prop('Author Notes',         v => parsed.game.authorNotes         = str(v));
   // -- New curation format --
   // Single value properties
-  parser.prop('Application Path',    v => parsed.game.applicationPath = str(v));
-  parser.prop('Author Notes',        v => parsed.game.authorNotes     = str(v));
-  parser.prop('Developer',           v => parsed.game.developer       = str(v));
-  parser.prop('Extreme',             v => parsed.game.extreme         = str(v));
-  parser.prop('Launch Command',      v => parsed.game.launchCommand   = str(v));
-  parser.prop('Game Notes',          v => parsed.game.notes           = str(v));
-  parser.prop('Platform',            v => parsed.game.platform        = str(v));
-  parser.prop('Publisher',           v => parsed.game.publisher       = str(v));
-  parser.prop('Series',              v => parsed.game.series          = str(v));
-  parser.prop('Source',              v => parsed.game.source          = str(v));
-  parser.prop('Status',              v => parsed.game.status          = str(v));
-  parser.prop('Title',               v => parsed.game.title           = str(v));
-  // @TODO "Release Date"
-  // @TODO "Version"
-  // @TODO "Languages"
-  // @TODO "Hacked"
-  // @TODO "Curation Notes"
-  // @TODO "Original Description"
-  // @TODO "Play Mode"
+  parser.prop('Application Path',     v => parsed.game.applicationPath     = str(v));
+  parser.prop('Developer',            v => parsed.game.developer           = str(v));
+  parser.prop('Extreme',              v => parsed.game.extreme             = str(v));
+  parser.prop('Launch Command',       v => parsed.game.launchCommand       = str(v));
+  parser.prop('Game Notes',           v => parsed.game.notes               = str(v));
+  parser.prop('Platform',             v => parsed.game.platform            = str(v));
+  parser.prop('Publisher',            v => parsed.game.publisher           = str(v));
+  parser.prop('Series',               v => parsed.game.series              = str(v));
+  parser.prop('Source',               v => parsed.game.source              = str(v));
+  parser.prop('Status',               v => parsed.game.status              = str(v));
+  parser.prop('Title',                v => parsed.game.title               = str(v));
+  parser.prop('Curation Notes',       v => parsed.game.authorNotes         = str(v));
+  parser.prop('Play Mode',            v => parsed.game.playMode            = str(v));
+  parser.prop('Release Date',         v => parsed.game.releaseDate         = str(v));
+  parser.prop('Version',              v => parsed.game.version             = str(v));
+  parser.prop('Original Description', v => parsed.game.originalDescription = str(v));
   // Genres
   const genres: string[] = [];
   parser.prop('Genres').arrayRaw(v => genres.push(str(v)));
   if (genres.length > 0) { parsed.game.genre = GameParser.joinFieldValue(genres); }
+  // Languages
+  const language: string[] = [];
+  parser.prop('Language').arrayRaw(v => language.push(str(v)));
+  if (language.length > 0) { parsed.game.language = GameParser.joinFieldValue(language); }
   // Add-apps
   parser.prop('Additional Applications').map((item, label) => {
     parsed.addApps.push(convertAddApp(item, label));

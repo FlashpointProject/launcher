@@ -54,19 +54,24 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation && props.curation.content]);
   // Callbacks for the fields (onChange)
   const key = props.curation ? props.curation.key : undefined;
-  const onTitleChange           = useOnInputChange('title',           key, props.dispatch);
-  const onSeriesChange          = useOnInputChange('series',          key, props.dispatch);
-  const onDeveloperChange       = useOnInputChange('developer',       key, props.dispatch);
-  const onPublisherChange       = useOnInputChange('publisher',       key, props.dispatch);
-  const onStatusChange          = useOnInputChange('status',          key, props.dispatch);
-  const onGenreChange           = useOnInputChange('genre',           key, props.dispatch);
-  const onSourceChange          = useOnInputChange('source',          key, props.dispatch);
-  const onPlatformChange        = useOnInputChange('platform',        key, props.dispatch);
-  const onApplicationPathChange = useOnInputChange('applicationPath', key, props.dispatch);
-  const onLaunchCommandChange   = useOnInputChange('launchCommand',   key, props.dispatch);
-  const onNotesChange           = useOnInputChange('notes',           key, props.dispatch);
-  const onAuthorNotesChange     = useOnInputChange('authorNotes',     key, props.dispatch);
-  const onExtremeChange         = useOnCheckboxToggle('extreme',      key, props.dispatch);
+  const onTitleChange               = useOnInputChange('title',               key, props.dispatch);
+  const onSeriesChange              = useOnInputChange('series',              key, props.dispatch);
+  const onDeveloperChange           = useOnInputChange('developer',           key, props.dispatch);
+  const onPublisherChange           = useOnInputChange('publisher',           key, props.dispatch);
+  const onGenreChange               = useOnInputChange('genre',               key, props.dispatch);
+  const onPlayModeChange            = useOnInputChange('playMode',            key, props.dispatch);
+  const onStatusChange              = useOnInputChange('status',              key, props.dispatch);
+  const onVersionChange             = useOnInputChange('version',             key, props.dispatch);
+  const onReleaseDateChange         = useOnInputChange('releaseDate',         key, props.dispatch);
+  const onLanguageChange            = useOnInputChange('language',            key, props.dispatch);
+  const onSourceChange              = useOnInputChange('source',              key, props.dispatch);
+  const onPlatformChange            = useOnInputChange('platform',            key, props.dispatch);
+  const onApplicationPathChange     = useOnInputChange('applicationPath',     key, props.dispatch);
+  const onLaunchCommandChange       = useOnInputChange('launchCommand',       key, props.dispatch);
+  const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
+  const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
+  const onAuthorNotesChange         = useOnInputChange('authorNotes',         key, props.dispatch);
+  const onExtremeChange             = useOnCheckboxToggle('extreme',          key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
   const onGenreItemSelect           = useCallback(transformOnItemSelect(onGenreChange),           [onGenreChange]);
   const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
@@ -192,6 +197,12 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation && props.curation.meta]);
   // Meta
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
+  // Misc
+  const sharedInputProps = {
+    canEdit: canEdit,
+    disabled: disabled,
+    onKeyDown: onInputKeyDown,
+  };
   // Render
   return (
     <div className='curate-box'>
@@ -211,125 +222,136 @@ export function CurateBox(props: CurateBoxProps) {
           text={props.curation && props.curation.meta.title || ''}
           placeholder='No Title'
           onChange={onTitleChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown} />
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Series:'>
         <InputField
           text={props.curation && props.curation.meta.series || ''}
           placeholder='No Series'
           onChange={onSeriesChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown} />
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Developer:'>
         <InputField
           text={props.curation && props.curation.meta.developer || ''}
           placeholder='No Developer'
           onChange={onDeveloperChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown} />
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Publisher:'>
         <InputField
           text={props.curation && props.curation.meta.publisher || ''}
           placeholder='No Publisher'
           onChange={onPublisherChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown} />
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Genre:'>
         <DropdownInputField
           text={props.curation && props.curation.meta.genre || ''}
           placeholder='No Genre'
           onChange={onGenreChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown}
           items={props.suggestions && props.suggestions.genre || []}
-          onItemSelect={onGenreItemSelect} />
+          onItemSelect={onGenreItemSelect}
+          { ...sharedInputProps } />
+      </CurateBoxRow>
+      <CurateBoxRow title='Play Mode:'>
+        <InputField
+          text={props.curation && props.curation.meta.playMode || ''}
+          placeholder='No Play Mode'
+          onChange={onPlayModeChange}
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Status:'>
         <InputField
           text={props.curation && props.curation.meta.status || ''}
           placeholder='No Status'
           onChange={onStatusChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown} />
+          { ...sharedInputProps } />
+      </CurateBoxRow>
+      <CurateBoxRow title='Version:'>
+        <InputField
+          text={props.curation && props.curation.meta.version || ''}
+          placeholder='No Version'
+          onChange={onVersionChange}
+          { ...sharedInputProps } />
+      </CurateBoxRow>
+      <CurateBoxRow title='Release Date:'>
+        <InputField
+          text={props.curation && props.curation.meta.releaseDate || ''}
+          placeholder='No Release Date'
+          onChange={onReleaseDateChange}
+          { ...sharedInputProps } />
+      </CurateBoxRow>
+      <CurateBoxRow title='Language:'>
+        <InputField
+          text={props.curation && props.curation.meta.language || ''}
+          placeholder='No Language'
+          onChange={onLanguageChange}
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Source:'>
         <InputField
           text={props.curation && props.curation.meta.source || ''}
           placeholder='No Source'
           onChange={onSourceChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown} />
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Platform:'>
         <DropdownInputField
           text={props.curation && props.curation.meta.platform || ''}
           placeholder='No Platform'
           onChange={onPlatformChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown}
           items={props.suggestions && props.suggestions.platform || []}
-          onItemSelect={onPlatformItemSelect} />
+          onItemSelect={onPlatformItemSelect}
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Application Path:'>
         <DropdownInputField
           text={props.curation && props.curation.meta.applicationPath || ''}
           placeholder='No Application Path'
           onChange={onApplicationPathChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown}
           items={props.suggestions && props.suggestions.applicationPath || []}
-          onItemSelect={onApplicationPathItemSelect} />
+          onItemSelect={onApplicationPathItemSelect}
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Launch Command:'>
         <InputField
           text={props.curation && props.curation.meta.launchCommand || ''}
           placeholder='No Launch Command'
           onChange={onLaunchCommandChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown}
-          className={warnings.isNotHttp ? 'input-field--warn' : ''} />
+          className={warnings.isNotHttp ? 'input-field--warn' : ''}
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Notes:'>
         <InputField
           text={props.curation && props.curation.meta.notes || ''}
           placeholder='No Notes'
           onChange={onNotesChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown}
-          multiline={true} />
+          multiline={true}
+          { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Author Notes:'>
+      <CurateBoxRow title='Original Description:'>
+        <InputField
+          text={props.curation && props.curation.meta.originalDescription || ''}
+          placeholder='No Original Description'
+          onChange={onOriginalDescriptionChange}
+          multiline={true}
+          { ...sharedInputProps } />
+      </CurateBoxRow>
+      <CurateBoxRow title='Curation Notes:'>
         <InputField
           text={authorNotes}
-          placeholder='No Author Notes'
+          placeholder='No Curation Notes'
           onChange={onAuthorNotesChange}
-          canEdit={canEdit}
-          disabled={disabled}
-          onKeyDown={onInputKeyDown}
           multiline={true}
-          className={authorNotes.length > 0 ? 'input-field--warn' : ''} />
+          className={authorNotes.length > 0 ? 'input-field--warn' : ''}
+          { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Extreme:'>
         <CheckBox
           checked={stringToBool(props.curation && props.curation.meta.extreme || '')}
           onToggle={onExtremeChange}
-          disabled={disabled}
-          />
+          disabled={disabled} />
       </CurateBoxRow>
       <hr className='curate-box-divider' />
       {/* Additional Application */}

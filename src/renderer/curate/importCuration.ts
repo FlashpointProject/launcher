@@ -112,22 +112,26 @@ export async function importCuration(
 function createGameFromCurationMeta(curation: EditCuration): IGameInfo {
   const meta = curation.meta;
   return {
-    id:              curation.key, // (Re-use the id of the curation)
-    title:           meta.title           || '',
-    series:          meta.series          || '',
-    developer:       meta.developer       || '',
-    publisher:       meta.publisher       || '',
-    dateAdded:       formatDate(new Date()),
-    platform:        meta.platform        || '',
-    broken:          false,
-    extreme:         !!stringToBool(meta.extreme || ''),
-    playMode:        'Single Player',
-    status:          meta.status          || '',
-    notes:           meta.notes           || '',
-    genre:           meta.genre           || '',
-    source:          meta.source          || '',
-    applicationPath: meta.applicationPath || '',
-    launchCommand:   meta.launchCommand   || '',
+    id:                  curation.key, // (Re-use the id of the curation)
+    title:               meta.title               || '',
+    series:              meta.series              || '',
+    developer:           meta.developer           || '',
+    publisher:           meta.publisher           || '',
+    platform:            meta.platform            || '',
+    playMode:            meta.playMode            || '',
+    status:              meta.status              || '',
+    notes:               meta.notes               || '',
+    genre:               meta.genre               || '',
+    source:              meta.source              || '',
+    applicationPath:     meta.applicationPath     || '',
+    launchCommand:       meta.launchCommand       || '',
+    releaseDate:         meta.releaseDate         || '',
+    version:             meta.version             || '',
+    originalDescription: meta.originalDescription || '',
+    language:            meta.language            || '',
+    dateAdded:           formatDate(new Date()),
+    broken:              false,
+    extreme:             !!stringToBool(meta.extreme || ''),
     filename: '', // This will be set when saved
     orderTitle: '', // This will be set when saved
     placeholder: false,

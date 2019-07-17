@@ -43,6 +43,10 @@ export class GameParser {
       source: unescapeHTML(data.Source),
       applicationPath: unescapeHTML(data.ApplicationPath),
       launchCommand: unescapeHTML(data.CommandLine),
+      releaseDate: unescapeHTML(data.ReleaseDate),
+      version: unescapeHTML(data.Version),
+      originalDescription: unescapeHTML(data.OriginalDescription),
+      language: unescapeHTML(data.Language),
       filename: filename,
       orderTitle: generateGameOrderTitle(title),
       placeholder: false, // (No loaded game is a placeholder)
@@ -79,6 +83,10 @@ export class GameParser {
       Source: escapeHTML(game.source),
       ApplicationPath: escapeHTML(game.applicationPath),
       CommandLine: escapeHTML(game.launchCommand),
+      ReleaseDate: unescapeHTML(game.releaseDate),
+      Version: unescapeHTML(game.version),
+      OriginalDescription: unescapeHTML(game.originalDescription),
+      Language: unescapeHTML(game.language),
     };
   }
 
@@ -158,7 +166,7 @@ const unescapeHTML = (function() {
     apos: '\''
   });
   return function(str?: string): string {
-    return (str+'').replace(/\&([^;]+);/g, function (entity: string, entityCode: string): string {
+    return ((str||'')+'').replace(/\&([^;]+);/g, function (entity: string, entityCode: string): string {
       let match;
       if (entityCode in htmlEntities) {
         return htmlEntities[entityCode];
