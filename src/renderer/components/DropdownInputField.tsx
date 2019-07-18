@@ -16,6 +16,8 @@ export type DropdownInputFieldProps = InputFieldProps & {
    * If false or undefined, the text element will be a paragraph element (<p>).
    */
   canEdit?: boolean;
+  /** If editing should be disabled (including expanding the drop-down, selecting items etc.). */
+  disabled?: boolean;
   /** Items to show in the drop-down list. */
   items: string[];
   /** Called when a drop-down list item is clicked or otherwise "selected". */
@@ -61,6 +63,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   render() {
     const { items, className, canEdit } = this.props;
     const { expanded } = this.state;
+    // Render input field
     const inputField = (
       <InputField
         { ...this.props }
@@ -69,10 +72,11 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
         onKeyDown={this.onInputKeyDown}
         reference={this.inputRef} />
     );
+    // Render
     if (canEdit) {
       return (
         <div
-          className='input-dropdown'
+          className={'input-dropdown' + (this.props.disabled ? ' input-dropdown--disabled' : '')}
           ref={this.rootRef}
           onBlur={this.onBlur}>
           <div className='input-dropdown__input-field'>
@@ -132,41 +136,45 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 
   onListItemClick = (event: React.MouseEvent): void => {
-    this.setState({ expanded: false });
-    if (this.props.onItemSelect) {
-      const index = getListItemIndex(event.target);
-      if (index >= 0) {
-        this.props.onItemSelect(this.props.items[index], index);
-      }
+    if (!this.props.disabled) {
+      this.setState({ expanded: false });
+      if (this.props.onItemSelect) {
+        const index = getListItemIndex(event.target);
+        if (index >= 0) {
+          this.props.onItemSelect(this.props.items[index], index);
+        }
+      }      
     }
   }
 
   onListItemKeyDown = (event: React.KeyboardEvent): void => {
-    const { key, target } = event;
-    // Select the focused list item
-    if (this.props.onItemSelect && (key === 'Enter' || key === ' ')) {
-      const index = getListItemIndex(target);
-      if (index >= 0) {
-        this.props.onItemSelect(this.props.items[index], index);
-        this.setState({ expanded: false });
-        // Focus the input element
-        const input = this.inputRef.current;
-        if (input && input.focus) { input.focus(); }
-      }
-    }
-    // Move focus up or down
-    if (key === 'ArrowUp' || key === 'ArrowDown') {
-      const element = document.activeElement;
-      if (element && checkIfAncestor(element, this.contentRef.current)) {
-        const next: any = (key === 'ArrowUp') ? element.previousSibling :
-                                                element.nextElementSibling;
-        if (next && next.focus) {
-          next.focus();
-          event.preventDefault();
+    if (!this.props.disabled) {
+      const { key, target } = event;
+      // Select the focused list item
+      if (this.props.onItemSelect && (key === 'Enter' || key === ' ')) {
+        const index = getListItemIndex(target);
+        if (index >= 0) {
+          this.props.onItemSelect(this.props.items[index], index);
+          this.setState({ expanded: false });
+          // Focus the input element
+          const input = this.inputRef.current;
+          if (input && input.focus) { input.focus(); }
         }
       }
-    } else {
-      if (!this.state.expanded) { this.setState({ expanded: true }); }
+      // Move focus up or down
+      if (key === 'ArrowUp' || key === 'ArrowDown') {
+        const element = document.activeElement;
+        if (element && checkIfAncestor(element, this.contentRef.current)) {
+          const next: any = (key === 'ArrowUp') ? element.previousSibling :
+                                                  element.nextElementSibling;
+          if (next && next.focus) {
+            next.focus();
+            event.preventDefault();
+          }
+        }
+      } else {
+        if (!this.state.expanded) { this.setState({ expanded: true }); }
+      }
     }
   }
 
@@ -178,27 +186,33 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 
   onInputChange = (event: React.ChangeEvent<InputElement>): void => {
-    if (!this.state.expanded) { this.setState({ expanded: true }); }
-    if (this.props.onChange) { this.props.onChange(event); }
+    if (!this.props.disabled) {
+      if (!this.state.expanded) { this.setState({ expanded: true }); }
+      if (this.props.onChange) { this.props.onChange(event); }
+    }
   }
 
   onInputKeyDown = (event: React.KeyboardEvent<InputElement>): void => {
-    const { key } = event;
-    if (key === 'ArrowUp' || key === 'ArrowDown') {
-      // Focus the first or last item, also expand the content container
-      event.preventDefault();
-      if (!this.state.expanded) { this.setState({ expanded: true }); }
-      const content = this.contentRef.current;
-      if (!content) { throw new Error('dropdown input field content div is missing'); }
-      const element: any = (key === 'ArrowUp') ? content.lastChild : content.firstChild;
-      if (element && element.focus) { element.focus(); }
+    if (!this.props.disabled) {
+      const { key } = event;
+      if (key === 'ArrowUp' || key === 'ArrowDown') {
+        // Focus the first or last item, also expand the content container
+        event.preventDefault();
+        if (!this.state.expanded) { this.setState({ expanded: true }); }
+        const content = this.contentRef.current;
+        if (!content) { throw new Error('dropdown input field content div is missing'); }
+        const element: any = (key === 'ArrowUp') ? content.lastChild : content.firstChild;
+        if (element && element.focus) { element.focus(); }
+      }
+      // Relay event
+      if (this.props.onKeyDown) { this.props.onKeyDown(event); }
     }
-    // Relay event
-    if (this.props.onKeyDown) { this.props.onKeyDown(event); }
   }
 
   onExpandButtonMouseDown = (): void => {
-    this.setState({ expanded: !this.state.expanded });
+    if (!this.props.disabled) {
+      this.setState({ expanded: !this.state.expanded });
+    }
   }
 
   /**

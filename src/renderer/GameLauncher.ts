@@ -5,7 +5,12 @@ import * as path from 'path';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { padStart, stringifyArray } from '../shared/Util';
 
+type IGamePathInfo = Pick<IGameInfo, 'platform' | 'launchCommand'>;
+
 export class GameLauncher {
+  /** Path of the "htdocs" folder (relative to the Flashpoint folder) */
+  private static htdocsPath = 'Server/htdocs';
+  
   /**
    * Try to get the ("entry"/"main") file path of a game.
    * Because how the file's path is declared in the launch command between different games and platforms,
@@ -13,12 +18,12 @@ export class GameLauncher {
    * @param game Game to get path from.
    * @returns The file path of the game (or undefind if no file path could be extracted).
    */
-  public static getGamePath(game: IGameInfo): string | undefined {
+  public static getGamePath(game: IGamePathInfo): string | undefined {
     // @TODO Because some strings can be interpreted as different paths/URLs, maybe this should return an array
     //       of strings with all the possible paths of the "main" file?
     //       Example: Some web server files are stored in "Server/htdocs" while other are stored in "Server/cgi-bin".
     const ffpPath = window.External.config.fullFlashpointPath;
-    const htdocsPath = 'Server/htdocs'; // (Path to the file servers content)
+    const htdocsPath = GameLauncher.htdocsPath; // Short-hand
     const shockwavePath = 'FPSoftware/Shockwave/PJX'; // (Path to a shockwave executable)
     const groovePath = 'FPSoftware/3DGrooveGX'; // (Path to the 3D Groove GZ executable)
     // Extract file path from the game's launch command
@@ -105,10 +110,29 @@ export class GameLauncher {
       case 'html5':
       case 'popcap plugin':
       case 'silverlight':
-        var url = toForcedURL(game.launchCommand);
-        if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
-        break;
+        return GameLauncher.getPathOfHtdocsUrl(game.launchCommand, ffpPath);
     }
+  }
+
+  /**
+   * Get the path of the "htdocs" folder.
+   * @param flashpointPath Path of the Flashpoint folder (if undefined, the current flashpoint path is used).
+   */
+  public static getHtdocsPath(flashpointPath?: string): string {
+    if (flashpointPath === undefined) {
+      flashpointPath = window.External.config.fullFlashpointPath;
+    }
+    return path.join(flashpointPath, GameLauncher.htdocsPath);
+  }
+
+  /**
+   * Convert a url to a path of the file in the htdocs folder.
+   * @param url URL string or object.
+   * @param flashpointPath Path of the Flashpoint folder (if undefined, the current flashpoint path is used).
+   */
+  public static getPathOfHtdocsUrl(url: string | URL, flashpointPath?: string): string | undefined {
+    const urlObj = (typeof url === 'string') ? toForcedURL(url) : url;
+    if (urlObj) { return path.join(GameLauncher.getHtdocsPath(flashpointPath), urlToFilePath(urlObj)); }
   }
 
   public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
@@ -253,8 +277,13 @@ export class GameLauncher {
   }
 }
 
-/** Convert a URL to the file path in the server's local folder structure. */
-function urlToFilePath(url: URL): string {
+/**
+ * Convert a URL to a path, where the hostname is the first folder,
+ * and the pathname the folders afterwards.
+ * @param url URL to convert.
+ * @returns The converted path.
+ */
+export function urlToFilePath(url: URL): string {
   return decodeURIComponent(path.join(url.hostname, url.pathname));
 }
 

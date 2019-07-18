@@ -5,7 +5,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
 import { IUpgradeStage } from '../upgrade/upgrade';
-import { unzip } from '../util/unzip';
+import { unzipAll } from '../util/unzip';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -79,7 +79,7 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
       log(`Download of the "${upgrade.title}" upgrade complete!`);
       log(`Installation of the "${upgrade.title}" upgrade started.`);
       const unzipStatus = (
-        unzip(zipPath, opts.installPath)
+        unzipAll(zipPath, opts.installPath)
         .on('warn', warning => { log(warning); })
         .on('progress', () => {
           status.extractProgress =  unzipStatus.extractedSize / unzipStatus.totalSize;

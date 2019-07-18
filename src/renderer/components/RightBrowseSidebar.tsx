@@ -1,17 +1,12 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as React from 'react';
-import { promisify } from 'util';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { removeFileExtension } from '../../shared/Util';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
-import { formatImageFilename } from '../image/util';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
 import { GamePropSuggestions } from '../util/suggestions';
 import { uuid } from '../uuid';
@@ -23,10 +18,9 @@ import { ImagePreview } from './ImagePreview';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
-import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
-
-const copyFile = promisify(fs.copyFile);
-const unlink = promisify(fs.unlink);
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { deleteGameImageFiles, copyGameImageFile } from '../util/game';
+import { getImageFolderName } from '../image/util';
 
 type OwnProps = {
   gameImages: GameImageCollection;
@@ -67,20 +61,24 @@ type RightBrowseSidebarState = {
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
   // Bound "on done" handlers for various input elements
-  onTitleChange           = this.wrapOnTextChange((game, text) => { game.title           = text; });
-  onDeveloperChange       = this.wrapOnTextChange((game, text) => { game.developer       = text; });
-  onGenreChange           = this.wrapOnTextChange((game, text) => { game.genre           = text; });
-  onSeriesChange          = this.wrapOnTextChange((game, text) => { game.series          = text; });
-  onSourceChange          = this.wrapOnTextChange((game, text) => { game.source          = text; });
-  onPublisherChange       = this.wrapOnTextChange((game, text) => { game.publisher       = text; });
-  onPlatformChange        = this.wrapOnTextChange((game, text) => { game.platform        = text; });
-  onPlayModeChange        = this.wrapOnTextChange((game, text) => { game.playMode        = text; });
-  onStatusChange          = this.wrapOnTextChange((game, text) => { game.status          = text; });
-  onLaunchCommandChange   = this.wrapOnTextChange((game, text) => { game.launchCommand   = text; });
-  onApplicationPathChange = this.wrapOnTextChange((game, text) => { game.applicationPath = text; });
-  onNotesChange           = this.wrapOnTextChange((game, text) => { game.notes           = text; });
-  onBrokenChange          = this.wrapOnCheckBoxChange(game => { game.broken  = !game.broken;  });
-  onExtremeChange         = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
+  onTitleChange               = this.wrapOnTextChange((game, text) => { game.title               = text; });
+  onDeveloperChange           = this.wrapOnTextChange((game, text) => { game.developer           = text; });
+  onGenreChange               = this.wrapOnTextChange((game, text) => { game.genre               = text; });
+  onSeriesChange              = this.wrapOnTextChange((game, text) => { game.series              = text; });
+  onSourceChange              = this.wrapOnTextChange((game, text) => { game.source              = text; });
+  onPublisherChange           = this.wrapOnTextChange((game, text) => { game.publisher           = text; });
+  onPlatformChange            = this.wrapOnTextChange((game, text) => { game.platform            = text; });
+  onPlayModeChange            = this.wrapOnTextChange((game, text) => { game.playMode            = text; });
+  onStatusChange              = this.wrapOnTextChange((game, text) => { game.status              = text; });
+  onVersionChange             = this.wrapOnTextChange((game, text) => { game.version             = text; });
+  onReleaseDateChange         = this.wrapOnTextChange((game, text) => { game.releaseDate         = text; });
+  onLanguageChange            = this.wrapOnTextChange((game, text) => { game.language            = text; });
+  onLaunchCommandChange       = this.wrapOnTextChange((game, text) => { game.launchCommand       = text; });
+  onApplicationPathChange     = this.wrapOnTextChange((game, text) => { game.applicationPath     = text; });
+  onNotesChange               = this.wrapOnTextChange((game, text) => { game.notes               = text; });
+  onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => { game.originalDescription = text; });
+  onBrokenChange              = this.wrapOnCheckBoxChange(game => { game.broken  = !game.broken;  });
+  onExtremeChange             = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
@@ -264,6 +262,33 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Version: </p>
+                  <InputField
+                    text={game.version}
+                    placeholder='No Version'
+                    onChange={this.onVersionChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Release Date: </p>
+                  <InputField
+                    text={game.releaseDate}
+                    placeholder='No Release Date'
+                    onChange={this.onReleaseDateChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>Language: </p>
+                  <InputField
+                    text={game.language}
+                    placeholder='No Language'
+                    onChange={this.onLanguageChange}
+                    canEdit={canEdit}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>Date Added: </p>
                   <p
                     className='browse-right-sidebar__row__date-added'
@@ -315,6 +340,20 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   text={game.notes}
                   placeholder='No Notes'
                   onChange={this.onNotesChange}
+                  canEdit={canEdit}
+                  multiline={true} />
+              </div>
+            </div>
+          ) : undefined }
+          {/* -- Original Description -- */}
+          { (!editDisabled || game.originalDescription) && !isPlaceholder ? (
+            <div className='browse-right-sidebar__section'>
+              <div className='browse-right-sidebar__row'>
+                <p>Original Description: </p>
+                <InputField
+                  text={game.originalDescription}
+                  placeholder='No Original Description'
+                  onChange={this.onOriginalDescriptionChange}
                   canEdit={canEdit}
                   multiline={true} />
               </div>
@@ -517,7 +556,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const { currentGame } = this.props;
     if (!currentGame) { throw new Error('Failed to delete image file. The currently selected game could not be found.'); }
     if (!cache)       { throw new Error('Failed to delete image file. The image cache could not be found.'); }
-    deleteImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
+    deleteGameImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
   }
 
   addScreenshotDialog = async () => {
@@ -530,14 +569,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
     if (filePaths && filePaths[0]) {
       const imageFolderName = this.getImageFolderName();
-      let cache = gameImages.getScreenshotCache(imageFolderName);
-      if (!cache) {
-        await gameImages.createImageFolder(imageFolderName).catch(() => { throw new Error(`Failed to create new image folder "${imageFolderName}".`); });
-        gameImages.addImageFolder(imageFolderName);
-        cache = gameImages.getScreenshotCache(imageFolderName);
-        if (!cache) { throw new Error('Failed to add new image.'); }
-      }
-      copyImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
+      const cache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
+      copyGameImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
     }
   }
 
@@ -551,14 +584,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
     if (filePaths && filePaths[0]) {
       const imageFolderName = this.getImageFolderName();
-      let cache = gameImages.getThumbnailCache(imageFolderName);
-      if (!cache) {
-        await gameImages.createImageFolder(imageFolderName).catch(() => { throw new Error(`Failed to create new image folder "${imageFolderName}".`); });
-        gameImages.addImageFolder(imageFolderName);
-        cache = gameImages.getThumbnailCache(imageFolderName);
-        if (!cache) { throw new Error('Failed to add new image.'); }
-      }
-      copyImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
+      const cache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
+      copyGameImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
     }
   }
   
@@ -581,15 +608,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const screenshotCache = this.props.gameImages.getScreenshotCache(imageFolderName);
     if (!screenshotCache) { throw new Error('Can not add a new image, the screenshot cache is missing.'); }
     if (files.length > 1) { // (Multiple files)
-      copyImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
-      copyImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
+      copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+      copyGameImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
     } else { // (Single file)
       switch(text) {
         case 'Thumbnail':
-          copyImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+          copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
           break;
         case 'Screenshot':
-          copyImageFile(files[0].path, game, screenshotCache).then(() => { this.forceUpdate(); });
+          copyGameImageFile(files[0].path, game, screenshotCache).then(() => { this.forceUpdate(); });
           break;
         default:
           console.warn('No "add-single-file" case for the "text" of the GameImageSplit the file was dropped on.');
@@ -696,12 +723,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   /** Get the name of the image folder for the current game. */
   getImageFolderName(): string {
     const { currentGame, currentLibrary, isNewGame } = this.props;
-    const prefix = (currentLibrary && currentLibrary.prefix) ? currentLibrary.prefix : '';
     if (currentGame) {
-      if (isNewGame) {
-        if (currentGame.platform) { return prefix+currentGame.platform; }
-        else                      { return ''; }
-      } else { return removeFileExtension(currentGame.filename); }
+      const prefix = currentLibrary && currentLibrary.prefix || '';
+      return getImageFolderName(currentGame, prefix, isNewGame);
     } else { return ''; }
   }
 }
@@ -720,32 +744,6 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
 }
 
 /**
- * Copy an image file from anywhere to the folder of an "image cache" and for a specific game.
- * @param source File path of the image to copy.
- * @param game Game that the image will "belong" to.
- * @param cache Image cache to store the image in (it is copied to this caches folder).
- */
-async function copyImageFile(source: string, game: IGameInfo, cache: ImageFolderCache): Promise<void> {
-  // Delete the current image(s)
-  deleteImageFiles(game, cache);
-  // Copy image file (and give it index 1, since only one screenshot per game is supported at the moment)
-  const outputPath = path.join(
-    cache.getFolderPath(),
-    formatImageFilename(game.id, 1) + getFileExtension(source)
-  );
-  return await copyFile(source, outputPath, fs.constants.COPYFILE_EXCL)
-  .then(() => cache.refresh())
-  .catch(error => { throw error; });
-}
-
-/** Get the file extension of a file (including the dot). Returns an empty string if none. */
-function getFileExtension(filename: string): string {
-  const firstDot = filename.lastIndexOf('.');
-  if (firstDot === -1) { return ''; }
-  return filename.substr(firstDot);
-}
-
-/**
  * Create a new array and populate it with the properties and values from another array or array like object.
  * @param arrayLike Array or array like object to copy properties and values from.
  * @returns New array with the same properties and values as the argument.
@@ -756,18 +754,4 @@ function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
     array[key] = arrayLike[key];
   }
   return array;
-}
-
-/**
- * Delete all image files of a game in the specified cache.
- * @param game The game to delete all the image files of.
- * @param cache Cache of the image folder to delete the files from.
- */
-async function deleteImageFiles(game: IGameInfo, cache: ImageFolderCache): Promise<void> {
-  // Find and delete all of the games images in the cache
-  const filenames = [ ...cache.getFilePaths(game.id), ...cache.getFilePaths(game.title) ];
-  for (let filename of filenames) {
-    await unlink(path.join(cache.getFolderPath(), filename));
-  }
-  if (filenames.length > 0) { await cache.refresh(); }
 }

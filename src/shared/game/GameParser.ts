@@ -43,6 +43,10 @@ export class GameParser {
       source: unescapeHTML(data.Source),
       applicationPath: unescapeHTML(data.ApplicationPath),
       launchCommand: unescapeHTML(data.CommandLine),
+      releaseDate: unescapeHTML(data.ReleaseDate),
+      version: unescapeHTML(data.Version),
+      originalDescription: unescapeHTML(data.OriginalDescription),
+      language: unescapeHTML(data.Language),
       filename: filename,
       orderTitle: generateGameOrderTitle(title),
       placeholder: false, // (No loaded game is a placeholder)
@@ -79,6 +83,10 @@ export class GameParser {
       Source: escapeHTML(game.source),
       ApplicationPath: escapeHTML(game.applicationPath),
       CommandLine: escapeHTML(game.launchCommand),
+      ReleaseDate: unescapeHTML(game.releaseDate),
+      Version: unescapeHTML(game.version),
+      OriginalDescription: unescapeHTML(game.originalDescription),
+      Language: unescapeHTML(game.language),
     };
   }
 
@@ -114,6 +122,24 @@ export class GameParser {
     Version: '',
     WaitForExit: false,
   };
+
+  /**
+   * Split a field value from a game into an array.
+   * Some field values store multiple values, each value separated by a semicolon.
+   * @param value Value to split.
+   */
+  public static splitFieldValue(value: string): string[] {
+    return value.split(/\s?;\s?/);
+  }
+
+  /**
+   * Join multiple values into a single field value.
+   * Some field values store multiple values, each value separated by a semicolon.
+   * @param value Value to join.
+   */
+  public static joinFieldValue(value: string[]): string {
+    return value.join('; ');
+  }
 }
 
 /** Generate a title suitable for ordering (only used for ordering and sorting, not visual) */
@@ -140,7 +166,7 @@ const unescapeHTML = (function() {
     apos: '\''
   });
   return function(str?: string): string {
-    return (str+'').replace(/\&([^;]+);/g, function (entity: string, entityCode: string): string {
+    return ((str||'')+'').replace(/\&([^;]+);/g, function (entity: string, entityCode: string): string {
       let match;
       if (entityCode in htmlEntities) {
         return htmlEntities[entityCode];

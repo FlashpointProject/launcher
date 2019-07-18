@@ -17,11 +17,14 @@ import { SizeProvider } from '../SizeProvider';
 import { findDefaultLibrary } from '../../../shared/library/util';
 import { WithSearchProps } from '../../containers/withSearch';
 import { getPlatforms } from '../../util/platform';
+import { GameImageCollection } from '../../image/GameImageCollection';
 
 type OwnProps = {
   /** Semi-global prop. */
   central: CentralState;
   onSelectPlaylist: (playlist?: IGamePlaylist, route?: string) => void;
+  /** Collection to get game images from. */
+  gameImages: GameImageCollection;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
@@ -41,10 +44,10 @@ export class HomePage extends React.Component<HomePageProps> {
     const {
       onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick,
+      gameImages,
       central: {
         gamesDoneLoading,
         games,
-        gameImages,
         upgrade: {
           techState,
           screenshotsState

@@ -17,6 +17,7 @@ import { ImageFolderCache } from '../../image/ImageFolderCache';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { LaunchboxData } from '../../LaunchboxData';
 import { GameLauncher } from '../../GameLauncher';
+import { getFileExtension } from '../../Util';
 
 const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
@@ -25,6 +26,8 @@ const mkdir  = promisify(fs.mkdir);
 type OwnProps = {
   /** Semi-global prop. */
   central: CentralState;
+  /** Collection to get game images from. */
+  gameImages: GameImageCollection;
 };
 
 type DeveloperPageProps = OwnProps & WithLibraryProps;
@@ -105,7 +108,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onCheckMissingImagesClick = (): void => {
     const games = this.props.central.games.collection.games;
-    const gameImages = this.props.central.gameImages;
+    const gameImages = this.props.gameImages;
     this.setState({ text: checkMissingGameImages(games, gameImages) });
   }
 
@@ -139,7 +142,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
       const games = this.props.central.games.collection.games;
-      const gameImages = this.props.central.gameImages;
+      const gameImages = this.props.gameImages;
       this.setState({ text: await renameImagesToIDs(games, gameImages) });
     }, 0);
   }
@@ -148,7 +151,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
       const games = this.props.central.games.collection.games;
-      const gameImages = this.props.central.gameImages;
+      const gameImages = this.props.gameImages;
       this.setState({ text: await renameImagesToTitles(games, gameImages) });
     }, 0);
   }
@@ -653,11 +656,4 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
 /** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
 export function removeLastItemOfPath(filePath: string): string {
   return filePath.substr(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
-}
-
-/** Get the file extension of a file (including the dot). Returns an empty string if none. */
-function getFileExtension(filename: string): string {
-  const lastDot = filename.lastIndexOf('.');
-  if (lastDot === -1) { return ''; }
-  return filename.substr(lastDot);
 }

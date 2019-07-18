@@ -41,6 +41,14 @@ interface IPureGameInfo {
   applicationPath: string;
   /** Command line argument(s) passed to the application to launch the game */
   launchCommand: string;
+  /** Date of when the game was released */
+  releaseDate: string;
+  /** Version of the game */
+  version: string;
+  /** Original description of the game (probably given by the game's creator or publisher) */
+  originalDescription: string;
+  /** The language(s) the game is in */
+  language: string;
 }
 
 /** Represents the meta data for a single Game (including temporary data) */
@@ -73,18 +81,6 @@ export interface IAdditionalApplicationInfo {
   name: string;
   /** @TODO Write this comment */
   waitForExit: boolean;
-}
-
-/** Status of a games playability (Currently unused) */
-export enum GameInfoStatus {
-  /** Fully playable from beginning to end */
-  Playable,
-  /** File has been tinkered with to make it load */
-  PlayableHacked,
-  /** Only works in a web browser */
-  PlayableWebBrowser,
-  /** Game cannot be finished due to missing files */
-  PlayablePartial,
 }
 
 /** A game search query, contains the information needed to make a search */

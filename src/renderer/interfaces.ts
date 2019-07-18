@@ -1,5 +1,4 @@
 import GameManager from './game/GameManager';
-import { GameImageCollection } from './image/GameImageCollection';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { IUpgradeData } from './upgrade/upgrade';
 
@@ -10,8 +9,6 @@ import { IUpgradeData } from './upgrade/upgrade';
 export type CentralState = {
   /** Manager of all the games, and container of the loaded and parsed game data. */
   games: GameManager;
-  /** Manager of all the game image folders, and container of their data. */
-  gameImages: GameImageCollection;
   /** Manager of all playlists. */
   playlists: GamePlaylistManager;
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */

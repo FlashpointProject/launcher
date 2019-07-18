@@ -52,6 +52,8 @@ export type AppState = {
   gameScale: number;
   /** Layout of the browse page */
   gameLayout: BrowsePageLayout;
+  /** Manager of all the game image folders, and container of their data. */
+  gameImages: GameImageCollection;
   /** Currently selected game (for each browse tab / library). */
   selectedGames: IObjectMap<IGameInfo>;
   /** Currently selected playlists (for each browse tab / library). */
@@ -71,7 +73,6 @@ export class App extends React.Component<AppProps, AppState> {
     this.state = {
       central: {
         games: new GameManager(),
-        gameImages: new GameImageCollection(config.fullFlashpointPath),
         playlists: new GamePlaylistManager(),
         upgrade: {
           doneLoading: false,
@@ -95,6 +96,7 @@ export class App extends React.Component<AppProps, AppState> {
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
+      gameImages: new GameImageCollection(config.fullFlashpointPath),
       creditsData: undefined,
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
@@ -188,7 +190,7 @@ export class App extends React.Component<AppProps, AppState> {
     .then((filenames) => {
       // Prepare images
       const platforms: string[] = filenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
-      this.state.central.gameImages.addImageFolders(platforms);
+      this.state.gameImages.addImageFolders(platforms);
       // Load and parse platform XMLs
       this.state.central.games.loadPlatforms()
       .then(() => {
@@ -311,6 +313,7 @@ export class App extends React.Component<AppProps, AppState> {
       order: this.state.order,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
+      gameImages: this.state.gameImages,
       selectedGame: this.state.selectedGames[route],
       selectedPlaylist: this.state.selectedPlaylists[route],
       onSelectGame: this.onSelectGame,

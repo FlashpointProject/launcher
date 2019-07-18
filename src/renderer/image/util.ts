@@ -1,9 +1,22 @@
 import * as path from 'path';
 import { ImageFolderCache } from './ImageFolderCache';
+import { IGameInfo } from '../../shared/game/interfaces';
+import { removeFileExtension } from '../../shared/Util';
 
-export function getImageFolderName(platform: string, libraryPrefix: string): string {
-  if (libraryPrefix) { return libraryPrefix + platform; }
-  else               { return platform; }
+/**
+ * Get the image folder name of a game.
+ * @param game Game the image belongs to.
+ * @param libraryPrefix Prefix of the library the game belongs to.
+ * @param isNewGame If the game is newly created (it has not been saved or loaded).
+ */
+export function getImageFolderName(game: IGameInfo, libraryPrefix: string, isNewGame: boolean): string {
+  if (isNewGame) {
+    if (game.platform) {
+      return (libraryPrefix || '') + game.platform;
+    } else {
+      return '';
+    }
+  } else { return removeFileExtension(game.filename); }
 }
 
 export function getScreenshotFolderPath(folderName: string, flashpointPath: string): string {

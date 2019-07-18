@@ -9,6 +9,8 @@ import { GameParser } from '../../shared/game/GameParser';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { IRawLaunchBoxAdditionalApplication, IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from '../../shared/launchbox/interfaces';
 import { LaunchboxData } from '../LaunchboxData';
+import { formatUnknownPlatformName } from './util';
+import { EventQueue } from '../util/EventQueue';
 
 const writeFile = promisify(fs.writeFile);
 
@@ -24,6 +26,8 @@ class GameManagerPlatform extends EventEmitter {
   public data?: IRawLaunchBoxPlatformRoot;
   /** Parsed object of the data */
   public collection?: GameCollection;
+  /** Event queue for saving to file (used to avoid collisions with saving to file). */
+  private saveQueue: EventQueue = new EventQueue();
 
   constructor(filename: string) {
     super();
@@ -31,17 +35,21 @@ class GameManagerPlatform extends EventEmitter {
   }
 
   public async saveToFile(): Promise<void> {
-    // Save the platform to its file
+    // Get the platform file's path
     const flashpointPath = window.External.config.fullFlashpointPath;
+    const filePath = path.join(flashpointPath, LaunchboxData.platformsPath, this.filename);
+    // Parse data into XML
     const parser = new fastXmlParser.j2xParser({
       ignoreAttributes: true,  // Attributes are never used, this might increase performance?
       supressEmptyNode : true, // Empty tags are self closed ("<Tag />" instead of "<Tag></Tag>")
       format: true,            // Breaks XML into multiple lines and indents it
     });
-    await writeFile(
-      path.join(flashpointPath, LaunchboxData.platformsPath, this.filename), 
-      parser.parse(this.data),
-    );
+    const parsedData = parser.parse(this.data);
+    // Add save to the queue
+    return this.saveQueue.push(async () => {
+      // Save data to the platform's file
+      await writeFile(filePath, parsedData);
+    }, true);
   }
 
   /**
@@ -238,6 +246,17 @@ class GameManagerPlatform extends EventEmitter {
       }
     }
     return -1;
+  }
+
+  /**
+   * Create an "Unknown Platform" that is ready to receive games and can later be saved.
+   * @param libraryPrefix Prefix of the library the platform is for.
+   */
+  public static createUnknown(libraryPrefix: string): GameManagerPlatform {
+    const platform = new GameManagerPlatform(formatUnknownPlatformName(libraryPrefix));
+    platform.collection = new GameCollection();
+    platform.data = { LaunchBox: {} };
+    return platform;
   }
 }
 

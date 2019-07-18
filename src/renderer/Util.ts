@@ -103,3 +103,22 @@ export function checkIfAncestor(start: Element | null, target: Element | null): 
   }
   return false;
 }
+
+/**
+ * Convert a size (in bytes) to a more human readable format.
+ * @param size Size in bytes.
+ * @returns Size, but in a more human readable format.
+ */
+export function sizeToString(size: number, precision: number = 3): string {
+  if (size < 1000)       { return `${size}B`; }
+  if (size < 1000000)    { return `${(size / 1000).toPrecision(precision)}KB`; }
+  if (size < 1000000000) { return `${(size / 1000000).toPrecision(precision)}MB`; }
+  return `${(size / 1000000000).toPrecision(precision)}GB`;
+}
+
+/** Get the file extension of a file (including the dot). Returns an empty string if none. */
+export function getFileExtension(filename: string): string {
+  const firstDot = filename.lastIndexOf('.');
+  if (firstDot === -1) { return ''; }
+  return filename.substr(firstDot);
+}

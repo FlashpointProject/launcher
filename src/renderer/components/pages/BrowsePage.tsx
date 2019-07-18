@@ -15,9 +15,8 @@ import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/in
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
 import GameManagerPlatform from '../../game/GameManagerPlatform';
-import { GameParser, generateGameOrderTitle } from '../../../shared/game/GameParser';
 import { uuid } from '../../uuid';
-import { formatDate, removeFileExtension } from '../../../shared/Util';
+import { formatDate } from '../../../shared/Util';
 import { SearchQuery } from '../../store/search';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
@@ -26,6 +25,7 @@ import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
+import { GameImageCollection } from '../../image/GameImageCollection';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback0 = Pick<BrowsePageState, 'orderedGames'|'orderedGamesArgs'>;
@@ -43,6 +43,8 @@ type OwnProps = {
   gameScale: number;
   /** Layout of the games. */
   gameLayout: BrowsePageLayout;
+  /** Collection to get game images from, and save game images to. */
+  gameImages: GameImageCollection;
   /** Currently selected game (if any). */
   selectedGame?: IGameInfo;
   /** Currently selected playlist (if any). */
@@ -223,7 +225,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   games={orderedGames}
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
-                  gameImages={this.props.central.gameImages}
+                  gameImages={this.props.gameImages}
                   noRowsRenderer={this.noRowsRenderer}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
@@ -243,7 +245,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   games={orderedGames}
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
-                  gameImages={this.props.central.gameImages}
+                  gameImages={this.props.gameImages}
                   noRowsRenderer={this.noRowsRenderer}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
@@ -267,7 +269,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             currentGame={this.state.currentGame}
             currentAddApps={this.state.currentAddApps}
             currentLibrary={currentLibrary}
-            gameImages={this.props.central.gameImages}
+            gameImages={this.props.gameImages}
             games={this.props.central.games}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
@@ -553,120 +555,29 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
   
   saveGameAndAddApps(): void {
+    const { selectedGame, central: { games } } = this.props;
+    const { currentGame, currentAddApps } = this.state;
+    if (!currentGame) { console.error(`Can't save game. "currentGame" is missing.`); return; }
+    // Get the current library
+    const library = this.getCurrentLibrary();
+    // Add or update game
     console.time('save');
-    const game = this.state.currentGame;
-    if (!game) { console.error(`Can't save game. "currentGame" is missing.`); return; }
-    //
-    const currentLibrary = this.getCurrentLibrary();
-    let platformPrefix = '';
-    if (currentLibrary && currentLibrary.prefix) {
-      platformPrefix = currentLibrary.prefix;
-    }
-    // Find the platform the game is in (or should be in, if it is not in one already)
-    const games = this.props.central.games;
-    let platform = games.getPlatformByName(removeFileExtension(game.filename)) ||
-                   games.getPlatformOfGameId(game.id) ||
-                   (game.platform && games.getPlatformByName(platformPrefix+game.platform)) ||
-                   games.getPlatformByName(platformPrefix+'Unknown Platform');
-    if (!platform) {
-      platform = new GameManagerPlatform(platformPrefix+'Unknown Platform.xml');
-      platform.collection = new GameCollection();
-      platform.data = { LaunchBox: {} };
-      games.addPlatform(platform);
-    }
-    // Update game's order title
-    game.orderTitle = generateGameOrderTitle(game.title);
-    // Update game's filename property
-    game.filename = platform.filename;
-    // Overwrite the game and additional applications with the changes made
-    platform.addOrUpdateGame(game);
-    // Override the additional applications
-    const addApps = GameCollection.findAdditionalApplicationsByGameId(games.collection, game.id);
-    updateAddApps.call(this, addApps, platform);
-    // Refresh games collection
-    games.refreshCollection();
+    games.addOrUpdateGame({
+      game: currentGame,
+      addApps: currentAddApps,
+      library: library,
+      saveToFile: true,
+    })
+    .then(() => { console.timeEnd('save'); });
     // If a new game was created, select the new game
-    if ((this.props.selectedGame && this.props.selectedGame.id) !== game.id) {
+    if ((selectedGame && selectedGame.id) !== currentGame.id) {
+      // Get the platform the game is added to or updated
+      const libraryPrefix = (library && library.prefix) ? library.prefix : '';
+      const platform = games.getPlatformOfGame(currentGame, libraryPrefix) ||
+                       games.createOrGetUnknownPlatform(libraryPrefix);
+      // Try selecting the new game
       if (!platform.collection) { throw new Error('Platform collection is missing.'); }
-      if (this.props.onSelectGame) { this.props.onSelectGame(platform.collection.findGame(game.id)); }
-    }
-    // Save changes to file
-    platform.saveToFile().then(() => { console.timeEnd('save'); });
-
-    // -- Functions --
-    function updateAddApps(this:  BrowsePage, selectedApps: IAdditionalApplicationInfo[], platform: GameManagerPlatform): void {
-      if (!platform.collection) { throw new Error('Platform does not have a collection.'); }
-      // 1. Save the changes made to add-apps
-      // 2. Save any new add-apps
-      // 3. Delete any removed add-apps
-      const editApps = this.state.currentAddApps;
-      if (!editApps) { throw new Error('editAddApps is missing'); }
-      if (!selectedApps) { throw new Error('selectedAddApps is missing'); }
-      // -- Categorize add-apps --
-      // Put all new add-apps in an array
-      const newAddApps: IAdditionalApplicationInfo[] = [];
-      for (let i = editApps.length - 1; i >= 0; i--) {
-        const editApp = editApps[i];
-        let found = false;
-        for (let j = selectedApps.length - 1; j >= 0; j--) {
-          const selApp = selectedApps[j];
-          if (editApp.id === selApp.id) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) { newAddApps.push(editApp); }
-      }
-      // Put all changed add-apps in an array
-      const changedAddApps: IAdditionalApplicationInfo[] = [];
-      for (let i = editApps.length - 1; i >= 0; i--) {
-        const editApp = editApps[i];
-        for (let j = selectedApps.length - 1; j >= 0; j--) {
-          const selApp = selectedApps[j];
-          if (editApp.id === selApp.id) {
-            changedAddApps.push(editApp);
-            break;
-          }
-        }
-      }
-      // Put all removes add-apps in an array
-      const removedAddApps: IAdditionalApplicationInfo[] = [];
-      for (let i = selectedApps.length - 1; i >= 0; i--) {
-        const selApp = selectedApps[i];
-        let found = false;
-        for (let j = editApps.length - 1; j >= 0; j--) {
-          const editApp = editApps[j];
-          if (editApp.id === selApp.id) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) { removedAddApps.push(selApp); }
-      }
-      // -- Update --
-      // Delete removed add-apps
-      for (let i = removedAddApps.length - 1; i >= 0; i--) {
-        const addApp = removedAddApps[i];
-        platform.removeAdditionalApplication(addApp.id);
-      }
-      // Update changed add-apps
-      for (let i = changedAddApps.length - 1; i >= 0; i--) {
-        const addApp = changedAddApps[i];
-        const oldAddApp = platform.collection.findAdditionalApplication(addApp.id);
-        if (!oldAddApp) { throw new Error('???'); }
-        const rawAddApp = platform.findRawAdditionalApplication(addApp.id);
-        if (!rawAddApp) { throw new Error('???'); }
-        Object.assign(oldAddApp, addApp);
-        Object.assign(rawAddApp, GameParser.reverseParseAdditionalApplication(oldAddApp));
-      }
-      // Add new add-apps
-      for (let i = newAddApps.length - 1; i >= 0; i--) {
-        const addApp = newAddApps[i];
-        platform.addAdditionalApplication(addApp);
-        const newRawAddApp = Object.assign({}, GameParser.emptyRawAdditionalApplication, 
-                                          GameParser.reverseParseAdditionalApplication(addApp));
-        platform.addRawAdditionalApplication(newRawAddApp);
-      }
+      if (this.props.onSelectGame) { this.props.onSelectGame(platform.collection.findGame(currentGame.id)); }
     }
   }
 

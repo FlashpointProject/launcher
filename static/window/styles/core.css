@@ -233,12 +233,16 @@ body {
   flex: 0 0 auto;
   cursor: pointer;
 }
+.input-dropdown--disabled .input-dropdown__input-field__button {
+  cursor: default;
+}
 .input-dropdown__content {
   width: 100%;
   display: block;
   position: absolute;
   overflow-x: hidden;
   overflow-y: auto;
+  z-index: 1; /* Kind of a hacky fix - makes the drop-down selection not appear underneath the drop-downs that come after this */
   /* Pimp */
   border: 1px solid;
 }
@@ -776,6 +780,118 @@ body {
   display: inline;
 }
 
+/* ------ Curate ------ */
+.curate-page {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+.curate-page__inner {
+  width: 40rem;
+  margin: 0 auto;
+}
+.curate-page__top {
+  margin: 0.25rem;
+}
+.curate-page__top > * {
+  margin-right: 0.25rem;
+}
+/* (Edit how other classes appear in this page) */
+.curate-page .input-dropdown__content {
+  max-height: 25rem;
+}
+.curate-page .input-field--multiline.input-field--edit {
+  height: 5em;
+}
+/* Curate Box */
+.curate-box {
+  margin: 1.5rem 0;
+  padding: 0.5rem;
+  border: 1px solid;
+  border-radius: 0.4rem;
+}
+.curate-box__image {
+  width: 100px;
+  height: 100px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+/* Curate Box Image Titles */
+.curate-box-image-titles {
+  display: flex;
+  text-align: center;
+}
+.curate-box-image-titles__title {
+  display: inline-block;
+  flex: 1 1 auto;
+}
+/* Curate Box Images */
+.curate-box-images {
+  display: flex;
+  height: 8rem;
+  margin: 0.35rem 0;
+}
+.curate-box-images__image {
+  flex: 1 1 auto;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+/* Curate Box Divider */
+.curate-box-divider {
+  margin: 0.4rem 0;
+  border-width: 1px;
+}
+/* Curate Box Row */
+.curate-box-row {
+  display: flex;
+  margin-bottom: 0.2rem;
+}
+.curate-box-row__title {
+  padding-right: 0.4em;
+  user-select: none;
+}
+.curate-box-row__content {
+  flex: 1 1;
+}
+/* Curate Box Add-App */
+.curate-box-add-app {
+  margin: 0.5rem 0;
+  padding: 0.4rem;
+}
+/* Curate Box Files */
+.curate-box-files {
+  margin-bottom: 0.2rem;
+}
+.curate-box-files__head {
+  user-select: none;
+}
+.curate-box-files__body {
+  max-height: 25rem;
+  overflow: auto;
+}
+/* Curate Box Warnings */
+.curate-box-warnings {
+  margin-bottom: 0.2rem;
+}
+.curate-box-warnings--empty {
+  display: none;
+}
+.curate-box-warnings__head {
+  user-select: none;
+}
+/* Curate Box Buttons */
+.curate-box-buttons {
+  text-align: right;
+}
+.curate-box-buttons__button {
+  margin: 0 0.2rem;
+}
+.curate-box-buttons__button:last-child {
+  margin-right: 0;
+}
+
 
 /* ------ Log ------ */
 .log-page {
@@ -928,7 +1044,6 @@ body {
 }
 .browse-right-sidebar__row--one-line .input-dropdown__content {
   max-height: 25rem;
-  z-index: 1; /* Kind of a hacky fix - makes the drop-down secntion not appear underneath the drop-downs that come after this */
 }
 .browse-right-sidebar__row--additional-applications-header > :not(:first-child) {
   float: right;

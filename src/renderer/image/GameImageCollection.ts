@@ -8,6 +8,7 @@ import { removeFileExtension } from '../../shared/Util';
 const ensureDir = promisify(fs.ensureDir);
 
 type PartialDict<T> = { [key: string]: T | undefined; };
+type GetCache = (folderName: string) => ImageFolderCache | undefined;
 
 export class GameImageCollection {
   private _flashpointPath: string;
@@ -21,6 +22,7 @@ export class GameImageCollection {
   public getScreenshotCache(folderName: string): ImageFolderCache|undefined {
     return this._screenshots[folderName.toLowerCase()];
   }
+
 
   public getThumbnailCache(folderName: string): ImageFolderCache|undefined {
     return this._thumbnails[folderName.toLowerCase()];
@@ -47,6 +49,50 @@ export class GameImageCollection {
   }
 
   /**
+   * Get a screenshot cache (synchronously).
+   * If it doesn't exist, create a new image folder and then get the cache (asynchronously).
+   * @param imageFolderName Name of the image folder the cache is in.
+   */
+  public getOrCreateScreenshotCache(imageFolderName: string): ImageFolderCache | Promise<ImageFolderCache> {
+    return this.getOrCreateCache(this.getScreenshotCache.bind(this), imageFolderName);
+  }
+
+  /**
+   * Get a thumbnail cache (synchronously).
+   * If it doesn't exist, create a new image folder and then get the cache (asynchronously).
+   * @param imageFolderName Name of the image folder the cache is in.
+   */
+  public getOrCreateThumbnailCache(imageFolderName: string): ImageFolderCache | Promise<ImageFolderCache> {
+    return this.getOrCreateCache(this.getThumbnailCache.bind(this), imageFolderName);
+  }
+
+  /**
+   * Try to get cache. If that fails, create a new image folder and return the cache from in there.
+   * Internal implementation of the "getOrCreate...Cache" functions.
+   * @param getCache Function that tried to get the cache.
+   * @param imageFolderName Name of the image folder the cache is in.
+   */
+  private getOrCreateCache(getCache: GetCache, imageFolderName: string): ImageFolderCache | Promise<ImageFolderCache> {
+    // Try getting the cache
+    const cache = getCache(imageFolderName);
+    if (cache) {
+      return cache;
+    } else {
+      // Create a new image folder and add it (caches are inside image folders)
+      return new Promise((resolve, reject) => {
+        this.createImageFolder(imageFolderName)
+        .then(() => {
+          this.addImageFolder(imageFolderName, true);
+          const cache = getCache(imageFolderName);
+          if (cache) { resolve(cache); }
+          else       { reject(new Error(`Failed to get cache after creating it (image folder: "${imageFolderName}").`)); }
+        })
+        .catch((error) => { reject(new Error(`Failed to create new image folder "${imageFolderName}".\n${error}`)); });
+      });
+    }
+  }
+
+  /**
    * Create image folder in the file system if it's missing
    * (This does not add or update the folders in the image cache)
    * @param folderName Name of folder
@@ -67,20 +113,26 @@ export class GameImageCollection {
   }
   
   /**
-   * Add an image folder to the image collection
-   * @param folderName Name of the folder
+   * Add an image folder to the image collection.
+   * @param folderName Name of the folder.
+   * @silentIfExists If it should silently abort the function if the folder already exists
+   *                 (otherwise an error is thrown).
    */
-  public addImageFolder(folderName: string): void {
+  public addImageFolder(folderName: string, silentIfExists: boolean = false): void {
     const lowerFolderName: string = folderName.toLowerCase();
-    if (this._thumbnails[lowerFolderName]) { throw new Error(`Image Folder with the same name has already been added (${folderName})`); }
+    if (!silentIfExists && (this._thumbnails[lowerFolderName] || this._screenshots[lowerFolderName])) {
+      throw new Error(`Image Folder with the same name has already been added (${folderName}).`);
+    }
     // Add thumbnail folder
     const thumbnailFolder = new ImageFolderCache();
     this._thumbnails[lowerFolderName] = thumbnailFolder;
-    thumbnailFolder.loadFilenames(getThumbnailFolderPath(folderName, this._flashpointPath)).catch(console.warn);
+    thumbnailFolder.loadFilenames(getThumbnailFolderPath(folderName, this._flashpointPath))
+    .catch(console.warn);
     // Add screenshot folder
     const screenshotFolder = new ImageFolderCache();
     this._screenshots[lowerFolderName] = screenshotFolder;
-    screenshotFolder.loadFilenames(getScreenshotFolderPath(folderName, this._flashpointPath)).catch(console.warn);
+    screenshotFolder.loadFilenames(getScreenshotFolderPath(folderName, this._flashpointPath))
+    .catch(console.warn);
   }
   
   /**
