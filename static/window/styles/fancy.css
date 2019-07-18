@@ -458,6 +458,10 @@ body {
 .curate-box-images__image--placeholder {
   cursor: default;
 }
+/* Curate Box Buttons */
+.curate-box-buttons__button--active:hover { /* ":hover" to get higher specificity */
+  background-color: var(--layout__warning-medium-color);
+}
 
 
 /* ------ Log ------ */

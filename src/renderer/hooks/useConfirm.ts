@@ -59,17 +59,14 @@ export function useConfirm(confirmLimit?: number, onConfirm?: () => void): Confi
   const limit = (confirmLimit === undefined) ? 1 : confirmLimit;
   // Confirm callback
   const confirm = useCallback(() => {
-    console.log('confirm');
     if (onConfirm) { onConfirm(); }
   }, [onConfirm]);
   // Reset callback
   const reset = useCallback(() => {
-    console.log('reset');
     dispatch({ type: 'reset' });
   }, [dispatch]);
   // Activate callback
   const activate = useCallback(() => {
-    console.log('activate');
     dispatch({ type: 'increment', limit, confirm });
   }, [dispatch, limit, confirm, reset]);
   // Return

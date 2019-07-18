@@ -18,6 +18,7 @@ import { GamePropSuggestions } from '../util/suggestions';
 import { CurationWarnings, CurateBoxWarnings } from './CurateBoxWarnings';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { importCuration, stringToBool } from '../curate/importCuration';
+import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 
 const fsStat = promisify(fs.stat);
 
@@ -388,10 +389,9 @@ export function CurateBox(props: CurateBoxProps) {
       <CurateBoxWarnings warnings={warnings} />
       {/* Buttons */}
       <div className='curate-box-buttons'>
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value='Remove'
-          onClick={onRemoveClick} />
+        <ConfirmElement
+          onConfirm={onRemoveClick}
+          children={renderRemoveButton} />
         <SimpleButton
           className='curate-box-buttons__button'
           value='Import'
@@ -400,6 +400,21 @@ export function CurateBox(props: CurateBoxProps) {
     </div>
   );
 }
+
+function renderRemoveButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+  return (
+    <SimpleButton
+      className={
+        'curate-box-buttons__button' +
+        ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
+      }
+      value='Remove'
+      title='Remove this curation (no changes will be made to any files)'
+      onClick={activate}
+      onMouseLeave={reset} />
+  );
+}
+
 
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
