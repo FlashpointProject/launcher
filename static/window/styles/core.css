@@ -867,6 +867,10 @@ body {
 .curate-box-files__head {
   user-select: none;
 }
+.curate-box-files__body {
+  max-height: 25rem;
+  overflow: auto;
+}
 /* Curate Box Warnings */
 .curate-box-warnings {
   margin-bottom: 0.2rem;

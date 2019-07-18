@@ -190,8 +190,15 @@ export function CurateBox(props: CurateBoxProps) {
   const warnings = useMemo(() => {
     const warns: CurationWarnings = {};
     if (props.curation) {
-      // Check HTTP
+      // Check if launch command uses HTTP
       warns.isNotHttp = !isHttp(props.curation.meta.launchCommand || '');
+      // Validate release date
+      const releaseDate = props.curation.meta.releaseDate;
+      if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
+      // Check for unused values (with suggestions)
+      warns.unusedGenre = !isValueSuggested(props, 'genre');
+      warns.unusedPlatform = !isValueSuggested(props, 'platform');
+      warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
     }
     return warns;
   }, [props.curation && props.curation.meta]);
@@ -252,6 +259,7 @@ export function CurateBox(props: CurateBoxProps) {
           onChange={onGenreChange}
           items={props.suggestions && props.suggestions.genre || []}
           onItemSelect={onGenreItemSelect}
+          className={warnings.unusedGenre ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Play Mode:'>
@@ -280,6 +288,7 @@ export function CurateBox(props: CurateBoxProps) {
           text={props.curation && props.curation.meta.releaseDate || ''}
           placeholder='No Release Date'
           onChange={onReleaseDateChange}
+          className={warnings.releaseDateInvalid ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Language:'>
@@ -303,6 +312,7 @@ export function CurateBox(props: CurateBoxProps) {
           onChange={onPlatformChange}
           items={props.suggestions && props.suggestions.platform || []}
           onItemSelect={onPlatformItemSelect}
+          className={warnings.unusedPlatform ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Application Path:'>
@@ -312,6 +322,7 @@ export function CurateBox(props: CurateBoxProps) {
           onChange={onApplicationPathChange}
           items={props.suggestions && props.suggestions.applicationPath || []}
           onItemSelect={onApplicationPathItemSelect}
+          className={warnings.unusedApplicationPath ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title='Launch Command:'>
@@ -368,7 +379,7 @@ export function CurateBox(props: CurateBoxProps) {
             </label>
           ) : undefined}
         </div>
-        <pre className='curate-box-files__body'>
+        <pre className='curate-box-files__body simple-scroll'>
           {contentFilenames}
         </pre>
       </div>
@@ -442,6 +453,20 @@ function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | und
   }, [dispatch, key]);
 }
 
+/**
+ * Check if a the value of a field is in the suggestions for that field.
+ * @param props Properties of the CurateBox.
+ * @param key Key of the field to check.
+ */
+function isValueSuggested<T extends keyof Partial<GamePropSuggestions>>(props: CurateBoxProps, key: T & string): boolean {
+  // Get the values used
+  // (the dumb compiler doesn't understand that this is a string >:((( )
+  const value = (props.curation && props.curation.meta[key] || '') as string;
+  const suggestions = props.suggestions && props.suggestions[key];
+  // Check if the value is suggested
+  return suggestions ? (suggestions.indexOf(value) >= 0) : false;
+}
+
 /** Data about a file that collided with a content file from a curation. */
 type ContentCollision = {
   fileName: string;
@@ -499,4 +524,17 @@ function boolToString(bool: boolean): string {
 function isHttp(url: string): boolean {
   try { return new URL(url).protocol.toLowerCase() === 'http:'; }
   catch(e) { return false; }
+}
+
+/**
+ * Check of a string is a valid date.
+ * Format: "YYYY(-M(M)(-D(D)))"
+ * Explanation: "M" and "D" can be one or two digits long.
+ *              "M" must be between 1 and 12, and "D" must be between 1 and 31.
+ * Examples: "2007", "2010-11", "2019-07-17"
+ * Source: https://stackoverflow.com/questions/22061723/regex-date-validation-for-yyyy-mm-dd (but slightly modified)
+ * @param str String to check.
+ */
+function isValidDate(str: string): boolean {
+  return (/^\d{4}(\-(0?[1-9]|1[012])(\-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
 }

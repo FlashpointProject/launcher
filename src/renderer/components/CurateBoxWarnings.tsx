@@ -10,6 +10,14 @@ export type CurateBoxWarningsProps = {
 export type CurationWarnings = {
   /** If the launch command is not a url with the "http" protocol. */
   isNotHttp?: boolean;
+  /** If the release date is invalid (incorrectly formatted). */
+  releaseDateInvalid?: boolean;
+  /** If the application path value isn't used by any other game. */
+  unusedApplicationPath?: boolean;
+  /** If the genre value isn't used by any other game. */
+  unusedGenre?: boolean;
+  /** If the platform value isn't used by any other game. */
+  unusedPlatform?: boolean;
 };
 
 /** The part of a Curation Box that displays all the warnings (if any). */
@@ -26,7 +34,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
         <span
           key={key}
           className='curate-box-warnings__entry'>
-          {`${key} - ${warningDescriptions[key as keyof CurationWarnings]}\n`}
+          {`- ${warningDescriptions[key as keyof CurationWarnings]}\n`}
         </span>
       ) : undefined)
   ), [warnings]);
@@ -65,5 +73,9 @@ type WarningDescriptionContainer = {
 };
 
 const warningDescriptions: WarningDescriptionContainer = {
-  isNotHttp: 'The "Launch Command" is not a URL using the HTTP protocol.',
+  isNotHttp: '"Launch Command" is not a URL using the HTTP protocol.',
+  releaseDateInvalid: '"Release Date" must follow YYYY-MM-DD (month and day are optional).',
+  unusedApplicationPath: '"Application Path" has an unused value. Make sure it\'s spelled correctly!',
+  unusedGenre: '"Genre" has an unused value. Make sure it\'s spelled correctly!',
+  unusedPlatform: '"Platform" has an unused value. Make sure it\'s spelled correctly!',
 }
