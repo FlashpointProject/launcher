@@ -262,6 +262,13 @@ export class GameLauncher {
   }
 
   private static launch(command: string, opts: ExecOptions): ChildProcess {
+    // Wine - Add packaged wineprefix to env variables
+    if(command.startsWith(`"wine"`)){
+      var path = require('path');
+      var prefix = path.join(window.External.config.fullFlashpointPath, 'FPSoftware/wineprefix');
+      opts.env = Object.assign(opts.env, {'WINEPREFIX': prefix});
+    }
+    
     // Run
     const proc = exec(command, opts);
     // Log for debugging purposes
