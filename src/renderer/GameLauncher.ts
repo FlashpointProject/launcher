@@ -266,7 +266,7 @@ export class GameLauncher {
     if(command.startsWith(`"wine"`)){
       var path = require('path');
       var prefix = path.join(window.External.config.fullFlashpointPath, 'FPSoftware/wineprefix');
-      opts.env = Object.assign(opts.env, {'WINEPREFIX': prefix});
+      opts.env = Object.assign(opts.env, {'WINEPREFIX': prefix, "WINEDEBUG": "-all"});
     }
     
     // Run
