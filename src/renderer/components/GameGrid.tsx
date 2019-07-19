@@ -62,7 +62,7 @@ export class GameGrid extends React.Component<GameGridProps> {
     const games = this.props.games || [];
     return (
       <GameItemContainer
-        className='game-browser__center__inner'
+        className='game-browser__center-inner'
         onGameSelect={this.onGameSelect}
         onGameLaunch={this.onGameLaunch}
         onGameContextMenu={this.onGameContextMenu}

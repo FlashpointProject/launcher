@@ -239,7 +239,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   gridRef={this.gameGridOrListRefFunc} />
               );
             } else {
-              const height: number = calcScale(120, this.props.gameScale);
+              const height: number = calcScale(30, this.props.gameScale);
               return (
                 <GameList
                   games={orderedGames}

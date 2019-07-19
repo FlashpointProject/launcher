@@ -6,10 +6,6 @@ import { getPlatformIconPath } from '../Util';
 export type GameListItemProps = ListRowProps & {
   /** Game to display. */
   game: IGameInfo;
-  /** Path to the game's thumbnail. */
-  thumbnail: string;
-  /** Height of the row (in pixels) */
-  height: number;
   /** If the row can be dragged (defaults to false). */
   isDraggable?: boolean;
   /** If the row is selected. */
@@ -18,62 +14,71 @@ export type GameListItemProps = ListRowProps & {
   isDragged: boolean;
 };
 
-/** Displays a single game. Meant to be rendered inside a list. */
-export class GameListItem extends React.Component<GameListItemProps> {
-  render() {
-    const game = this.props.game;
-    const title: string = game.title || '';
-    const size: string = (this.props.height || 0)+'px';
-    const platformIcon = getPlatformIconPath(game.platform);
+export function GameListItem(props: GameListItemProps) {
+  const { game, isDraggable, isSelected, isDragged, index, style } = props;
+  // Get the platform icon path
+  const platformIcon = React.useMemo(() => (
+    getPlatformIconPath(game.platform)
+  ), [game.platform]);
+  // Pick class names
+  const className = React.useMemo(() => {
+    let className: string = 'game-list-item';
+    if (index % 2 === 0) { className += ' game-list-item--even';     }
+    if (isSelected)      { className += ' game-list-item--selected'; }
+    if (isDragged)       { className += ' game-list-item--dragged';  }
+    return className;
+  }, [index, isSelected, isDragged]);
+  // Memoize render
+  return React.useMemo(() => {
     // Set element attributes
     const attributes: any = {};
     attributes[GameListItem.idAttribute] = game.id;
-    // Pick class names
-    let className: string = 'game-list-item';
-    if (this.props.index % 2 === 0) { className += ' game-list-item--even';     }
-    if (this.props.isSelected)      { className += ' game-list-item--selected'; }
-    if (this.props.isDragged)       { className += ' game-list-item--dragged';  }
     // Render
     return (
       <li
-        style={this.props.style}
+        style={style}
         className={className} 
-        draggable={this.props.isDraggable}
+        draggable={isDraggable}
         { ...attributes }>
         <div
-          className='game-list-item__thumb'
-          style={{
-            backgroundImage: `url("${this.props.thumbnail}")`,
-            width: size,
-            height: size,
-          }} />
+          className='game-list-item__icon'
+          style={{ backgroundImage: `url("${platformIcon}")` }} />
         <div className='game-list-item__right'>
-          <p
-            className='game-list-item__right__title'
-            title={title}>
-            {title}
-          </p>
-          <p className='game-list-item__right__genre'>{game.genre}</p>
-          <div className='game-list-item__right__icons'>
-            {(platformIcon) ? (
-              <div
-                className='game-list-item__right__icons__icon'
-                style={{ backgroundImage: `url("${platformIcon}")` }} />
-            ) : undefined }
+          <div
+            className='game-list-item__field game-list-item__field--title'
+            title={game.title}>
+            {game.title}
+          </div>
+          <div
+            className='game-list-item__field game-list-item__field--genre'
+            title={game.genre}>
+            {game.genre}
+          </div>
+          <div
+            className='game-list-item__field game-list-item__field--developer'
+            title={game.developer}>
+            {game.developer}
+          </div>
+          <div
+            className='game-list-item__field game-list-item__field--publisher'
+            title={game.publisher}>
+            {game.publisher}
           </div>
         </div>
       </li>
     );
-  }
+  }, [style, className, isDraggable, game.id, game.genre, game.title, platformIcon]);
+}
 
+export namespace GameListItem {
   /** ID of the attribute used to store the game's id. */
-  public static idAttribute: string = 'data-game-id';
+  export const idAttribute: string = 'data-game-id';
   
   /**
    * Get the id of the game displayed in a GameListItem element (or throw an error if it fails).
    * @param element GameListItem element.
    */
-  public static getId(element: Element): string {
+  export function getId(element: Element): string {
     const value = element.getAttribute(GameListItem.idAttribute);
     if (typeof value !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
     return value;
@@ -83,10 +88,10 @@ export class GameListItem extends React.Component<GameListItemProps> {
    * Check if an element is the top element of GameListItem or not.
    * @param element Potential element to check.
    */
-  public static isElement(element: Element | null | undefined): boolean {
+  export function isElement(element: Element | null | undefined): boolean {
     if (element) {
       const value = element.getAttribute(GameListItem.idAttribute);
       return (typeof value === 'string');
     } else { return false; }
   }
-}
+};

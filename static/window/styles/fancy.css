@@ -583,6 +583,11 @@ body {
 .game-list-item__thumb {
   image-rendering: var(--layout__game-item-thumb-image-rendering);
 }
+/* GameList Header */
+.game-list-header-column__divider,
+.game-list-header__scroll-fill {
+  background: var(--layout__browse-sidebar-divider-background);
+}
 
 
 /* GameGrid */
