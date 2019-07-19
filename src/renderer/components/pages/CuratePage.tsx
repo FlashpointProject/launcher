@@ -4,11 +4,12 @@ import { SimpleButton } from '../SimpleButton';
 import { CurateBox } from '../CurateBox';
 import { indexCurationArchive, indexCurationFolder, CurationIndex } from '../../curate/indexCuration';
 import { uuid } from '../../uuid';
-import { CurationContext, createEditCuration, CurationSource, CurationAction } from '../../context/CurationContext';
+import { CurationContext, createEditCuration, CurationSource, CurationAction, EditCurationMeta } from '../../context/CurationContext';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getSuggestions } from '../../util/suggestions';
 import { parseCurationMeta } from '../../curate/parse';
+import { getDefaultMetaValues, GameMetaDefaults } from '../../curate/defaultValues';
 
 export type CuratePageProps = {
   /** Game manager to add imported curations to. */
@@ -20,6 +21,10 @@ export type CuratePageProps = {
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
   const [state, dispatch] = useContext(CurationContext.context);
+  // Get default curation game meta values
+  const defaultGameMetaValues = useMemo(() => {
+    return props.games ? getDefaultMetaValues(props.games.collection.games) : undefined;
+  }, [props.games]);
   // Load Curation Archive Callback
   const onLoadCurationArchiveClick = useCallback(async () => {
     // Show dialog
@@ -34,6 +39,7 @@ export function CuratePage(props: CuratePageProps) {
         // Read and index the archive
         const curationIndex = await indexCurationArchive(source);
         // Add curation index
+        setGameMetaDefaults(curationIndex.meta.game, defaultGameMetaValues);
         addCurationIndex(source, curationIndex, dispatch);
       }
     }
@@ -52,7 +58,8 @@ export function CuratePage(props: CuratePageProps) {
           indexCurationFolder(source)
           // Add curation index
           .then(curationIndex => {
-            addCurationIndex(source, curationIndex, dispatch)
+            setGameMetaDefaults(curationIndex.meta.game, defaultGameMetaValues);
+            addCurationIndex(source, curationIndex, dispatch);
           })
         ))
       );
@@ -162,5 +169,24 @@ async function addCurationIndex(source: string, curation: CurationIndex, dispatc
         })
       }
     });
+  }
+}
+
+/**
+ * Set the default values of a game's meta (if they are missing).
+ * @param meta Meta to set values of.
+ * @param defaultGameMetaValues Container of default values.
+ */
+function setGameMetaDefaults(meta: EditCurationMeta, defaultGameMetaValues?: GameMetaDefaults): void {
+  if (defaultGameMetaValues) {
+    const { defaultAppPaths, defaultPlatform } = defaultGameMetaValues;
+    // Set platform
+    if (!meta.platform) {
+      meta.platform = defaultPlatform;
+    }
+    // Set application path
+    if (!meta.applicationPath) {
+      meta.applicationPath = defaultAppPaths[meta.platform || ''] || '';
+    }    
   }
 }
