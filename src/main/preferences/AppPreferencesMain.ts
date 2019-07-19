@@ -28,7 +28,8 @@ export class AppPreferencesMain extends EventEmitter {
   }
 
   /** Load the data from the file */
-  public async load() {
+  public async load(installed: boolean) {
+    AppPreferencesFile.setFilePath(installed);
     this._data = await AppPreferencesFile.readOrCreate(this.log.bind(this));
     console.log('Preferences:', this._data);
   }

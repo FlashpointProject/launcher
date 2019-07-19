@@ -32,4 +32,6 @@ export interface IAppConfigApiFetchData {
   data: IAppConfigData;
   /** Full path to the flashpoint folder */
   fullFlashpointPath: string;
+  /** Launcher installed (Read only directory) */
+  installed: boolean;
 }

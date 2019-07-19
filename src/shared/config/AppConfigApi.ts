@@ -13,6 +13,8 @@ export class AppConfigApi extends EventEmitter {
   private _fullFlashpointPath?: string;
   /** Full path to the json folder */
   private _fullJsonFolderPath?: string;
+  /** Launcher installed (Read only directory) */
+  private _installed?: boolean;
 
   public get data(): IAppConfigData {
     if (!this._dataCache) { throw new Error('Yo must not access AppConfigApi.data before it has loaded'); }
@@ -29,6 +31,11 @@ export class AppConfigApi extends EventEmitter {
     return this._fullJsonFolderPath;
   }
 
+  public get installed() : boolean {
+    if (this._installed === undefined) { throw new Error('Yo must not access AppConfigApi.data before it has loaded'); }
+    return this._installed;
+  }
+
   /** Initialize (this should be called after construction, and before accessing the data object) */
   public async initialize() {
     return new Promise(async () => {
@@ -39,6 +46,7 @@ export class AppConfigApi extends EventEmitter {
       this._dataCache = deepCopy<IAppConfigData>(data.data);
       this._fullFlashpointPath = data.fullFlashpointPath;
       this._fullJsonFolderPath = path.posix.join(data.fullFlashpointPath, data.data.jsonFolderPath);
+      this._installed = data.installed;
       // Done
       this._isInit = true; // Update Flag
       this.emit('init'); // Emit event

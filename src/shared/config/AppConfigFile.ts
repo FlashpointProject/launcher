@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../Util';
 import { ObjectParser } from '../utils/ObjectParser';
 import { IAppConfigData } from './interfaces';
+import * as path from 'path';
+import { app } from 'electron';
 
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;
@@ -9,9 +11,18 @@ interface IConfigDataDefaults {
 
 export class AppConfig {
   /** Path to the config file */
-  private static filePath: string = './config.json';
+  private static filePath: string;
   /** Encoding used by config file */
   private static fileEncoding: string = 'utf8';
+
+  /** Sets path to config.json based on install state */
+  public static setFilePath(installed: boolean) {
+    if (installed) {
+      AppConfig.filePath = path.join(app.getPath('appData'), 'flashpoint-launcher', 'config.json');
+    } else { 
+      AppConfig.filePath = './config.json'
+    }
+  }
 
   /** Read and parse the config file asynchronously */
   public static readConfigFile(onError?: (error: string) => void): Promise<IAppConfigData> {

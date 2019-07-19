@@ -1,5 +1,6 @@
 import { app, ipcMain, session, shell } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import checkSanity from '../shared/checkSanity';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
 import { AppConfig } from '../shared/config/AppConfigFile';
@@ -10,12 +11,14 @@ import BackgroundServices from './background/BackgroundServices';
 import MainWindow from './MainWindow';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 import * as Util from './Util';
+import { fstat } from 'fs-extra';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
   private _backgroundServices?: BackgroundServices;
   private _config?: IAppConfigData;
   private _preferences: AppPreferencesMain = new AppPreferencesMain();
+  private _installed: boolean = fs.existsSync('./.installed');
   private _log: LogMainApi = new LogMainApi(this.sendToMainWindowRenderer.bind(this));
 
   public get config(): IAppConfigData {
@@ -25,6 +28,10 @@ export class Main {
 
   public get preferences(): AppPreferencesMain {
     return this._preferences;
+  }
+
+  public get installed(): boolean {
+    return this._installed;
   }
 
   constructor() {
@@ -40,7 +47,7 @@ export class Main {
     this._preferences.on('log', this.pushLogData.bind(this));
     // Load config and preferences
     this.loadConfig()
-    .then(async () => { await this._preferences.load(); })
+    .then(async () => { await this._preferences.load(this.installed); })
     .then(async () => {
       // Check if we are ready to launch or not.
       // @TODO Launch the setup wizard when a check failed.
@@ -117,6 +124,8 @@ export class Main {
     let error: Error|undefined;
     let data: IAppConfigData|undefined;
     const onError = (e: string) => this.pushLogData({ source: 'Config', content: e });
+    
+    AppConfig.setFilePath(this.installed);
     try {
       data = await AppConfig.readConfigFile(onError);
     } catch(e) { error = e; }
@@ -137,6 +146,7 @@ export class Main {
     const data: IAppConfigApiFetchData = {
       data: this.config,
       fullFlashpointPath: path.resolve(this.config.flashpointPath),
+      installed: this.installed
     };
     event.returnValue = data;
   }

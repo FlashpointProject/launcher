@@ -2,13 +2,24 @@ import * as fs from 'fs';
 import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
 import { defaultPreferencesData, overwritePreferenceData } from '../../shared/preferences/util';
 import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../../shared/Util';
+import * as path from 'path';
+import { app } from 'electron';
 
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export class AppPreferencesFile {
   /** Path to the preferences file */
-  private static filePath: string = './preferences.json';
+  private static filePath: string;
   /** Encoding used by preferences file */
   private static fileEncoding: string = 'utf8';
+
+  /** Sets path to preferences.json based on install state */
+  public static setFilePath(installed: boolean) {
+    if (installed) {
+      AppPreferencesFile.filePath = path.join(app.getPath('appData'), 'flashpoint-launcher', 'preferences.json');
+    } else { 
+      AppPreferencesFile.filePath = './preferences.json'
+    }
+  }
 
   /** Read the file, or create a new one using the defaults, and return the preferences */
   public static async readOrCreate(onError?: (error: string) => void): Promise<IAppPreferencesData> {

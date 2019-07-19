@@ -17,7 +17,19 @@
     "release:linux": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:linux\"",
     "release:win32": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:win32\"",
     "release:darwin": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:darwin\"",
-    "release:all": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:all\""
+    "release:all": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:all\"",
+
+    "build:static": "npx cross-env STATIC_INSTALL=1 npx gulp build",
+    "pack:static": "npx cross-env STATIC_INSTALL=1 npx gulp pack",
+    "pack:linux:static": "npx cross-env STATIC_INSTALL=1 PACK_PLATFORM=linux PACK_ARCH=x64 npx gulp pack",
+    "pack:win32:static": "npx cross-env STATIC_INSTALL=1 PACK_PLATFORM=win32 PACK_ARCH=ia32 npx gulp pack",
+    "pack:darwin:static": "npx cross-env STATIC_INSTALL=1 PACK_PLATFORM=darwin PACK_ARCH=x64 npx gulp pack",
+    "pack:all:static": "npx cross-env STATIC_INSTALL=1 PACK_PLATFORM=all PACK_ARCH=all npx gulp pack",
+    "release:static": "npx cross-env-shell STATIC_INSTALL=1 NODE_ENV=production \"npm run build && npm run pack\"",
+    "release:linux:static": "npx cross-env-shell STATIC_INSTALL=1 NODE_ENV=production \"npm run build && npm run pack:linux\"",
+    "release:win32:static": "npx cross-env-shell STATIC_INSTALL=1 NODE_ENV=production \"npm run build && npm run pack:win32\"",
+    "release:darwin:static": "npx cross-env-shell STATIC_INSTALL=1 NODE_ENV=production \"npm run build && npm run pack:darwin\"",
+    "release:all:static": "npx cross-env-shell STATIC_INSTALL=1 NODE_ENV=production \"npm run build && npm run pack:all\""
   },
   "author": "Jesper Gustafsson",
   "license": "MIT",
