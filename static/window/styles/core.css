@@ -1205,8 +1205,10 @@ body {
 
 /* GameList Wrapper */
 .game-list-wrapper {
-  display: contents;
   /* --height | Height of list items (in pixels) */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 /* GameList */
 .game-list {}
