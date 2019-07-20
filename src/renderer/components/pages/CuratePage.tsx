@@ -10,6 +10,8 @@ import { GameImageCollection } from '../../image/GameImageCollection';
 import { getSuggestions } from '../../util/suggestions';
 import { parseCurationMeta } from '../../curate/parse';
 import { getDefaultMetaValues, GameMetaDefaults } from '../../curate/defaultValues';
+import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
+import { importCuration } from '../../curate/importCuration';
 
 export type CuratePageProps = {
   /** Game manager to add imported curations to. */
@@ -25,6 +27,59 @@ export function CuratePage(props: CuratePageProps) {
   const defaultGameMetaValues = useMemo(() => {
     return props.games ? getDefaultMetaValues(props.games.collection.games) : undefined;
   }, [props.games]);
+  // Import All Curations Callback
+  const onImportAllClick = useCallback(async () => {
+    const { games, gameImages } = props;
+    if (games && gameImages && state.curations.length > 0) {
+      console.log(`Starting "Import All"... (${state.curations.length} curations)`);
+      // Lock all curations
+      dispatch({
+        type: 'change-curation-lock-all',
+        payload: { lock: true },
+      });
+      // Import all curations, one at a time
+      (async () => {
+        let success = 0;
+        for (let curation of state.curations) {
+          // Log status
+          console.log(`Importing... (id: ${curation.key})`);
+          // Try importing curation
+          try {
+            // Import curation (and wait for it to complete)
+            await importCuration(curation, games, gameImages, true);
+            // Increment success counter
+            success += 1;
+            // Log status
+            console.log(`Import SUCCESSFUL! (id: ${curation.key})`);
+            // Remove the curation
+            dispatch({
+              type: 'remove-curation',
+              payload: { key: curation.key }
+            });         
+          } catch(error) {
+            // Log error
+            console.log(`Import FAILED! (id: ${curation.key})`, error);
+            // Unlock the curation
+            dispatch({
+              type: 'change-curation-lock',
+              payload: {
+                key: curation.key,
+                lock: false,
+              },
+            });
+          }
+        }
+        // Log state
+        const total = state.curations.length;
+        console.log(
+          '"Import All" complete!\n'+
+          `  Total:   ${total}\n`+
+          `  Success: ${success} (${100 * (success / total)}%)\n`+
+          `  Failed:  ${total - success}`
+        );
+      })();
+    }
+  }, [dispatch, state.curations, props.games, props.gameImages]);
   // Load Curation Archive Callback
   const onLoadCurationArchiveClick = useCallback(async () => {
     // Show dialog
@@ -120,28 +175,46 @@ export function CuratePage(props: CuratePageProps) {
     ));
   }, [state.curations, props.games, suggestions]);
   // Render
-  return (
+  return React.useMemo(() => (
     <div className='curate-page simple-scroll'>
       <div className='curate-page__inner'>
         {/* Load buttons */}
-        <div className='curate-page__top'>
-          <SimpleButton
-            value='Load Archive'
-            title='Load one or more Curation archives.'
-            onClick={onLoadCurationArchiveClick} />
-          <SimpleButton
-            value='Load Folder'
-            title='Load one or more Curation folders.'
-            onClick={onLoadCurationFolderClick} />
-          <SimpleButton
-            value='Load Meta'
-            title='Load one or more Curation meta files.'
-            onClick={onLoadMetaClick} />
+        <div className='curate-page-top'>
+          <div className='curate-page-top__left'>
+            <ConfirmElement
+              onConfirm={onImportAllClick}
+              children={renderImportAllButton} />
+          </div>
+          <div className='curate-page-top__right'>
+            <SimpleButton
+              value='Load Meta'
+              title='Load one or more Curation meta files.'
+              onClick={onLoadMetaClick} />
+            <SimpleButton
+              value='Load Archive'
+              title='Load one or more Curation archives.'
+              onClick={onLoadCurationArchiveClick} />
+            <SimpleButton
+              value='Load Folder'
+              title='Load one or more Curation folders.'
+              onClick={onLoadCurationFolderClick} />
+          </div>
         </div>
         {/* Curation(s) */}
         { curateBoxes }
       </div>
     </div>
+  ), [curateBoxes, onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick]);
+}
+
+function renderImportAllButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+  return (
+    <SimpleButton
+      className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
+      value='Import All'
+      title='Import all curations that are currently loaded.'
+      onClick={activate}
+      onMouseLeave={reset} />
   );
 }
 

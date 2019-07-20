@@ -790,18 +790,32 @@ body {
   width: 40rem;
   margin: 0 auto;
 }
-.curate-page__top {
-  margin: 0.25rem;
-}
-.curate-page__top > * {
-  margin-right: 0.25rem;
-}
 /* (Edit how other classes appear in this page) */
 .curate-page .input-dropdown__content {
   max-height: 25rem;
 }
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;
+}
+/* Curate Page Top */
+.curate-page-top {
+  display: flex;
+  margin-top: 0.5rem;
+  padding: 0.25rem;
+  /* Border */
+  border-radius: 0.2em;
+  border: 1px solid;
+}
+.curate-page-top__left {
+  flex: 1 0;
+  white-space: nowrap;
+}
+.curate-page-top__right {
+  flex: 0 0;
+  white-space: nowrap;
+}
+.curate-page-top__right > * {
+  margin-left: 0.5rem;
 }
 /* Curate Box */
 .curate-box {

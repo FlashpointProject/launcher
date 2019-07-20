@@ -23,10 +23,11 @@ const copyFile = promisify(fs.copyFile);
  * @param curation Curation to import.
  * @param games Games manager to add the newly created game to.
  * @param gameImages Image collection to add the game images to.
+ * @param log If the status should be logged to the console (for debugging purposes).
  * @returns A promise that resolves when the import is complete.
  */
 export async function importCuration(
-  curation: EditCuration, games: GameManager, gameImages: GameImageCollection
+  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, log: boolean = false
 ): Promise<void> {
   // @TODO Add support for selecting what library to save the game to
   const libraryPrefix = '';
@@ -40,19 +41,22 @@ export async function importCuration(
   );
   // Copy/extract content and image files
   await Promise.all([
-    games.addOrUpdateGame({ game, addApps, saveToFile: true }),
+    games.addOrUpdateGame({ game, addApps, saveToFile: true })
+    .then(() => { if (log) { logMsg('Meta Added', curation); } }),
     // Copy Thumbnail
     (async () => {
       const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
       await importGameImage(curation.thumbnail, thumbnailCache, game)
       .then(() => { thumbnailCache.refresh(); });
-    })(),
+    })()
+    .then(() => { if (log) { logMsg('Thumbnail Copied', curation); } }),
     // Copy Screenshot
     (async () => {
       const screenshotCache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
       await importGameImage(curation.screenshot, screenshotCache, game)
       .then(() => { screenshotCache.refresh(); });
-    })(),
+    })()
+    .then(() => { if (log) { logMsg('Screenshot Copied', curation); } }),
     // Copy content files
     (async () => {
       switch (curation.sourceType) {
@@ -101,8 +105,13 @@ export async function importCuration(
           );
           break;
       }
-    })(),
+    })()
+    .then(() => { if (log) { logMsg('Content Copied', curation); } }),
   ]);
+}
+
+function logMsg(text: string, curation: EditCuration): void {
+  console.log(`- ${text}\n  (id: ${curation.key})`);
 }
 
 /**
