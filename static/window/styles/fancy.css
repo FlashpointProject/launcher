@@ -589,9 +589,15 @@ body {
   image-rendering: var(--layout__game-item-thumb-image-rendering);
 }
 /* GameList Header */
-.game-list-header-column__divider,
-.game-list-header__scroll-fill {
+.game-list-header-column__divider {
   background: var(--layout__browse-sidebar-divider-background);
+}
+.game-list-header__scroll-fill {
+  background: linear-gradient(to left, var(--layout__tertiary-background), #00000000);
+}
+/* GameList Header Column */
+.game-list-header-column--icon {
+  background: linear-gradient(to right, var(--layout__tertiary-background), #00000000);
 }
 
 
