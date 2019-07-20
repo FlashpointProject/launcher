@@ -6,6 +6,7 @@ import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { findElementAncestor } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
+import { GameListHeader } from './GameListHeader';
 
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -55,56 +56,60 @@ export class GameList extends React.Component<GameListProps> {
     const games = this.props.games || [];
     // Render
     return (
-      <GameItemContainer
-        className='game-browser__center__inner'
-        onGameSelect={this.onGameSelect}
-        onGameLaunch={this.onGameLaunch}
-        onGameContextMenu={this.onGameContextMenu}
-        onGameDragStart={this.onGameDragStart}
-        onGameDragEnd={this.onGameDragEnd}
-        findGameId={this.findGameId}
-        realRef={this._wrapper}
-        onKeyPress={this.onKeyPress}>
-        <AutoSizer>
-          {({ width, height }) => {
-            // Calculate column and row of selected item
-            const rowCount = games.length;
-            let scrollToIndex: number = -1;
-            if (this.props.selectedGame) {
-              scrollToIndex = games.indexOf(this.props.selectedGame);
-            }
-            return (
-              <ArrowKeyStepper
-                onScrollToChange={this.onScrollToChange}
-                mode='cells'
-                isControlled={true}
-                columnCount={1}
-                rowCount={rowCount}
-                scrollToRow={scrollToIndex}>
-                {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
-                  <List
-                    className='game-list simple-scroll'
-                    width={width}
-                    height={height}
-                    rowHeight={this.props.rowHeight}
-                    rowCount={rowCount}
-                    overscanRowCount={15}
-                    noRowsRenderer={this.props.noRowsRenderer}
-                    rowRenderer={this.rowRenderer}
-                    // ArrowKeyStepper props
-                    scrollToIndex={scrollToRow}
-                    onSectionRendered={onSectionRendered}
-                    // Pass-through props (they have no direct effect on the list)
-                    // (If any property is changed the list is re-rendered, even these)
-                    orderBy={this.props.orderBy}
-                    orderReverse={this.props.orderReverse}
-                    />
-                )}
-              </ArrowKeyStepper>
-            );
-          }}
-        </AutoSizer>
-      </GameItemContainer>
+      <div
+        className='game-list-wrapper'
+        ref={this._wrapper}>
+        <GameListHeader />
+        <GameItemContainer
+          className='game-browser__center-inner'
+          onGameSelect={this.onGameSelect}
+          onGameLaunch={this.onGameLaunch}
+          onGameContextMenu={this.onGameContextMenu}
+          onGameDragStart={this.onGameDragStart}
+          onGameDragEnd={this.onGameDragEnd}
+          findGameId={this.findGameId}
+          onKeyPress={this.onKeyPress}>
+          <AutoSizer>
+            {({ width, height }) => {
+              // Calculate column and row of selected item
+              const rowCount = games.length;
+              let scrollToIndex: number = -1;
+              if (this.props.selectedGame) {
+                scrollToIndex = games.indexOf(this.props.selectedGame);
+              }
+              return (
+                <ArrowKeyStepper
+                  onScrollToChange={this.onScrollToChange}
+                  mode='cells'
+                  isControlled={true}
+                  columnCount={1}
+                  rowCount={rowCount}
+                  scrollToRow={scrollToIndex}>
+                  {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
+                    <List
+                      className='game-list simple-scroll'
+                      width={width}
+                      height={height}
+                      rowHeight={this.props.rowHeight}
+                      rowCount={rowCount}
+                      overscanRowCount={15}
+                      noRowsRenderer={this.props.noRowsRenderer}
+                      rowRenderer={this.rowRenderer}
+                      // ArrowKeyStepper props
+                      scrollToIndex={scrollToRow}
+                      onSectionRendered={onSectionRendered}
+                      // Pass-through props (they have no direct effect on the list)
+                      // (If any property is changed the list is re-rendered, even these)
+                      orderBy={this.props.orderBy}
+                      orderReverse={this.props.orderReverse}
+                      />
+                  )}
+                </ArrowKeyStepper>
+              );
+            }}
+          </AutoSizer>
+        </GameItemContainer>
+      </div>
     );
   }
 
@@ -112,16 +117,12 @@ export class GameList extends React.Component<GameListProps> {
   rowRenderer = (props: ListRowProps): React.ReactNode => {
     const { draggedGame, games, gameImages, rowHeight, selectedGame } = this.props;
     if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
-    if (!gameImages) { throw new Error('Trying to render a row in game list, but game thumbnail loader is not found?'); }
     const game = games[props.index];
-    let thumbnail = gameImages.getThumbnailPath(game);
     return (
       <GameListItem
         { ...props }
         key={props.key}
         game={game}
-        thumbnail={thumbnail || ''}
-        height={rowHeight}
         isDraggable={true}
         isSelected={game === selectedGame}
         isDragged={game === draggedGame} />
@@ -207,24 +208,8 @@ export class GameList extends React.Component<GameListProps> {
 
   /** Update CSS Variables */
   updateCssVars() {
-    const wrapper = this._wrapper.current;
-    if (!wrapper) { throw new Error('Browse Page wrapper div not found'); }
-    wrapper.style.setProperty('--height', this.props.rowHeight+'');
-  }
-
-  /**
-   * Call the "ref" property functions.
-   * Do this whenever there's a possibility that the referenced elements has been replaced.
-   */
-  updatePropRefs(): void {
-    if (this.props.listRef) {
-      // Find the list element
-      let ref: HTMLDivElement | null = null;
-      if (this._wrapper.current) {
-        const inner = this._wrapper.current.querySelector('.game-list');
-        if (inner) { ref = inner as HTMLDivElement; }
-      }
-      this.props.listRef(ref);
-    }
+    const ref = this._wrapper.current;
+    if (!ref) { throw new Error('Browse Page wrapper div not found'); }
+    ref.style.setProperty('--height', this.props.rowHeight+'');
   }
 }
