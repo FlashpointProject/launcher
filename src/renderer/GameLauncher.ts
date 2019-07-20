@@ -164,7 +164,10 @@ export class GameLauncher {
         const appPath: string = fixSlashes(relativeToFlashpoint(addApp.applicationPath));
         const appArgs: string = addApp.commandLine;
         const useWine = window.External.preferences.getData().useWine;
-        const proc = GameLauncher.launch(GameLauncher.createCommand(appPath, appArgs, useWine), { env: GameLauncher.getEnvironment() });
+        const proc = GameLauncher.launch(
+          GameLauncher.createCommand(appPath, appArgs, useWine),
+          { env: GameLauncher.getEnvironment(useWine) }
+        );
         log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.commandLine}" ]`);
         break;
     }
@@ -188,7 +191,7 @@ export class GameLauncher {
     const gameArgs: string = game.launchCommand;
     const useWine: boolean = window.External.preferences.getData().useWine;
     const command: string = GameLauncher.createCommand(gamePath, gameArgs, useWine);
-    const proc = GameLauncher.launch(command, { env: GameLauncher.getEnvironment() });
+    const proc = GameLauncher.launch(command, { env: GameLauncher.getEnvironment(useWine) });
     log(`Launch Game "${game.title}" (PID: ${proc.pid}) [\n`+
         `    applicationPath: "${game.applicationPath}",\n`+
         `    launchCommand:   "${game.launchCommand}",\n`+
@@ -229,10 +232,27 @@ export class GameLauncher {
     return game.applicationPath;
   }
 
-  private static getEnvironment(): NodeJS.ProcessEnv {
+  /**
+   * Get an object containing the environment variables to use for the game / additional application.
+   * @param useWine If the application is launched using Wine.
+   */
+  private static getEnvironment(useWine: boolean): NodeJS.ProcessEnv {
     // When using Linux, use the proxy created in BackgroundServices.ts
     // This is only needed on Linux because the proxy is installed on system
     // level entire system when using Windows.
+    return {
+      // Add proxy env vars if it's running on linux
+      ...((process.platform === 'linux') ? { http_proxy: 'http://localhost:22500/' } : null),
+      // Add Wine related env vars if it's running through Wine
+      ...(useWine ? {
+        wineprefix: path.join(window.External.config.fullFlashpointPath, 'FPSoftware/wineprefix'),
+        winearch: 'win32',
+        winedebug: '-all',
+      } : null),
+      // Copy this processes environment variables
+      ...process.env,
+    };
+
     return process.platform === 'linux'
       ? { ...process.env, http_proxy: 'http://localhost:22500/' }
       : process.env;
