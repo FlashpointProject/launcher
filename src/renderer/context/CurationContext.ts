@@ -4,7 +4,6 @@ import { createContextReducer } from '../context-reducer/contextReducer';
 
 const curationDefaultState: CurationsState = {
   curations: [],
-  addApps: [],
 };
 
 /** Stores the currently loaded curations of the curate page. */
@@ -89,6 +88,17 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
+    // Check the lock status of all curations
+    case 'change-curation-lock-all':
+      // Replace the "curations" array and all the curation objects in it
+      // and set the "locked" value of all the curation objects
+      return {
+        ...prevState,
+        curations: prevState.curations.map(curation => ({
+          ...curation,
+          locked: action.payload.lock,
+        })),
+      };
   }
 }
 
@@ -111,8 +121,6 @@ export function createEditCuration(): EditCuration {
 type CurationsState = {
   /** Currently loaded curations. */
   curations: EditCuration[];
-  /** Currently loaded additional applications. */
-  addApps: EditAddAppCurationMeta[];
 };
 
 /** Combined type with all actions for the curation reducer. */
@@ -151,6 +159,11 @@ export type CurationAction = (
     /** Key of the curation to change the lock status of. */
     key: string;
     /** Lock status to set the curation to. */
+    lock: boolean;
+  }> |
+  /** Change the lock status of all curations. */
+  ReducerAction<'change-curation-lock-all', {
+    /** Lock status to set all curations to. */
     lock: boolean;
   }>
 );

@@ -430,6 +430,11 @@ body {
 
 
 /* ------ Curate ------ */
+/* Curate Page Top */
+.curate-page-top {
+  border-color: var(--layout__tertiary-background);
+  background-color: var(--layout__quaternary-background);
+}
 /* Curate Box */
 .curate-box {
   background-color: var(--layout__tertiary-background);
