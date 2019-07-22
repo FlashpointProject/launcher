@@ -245,9 +245,9 @@ export class GameLauncher {
       ...((process.platform === 'linux') ? { http_proxy: 'http://localhost:22500/' } : null),
       // Add Wine related env vars if it's running through Wine
       ...(useWine ? {
-        "WINEPREFIX": path.join(window.External.config.fullFlashpointPath, 'FPSoftware/wineprefix'),
-        "WINEARCH": 'win32',
-        "WINEDEBUG": '-all',
+        WINEPREFIX: path.join(window.External.config.fullFlashpointPath, 'FPSoftware/wineprefix'),
+        WINEARCH: 'win32',
+        WINEDEBUG: '-all',
       } : null),
       // Copy this processes environment variables
       ...process.env,
