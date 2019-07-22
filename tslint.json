@@ -1,28 +1,10 @@
 {
-  "extends": [
-    "tslint-microsoft-contrib"
-  ],
   "rules": {
-    "export-name": false,
-    "missing-jsdoc": false,
-    "mocha-no-side-effect-code": false,
     "no-redundant-jsdoc": false,
-    "no-relative-imports": false,
     "no-void-expression": false,
-    "prefer-type-cast": false,
     "promise-function-async": false,
-    "trailing-comma": [
-      true,
-      {
-        "multiline": "always",
-        "singleline": "never"
-      }
-    ],
     "typedef": [
       true,
-      "arrow-parameter",
-      "member-variable-declaration",
-      "parameter",
       "property-declaration"
     ]
   }
