@@ -79,7 +79,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
         event.preventDefault();
         event.dataTransfer.dropEffect = 'copy';
         if (!this.state.hover) { this.setState({ hover: true }); }
-      }      
+      }
     }
   }
 

@@ -101,7 +101,7 @@ export class GameImageCollection {
     await ensureDir(getThumbnailFolderPath(folderName, this._flashpointPath));
     await ensureDir(getScreenshotFolderPath(folderName, this._flashpointPath));
   }
-  
+
   /**
    * Add multiple image folders to the image collection
    * @param folderNames Names of the folders
@@ -111,7 +111,7 @@ export class GameImageCollection {
       this.addImageFolder(folderNames[i]);
     }
   }
-  
+
   /**
    * Add an image folder to the image collection.
    * @param folderName Name of the folder.
@@ -134,7 +134,7 @@ export class GameImageCollection {
     screenshotFolder.loadFilenames(getScreenshotFolderPath(folderName, this._flashpointPath))
     .catch(console.warn);
   }
-  
+
   /**
    * Get the path to the thumbnail for a given game (returns undefined if not found).
    * @param game Game to get the thumbnail of.
@@ -143,7 +143,7 @@ export class GameImageCollection {
   public getThumbnailPath(game: IGameInfo): string|undefined {
     return this.getImage(this._thumbnails, game);
   }
-  
+
   /**
    * Get the path to the screenshot for a given game (returns undefined if not found).
    * @param game Game to get the screenshot of.
@@ -152,7 +152,7 @@ export class GameImageCollection {
   public getScreenshotPath(game: IGameInfo): string|undefined {
     return this.getImage(this._screenshots, game);
   }
-  
+
   /** Internal shared implementation of the "get*PathOfGame" functions. */
   getImage(dict: PartialDict<ImageFolderCache>, game: IGameInfo): string|undefined {
     const cache = dict[removeFileExtension(game.filename).toLowerCase()];

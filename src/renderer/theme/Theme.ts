@@ -55,7 +55,7 @@ export namespace Theme {
     // Return style element
     return element;
   }
-  
+
   /**
    * Clear theme data from a style element.
    * @param element Element to clear theme data from. If undefined, this function will do nothing.
@@ -145,7 +145,7 @@ export namespace Theme {
       case LoadError.FileIsFolder: return 'Failed to load theme (target is a folder).';
     }
   }
-  
+
   /** Error code for when loading and parsing a theme json file. */
   export enum LoadError {
     /** If the file was not found. */
@@ -281,4 +281,4 @@ enum FileType {
   NONE
 }
 
-function noop() {};
+function noop() {}

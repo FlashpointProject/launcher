@@ -374,7 +374,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
     });
   }
-  
+
   getGameBrowserDivWidth(): number {
     if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
     if (!this.gameBrowserRef.current) { throw new Error('"game-browser" div is missing.'); }
@@ -413,7 +413,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                          `Path: "${gamePath}"\n`+
                          '\n'+
                          'Note: If the path is too long, some portion will be replaced with three dots ("...").',
-                
+
               }, function() { /* Make this non-blocking. */ });
             }
           });
@@ -553,11 +553,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     });
     this.focusGameGridOrList();
   }
-  
+
   saveGameAndAddApps(): void {
     const { selectedGame, central: { games } } = this.props;
     const { currentGame, currentAddApps } = this.state;
-    if (!currentGame) { console.error(`Can't save game. "currentGame" is missing.`); return; }
+    if (!currentGame) {
+      console.error('Can\'t save game. "currentGame" is missing.');
+      return;
+    }
     // Get the current library
     const library = this.getCurrentLibrary();
     // Add or update game
@@ -621,13 +624,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           if (platform.collection) {
             Array.prototype.push.apply(games, platform.collection.games);
           }
-        })
+        });
       }
       return games;
     }
     return undefined;
   }
-  
+
   /**
    * Update the ordered games array if the related props, configs or preferences has been changed
    * @param force If checking for changes in the arguments should be skipped (it always re-orders the games)
@@ -679,7 +682,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       if (this.gameGridOrListRef) { this.gameGridOrListRef.focus(); }
     }, 0);
   }
-  
+
   gameGridOrListRefFunc = (ref: HTMLDivElement | null): void => {
     this.gameGridOrListRef = ref;
   }

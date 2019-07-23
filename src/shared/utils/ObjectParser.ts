@@ -6,7 +6,7 @@ interface IObjectParserError {
   message: string;
   /** Returns a string representation of the error. */
   toString(): string;
-};
+}
 
 /** Collection of arguments for the constructor of ObjectParserProp. */
 type ObjectParserOptions<T> = {
@@ -149,7 +149,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
     }
     return this;
   }
-  
+
   arrayRaw(func: (item: P extends Array<any> ? P[number] : never, index: number, array: P) => void): this {
     const prop = this._property;
     if (Array.isArray(prop)) {
@@ -170,7 +170,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
       func = funcOrOptional;
       isOptional = !!optional;
     } else { isOptional = !!funcOrOptional; }
-    
+
     if (this._property !== null &&
         this._property !== undefined &&
         Object.prototype.hasOwnProperty.call(this._property, label)) {
@@ -208,7 +208,7 @@ function createStack(stack: string[], label: string | number | Symbol): string[]
  * @param stack Stack to create string from.
  */
 function stackToString(stack: string[]): string {
-  if (stack.length === 0) return '';
+  if (stack.length === 0) { return ''; }
   return stack.reduce((prev, cur) => prev + (isArrayIndex(cur) ? `[${cur}]` : `.${cur}`));
 }
 

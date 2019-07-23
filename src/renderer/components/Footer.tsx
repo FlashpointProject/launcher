@@ -119,11 +119,11 @@ export class Footer extends React.Component<FooterProps> {
       </div>
     );
   }
-  
+
   onScaleSliderChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.scaleSliderChange(event.target);
   }
-  
+
   onLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     if (this.props.onLayoutChange) {
       const value = parseBrowsePageLayout(event.target.value);
@@ -157,7 +157,7 @@ export class Footer extends React.Component<FooterProps> {
       this.props.onScaleSliderChange(element.valueAsNumber / Footer.scaleSliderMax);
     }
   }
-  
+
   /**
    * Set the value of the scale slider.
    * @param scale Value (between 0 and 1).

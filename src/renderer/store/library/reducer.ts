@@ -7,7 +7,7 @@ import { ILibraryState } from './types';
 
 const initialState: ILibraryState = {
   data: deepCopy(createDefaultGameLibrary()),
-}
+};
 
 export type ReducerAction = ActionType<typeof actions>;
 
@@ -20,6 +20,6 @@ const reducer: Reducer<ILibraryState, ReducerAction> = (state = initialState, ac
       return state;
     }
   }
-}
+};
 
 export { reducer as libraryReducer };

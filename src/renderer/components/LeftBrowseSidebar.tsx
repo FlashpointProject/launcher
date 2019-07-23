@@ -39,7 +39,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
       isEditing: false,
     };
   }
-  
+
   private filterAndSortPlaylists(): IGamePlaylist[] {
     const { central, currentLibrary } = this.props;
     let playlists = central.playlists.playlists.slice();
@@ -81,7 +81,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
                   const isSelected = playlist.id === selectedPlaylistID;
                   return (
                     <PlaylistItem
-                      key={playlist.id} 
+                      key={playlist.id}
                       playlist={playlist}
                       expanded={isSelected}
                       editingDisabled={editingDisabled}
@@ -106,7 +106,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
                     <div className='playlist-list-fake-item__inner'>
                       <p className='playlist-list-fake-item__inner__title'>New Playlist</p>
                     </div>
-                  </div>                  
+                  </div>
                 ) }
               </div>
             ) : ( // Failed to load

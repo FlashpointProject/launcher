@@ -10,7 +10,7 @@ type IGamePathInfo = Pick<IGameInfo, 'platform' | 'launchCommand'>;
 export class GameLauncher {
   /** Path of the "htdocs" folder (relative to the Flashpoint folder) */
   private static htdocsPath = 'Server/htdocs';
-  
+
   /**
    * Try to get the ("entry"/"main") file path of a game.
    * Because how the file's path is declared in the launch command between different games and platforms,
@@ -28,18 +28,18 @@ export class GameLauncher {
     const groovePath = 'FPSoftware/3DGrooveGX'; // (Path to the 3D Groove GZ executable)
     // Extract file path from the game's launch command
     const platform = game.platform.toLowerCase();
-    switch(platform) {
+    switch (platform) {
       // Example: 5.x http://example.com/games/cool_game.html
-      case 'unity':
+      case 'unity': {
         // Extract the URL (get the content after the first space, or the whole string if there is no space)
-        var str: string | undefined = undefined;
-        var index = game.launchCommand.indexOf(' ');
+        let str: string | undefined = undefined;
+        const index = game.launchCommand.indexOf(' ');
         if (index >= 0) { str = game.launchCommand.substring(index + 1); }
         else            { str = game.launchCommand; }
         // Create URL
-        var url = toForcedURL(str);
+        const url = toForcedURL(str);
         if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
-        break;
+      } break;
       // Relative path to a ".ini" file
       // Example: game.ini
       case '3d groove gx':
@@ -47,9 +47,9 @@ export class GameLauncher {
       // Examples: -J-Dfile.encoding=UTF8 -J-Duser.language=ja -J-Duser.country=JP http://www.example.jp/game.html
       //           http://www.example.com/game.html
       //           "http://www.example.com/game.html"
-      case 'java':
+      case 'java': {
         // Extract the path/url from the launch command
-        var str: string | undefined = undefined;
+        let str: string | undefined = undefined;
         if (game.launchCommand[0] === '"') { // (URL wrappen in quotation marks)
           // Get the contents between the first pair of quotation marks
           const index = game.launchCommand.indexOf('"', 1);
@@ -65,13 +65,13 @@ export class GameLauncher {
           const url = toForcedURL(str);
           if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
         }
-        break;
+      } break;
       // Examples: http://example.com/game.dcr --forceTheExitLock 0
       //           "http://example.com/game.dcr" --do "member('gameUrl').text = 'http://example.com/other_thing.dcr'"
       //           ..\Games\game_folder\game_file.dcr
-      case 'shockwave':
+      case 'shockwave': {
         // Extract the path/url from the launch command
-        var str: string | undefined = undefined;
+        let str: string | undefined = undefined;
         if (game.launchCommand[0] === '"') { // (Path/URL wrappen in quotation marks)
           // Get the contents between the first pair of quotation marks
           const index = game.launchCommand.indexOf('"', 1);
@@ -90,19 +90,19 @@ export class GameLauncher {
           if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
           else     { return path.join(ffpPath, shockwavePath, str); }
         }
-        break;
-      // Launch Command contains 
+      } break;
+      // Launch Command contains
       // Example: http://www.example.com/game.html example\game.dll
-      case 'activex':
+      case 'activex': {
         // Extract everything before the first space
-        var str: string | undefined = undefined;
-        var index = game.launchCommand.lastIndexOf(' ');
+        let str: string | undefined = undefined;
+        const index = game.launchCommand.lastIndexOf(' ');
         if (index >= 0) { str = game.launchCommand.substring(0, index); }
         else            { str = game.launchCommand; }
         // Create a full path from the extracted url
-        var url = toForcedURL(str);
+        const url = toForcedURL(str);
         if (url) { return path.join(ffpPath, htdocsPath, urlToFilePath(url)); }
-        break;
+      } break;
       // Launch Commands that only contain a URL
       // Example: http://example.com/games/cool_game.html
       case '3dvia player':
@@ -155,7 +155,7 @@ export class GameLauncher {
                 title: 'Failed to Open Extras',
                 message: `${error.toString()}\n`+
                          `Path: ${folderPath}`
-              }, () => {});              
+              }, () => {});
             }
           }
         );
@@ -252,10 +252,6 @@ export class GameLauncher {
       // Copy this processes environment variables
       ...process.env,
     };
-
-    return process.platform === 'linux'
-      ? { ...process.env, http_proxy: 'http://localhost:22500/' }
-      : process.env;
   }
 
   private static createCommand(filename: string, args: string, useWine: boolean): string {
@@ -289,7 +285,7 @@ export class GameLauncher {
     const logStuff = (event: string, args: any[]): void => {
       log(`${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
     };
-    doStuffs(proc, [/*'close',*/ 'disconnect', 'error', 'exit', 'message'], logStuff);
+    doStuffs(proc, [/* 'close', */ 'disconnect', 'error', 'exit', 'message'], logStuff);
     proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); });
     proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); });
     // Return process
@@ -361,7 +357,7 @@ function fixSlashes(str: string): string {
  * ( According to this: http://www.robvanderwoude.com/escapechars.php )
  */
 function escapeWin(str: string): string {
-  return str.replace(/[\^\&\<\>\|]/g, '^$&'); // $& means the whole matched string
+  return str.replace(/[\^&<>|]/g, '^$&'); // $& means the whole matched string
 }
 
 /**

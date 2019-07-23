@@ -68,7 +68,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                   key={item.route}
                   title={item.title}
                   link={joinLibraryRoute(item.route)} />
-              )) 
+              ))
             ) : (
               <MenuItem
                 title='Browse'
@@ -104,7 +104,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                   value={searchText}
                   placeholder='Search...'
                   onChange={this.onSearchChange}
-                  onKeyDown={this.onSearchKeyDown} />                
+                  onKeyDown={this.onSearchKeyDown} />
               </div>
               <div
                 className='header__search__right'

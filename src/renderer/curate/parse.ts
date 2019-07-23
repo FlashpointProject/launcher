@@ -46,7 +46,7 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
   const parsed: ParsedCurationMeta = {
     game: {},
     addApps: [],
-  }
+  };
   const parser = new ObjectParser({
     input: data,
     onError: onError && (error => onError(`Error while converting Curation Meta: ${error.toString()}`))

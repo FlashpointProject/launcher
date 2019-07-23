@@ -126,7 +126,7 @@ function downloadUpgrade(upgrade: IUpgradeStage, filename: string, onData: (offs
       try {
         protocol.get(urlOrPath, (res: IncomingMessage) => {
           const { statusCode, headers } = res;
-          status.contentLength = parseInt(headers["content-length"]+'', 10);
+          status.contentLength = parseInt(headers['content-length']+'', 10);
           if (statusCode === 200) {
             const filePath = path.posix.join(os.tmpdir(), filename);
             const fileStream = fs.createWriteStream(filePath);
@@ -140,8 +140,8 @@ function downloadUpgrade(upgrade: IUpgradeStage, filename: string, onData: (offs
           } else { status.emit('error', new Error(`File request failed. Server responded with code: ${res.statusCode}`)); }
         });
       }
-      catch(error) { status.emit('error', new Error(`File download failed. ${error}`)); }
-    }    
+      catch (error) { status.emit('error', new Error(`File download failed. ${error}`)); }
+    }
   }
 }
 

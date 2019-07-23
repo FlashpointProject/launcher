@@ -64,8 +64,8 @@ export async function isPhpInstalledCheck(): Promise<boolean> {
  */
 function makeFailedChecksArray(isFlashpointValid: boolean, isPhpInstalled: boolean) {
   let failedChecks: FailedCheck[] = [];
-  if (!isFlashpointValid) failedChecks.push(FailedCheck.InvalidFlashpointInstall);
-  if (!isPhpInstalled) failedChecks.push(FailedCheck.PhpMissing);
+  if (!isFlashpointValid) { failedChecks.push(FailedCheck.InvalidFlashpointInstall); }
+  if (!isPhpInstalled) { failedChecks.push(FailedCheck.PhpMissing); }
 
   return failedChecks;
 }

@@ -87,7 +87,7 @@ export async function importCuration(
                 return (async () => {
                   // Create the folder if it is missing
                   try { await ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName)); }
-                  catch(e) { /* Ignore error */ }
+                  catch (e) { /* Ignore error */ }
                 })();
               } else { // (File)
                 return (async () => {
@@ -96,7 +96,7 @@ export async function importCuration(
                   const output = path.join(GameLauncher.getHtdocsPath(), content.fileName);
                   // Ensure that the folders leading up to the file exists
                   try { await ensureDir(path.dirname(output)); }
-                  catch(e) { /* Ignore error */ }
+                  catch (e) { /* Ignore error */ }
                   // Copy the file
                   await copyFile(source, output);
                 })();

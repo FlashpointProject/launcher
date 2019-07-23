@@ -22,7 +22,7 @@ export function memoizeOne<T extends AnyFunction>(func: T, equalsFunc: EqualsChe
   let prevArgs: ArgumentTypesOf<T>;
   let prevReturn: ReturnTypeOf<T>;
   let firstCall: boolean = true;
-  
+
   const memo: CallableWrap<T> = (...args) => {
     // Figure out if the function has to be called or if the previous return value should be used
     let doRefresh = false;
@@ -36,13 +36,13 @@ export function memoizeOne<T extends AnyFunction>(func: T, equalsFunc: EqualsChe
       prevReturn = func(...args);
     }
     return prevReturn;
-  }
+  };
 
   return memo;
 }
 
 /** Default function used to compare arguments */
 function defaultEqualsFunc<T extends any[]>(newArgs: T, prevArgs: T): boolean {
-  return newArgs.length === prevArgs.length && 
+  return newArgs.length === prevArgs.length &&
          shallowStrictEquals(newArgs, prevArgs);
 }

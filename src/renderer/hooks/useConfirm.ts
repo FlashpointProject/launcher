@@ -49,7 +49,7 @@ type ConfirmReturn = [
 ];
 
 /**
- * 
+ *
  * @param confirmLimit Number of activations needed to confirm.
  * @param onConfirm Called when confirmed.
  */

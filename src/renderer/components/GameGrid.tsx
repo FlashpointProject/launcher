@@ -150,7 +150,7 @@ export class GameGrid extends React.Component<GameGridProps> {
       <GameGridItem
         { ...props }
         key={props.key}
-        game={game} 
+        game={game}
         thumbnail={thumbnail || ''}
         isDraggable={true}
         isSelected={game === selectedGame}
@@ -171,7 +171,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
     this.onGameSelected(this.findGame(gameId));
   }
-  
+
   /** When a cell is double clicked. */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
     const game = this.findGame(gameId);
@@ -185,7 +185,7 @@ export class GameGrid extends React.Component<GameGridProps> {
       if (game) { this.props.onContextMenu(game); }
     }
   }
-  
+
   /** When a cell is starting to be dragged. */
   onGameDragStart = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragStart) {
@@ -193,7 +193,7 @@ export class GameGrid extends React.Component<GameGridProps> {
       if (game) { this.props.onGameDragStart(event, game); }
     }
   }
-  
+
   /** When a cell is ending being dragged. */
   onGameDragEnd = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragEnd) {

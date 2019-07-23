@@ -92,12 +92,12 @@ export function unzipAll(sourceFile: string, outputFolder: string): UnzipAllStat
                           .pipe(writeStream);
               });
             });
-          }        
+          }
         }
       });
       // Start extracting
       zip.readEntry();
-    });   
+    });
   }
 }
 
@@ -151,7 +151,7 @@ export function unzip(options: UnzipOptions): UnzipStatus {
           zip.readEntry();
         } else {
           // Check if it is a folder or file (folder file names always end with '/')
-          const isFolder = entry.fileName.endsWith('/'); 
+          const isFolder = entry.fileName.endsWith('/');
           if (isFolder) { // (Folder)
             mkdirp(fullFilePath, (error) => {
               if (error) { return status.emit('error', error); }
@@ -176,7 +176,7 @@ export function unzip(options: UnzipOptions): UnzipStatus {
               });
             });
           }
-        }        
+        }
       }
     });
     // Start extracting

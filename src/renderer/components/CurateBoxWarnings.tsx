@@ -29,7 +29,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
   [warnings]);
   // Render warnings
   const warningElements = useMemo(() => (
-    Object.keys(warnings).map((key) => 
+    Object.keys(warnings).map((key) =>
       warnings[key as keyof CurationWarnings] ? (
         <span
           key={key}
@@ -78,4 +78,4 @@ const warningDescriptions: WarningDescriptionContainer = {
   unusedApplicationPath: '"Application Path" has an unused value. Make sure it\'s spelled correctly!',
   unusedGenre: '"Genre" has an unused value. Make sure it\'s spelled correctly!',
   unusedPlatform: '"Platform" has an unused value. Make sure it\'s spelled correctly!',
-}
+};

@@ -12,7 +12,7 @@ export class GameCollection implements IGameCollection {
   public findGame(gameId: string): IGameInfo|undefined {
     return this.games[this.indexOfGame(gameId)];
   }
-  
+
   /**
    * Find the first additional application with a given id (returns undefined if not found)
    * @param addAppId ID of additional application
@@ -54,7 +54,7 @@ export class GameCollection implements IGameCollection {
 
   /**
    * Push all data from another collection to this collection.
-   * Objects are NOT copied, so both collections will have references to 
+   * Objects are NOT copied, so both collections will have references to
    * shared objects (should probably only be used if the other collection
    * will be discarded after calling this)
    */
@@ -70,7 +70,7 @@ export class GameCollection implements IGameCollection {
     this.additionalApplications.splice(0, this.additionalApplications.length);
     return this;
   }
-  
+
   /**
    * Find all additional applications with a given gameId
    * @param collection Collection to get additional applications from

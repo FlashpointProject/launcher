@@ -7,7 +7,7 @@ import { IPreferencesState } from './types';
 
 const initialState: IPreferencesState = {
   data: deepCopy(defaultPreferencesData),
-}
+};
 
 export type ReducerAction = ActionType<typeof actions>;
 
@@ -20,6 +20,6 @@ const reducer: Reducer<IPreferencesState, ReducerAction> = (state = initialState
       return state;
     }
   }
-}
+};
 
 export { reducer as preferencesReducer };

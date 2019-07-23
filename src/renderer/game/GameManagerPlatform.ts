@@ -189,7 +189,7 @@ class GameManagerPlatform extends EventEmitter {
       }
     } else { console.error(`Failed to remove raw add-app from platform because it wasn't found (${addAppId})`); }
   }
-  
+
   /**
    * Find the first raw game with a given id (if any)
    * @param gameId ID of game
@@ -221,7 +221,7 @@ class GameManagerPlatform extends EventEmitter {
       }
     }
   }
-  
+
   public indexOfRawGame(gameId: string): number {
     if (this.data && this.data.LaunchBox.Game) {
       let games = this.data.LaunchBox.Game;
@@ -234,7 +234,7 @@ class GameManagerPlatform extends EventEmitter {
     }
     return -1;
   }
-  
+
   public indexOfRawAdditionalApplication(addAppId: string): number {
     if (this.data && this.data.LaunchBox.AdditionalApplication) {
       let addApps = this.data.LaunchBox.AdditionalApplication;

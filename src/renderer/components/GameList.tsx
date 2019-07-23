@@ -142,7 +142,7 @@ export class GameList extends React.Component<GameListProps> {
   onGameSelect = (event: React.MouseEvent, gameId: string | undefined): void => {
     this.onGameSelected(this.findGame(gameId));
   }
-  
+
   /** When a row is double clicked. */
   onGameLaunch = (event: React.MouseEvent, gameId: string): void => {
     const game = this.findGame(gameId);
@@ -156,7 +156,7 @@ export class GameList extends React.Component<GameListProps> {
       if (game) { this.props.onContextMenu(game); }
     }
   }
-  
+
   /** When a row is starting to be dragged. */
   onGameDragStart = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragStart) {
@@ -164,7 +164,7 @@ export class GameList extends React.Component<GameListProps> {
       if (game) { this.props.onGameDragStart(event, game); }
     }
   }
-  
+
   /** When a row is ending being dragged. */
   onGameDragEnd = (event: React.DragEvent, gameId: string | undefined): void => {
     if (this.props.onGameDragEnd) {

@@ -24,7 +24,7 @@ export function Dropdown(props: DropdownProps) {
         }
       };
       document.addEventListener('mousedown', onGlobalMouseDown);
-      return () => { document.removeEventListener('mousedown', onGlobalMouseDown); };      
+      return () => { document.removeEventListener('mousedown', onGlobalMouseDown); };
     }
   }, [expanded, contentRef]);
   const onClick = useCallback((event: React.MouseEvent) => {

@@ -21,14 +21,13 @@ const HeaderContainer: React.FunctionComponent<HeaderContainerProps> = (props: H
   return (
     <Header
       onSearch={(text: string, redirect: boolean) => {
-        props.preferencesData.lastSelectedLibrary
         if (redirect) { props.history.push(joinLibraryRoute(props.preferencesData.lastSelectedLibrary)); }
         onSearch(text);
       }}
       { ...rest }
     />
-  );  
-}
+  );
+};
 
 const mapStateToProps = ({ search }: ApplicationState): StateToProps => ({
   search: search.query
