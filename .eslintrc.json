@@ -1,0 +1,77 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "root": true,
+  "rules": {
+    "curly": ["warn", "all"],
+    "for-direction": "warn",
+    "getter-return": "warn",
+    "keyword-spacing": "warn",
+    "no-compare-neg-zero": "warn",
+    "no-cond-assign": "warn",
+    "no-constant-condition": ["warn", { "checkLoops": false }],
+    "no-debugger": "warn",
+    "no-delete-var": "warn",
+    "no-dupe-args": "warn",
+    "no-dupe-keys": "warn",
+    "no-duplicate-case": "warn",
+    "no-empty": "warn",
+    "no-empty-character-class": "warn",
+    "no-empty-pattern": "warn",
+    "no-ex-assign": "warn",
+    "no-extra-boolean-cast": "warn",
+    "no-extra-semi": "warn",
+    "no-func-assign": "warn",
+    "no-global-assign": "warn",
+    "no-invalid-regexp": "warn",
+    "no-irregular-whitespace": "warn",
+    "no-mixed-spaces-and-tabs": "warn",
+    "no-obj-calls": "warn",
+    "no-octal": "warn",
+    "no-prototype-builtins": "warn",
+    "no-redeclare": "warn",
+    "no-regex-spaces": "warn",
+    "no-self-assign": "warn",
+    "no-shadow-restricted-names": "warn",
+    "no-spaced-func": "warn",
+    "no-sparse-arrays": "warn",
+    "no-trailing-spaces": "warn",
+    "no-unexpected-multiline": "warn",
+    "no-unreachable": "warn",
+    "no-unsafe-finally": "warn",
+    "no-unsafe-negation": "warn",
+    "no-unused-labels": "warn",
+    "no-useless-catch": "warn",
+    "no-useless-escape": "warn",
+    "no-whitespace-before-property": "warn",
+    "no-with": "warn",
+    "quotes": ["warn", "single"],
+    //"require-atomic-updates": "warn", (requires restructuring of "recursiveDirectory()")
+    "semi": ["warn", "always"],
+    "space-before-blocks": "warn",
+    "space-unary-ops": "warn",
+    "spaced-comment": "warn",
+    "use-isnan": "warn",
+    "valid-typeof": "warn",
+    "wrap-iife": "warn",
+    "yoda": "warn"
+  }
+}
