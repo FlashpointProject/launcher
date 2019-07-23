@@ -3,8 +3,6 @@ import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../Util';
 import { ObjectParser } from '../utils/ObjectParser';
 import { IAppConfigData } from './interfaces';
 import * as path from 'path';
-import { app } from 'electron';
-
 interface IConfigDataDefaults {
   [key: string]: Readonly<IAppConfigData>;
 }
@@ -17,6 +15,9 @@ export class AppConfig {
 
   /** Sets path to config.json based on install state */
   public static setFilePath(installed: boolean) {
+    const electron = require('electron')
+    const app = (process.type === 'renderer') ? electron.remote.app : electron.app
+
     if (installed) {
       AppConfig.filePath = path.join(app.getPath('appData'), 'flashpoint-launcher', 'config.json');
     } else { 
@@ -35,6 +36,8 @@ export class AppConfig {
 
   /** Stringify and save the config file asynchronously */
   public static saveConfigFile(data: IAppConfigData): Promise<void> {
+    if (AppConfig.filePath === undefined) { this.setFilePath(window.External.config.installed); }
+    
     return new Promise((resolve, reject) => {
       // Convert config to json string
       const json: string = AppConfig.stringifyData(data);

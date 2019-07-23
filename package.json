@@ -18,7 +18,6 @@
     "release:win32": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:win32\"",
     "release:darwin": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:darwin\"",
     "release:all": "npx cross-env-shell NODE_ENV=production \"npm run build && npm run pack:all\"",
-
     "build:static": "npx cross-env STATIC_INSTALL=1 npx gulp build",
     "pack:static": "npx cross-env STATIC_INSTALL=1 npx gulp pack",
     "pack:linux:static": "npx cross-env STATIC_INSTALL=1 PACK_PLATFORM=linux PACK_ARCH=x64 npx gulp pack",

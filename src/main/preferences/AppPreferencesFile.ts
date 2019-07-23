@@ -14,6 +14,7 @@ export class AppPreferencesFile {
 
   /** Sets path to preferences.json based on install state */
   public static setFilePath(installed: boolean) {
+
     if (installed) {
       AppPreferencesFile.filePath = path.join(app.getPath('appData'), 'flashpoint-launcher', 'preferences.json');
     } else { 

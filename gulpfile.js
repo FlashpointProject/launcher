@@ -50,10 +50,10 @@ gulp.task('copy-static', () => {
 
 gulp.task('config-install', (done) => {
   // .installed tells launcher to use system config paths instead of relative paths
-  if(config.isStaticInstall){
-    fs.createFileSync("./.installed", done());
+  if (config.isStaticInstall) {
+    fs.createFileSync('./.installed', done());
   } else {
-    fs.removeSync("./.installed", done());
+    fs.removeSync('./.installed', done());
   }
 });
 
@@ -101,7 +101,7 @@ gulp.task('pack', (done) => {
       function(buildPath, electronVersion, platform, arch) {
         // .installed tells launcher to use system config paths instead of relative paths
         if (config.isStaticInstall) {
-          fs.createFileSync(path.join(buildPath, ".installed"))
+          fs.createFileSync(path.join(buildPath, '.installed'))
         }
         // Copy licenses folder and the LICENSE file 
         fs.copySync('./licenses', path.join(buildPath, 'licenses/'));
