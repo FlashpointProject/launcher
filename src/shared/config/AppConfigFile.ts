@@ -21,7 +21,7 @@ export class AppConfig {
     if (installed) {
       AppConfig.filePath = path.join(app.getPath('appData'), 'flashpoint-launcher', 'config.json');
     } else { 
-      AppConfig.filePath = './config.json'
+      AppConfig.filePath = './config.json';
     }
   }
 
@@ -36,7 +36,9 @@ export class AppConfig {
 
   /** Stringify and save the config file asynchronously */
   public static saveConfigFile(data: IAppConfigData): Promise<void> {
-    if (AppConfig.filePath === undefined) { this.setFilePath(window.External.config.installed); }
+    if (AppConfig.filePath === undefined) { 
+      this.setFilePath(window.External.config.installed);
+    }
     
     return new Promise((resolve, reject) => {
       // Convert config to json string
