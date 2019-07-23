@@ -143,7 +143,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
         if (index >= 0) {
           this.props.onItemSelect(this.props.items[index], index);
         }
-      }      
+      }
     }
   }
 

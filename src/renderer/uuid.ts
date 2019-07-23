@@ -11,7 +11,7 @@ const guid = require('uuid/v4') as (options?: { random?: Buffer }) => string;
 
 /**
  * Fills a buffer with the required number of random bytes.
- * 
+ *
  * Attempt to use the Chromium-provided crypto library rather than
  * Node.JS. For some reason the Node.JS randomBytes function adds
  * _considerable_ (1s+) synchronous load time to the start up.

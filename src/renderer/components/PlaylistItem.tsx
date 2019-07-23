@@ -95,9 +95,9 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
     const editingDisabled = !!this.props.editingDisabled;
     const editing = !editingDisabled && !!this.props.editing;
     let className = 'playlist-list-item';
-    if (expanded) { className += ' playlist-list-item--selected' }
-    if (editing)  { className += ' playlist-list-item--editing' }
-    if (this.state.dragOver) { className += ' playlist-list-item--drag-over' }
+    if (expanded) { className += ' playlist-list-item--selected'; }
+    if (editing)  { className += ' playlist-list-item--editing'; }
+    if (this.state.dragOver) { className += ' playlist-list-item--drag-over'; }
     const maxHeight = this.props.expanded && this.contentHeight || undefined;
     return (
       <div
@@ -148,7 +148,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
                   onEditConfirm={this.onAuthorEditDone}
                   editable={editing}
                   children={this.renderAuthor} />
-              </div>    
+              </div>
             </>
           ) : undefined }
         </div>
@@ -234,7 +234,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
           value={o.text}
           placeholder={placeholderEdit}
           onChange={o.onInputChange}
-          onKeyDown={o.onInputKeyDown} 
+          onKeyDown={o.onInputKeyDown}
           autoFocus
           onBlur={o.cancelEdit}
           className='playlist-list-item__editable-text simple-vertical-inner simple-input' />
@@ -253,7 +253,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
       }
     };
   }
-  
+
   renderDescription = (o: EditableTextElementArgs) => {
     if (o.editing) {
       return (
@@ -313,7 +313,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
     if (this.props.onEditClick) {
       this.props.onEditClick(this.props.playlist);
     }
-    
+
   }
 
   onDeleteClick = () => {
@@ -342,7 +342,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
         .then(dataUrl => {
           edit.icon = dataUrl+'';
           this.setState({ hasChanged: true });
-        })
+        });
       }
     }
   }
@@ -365,7 +365,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
           const gameEntry: IGamePlaylistEntry = {
             id: gameId,
             notes: '',
-          }
+          };
           this.props.playlist.games.push(deepCopy(gameEntry));
           if (this.state.editPlaylist) {
             this.state.editPlaylist.games.push(deepCopy(gameEntry));
@@ -394,7 +394,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
       if (!findParent(event.currentTarget, event.relatedTarget as Element)) {
         this.setState({ dragOver: true });
         event.stopPropagation();
-      }      
+      }
     }
   }
 
@@ -403,7 +403,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
       if (!findParent(event.currentTarget, event.relatedTarget as Element)) {
         this.setState({ dragOver: false });
         event.stopPropagation();
-      }      
+      }
     }
   }
 
@@ -415,9 +415,9 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
         func(edit, text);
         this.setState({ hasChanged: true });
       }
-    }
+    };
   }
-  
+
   /** Update CSS Variables. */
   updateCssVars() {
     // Set CCS vars
@@ -455,5 +455,5 @@ function toDataURL(url: string): Promise<FileReaderResult> {
     reader.onloadend = () => { resolve(reader.result); };
     reader.onerror = reject;
     reader.readAsDataURL(blob);
-  }))
+  }));
 }

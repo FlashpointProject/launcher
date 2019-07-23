@@ -136,7 +136,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
         func(addApp, event.currentTarget.value);
         this.forceUpdate();
       }
-    }
+    };
   }
 
   /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
@@ -147,6 +147,6 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
         this.onEdit();
         this.forceUpdate();
       }
-    }
+    };
   }
 }

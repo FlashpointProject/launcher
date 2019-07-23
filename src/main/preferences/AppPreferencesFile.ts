@@ -17,7 +17,7 @@ export class AppPreferencesFile {
     // Try to get the data from the file
     try {
       data = await AppPreferencesFile.readFile(onError);
-    } catch(e) {
+    } catch (e) {
       error = e;
     }
     // If that failed, set data to default and save it to a new file
@@ -29,7 +29,7 @@ export class AppPreferencesFile {
     // Return
     return data;
   }
-  
+
   public static readFile(onError?: (error: string) => void): Promise<IAppPreferencesData> {
     return new Promise((resolve, reject) => {
       readJsonFile(AppPreferencesFile.filePath, AppPreferencesFile.fileEncoding)
@@ -37,7 +37,7 @@ export class AppPreferencesFile {
       .catch(reject);
     });
   }
-  
+
   public static saveFile(data: IAppPreferencesData): Promise<void> {
     return new Promise((resolve, reject) => {
       // Convert config to json string
@@ -49,13 +49,13 @@ export class AppPreferencesFile {
       });
     });
   }
-  
+
   public static parseData(data: any, defaultData: IAppPreferencesData, onError?: (error: string) => void): IAppPreferencesData {
     // This makes sure that only the necessary properties are copied
     // And that the missing ones are set to their default value
     return overwritePreferenceData(deepCopy(defaultData), data, onError);
   }
-  
+
   public static stringifyData(data: IAppPreferencesData): string {
     return stringifyJsonDataFile(data);
   }

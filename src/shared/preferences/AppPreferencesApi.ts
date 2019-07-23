@@ -24,7 +24,7 @@ export class AppPreferencesApi extends EventEmitter {
 
   /** How often the data should be sent to the main (in milliseconds) */
   private static sendDataInterval: number = 0.5 * 1000;
-  
+
   /**
    * Initialize (this should be called after construction, and before accessing the data object)
    */
@@ -73,7 +73,7 @@ export class AppPreferencesApi extends EventEmitter {
       this.once('init', () => { resolve(); });
     });
   }
-  
+
   /**
    * Send the current preference data to the main process
    * @returns If the send was successful
@@ -101,7 +101,7 @@ export class AppPreferencesApi extends EventEmitter {
       else      { reject(new Error('No data received from preference data fetch request')); }
     });
   }
-  
+
   /** Get the currently cached data (wrapped in a proxy) */
   public getData(): IAppPreferencesData {
     if (!this._dataProxy) { throw new Error('You must not call AppPreferencesApi.getData before it has loaded'); }
@@ -118,7 +118,7 @@ export class AppPreferencesApi extends EventEmitter {
   public static readonly ipcSend: string = 'app-preferences-api-send';
   /** Response to sent Preferences Data (main -> renderer) (IPC Event Name) */
   public static readonly ipcSendResponse: string = 'app-preferences-api-send-response';
-  
+
   /** Request Preferences Data (renderer -> main) (IPC Event Name) */
   public static readonly ipcRequestSync: string = 'app-preferences-api-request-sync';
 

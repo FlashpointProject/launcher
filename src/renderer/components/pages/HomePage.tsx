@@ -63,7 +63,7 @@ export class HomePage extends React.Component<HomePageProps> {
     // Grabs a dynamic list of supported platforms and pre-formats them as Links
     const platformList = getPlatforms(this.props.central.games.collection);
     const formatPlatforms = platformList.map((platform, index) =>
-      <span key={index}> 
+      <span key={index}>
         <Link
           to={joinLibraryRoute('arcade')}
           onClick={this.onPlatformClick(platform)}>
@@ -137,7 +137,7 @@ export class HomePage extends React.Component<HomePageProps> {
               </QuickStartItem>
               <br />
               <QuickStartItem icon='tag'>
-                Filter by platform: 
+                Filter by platform:
               </QuickStartItem>
               <QuickStartItem>
                 { formatPlatforms }
@@ -214,7 +214,7 @@ export class HomePage extends React.Component<HomePageProps> {
                 onClick={onClick}>
                 Download
               </a>
-            )            
+            )
           )
         )
       ) : '...'

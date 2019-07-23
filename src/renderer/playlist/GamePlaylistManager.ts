@@ -30,7 +30,7 @@ export class GamePlaylistManager {
       // Make sure the flashpoint folder exists
       const validFpPath = await isFlashpointValidCheck(window.External.config.fullFlashpointPath);
       if (!validFpPath) {
-        return reject(`The Flashpoint folder was not found.`);
+        return reject('The Flashpoint folder was not found.');
       }
       // Make sure the playlists folder exists (and create one if it doesn't)
       const playlistFolderPath = getPlaylistFolder();
@@ -39,12 +39,12 @@ export class GamePlaylistManager {
         case CheckFolderResult.NotFound:
           try {
             await mkdir(playlistFolderPath);
-          } catch(error) {
+          } catch (error) {
             return reject(`Failed to create playlist folder. (Error: "${error.toString()}")`);
           }
           break;
         case CheckFolderResult.IsFile:
-          return reject(`The Playlist folder's name is already in use by a file. `+
+          return reject('The Playlist folder\'s name is already in use by a file. '+
                         `Please delete or rename the file. (Path: "${playlistFolderPath}")`);
       }
       // Load and parse all playlist files
@@ -67,7 +67,7 @@ export class GamePlaylistManager {
             }
           }
         });
-      } catch(error) {
+      } catch (error) {
         console.log(error);
       }
       // Add playlists and paths to this
@@ -90,7 +90,7 @@ export class GamePlaylistManager {
     // (This is only to save performance by not having to recurse through the entire folder)
     let fullPath = this.fileMap[playlist.id];
     if (fullPath) {
-      switch(await checkIfSame(fullPath, playlist.id)) {
+      switch (await checkIfSame(fullPath, playlist.id)) {
         case CheckIfSameResult.FileNotFound:
         case CheckIfSameResult.SameID:
           saveGamePlaylist(fullPath, playlist);
@@ -127,7 +127,7 @@ export class GamePlaylistManager {
     // (This is only to save performance by not having to recurse through the entire folder)
     let fullPath = this.fileMap[playlistId];
     if (fullPath) {
-      switch(await checkIfSame(fullPath, playlistId)) {
+      switch (await checkIfSame(fullPath, playlistId)) {
         case CheckIfSameResult.SameID:
           await unlink(fullPath);
           return true;
@@ -159,7 +159,7 @@ export class GamePlaylistManager {
    * @returns If the playlist was found and removed
    */
   public remove(playlistId: string): boolean {
-    // Try to find the playlist in the 
+    // Try to find the playlist in the
     for (let i = this.playlists.length - 1; i >= 0; i--) {
       const playlist = this.playlists[i];
       if (playlist.id === playlistId) {
@@ -196,7 +196,7 @@ async function checkFolder(folderPath: string): Promise<CheckFolderResult> {
       return CheckFolderResult.IsFolder;
     }
   }
-  catch(error) {
+  catch (error) {
     return CheckFolderResult.NotFound;
   }
 }
@@ -217,11 +217,11 @@ async function checkIfSame(filename: string, id: string): Promise<CheckIfSameRes
   let loaded: IGamePlaylist|LoadGamePlaylistError|undefined;
   try {
     loaded = await loadGamePlaylist(filename);
-  } catch(error) {
+  } catch (error) {
     console.log(error);
     return CheckIfSameResult.FileOtherError;
   }
-  switch(loaded) {
+  switch (loaded) {
     case LoadGamePlaylistError.FileNotFound:
       return CheckIfSameResult.FileNotFound;
     case LoadGamePlaylistError.JSONError:

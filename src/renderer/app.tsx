@@ -161,7 +161,7 @@ export class App extends React.Component<AppProps, AppState> {
     // Listen for changes to the theme files
     this.props.themes.on('change', item => {
       if (item.entryPath === this.props.preferencesData.currentTheme) {
-        this.reloadTheme(item.entryPath); 
+        this.reloadTheme(item.entryPath);
       }
     });
     this.props.themes.on('add',    item => { this.forceUpdate(); });
@@ -441,7 +441,7 @@ export class App extends React.Component<AppProps, AppState> {
       screenshotsState: Object.assign({}, screenshotsState, state),
     });
   }
-  
+
   /**
    * Apply another theme or clear the current theme.
    * @param themePath Path to the theme to apply (relative to the themes folder).

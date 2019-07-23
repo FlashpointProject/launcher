@@ -64,7 +64,7 @@ export class AppConfigApi extends EventEmitter {
       else      { reject(new Error('No data received from config data fetch request')); }
     });
   }
-  
+
   /** Request Configs Data (renderer -> main) (IPC Event Name) */
   public static readonly ipcRequestSync: string = 'app-configs-api-request-sync';
 }

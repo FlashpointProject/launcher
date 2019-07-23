@@ -39,7 +39,7 @@ export class ManagedChildProcess extends EventEmitter {
   public spawn(): void {
     if (this.process) { throw Error('You must not spawn the same ManagedChildProcess multiple times.'); }
     this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
-    this.logContent(`has been started`);
+    this.logContent('has been started');
     // Add event listeners to process
     this.process.stdout.on('data', (data: Buffer) => {
       // @BUG: This is only shows after the user presses CTRL+C.
@@ -50,7 +50,7 @@ export class ManagedChildProcess extends EventEmitter {
       this.logContent(data.toString('utf8'));
     });
     this.process.on('exit', (code, signal) => {
-      if (code) { this.logContent(`exited with code ${code}`);     } 
+      if (code) { this.logContent(`exited with code ${code}`);     }
       else      { this.logContent(`exited with signal ${signal}`); }
       this.process = undefined;
     });

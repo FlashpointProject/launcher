@@ -173,7 +173,7 @@ export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
       });
       // Start iterating
       zip.readEntry();
-    });    
+    });
   });
 }
 
@@ -230,7 +230,7 @@ function createBufferStream(buffer: Buffer) {
   // Create stream
   return new stream.Writable({
     write(chunk, encoding, callback) {
-      switch(encoding) {
+      switch (encoding) {
         case 'buffer':
           (chunk as Buffer).copy(buffer, offset);
           offset += (chunk as Buffer).length;

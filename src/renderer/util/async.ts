@@ -19,6 +19,6 @@ export function doAsyncParallel(calls: Array<DoAsyncFunction>): Promise<void> {
           else { console.warn('You should not call the same done() functions multiple times.'); }
         });
       }
-    } catch(e) { reject(e); }
+    } catch (e) { reject(e); }
   });
 }

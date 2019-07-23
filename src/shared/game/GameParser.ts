@@ -166,20 +166,20 @@ const unescapeHTML = (function() {
     apos: '\''
   });
   return function(str?: string): string {
-    return ((str||'')+'').replace(/\&([^;]+);/g, function (entity: string, entityCode: string): string {
+    return ((str||'')+'').replace(/&([^;]+);/g, function (entity: string, entityCode: string): string {
       let match;
       if (entityCode in htmlEntities) {
         return htmlEntities[entityCode];
-      } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
+      } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) { // eslint-disable-line no-cond-assign
         return String.fromCharCode(parseInt(match[1], 16));
-      } else if (match = entityCode.match(/^#(\d+)$/)) {
+      } else if (match = entityCode.match(/^#(\d+)$/)) { // eslint-disable-line no-cond-assign
         return String.fromCharCode(~~match[1]);
       } else {
         return entity;
       }
     });
   };
-})();
+}());
 const escapeHTML = (function() {
   const escapeChars = {
     '¢' : 'cent',
@@ -195,14 +195,14 @@ const escapeHTML = (function() {
     '\'' : '#39'
   };
   let regexString = '[';
-  for(let key in escapeChars) {
+  for (let key in escapeChars) {
     regexString += key;
   }
   regexString += ']';
-  const regex = new RegExp( regexString, 'g');
+  const regex = new RegExp(regexString, 'g');
   return function escapeHTML(str: string): string {
     return str.replace(regex, function(m) {
       return '&' + (escapeChars as any)[m] + ';';
     });
   };
-})();
+}());

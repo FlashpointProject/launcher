@@ -58,12 +58,12 @@ class BackgroundServices extends EventEmitter {
     try {
       const jsonFolder = path.posix.join(config.flashpointPath, config.jsonFolderPath);
       serviceInfo = await BackgroundServicesFile.readFile(jsonFolder, error => this.logContent(error));
-    } catch(error) {
+    } catch (error) {
       this.logContent(`An error occurred while loading the background services file:\n  ${error.toString()}`);
       this.startDone();
       return;
     }
-    //console.log('Services:', serviceInfo);
+    // console.log('Services:', serviceInfo);
     this.serviceInfo = serviceInfo;
 
     // Run start commands
@@ -89,22 +89,22 @@ class BackgroundServices extends EventEmitter {
       this.redirector.on('output', logOutput);
       this.spawnProc(this.redirector);
     }
-    
+
     this.startDone();
 
     // -- Functions --
     // Wrapper for ManagedChildProcess's constructor
     function createManagedChildProcess(name: string, info: IBackProcessInfo, detached?: boolean): ManagedChildProcess {
       return new ManagedChildProcess(
-        name, 
-        info.filename, 
-        info.arguments, 
+        name,
+        info.filename,
+        info.arguments,
         path.join(config.flashpointPath, info.path),
         !!detached
       );
     }
   }
-  
+
   private startDone(): void {
     // Update start done flag and emit event
     this.isStartDone = true;
@@ -135,7 +135,7 @@ class BackgroundServices extends EventEmitter {
       await this.execProcess(stop[i], true);
     }
   }
-  
+
   /** Wait until this is done starting (doesn't wait if already done starting) */
   public async waitUntilDoneStarting(): Promise<void> {
     // Check if already done starting
@@ -154,7 +154,7 @@ class BackgroundServices extends EventEmitter {
     try {
       if (sync) { child_process.execFileSync(proc.filename, proc.arguments, { cwd: cwd }); }
       else      { await execFile(            proc.filename, proc.arguments, { cwd: cwd }); }
-    } catch(error) {
+    } catch (error) {
       this.logContent(`An unexpected error occurred while executing a command:\n  "${error}"`);
     }
   }
@@ -169,12 +169,12 @@ class BackgroundServices extends EventEmitter {
       content,
     });
   }
-  
+
   /** Try to spawn a ManagedChildProcess, and log error if it fails */
   private spawnProc(proc: ManagedChildProcess): void {
     try {
       proc.spawn();
-    } catch(error) {
+    } catch (error) {
       this.logContent(`An unexpected error occurred while trying to run the background process "${proc.name}".`+
                     `  ${error.toString()}`);
     }

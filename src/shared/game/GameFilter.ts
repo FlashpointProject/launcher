@@ -47,7 +47,7 @@ export function reverseOrder(compareFn: OrderFn): OrderFn {
     if (ret ===  1) { return -1; }
     if (ret === -1) { return  1; }
     return 0;
-  }
+  };
 }
 
 /** Get the order function for a given game order */
@@ -58,7 +58,7 @@ export function getOrderFunction(order: GameOrderChangeEvent): OrderFn {
     case 'genre':     orderFn = orderByGenre;     break;
     case 'platform':  orderFn = orderByPlatform;  break;
     case 'series':    orderFn = orderBySeries;    break;
-    default: /*case 'title':*/ orderFn = orderByTitle; break;
+    default: /* case 'title': */ orderFn = orderByTitle; break;
   }
   if (order.orderReverse === 'descending') {
     orderFn = reverseOrder(orderFn);
@@ -209,7 +209,7 @@ export function orderGames(args: IOrderGamesArgs): IGameInfo[] {
   // -- Order games --
   let orderedGames = filteredGames;
   if (!args.playlist) { // (Dont order if a playlist is selected - kind of a hack)
-    orderedGames = filteredGames.sort(getOrderFunction(args.order));      
+    orderedGames = filteredGames.sort(getOrderFunction(args.order));
   }
   // -- Return --
   return orderedGames;
@@ -235,7 +235,7 @@ function parseFilters(input: string): IGameSearchQuery {
   for (let i = 0; i < splits.length; i++) {
     const split = splits[i];
     if (!split) { continue; } // Skip if split is empty
-    switch(split[0]) {
+    switch (split[0]) {
       case '!': // Platform (1)
         startNewString(split, 1);
         break;

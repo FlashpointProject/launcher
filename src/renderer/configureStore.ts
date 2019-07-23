@@ -23,5 +23,5 @@ export default function configureStore(history: History, initialState?: Partial<
         }
       )
     )
-  )
+  );
 }

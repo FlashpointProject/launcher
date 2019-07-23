@@ -18,7 +18,7 @@ export function createGamePlaylist(): IGamePlaylist {
 
 /**
  * Parse an arbitrary object into an IGamePlaylist
- * (presumably an IGamePlaylistRaw, but since its loaded from a JSON we can 
+ * (presumably an IGamePlaylistRaw, but since its loaded from a JSON we can
  *  not be sure what properties exists, or what types they are of)
  * @param data IGamePlaylistRaw-like object to copy properties from
  */
@@ -34,7 +34,7 @@ export function parseGamePlaylist(data: any, onError?: (error: string) => void):
   };
   const parser = new ObjectParser({
     input: data,
-    onError: onError ? (e) => { onError(e.toString()) } : noop,
+    onError: onError ? (e) => { onError(e.toString()); } : noop,
   });
   parser.prop('id',          v => playlist.id          = v+'');
   parser.prop('title',       v => playlist.title       = v+'');

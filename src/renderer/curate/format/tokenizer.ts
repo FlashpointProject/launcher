@@ -8,7 +8,7 @@ export namespace CFTokenizer {
     INDENT_CHANGE,
     LIST_ITEM,
     VALUE,
-  };
+  }
 
   // ------ Token Sub-Types ------
 
@@ -173,7 +173,7 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
               }
             }
           }
-        }        
+        }
       }
       // Update state
       state.indent = indent;
@@ -193,7 +193,7 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
 export function tokenToString(token: CFTokenizer.AnyToken): string {
   const displayToken: any = deepCopy(token);
   displayToken.type = CFTokenizer.TokenType[token.type] || 'UNKNOWN';
-  return JSON.stringify(displayToken, undefined, 2)
+  return JSON.stringify(displayToken, undefined, 2);
 }
 
 /**

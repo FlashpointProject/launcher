@@ -37,7 +37,7 @@ export function GameListItem(props: GameListItemProps) {
     return (
       <li
         style={style}
-        className={className} 
+        className={className}
         draggable={isDraggable}
         { ...attributes }>
         <div
@@ -70,10 +70,10 @@ export function GameListItem(props: GameListItemProps) {
   }, [style, className, isDraggable, game.id, game.genre, game.title, platformIcon]);
 }
 
-export namespace GameListItem {
+export namespace GameListItem { // eslint-disable-line no-redeclare
   /** ID of the attribute used to store the game's id. */
   export const idAttribute: string = 'data-game-id';
-  
+
   /**
    * Get the id of the game displayed in a GameListItem element (or throw an error if it fails).
    * @param element GameListItem element.
@@ -83,7 +83,7 @@ export namespace GameListItem {
     if (typeof value !== 'string') { throw new Error('Failed to get ID from GameListItem element. Attribute not found.'); }
     return value;
   }
-  
+
   /**
    * Check if an element is the top element of GameListItem or not.
    * @param element Potential element to check.
@@ -94,4 +94,4 @@ export namespace GameListItem {
       return (typeof value === 'string');
     } else { return false; }
   }
-};
+}

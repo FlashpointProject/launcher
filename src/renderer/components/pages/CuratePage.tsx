@@ -55,8 +55,8 @@ export function CuratePage(props: CuratePageProps) {
             dispatch({
               type: 'remove-curation',
               payload: { key: curation.key }
-            });         
-          } catch(error) {
+            });
+          } catch (error) {
             // Log error
             console.log(`Import FAILED! (id: ${curation.key})`, error);
             // Unlock the curation
@@ -260,6 +260,6 @@ function setGameMetaDefaults(meta: EditCurationMeta, defaultGameMetaValues?: Gam
     // Set application path
     if (!meta.applicationPath) {
       meta.applicationPath = defaultAppPaths[meta.platform || ''] || '';
-    }    
+    }
   }
 }

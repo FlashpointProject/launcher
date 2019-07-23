@@ -110,7 +110,7 @@ export class ThemeManager extends WrappedEventEmitter {
       }
     });
   }
-  
+
   private onWatcherChange = (filename: string, offsetPath: string): void => {
     // Emit a change if the file is owned by a theme
     const theme = this.findOwner(filename, offsetPath);
@@ -159,4 +159,4 @@ const getFirstName = (function() {
     const result = regex.exec(filepath);
     return (result && result[0]) || '';
   };
-})();
+}());

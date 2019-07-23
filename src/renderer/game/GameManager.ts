@@ -19,7 +19,7 @@ class GameManager extends EventEmitter {
   private platforms: GameManagerPlatform[] = [];
   /** A collection of all games from all platforms */
   public collection: GameCollection = new GameCollection();
-  
+
   /** Fetch file filenames of all platform XMLs in the platforms folder */
   public async findPlatforms(): Promise<string[]> {
     const flashpointPath = window.External.config.fullFlashpointPath;
@@ -86,7 +86,7 @@ class GameManager extends EventEmitter {
     // Override the additional applications
     if (addApps) {
       const currentAddApps = GameCollection.findAdditionalApplicationsByGameId(this.collection, game.id);
-      this.updateAddApps(addApps, currentAddApps, platform);      
+      this.updateAddApps(addApps, currentAddApps, platform);
     }
     // Refresh games collection
     this.refreshCollection();
@@ -175,7 +175,7 @@ class GameManager extends EventEmitter {
       platform.addAdditionalApplication(addApp);
       const newRawAddApp = Object.assign(
         {},
-        GameParser.emptyRawAdditionalApplication, 
+        GameParser.emptyRawAdditionalApplication,
         GameParser.reverseParseAdditionalApplication(addApp)
       );
       platform.addRawAdditionalApplication(newRawAddApp);
@@ -237,7 +237,7 @@ class GameManager extends EventEmitter {
       this.getPlatformByName(formatUnknownPlatformName(libraryPrefix))
     );
   }
-  
+
   /**
    * Create and add an unknown platform for a specific library (or get it if it already exists).
    * @param libraryPrefix Prefix of the library the platform is for.
@@ -253,11 +253,11 @@ class GameManager extends EventEmitter {
       return platform;
     }
   }
-  
+
   public getPlatformByName(platformName: string): GameManagerPlatform|undefined {
     return this.getPlatformByFilename(platformName + '.xml');
   }
-  
+
   public getPlatformByFilename(platformFilename: string): GameManagerPlatform|undefined {
     const targetName = platformFilename.toLowerCase();
     for (let i = this.platforms.length - 1; i >= 0; i--) {

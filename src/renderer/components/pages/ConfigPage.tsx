@@ -261,7 +261,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       </div>
     );
   }
-  
+
   onShowExtremeChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ browsePageShowExtreme: isChecked });
     this.forceUpdate();
@@ -286,16 +286,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const isValid = await isFlashpointValidCheck(filePath);
     this.setState({ isFlashpointPathValid: isValid });
   }
-  
+
   useWineChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ useWine: isChecked });
     this.forceUpdate();
   }
-  
+
   onUseCustomTitlebarChange = (isChecked: boolean): void => {
     this.setState({ useCustomTitlebar: isChecked });
   }
-  
+
   onShowDeveloperTab = (isChecked: boolean): void => {
     this.props.updatePreferences({ showDeveloperTab: isChecked });
     this.forceUpdate();
@@ -347,7 +347,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       this.props.reloadTheme(relativePath);
     }
   }
-  
+
   currentThemeInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
     this.currentThemeInputRef = ref;
   }

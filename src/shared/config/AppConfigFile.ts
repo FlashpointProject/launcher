@@ -66,12 +66,12 @@ export class AppConfig {
   public static stringifyData(data: IAppConfigData): string {
     return stringifyJsonDataFile(data);
   }
-  
+
   /** Get the default config data for a specified platform */
   public static getDefaults(platform: NodeJS.Platform): IAppConfigData {
     return AppConfig.configDataDefaults[platform] || AppConfig.configDataDefaultBase;
   }
-  
+
   /** Create and return a copy of the default config data for a specified platform */
   public static createCopyOfDefaults(platform: NodeJS.Platform): IAppConfigData {
     return deepCopy(AppConfig.getDefaults(platform));
@@ -96,7 +96,7 @@ export class AppConfig {
     showBrokenGames: false,
   })
 
-  /** 
+  /**
    * Default configurations for each platform
    * (Any platform that is not listed here will use "configDataDefaultBase" as their default)
    */

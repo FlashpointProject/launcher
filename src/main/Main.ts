@@ -72,7 +72,7 @@ export class Main {
     // https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
     session.defaultSession.webRequest.onHeadersReceived(
       (details: any, callback: Function) => callback({
-        responseHeaders: `script-src 'self'`,
+        responseHeaders: 'script-src \'self\'',
         cancel: true
       })
     );
@@ -91,7 +91,7 @@ export class Main {
       this._backgroundServices.stop();
     }
   }
-  
+
   private onAppWebContentsCreated(event: Electron.Event, webContents: Electron.WebContents): void {
     // Open links to web pages in the OS-es default browser
     // (instead of navigating to it with the electron window that opened it)
@@ -108,7 +108,7 @@ export class Main {
    * @param output The log entry to be added. Must end with a new line.
    */
   private pushLogData(output: ILogPreEntry): void {
-    //process.stdout.write(output);
+    // process.stdout.write(output);
     this._log.addEntry(output);
   }
 
@@ -119,7 +119,7 @@ export class Main {
     const onError = (e: string) => this.pushLogData({ source: 'Config', content: e });
     try {
       data = await AppConfig.readConfigFile(onError);
-    } catch(e) { error = e; }
+    } catch (e) { error = e; }
     // Check if config data failed to load
     if (error || !data) {
       // Set the config data to the default

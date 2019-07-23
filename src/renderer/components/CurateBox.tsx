@@ -144,7 +144,7 @@ export function CurateBox(props: CurateBoxProps) {
             onInputKeyDown={onInputKeyDown} />
         )) }
         <hr className='curate-box-divider' />
-      </>      
+      </>
     ) : undefined
   ), [
     props.curation && props.curation.addApps,
@@ -428,7 +428,7 @@ type InputElementOnChangeEvent = {
 function transformOnItemSelect(callback: (event: InputElementOnChangeEvent) => void) {
   return (text: string) => {
     callback({ currentTarget: { value: text } });
-  }
+  };
 }
 
 /**
@@ -520,7 +520,7 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
   let value: T | undefined = undefined;
   let error: E | undefined = undefined;
   try      { value = await promise; }
-  catch(e) { error = e;             }
+  catch (e) { error = e;             }
   return [value, error];
 }
 
@@ -538,7 +538,7 @@ function boolToString(bool: boolean): string {
  */
 function isHttp(url: string): boolean {
   try { return new URL(url).protocol.toLowerCase() === 'http:'; }
-  catch(e) { return false; }
+  catch (e) { return false; }
 }
 
 /**
@@ -551,5 +551,5 @@ function isHttp(url: string): boolean {
  * @param str String to check.
  */
 function isValidDate(str: string): boolean {
-  return (/^\d{4}(\-(0?[1-9]|1[012])(\-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
+  return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
 }

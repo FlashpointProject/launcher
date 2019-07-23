@@ -45,7 +45,7 @@ type OwnProps = {
   isNewGame: boolean;
   /** ... */
   suggestions?: Partial<GamePropSuggestions>;
-  
+
   onEditClick?: () => void;
   onDiscardClick?: () => void;
   onSaveGame?: () => void;
@@ -311,11 +311,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     <CheckBox
                       checked={game.extreme}
                       className='browse-right-sidebar__row__check-box' />
-                    <p> Extreme</p>                
+                    <p> Extreme</p>
                   </div>
                 </div>
               </div>
-            </>            
+            </>
           ) }
           {/* -- Playlist Game Entry Notes -- */}
           { gamePlaylistEntry ? (
@@ -512,7 +512,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       event.preventDefault();
     }
   }
-  
+
   onLocalKeyDown = (event: React.KeyboardEvent) => {
     const { currentGame, isEditing, onSaveGame } = this.props;
     // Save changes
@@ -522,7 +522,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       event.preventDefault();
     }
   }
-  
+
   onScreenshotContextMenu = (event: React.MouseEvent) => {
     const { currentGame, gameImages } = this.props;
     const template: MenuItemConstructorOptions[] = [];
@@ -588,11 +588,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       copyGameImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
     }
   }
-  
+
   onRemoveScreenshotClick = (): void => {
     this.deleteImage(this.props.gameImages.getScreenshotCache(this.getImageFolderName()));
   }
-  
+
   onRemoveThumbnailClick = (): void => {
     this.deleteImage(this.props.gameImages.getThumbnailCache(this.getImageFolderName()));
   }
@@ -611,7 +611,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
       copyGameImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
     } else { // (Single file)
-      switch(text) {
+      switch (text) {
         case 'Thumbnail':
           copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
           break;
@@ -666,8 +666,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onNewAddAppClick = (): void => {
-    if (!this.props.currentAddApps) { throw new Error(`Unable to add a new AddApp. "currentAddApps" is missing.`); }
-    if (!this.props.currentGame)    { throw new Error(`Unable to add a new AddApp. "currentGame" is missing.`); }
+    if (!this.props.currentAddApps) { throw new Error('Unable to add a new AddApp. "currentAddApps" is missing.'); }
+    if (!this.props.currentGame)    { throw new Error('Unable to add a new AddApp. "currentGame" is missing.'); }
     const newAddApp = AdditionalApplicationInfo.create();
     newAddApp.id = uuid();
     newAddApp.gameId = this.props.currentGame.id;
@@ -705,7 +705,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         func(game, event.currentTarget.value);
         this.forceUpdate();
       }
-    }
+    };
   }
 
   /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
@@ -717,7 +717,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         func(game);
         this.forceUpdate();
       }
-    }
+    };
   }
 
   /** Get the name of the image folder for the current game. */
@@ -732,7 +732,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
 function filterSuggestions(suggestions?: string[]): string[] {
   if (!suggestions) { return []; }
-  //if (suggestions.length > 25) { return suggestions.slice(0, 25); }
+  // if (suggestions.length > 25) { return suggestions.slice(0, 25); }
   return suggestions;
 }
 

@@ -36,7 +36,7 @@ export type SidebarResizeEvent = {
 
 export class ResizableSidebar extends React.Component<ResizableSidebarProps, ResizableSidebarState> {
   sidebarRef: React.RefObject<HTMLDivElement> = React.createRef();
-  
+
   constructor(props: ResizableSidebarProps) {
     super(props);
     this.state = {

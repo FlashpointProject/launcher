@@ -23,7 +23,7 @@ export type DebounceOpts<T extends AnyFunction> = {
   equal?: EqualsCheck<T>;
 };
 
-/** 
+/**
  * Buffer calls for some time and ignore all calls with identical arguments to a buffered call.
  * @param callback Called when a buffered event is "released".
  * @param opts Options.
@@ -69,12 +69,12 @@ export function debounce<T extends AnyFunction>(callback: T, opts?: DebounceOpts
       }, time);
     }
   };
-  
+
   return debouncer;
 }
 
 /** Default function used to compare arguments. */
 function defaultEqualsFunc<T extends any[]>(newArgs: T, prevArgs: T): boolean {
-  return newArgs.length === prevArgs.length && 
+  return newArgs.length === prevArgs.length &&
          shallowStrictEquals(newArgs, prevArgs);
 }
