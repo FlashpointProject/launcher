@@ -2,27 +2,25 @@ import { app, ipcMain, session, shell } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import checkSanity from '../shared/checkSanity';
-import { AppConfigApi } from '../shared/config/AppConfigApi';
-import { AppConfig } from '../shared/config/AppConfigFile';
+import { AppConfigIPC } from '../shared/config/AppConfigApi';
 import { IAppConfigApiFetchData, IAppConfigData } from '../shared/config/interfaces';
 import { ILogPreEntry } from '../shared/Log/interface';
 import { LogMainApi } from '../shared/Log/LogMainApi';
 import BackgroundServices from './background/BackgroundServices';
 import MainWindow from './MainWindow';
+import { AppConfigMain } from './config/AppConfigMain';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 import * as Util from './Util';
-import { fstat } from 'fs-extra';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
   private _backgroundServices?: BackgroundServices;
-  private _config?: IAppConfigData;
+  private _config: AppConfigMain = new AppConfigMain();
   private _preferences: AppPreferencesMain = new AppPreferencesMain();
   private _installed: boolean = fs.existsSync('./.installed');
   private _log: LogMainApi = new LogMainApi(this.sendToMainWindowRenderer.bind(this));
 
-  public get config(): IAppConfigData {
-    if (!this._config) { throw new Error('You must not try to access config before it is loaded!'); }
+  public get config(): AppConfigMain {
     return this._config;
   }
 
@@ -41,22 +39,21 @@ export class Main {
     app.once('will-quit', this.onAppWillQuit.bind(this));
     app.once('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
-    ipcMain.on(AppConfigApi.ipcRequestSync, this.onGetConfigSync.bind(this));
     this._log.bindListeners();
     // Connect preferences to log
     this._preferences.on('log', this.pushLogData.bind(this));
     // Load config and preferences
-    this.loadConfig()
+    this._config.load(this.installed)
     .then(async () => { await this._preferences.load(this.installed); })
     .then(async () => {
       // Check if we are ready to launch or not.
       // @TODO Launch the setup wizard when a check failed.
-      checkSanity(this.config)
+      checkSanity(this._config.data)
       .then(console.log, console.error);
       // Start background services
       this._backgroundServices = new BackgroundServices();
       this._backgroundServices.on('output', this.pushLogData.bind(this));
-      this._backgroundServices.start(this.config);
+      this._backgroundServices.start(this._config.data);
       // Create main window when ready
       this._backgroundServices.waitUntilDoneStarting()
       .then(Util.waitUntilReady)
@@ -117,38 +114,6 @@ export class Main {
   private pushLogData(output: ILogPreEntry): void {
     //process.stdout.write(output);
     this._log.addEntry(output);
-  }
-
-  /** Load the application config asynchronously */
-  private async loadConfig(): Promise<void> {
-    let error: Error|undefined;
-    let data: IAppConfigData|undefined;
-    const onError = (e: string) => this.pushLogData({ source: 'Config', content: e });
-    
-    AppConfig.setFilePath(this.installed);
-    try {
-      data = await AppConfig.readConfigFile(onError);
-    } catch(e) { error = e; }
-    // Check if config data failed to load
-    if (error || !data) {
-      // Set the config data to the default
-      data = AppConfig.createCopyOfDefaults(process.platform);
-      // Create a new config file with the default configs
-      AppConfig.saveConfigFile(data);
-    }
-    // Set config data
-    this._config = data;
-    console.log('Configs:', data);
-  }
-
-  /** Get the config object synchronously */
-  private onGetConfigSync(event: Electron.IpcMessageEvent): void {
-    const data: IAppConfigApiFetchData = {
-      data: this.config,
-      fullFlashpointPath: path.resolve(this.config.flashpointPath),
-      installed: this.installed
-    };
-    event.returnValue = data;
   }
 
   /** Send a message to the main windows renderer */

@@ -73,7 +73,7 @@ class BackgroundServices extends EventEmitter {
     }
 
     // Start router
-    if (config.startRouter) {
+    if (config.startServer) {
       if (!serviceInfo.server) { throw new Error('Server process information not found.'); }
       this.server = createManagedChildProcess('Router', serviceInfo.server);
       this.server.on('output', logOutput);

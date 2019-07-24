@@ -29,7 +29,7 @@ export default class MainWindow {
     let width:  number = (mw.width  !== undefined) ? mw.width  : 1000;
     let height: number = (mw.height !== undefined) ? mw.height :  650;
     if (mw.width === undefined && mw.height === undefined &&
-        !this._main.config.useCustomTitlebar) {
+        !this._main.config.data.useCustomTitlebar) {
       width  += 8; // Add the width of the window-grab-things,
       height += 8; // they are 4 pixels wide each (at least for me @TBubba)
     }
@@ -39,7 +39,7 @@ export default class MainWindow {
       y: mw.y,
       width: width,
       height: height,
-      frame: !this._main.config.useCustomTitlebar,
+      frame: !this._main.config.data.useCustomTitlebar,
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
       },

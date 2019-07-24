@@ -1,19 +1,19 @@
 import { ipcMain, IpcMessageEvent } from 'electron';
 import { EventEmitter } from 'events';
-import { AppPreferencesApi } from '../../shared/preferences/AppPreferencesApi';
-import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
+import { AppPreferencesIPC } from '../../shared/preferences/AppPreferencesApi';
+import { IAppPreferencesData } from '../../shared/preferences/interfaces';
 import { overwritePreferenceData } from '../../shared/preferences/util';
 import { AppPreferencesFile } from './AppPreferencesFile';
 
 /**
- * Manager of the Preferences Data.
- * "Back end" of the Preferences API, this lives in the "Main" process.
- * This is the bridge between "AppPreferencesApi" and the Preferences file.
+ * "Back end" part of the API for managing preferences data.
+ * This manages the preferences file, exposes the API methods and data to the main process
+ * and communicates with the API on the renderer process through IPC.
  */
 export class AppPreferencesMain extends EventEmitter {
-  /** Current preferences data */
   private _data?: IAppPreferencesData;
 
+  /** Current preferences data. */
   public get data(): IAppPreferencesData {
     if (!this._data) { throw new Error('You must not try to access the preferences data before it is loaded!'); }
     return this._data;
@@ -23,18 +23,27 @@ export class AppPreferencesMain extends EventEmitter {
     super();
     // Add IPC event listeners
     ipcMain
-      .on(AppPreferencesApi.ipcSend, this.onSendData.bind(this))
-      .on(AppPreferencesApi.ipcRequestSync, this.onRequestDataSync.bind(this));
+    .on(AppPreferencesIPC.SEND, this.onSendData.bind(this))
+    .on(AppPreferencesIPC.REQUEST_SYNC, this.onRequestDataSync.bind(this));
   }
-
-  /** Load the data from the file */
+  
+  /**
+   * Load the preferences file.
+   * @param installed If the application is installed (and not portable).
+   * @returns A promise that resolves when the preferences data has been loaded.
+   */
   public async load(installed: boolean) {
     AppPreferencesFile.setFilePath(installed);
     this._data = await AppPreferencesFile.readOrCreate(this.log.bind(this));
-    console.log('Preferences:', this._data);
   }
 
-  /** Called when data is sent to this from the renderers preferences api */
+  /**
+   * Called when the renderer API sends data to update the current preferences with.
+   * This updates the current preferences data and saves it to the preferences file,
+   * it then responds to let the renderer know that it's done.
+   * @param event Event.
+   * @param data Data to update the preferences with.
+   */
   private onSendData(event: IpcMessageEvent, data?: Partial<IAppPreferencesData>): void {
     if (!this._data) { throw new Error('The data must first be loaded before new can be received.'); }
     if (!data) { throw new Error('You must send a data object, but no data was received.'); }
@@ -43,10 +52,13 @@ export class AppPreferencesMain extends EventEmitter {
     // Save the data
     AppPreferencesFile.saveFile(this._data);
     // Send response (so the renderer knows that the data was received)
-    event.sender.send(AppPreferencesApi.ipcSendResponse);
+    event.sender.send(AppPreferencesIPC.SEND_RESPONSE);
   }
 
-  /** Called when data is requested from the renderers preferences api */
+  /**
+   * Called when the preferences data is requested from the renderer API.
+   * This sends the current preferences data to the renderer.
+   */
   private onRequestDataSync(event: IpcMessageEvent): void {
     event.returnValue = this._data;
   }

@@ -1,4 +1,4 @@
-import { IAppPreferencesData } from '../../../shared/preferences/IAppPreferencesData';
+import { IAppPreferencesData } from '../../../shared/preferences/interfaces';
 
 export const enum PreferencesActionTypes {
   UPDATE_PREFERENCE = '@@preferences/UPDATE_PREFERENCE',
