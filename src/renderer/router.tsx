@@ -103,7 +103,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
         <PropsRoute
           path={Paths.DEVELOPER}
           component={ConnectedDeveloperPage}
-          central={this.props.central} />
+          central={this.props.central}
+          gameImages={this.props.gameImages} />
         <Route component={NotFoundPage} />
       </Switch>
     );
