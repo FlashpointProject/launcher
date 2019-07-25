@@ -36,7 +36,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
   componentWillUnmount() {
     window.External.log.removeListener('change', this.onLogDataUpdate);
   }
-  
+
   render() {
     const { preferencesData: { showLogSource } } = this.props;
     const logData = this.getLogString();
@@ -54,10 +54,10 @@ export class LogsPage extends React.Component<LogsPageProps> {
                       type='checkbox'
                       checked={getBoolean(showLogSource[label])}
                       onChange={() => this.onCheckboxClick(index)}
-                      className='simple-center__vertical-inner' />               
+                      className='simple-center__vertical-inner' />
                   </div>
                   <div className='simple-center'>
-                    <p className='simple-center__vertical-inner'>{label}</p>                  
+                    <p className='simple-center__vertical-inner'>{label}</p>
                   </div>
                 </label>
               )) }
@@ -88,7 +88,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
                   </div>
                 </div>
                 {/* Add more right stuff here ... */}
-              </div>            
+              </div>
             </div>
           </div>
         </div>

@@ -430,6 +430,11 @@ body {
 
 
 /* ------ Curate ------ */
+/* Curate Page Top */
+.curate-page-top {
+  border-color: var(--layout__tertiary-background);
+  background-color: var(--layout__quaternary-background);
+}
 /* Curate Box */
 .curate-box {
   background-color: var(--layout__tertiary-background);
@@ -582,6 +587,17 @@ body {
 /* GameList Item Thumb */
 .game-list-item__thumb {
   image-rendering: var(--layout__game-item-thumb-image-rendering);
+}
+/* GameList Header */
+.game-list-header-column__divider {
+  background: var(--layout__browse-sidebar-divider-background);
+}
+.game-list-header__scroll-fill {
+  background: linear-gradient(to left, var(--layout__tertiary-background), #00000000);
+}
+/* GameList Header Column */
+.game-list-header-column--icon {
+  background: linear-gradient(to right, var(--layout__tertiary-background), #00000000);
 }
 
 

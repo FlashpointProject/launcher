@@ -23,7 +23,7 @@ export function readJsonFile(path: string, options: ReadFileOptions): Promise<an
       return resolve(jsonOrError);
     });
   });
-};
+}
 
 /**
  * Remove the file extension of a filename
@@ -155,8 +155,8 @@ export function stringifyJsonDataFile(data: any): string {
 /**
  * Check if all properties of both arguments have strictly equals values,
  * and if both objects have identical properties (same number of props with the same names)
- * @param first 
- * @param second 
+ * @param first
+ * @param second
  */
 export function shallowStrictEquals(first: any, second: any): boolean {
   for (let key in first) {
@@ -222,7 +222,7 @@ export function tryParseJSON(jsonString: string): any|Error {
   let ret: any|Error;
   try {
     ret = JSON.parse(jsonString);
-  } catch(error) {
+  } catch (error) {
     ret = error;
   }
   return ret;

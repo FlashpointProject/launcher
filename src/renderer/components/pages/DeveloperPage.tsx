@@ -170,7 +170,7 @@ function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollect
   const missingThumbnails:  IGameInfo[] = games.filter(game =>
     gameImages.getThumbnailPath(game) === undefined
   );
-  const missingScreenshots: IGameInfo[] = games.filter(game => 
+  const missingScreenshots: IGameInfo[] = games.filter(game =>
     gameImages.getScreenshotPath(game) === undefined
   );
   const timeEnd = Date.now(); // End timing
@@ -392,7 +392,7 @@ function checkFileLocation(games: IGameInfo[]): string {
         if (gamePath === undefined) { pathFailed.push(game); }
       } catch (error) {
         pathError.push([ game, error ]);
-      }      
+      }
     }
   }
   const timeEnd = Date.now(); // End timing
@@ -479,7 +479,7 @@ async function renameImagesToIDsSub(games: IGameInfo[], getCache: GetImageCacheF
           .catch(error => { stats.errors.push({ game, error }); })
           .then(() => { stats.renamedFiles += 1; });
         }
-      } else { stats.skippedFiles += 1; }      
+      } else { stats.skippedFiles += 1; }
     } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.filename}")`) }); }
     // Count number of loops
     stats.totalLooped += 1;
@@ -533,7 +533,7 @@ async function renameImagesToTitlesSub(games: IGameInfo[], getCache: GetImageCac
           .catch(error => { stats.errors.push({ game, error }); })
           .then(() => { stats.renamedFiles += 1; });
         }
-      } else { stats.skippedFiles += 1; }      
+      } else { stats.skippedFiles += 1; }
     } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.filename}")`) }); }
     // Count number of loops
     stats.totalLooped += 1;
@@ -548,8 +548,8 @@ function stringifyRenameImageStats(stats: RenameImagesStats): string {
   str += `    Renamed: ${stats.renamedFiles}\n`;
   str += `    Skipped: ${stats.skippedFiles}\n`;
   if (stats.errors.length > 0) {
-    str += `    Errors:\n`;
-    str += stats.errors.reduce((acc, error) => 
+    str += '    Errors:\n';
+    str += stats.errors.reduce((acc, error) =>
       acc+`      Error: ${(error.error+'').replace(/\n/g, '\n             ')}\n`,
       ''
     );
@@ -593,12 +593,12 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
       path.join(fullFlashpointPath, 'Data/Images'),
       imageFolderStructure,
       log, 2
-    ).catch(logError);    
+    ).catch(logError);
   } else { log('\n  No image folder names found (each platform ".xml" file get its own image folder).'); }
   // Return string
   log(); // Add final new line
   return str;
-  
+
   /** Create all the folders that are missing in a folder structure. */
   async function createFolderStructure(rootPath: string, structure: FolderStructure, log: (text: string) => void, depth: number = 0) {
     const pad = '| '.repeat(depth - 1);
@@ -640,7 +640,7 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
     // Get the platform filenames
     let platformFilenames: string[];
     try { platformFilenames = await LaunchboxData.fetchPlatformFilenames(fullFlashpointPath); }
-    catch(error) { return []; }
+    catch (error) { return []; }
     // Convert to image folder names
     return (
       platformFilenames // [ "Flash.xml", "HTML5.xml" etc. ]

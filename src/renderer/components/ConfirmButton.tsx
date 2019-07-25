@@ -44,8 +44,8 @@ export class ConfirmButton extends React.Component<ConfirmButtonProps, ConfirmBu
     return (
       <input
         type='button'
-        onClick={this.onClick} 
-        onMouseLeave={this.onMouseLeave} 
+        onClick={this.onClick}
+        onMouseLeave={this.onMouseLeave}
         { ...props } />
     );
   }

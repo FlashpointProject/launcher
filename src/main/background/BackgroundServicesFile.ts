@@ -12,7 +12,7 @@ export class BackgroundServicesFile {
   /** Read and parse the file asynchronously */
   public static readFile(jsonFolder: string, onError?: (error: string) => void): Promise<IBackProcessInfoFile> {
     return new Promise((resolve, reject) => {
-      readJsonFile(path.join(jsonFolder, BackgroundServicesFile.filePath), 
+      readJsonFile(path.join(jsonFolder, BackgroundServicesFile.filePath),
                    BackgroundServicesFile.fileEncoding)
       .then(json => resolve(parseBackProcessInfoFile(json, onError)))
       .catch(reject);
@@ -30,7 +30,7 @@ function parseBackProcessInfoFile(data: any, onError?: (error: string) => void):
   };
   const parser = new ObjectParser({
     input: data,
-    onError: onError ? ((e) => { onError(`Error while parsing Services: ${e.toString()}`) }) : noop
+    onError: onError ? ((e) => { onError(`Error while parsing Services: ${e.toString()}`); }) : noop
   });
   parsed.redirector = parseBackProcessInfo(parser.prop('redirector'));
   parsed.fiddler    = parseBackProcessInfo(parser.prop('fiddler'));

@@ -53,7 +53,7 @@ export class EventQueue {
     const event = this.queue.shift();
     if (event) {
       try { await executeEventFunction(event); }
-      catch(error) { /* Ignore the error. */ }
+      catch (error) { /* Ignore the error. */ }
       await this.executeNext();
     }
   }
@@ -86,7 +86,7 @@ function wrapEvent(event: EventFunction): [ () => Promise<void>, Promise<void> ]
     try {
       await executeEventFunction(event);
       resolvePromise();
-    } catch(error) {
+    } catch (error) {
       rejectPromise(error);
     }
   };

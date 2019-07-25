@@ -58,7 +58,7 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
     }
     // Parse token
     const token = tokens[index];
-    switch(token.type) {
+    switch (token.type) {
       // (Tokens to ignore)
       case CFTokenizer.TokenType.COMMENT:
         index += 1;
@@ -77,11 +77,11 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
           break mainLoop; // (Exit the main loop)
         } else {
           throw createError(
-            'Indent Token was expected to be negative, but it was not.', 
+            'Indent Token was expected to be negative, but it was not.',
             token
           );
         }
-        break;
+        // break;
       // Identifier token, create a property and assign the next value to it
       case CFTokenizer.TokenType.IDENTIFIER: {
         // Get the next non-comment token
@@ -95,7 +95,7 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
           index += 1;
         } else {
           // Assign the contents of the token as the value
-          switch(nextToken.type) {
+          switch (nextToken.type) {
             // Assign a string value
             case CFTokenizer.TokenType.VALUE:
               parsed[token.name] = nextToken.value;
@@ -159,7 +159,7 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
               parsed[token.name] = '';
               index += 1;
               break;
-          }          
+          }
         }
       } break;
     }

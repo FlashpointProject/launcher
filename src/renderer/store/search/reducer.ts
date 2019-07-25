@@ -3,7 +3,7 @@ import { SearchActionTypes, SearchState } from './types';
 
 const initialState: SearchState = {
   query: { text: '' },
-}
+};
 
 const reducer: Reducer<SearchState> = (state = initialState, action) => {
   switch (action.type) {
@@ -14,6 +14,6 @@ const reducer: Reducer<SearchState> = (state = initialState, action) => {
       return state;
     }
   }
-}
+};
 
 export { reducer as searchReducer };

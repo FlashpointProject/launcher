@@ -114,7 +114,7 @@ export class ImagePreview extends React.Component<ImagePreviewProps, ImagePrevie
       borderHeight: border.offsetHeight,
     });
   }
-  
+
   onLoad = (event: React.SyntheticEvent<HTMLImageElement>): void => {
     this.setState({
       imageWidth: event.currentTarget.naturalWidth,

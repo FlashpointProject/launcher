@@ -94,13 +94,13 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
       </div>
     );
   }
-  
+
   onMouseEnterCreditsIcon = (profile: ICreditsDataProfile) => {
     if (this.state.profile !== profile) {
       this.setState({ profile });
     }
   }
-  
+
   onMouseLeaveCreditsIcon = () => {
     if (this.state.profile !== undefined) {
       this.setState({ profile: undefined });

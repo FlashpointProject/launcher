@@ -114,7 +114,7 @@ export class FolderWatcher extends WrappedEventEmitter {
     fs.stat(folderPath, (error, stats) => {
       if (error) { throw error; }
       // Make sure folder path is not invalid
-      if (this._folderPath === undefined) { throw new Error(`Failed to setFolder. "folderPath" was unexpectedly set to undefined.`); }
+      if (this._folderPath === undefined) { throw new Error('Failed to setFolder. "folderPath" was unexpectedly set to undefined.'); }
       // Load the filenames of all files in the folder
       fs.readdir(this._folderPath, (error, files) => {
         if (error) { throw error; }
@@ -262,7 +262,7 @@ export class FolderWatcher extends WrappedEventEmitter {
       this.emit('remove', filename, this._pathOffset);
     });
   }
-  
+
   /**
    * Turn a watcher into a child watcher.
    * @param parentWatcher Watcher of the parent folder.

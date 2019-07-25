@@ -59,7 +59,7 @@ function createOnMouseMove(current: HTMLElement): (event: MouseEvent) => void {
       }
       current.style.top  = (event.clientY +  8)+'px';
     }
-  }
+  };
 }
 
 /**

@@ -30,8 +30,10 @@ export class AppPreferencesApi extends EventEmitter {
 
   /** How often the data should be sent to the main (in milliseconds). */
   private static sendDataInterval: number = 0.5 * 1000;
-  
-  /** Initialize the API. */
+
+  /**
+   * Initialize (this should be called after construction, and before accessing the data object)
+   */
   public async initialize() {
     return new Promise(async () => {
       if (this._isInit) { throw new Error('You can only initialize this once'); }
@@ -77,7 +79,7 @@ export class AppPreferencesApi extends EventEmitter {
       this.once('init', () => { resolve(); });
     });
   }
-  
+
   /**
    * Send the current preferences to the main process.
    * @returns A promise.
@@ -108,8 +110,8 @@ export class AppPreferencesApi extends EventEmitter {
       else      { reject(new Error('No data received from preference data fetch request')); }
     });
   }
-  
-  /** Get the currently cached data (wrapped in a proxy). */
+
+  /** Get the currently cached data (wrapped in a proxy) */
   public getData(): IAppPreferencesData {
     if (!this._dataProxy) { throw createAccessError('getData'); }
     return this._dataProxy;

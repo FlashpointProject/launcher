@@ -53,7 +53,7 @@ export class LogData extends React.Component<LogDataProps> {
       this.scrollAllTheDown();
     }
   }
-  
+
   /** Scroll to the bottom of the log (jumping to the latest logged data). */
   scrollAllTheDown() {
     const preNode = this.preNodeRef.current;

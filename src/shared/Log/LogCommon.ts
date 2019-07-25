@@ -82,7 +82,7 @@ function getClassModifier(source: string): string {
     source
       .toLowerCase()
       .replace(/ /g, '-')
-      .replace(/[^a-z\-]/gi, '') // (Only allow a-z and "-")
+      .replace(/[^a-z-]/gi, '') // (Only allow a-z and "-")
   );
 }
 

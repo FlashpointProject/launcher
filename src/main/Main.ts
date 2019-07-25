@@ -1,9 +1,6 @@
 import { app, ipcMain, session, shell } from 'electron';
-import * as path from 'path';
 import * as fs from 'fs';
 import checkSanity from '../shared/checkSanity';
-import { AppConfigIPC } from '../shared/config/AppConfigApi';
-import { IAppConfigApiFetchData, IAppConfigData } from '../shared/config/interfaces';
 import { ILogPreEntry } from '../shared/Log/interface';
 import { LogMainApi } from '../shared/Log/LogMainApi';
 import BackgroundServices from './background/BackgroundServices';
@@ -76,7 +73,7 @@ export class Main {
     // https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
     session.defaultSession.webRequest.onHeadersReceived(
       (details: any, callback: Function) => callback({
-        responseHeaders: `script-src 'self'`,
+        responseHeaders: 'script-src \'self\'',
         cancel: true
       })
     );
@@ -95,7 +92,7 @@ export class Main {
       this._backgroundServices.stop();
     }
   }
-  
+
   private onAppWebContentsCreated(event: Electron.Event, webContents: Electron.WebContents): void {
     // Open links to web pages in the OS-es default browser
     // (instead of navigating to it with the electron window that opened it)
@@ -112,7 +109,7 @@ export class Main {
    * @param output The log entry to be added. Must end with a new line.
    */
   private pushLogData(output: ILogPreEntry): void {
-    //process.stdout.write(output);
+    // process.stdout.write(output);
     this._log.addEntry(output);
   }
 

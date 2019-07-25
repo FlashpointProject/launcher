@@ -20,7 +20,7 @@ export class ImageFolderCache {
   public getFolderPath(): string {
     return this._folderPath;
   }
-  
+
   /** Refresh the cache (reload all filenames in the folder and remove the cache of titles that are gone) */
   public refresh(): Promise<void> {
     return getFilenames(this._folderPath).then(filenames => {
@@ -41,7 +41,7 @@ export class ImageFolderCache {
     // Get the names of all files in the folder
     return getFilenames(this._folderPath).then(filenames => { this._filenames = filenames; });
   }
-  
+
   /**
    * Get the file path of an image for a given identifier (title or id)
    * (returns undefined if not found)
@@ -68,17 +68,17 @@ export class ImageFolderCache {
       else        { return path.posix.join(this._folderPath, str); }
     }
     // No image found
-    //console.error(`Image was not found for game: "${title}" ` +
-    //              `(FolderPath: "${this._folderPath}", Regex: "${regex}")`);
+    // console.error(`Image was not found for game: "${title}" ` +
+    //               `(FolderPath: "${this._folderPath}", Regex: "${regex}")`);
   }
-  
+
   public getFilePaths(gameIdentifier: string): string[] {
     const regex = ImageFolderCache.createFindFilenamesRegex(gameIdentifier, 'mg');
     const filenames = this._filenames.match(regex);
     if (filenames) { return filenames.map(str => str); }
     return [];
   }
-  
+
   /**
    * Create a regex that will find the filename for an identifier (title or id)
    * @param identifier Title or ID of the game to find the image of
@@ -90,7 +90,7 @@ export class ImageFolderCache {
     clean = clean.replace(/ /g, ' +'); // (Allow any number of spaces)
     return new RegExp(`^${clean} *(?:\\..+)?-[0-9]{2}\\..+$`, flags);
   }
-  
+
   /** Create a regex that will get the "number" or "index" of an image filename */
   public static createGetNumberRegex() {
     return new RegExp('^.*(?:\\..+)?-([0-9]{2})\\..+$', 'm');

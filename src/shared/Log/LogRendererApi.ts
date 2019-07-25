@@ -27,12 +27,12 @@ export class LogRendererApi extends EventEmitter {
     ipcRenderer.removeListener(LogChannel.refreshEntriesReply, this.onRefreshEntries);
     ipcRenderer.removeListener(LogChannel.removeEntriesReply, this.onRemoveEntries);
   }
-  
+
   public addEntry(preEntry: ILogPreEntry): void {
     // Send the entry data (& message id)
     ipcRenderer.send(LogChannel.addEntry, preEntry);
   }
-  
+
   public addEntryTracked(preEntry: ILogPreEntry): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       // Pick a unique id for this message
@@ -53,7 +53,7 @@ export class LogRendererApi extends EventEmitter {
   public refreshEntries(): void {
     ipcRenderer.send(LogChannel.refreshEntries, 0);
   }
-  
+
   public clearEntries(): void {
     // (Remove all entries between index 0 and the index of the latest entry)
     ipcRenderer.send(LogChannel.removeEntries, 0, this.entries.length);

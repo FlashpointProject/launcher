@@ -4,7 +4,6 @@ import { createContextReducer } from '../context-reducer/contextReducer';
 
 const curationDefaultState: CurationsState = {
   curations: [],
-  addApps: [],
 };
 
 /** Stores the currently loaded curations of the curate page. */
@@ -27,20 +26,21 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
     case 'add-curation':
       return { ...prevState, curations: [ ...prevState.curations, action.payload.curation ] };
     // Remove curation
-    case 'remove-curation':
+    case 'remove-curation': {
       // Find the curation
-      var nextCurations = [ ...prevState.curations ];
-      var index = nextCurations.findIndex(c => c.key === action.payload.key);
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex(c => c.key === action.payload.key);
       if (index >= 0) {
         // Remove it from the (copied) array
         nextCurations.splice(index, 1);
       }
       return { ...prevState, curations: nextCurations };
+    }
     // Edit curation's meta
-    case 'edit-curation-meta':
+    case 'edit-curation-meta': {
       // Find the curation
-      var nextCurations = [ ...prevState.curations ];
-      var index = nextCurations.findIndex(c => c.key === action.payload.key);
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex(c => c.key === action.payload.key);
       if (index >= 0) {
         // Copy the previous curation (and the nested meta object)
         const prevCuration = nextCurations[index];
@@ -51,11 +51,12 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
+    }
     // Edit additional application's meta
-    case 'edit-addapp-meta':
+    case 'edit-addapp-meta': {
       // Find the curation
-      var nextCurations = [ ...prevState.curations ]; // (New curations array to replace the current)
-      var index = nextCurations.findIndex(c => c.key === action.payload.curationKey);
+      const nextCurations = [ ...prevState.curations ]; // (New curations array to replace the current)
+      const index = nextCurations.findIndex(c => c.key === action.payload.curationKey);
       if (index >= 0) {
         // Copy the previous curation (and the nested addApps array)
         const prevCuration = nextCurations[index];
@@ -74,11 +75,12 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
+    }
     // Change the lock status of a curation
-    case 'change-curation-lock':
+    case 'change-curation-lock': {
       // Find the curation
-      var nextCurations = [ ...prevState.curations ]; // (New curations array to replace the current)
-      var index = nextCurations.findIndex(c => c.key === action.payload.key);
+      const nextCurations = [ ...prevState.curations ]; // (New curations array to replace the current)
+      const index = nextCurations.findIndex(c => c.key === action.payload.key);
       if (index >= 0) {
         // Copy the previous curation
         const prevCuration = nextCurations[index];
@@ -89,6 +91,19 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
+    }
+    // Check the lock status of all curations
+    case 'change-curation-lock-all': {
+      // Replace the "curations" array and all the curation objects in it
+      // and set the "locked" value of all the curation objects
+      return {
+        ...prevState,
+        curations: prevState.curations.map(curation => ({
+          ...curation,
+          locked: action.payload.lock,
+        })),
+      };
+    }
   }
 }
 
@@ -111,8 +126,6 @@ export function createEditCuration(): EditCuration {
 type CurationsState = {
   /** Currently loaded curations. */
   curations: EditCuration[];
-  /** Currently loaded additional applications. */
-  addApps: EditAddAppCurationMeta[];
 };
 
 /** Combined type with all actions for the curation reducer. */
@@ -151,6 +164,11 @@ export type CurationAction = (
     /** Key of the curation to change the lock status of. */
     key: string;
     /** Lock status to set the curation to. */
+    lock: boolean;
+  }> |
+  /** Change the lock status of all curations. */
+  ReducerAction<'change-curation-lock-all', {
+    /** Lock status to set all curations to. */
     lock: boolean;
   }>
 );
@@ -223,4 +241,4 @@ export enum CurationSource {
   ARCHIVE,
   /** Folder. */
   FOLDER,
-};
+}

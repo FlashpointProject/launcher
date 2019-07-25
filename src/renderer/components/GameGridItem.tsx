@@ -57,7 +57,7 @@ export class GameGridItem extends React.Component<GameGridItemProps> {
 
   /** ID of the attribute used to store the game's id. */
   public static idAttribute: string = 'data-game-id';
-  
+
   /**
    * Get the id of the game displayed in a GameGridItem element (or throw an error if it fails).
    * @param element GameGridItem element.
@@ -67,7 +67,7 @@ export class GameGridItem extends React.Component<GameGridItemProps> {
     if (typeof value !== 'string') { throw new Error('Failed to get ID from GameGridItem element. Attribute not found.'); }
     return value;
   }
-  
+
   /**
    * Check if an element is the top element of GameGridItem or not.
    * @param element Potential element to check.
