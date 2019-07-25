@@ -466,7 +466,16 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onDeleteSelectedGame = (): void => {
+    // Deselect the game
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
+    // Reset the state related to the selected game
+    this.setState({
+      currentGame: undefined,
+      currentAddApps: undefined,
+      isNewGame: false,
+      isEditing: false
+    });
+    // Focus the game grid/list
     this.focusGameGridOrList();
   }
 
