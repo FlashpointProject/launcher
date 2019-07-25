@@ -1,5 +1,6 @@
 import * as child_process from 'child_process';
 import { app } from 'electron';
+import * as path from 'path';
 import * as util from 'util';
 
 const execFile = util.promisify(child_process.execFile);
@@ -37,4 +38,9 @@ export function waitUntilReady(): Promise<void> {
       app.once('ready', () => { resolve(); });
     }
   });
+}
+
+/** Get the path where the config and preference files should be located if this application is installed. */
+export function getInstalledConfigsPath() {
+  return path.join(app.getPath('appData'), 'flashpoint-launcher');
 }

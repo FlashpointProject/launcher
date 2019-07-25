@@ -7,6 +7,7 @@ const { exec } = require('child_process');
 
 const config = {
   isRelease: process.env.NODE_ENV === 'production',
+  isStaticInstall: process.env.STATIC_INSTALL ? true : false,
   static: {
     src: './static',
     dest: './build',
@@ -45,6 +46,15 @@ gulp.task('build-renderer', (done) => {
 
 gulp.task('copy-static', () => {
   return gulp.src(config.static.src+'/**/*').pipe(gulp.dest(config.static.dest));
+});
+
+gulp.task('config-install', (done) => {
+  // .installed tells launcher to use system config paths instead of relative paths
+  if (config.isStaticInstall) {
+    fs.createFileSync('./.installed', done());
+  } else {
+    fs.removeSync('./.installed', done());
+  }
 });
 
 /* ------ Pack ------ */
@@ -89,6 +99,10 @@ gulp.task('pack', (done) => {
     // "An array of functions to be called after Electron has been extracted to a temporary directory."
     afterExtract: [serialHooks([
       function(buildPath, electronVersion, platform, arch) {
+        // .installed tells launcher to use system config paths instead of relative paths
+        if (config.isStaticInstall) {
+          fs.createFileSync(path.join(buildPath, '.installed'))
+        }
         // Copy licenses folder and the LICENSE file 
         fs.copySync('./licenses', path.join(buildPath, 'licenses/'));
         fs.copySync('./LICENSE',  path.join(buildPath, 'licenses/LICENSE'));
@@ -106,7 +120,7 @@ gulp.task('pack', (done) => {
 
 gulp.task('watch', gulp.parallel('watch-main', 'watch-renderer', 'watch-static', 'copy-static'));
 
-gulp.task('build', gulp.parallel('build-main', 'build-renderer', 'copy-static'));
+gulp.task('build', gulp.parallel('build-main', 'build-renderer', 'copy-static', 'config-install'));
 
 /* ------ Misc ------*/
 

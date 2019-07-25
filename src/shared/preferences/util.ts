@@ -1,6 +1,6 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './IAppPreferencesData';
+import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 
 /** Default Preferences Data used for values that are not found in the file */
@@ -32,17 +32,21 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
 });
 
 /**
- * Overwrite a preferences data object with data from another object
- * @param source Object to overwrite
- * @param data Object with data to overwrite the source with
- * @returns source object (not a copy)
+ * Overwrite a preferences data object with data from another object.
+ * @param source Object to overwrite.
+ * @param data Object with data to overwrite the source with.
+ * @returns Source argument (not a copy).
  */
-export function overwritePreferenceData(source: IAppPreferencesData, data: Partial<IAppPreferencesData>, onError?: (error: string) => void): IAppPreferencesData {
-  //
+export function overwritePreferenceData(
+  source: IAppPreferencesData,
+  data: Partial<IAppPreferencesData>,
+  onError?: (error: string) => void
+): IAppPreferencesData {
   const parser = new ObjectParser({
     input: data,
-    onError: onError ? (error => onError(`Error while parsing Config: ${error.toString()}`)) : noop
+    onError: onError && (error => onError(`Error while parsing Preferences: ${error.toString()}`)),
   });
+  // Parse root object
   parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
   parser.prop('browsePageShowExtreme',       v => source.browsePageShowExtreme       = !!v);
   parser.prop('enableEditing',               v => source.enableEditing               = !!v);
@@ -57,8 +61,10 @@ export function overwritePreferenceData(source: IAppPreferencesData, data: Parti
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
   parser.prop('gamesOrderBy',                v => source.gamesOrderBy                = strOpt(v, gameOrderByOptions,      'title'    ));
   parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ascending'));
+  // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
+  // Done
   return source;
 }
 

@@ -18,3 +18,4 @@ package-lock.json
 # Config & Preferences (created during testing)
 /config.json
 /preferences.json
+/.installed

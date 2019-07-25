@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
-import { IAppPreferencesData } from '../../shared/preferences/IAppPreferencesData';
+import { IAppPreferencesData } from '../../shared/preferences/interfaces';
 import { ApplicationState } from '../store';
 import * as action from '../store/preferences/actions';
 

@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as path from 'path';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
-import { AppConfig } from '../../../shared/config/AppConfigFile';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
@@ -361,7 +360,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       useFiddler: this.state.useFiddler,
     });
     // Save new config to file, then restart the app
-    AppConfig.saveConfigFile(newConfig)
+    window.External.config.save(newConfig)
     .then(() => { window.External.restart(); })
     .catch((error: Error) => { console.log(error); });
   }
