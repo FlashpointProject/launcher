@@ -96,7 +96,7 @@ export class AppPreferencesApi extends EventEmitter {
           this._isSending = false; // Update flag
           resolve(true);
         });
-        ipcRenderer.send(AppPreferencesIPC.SEND, this._dataCache);        
+        ipcRenderer.send(AppPreferencesIPC.SEND, this._dataCache);
       } else { resolve(false); }
     });
   }

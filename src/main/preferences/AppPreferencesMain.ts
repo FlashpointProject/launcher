@@ -26,7 +26,7 @@ export class AppPreferencesMain extends EventEmitter {
     .on(AppPreferencesIPC.SEND, this.onSendData.bind(this))
     .on(AppPreferencesIPC.REQUEST_SYNC, this.onRequestDataSync.bind(this));
   }
-  
+
   /**
    * Load the preferences file.
    * @param installed If the application is installed (and not portable).

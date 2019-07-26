@@ -46,7 +46,7 @@ export class AppConfigFile {
         data: IAppConfigData | undefined;
     // Try to get the data from the file
     try { data = await AppConfigFile.readFile(onError); }
-    catch(e) { error = e; }
+    catch (e) { error = e; }
     // If that failed, set data to default and save it to a new file
     if (error || !data) {
       data = deepCopy(getDefaultConfigData(process.platform));

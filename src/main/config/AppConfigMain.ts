@@ -26,7 +26,7 @@ export class AppConfigMain extends EventEmitter {
     .on(AppConfigIPC.SEND, this.onSendData.bind(this))
     .on(AppConfigIPC.REQUEST_SYNC, this.onRequestDataSync.bind(this));
   }
-  
+
   /**
    * Load the config file.
    * @param installed If the application is installed (and not portable).
