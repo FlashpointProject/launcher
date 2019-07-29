@@ -101,9 +101,9 @@ gulp.task('pack', (done) => {
       function(buildPath, electronVersion, platform, arch) {
         // .installed tells launcher to use system config paths instead of relative paths
         if (config.isStaticInstall) {
-          fs.createFileSync(path.join(buildPath, '.installed'))
+          fs.createFileSync(path.join(buildPath, '.installed'));
         }
-        // Copy licenses folder and the LICENSE file 
+        // Copy licenses folder and the LICENSE file
         fs.copySync('./licenses', path.join(buildPath, 'licenses/'));
         fs.copySync('./LICENSE',  path.join(buildPath, 'licenses/LICENSE'));
         // Move electron license into the licenses folder

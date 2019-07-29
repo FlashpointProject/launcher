@@ -9,7 +9,7 @@
     "watch": "npx gulp watch",
     "pack": "npx gulp pack",
     "test": "npx jest",
-    "lint": "npx eslint ./src/**/*.{ts,tsx}",
+    "lint": "npx eslint ./src/**/*.{ts,tsx} ./tests/**/*.ts ./gulpfile.js",
     "pack:linux": "npx cross-env PACK_PLATFORM=linux PACK_ARCH=x64 npx gulp pack",
     "pack:win32": "npx cross-env PACK_PLATFORM=win32 PACK_ARCH=ia32 npx gulp pack",
     "pack:darwin": "npx cross-env PACK_PLATFORM=darwin PACK_ARCH=x64 npx gulp pack",
