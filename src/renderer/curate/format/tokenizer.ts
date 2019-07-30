@@ -231,6 +231,7 @@ function countSpacesLeft(str: string): number {
     switch (str[i]) {
       // A space character
       case ' ':
+      case '\t':
         count += 1;
         break;
       // Not a space character
