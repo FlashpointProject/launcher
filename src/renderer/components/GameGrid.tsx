@@ -45,8 +45,14 @@ export type GameGridProps = {
 /** A grid of cells, where each cell displays a game. */
 export class GameGrid extends React.Component<GameGridProps> {
   wrapperRef: React.RefObject<HTMLDivElement> = React.createRef();
+  /** Most recently reference passed to the "gridRef" callback prop. */
+  prevWrapperRef: HTMLDivElement | null = null;
   /** Number of columns in the grid from the most recent render. */
   columns: number = 0;
+  /** Current value of the "width" css variable. */
+  currentWidth: number = 0;
+  /** Current value of the "height" css variable. */
+  currentHeight: number = 0;
 
   componentDidMount(): void {
     this.updateCssVars();
@@ -82,8 +88,6 @@ export class GameGrid extends React.Component<GameGridProps> {
               rowCount = Math.ceil(games.length / columnCount);
             }
             this.columns = columnCount;
-            // Calculate overscan
-            const overscan: number = Math.min(Math.max(1, (60 / columnCount) | 0), 15);
             // Calculate column and row of selected item
             let scrollToColumn: number = -1;
             let scrollToRow: number = -1;
@@ -115,7 +119,7 @@ export class GameGrid extends React.Component<GameGridProps> {
                     columnCount={columnCount}
                     rowCount={rowCount}
                     overscanColumnCount={0}
-                    overscanRowCount={overscan}
+                    overscanRowCount={5}
                     cellRenderer={this.cellRenderer}
                     noContentRenderer={this.props.noRowsRenderer}
                     // ArrowKeyStepper props
@@ -126,7 +130,6 @@ export class GameGrid extends React.Component<GameGridProps> {
                     // (If any property is changed the grid is re-rendered, even these)
                     orderBy={this.props.orderBy}
                     orderReverse={this.props.orderReverse}
-                    justDoIt={()=>{}} // (This makes it re-render each time - workaround)
                     />
                 )}
               </ArrowKeyStepper>
@@ -239,8 +242,16 @@ export class GameGrid extends React.Component<GameGridProps> {
   updateCssVars() {
     const wrapper = this.wrapperRef.current;
     if (!wrapper) { throw new Error('Browse Page wrapper div not found'); }
-    wrapper.style.setProperty('--width', this.props.cellWidth+'');
-    wrapper.style.setProperty('--height', this.props.cellHeight+'');
+    // Update width (if it changed)
+    if (this.currentWidth !== this.props.cellWidth) {
+      this.currentWidth = this.props.cellWidth;
+      wrapper.style.setProperty('--width', this.currentWidth+'');
+    }
+    // Update height (if it changed)
+    if (this.currentHeight !== this.props.cellHeight) {
+      this.currentHeight = this.props.cellHeight;
+      wrapper.style.setProperty('--height', this.currentHeight+'');
+    }
   }
 
   /**
@@ -255,7 +266,11 @@ export class GameGrid extends React.Component<GameGridProps> {
         const inner = this.wrapperRef.current.querySelector('.game-grid');
         if (inner) { ref = inner as HTMLDivElement; }
       }
-      this.props.gridRef(ref);
+      // Call callback
+      if (ref !== this.prevWrapperRef) {
+        this.prevWrapperRef = ref;
+        this.props.gridRef(ref);
+      }
     }
   }
 }
