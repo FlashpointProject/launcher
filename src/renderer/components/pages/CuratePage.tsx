@@ -137,6 +137,8 @@ export function CuratePage(props: CuratePageProps) {
         .then((text) => {
           // Parse the file
           const meta = parseCurationMeta(text);
+          // Set default meta values
+          setGameMetaDefaults(meta.game, defaultGameMetaValues);
           // Add curation
           dispatch({
             type: 'add-curation',
