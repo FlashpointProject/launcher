@@ -14,10 +14,12 @@ type Count = {
 
 /** Container of all default values for curation game meta. */
 export type GameMetaDefaults = {
-  /** Default platform. */
-  defaultPlatform: string;
   /** Default application paths (ordered after each platform). */
-  defaultAppPaths: { [platform: string]: string; };
+  addPaths: { [platform: string]: string; };
+  language: string;
+  platform: string;
+  playMode: string;
+  status: string;
 };
 
 /**
@@ -27,8 +29,11 @@ export type GameMetaDefaults = {
 export function getDefaultMetaValues(games: IGameInfo[]): GameMetaDefaults {
   return {
     // @TODO Make this value not hard-coded (maybe it should be loaded from the preferences file?)
-    defaultPlatform: 'Flash',
-    defaultAppPaths: findMostUsedApplicationPaths(games),
+    addPaths: findMostUsedApplicationPaths(games),
+    language: 'en',
+    platform: 'Flash',
+    playMode: 'Single Player',
+    status:   'Playable',
   };
 }
 

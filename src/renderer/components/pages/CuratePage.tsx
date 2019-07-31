@@ -250,18 +250,19 @@ async function addCurationIndex(source: string, curation: CurationIndex, dispatc
 /**
  * Set the default values of a game's meta (if they are missing).
  * @param meta Meta to set values of.
- * @param defaultGameMetaValues Container of default values.
+ * @param defaults Container of default values.
  */
-function setGameMetaDefaults(meta: EditCurationMeta, defaultGameMetaValues?: GameMetaDefaults): void {
-  if (defaultGameMetaValues) {
-    const { defaultAppPaths, defaultPlatform } = defaultGameMetaValues;
-    // Set platform
-    if (!meta.platform) {
-      meta.platform = defaultPlatform;
-    }
-    // Set application path
+function setGameMetaDefaults(meta: EditCurationMeta, defaults?: GameMetaDefaults): void {
+  if (defaults) {
+    // Set default meta values
+    if (!meta.language) { meta.language = defaults.language; }
+    if (!meta.playMode) { meta.playMode = defaults.playMode; }
+    if (!meta.status)   { meta.status   = defaults.status;   }
+    if (!meta.platform) { meta.platform = defaults.platform; }
+    // Set default application path
+    // (Note: This has to be set after the default platform)
     if (!meta.applicationPath) {
-      meta.applicationPath = defaultAppPaths[meta.platform || ''] || '';
+      meta.applicationPath = defaults.addPaths[meta.platform || ''] || '';
     }
   }
 }
