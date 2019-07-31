@@ -495,11 +495,20 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       return true;
     });
     if (index === -1) { throw new Error('Unable to remove game from selected playlist - Game is not in playlist'); }
-    // Remove game from playlist, save the playlist and update the interface
+    // Remove the game from the playlist and save the change
     playlist.games.splice(index, 1); // Remove game entry
     this.props.central.playlists.save(playlist);
+    // Update games grid/list
     this.orderGames(true);
+    // Deselect the game
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
+    // Reset the state related to the selected game
+    this.setState({
+      currentGame: undefined,
+      currentAddApps: undefined,
+      isNewGame: false,
+      isEditing: false
+    });
   }
 
   onEditPlaylistNotes = (text: string): void => {
