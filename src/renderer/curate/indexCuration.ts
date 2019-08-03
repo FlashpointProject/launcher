@@ -59,9 +59,18 @@ export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
       // Index content files and folders
       new Promise((resolve, reject) => {
         const contentPath = path.join(filepath, 'content');
-        indexContentFolder(contentPath, contentPath, curation)
-        .then(() => { resolve(); })
-        .catch(() => { reject(); });
+        fsStat(contentPath)
+        .then(() => { // (Content file found)
+          // Index the cotent file (and its content recursively)
+          return indexContentFolder(contentPath, contentPath, curation)
+          .then(() => { resolve(); })
+          .catch(error => { reject(error); });
+        }, (error) => { // (Failed to find content folder)
+          if (error.code === 'ENOENT') { // No content folder found
+            console.error(`Skipped indexing of content. No content folder found in:\n"${filepath}"`);
+            resolve();
+          } else { reject(error); } // Unexpected error
+        });
       }),
       // Check if the image files exist
       (async () => {
@@ -284,7 +293,7 @@ export function isInCurationFolder(filePath: string): boolean {
  * @param curation Curation index to add the indexed content to.
  * @returns A promise that is resolved once the index is done.
  */
-function indexContentFolder(folderPath: string, contentPath: string, curation: CurationIndex) {
+function indexContentFolder(folderPath: string, contentPath: string, curation: CurationIndex): Promise<void[]> {
   return (
     // List all sub-files (and folders)
     fsReaddir(folderPath)
