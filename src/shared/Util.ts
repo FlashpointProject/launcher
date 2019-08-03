@@ -306,6 +306,17 @@ export interface IRecursiveDirectorySharedObject {
   abort: boolean;
 }
 
+/**
+ * Remove the BOM (Byte Order Mark) character from the start of an UTF8 string if it is present.
+ * @param str The string to remove the BOM from.
+ * @returns The same string but with the BOM removed (or the same string if no BOM was found).
+ */
+export function stripBOM(str: string): string {
+  return str.charCodeAt(0) === 0xFEFF
+    ? str.substring(1)
+    : str;
+}
+
 function isString(obj: any): boolean {
   return typeof obj === 'string' || obj instanceof String;
 }

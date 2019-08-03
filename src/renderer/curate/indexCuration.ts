@@ -4,6 +4,7 @@ import * as stream from 'stream';
 import { promisify } from 'util';
 import * as yauzl from 'yauzl';
 import { parseCurationMeta, ParsedCurationMeta } from './parse';
+import { stripBOM } from '../../shared/Util';
 
 const fsReadFile = promisify(fs.readFile);
 const fsReaddir = promisify(fs.readdir);
@@ -85,7 +86,7 @@ export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
       // Read and parse the meta
       (async () => {
         const metaFileData = await fsReadFile(path.join(filepath, 'meta.txt'));
-        curation.meta = parseCurationMeta(metaFileData.toString());
+        curation.meta = parseCurationMeta(stripBOM(metaFileData.toString()));
       })(),
     ])
     .then(() => { resolve(curation); })
@@ -118,7 +119,7 @@ export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
           // Try to read and parse the file
           readEntryContent(zip, entry)
           .then((buffer) => {
-            curation.meta = parseCurationMeta(buffer.toString());
+            curation.meta = parseCurationMeta(stripBOM(buffer.toString()));
             zip.readEntry();
           })
           .catch(error => {
