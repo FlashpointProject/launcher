@@ -95,7 +95,7 @@ export function CuratePage(props: CuratePageProps) {
         const curationIndex = await indexCurationArchive(source);
         // Add curation index
         setGameMetaDefaults(curationIndex.meta.game, defaultGameMetaValues);
-        addCurationIndex(source, curationIndex, dispatch);
+        addCurationIndex(source, curationIndex, CurationSource.ARCHIVE, dispatch);
       }
     }
   }, [dispatch]);
@@ -107,14 +107,14 @@ export function CuratePage(props: CuratePageProps) {
       properties: ['openDirectory', 'multiSelections'],
     });
     if (filePaths) {
-      await Promise.all(
+      Promise.all(
         filePaths.map(source => (
           // Read and index the folder
           indexCurationFolder(source)
           // Add curation index
           .then(curationIndex => {
             setGameMetaDefaults(curationIndex.meta.game, defaultGameMetaValues);
-            addCurationIndex(source, curationIndex, dispatch);
+            addCurationIndex(source, curationIndex, CurationSource.FOLDER, dispatch);
           })
         ))
       );
@@ -220,7 +220,19 @@ function renderImportAllButton({ activate, activationCounter, reset }: ConfirmEl
   );
 }
 
-async function addCurationIndex(source: string, curation: CurationIndex, dispatch: React.Dispatch<CurationAction>): Promise<void> {
+/**
+ * Dispatch an action that adds a curation.
+ * @param source Source path of the curation.
+ * @param curation Curation to add.
+ * @param sourceType Type of source the curation originates from.
+ * @param dispatch Dispatcher to add the curation with.
+ */
+async function addCurationIndex(
+  source: string,
+  curation: CurationIndex,
+  sourceType: CurationSource,
+  dispatch: React.Dispatch<CurationAction>
+): Promise<void> {
   // Check for errors
   if (curation.errors.length > 0) {
     // @TODO Display errors
@@ -232,7 +244,7 @@ async function addCurationIndex(source: string, curation: CurationIndex, dispatc
         curation: Object.assign(createEditCuration(), {
           key: uuid(),
           source: source,
-          sourceType: CurationSource.FOLDER,
+          sourceType: sourceType,
           meta: curation.meta.game,
           addApps: curation.meta.addApps.map(meta => ({
             key: uuid(),
