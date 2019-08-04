@@ -73,6 +73,7 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
   parser.prop('Series',               v => parsed.game.series              = str(v));
   parser.prop('Source',               v => parsed.game.source              = str(v));
   parser.prop('Status',               v => parsed.game.status              = str(v));
+  parser.prop('Tags',                 v => parsed.game.genre               = str(v));
   parser.prop('Title',                v => parsed.game.title               = str(v));
   parser.prop('Version',              v => parsed.game.version             = str(v));
   // Add-apps
