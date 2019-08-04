@@ -200,9 +200,11 @@ export function CurateBox(props: CurateBoxProps) {
       warns.unusedGenre = !isValueSuggested(props, 'genre');
       warns.unusedPlatform = !isValueSuggested(props, 'platform');
       warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
+      // Check if there is no content
+      warns.noContent = props.curation.content.length === 0;
     }
     return warns;
-  }, [props.curation && props.curation.meta]);
+  }, [props.curation && props.curation.meta, props.curation && props.curation.content]);
   // Meta
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
   // Misc

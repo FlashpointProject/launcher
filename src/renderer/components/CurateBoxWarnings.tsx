@@ -18,6 +18,8 @@ export type CurationWarnings = {
   unusedGenre?: boolean;
   /** If the platform value isn't used by any other game. */
   unusedPlatform?: boolean;
+  /** If there are no content files or folders. */
+  noContent?: boolean;
 };
 
 /** The part of a Curation Box that displays all the warnings (if any). */
@@ -78,4 +80,5 @@ const warningDescriptions: WarningDescriptionContainer = {
   unusedApplicationPath: '"Application Path" has an unused value. Make sure it\'s spelled correctly!',
   unusedGenre: '"Genre" has an unused value. Make sure it\'s spelled correctly!',
   unusedPlatform: '"Platform" has an unused value. Make sure it\'s spelled correctly!',
+  noContent: 'No content found! Make sure the folder is named and placed correctly!',
 };
