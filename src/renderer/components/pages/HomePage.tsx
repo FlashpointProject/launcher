@@ -18,6 +18,7 @@ import { findDefaultLibrary } from '../../../shared/library/util';
 import { WithSearchProps } from '../../containers/withSearch';
 import { getPlatforms } from '../../util/platform';
 import { GameImageCollection } from '../../image/GameImageCollection';
+import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -230,32 +231,24 @@ export class HomePage extends React.Component<HomePageProps> {
     remote.shell.openItem(path.join(fullFlashpointPath, 'readme.txt'));
   }
 
-  onHallOfFameClick = () => {
-    const { central, libraryData, onSelectPlaylist } = this.props;
-    let hof = findHallOfFamePlaylist(central.playlists.playlists);
-    let route: string | undefined = undefined;
-    if (hof) {
-      if (hof.library) { route = hof.library; }
-      else {
-        const defLibrary = findDefaultLibrary(libraryData.libraries);
-        if (defLibrary) { route = defLibrary.route; }
-      }
-    }
-    onSelectPlaylist(hof, route);
+  private onHallOfFameClick = () => {
+    const { central, clearSearch, libraryData, onSelectPlaylist } = this.props;
+    // Find the hall of fame playlist and select it
+    const playlist = findHallOfFamePlaylist(central.playlists.playlists);
+    const route = playlist && getPlaylistLibraryRoute(playlist, libraryData.libraries);
+    onSelectPlaylist(playlist, route);
+    // Clear the current search
+    clearSearch();
   }
 
   onFavoriteClick = () => {
-    const { central, libraryData, onSelectPlaylist } = this.props;
-    let fav = findFavoritePlaylist(central.playlists.playlists);
-    let route: string | undefined = undefined;
-    if (fav) {
-      if (fav.library) { route = fav.library; }
-      else {
-        const defLibrary = findDefaultLibrary(libraryData.libraries);
-        if (defLibrary) { route = defLibrary.route; }
-      }
-    }
-    onSelectPlaylist(fav, route);
+    const { central, clearSearch, libraryData, onSelectPlaylist } = this.props;
+    // Find the favorites playlist and select it
+    const playlist = findFavoritePlaylist(central.playlists.playlists);
+    const route = playlist && getPlaylistLibraryRoute(playlist, libraryData.libraries);
+    onSelectPlaylist(playlist, route);
+    // Clear the current search
+    clearSearch();
   }
 
   onAllGamesClick = () => {
@@ -270,7 +263,10 @@ export class HomePage extends React.Component<HomePageProps> {
 
   /** Gets the platform as a string and performs a search dynamically for each platform generated. */
   onPlatformClick = (platform: string) => (event: any) => {
+    // Search to filter out all other platforms
     this.props.onSearch('!' + platform);
+    // Deselect the curret playlist
+    this.props.onSelectPlaylist(undefined, 'arcade');
   }
 
   getHallOfFameBrowseRoute = (): string => {
@@ -311,4 +307,22 @@ function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | und
 
 function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | undefined {
   return playlists.find(playlist => playlist.title === '*Favorites*');
+}
+
+/**
+ * Get the library route of a playlist.
+ * Note: A playlist with an empty or missing library route (undefined or '') means that it belongs to the default library.
+ * @param playlist Playlist to get the library route of.
+ * @param libraries Library collection to search for the default library in.
+ * @returns If the playlist has a library route declared, it is returned.
+ *          If not, the default library's route is returned instead (if it is found).
+ *          If the default library is not found, return undefined.
+ */
+function getPlaylistLibraryRoute(playlist: IGamePlaylist, libraries: IGameLibraryFileItem[]): string | undefined {
+  if (playlist.library) {
+    return playlist.library;
+  } else {
+    const defLibrary = findDefaultLibrary(libraries);
+    if (defLibrary) { return defLibrary.route; }
+  }
 }
