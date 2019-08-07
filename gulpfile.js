@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const packager = require('electron-packager');
-const serialHooks = require('electron-packager/hooks').serialHooks;
+const serialHooks = require('electron-packager/src/hooks').serialHooks;
 const { exec } = require('child_process');
 
 const config = {
