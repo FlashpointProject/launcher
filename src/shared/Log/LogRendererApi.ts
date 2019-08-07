@@ -1,4 +1,4 @@
-import { IpcMessageEvent, ipcRenderer } from 'electron';
+import { IpcRendererEvent, ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
 import { ILogEntry, ILogPreEntry } from './interface';
 import { LogChannel, stringifyLogEntries } from './LogCommon';
@@ -40,13 +40,12 @@ export class LogRendererApi extends EventEmitter {
       // Send the entry data (& message id)
       ipcRenderer.send(LogChannel.addEntry, preEntry, sentMsgId);
       // Add listener for the response
-      const listener = (msgId: number) => {
+      ipcRenderer.on(LogChannel.addEntryReply, function listener(event, msgId: number) {
         if (msgId === sentMsgId) {
           ipcRenderer.removeListener(LogChannel.addEntryReply, listener);
           resolve(sentMsgId);
         }
-      };
-      ipcRenderer.on(LogChannel.addEntryReply, listener);
+      });
     });
   }
 
@@ -63,7 +62,7 @@ export class LogRendererApi extends EventEmitter {
     return stringifyLogEntries(this.entries);
   }
 
-  private onRefreshEntries = (event: IpcMessageEvent, start: number, entries: ILogEntry[]): void => {
+  private onRefreshEntries = (event: IpcRendererEvent, start: number, entries: ILogEntry[]): void => {
     // Add new entries
     for (let i = 0; i < entries.length; i++) {
       this.entries[start + i] = entries[i];
@@ -72,7 +71,7 @@ export class LogRendererApi extends EventEmitter {
     this.emit('change', this);
   }
 
-  private onRemoveEntries = (event: IpcMessageEvent, first: number, last: number): void => {
+  private onRemoveEntries = (event: IpcRendererEvent, first: number, last: number): void => {
     // Remove entries
     this.entries.splice(first, last);
     // Emit event

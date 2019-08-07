@@ -187,8 +187,8 @@ export function unzip(options: UnzipOptions): UnzipStatus {
 }
 
 /** Make sure all directories in the path exists, create any that are missing. */
-function mkdirp(dir: string, cb: (error?: Error) => void): void {
-  if (dir === '.') { return cb(); }
+function mkdirp(dir: string, cb: (error: Error | null) => void): void {
+  if (dir === '.') { return cb(null); }
   fs.stat(dir, (error) => {
     if (error && error.code === 'ENOENT') { // file not found
       const parent = path.dirname(dir);

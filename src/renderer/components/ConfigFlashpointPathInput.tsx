@@ -1,3 +1,4 @@
+import * as electron from 'electron';
 import * as React from 'react';
 
 export type ConfigFlashpointPathInputProps = {
@@ -44,7 +45,7 @@ export class ConfigFlashpointPathInput extends React.Component<ConfigFlashpointP
 
   onBrowseClick = (): void => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-    const filePaths = window.External.showOpenDialog({
+    const filePaths = window.External.showOpenDialogSync({
       title: 'Select the FlashPoint root directory',
       properties: ['openDirectory'],
     });

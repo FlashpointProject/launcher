@@ -98,8 +98,8 @@ export class GameImageCollection {
    * @param folderName Name of folder
    */
   public async createImageFolder(folderName: string): Promise<void> {
-    await ensureDir(getThumbnailFolderPath(folderName, this._flashpointPath));
-    await ensureDir(getScreenshotFolderPath(folderName, this._flashpointPath));
+    await ensureDir(getThumbnailFolderPath(folderName, this._flashpointPath), undefined);
+    await ensureDir(getScreenshotFolderPath(folderName, this._flashpointPath), undefined);
   }
 
   /**

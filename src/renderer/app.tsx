@@ -1,4 +1,4 @@
-import { IpcMessageEvent, ipcRenderer, remote } from 'electron';
+import { ipcRenderer, remote, IpcRendererEvent } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as AppConstants from '../shared/AppConstants';
@@ -131,7 +131,8 @@ export class App extends React.Component<AppProps, AppState> {
             buttons: ['Yes', 'No'],
             defaultId: 1,
             cancelId: 1,
-          }, response => {
+          })
+          .then(({ response }) => {
             if (response === 0) {
               askBeforeClosing = false;
               remote.getCurrentWindow().close();
@@ -141,21 +142,21 @@ export class App extends React.Component<AppProps, AppState> {
       };
     })();
     // Listen for the window to move or resize (and update the preferences when it does)
-    ipcRenderer.on('window-move', (sender: IpcMessageEvent, x: number, y: number, isMaximized: boolean) => {
+    ipcRenderer.on('window-move', (sender: IpcRendererEvent, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
         const mw = this.props.preferencesData.mainWindow;
         mw.x = x | 0;
         mw.y = y | 0;
       }
     });
-    ipcRenderer.on('window-resize', (sender: IpcMessageEvent, width: number, height: number, isMaximized: boolean) => {
+    ipcRenderer.on('window-resize', (sender: IpcRendererEvent, width: number, height: number, isMaximized: boolean) => {
       if (!isMaximized) {
         const mw = this.props.preferencesData.mainWindow;
         mw.width  = width  | 0;
         mw.height = height | 0;
       }
     });
-    ipcRenderer.on('window-maximize', (sender: IpcMessageEvent, isMaximized: boolean) => {
+    ipcRenderer.on('window-maximize', (sender: IpcRendererEvent, isMaximized: boolean) => {
       this.props.preferencesData.mainWindow.maximized = isMaximized;
     });
     // Listen for changes to the theme files

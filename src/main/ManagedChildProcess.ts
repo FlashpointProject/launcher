@@ -41,14 +41,18 @@ export class ManagedChildProcess extends EventEmitter {
     this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
     this.logContent('has been started');
     // Add event listeners to process
-    this.process.stdout.on('data', (data: Buffer) => {
-      // @BUG: This is only shows after the user presses CTRL+C.
-      //       It does not show it any other circumstances.
-      this.logContent(data.toString('utf8'));
-    });
-    this.process.stderr.on('data', (data: Buffer) => {
-      this.logContent(data.toString('utf8'));
-    });
+    if (this.process.stdout) {
+      this.process.stdout.on('data', (data: Buffer) => {
+        // @BUG: This is only shows after the user presses CTRL+C.
+        //       It does not show it any other circumstances.
+        this.logContent(data.toString('utf8'));
+      });
+    }
+    if (this.process.stderr) {
+      this.process.stderr.on('data', (data: Buffer) => {
+        this.logContent(data.toString('utf8'));
+      });
+    }
     this.process.on('exit', (code, signal) => {
       if (code) { this.logContent(`exited with code ${code}`);     }
       else      { this.logContent(`exited with signal ${signal}`); }

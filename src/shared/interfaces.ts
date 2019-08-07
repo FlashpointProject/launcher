@@ -1,3 +1,4 @@
+import { OpenDialogOptions } from 'electron';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
@@ -18,8 +19,8 @@ export interface IMainWindowExternal {
   /** Restart the application (closes all windows) */
   restart(): void;
 
-  /** Wrapper of Electron.dialog.showOpenDialog() */
-  showOpenDialog(options: Electron.OpenDialogOptions, callback?: ElectronOpenDialogCallback): string[]|undefined;
+  /** Wrapper for Electron's function with the same name. */
+  showOpenDialogSync(options: OpenDialogOptions): string[] | undefined;
 
   /** Open/Close the DevTools for this window */
   toggleDevtools(): void;

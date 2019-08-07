@@ -18,7 +18,7 @@ export class LaunchboxData {
     const folderPath = path.posix.join(flashpointPath, LaunchboxData.platformsPath);
     return new Promise((resolve, reject) => {
       // Get the names of all files and folders in the platforms folder
-      fs.readdir(folderPath, (error: NodeJS.ErrnoException, files: string[]): void => {
+      fs.readdir(folderPath, (error: NodeJS.ErrnoException | null, files: string[]): void => {
         if (error) { reject(error); }
         else {
           if (files.length === 0) {
@@ -28,7 +28,7 @@ export class LaunchboxData {
             const fileNames: string[] = [];
             let filesLeft: number = files.length;
             files.forEach((fileName) => {
-              fs.stat(path.posix.join(folderPath, fileName), (err: NodeJS.ErrnoException, stats: fs.Stats) => {
+              fs.stat(path.posix.join(folderPath, fileName), (err: NodeJS.ErrnoException | null, stats: fs.Stats) => {
                 if (err) { reject(err); }
                 else {
                   // Add to array if it is a file

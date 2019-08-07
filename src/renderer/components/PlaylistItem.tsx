@@ -333,7 +333,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
     const edit = this.state.editPlaylist;
     if (this.props.editing && edit) {
       // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-      const filePaths = window.External.showOpenDialog({
+      const filePaths = window.External.showOpenDialogSync({
         title: 'Select a new icon for the playlist',
         properties: ['openFile'],
       });

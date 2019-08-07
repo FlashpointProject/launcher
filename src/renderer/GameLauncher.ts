@@ -146,19 +146,17 @@ export class GameLauncher {
         break;
       case ':extras:':
         const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.commandLine)));
-        remote.shell.openExternal(
-          folderPath, { activate: true },
-          error => {
-            if (error) {
-              remote.dialog.showMessageBox({
-                type: 'error',
-                title: 'Failed to Open Extras',
-                message: `${error.toString()}\n`+
-                         `Path: ${folderPath}`
-              }, () => {});
-            }
+        remote.shell.openExternal(folderPath, { activate: true })
+        .catch(error => {
+          if (error) {
+            remote.dialog.showMessageBox({
+              type: 'error',
+              title: 'Failed to Open Extras',
+              message: `${error.toString()}\n`+
+                       `Path: ${folderPath}`
+            });
           }
-        );
+        });
         break;
       default:
         const appPath: string = fixSlashes(relativeToFlashpoint(addApp.applicationPath));
@@ -198,7 +196,7 @@ export class GameLauncher {
         `    command:         "${command}" ]`);
     // Show popups for Unity games
     // (This is written specifically for the "startUnity.bat" batch file)
-    if (game.platform === 'Unity') {
+    if (game.platform === 'Unity' && proc.stdout) {
       let textBuffer: string = ''; // (Buffer of text, if its multi-line)
       proc.stdout.on('data', function(text: string): void {
         // Add text to buffer
@@ -286,8 +284,8 @@ export class GameLauncher {
       log(`${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
     };
     doStuffs(proc, [/* 'close', */ 'disconnect', 'error', 'exit', 'message'], logStuff);
-    proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); });
-    proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); });
+    if (proc.stdout) { proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); }); }
+    if (proc.stderr) { proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); }); }
     // Return process
     return proc;
   }
@@ -381,7 +379,8 @@ const unityOutputResponses = [
         buttons: ['Yes', 'No'],
         defaultId: 0,
         cancelId: 1,
-      }, function(response: number): void {
+      }).then(({ response }) => {
+        if (!proc.stdin) { throw new Error('Failed to signal to Unity starter. Can not access its "standard in".'); }
         if (response === 0) { proc.stdin.write('Y'); }
         else                { proc.stdin.write('n'); }
       });
@@ -415,7 +414,8 @@ const unityOutputResponses = [
         buttons: ['Ok', 'Cancel'],
         defaultId: 0,
         cancelId: 1,
-      }, function(response: number): void {
+      })
+      .then(({ response }) => {
         if (response === 1) { proc.kill(); }
       });
     }
