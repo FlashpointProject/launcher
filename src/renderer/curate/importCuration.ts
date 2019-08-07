@@ -86,7 +86,7 @@ export async function importCuration(
               if (content.fileName.endsWith('/')) { // (Folder)
                 return (async () => {
                   // Create the folder if it is missing
-                  try { await ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName)); }
+                  try { await ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName), undefined); }
                   catch (e) { /* Ignore error */ }
                 })();
               } else { // (File)
@@ -95,7 +95,7 @@ export async function importCuration(
                   const source = path.join(contentPath, content.fileName);
                   const output = path.join(GameLauncher.getHtdocsPath(), content.fileName);
                   // Ensure that the folders leading up to the file exists
-                  try { await ensureDir(path.dirname(output)); }
+                  try { await ensureDir(path.dirname(output), undefined); }
                   catch (e) { /* Ignore error */ }
                   // Copy the file
                   await copyFile(source, output);

@@ -1,3 +1,4 @@
+import * as electron from 'electron';
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import { SimpleButton } from '../SimpleButton';
@@ -83,7 +84,7 @@ export function CuratePage(props: CuratePageProps) {
   // Load Curation Archive Callback
   const onLoadCurationArchiveClick = useCallback(async () => {
     // Show dialog
-    const filePaths = window.External.showOpenDialog({
+    const filePaths = window.External.showOpenDialogSync({
       title: 'Select the curation archive(s) to load',
       properties: ['openFile', 'multiSelections'],
       filters: [{ extensions: ['zip'], name: 'Curation archive' }],
@@ -102,7 +103,7 @@ export function CuratePage(props: CuratePageProps) {
   // Load Curation Folder Callback
   const onLoadCurationFolderClick = useCallback(async () => {
     // Show dialog
-    const filePaths = window.External.showOpenDialog({
+    const filePaths = window.External.showOpenDialogSync({
       title: 'Select the curation folder(s) to load',
       properties: ['openDirectory', 'multiSelections'],
     });
@@ -123,7 +124,7 @@ export function CuratePage(props: CuratePageProps) {
   // Load Meta Callback
   const onLoadMetaClick = useCallback(() => {
     // Show dialog
-    const filePaths = window.External.showOpenDialog({
+    const filePaths = window.External.showOpenDialogSync({
       title: 'Select the curation meta to load',
       properties: ['openFile', 'multiSelections'],
       filters: [{ extensions: ['txt'], name: 'Curation meta file' }],

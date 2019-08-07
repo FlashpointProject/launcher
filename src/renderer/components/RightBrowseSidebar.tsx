@@ -563,7 +563,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const { currentGame, gameImages } = this.props;
       if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-    const filePaths = window.External.showOpenDialog({
+    const filePaths = window.External.showOpenDialogSync({
       title: 'Select a Screenshot Image',
       properties: ['openFile']
     });
@@ -578,7 +578,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const { currentGame, gameImages } = this.props;
       if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-    const filePaths = window.External.showOpenDialog({
+    const filePaths = window.External.showOpenDialogSync({
       title: 'Select a Thumbnail Image',
       properties: ['openFile']
     });

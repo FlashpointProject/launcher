@@ -1,4 +1,4 @@
-import { app, BrowserWindow, IpcMessageEvent } from 'electron';
+import { app, BrowserWindow, WebContents } from 'electron';
 import * as path from 'path';
 import * as AppConstants from '../shared/AppConstants';
 import { Main } from './Main';
@@ -42,6 +42,7 @@ export default class MainWindow {
       frame: !this._main.config.data.useCustomTitlebar,
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
+        nodeIntegration: true,
       },
     });
     // Remove the menu bar
@@ -57,10 +58,10 @@ export default class MainWindow {
       this._window.maximize();
     }
     // Relay window's maximize/unmaximize events to the renderer (as a single event with a flag)
-    this._window.on('maximize', (event: IpcMessageEvent) => {
+    this._window.on('maximize', (event: BrowserWindowEvent) => {
       event.sender.send('window-maximize', true);
     });
-    this._window.on('unmaximize', (event: IpcMessageEvent) => {
+    this._window.on('unmaximize', (event: BrowserWindowEvent) => {
       event.sender.send('window-maximize', false);
     });
     // Replay window's move event to the renderer
@@ -91,3 +92,12 @@ export default class MainWindow {
     }
   }
 }
+
+/**
+ * Type of the event emitted by BrowserWindow for the "maximize" and "unmaximize" events.
+ * This type is not defined by Electron, so I guess I have to do it here instead.
+ */
+type BrowserWindowEvent = {
+  preventDefault: () => void;
+  sender: WebContents;
+};

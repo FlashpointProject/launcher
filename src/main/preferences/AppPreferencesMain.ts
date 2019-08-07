@@ -1,4 +1,4 @@
-import { ipcMain, IpcMessageEvent } from 'electron';
+import { ipcMain, IpcMainEvent } from 'electron';
 import { EventEmitter } from 'events';
 import { AppPreferencesIPC } from '../../shared/preferences/AppPreferencesApi';
 import { IAppPreferencesData } from '../../shared/preferences/interfaces';
@@ -44,7 +44,7 @@ export class AppPreferencesMain extends EventEmitter {
    * @param event Event.
    * @param data Data to update the preferences with.
    */
-  private onSendData(event: IpcMessageEvent, data?: Partial<IAppPreferencesData>): void {
+  private onSendData(event: IpcMainEvent, data?: Partial<IAppPreferencesData>): void {
     if (!this._data) { throw new Error('The data must first be loaded before new can be received.'); }
     if (!data) { throw new Error('You must send a data object, but no data was received.'); }
     // Update the data
@@ -59,7 +59,7 @@ export class AppPreferencesMain extends EventEmitter {
    * Called when the preferences data is requested from the renderer API.
    * This sends the current preferences data to the renderer.
    */
-  private onRequestDataSync(event: IpcMessageEvent): void {
+  private onRequestDataSync(event: IpcMainEvent): void {
     event.returnValue = this._data;
   }
 

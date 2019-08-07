@@ -1,4 +1,4 @@
-import { ipcMain, IpcMessageEvent } from 'electron';
+import { ipcMain, IpcMainEvent } from 'electron';
 import { deepCopy } from '../Util';
 import { ILogEntry, ILogPreEntry } from './interface';
 import { LogChannel } from './LogCommon';
@@ -43,7 +43,7 @@ export class LogMainApi {
     );
   }
 
-  private onAddEntry = (event: IpcMessageEvent, entry: ILogPreEntry, msgId?: number) => {
+  private onAddEntry = (event: IpcMainEvent, entry: ILogPreEntry, msgId?: number) => {
     this.addEntry(entry);
     // Reply if it's a tracked message
     if (msgId !== undefined) {
@@ -51,7 +51,7 @@ export class LogMainApi {
     }
   }
 
-  private onRefreshEntries = (event: IpcMessageEvent, start: number) => {
+  private onRefreshEntries = (event: IpcMainEvent, start: number) => {
     event.sender.send(
       LogChannel.refreshEntriesReply,
       start,
@@ -59,7 +59,7 @@ export class LogMainApi {
     );
   }
 
-  private onRemoveEntries = (event: IpcMessageEvent, first: number, last: number) => {
+  private onRemoveEntries = (event: IpcMainEvent, first: number, last: number) => {
     // Remove the entries
     this.entries.splice(first, last);
     // Respond

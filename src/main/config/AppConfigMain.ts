@@ -1,4 +1,4 @@
-import { ipcMain, IpcMessageEvent } from 'electron';
+import { ipcMain, IpcMainEvent } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { AppConfigFile } from './AppConfigFile';
@@ -44,7 +44,7 @@ export class AppConfigMain extends EventEmitter {
    * @param event Event.
    * @param data Data to save to the file.
    */
-  private onSendData(event: IpcMessageEvent, data?: IAppConfigData): void {
+  private onSendData(event: IpcMainEvent, data?: IAppConfigData): void {
     if (!data) { throw new Error('You must send a data object, but no data was received.'); }
     // Create callback
     const sendResponse = () => {
@@ -60,7 +60,7 @@ export class AppConfigMain extends EventEmitter {
    * Called when the config data is requested from the renderer API.
    * This sends the config data to the renderer.
    */
-  private onRequestDataSync(event: IpcMessageEvent): void {
+  private onRequestDataSync(event: IpcMainEvent): void {
     const data: IAppConfigApiFetchData = {
       data: this.data,
       fullFlashpointPath: path.resolve(this.data.flashpointPath)

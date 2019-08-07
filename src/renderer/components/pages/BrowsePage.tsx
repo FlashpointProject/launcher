@@ -414,7 +414,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                          '\n'+
                          'Note: If the path is too long, some portion will be replaced with three dots ("...").',
 
-              }, function() { /* Make this non-blocking. */ });
+              });
             }
           });
         } else {
@@ -423,7 +423,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             title: 'No Path Found!',
             message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
                      `Game: "${game.title}"`,
-          }, function() { /* Make this non-blocking. */ });
+          });
         }
       },
       enabled: true

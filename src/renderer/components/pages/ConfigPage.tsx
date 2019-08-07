@@ -328,7 +328,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-    const filePaths = window.External.showOpenDialog({
+    const filePaths = window.External.showOpenDialogSync({
       title: 'Select a theme file',
       properties: ['openFile'],
     });
