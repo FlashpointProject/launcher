@@ -1,6 +1,6 @@
 import { IAppConfigData } from '../../shared/config/interfaces';
-import { ObjectParser } from '../../shared/utils/ObjectParser';
 import { deepCopy } from '../../shared/Util';
+import { ObjectParser } from '../../shared/utils/ObjectParser';
 
 type IConfigDataDefaults = {
   [key: string]: Readonly<IAppConfigData>;

@@ -1,9 +1,9 @@
-import { combineReducers } from 'redux';
 import { connectRouter, RouterState } from 'connected-react-router';
 import { History } from 'history';
-import { SearchState, searchReducer } from './search';
-import { IPreferencesState, preferencesReducer } from './preferences';
+import { combineReducers } from 'redux';
 import { ILibraryState, libraryReducer } from './library';
+import { IPreferencesState, preferencesReducer } from './preferences';
+import { searchReducer, SearchState } from './search';
 
 // The top-level state object
 export interface ApplicationState {

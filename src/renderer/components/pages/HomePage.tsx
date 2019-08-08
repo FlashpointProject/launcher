@@ -3,22 +3,22 @@ import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { IGameInfo } from '../../../shared/game/interfaces';
+import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
+import { findDefaultLibrary } from '../../../shared/library/util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
+import { WithSearchProps } from '../../containers/withSearch';
 import { GameLauncher } from '../../GameLauncher';
+import { GameImageCollection } from '../../image/GameImageCollection';
 import { CentralState, UpgradeStageState } from '../../interfaces';
 import { Paths } from '../../Paths';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { IUpgradeStage } from '../../upgrade/upgrade';
 import { joinLibraryRoute } from '../../Util';
+import { getPlatforms } from '../../util/platform';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
-import { findDefaultLibrary } from '../../../shared/library/util';
-import { WithSearchProps } from '../../containers/withSearch';
-import { getPlatforms } from '../../util/platform';
-import { GameImageCollection } from '../../image/GameImageCollection';
-import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 
 type OwnProps = {
   /** Semi-global prop. */

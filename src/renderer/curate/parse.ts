@@ -1,8 +1,7 @@
-import { EditCurationMeta, EditAddAppCurationMeta } from '../context/CurationContext';
-import { parseCurationFormat, CurationFormatObject } from './format/parser';
-import { tokenizeCurationFormat, CFTokenizer } from './format/tokenizer';
-import { ObjectParser, IObjectParserProp } from '../../shared/utils/ObjectParser';
-import { GameParser } from '../../shared/game/GameParser';
+import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
+import { EditAddAppCurationMeta, EditCurationMeta } from '../context/CurationContext';
+import { CurationFormatObject, parseCurationFormat } from './format/parser';
+import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
 
 /** Return value type of the parseCurationMeta function. */
 export type ParsedCurationMeta = {

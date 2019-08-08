@@ -1,8 +1,8 @@
 import * as path from 'path';
+import { EventQueue } from '../util/EventQueue';
 import { FolderWatcher } from '../util/FolderWatcher';
 import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
-import { Theme, ITheme, IThemeMetaData } from './Theme';
-import { EventQueue } from '../util/EventQueue';
+import { ITheme, IThemeMetaData, Theme } from './Theme';
 
 export type IThemeListItem = {
   /** The meta data of the theme. */

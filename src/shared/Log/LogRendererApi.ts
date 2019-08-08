@@ -1,4 +1,4 @@
-import { IpcRendererEvent, ipcRenderer } from 'electron';
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 import { EventEmitter } from 'events';
 import { ILogEntry, ILogPreEntry } from './interface';
 import { LogChannel, stringifyLogEntries } from './LogCommon';

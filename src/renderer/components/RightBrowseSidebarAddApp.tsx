@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { CheckBox } from './CheckBox';
+import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */

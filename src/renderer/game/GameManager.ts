@@ -2,12 +2,12 @@ import { EventEmitter } from 'events';
 import * as path from 'path';
 import { GameCollection } from '../../shared/game/GameCollection';
 import { GameParser, generateGameOrderTitle } from '../../shared/game/GameParser';
+import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { removeFileExtension } from '../../shared/Util';
 import { LaunchboxData } from '../LaunchboxData';
 import GameManagerPlatform from './GameManagerPlatform';
-import { removeFileExtension } from '../../shared/Util';
-import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
 import { formatUnknownPlatformName } from './util';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 
 declare interface GameManager {
   /** Fired when one or more games has been changed (added, removed, changed properties etc.) */

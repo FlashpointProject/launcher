@@ -1,9 +1,9 @@
 import * as fs from 'fs-extra';
 import { promisify } from 'util';
-import { ImageFolderCache } from './ImageFolderCache';
-import { getScreenshotFolderPath, getThumbnailFolderPath } from './util';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { removeFileExtension } from '../../shared/Util';
+import { ImageFolderCache } from './ImageFolderCache';
+import { getScreenshotFolderPath, getThumbnailFolderPath } from './util';
 
 const ensureDir = promisify(fs.ensureDir);
 

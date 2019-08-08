@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { GameImageCollection } from '../image/GameImageCollection';
-import { GameListItem } from './GameListItem';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
+import { GameImageCollection } from '../image/GameImageCollection';
 import { findElementAncestor } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
+import { GameListItem } from './GameListItem';
 
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;

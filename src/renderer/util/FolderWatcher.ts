@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { WrappedEventEmitter } from './WrappedEventEmitter';
-import { EventQueue } from './EventQueue';
 import { debounce } from './debounce';
+import { EventQueue } from './EventQueue';
+import { WrappedEventEmitter } from './WrappedEventEmitter';
 
 type IMap<K extends string | number, V> = { [key in K]: V; };
 

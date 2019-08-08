@@ -1,17 +1,17 @@
 import { ConnectedRouter } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
+import * as path from 'path';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import * as path from 'path';
 import { readGameLibraryFile } from '../shared/library/GameLibrary';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
-import { updateLibrary } from './store/library';
-import { ThemeManager } from './theme/ThemeManager';
-import { Theme } from './theme/Theme';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { CurationContext } from './context/CurationContext';
+import { updateLibrary } from './store/library';
+import { Theme } from './theme/Theme';
+import { ThemeManager } from './theme/ThemeManager';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed

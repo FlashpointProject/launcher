@@ -9,8 +9,8 @@ import { GameParser } from '../../shared/game/GameParser';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { IRawLaunchBoxAdditionalApplication, IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from '../../shared/launchbox/interfaces';
 import { LaunchboxData } from '../LaunchboxData';
-import { formatUnknownPlatformName } from './util';
 import { EventQueue } from '../util/EventQueue';
+import { formatUnknownPlatformName } from './util';
 
 const writeFile = promisify(fs.writeFile);
 

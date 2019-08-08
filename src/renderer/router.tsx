@@ -4,19 +4,19 @@ import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
+import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
+import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
+import { ICreditsData } from './credits/interfaces';
+import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState } from './interfaces';
 import { Paths } from './Paths';
 import { IGamePlaylist } from './playlist/interfaces';
-import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
-import { ICreditsData } from './credits/interfaces';
 import { IThemeListItem } from './theme/ThemeManager';
-import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
-import { GameImageCollection } from './image/GameImageCollection';
 
 export type AppRouterProps = {
   /** Semi-global prop. */

@@ -1,18 +1,17 @@
-import * as electron from 'electron';
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
-import { SimpleButton } from '../SimpleButton';
-import { CurateBox } from '../CurateBox';
-import { indexCurationArchive, indexCurationFolder, CurationIndex } from '../../curate/indexCuration';
-import { uuid } from '../../uuid';
-import { CurationContext, createEditCuration, CurationSource, CurationAction, EditCurationMeta } from '../../context/CurationContext';
+import { createEditCuration, CurationAction, CurationContext, CurationSource, EditCurationMeta } from '../../context/CurationContext';
+import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
+import { importCuration } from '../../curate/importCuration';
+import { CurationIndex, indexCurationArchive, indexCurationFolder } from '../../curate/indexCuration';
+import { parseCurationMeta } from '../../curate/parse';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getSuggestions } from '../../util/suggestions';
-import { parseCurationMeta } from '../../curate/parse';
-import { getDefaultMetaValues, GameMetaDefaults } from '../../curate/defaultValues';
+import { uuid } from '../../uuid';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
-import { importCuration } from '../../curate/importCuration';
+import { CurateBox } from '../CurateBox';
+import { SimpleButton } from '../SimpleButton';
 
 export type CuratePageProps = {
   /** Game manager to add imported curations to. */

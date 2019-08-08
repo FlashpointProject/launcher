@@ -4,8 +4,8 @@ import { Subtract } from 'utility-types';
 import { HomePage, HomePageProps } from '../components/pages/HomePage';
 import * as searchActions from '../store/search/actions';
 import { withLibrary, WithLibraryProps } from './withLibrary';
-import { withSearch, WithSearchProps } from './withSearch';
 import { withPreferences, WithPreferencesProps } from './withPreferences';
+import { withSearch, WithSearchProps } from './withSearch';
 
 type DispatchToProps = {
   /** Clear the current search query (resets the current search filters). */

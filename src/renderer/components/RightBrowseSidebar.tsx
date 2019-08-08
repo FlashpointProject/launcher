@@ -2,12 +2,15 @@ import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as React from 'react';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
+import { getImageFolderName } from '../image/util';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
+import { copyGameImageFile, deleteGameImageFiles } from '../util/game';
 import { GamePropSuggestions } from '../util/suggestions';
 import { uuid } from '../uuid';
 import { CheckBox } from './CheckBox';
@@ -18,9 +21,6 @@ import { ImagePreview } from './ImagePreview';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
-import { deleteGameImageFiles, copyGameImageFile } from '../util/game';
-import { getImageFolderName } from '../image/util';
 
 type OwnProps = {
   gameImages: GameImageCollection;

@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { filterBroken, filterExtreme } from '../../shared/game/GameFilter';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { GameImageCollection } from '../image/GameImageCollection';
-import { shuffle, findElementAncestor } from '../Util';
+import { findElementAncestor, shuffle } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 

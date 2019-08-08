@@ -2,10 +2,10 @@ import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps } from 'react-virtualized/dist/es/Grid';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { GameImageCollection } from '../image/GameImageCollection';
-import { GameGridItem } from './GameGridItem';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
+import { GameImageCollection } from '../image/GameImageCollection';
 import { findElementAncestor } from '../Util';
+import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
 /** A function that receives an HTML element. */

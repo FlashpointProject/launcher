@@ -1,9 +1,9 @@
 import { ipcMain, IpcMainEvent } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import { AppConfigFile } from './AppConfigFile';
 import { AppConfigIPC } from '../../shared/config/AppConfigApi';
-import { IAppConfigData, IAppConfigApiFetchData } from '../../shared/config/interfaces';
+import { IAppConfigApiFetchData, IAppConfigData } from '../../shared/config/interfaces';
+import { AppConfigFile } from './AppConfigFile';
 
 /**
  * "Back end" part of the API for managing config data.

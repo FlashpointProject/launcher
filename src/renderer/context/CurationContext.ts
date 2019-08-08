@@ -1,6 +1,6 @@
-import { ReducerAction } from '../context-reducer/interfaces';
-import { CurationIndexContent, CurationIndexImage, createCurationIndexImage } from '../curate/indexCuration';
 import { createContextReducer } from '../context-reducer/contextReducer';
+import { ReducerAction } from '../context-reducer/interfaces';
+import { createCurationIndexImage, CurationIndexContent, CurationIndexImage } from '../curate/indexCuration';
 
 const curationDefaultState: CurationsState = {
   curations: [],

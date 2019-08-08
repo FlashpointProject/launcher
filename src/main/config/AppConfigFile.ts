@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { IAppConfigData } from '../../shared/config/interfaces';
-import { readJsonFile, stringifyJsonDataFile, deepCopy } from '../../shared/Util';
+import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../../shared/Util';
 import { getInstalledConfigsPath } from '../Util';
-import { overwriteConfigData, getDefaultConfigData } from './util';
+import { getDefaultConfigData, overwriteConfigData } from './util';
 
 export class AppConfigFile {
   /** Path to the config file (if it is set). */

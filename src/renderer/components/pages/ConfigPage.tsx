@@ -1,12 +1,12 @@
-import * as React from 'react';
 import * as path from 'path';
+import * as React from 'react';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
+import { IThemeListItem } from '../../theme/ThemeManager';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
-import { IThemeListItem } from '../../theme/ThemeManager';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */

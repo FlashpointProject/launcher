@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { memoizeOne } from '../../shared/memoize';
-import { InputField, InputFieldProps } from './InputField';
 import { checkIfAncestor } from '../Util';
+import { InputField, InputFieldProps } from './InputField';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;

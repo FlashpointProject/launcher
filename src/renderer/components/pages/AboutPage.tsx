@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { appVersionString } from '../../../shared/AppConstants';
 import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
-import { CreditsTooltip } from '../CreditsTooltip';
 import { CreditsIcon } from '../CreditsProfile';
+import { CreditsTooltip } from '../CreditsTooltip';
 
 export type AboutPageProps = {
   /** Credits data (if any). */

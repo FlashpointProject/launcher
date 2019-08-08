@@ -1,11 +1,11 @@
 import * as React from 'react';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { WithPreferencesProps } from '../containers/withPreferences';
 import { CentralState } from '../interfaces';
-import { PlaylistItem } from './PlaylistItem';
-import { OpenIcon } from './OpenIcon';
 import { IGamePlaylist } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
-import { WithPreferencesProps } from '../containers/withPreferences';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { OpenIcon } from './OpenIcon';
+import { PlaylistItem } from './PlaylistItem';
 
 type OwnProps = {
   /** Semi-global prop. */

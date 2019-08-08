@@ -1,7 +1,7 @@
 import * as path from 'path';
-import { ImageFolderCache } from './ImageFolderCache';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { removeFileExtension } from '../../shared/Util';
+import { ImageFolderCache } from './ImageFolderCache';
 
 /**
  * Get the image folder name of a game.

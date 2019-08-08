@@ -1,17 +1,23 @@
-import { ipcRenderer, remote, IpcRendererEvent } from 'electron';
+import { ipcRenderer, IpcRendererEvent, remote } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap } from '../shared/interfaces';
+import { IGameLibraryFileItem } from '../shared/library/interfaces';
+import { findDefaultLibrary, findLibraryByRoute, getLibraryPlatforms } from '../shared/library/util';
+import { memoizeOne } from '../shared/memoize';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithLibraryProps } from './containers/withLibrary';
 import { WithPreferencesProps } from './containers/withPreferences';
+import { readCreditsFile } from './credits/Credits';
+import { ICreditsData } from './credits/interfaces';
 import GameManager from './game/GameManager';
+import GameManagerPlatform from './game/GameManagerPlatform';
 import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
 import { Paths } from './Paths';
@@ -19,17 +25,11 @@ import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { IGamePlaylist } from './playlist/interfaces';
 import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
-import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
-import { downloadAndInstallUpgrade } from './util/upgrade';
-import { findLibraryByRoute, getLibraryPlatforms, findDefaultLibrary } from '../shared/library/util';
-import { memoizeOne } from '../shared/memoize';
-import { IGameLibraryFileItem } from '../shared/library/interfaces';
-import GameManagerPlatform from './game/GameManagerPlatform';
-import { joinLibraryRoute } from './Util';
-import { readCreditsFile } from './credits/Credits';
-import { ICreditsData } from './credits/interfaces';
-import { ThemeManager } from './theme/ThemeManager';
 import { Theme } from './theme/Theme';
+import { ThemeManager } from './theme/ThemeManager';
+import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
+import { joinLibraryRoute } from './Util';
+import { downloadAndInstallUpgrade } from './util/upgrade';
 
 type AppOwnProps = {
   /** Most recent search query. */

@@ -1,7 +1,7 @@
 import * as path from 'path';
-import { ICreditsData, ICreditsDataProfile } from './interfaces';
-import { ObjectParser, IObjectParserProp } from '../../shared/utils/ObjectParser';
 import { readJsonFile } from '../../shared/Util';
+import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
+import { ICreditsData, ICreditsDataProfile } from './interfaces';
 
 const creditsFilePath: string = './credits.json';
 const creditsFileEncoding: string = 'utf8';

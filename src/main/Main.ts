@@ -1,11 +1,11 @@
-import { app, ipcMain, session, shell } from 'electron';
+import { app, session, shell } from 'electron';
 import * as fs from 'fs';
 import checkSanity from '../shared/checkSanity';
 import { ILogPreEntry } from '../shared/Log/interface';
 import { LogMainApi } from '../shared/Log/LogMainApi';
 import BackgroundServices from './background/BackgroundServices';
-import MainWindow from './MainWindow';
 import { AppConfigMain } from './config/AppConfigMain';
+import MainWindow from './MainWindow';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
 import * as Util from './Util';
 

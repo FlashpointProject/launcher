@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { formatImageFilename } from '../image/util';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { ImageFolderCache } from '../image/ImageFolderCache';
+import { formatImageFilename } from '../image/util';
 import { getFileExtension } from '../Util';
 
 const copyFile = promisify(fs.copyFile);
