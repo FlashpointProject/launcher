@@ -21,17 +21,19 @@ type Context = {
   onError: (error: IObjectParserError) => void;
 };
 
+type ObjectParserMapFunc<P> = (item: IObjectParserProp<P[Extract<keyof P, string>]>, label: keyof P, map: P) => void;
+type ObjectParserMapRawFunc<P> = (item: P[Extract<keyof P, string>], label: Extract<keyof P, string>, map: P) => void;
+type ObjectParserArrayFunc<P> = (item: P extends Array<any> ? IObjectParserProp<P[number]> : never, index: number, array: P) => void;
+type ObjectParserArrayRawFunc<P> = (item: P extends Array<any> ? P[number] : never, index: number, array: P) => void;
+
 /** Interface for ObjectParserProp. */
 export interface IObjectParserProp<P> {
-  /** Raw value this is wrapping. */
-  readonly value: P;
-
   /**
    * Call a function for each property of this object.
    * (An error will be "fired" if this is not a non-array object).
    * @param func Called for each property of this object.
    */
-  map(func: (item: IObjectParserProp<P[Extract<keyof P, string>]>, label: keyof P) => void): this;
+  map(func: ObjectParserMapFunc<P>): this;
 
   /**
    * Call a function for each property of this object.
@@ -39,14 +41,14 @@ export interface IObjectParserProp<P> {
    * (This uses the raw values of the object - it does NOT wrap the properties in "ObjectParserProp").
    * @param func Called for each property of this object.
    */
-  mapRaw(func: (item: P[Extract<keyof P, string>], label: Extract<keyof P, string>) => void): this;
+  mapRaw(func: ObjectParserMapRawFunc<P>): this;
 
   /**
    * Call a function for each element in this array.
    * (If this is not an array an error will be "fired" instead).
    * @param func Called for each element in the array (starting at index 0 and counting up).
    */
-  array(func: (item: P extends Array<any> ? IObjectParserProp<P[number]> : never, index: number, array: P) => void): this;
+  array(func: ObjectParserArrayFunc<P>): this;
 
   /**
    * Call a function for each element in this array.
@@ -54,7 +56,7 @@ export interface IObjectParserProp<P> {
    * (This uses the raw values of the array - it does NOT wrap the element in "ObjectParserProp").
    * @param func Called for each element in the array (starting at index 0 and counting up).
    */
-  arrayRaw(func: (item: P extends Array<any> ? P[number] : never, index: number, array: P) => void): this;
+  arrayRaw(func: ObjectParserArrayRawFunc<P>): this;
 
   /**
    * Get a property of this object.
@@ -102,22 +104,18 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
   /** Stack of property names that lead to this value. */
   private _stack: string[];
 
-  get value(): P {
-    return this._property;
-  }
-
   constructor(property: P, context: Context, stack: string[]) {
     this._property = property;
     this._context = context;
     this._stack = stack;
   }
 
-  map(func: (item: IObjectParserProp<P[Extract<keyof P, string>]>, label: keyof P) => void): this {
+  map(func: ObjectParserMapFunc<P>): this {
     const prop = this._property;
     if (typeof prop === 'object' && prop !== null && !Array.isArray(prop)) {
       for (let label in prop) {
         const item = new ObjectParserProp(prop[label], this._context, createStack(this._stack, label));
-        func(item, label);
+        func(item, label, prop);
       }
     } else {
       this._context.onError(new ObjectParserError(this._stack, 'Property is not a non-array object.'));
@@ -125,11 +123,11 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
     return this;
   }
 
-  mapRaw(func: (item: P[Extract<keyof P, string>], label: Extract<keyof P, string>) => void): this {
+  mapRaw(func: ObjectParserMapRawFunc<P>): this {
     const prop = this._property;
     if (typeof prop === 'object' && prop !== null && !Array.isArray(prop)) {
       for (let label in prop) {
-        func(prop[label], label);
+        func(prop[label], label, prop);
       }
     } else {
       this._context.onError(new ObjectParserError(this._stack, 'Property is not a non-array object.'));
@@ -137,7 +135,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
     return this;
   }
 
-  array(func: (item: P extends Array<any> ? IObjectParserProp<P[number]> : never, index: number, array: P) => void): this {
+  array(func: ObjectParserArrayFunc<P>): this {
     const prop = this._property;
     if (Array.isArray(prop)) {
       for (let i = 0; i < prop.length; i++) {
@@ -150,7 +148,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
     return this;
   }
 
-  arrayRaw(func: (item: P extends Array<any> ? P[number] : never, index: number, array: P) => void): this {
+  arrayRaw(func: ObjectParserArrayRawFunc<P>): this {
     const prop = this._property;
     if (Array.isArray(prop)) {
       for (let i = 0; i < prop.length; i++) {
@@ -171,15 +169,50 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
       isOptional = !!optional;
     } else { isOptional = !!funcOrOptional; }
 
+    // Check if property exists
     if (this._property !== null &&
         this._property !== undefined &&
         Object.prototype.hasOwnProperty.call(this._property, label)) {
+      // Property callback
       if (func) { func(this._property[label]); }
-    } else if (!isOptional) {
-      this._context.onError(new ObjectParserError(this._stack, `Property "${label}" was not found.`));
+      // Create and return wrapper (around property)
+      const prop = this._property && this._property[label];
+      return new ObjectParserProp(prop, this._context, createStack(this._stack, label));
+    } else {
+      // Error callback
+      if (!isOptional) {
+        this._context.onError(new ObjectParserError(this._stack, `Property "${label}" was not found.`));
+      }
+      // Create and return wrapper (around nothing)
+      return new ObjectParserPropNone();
     }
-    const prop = this._property && this._property[label];
-    return new ObjectParserProp(prop, this._context, createStack(this._stack, label));
+  }
+}
+
+/**
+ * A wrapper around nothing. This is used for properties that do not exist to
+ * provide an object with methods that does nothing other than returning the
+ * expected values.
+ */
+class ObjectParserPropNone<P> implements IObjectParserProp<P> {
+  map(): this {
+    return this;
+  }
+
+  mapRaw(): this {
+    return this;
+  }
+
+  array(): this {
+    return this;
+  }
+
+  arrayRaw(): this {
+    return this;
+  }
+
+  prop<L extends keyof P>(): IObjectParserProp<P[L]> {
+    return new ObjectParserPropNone();
   }
 }
 

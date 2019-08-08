@@ -76,8 +76,8 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
   parser.prop('Title',                v => parsed.game.title               = str(v));
   parser.prop('Version',              v => parsed.game.version             = str(v));
   // Add-apps
-  parser.prop('Additional Applications').map((item, label) => {
-    parsed.addApps.push(convertAddApp(item, label));
+  parser.prop('Additional Applications').map((item, label, map) => {
+    parsed.addApps.push(convertAddApp(item, label, map[label]));
   });
   // Return
   return parsed;
@@ -88,18 +88,18 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
  * @param item Object parser, wrapped around the "raw" add-app meta object to convert.
  * @param label Label of the object.
  */
-function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol): EditAddAppCurationMeta {
+function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): EditAddAppCurationMeta {
   const addApp: EditAddAppCurationMeta = {};
   switch (str(label).toLowerCase()) {
     case 'extras': // (Extras add-app)
       addApp.heading = 'Extras';
       addApp.applicationPath = ':extras:';
-      addApp.launchCommand = str(item.value);
+      addApp.launchCommand = str(rawValue);
       break;
     case 'message': // (Message add-app)
       addApp.heading = 'Message';
       addApp.applicationPath = ':message:';
-      addApp.launchCommand = str(item.value);
+      addApp.launchCommand = str(rawValue);
       break;
     default: // (Normal add-app)
       item.prop('Heading',          v => addApp.heading         = str(v));
