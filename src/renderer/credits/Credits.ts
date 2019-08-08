@@ -46,7 +46,7 @@ function parseProfile(parser: IObjectParserProp<any>): ICreditsDataProfile {
   parser.prop('title', v => parsed.title = str(v));
   parser.prop('icon',  v => parsed.icon  = str(v), true);
   parser.prop('note',  v => parsed.note  = str(v), true);
-  parser.prop('roles').arrayRaw(role => parsed.roles.push(str(role)));
+  parser.prop('roles', true).arrayRaw(role => parsed.roles.push(str(role)));
   return parsed;
 }
 
