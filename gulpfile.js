@@ -49,11 +49,10 @@ gulp.task('copy-static', () => {
 });
 
 gulp.task('config-install', (done) => {
-  // .installed tells launcher to use system config paths instead of relative paths
   if (config.isStaticInstall) {
-    fs.createFileSync('./.installed', done());
+    fs.createFile('.installed', done);
   } else {
-    fs.removeSync('./.installed', done());
+    fs.remove('.installed', done);
   }
 });
 
@@ -99,7 +98,7 @@ gulp.task('pack', (done) => {
     // "An array of functions to be called after Electron has been extracted to a temporary directory."
     afterExtract: [serialHooks([
       function(buildPath, electronVersion, platform, arch) {
-        // .installed tells launcher to use system config paths instead of relative paths
+        // Create "installed" file (this tells the launcher that it is installed, and not portable)
         if (config.isStaticInstall) {
           fs.createFileSync(path.join(buildPath, '.installed'));
         }
