@@ -1,6 +1,7 @@
 import { app, BrowserWindow, WebContents } from 'electron';
 import * as path from 'path';
 import * as AppConstants from '../shared/AppConstants';
+import { WindowIPC } from '../shared/interfaces';
 import { Main } from './Main';
 import * as Util from './Util';
 
@@ -59,24 +60,24 @@ export default class MainWindow {
     }
     // Relay window's maximize/unmaximize events to the renderer (as a single event with a flag)
     this._window.on('maximize', (event: BrowserWindowEvent) => {
-      event.sender.send('window-maximize', true);
+      event.sender.send(WindowIPC.WINDOW_MAXIMIZE, true);
     });
     this._window.on('unmaximize', (event: BrowserWindowEvent) => {
-      event.sender.send('window-maximize', false);
+      event.sender.send(WindowIPC.WINDOW_MAXIMIZE, false);
     });
     // Replay window's move event to the renderer
     this._window.on('move', () => {
       if (!this._window) { throw new Error(); }
       const pos = this._window.getPosition();
       const isMaximized = this._window.isMaximized();
-      this._window.webContents.send('window-move', pos[0], pos[1], isMaximized);
+      this._window.webContents.send(WindowIPC.WINDOW_MOVE, pos[0], pos[1], isMaximized);
     });
     // Replay window's move event to the renderer
     this._window.on('resize', () => {
       if (!this._window) { throw new Error(); }
       const size = this._window.getSize();
       const isMaximized = this._window.isMaximized();
-      this._window.webContents.send('window-resize', size[0], size[1], isMaximized);
+      this._window.webContents.send(WindowIPC.WINDOW_RESIZE, size[0], size[1], isMaximized);
     });
     // Emitted when the window is closed.
     this._window.on('closed', () => {

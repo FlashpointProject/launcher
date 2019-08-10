@@ -50,3 +50,13 @@ export type AnyFunction = (...args: any[]) => any;
 export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 
 export interface IObjectMap<T> { [key: string]: T|undefined; }
+
+/** IPC channels used to relay window events from main to renderer. */
+export enum WindowIPC {
+  /** Sent whenever the windows "maximize" status changes. (main -> renderer). */
+  WINDOW_MAXIMIZE = 'window-maximize',
+  /** Sent whenever the windows position changes. (main -> renderer). */
+  WINDOW_MOVE     = 'window-move',
+  /** Sent whenever the windows size changes. (main -> renderer). */
+  WINDOW_RESIZE   = 'window-resize',
+}

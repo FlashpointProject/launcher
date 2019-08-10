@@ -1,10 +1,10 @@
-import { ipcRenderer, IpcRendererEvent, remote } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
-import { IObjectMap } from '../shared/interfaces';
+import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
@@ -142,21 +142,21 @@ export class App extends React.Component<AppProps, AppState> {
       };
     })();
     // Listen for the window to move or resize (and update the preferences when it does)
-    ipcRenderer.on('window-move', (sender: IpcRendererEvent, x: number, y: number, isMaximized: boolean) => {
+    ipcRenderer.on(WindowIPC.WINDOW_MOVE, (sender, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
         const mw = this.props.preferencesData.mainWindow;
         mw.x = x | 0;
         mw.y = y | 0;
       }
     });
-    ipcRenderer.on('window-resize', (sender: IpcRendererEvent, width: number, height: number, isMaximized: boolean) => {
+    ipcRenderer.on(WindowIPC.WINDOW_RESIZE, (sender, width: number, height: number, isMaximized: boolean) => {
       if (!isMaximized) {
         const mw = this.props.preferencesData.mainWindow;
         mw.width  = width  | 0;
         mw.height = height | 0;
       }
     });
-    ipcRenderer.on('window-maximize', (sender: IpcRendererEvent, isMaximized: boolean) => {
+    ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
       this.props.preferencesData.mainWindow.maximized = isMaximized;
     });
     // Listen for changes to the theme files
