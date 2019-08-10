@@ -6,6 +6,7 @@ const serialHooks = require('electron-packager/src/hooks').serialHooks;
 const { exec } = require('child_process');
 
 const config = {
+  buildVersion: Date.now().toString(),
   isRelease: process.env.NODE_ENV === 'production',
   isStaticInstall: process.env.STATIC_INSTALL ? true : false,
   static: {
@@ -56,6 +57,10 @@ gulp.task('config-install', (done) => {
   }
 });
 
+gulp.task('config-version', (done) => {
+  fs.writeFile('.version', config.buildVersion, done);
+});
+
 /* ------ Pack ------ */
 
 gulp.task('pack', (done) => {
@@ -102,6 +107,8 @@ gulp.task('pack', (done) => {
         if (config.isStaticInstall) {
           fs.createFileSync(path.join(buildPath, '.installed'));
         }
+        // Create build version file
+        fs.writeFileSync(path.join(buildPath, '.version'), config.buildVersion, done);
         // Copy licenses folder and the LICENSE file
         fs.copySync('./licenses', path.join(buildPath, 'licenses/'));
         fs.copySync('./LICENSE',  path.join(buildPath, 'licenses/LICENSE'));
@@ -119,7 +126,7 @@ gulp.task('pack', (done) => {
 
 gulp.task('watch', gulp.parallel('watch-main', 'watch-renderer', 'watch-static', 'copy-static'));
 
-gulp.task('build', gulp.parallel('build-main', 'build-renderer', 'copy-static', 'config-install'));
+gulp.task('build', gulp.parallel('build-main', 'build-renderer', 'copy-static', 'config-install', 'config-version'));
 
 /* ------ Misc ------*/
 

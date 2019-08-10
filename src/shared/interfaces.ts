@@ -4,6 +4,9 @@ import { LogRendererApi } from './Log/LogRendererApi';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 
 export interface IMainWindowExternal {
+  /** Miscellaneous data. */
+  misc: IMiscData;
+
   /** Get the OS name */
   platform: NodeJS.Platform;
 
@@ -59,4 +62,18 @@ export enum WindowIPC {
   WINDOW_MOVE     = 'window-move',
   /** Sent whenever the windows size changes. (main -> renderer). */
   WINDOW_RESIZE   = 'window-resize',
+}
+
+/** Object of miscellaneous data to send from main to renderer on startup. */
+export type IMiscData = {
+  /** If the launcher is installed (instead of being portable). */
+  installed: boolean;
+  /** Version of the current launcher build. */
+  version: number;
+};
+
+/** Miscellaneous IPC channels used between the main and renderer processes. */
+export enum MiscIPC {
+  /** Request misc data synchronously (renderer -> main). */
+  REQUEST_MISC_SYNC = 'misc-request-data',
 }

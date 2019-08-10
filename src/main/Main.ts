@@ -1,5 +1,7 @@
-import { app, session, shell } from 'electron';
+import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
+import * as path from 'path';
+import { IMiscData, MiscIPC } from '../shared/interfaces';
 import checkSanity from '../shared/checkSanity';
 import { ILogPreEntry } from '../shared/Log/interface';
 import { LogMainApi } from '../shared/Log/LogMainApi';
@@ -15,6 +17,8 @@ export class Main {
   private _config: AppConfigMain = new AppConfigMain();
   private _preferences: AppPreferencesMain = new AppPreferencesMain();
   private _installed: boolean = fs.existsSync('./.installed');
+  /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
+  private _version: number = -2;
   private _log: LogMainApi = new LogMainApi(this.sendToMainWindowRenderer.bind(this));
 
   public get config(): AppConfigMain {
@@ -29,6 +33,10 @@ export class Main {
     return this._installed;
   }
 
+  public get version(): number {
+    return this._version;
+  }
+
   constructor() {
     // Add app event listeners
     app.once('ready', this.onAppReady.bind(this));
@@ -37,11 +45,15 @@ export class Main {
     app.once('web-contents-created', this.onAppWebContentsCreated.bind(this));
     // Add IPC event listeners
     this._log.bindListeners();
+    ipcMain.on(MiscIPC.REQUEST_MISC_SYNC, this.onRequestMisc.bind(this));
     // Connect preferences to log
     this._preferences.on('log', this.pushLogData.bind(this));
     // Load config and preferences
-    this._config.load(this.installed)
-    .then(async () => { await this._preferences.load(this.installed); })
+    Promise.all([
+      this._config.load(this.installed),
+      this._preferences.load(this.installed),
+      this.loadVersion(),
+    ])
     .then(async () => {
       // Check if we are ready to launch or not.
       // @TODO Launch the setup wizard when a check failed.
@@ -101,6 +113,34 @@ export class Main {
       shell.openExternal(navigationUrl);
     });
   }
+
+  /** Fetch and store the value of the version file. */
+  private loadVersion(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Select which folder to load the version from
+      // (depending on if this is running in a build, or in "development mode")
+      const folderPath = Util.isDev
+        ? process.cwd()
+        : path.dirname(app.getPath('exe'));
+      // Try reading the version from the file
+      fs.readFile(path.join(folderPath, '.version'), (error, data) => {
+        this._version = data
+          // (Remove all non-numerical characters, then parse it as a string)
+          ? parseInt(data.toString().replace(/[^\d]/g, ''), 10)
+          // (Version not found error code)
+          : -1;
+        resolve();
+      });
+    });
+  }
+
+  private onRequestMisc = (event: IpcMainEvent) => {
+    const misc: IMiscData = {
+      installed: this._installed,
+      version: this._version,
+    };
+    event.returnValue = misc;
+  };
 
   /**
    * Append the output to the internal log data object and tell the main window

@@ -1,6 +1,7 @@
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
+import { MiscIPC } from '../shared/interfaces';
 import { LogRendererApi } from '../shared/Log/LogRendererApi';
 import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
 
@@ -22,6 +23,8 @@ log.bindListeners();
  *        It might be a good idea to move this to the Renderer?)
  */
 window.External = Object.freeze({
+  misc: electron.ipcRenderer.sendSync(MiscIPC.REQUEST_MISC_SYNC),
+
   platform: electron.remote.process.platform+'' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
 
   minimize() {

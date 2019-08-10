@@ -19,3 +19,4 @@ package-lock.json
 /config.json
 /preferences.json
 /.installed
+/.version

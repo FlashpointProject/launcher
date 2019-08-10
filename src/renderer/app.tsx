@@ -8,6 +8,7 @@ import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
+import { versionNumberToText } from '../shared/Util';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
@@ -331,7 +332,7 @@ export class App extends React.Component<AppProps, AppState> {
       <>
         {/* "TitleBar" stuff */}
         { window.External.config.data.useCustomTitlebar ? (
-          <TitleBar title={`${AppConstants.appTitle} (${AppConstants.appVersionString})`} />
+          <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
         ) : undefined }
         {/* "Header" stuff */}
         <HeaderContainer onOrderChange={this.onOrderChange}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { appVersionString } from '../../../shared/AppConstants';
+import { versionNumberToText } from '../../../shared/Util';
 import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
@@ -55,7 +55,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                     <p className='about-page__section__content__description'>
                       An open-source desktop application used to browse, manage and play games from the Flashpoint project.
                     </p>
-                    <p><b>Version:</b> {appVersionString}</p>
+                    <p><b>Version:</b> {versionNumberToText(window.External.misc.version)} ({window.External.misc.version})</p>
                     <p><b>License:</b> MIT (Read the file named "LICENSE" for more information)</p>
                     <div className='about-page__section__links'>
                       {link('Github', 'https://github.com/FlashpointProject/launcher')}

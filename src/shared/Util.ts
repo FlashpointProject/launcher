@@ -320,3 +320,20 @@ export function stripBOM(str: string): string {
 function isString(obj: any): boolean {
   return typeof obj === 'string' || obj instanceof String;
 }
+
+/**
+ * Convert a launcher version number to a human readable string (including error messages).
+ * @param version Launcher version number.
+ */
+export function versionNumberToText(version: number): string {
+  if (version >= 0) { // (Version number)
+    const d = new Date(version);
+    return `${pad(d.getFullYear(), 4)}-${pad(d.getMonth()+1, 2)}-${pad(d.getDate(), 2)}`;
+  } else { // (Error code)
+    switch (version) {
+      case -1: return 'version not found';
+      case -2: return 'version not loaded';
+      default: return 'unknown version error';
+    }
+  }
+}
