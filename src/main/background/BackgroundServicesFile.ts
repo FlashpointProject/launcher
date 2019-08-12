@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { readJsonFile } from '../../shared/Util';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
+import { parseVarStr } from '../Util';
 import { IBackProcessInfo, IBackProcessInfoFile } from './interfaces';
 
 export class BackgroundServicesFile {
@@ -30,7 +31,7 @@ function parseBackProcessInfoFile(data: any, onError?: (error: string) => void):
   };
   const parser = new ObjectParser({
     input: data,
-    onError: onError ? ((e) => { onError(`Error while parsing Services: ${e.toString()}`); }) : noop
+    onError: onError && ((e) => { onError(`Error while parsing Services: ${e.toString()}`); })
   });
   parsed.redirector = parseBackProcessInfo(parser.prop('redirector'));
   parsed.fiddler    = parseBackProcessInfo(parser.prop('fiddler'));
@@ -47,16 +48,14 @@ function parseBackProcessInfo(parser: IObjectParserProp<any>): IBackProcessInfo 
     arguments: [],
     kill: false,
   };
-  parser.prop('path',     v => parsed.path     = str(v));
-  parser.prop('filename', v => parsed.filename = str(v));
+  parser.prop('path',     v => parsed.path     = parseVarStr(str(v)));
+  parser.prop('filename', v => parsed.filename = parseVarStr(str(v)));
   parser.prop('kill',     v => parsed.kill     = !!v, true);
-  parser.prop('arguments').arrayRaw(item => parsed.arguments.push(str(item)));
+  parser.prop('arguments').arrayRaw(item => parsed.arguments.push(parseVarStr(item)));
   return parsed;
 }
 
-/** Coerce anything to a string */
+/** Coerce anything to a string. */
 function str(str: any): string {
   return (str || '') + '';
 }
-
-function noop() {}
