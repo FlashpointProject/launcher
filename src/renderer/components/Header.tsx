@@ -51,7 +51,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
 
   render() {
     const {
-      preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, showDeveloperTab },
+      preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab },
       libraryData: { libraries },
       onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick
     } = this.props;
@@ -83,9 +83,11 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             <MenuItem
               title='About'
               link={Paths.ABOUT} />
-            <MenuItem
-              title='Curate'
-              link={Paths.CURATE} />
+            { enableEditing ? (
+              <MenuItem
+                title='Curate'
+                link={Paths.CURATE} />
+            ) : undefined }
             { showDeveloperTab ? (
               <MenuItem
                 title='Developer'

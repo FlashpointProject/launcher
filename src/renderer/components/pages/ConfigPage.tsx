@@ -95,7 +95,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                     </div>
                   </div>
                   <div className='setting__row__bottom'>
-                    <p>Enable editing of games, additional applications and playlists.</p>
+                    <p>Enable editing of games, additional applications and playlists. Also shows the "Curate" tab.</p>
                   </div>
                 </div>
               </div>
