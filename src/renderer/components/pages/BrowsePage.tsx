@@ -1,6 +1,9 @@
+import * as electron from 'electron';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as React from 'react';
+import { promisify } from 'util';
 import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/interfaces';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
@@ -14,18 +17,22 @@ import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowse
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
+import { stringifyCurationFormat } from '../../curate/format/stringifier';
+import { convertToCurationMeta } from '../../curate/metaToMeta';
 import GameManagerPlatform from '../../game/GameManagerPlatform';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { CentralState } from '../../interfaces';
 import { SearchQuery } from '../../store/search';
-import { gameIdDataType, gameScaleSpan } from '../../Util';
+import { gameIdDataType, gameScaleSpan, getFileExtension } from '../../Util';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
+
+const writeFile = promisify(fs.writeFile);
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback0 = Pick<BrowsePageState, 'orderedGames'|'orderedGamesArgs'>;
@@ -423,6 +430,80 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             title: 'No Path Found!',
             message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
                      `Game: "${game.title}"`,
+          });
+        }
+      },
+      enabled: true
+    });
+    template.push({
+      label: 'Export (Meta Only)',
+      click: () => {
+        const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+        // Choose where to save the file
+        const filePath = electron.remote.dialog.showSaveDialogSync({
+          title: 'Select the file to export the meta to.',
+          defaultPath: 'meta',
+          filters: [{
+            name: 'Meta file',
+            extensions: ['txt'],
+          }]
+        });
+        if (filePath) {
+          fs.ensureDir(path.dirname(filePath))
+          .then(() => {
+            const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
+            writeFile(filePath, meta);
+          });
+        }
+      },
+      enabled: true
+    });
+    template.push({
+      label: 'Export (Meta && Images)', // ("&&" will be shown as "&")
+      click: () => {
+        const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+        // Choose where to save the file
+        const filePaths = window.External.showOpenDialogSync({
+          title: 'Select the folder to export the meta and images to.',
+          properties: ['promptToCreate', 'openDirectory']
+        });
+        if (filePaths && filePaths.length > 0) {
+          const filePath = filePaths[0];
+          // Get image paths
+          const screenPath = this.props.gameImages.getScreenshotPath(game);
+          const thumbPath = this.props.gameImages.getThumbnailPath(game);
+          // Create dest paths
+          const metaPath = path.join(filePath,'meta.txt');
+          const ssPath   = path.join(filePath,'ss'   + getFileExtension(screenPath || ''));
+          const logoPath = path.join(filePath,'logo' + getFileExtension(thumbPath  || ''));
+          // Check if files already exists
+          const exists = [
+            fs.pathExistsSync(metaPath),
+            screenPath ? fs.pathExistsSync(ssPath)   : false,
+            thumbPath  ? fs.pathExistsSync(logoPath) : false,
+          ];
+          if (exists.some(val => val)) { // (One or more of the files already exists)
+            const result = electron.remote.dialog.showMessageBoxSync({
+              type: 'warning',
+              title: 'Replace files?',
+              message: 'One or more of the exported files to already exists.\n\n'+
+                       'Do you want to replace them?\n',
+              buttons: ['Yes', 'No'],
+              defaultId: 0,
+            });
+            if (result !== 0) { return; } // (Abort)
+          }
+          // Export files
+          fs.ensureDir(filePath)
+          .then(() => {
+            Promise.all([
+              (async () => {
+                const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
+                await writeFile(metaPath, meta);
+              })(),
+              screenPath ? fs.copyFile(screenPath, ssPath)   : undefined,
+              thumbPath  ? fs.copyFile(thumbPath,  logoPath) : undefined,
+            ]);
           });
         }
       },
