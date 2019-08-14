@@ -400,116 +400,127 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onGameContextMenu = (game: IGameInfo): void => {
-    const template: MenuItemConstructorOptions[] = [];
-    template.push({
-      label: 'Open File Location',
-      click: () => {
-        // Extract the game's "entry"/"main" file path
-        const gamePath = GameLauncher.getGamePath(game);
-        if (gamePath !== undefined) {
-          // Check if the file exists
-          fs.exists(gamePath, exists => {
-            if (exists) { remote.shell.showItemInFolder(gamePath); }
-            else {
-              remote.dialog.showMessageBox({
-                type: 'warning',
-                title: 'File not found!',
-                message: 'Failed to find the game file.\n'+
-                         'If you are using Flashpoint Infinity, make sure you download the game first.\n'+
-                         '\n'+
-                         `Path: "${gamePath}"\n`+
-                         '\n'+
-                         'Note: If the path is too long, some portion will be replaced with three dots ("...").',
+    openContextMenu([{
+        label: 'Open File Location',
+        click: this.openFileLocationCallback(game),
+        enabled: true
+      }, {
+        label: 'Export (Meta Only)',
+        click: this.exportMetaCallback(game),
+        enabled: true
+      }, {
+        label: 'Export (Meta && Images)', // ("&&" will be shown as "&")
+        click: this.exportMetaAndImagesCallback(game),
+        enabled: true
+    }]);
+  }
 
-              });
-            }
-          });
-        } else {
-          remote.dialog.showMessageBox({
-            type: 'warning',
-            title: 'No Path Found!',
-            message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
-                     `Game: "${game.title}"`,
-          });
-        }
-      },
-      enabled: true
-    });
-    template.push({
-      label: 'Export (Meta Only)',
-      click: () => {
-        const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
-        // Choose where to save the file
-        const filePath = electron.remote.dialog.showSaveDialogSync({
-          title: 'Select the file to export the meta to.',
-          defaultPath: 'meta',
-          filters: [{
-            name: 'Meta file',
-            extensions: ['txt'],
-          }]
-        });
-        if (filePath) {
-          fs.ensureDir(path.dirname(filePath))
-          .then(() => {
-            const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
-            writeFile(filePath, meta);
-          });
-        }
-      },
-      enabled: true
-    });
-    template.push({
-      label: 'Export (Meta && Images)', // ("&&" will be shown as "&")
-      click: () => {
-        const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
-        // Choose where to save the file
-        const filePaths = window.External.showOpenDialogSync({
-          title: 'Select the folder to export the meta and images to.',
-          properties: ['promptToCreate', 'openDirectory']
-        });
-        if (filePaths && filePaths.length > 0) {
-          const filePath = filePaths[0];
-          // Get image paths
-          const screenPath = this.props.gameImages.getScreenshotPath(game);
-          const thumbPath = this.props.gameImages.getThumbnailPath(game);
-          // Create dest paths
-          const metaPath = path.join(filePath,'meta.txt');
-          const ssPath   = path.join(filePath,'ss'   + getFileExtension(screenPath || ''));
-          const logoPath = path.join(filePath,'logo' + getFileExtension(thumbPath  || ''));
-          // Check if files already exists
-          const exists = [
-            fs.pathExistsSync(metaPath),
-            screenPath ? fs.pathExistsSync(ssPath)   : false,
-            thumbPath  ? fs.pathExistsSync(logoPath) : false,
-          ];
-          if (exists.some(val => val)) { // (One or more of the files already exists)
-            const result = electron.remote.dialog.showMessageBoxSync({
+  /** Create a callback for opening the file location of a game. */
+  openFileLocationCallback(game: IGameInfo) {
+    return () => {
+      // Extract the game's "entry"/"main" file path
+      const gamePath = GameLauncher.getGamePath(game);
+      if (gamePath !== undefined) {
+        // Check if the file exists
+        fs.exists(gamePath, exists => {
+          if (exists) { remote.shell.showItemInFolder(gamePath); }
+          else {
+            remote.dialog.showMessageBox({
               type: 'warning',
-              title: 'Replace files?',
-              message: 'One or more of the exported files to already exists.\n\n'+
-                       'Do you want to replace them?\n',
-              buttons: ['Yes', 'No'],
-              defaultId: 0,
+              title: 'File not found!',
+              message: 'Failed to find the game file.\n'+
+                        'If you are using Flashpoint Infinity, make sure you download the game first.\n'+
+                        '\n'+
+                        `Path: "${gamePath}"\n`+
+                        '\n'+
+                        'Note: If the path is too long, some portion will be replaced with three dots ("...").',
+
             });
-            if (result !== 0) { return; } // (Abort)
           }
-          // Export files
-          fs.ensureDir(filePath)
-          .then(() => {
-            Promise.all([
-              (async () => {
-                const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
-                await writeFile(metaPath, meta);
-              })(),
-              screenPath ? fs.copyFile(screenPath, ssPath)   : undefined,
-              thumbPath  ? fs.copyFile(thumbPath,  logoPath) : undefined,
-            ]);
+        });
+      } else {
+        remote.dialog.showMessageBox({
+          type: 'warning',
+          title: 'No Path Found!',
+          message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
+                    `Game: "${game.title}"`,
+        });
+      }
+    };
+  }
+
+  /** Create a callback for exporting the meta of a game (as a curation format meta file). */
+  exportMetaCallback(game: IGameInfo) {
+    return () => {
+      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      // Choose where to save the file
+      const filePath = electron.remote.dialog.showSaveDialogSync({
+        title: 'Select the file to export the meta to.',
+        defaultPath: 'meta',
+        filters: [{
+          name: 'Meta file',
+          extensions: ['txt'],
+        }]
+      });
+      if (filePath) {
+        fs.ensureDir(path.dirname(filePath))
+        .then(() => {
+          const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
+          writeFile(filePath, meta);
+        });
+      }
+    };
+  }
+
+  /** Create a callback for exporting the meta and images of a game (as a curation format meta file and image files). */
+  exportMetaAndImagesCallback(game: IGameInfo) {
+    return () => {
+      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      // Choose where to save the file
+      const filePaths = window.External.showOpenDialogSync({
+        title: 'Select the folder to export the meta and images to.',
+        properties: ['promptToCreate', 'openDirectory']
+      });
+      if (filePaths && filePaths.length > 0) {
+        const filePath = filePaths[0];
+        // Get image paths
+        const screenPath = this.props.gameImages.getScreenshotPath(game);
+        const thumbPath = this.props.gameImages.getThumbnailPath(game);
+        // Create dest paths
+        const metaPath = path.join(filePath,'meta.txt');
+        const ssPath   = path.join(filePath,'ss'   + getFileExtension(screenPath || ''));
+        const logoPath = path.join(filePath,'logo' + getFileExtension(thumbPath  || ''));
+        // Check if files already exists
+        const exists = [
+          fs.pathExistsSync(metaPath),
+          screenPath ? fs.pathExistsSync(ssPath)   : false,
+          thumbPath  ? fs.pathExistsSync(logoPath) : false,
+        ];
+        if (exists.some(val => val)) { // (One or more of the files already exists)
+          const result = electron.remote.dialog.showMessageBoxSync({
+            type: 'warning',
+            title: 'Replace files?',
+            message: 'One or more of the exported files to already exists.\n\n'+
+                     'Do you want to replace them?\n',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
           });
+          if (result !== 0) { return; } // (Abort)
         }
-      },
-      enabled: true
-    });
-    openContextMenu(template);
+        // Export files
+        fs.ensureDir(filePath)
+        .then(() => {
+          Promise.all([
+            (async () => {
+              const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
+              await writeFile(metaPath, meta);
+            })(),
+            screenPath ? fs.copyFile(screenPath, ssPath)   : undefined,
+            thumbPath  ? fs.copyFile(thumbPath,  logoPath) : undefined,
+          ]);
+        });
+      }
+    };
   }
 
   onCenterKeyDown = (event: React.KeyboardEvent): void => {
