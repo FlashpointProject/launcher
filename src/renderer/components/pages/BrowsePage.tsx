@@ -22,9 +22,11 @@ import { convertToCurationMeta } from '../../curate/metaToMeta';
 import GameManagerPlatform from '../../game/GameManagerPlatform';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
+import { getImageFolderName } from '../../image/util';
 import { CentralState } from '../../interfaces';
 import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getFileExtension } from '../../Util';
+import { copyGameImageFile } from '../../util/game';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { GameGrid } from '../GameGrid';
@@ -402,16 +404,25 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onGameContextMenu = (game: IGameInfo): void => {
     openContextMenu([{
         label: 'Open File Location',
-        click: this.openFileLocationCallback(game),
-        enabled: true
+        click: this.openFileLocationCallback(game)
+      }, {
+        type: 'separator'
+      }, {
+        label: 'Duplicate (Meta Only)',
+        click: this.duplicateCallback(game, false),
+        enabled: this.props.preferencesData.enableEditing,
+      }, {
+        label: 'Duplicate (Meta && Images)', // ("&&" will be shown as "&")
+        click: this.duplicateCallback(game, true),
+        enabled: this.props.preferencesData.enableEditing,
+      }, {
+        type: 'separator'
       }, {
         label: 'Export (Meta Only)',
-        click: this.exportMetaCallback(game),
-        enabled: true
+        click: this.exportMetaCallback(game)
       }, {
         label: 'Export (Meta && Images)', // ("&&" will be shown as "&")
-        click: this.exportMetaAndImagesCallback(game),
-        enabled: true
+        click: this.exportMetaAndImagesCallback(game)
     }]);
   }
 
@@ -446,6 +457,50 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                     `Game: "${game.title}"`,
         });
       }
+    };
+  }
+
+  /**
+   * Create a callback for duplicating a game and its additional applications.
+   * @param game Game to duplicate.
+   * @param copyImages If the games images should also be copied.
+   */
+  duplicateCallback(game: IGameInfo, copyImages: boolean = false) {
+    return () => {
+      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      const library = this.getCurrentLibrary();
+      // Duplicate game and add-apps
+      const newGame = GameInfo.duplicate(game);
+      const newAddApps = addApps.map(addApp => AdditionalApplicationInfo.duplicate(addApp));
+      // Generate new IDs for the game and add-apps
+      newGame.id = uuid();
+      for (let addApp of newAddApps) {
+        addApp.id = uuid();
+        addApp.gameId = newGame.id;
+      }
+      // Copy images
+      if (copyImages) {
+        const imageFolder = getImageFolderName(game, library && library.prefix || '', true);
+        // Copy screenshot
+        const screenshotPath = this.props.gameImages.getScreenshotPath(game);
+        if (screenshotPath) {
+          const cache = this.props.gameImages.getScreenshotCache(imageFolder);
+          if (cache) { copyGameImageFile(screenshotPath, newGame, cache); }
+        }
+        // Copy thumbnail
+        const thumbnailPath = this.props.gameImages.getThumbnailPath(game);
+        if (thumbnailPath) {
+          const cache = this.props.gameImages.getThumbnailCache(imageFolder);
+          if (cache) { copyGameImageFile(thumbnailPath, newGame, cache); }
+        }
+      }
+      // Add game and add-apps
+      this.props.central.games.addOrUpdateGame({
+        game: newGame,
+        addApps: newAddApps,
+        library: library,
+        saveToFile: true,
+      });
     };
   }
 
