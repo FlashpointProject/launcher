@@ -43,6 +43,8 @@ export type GameListProps = {
 /** A list of rows, where each rows displays a game. */
 export class GameList extends React.Component<GameListProps> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
+  /** Currently displayed games. */
+  currentGames: IGameInfo[] | undefined = undefined;
 
   componentDidMount(): void {
     this.updateCssVars();
@@ -54,6 +56,10 @@ export class GameList extends React.Component<GameListProps> {
 
   render() {
     const games = this.props.games || [];
+    // @HACK: Check if the games array changed
+    // (This will cause the re-rendering of all cells any time the games prop uses a different reference)
+    const gamesChanged = games !== this.currentGames;
+    if (gamesChanged) { this.currentGames = games; }
     // Render
     return (
       <div
@@ -100,8 +106,9 @@ export class GameList extends React.Component<GameListProps> {
                       onSectionRendered={onSectionRendered}
                       // Pass-through props (they have no direct effect on the list)
                       // (If any property is changed the list is re-rendered, even these)
-                      orderBy={this.props.orderBy}
-                      orderReverse={this.props.orderReverse}
+                      pass_orderBy={this.props.orderBy}
+                      pass_orderReverse={this.props.orderReverse}
+                      pass_gamesChanged={gamesChanged}
                       />
                   )}
                 </ArrowKeyStepper>

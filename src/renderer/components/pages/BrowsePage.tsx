@@ -12,6 +12,7 @@ import { IOrderGamesArgs, orderGames } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
+import { memoizeOne } from '../../../shared/memoize';
 import { formatDate } from '../../../shared/Util';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
@@ -37,9 +38,15 @@ import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 const writeFile = promisify(fs.writeFile);
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
-type StateCallback0 = Pick<BrowsePageState, 'orderedGames'|'orderedGamesArgs'>;
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isEditing'|'isNewGame'>;
 type StateCallback2 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isNewGame'>;
+
+type IOrderGamesForceArgs = [
+  /** Arguments passed to the order function. */
+  IOrderGamesArgs,
+  /** If the ordering should be forced. */
+  boolean
+];
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -75,10 +82,6 @@ export type BrowsePageProps = OwnProps & WithPreferencesProps & WithLibraryProps
 export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
   quickSearch: string;
-  /** Ordered games using the most recent props, configs and preferences. */
-  orderedGames: IGameInfo[];
-  /** Arguments used to order the "orderedGames" array in this state. */
-  orderedGamesArgs?: IOrderGamesArgs;
   /** Currently dragged game (if any). */
   draggedGame?: IGameInfo;
   /** Buffer for the selected game (all changes are made to the game until saved). */
@@ -114,12 +117,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Set initial state (this is set up to remove all "setState" calls)
     const initialState: BrowsePageState = {
       quickSearch: '',
-      orderedGames: [],
       isEditing: false,
       isNewGame: false
     };
     const assignToState = <T extends keyof BrowsePageState>(state: Pick<BrowsePageState, T>) => { Object.assign(initialState, state); };
-    this.orderGames(true, assignToState);
+    this.orderGames(true);
     this.updateCurrentGameAndAddApps(assignToState);
     this.createNewGameIfClicked(false, assignToState);
     this.state = initialState;
@@ -135,8 +137,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
     const { central, gameLibraryRoute, onSelectGame, selectedGame, selectedPlaylist } = this.props;
-    const { isEditing, orderedGames, quickSearch } = this.state;
-    this.orderGames();
+    const { isEditing, quickSearch } = this.state;
     // Check if it ended editing
     if (!isEditing && prevState.isEditing) {
       this.updateCurrentGameAndAddApps();
@@ -164,7 +165,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
     // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== quickSearch && quickSearch !== '') {
-      const games: IGameInfo[] = orderedGames;
+      const games: IGameInfo[] = this.orderGames();
       for (let index = 0; index < games.length; index++) {
         const game: IGameInfo = games[index];
         if (game.title.toLowerCase().startsWith(quickSearch)) {
@@ -188,10 +189,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   render() {
     const { selectedGame, selectedPlaylist } = this.props;
-    const { draggedGame, orderedGames } = this.state;
+    const { draggedGame } = this.state;
     const currentLibrary = this.getCurrentLibrary();
     const order = this.props.order || BrowsePage.defaultOrder;
     const showSidebars: boolean = this.props.central.gamesDoneLoading;
+    const orderedGames = this.orderGames();
     // Find the selected game in the selected playlist (if both are selected)
     let gamePlaylistEntry: IGamePlaylistEntry | undefined;
     if (selectedPlaylist && selectedGame) {
@@ -645,7 +647,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Remove the game from the playlist and save the change
     playlist.games.splice(index, 1); // Remove game entry
     this.props.central.playlists.save(playlist);
-    // Update games grid/list
+    // Re-order games (to include the new game)
     this.orderGames(true);
     // Deselect the game
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
@@ -749,7 +751,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
-  getCurrentLibrary(): IGameLibraryFileItem|undefined {
+  /** Get the current library (or undefined if there is none). */
+  getCurrentLibrary(): IGameLibraryFileItem | undefined {
     if (this.props.libraryData) {
       const route = this.props.gameLibraryRoute;
       return this.props.libraryData.libraries.find(item => item.route === route);
@@ -757,52 +760,47 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     return undefined;
   }
 
-  /** Find all the games for the current library - undefined if no library is selected */
-  getCurrentLibraryGames(): IGameInfo[]|undefined {
-    const currentLibrary = this.getCurrentLibrary();
-    if (currentLibrary) {
-      let games: IGameInfo[] = [];
-      const allPlatforms = this.props.central.games.listPlatforms();
-      if (currentLibrary.default) {
-        // Find all platforms "used" by other libraries
-        const usedPlatforms: GameManagerPlatform[] = [];
-        this.props.libraryData.libraries.forEach(library => {
-          if (library === currentLibrary) { return; }
-          if (library.prefix) {
-            const prefix = library.prefix;
-            allPlatforms.forEach(platform => {
-              if (platform.filename.startsWith(prefix)) { usedPlatforms.push(platform); }
-            });
-          }
-        });
-        // Get all games from all platforms that are not "used" by other libraries
-        const unusedPlatforms = allPlatforms.filter(platform => usedPlatforms.indexOf(platform) === -1);
-        unusedPlatforms.forEach(platform => {
-          if (platform.collection) {
-            Array.prototype.push.apply(games, platform.collection.games);
-          }
-        });
-      } else if (currentLibrary.prefix) {
-        const prefix = currentLibrary.prefix;
-        const platforms = allPlatforms.filter(platform => platform.filename.startsWith(prefix));
-        platforms.forEach(platform => {
-          if (platform.collection) {
-            Array.prototype.push.apply(games, platform.collection.games);
-          }
-        });
-      }
-      return games;
+  /**
+   * Memoized wrapper around the "getLibraryGames" function, with an additional argument
+   * that decides if the memoized value should be refreshed (even if the arguments are "equal").
+   */
+  getCurrentLibraryGames = memoizeOne(
+    (args: GetLibraryGamesArgs, force?: boolean) => {
+      return getLibraryGames(args);
+    },
+    (args1, args2) => {
+      const [a, force] = args1;
+      const [b]        = args2;
+      // Check if this is "forced" to be updated
+      if (force) { return false; }
+      // Check if the argument objects are equal
+      return (
+        a.library === b.library &&
+        checkIfArraysAreEqual(a.platforms, b.platforms) &&
+        checkIfArraysAreEqual(a.libraries, b.libraries)
+      );
     }
-    return undefined;
-  }
+  );
+
+  /** Memoized wrapper around the order games function. */
+  orderGamesMemo = memoizeOne((args: IOrderGamesArgs, force?: boolean): IGameInfo[] => {
+    return orderGames(args);
+  }, checkOrderGamesArgsEqual);
 
   /**
-   * Update the ordered games array if the related props, configs or preferences has been changed
-   * @param force If checking for changes in the arguments should be skipped (it always re-orders the games)
+   * Order and filter the games according to the current settings.
+   * @param force If the game should be re-ordered even if they seem to not have changed.
    */
-  orderGames(force: boolean = false, cb: (state: StateCallback0) => void = this.boundSetState): void {
-    const args = {
-      games: this.getCurrentLibraryGames() || this.props.central.games.collection.games,
+  orderGames(force: boolean = false): IGameInfo[] {
+    // Get the games to display for the current library
+    const games = this.getCurrentLibraryGames({
+      library: this.getCurrentLibrary(),
+      platforms: this.props.central.games.listPlatforms(),
+      libraries: this.props.libraryData.libraries
+    }, force) || this.props.central.games.collection.games;
+    // Order (and filter) the games according to the current settings
+    return this.orderGamesMemo({
+      games: games,
       search: this.props.search ? this.props.search.text : '',
       extreme: !window.External.config.data.disableExtremeGames &&
                this.props.preferencesData.browsePageShowExtreme,
@@ -810,17 +808,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       playlist: this.props.selectedPlaylist,
       platforms: undefined,
       order: this.props.order || BrowsePage.defaultOrder,
-    };
-    if (force || !checkOrderGamesArgsEqual(args, this.state.orderedGamesArgs)) {
-      cb({
-        orderedGames: orderGames(args),
-        orderedGamesArgs: args,
-      });
-    }
+    }, force);
   }
 
   onGamesCollectionChange = (): void => {
+    // Re-order games if a game was changed
     this.orderGames(true);
+    this.forceUpdate();
   }
 
   /** Create a new game if the "New Game" button was clicked */
@@ -868,29 +862,91 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   return menu;
 }
 
+type GetLibraryGamesArgs = {
+  /** Library that the games belong to (if undefined, all games should be shown). */
+  library?: IGameLibraryFileItem;
+  /** All platforms (to get the games from). */
+  platforms: GameManagerPlatform[];
+  /** All libraries. */
+  libraries: IGameLibraryFileItem[];
+};
+
+/** Find all the games for the current library - undefined if no library is selected */
+function getLibraryGames({ library, platforms, libraries }: GetLibraryGamesArgs): IGameInfo[] | undefined {
+  // Check if there is a library to filter the games from
+  if (library) {
+    let games: IGameInfo[] = [];
+    if (library.default) { // (Default library)
+      // Find all platforms "used" by other libraries
+      const usedPlatforms: GameManagerPlatform[] = [];
+      libraries.forEach(lib => {
+        if (lib === library) { return; }
+        if (lib.prefix) {
+          const prefix = lib.prefix;
+          platforms.forEach(platform => {
+            if (platform.filename.startsWith(prefix)) { usedPlatforms.push(platform); }
+          });
+        }
+      });
+      // Get all games from all platforms that are not "used" by other libraries
+      const unusedPlatforms = platforms.filter(platform => usedPlatforms.indexOf(platform) === -1);
+      unusedPlatforms.forEach(platform => {
+        if (platform.collection) {
+          Array.prototype.push.apply(games, platform.collection.games);
+        }
+      });
+    } else if (library.prefix) { // (Normal library)
+      // Find all platforms with this platform's prefix, and add all their games
+      const prefix = library.prefix;
+      platforms
+        .filter(platform => platform.filename.startsWith(prefix))
+        .forEach(platform => {
+          if (platform.collection) {
+            Array.prototype.push.apply(games, platform.collection.games);
+          }
+        });
+    }
+    return games;
+  }
+}
+
 /**
- * Check if two sets of "order games arguments" will produce the same games in the same order
- * (This is not an exhaustive test, as it does not check the contents of the games array)
+ * Check if two sets of arguments for the function that orders games are equal (it is
+ * guaranteed that they will return the games in the same order).
+ * @param args1 New arguments.
+ *              If the "force" value of this is true, the check will fail no matter what.
+ * @param args2 Old arguments.
  */
-function checkOrderGamesArgsEqual(args1: IOrderGamesArgs, args2?: IOrderGamesArgs): boolean {
-  if (!args2)                            { return false; }
-  if (args1.search   !== args2.search)   { return false; }
-  if (args1.extreme  !== args2.extreme)  { return false; }
-  if (args1.broken   !== args2.broken)   { return false; }
-  if (args1.playlist !== args2.playlist) { return false; }
-  if (args1.order    !== args2.order)    { return false; }
-  if (!checkIfArraysAreEqual(args1.platforms, args2.platforms)) { return false; }
-  if (!checkIfArraysAreEqual(args1.games, args2.games)) { return false; }
+function checkOrderGamesArgsEqual(args1: [IOrderGamesArgs, boolean?], args2: [IOrderGamesArgs, boolean?]): boolean {
+  const [a, force] = args1;
+  const [b]        = args2 || [undefined];
+  // Check if this is "forced" to be updated
+  if (force)                     { return false; }
+  // Check if the second argument array is missing
+  if (!b)                        { return false; }
+  // Compare each value
+  if (a.search   !== b.search)   { return false; }
+  if (a.extreme  !== b.extreme)  { return false; }
+  if (a.broken   !== b.broken)   { return false; }
+  if (a.playlist !== b.playlist) { return false; }
+  if (a.order    !== b.order)    { return false; }
+  if (!checkIfArraysAreEqual(a.platforms, b.platforms)) { return false; }
+  if (!checkIfArraysAreEqual(a.games, b.games)) { return false; }
   return true;
 }
 
-/** Check if two arrays are of equal length and contains the exact same items in the same order */
-function checkIfArraysAreEqual(a: any[]|undefined, b: any[]|undefined): boolean {
+/* Check if two arrays are have strictly equal items (or if both are undefined). */
+function checkIfArraysAreEqual(a: any[] | undefined, b: any[] | undefined): boolean {
+  // Check if both arguments point to the same array (or if both are undefined)
   if (a === b) { return true; }
+  // Check if either array is undefined
   if (!a || !b) { return false; }
+  // Check if the arrays are of different lengths
   if (a.length !== b.length) { return false; }
+  // Check if any of the items (with the same indices) in the arrays are not strictly equal
   for (let i = a.length; i >= 0; i--) {
     if (a[i] !== b[i]) { return false; }
   }
+  // The arrays are equal
   return true;
 }

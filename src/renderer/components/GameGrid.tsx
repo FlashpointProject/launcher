@@ -53,6 +53,8 @@ export class GameGrid extends React.Component<GameGridProps> {
   currentWidth: number = 0;
   /** Current value of the "height" css variable. */
   currentHeight: number = 0;
+  /** Currently displayed games. */
+  currentGames: IGameInfo[] | undefined = undefined;
 
   componentDidMount(): void {
     this.updateCssVars();
@@ -66,6 +68,11 @@ export class GameGrid extends React.Component<GameGridProps> {
 
   render() {
     const games = this.props.games || [];
+    // @HACK: Check if the games array changed
+    // (This will cause the re-rendering of all cells any time the games prop uses a different reference)
+    const gamesChanged = games !== this.currentGames;
+    if (gamesChanged) { this.currentGames = games; }
+    // Render
     return (
       <GameItemContainer
         className='game-browser__center-inner'
@@ -108,30 +115,33 @@ export class GameGrid extends React.Component<GameGridProps> {
                 rowCount={rowCount}
                 scrollToColumn={scrollToColumn}
                 scrollToRow={scrollToRow}>
-                {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
-                  <Grid
-                    className='game-grid simple-scroll'
-                    // Grid stuff
-                    width={width}
-                    height={height}
-                    columnWidth={this.props.cellWidth}
-                    rowHeight={this.props.cellHeight}
-                    columnCount={columnCount}
-                    rowCount={rowCount}
-                    overscanColumnCount={0}
-                    overscanRowCount={5}
-                    cellRenderer={this.cellRenderer}
-                    noContentRenderer={this.props.noRowsRenderer}
-                    // ArrowKeyStepper props
-                    scrollToColumn={scrollToColumn}
-                    scrollToRow={scrollToRow}
-                    onSectionRendered={onSectionRendered}
-                    // Pass-through props (they have no direct effect on the grid)
-                    // (If any property is changed the grid is re-rendered, even these)
-                    orderBy={this.props.orderBy}
-                    orderReverse={this.props.orderReverse}
-                    />
-                )}
+                {({ onSectionRendered, scrollToColumn, scrollToRow }) => {
+                  return (
+                    <Grid
+                      className='game-grid simple-scroll'
+                      // Grid stuff
+                      width={width}
+                      height={height}
+                      columnWidth={this.props.cellWidth}
+                      rowHeight={this.props.cellHeight}
+                      columnCount={columnCount}
+                      rowCount={rowCount}
+                      overscanColumnCount={0}
+                      overscanRowCount={5}
+                      cellRenderer={this.cellRenderer}
+                      noContentRenderer={this.props.noRowsRenderer}
+                      // ArrowKeyStepper props
+                      scrollToColumn={scrollToColumn}
+                      scrollToRow={scrollToRow}
+                      onSectionRendered={onSectionRendered}
+                      // Pass-through props (they have no direct effect on the grid)
+                      // (If any property is changed the grid is re-rendered, even these)
+                      pass_orderBy={this.props.orderBy}
+                      pass_orderReverse={this.props.orderReverse}
+                      pass_gamesChanged={gamesChanged}
+                      />
+                  );
+                }}
               </ArrowKeyStepper>
             );
           }}
