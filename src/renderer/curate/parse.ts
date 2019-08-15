@@ -90,7 +90,8 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
  */
 function convertAddApp(item: IObjectParserProp<any>, label: string | number | symbol, rawValue: any): EditAddAppCurationMeta {
   const addApp: EditAddAppCurationMeta = {};
-  switch (str(label).toLowerCase()) {
+  const labelStr = str(label);
+  switch (labelStr.toLowerCase()) {
     case 'extras': // (Extras add-app)
       addApp.heading = 'Extras';
       addApp.applicationPath = ':extras:';
@@ -102,7 +103,8 @@ function convertAddApp(item: IObjectParserProp<any>, label: string | number | sy
       addApp.launchCommand = str(rawValue);
       break;
     default: // (Normal add-app)
-      item.prop('Heading',          v => addApp.heading         = str(v));
+      addApp.heading = labelStr;
+      item.prop('Heading',          v => addApp.heading         = str(v), true);
       item.prop('Application Path', v => addApp.applicationPath = str(v));
       item.prop('Launch Command',   v => addApp.launchCommand   = str(v));
       break;
