@@ -23,6 +23,8 @@ const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
 const mkdir  = promisify(fs.mkdir);
 
+type Map<K extends string, V> = { [key in K]: V };
+
 type OwnProps = {
   /** Semi-global prop. */
   central: CentralState;
@@ -69,7 +71,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               onClick={this.onCheckGameIDsClick} />
             <SimpleButton
               value='Check Game Titles'
-              title='List all games with duplicate titles'
+              title='List all games with duplicate titles on the same platform'
               onClick={this.onCheckGameNamesClick} />
             <SimpleButton
               value='Check Game Fields'
@@ -189,7 +191,7 @@ function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollect
 
 function checkGameIDs(games: IGameInfo[]): string {
   const timeStart = Date.now(); // Start timing
-  const dupes = checkDupes(games, 'id'); // Find all games with duplicate IDs
+  const dupes = checkDupes(games, game => game.id); // Find all games with duplicate IDs
   const invalidIDs: IGameInfo[] = games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
   const timeEnd = Date.now(); // End timing
   // Write log message
@@ -208,18 +210,36 @@ function checkGameIDs(games: IGameInfo[]): string {
 }
 
 function checkGameTitles(games: IGameInfo[]): string {
+  // Find all games for the same platform that has identical titles
   const timeStart = Date.now(); // Start timing
-  const dupes = checkDupes(games, 'title'); // Find all games with duplicate titles
+  const gamesPerPlatform = categorizeByProp(games, 'platform');
+  const dupesPerPlatform: Map<string, Map<string, IGameInfo[]>> = {};
+  for (let key in gamesPerPlatform) {
+    dupesPerPlatform[key] = checkDupes(gamesPerPlatform[key], game => game.title.toUpperCase());
+  }
   const timeEnd = Date.now(); // End timing
   // Write log message
   let text = '';
-  text += `Checked all games for duplicate titles (in ${timeEnd - timeStart}ms)\n`;
+  text += `Checked for games with identical titles (case-insensitive) on the same platform (in ${timeEnd - timeStart}ms)\n`;
   text += '\n';
-  text += 'Games with duplicate titles:\n';
-  for (let title in dupes) {
-    text += `"${title}" | Games (${dupes[title].length}): ${dupes[title].map(game => `${game.id}`).join(', ')}\n`;
+  const platforms = Object.keys(gamesPerPlatform).sort();
+  if (platforms.length > 0) {
+    for (let i = 0; i < platforms.length; i++) {
+      const platform = platforms[i];
+      const dupes = dupesPerPlatform[platform];
+      const titles = Object.keys(dupes).sort();
+      if (titles.length > 0) {
+        text += `Platform: "${platform}" (${titles.length})\n`;
+        for (let j = 0; j < titles.length; j++) {
+          const title = titles[j];
+          text += `  "${title}" ${repeat(' ', 60 - title.length)}(Games: ${dupes[title].length})\n`;
+        }
+        text += '\n';
+      }
+    }
+  } else {
+    text += 'No duplicates found!\n';
   }
-  text += '\n';
   return text;
 }
 
@@ -288,13 +308,13 @@ type PlaylistReport = {
 };
 function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string {
   const timeStart = Date.now(); // Start timing
-  const dupes = checkDupes(playlists, 'id'); // Find all playlists with duplicate IDs
+  const dupes = checkDupes(playlists, playlist => playlist.id); // Find all playlists with duplicate IDs
   const invalidIDs: IGamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.id, 4)); // Find all playlists with invalid IDs
   // Check the games of all playlists (if they are missing or if their IDs are invalid or duplicates)
   const reports: PlaylistReport[] = [];
   for (let i = 0; i < playlists.length - 1; i++) {
     const playlist = playlists[i];
-    const duplicateGames = checkDupes(playlist.games, 'id'); // Find all games with duplicate IDs
+    const duplicateGames = checkDupes(playlist.games, game => game.id); // Find all games with duplicate IDs
     const invalidGameIDs = playlist.games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
     // Check for missing games (games that are in the playlist, and not in the game collection)
     const missingGameIDs: string[] = [];
@@ -360,13 +380,34 @@ function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string 
   return text;
 }
 
-function checkDupes<T extends { [key in U]: string }, U extends string>(array: T[], prop: U): { [key: string]: T[] } {
+/**
+ * Organize the elements in an array into a map of arrays, based on the value of a key of the objects.
+ * @param array Elements to sort.
+ * @param prop Property of the elements to organize by.
+ */
+function categorizeByProp<T extends Map<K, V>, K extends string, V extends string>(array: T[], prop: K): Map<string, T[]> {
+  const map: Map<string, T[]> = {};
+  for (let i = 0; i < array.length; i++) {
+    const item = array[i];
+    const key = item[prop];
+    if (!map[key]) { map[key] = []; }
+    map[key].push(item);
+  }
+  return map;
+}
+
+/**
+ * Find all elements in an array with common values.
+ * @param array Elements to search through.
+ * @param fn Function that gets the value of an element to compare.
+ */
+function checkDupes<T>(array: T[], fn: (element: T) => string): { [key: string]: T[] } {
   const registry: { [key: string]: T[] } = {};
   const dupes: string[] = [];
   // Find all duplicates
   for (let i = 0; i < array.length; i++) {
     const item = array[i];
-    const val = item[prop];
+    const val = fn(item);
     // Add prop to registry (to check for duplicates)
     if (!registry[val]) { registry[val] = []; }
     else if (registry[val].length === 1) { dupes.push(val); }
@@ -656,4 +697,8 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
 /** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
 export function removeLastItemOfPath(filePath: string): string {
   return filePath.substr(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
+}
+
+function repeat(char: string, n: number): string {
+  return char.repeat(Math.max(0, n));
 }
