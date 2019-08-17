@@ -262,7 +262,7 @@ export class GameLauncher {
     } else {
       switch (window.External.platform) {
         case 'win32':
-          escFilename = escapeWin(filename);
+          escFilename = filename;
           escArgs = escapeWin(args);
           break;
         case 'linux':
@@ -355,7 +355,43 @@ function fixSlashes(str: string): string {
  * ( According to this: http://www.robvanderwoude.com/escapechars.php )
  */
 function escapeWin(str: string): string {
-  return str.replace(/[\^&<>|]/g, '^$&'); // $& means the whole matched string
+  return (
+    splitQuotes(str)
+    .reduce((acc, val, i) => acc + ((i % 2 === 0)
+      ? val.replace(/[\^&<>|]/g, '^$&')
+      : `"${val}"`
+    ), '')
+  );
+}
+
+/**
+ * Split a string to separate the characters wrapped in quotes from all other.
+ * Example: '-a -b="123" "example.com"' => ['-a -b=', '123', ' ', 'example.com']
+ * @param str String to split.
+ * @returns Split of the argument string.
+ *          Items with odd indices are wrapped in quotes.
+ *          Items with even indices are NOT wrapped in quotes.
+ */
+function splitQuotes(str: string): string[] {
+  // Search for all pairs of quotes and split the string accordingly
+  const splits: string[] = [];
+  let start = 0;
+  while (true) {
+    const begin = str.indexOf('"', start);
+    if (begin >= 0) {
+      const end = str.indexOf('"', begin + 1);
+      if (end >= 0) {
+        splits.push(str.substring(start, begin));
+        splits.push(str.substring(begin + 1, end));
+        start = end + 1;
+      } else { break; }
+    } else { break; }
+  }
+  // Push remaining characters
+  if (start < str.length) {
+    splits.push(str.substring(start, str.length));
+  }
+  return splits;
 }
 
 /**
