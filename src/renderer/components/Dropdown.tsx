@@ -27,21 +27,23 @@ export function Dropdown(props: DropdownProps) {
       return () => { document.removeEventListener('mousedown', onGlobalMouseDown); };
     }
   }, [expanded, contentRef]);
-  const onClick = useCallback((event: React.MouseEvent) => {
-    setExpanded(!expanded);
-    event.preventDefault();
+  const onMouseDown = useCallback((event: React.MouseEvent) => {
+    if (event.button === 0) { // (Left mouse button)
+      setExpanded(!expanded);
+      event.preventDefault();
+    }
   }, [expanded]);
   // Render
   return (
-    <div className='checkbox-dropdown'>
+    <div className='simple-dropdown'>
       <div
-        className='checkbox-dropdown__select-box'
-        onClick={onClick}
+        className='simple-dropdown__select-box'
+        onMouseDown={onMouseDown}
         tabIndex={0}>
         { props.text }
       </div>
       <div
-        className={'checkbox-dropdown__content' + (expanded ? '' : ' checkbox-dropdown__content--hidden')}
+        className={'simple-dropdown__content' + (expanded ? '' : ' simple-dropdown__content--hidden')}
         ref={contentRef}>
         { props.children }
       </div>

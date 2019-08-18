@@ -48,7 +48,9 @@ export class LogsPage extends React.Component<LogsPageProps> {
           <div className='log-page__bar__wrap'>
             <Dropdown text='Filters'>
               { labels.map((label, index) => (
-                <label key={index}>
+                <label
+                  key={index}
+                  className='log-page__dropdown-item'>
                   <div className='simple-center'>
                     <input
                       type='checkbox'
@@ -57,7 +59,9 @@ export class LogsPage extends React.Component<LogsPageProps> {
                       className='simple-center__vertical-inner' />
                   </div>
                   <div className='simple-center'>
-                    <p className='simple-center__vertical-inner'>{label}</p>
+                    <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
+                      {label}
+                    </p>
                   </div>
                 </label>
               )) }
