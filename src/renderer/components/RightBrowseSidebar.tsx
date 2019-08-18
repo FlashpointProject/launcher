@@ -103,14 +103,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const { currentAddApps, gameImages, gamePlaylistEntry, isEditing, isNewGame, preferencesData, suggestions } = this.props;
       const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
-      const canEdit = !editDisabled && isEditing;
+      const editable = !editDisabled && isEditing;
       const imageFolderName = this.getImageFolderName();
       const dateAdded = new Date(game.dateAdded).toUTCString();
       const screenshotSrc = gameImages.getScreenshotPath(game);
       const thumbnailSrc = gameImages.getThumbnailPath(game);
       return (
         <div
-          className={'browse-right-sidebar ' + (canEdit ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
+          className={'browse-right-sidebar ' + (editable ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
           onKeyDown={this.onLocalKeyDown}>
           {/* -- Title & Developer(s) -- */}
           <div className='browse-right-sidebar__section'>
@@ -121,7 +121,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.title}
                     placeholder='No Title'
                     onChange={this.onTitleChange}
-                    canEdit={canEdit} />
+                    editable={editable} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
                   { editDisabled ? undefined : (
@@ -180,7 +180,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   text={game.developer}
                   placeholder='No Developer'
                   onChange={this.onDeveloperChange}
-                  canEdit={canEdit}
+                  editable={editable}
                   onKeyDown={this.onInputKeyDown} />
               </div>
             ) }
@@ -195,7 +195,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.genre}
                     placeholder='No Genre'
                     onChange={this.onGenreChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     items={suggestions && filterSuggestions(suggestions.genre) || []}
                     onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
                     onKeyDown={this.onInputKeyDown} />
@@ -206,7 +206,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.series}
                     placeholder='No Series'
                     onChange={this.onSeriesChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -215,7 +215,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.publisher}
                     placeholder='No Publisher'
                     onChange={this.onPublisherChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -224,7 +224,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.source}
                     placeholder='No Source'
                     onChange={this.onSourceChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -233,7 +233,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.platform}
                     placeholder='No Platform'
                     onChange={this.onPlatformChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     items={suggestions && filterSuggestions(suggestions.platform) || []}
                     onItemSelect={text => { game.platform = text; this.forceUpdate(); }}
                     onKeyDown={this.onInputKeyDown} />
@@ -244,7 +244,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.playMode}
                     placeholder='No Play Mode'
                     onChange={this.onPlayModeChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     items={suggestions && filterSuggestions(suggestions.playMode) || []}
                     onItemSelect={text => { game.playMode = text; this.forceUpdate(); }}
                     onKeyDown={this.onInputKeyDown} />
@@ -256,7 +256,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.status}
                     placeholder='No Status'
                     onChange={this.onStatusChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     items={suggestions && filterSuggestions(suggestions.status) || []}
                     onItemSelect={text => { game.status = text; this.forceUpdate(); }}
                     onKeyDown={this.onInputKeyDown} />
@@ -267,7 +267,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.version}
                     placeholder='No Version'
                     onChange={this.onVersionChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -276,7 +276,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.releaseDate}
                     placeholder='No Release Date'
                     onChange={this.onReleaseDateChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -285,7 +285,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.language}
                     placeholder='No Language'
                     onChange={this.onLanguageChange}
-                    canEdit={canEdit}
+                    editable={editable}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -326,7 +326,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   text={gamePlaylistEntry.notes || ''}
                   placeholder='No Playlist Notes'
                   onChange={this.onEditPlaylistNotes}
-                  canEdit={canEdit}
+                  editable={editable}
                   multiline={true} />
               </div>
             </div>
@@ -340,7 +340,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   text={game.notes}
                   placeholder='No Notes'
                   onChange={this.onNotesChange}
-                  canEdit={canEdit}
+                  editable={editable}
                   multiline={true} />
               </div>
             </div>
@@ -354,17 +354,17 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   text={game.originalDescription}
                   placeholder='No Original Description'
                   onChange={this.onOriginalDescriptionChange}
-                  canEdit={canEdit}
+                  editable={editable}
                   multiline={true} />
               </div>
             </div>
           ) : undefined }
           {/* -- Additional Applications -- */}
-          { canEdit || (currentAddApps && currentAddApps.length > 0) ? (
+          { editable || (currentAddApps && currentAddApps.length > 0) ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                 <p>Additional Applications:</p>
-                { canEdit ? (
+                { editable ? (
                   <input
                     type='button'
                     value='New'
@@ -376,14 +376,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 <RightBrowseSidebarAddApp
                   key={addApp.id}
                   addApp={addApp}
-                  editDisabled={!canEdit}
+                  editDisabled={!editable}
                   onLaunch={this.onAddAppLaunch}
                   onDelete={this.onAddAppDelete} />
               )) }
             </div>
           ) : undefined }
           {/* -- Application Path & Launch Command -- */}
-          { canEdit && !isPlaceholder ? (
+          { editable && !isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>Application Path: </p>
@@ -391,7 +391,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   text={game.applicationPath}
                   placeholder='No Application Path'
                   onChange={this.onApplicationPathChange}
-                  canEdit={canEdit}
+                  editable={editable}
                   items={suggestions && filterSuggestions(suggestions.applicationPath) || []}
                   onItemSelect={text => { game.applicationPath = text; this.forceUpdate(); }}
                   onKeyDown={this.onInputKeyDown} />
@@ -402,14 +402,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   text={game.launchCommand}
                   placeholder='No Launch Command'
                   onChange={this.onLaunchCommandChange}
-                  canEdit={canEdit}
+                  editable={editable}
                   onKeyDown={this.onInputKeyDown}
                   reference={this.launchCommandRef} />
               </div>
             </div>
           ) : undefined }
           {/* -- Game ID -- */}
-          { canEdit || isPlaceholder ? (
+          { editable || isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>ID: </p>
@@ -712,8 +712,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   wrapOnCheckBoxChange(func: (game: IGameInfo) => void): () => void {
     return () => {
       const game = this.props.currentGame;
-      const canEdit = this.props.preferencesData.enableEditing && this.props.isEditing;
-      if (game && canEdit) {
+      const editable = this.props.preferencesData.enableEditing && this.props.isEditing;
+      if (game && editable) {
         func(game);
         this.forceUpdate();
       }

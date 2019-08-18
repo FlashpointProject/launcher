@@ -25,7 +25,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   const onApplicationPathChange = useOnInputChange('applicationPath', key, curationKey, props.dispatch);
   const onLaunchCommandChange   = useOnInputChange('launchCommand',   key, curationKey, props.dispatch);
   // Misc.
-  const canEdit = true;
+  const editable = true;
   const disabled = props.disabled;
   // Render
   return (
@@ -35,7 +35,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           text={props.curation && props.curation.meta.heading || ''}
           placeholder='No Heading'
           onChange={onHeadingChange}
-          canEdit={canEdit}
+          editable={editable}
           disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
@@ -44,7 +44,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           text={props.curation && props.curation.meta.applicationPath || ''}
           placeholder='No Application Path'
           onChange={onApplicationPathChange}
-          canEdit={canEdit}
+          editable={editable}
           disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
@@ -53,7 +53,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           text={props.curation && props.curation.meta.launchCommand || ''}
           placeholder='No Launch Command'
           onChange={onLaunchCommandChange}
-          canEdit={canEdit}
+          editable={editable}
           disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>

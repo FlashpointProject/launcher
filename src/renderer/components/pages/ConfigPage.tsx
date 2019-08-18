@@ -201,7 +201,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       text={this.props.preferencesData.currentTheme || ''}
                       placeholder='No Theme'
                       onChange={this.onCurrentThemeChange}
-                      canEdit={true}
+                      editable={true}
                       onKeyDown={this.onCurrentThemeKeyDown}
                       items={[ ...this.props.themeItems.map(formatThemeItemName), 'No Theme' ]}
                       onItemSelect={this.onCurrentThemeItemSelect}

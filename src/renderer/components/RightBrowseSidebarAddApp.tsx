@@ -36,7 +36,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
             text={addApp.name}
             placeholder='No Name'
             onChange={this.onNameEditDone}
-            canEdit={!editDisabled} />
+            editable={!editDisabled} />
           <input
             type='button'
             className='simple-button'
@@ -52,7 +52,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
                 text={addApp.applicationPath}
                 placeholder='No Application Path'
                 onChange={this.onApplicationPathEditDone}
-                canEdit={!editDisabled} />
+                editable={!editDisabled} />
             </div>
             {/* Command Line */}
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -61,7 +61,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
                 text={addApp.commandLine}
                 placeholder='No Command Line'
                 onChange={this.onCommandLineEditDone}
-                canEdit={!editDisabled} />
+                editable={!editDisabled} />
             </div>
             {/* Auto Run Before */}
             <div className='browse-right-sidebar__row'>

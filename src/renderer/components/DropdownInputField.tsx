@@ -10,15 +10,7 @@ type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
 export type DropdownInputFieldProps = InputFieldProps & {
-  /**
-   * If the text element can be edited or not.
-   * If true, the text element will be an input or text area element (depending on of multiline is enabled).
-   * If false or undefined, the text element will be a paragraph element (<p>).
-   */
-  canEdit?: boolean;
-  /** If editing should be disabled (including expanding the drop-down, selecting items etc.). */
-  disabled?: boolean;
-  /** Items to show in the drop-down list. */
+  /** Items to display in the drop-down list. */
   items: string[];
   /** Called when a drop-down list item is clicked or otherwise "selected". */
   onItemSelect?: (text: string, index: number) => void;
@@ -61,7 +53,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
   }
 
   render() {
-    const { items, className, canEdit } = this.props;
+    const { items, className, editable } = this.props;
     const { expanded } = this.state;
     // Render input field
     const inputField = (
@@ -73,7 +65,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
         reference={this.inputRef} />
     );
     // Render
-    if (canEdit) {
+    if (editable) {
       return (
         <div
           className={'input-dropdown' + (this.props.disabled ? ' input-dropdown--disabled' : '')}

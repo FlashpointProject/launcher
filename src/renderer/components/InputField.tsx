@@ -4,32 +4,36 @@ import * as React from 'react';
 type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
 export type InputFieldProps = {
-  /** Current text. */
+  /** Displayed text. */
   text: string;
   /** Placeholder text (used to set the "placeholder" attribute). */
   placeholder?: string;
-  /** If the text should be shown in an editable element (input / text area). */
-  canEdit?: boolean;
+  /**
+   * If the text element should be an "editable" element or not.
+   * If true, the text element will be an input or text area element (depending on of multiline is enabled).
+   * If false or undefined, the text element will be a paragraph element (<p>).
+   */
+  editable?: boolean;
   /** If the text element should be disabled (only applicable to editable elements). */
   disabled?: boolean;
-  /** If the text field should support multi-line text. */
+  /** If the text field should support multi-line text (while "editable"). */
   multiline?: boolean;
-  /** Class names of the element. */
+  /** Class name(s) of the element. */
   className?: string;
   /** Reference of the element. */
   reference?: React.RefObject<any>;
-  /** Called when the text has been changed. */
+  /** Called when the text has been changed (while "editable"). */
   onChange?: (event: React.ChangeEvent<InputElement>) => void;
-  /** Called when a key is pressed. */
+  /** Called when a key is pressed (while "editable" and focused). */
   onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
 };
 
 /** A generic input field. */
 export function InputField(props: InputFieldProps) {
-  const { canEdit, className, disabled, multiline, onChange, onKeyDown, placeholder, reference, text } = props;
+  const { className, disabled, editable, multiline, onChange, onKeyDown, placeholder, reference, text } = props;
   let cleanClassName = (className ? ' '+className : '');
   if (disabled) { cleanClassName += ' simple-input--disabled'; }
-  if (canEdit) {
+  if (editable) {
     if (multiline) {
       return (
         <textarea

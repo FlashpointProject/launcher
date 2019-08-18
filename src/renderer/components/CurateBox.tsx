@@ -127,7 +127,7 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.dispatch, props.curation && props.curation.key]);
   // Input props
-  const canEdit = true;
+  const editable = true;
   const disabled = props.curation ? props.curation.locked : false;
   // Render additional application elements
   const addApps = useMemo(() => (
@@ -209,7 +209,7 @@ export function CurateBox(props: CurateBoxProps) {
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
   // Misc
   const sharedInputProps = {
-    canEdit: canEdit,
+    editable: editable,
     disabled: disabled,
     onKeyDown: onInputKeyDown,
   };
