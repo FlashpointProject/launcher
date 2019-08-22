@@ -31,6 +31,7 @@ import { ThemeManager } from './theme/ThemeManager';
 import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
 import { joinLibraryRoute } from './Util';
 import { downloadAndInstallUpgrade } from './util/upgrade';
+import which = require('which');
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -260,6 +261,37 @@ export class App extends React.Component<AppProps, AppState> {
       log(`Failed to load credits.\n${error}`);
       this.setState({ creditsDoneLoading: true });
     });
+    // Check for Wine and PHP on Linux
+    if (process.platform === 'linux') {
+      which('php', function(err: Error | null) {
+        if (err) {
+          log('Warning : PHP not found in path, may cause unexpected behaviour.');
+          remote.dialog.showMessageBox({
+            type: 'error',
+            title: 'Program not found!',
+            message: 'PHP was not found on the path. Is it installed?\n' +
+                    'Running without PHP may cause unexpected behaviour.',
+            buttons: ['Ok']
+          } );
+        }
+      });
+
+
+      which('wine', function(err: Error | null) {
+        if (err) {
+          if (window.External.preferences.getData().useWine) {
+            log('Warning : Wine is enabled but it was not found on the path.');
+            remote.dialog.showMessageBox({
+              type: 'error',
+              title: 'Program not found!',
+              message: 'Wine is enabled but not found on the path. Is it installed?\n' +
+                      'Some games may not be available without Wine',
+              buttons: ['Ok']
+            } );
+          }
+        }
+      });
+    }
   }
 
   componentDidMount() {

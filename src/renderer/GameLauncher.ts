@@ -141,7 +141,8 @@ export class GameLauncher {
         remote.dialog.showMessageBox({
           type: 'info',
           title: 'About This Game',
-          message: addApp.commandLine
+          message: addApp.commandLine,
+          buttons: ['Ok'],
         });
         break;
       case ':extras:':
@@ -153,7 +154,8 @@ export class GameLauncher {
               type: 'error',
               title: 'Failed to Open Extras',
               message: `${error.toString()}\n`+
-                       `Path: ${folderPath}`
+                       `Path: ${folderPath}`,
+              buttons: ['Ok'],
             });
           }
         });

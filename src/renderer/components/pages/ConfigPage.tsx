@@ -7,6 +7,8 @@ import { IThemeListItem } from '../../theme/ThemeManager';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
+import { remote } from 'electron';
+import which = require('which');
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
@@ -289,6 +291,21 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   useWineChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ useWine: isChecked });
     this.forceUpdate();
+
+    if (isChecked && process.platform === 'linux') {
+      which('wine', function(err: Error | null) {
+        if (err) {
+          log('Warning : Wine was enabled but it was not found on the path.');
+          remote.dialog.showMessageBox({
+            type: 'error',
+            title: 'Program not found!',
+            message: 'Wine was enabled but not found on the path. Is it installed?\n' +
+                    'Some games may not be available without Wine',
+            buttons: ['Ok'],
+          });
+        }
+      });
+    }
   }
 
   onUseCustomTitlebarChange = (isChecked: boolean): void => {
@@ -369,4 +386,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 /** Format a theme item into a displayable name for the themes drop-down. */
 function formatThemeItemName(item: IThemeListItem): string {
   return `${item.metaData.name} (${item.basename})`;
+}
+
+function log(str: string): void {
+  window.External.log.addEntry({
+    source: 'Config',
+    content: str,
+  });
 }
