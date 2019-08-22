@@ -447,7 +447,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                         `Path: "${gamePath}"\n`+
                         '\n'+
                         'Note: If the path is too long, some portion will be replaced with three dots ("...").',
-
+              buttons: ['Ok'],
             });
           }
         });
@@ -457,6 +457,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           title: 'No Path Found!',
           message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
                     `Game: "${game.title}"`,
+          buttons: ['Ok'],
         });
       }
     };

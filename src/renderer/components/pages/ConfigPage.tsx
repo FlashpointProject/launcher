@@ -300,8 +300,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             type: 'error',
             title: 'Program not found!',
             message: 'Wine was enabled but not found on the path. Is it installed?\n' +
-                    'Some games may not be available without Wine'
-          }, function() { /* Make this non-blocking. */ } );
+                    'Some games may not be available without Wine',
+            buttons: ['Ok'],
+          });
         }
       });
     }

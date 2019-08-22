@@ -270,8 +270,9 @@ export class App extends React.Component<AppProps, AppState> {
             type: 'error',
             title: 'Program not found!',
             message: 'PHP was not found on the path. Is it installed?\n' +
-                    'Running without PHP may cause unexpected behaviour.'
-          }, function() { /* Make this non-blocking. */ } );
+                    'Running without PHP may cause unexpected behaviour.',
+            buttons: ['Ok']
+          } );
         }
       });
 
@@ -284,8 +285,9 @@ export class App extends React.Component<AppProps, AppState> {
               type: 'error',
               title: 'Program not found!',
               message: 'Wine is enabled but not found on the path. Is it installed?\n' +
-                      'Some games may not be available without Wine'
-            }, function() { /* Make this non-blocking. */ } );
+                      'Some games may not be available without Wine',
+              buttons: ['Ok']
+            } );
           }
         }
       });
