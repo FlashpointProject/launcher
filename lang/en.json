@@ -5,6 +5,7 @@
     "extremeGames":"Extreme Games",
     "extremeGamesDesc":"Show games with sexual, violent or other content unsuitable for children.",
     "enableEditing":"Enable Editing",
-    "enableEditingDesc":"Enable editing of games, additional applications and playlists. Also shows the 'Curate' tab."
+    "enableEditingDesc":"Enable editing of games, additional applications and playlists. Also shows the 'Curate' tab.",
+    "flashpointPath":"Flashpoint Path"
   }
 }

@@ -1,6 +1,6 @@
 import { LocalizedStringsMethods } from 'react-localization';
 
-export interface ILocalization {
+export interface ILangData {
   config: IConfigStrings;
   home: IHomeStrings;
 }

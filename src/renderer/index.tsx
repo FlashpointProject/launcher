@@ -49,7 +49,7 @@ import { LangManager } from './lang/LangManager';
       <Provider store={store}>
         <ContextReducerProvider context={CurationContext}>
           <ConnectedRouter history={history}>
-              <ConnectedApp themes={themes} lang={lang} />
+              <ConnectedApp themes={themes} langManager={lang} />
           </ConnectedRouter>
         </ContextReducerProvider>
       </Provider>

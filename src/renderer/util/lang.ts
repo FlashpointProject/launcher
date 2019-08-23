@@ -1,7 +1,7 @@
 import LocalizedStrings from 'react-localization';
-import { ILocalization } from '../../shared/lang/interfaces';
+import { ILangData } from '../../shared/lang/interfaces';
 
-export function getDefaultLocalization() : ILocalization {
+export function getDefaultLocalization() : ILangData {
   return {
     config: new LocalizedStrings({
       en:{

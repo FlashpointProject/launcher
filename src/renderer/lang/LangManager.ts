@@ -2,9 +2,9 @@ import { readJsonFile, stringifyJsonDataFile } from '../../shared/Util';
 import { FolderWatcher } from '../util/FolderWatcher';
 import { EventQueue } from '../util/EventQueue';
 import * as path from 'path';
-import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
 import { getDefaultLocalization } from '../util/lang';
-import { ILocalization } from '../../shared/lang/interfaces';
+import { ILangData } from '../../shared/lang/interfaces';
+import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
 
 export interface ILangStrings {
   /** Kept for the watcher to keep track of ownership */
@@ -21,8 +21,8 @@ export interface ILangSortedStrings {
 }
 
 export interface LangManager {
-  /** Emitted when a lang file has been added/changed and localization needs updated */
-  on(event: 'update', listener: () => void): this;
+  /** Emitted when localized strings have been updated */
+  on(event: 'update', listener: (item: ILangData) => void): this;
 }
 
 export class LangManager extends WrappedEventEmitter {
@@ -38,8 +38,8 @@ export class LangManager extends WrappedEventEmitter {
   /** All loaded localized strings */
   private items: ILangStrings[] = [];
 
-  /** Exposed LocalizedStrings for each page */
-  public strings: ILocalization = getDefaultLocalization();
+  /** Working copy of LocalizedStrings for each page */
+  public strings: ILangData = getDefaultLocalization();
 
   constructor() {
     super();
@@ -61,13 +61,12 @@ export class LangManager extends WrappedEventEmitter {
       const item = this.findOwner(fullPath);
       if (item) {
         this.updateLocalization();
-        this.emit('update');
       } else {
         // Check if it is a potential lang file
         if (filename.endsWith('.json')) {
           // Add item
           try {
-            const data : any = await LangManager.readLangFile(fullPath, this.log.bind(this) );
+            const data : any = await LangManager.readLangFile(fullPath, this.log.bind(this));
             const item: ILangStrings = {
               path: fullPath,
               language: filename.split('.')[0], // Get name without extension
@@ -95,14 +94,12 @@ export class LangManager extends WrappedEventEmitter {
         const index = this.items.findIndex(item => item.path === fullPath);
         this.items.splice(index, 1, item);
         this.updateLocalization();
-        this.emit('update');
       });
       this.log('Reloading ' + item.language + ' language file.');
 
     }
     console.log(this.items);
   }
-
 
   /**
    * Read and parse the data of a lang file asynchronously.
@@ -124,24 +121,30 @@ export class LangManager extends WrappedEventEmitter {
     return this.items.find(item => item.path === fullPath);
   }
 
+  /**
+   * Update the working copy of localized strings with any loaded language files
+   */
+  private updateLocalization() {
+    let sortedStrings = {config: {}, home: {}};
+
+    this.items.forEach( (item) => {
+      sortedStrings.config = { ...{ [item.language]: item.data.config }, ...sortedStrings.config };
+      // sortedStrings.home = { ...{ [item.language]: item.data.home }, ...sortedStrings.home };
+    });
+
+    this.strings.config.setContent(sortedStrings.config);
+    // this.strings.config.setContent(sortedStrings.home);
+
+    this.emit('update', this.strings);
+
+    console.log(this.strings);
+  }
+
   private log(content: string): void {
     window.External.log.addEntry({
       source: 'Lang',
       content: content
     });
-  }
-
-  private updateLocalization() {
-    let sortedStrings = {config: {}, home: {}};
-
-    this.items.forEach( (item) => {
-      try { sortedStrings.config = { ...{ [item.language]: item.data.config }, ...sortedStrings.config };  } catch (e) { this.log(e); }
-      try { sortedStrings.home = { ...{ [item.language]: item.data.home }, ...sortedStrings.home };  } catch (e) { this.log(e); }
-    });
-
-    this.strings.config.setContent(sortedStrings.config);
-
-    console.log(this.strings);
   }
 }
 

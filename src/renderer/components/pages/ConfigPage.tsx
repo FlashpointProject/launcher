@@ -123,7 +123,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>{strings.flashpointPath}</p>
+                  <p>{strings.flashpointPathDesc}</p>
                 </div>
               </div>
               {/* Redirector / Fiddler */}

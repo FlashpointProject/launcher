@@ -33,6 +33,7 @@ import { joinLibraryRoute } from './Util';
 import { downloadAndInstallUpgrade } from './util/upgrade';
 import which = require('which');
 import { LangManager } from './lang/LangManager';
+import { WithLangProps } from './containers/withLang';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -40,10 +41,10 @@ type AppOwnProps = {
   /** Theme manager. */
   themes: ThemeManager;
   /** Lang manager. */
-  lang: LangManager;
+  langManager: LangManager;
 };
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps & WithLangProps;
 
 export type AppState = {
   /** Semi-global prop. */
@@ -173,7 +174,7 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
     // Listen for changes to lang files
-    this.props.lang.on('update',   () => { this.forceUpdate(); });
+    this.props.langManager.on('update',   item => { this.props.updateLang(item); this.forceUpdate(); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
