@@ -32,12 +32,15 @@ import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upg
 import { joinLibraryRoute } from './Util';
 import { downloadAndInstallUpgrade } from './util/upgrade';
 import which = require('which');
+import { LangManager } from './lang/LangManager';
 
 type AppOwnProps = {
   /** Most recent search query. */
   search: SearchQuery;
   /** Theme manager. */
   themes: ThemeManager;
+  /** Lang manager. */
+  lang: LangManager;
 };
 
 export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
@@ -169,6 +172,8 @@ export class App extends React.Component<AppProps, AppState> {
     });
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
+    // Listen for changes to lang files
+    this.props.lang.on('update',   () => { this.forceUpdate(); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {

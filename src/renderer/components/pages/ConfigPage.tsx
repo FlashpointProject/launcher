@@ -9,6 +9,7 @@ import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
 import { remote } from 'electron';
 import which = require('which');
+import { WithLangProps } from 'src/renderer/containers/withLang';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
@@ -17,7 +18,7 @@ type OwnProps = {
   reloadTheme(themePath: string | undefined): void;
 };
 
-export type ConfigPageProps = OwnProps & WithPreferencesProps;
+export type ConfigPageProps = OwnProps & WithPreferencesProps & WithLangProps;
 
 type ConfigPageState = {
   /** If the currently entered Flashpoint path points to a "valid" Flashpoint folder (it exists and "looks" like a Flashpoint folder). */
@@ -52,11 +53,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   render() {
+    const strings = this.props.lang.config;
+
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
-          <h1 className='config-page__title'>Config</h1>
-          <i>(You must press 'Save & Restart' for some changes to take effect)</i>
+          <h1 className='config-page__title'>{strings.configHeader}</h1>
+          <i>{strings.configDesc}</i>
 
           {/* -- Preferences -- */}
             <div className='setting'>
@@ -67,7 +70,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <div className='setting__row'>
                     <div className='setting__row__top'>
                       <div className='setting__row__title'>
-                        <p>Show Extreme Games</p>
+                        <p>{strings.extremeGames}</p>
                       </div>
                       <div className='setting__row__content setting__row__content--toggle'>
                         <div>
@@ -78,7 +81,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       </div>
                     </div>
                     <div className='setting__row__bottom'>
-                      <p>Show games with sexual, violent or other content unsuitable for children.</p>
+                      <p>{strings.extremeGamesDesc}</p>
                     </div>
                   </div>
                 ) : undefined }
@@ -86,7 +89,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 <div className='setting__row'>
                   <div className='setting__row__top'>
                     <div className='setting__row__title'>
-                      <p>Enable Editing</p>
+                      <p>{strings.enableEditing}</p>
                     </div>
                     <div className='setting__row__content setting__row__content--toggle'>
                       <div>
@@ -97,7 +100,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                     </div>
                   </div>
                   <div className='setting__row__bottom'>
-                    <p>Enable editing of games, additional applications and playlists. Also shows the "Curate" tab.</p>
+                    <p>{strings.enableEditingDesc}</p>
                   </div>
                 </div>
               </div>
@@ -105,28 +108,29 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {/* -- Flashpoint -- */}
           <div className='setting'>
-            <p className='setting__title'>Flashpoint</p>
+            <p className='setting__title'>{strings.flashpointHeader}</p>
             <div className='setting__body'>
               {/* Flashpoint Path */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
-                  <p className='setting__row__title'>Flashpoint Path</p>
+                  <p className='setting__row__title'>{strings.flashpointPath}</p>
                   <div className='setting__row__content setting__row__content--filepath-path'>
                     <ConfigFlashpointPathInput
                       input={this.state.flashpointPath}
+                      buttonText={strings.browse}
                       onInputChange={this.onFlashpointPathChange}
                       isValid={this.state.isFlashpointPathValid} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Path to the Flashpoint folder (can be relative)</p>
+                  <p>{strings.flashpointPath}</p>
                 </div>
               </div>
               {/* Redirector / Fiddler */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Redirector</p>
+                    <p>{strings.redirector}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--redirector'>
                     <div>
@@ -134,26 +138,26 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                         type='radio'
                         checked={!this.state.useFiddler}
                         onChange={this.onRedirectorRedirectorChange} />
-                      <p>Redirector</p>
+                      <p>{strings.redirector}</p>
                     </div>
                     <div>
                       <input
                         type='radio'
                         checked={this.state.useFiddler}
                         onChange={this.onRedirectorFiddlerChange} />
-                      <p>Fiddler</p>
+                      <p>{strings.redirectorFiddler}</p>
                     </div>
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Which software to use for redirecting the game traffic to the local web server. Neither is used on Linux.</p>
+                  <p>{strings.redirectorDesc}</p>
                 </div>
               </div>
               {/* Wine */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Use Wine</p>
+                    <p>{strings.useWine}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
@@ -164,7 +168,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Launch applications with Wine. Only enable this if Wine is installed.</p>
+                  <p>{strings.useWineDesc}</p>
                 </div>
               </div>
             </div>
@@ -172,13 +176,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {/* -- Visuals -- */}
           <div className='setting'>
-            <p className='setting__title'>Visuals</p>
+            <p className='setting__title'>{strings.visualsHeader}</p>
             <div className='setting__body'>
               {/* Custom Title Bar */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Use Custom Title Bar</p>
+                    <p>{strings.useCustomTitleBar}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
@@ -189,19 +193,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Use a custom title bar at the top of this window.</p>
+                  <p>{strings.useCustomTitleBarDesc}</p>
                 </div>
               </div>
               {/* Theme */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Theme</p>
+                    <p>{strings.theme}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--input-field setting__row__content--theme-input-field'>
                     <DropdownInputField
                       text={this.props.preferencesData.currentTheme || ''}
-                      placeholder='No Theme'
+                      placeholder={strings.noTheme}
                       onChange={this.onCurrentThemeChange}
                       editable={true}
                       onKeyDown={this.onCurrentThemeKeyDown}
@@ -211,13 +215,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       />
                     <input
                       type='button'
-                      value='Browse'
+                      value={strings.browse}
                       className='simple-button'
                       onClick={this.onCurrentThemeBrowseClick} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>File path of the theme to use (relative to the themes folder).</p>
+                  <p>{strings.themeDesc}</p>
                 </div>
               </div>
             </div>
@@ -225,13 +229,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {/* -- Advanced -- */}
           <div className='setting'>
-            <p className='setting__title'>Advanced</p>
+            <p className='setting__title'>{strings.advancedHeader}</p>
             <div className='setting__body'>
               {/* Show Developer Tab */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Show Developer Tab</p>
+                    <p>{strings.showDeveloperTab}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
@@ -242,7 +246,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Show the "Developer" tab. This is most likely only useful for developers and curators.</p>
+                  <p>{strings.showDeveloperTabDesc}</p>
                 </div>
               </div>
             </div>
@@ -253,7 +257,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <div className='setting__row'>
               <input
                 type='button'
-                value='Save & Restart'
+                value={strings.saveAndRestart}
                 className='simple-button save-and-restart'
                 onClick={this.onSaveAndRestartClick} />
             </div>

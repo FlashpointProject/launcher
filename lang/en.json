@@ -1,0 +1,10 @@
+{
+  "config": {
+    "configHeader":"Config",
+    "configDesc":"(You must press 'Save & Restart' for some changes to take effect)",
+    "extremeGames":"Extreme Games",
+    "extremeGamesDesc":"Show games with sexual, violent or other content unsuitable for children.",
+    "enableEditing":"Enable Editing",
+    "enableEditingDesc":"Enable editing of games, additional applications and playlists. Also shows the 'Curate' tab."
+  }
+}

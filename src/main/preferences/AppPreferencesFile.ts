@@ -40,7 +40,7 @@ export class AppPreferencesFile {
   /**
    * Attempt to read and parse the preferences file, then return the result.
    * If the file does not exist, create a new one with the default values and return that instead.
-   * @param onError Called for each error that occurrs while parsing.
+   * @param onError Called for each error that occurs while parsing.
    */
   public static async readOrCreate(onError?: (error: string) => void): Promise<IAppPreferencesData> {
     let error: Error | undefined,

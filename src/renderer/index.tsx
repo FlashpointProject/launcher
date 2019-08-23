@@ -12,6 +12,7 @@ import { CurationContext } from './context/CurationContext';
 import { updateLibrary } from './store/library';
 import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
+import { LangManager } from './lang/LangManager';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -26,6 +27,8 @@ import { ThemeManager } from './theme/ThemeManager';
   await window.External.preferences.waitUtilInitialized();
   // Get preferences data
   const preferencesData = window.External.preferences.getData();
+  // Watch languages folder and load existing language files
+  const lang = new LangManager();
   // Watch themes folder & Load current theme file
   const themes = new ThemeManager(path.join(window.External.config.fullFlashpointPath, window.External.config.data.themeFolderPath));
   if (preferencesData.currentTheme) { // (If there is a current theme and it is not an empty string)
@@ -33,6 +36,7 @@ import { ThemeManager } from './theme/ThemeManager';
     if (typeof themeOrError !== 'number') { Theme.set(themeOrError); }
     else { log(Theme.toError(themeOrError) || ''); }
   }
+    // TODO: Set language
   // Create history
   const history = createMemoryHistory();
   // Create Redux store
@@ -45,7 +49,7 @@ import { ThemeManager } from './theme/ThemeManager';
       <Provider store={store}>
         <ContextReducerProvider context={CurationContext}>
           <ConnectedRouter history={history}>
-              <ConnectedApp themes={themes} />
+              <ConnectedApp themes={themes} lang={lang} />
           </ConnectedRouter>
         </ContextReducerProvider>
       </Provider>
