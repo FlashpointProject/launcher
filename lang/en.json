@@ -7,5 +7,10 @@
     "enableEditing":"Enable Editing",
     "enableEditingDesc":"Enable editing of games, additional applications and playlists. Also shows the 'Curate' tab.",
     "flashpointPath":"Flashpoint Path"
+  },
+  "home": {
+    "quickStartHeader":"Quick Start",
+    "hallOfFameInfo":"Only want the best of the best? Check out the {0}!",
+    "hallOfFame":"Hall of Fame"
   }
 }

@@ -33,7 +33,8 @@ import { joinLibraryRoute } from './Util';
 import { downloadAndInstallUpgrade } from './util/upgrade';
 import which = require('which');
 import { LangManager } from './lang/LangManager';
-import { WithLangProps } from './containers/withLang';
+import { LangContext, getDefaultLocalization } from './util/lang';
+import { LangContainer } from 'src/shared/lang/interfaces';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -44,7 +45,7 @@ type AppOwnProps = {
   langManager: LangManager;
 };
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps & WithLangProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
 
 export type AppState = {
   /** Semi-global prop. */
@@ -66,6 +67,8 @@ export type AppState = {
   selectedPlaylists: IObjectMap<IGamePlaylist>;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
+  /** Language strings */
+  lang: LangContainer;
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -107,6 +110,7 @@ export class App extends React.Component<AppProps, AppState> {
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
+      lang: getDefaultLocalization(),
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
@@ -174,7 +178,7 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
     // Listen for changes to lang files
-    this.props.langManager.on('update',   item => { this.props.updateLang(item); this.forceUpdate(); });
+    this.props.langManager.on('update',   item => { console.log(item); this.setState({lang: item}); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -368,6 +372,7 @@ export class App extends React.Component<AppProps, AppState> {
     // Render
     return (
       <>
+      <LangContext.Provider value={this.state.lang}>
         {/* "TitleBar" stuff */}
         { window.External.config.data.useCustomTitlebar ? (
           <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
@@ -394,6 +399,7 @@ export class App extends React.Component<AppProps, AppState> {
                          onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
                          onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
                          onNewGameClick={this.onNewGameClick} />
+      </LangContext.Provider>
       </>
     );
   }

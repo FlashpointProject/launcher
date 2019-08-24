@@ -5,7 +5,6 @@ import { App } from '../app';
 import { ApplicationState } from '../store';
 import { withLibrary } from './withLibrary';
 import { withPreferences } from './withPreferences';
-import { withLang } from './withLang';
 
 const mapStateToProps = ({ search }: ApplicationState) => ({
   search: search.query
@@ -15,7 +14,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
   // ...
 }, dispatch);
 
-export default withRouter(withLang(withLibrary(withPreferences(connect(
+export default withRouter(withLibrary(withPreferences(connect(
   mapStateToProps,
   mapDispatchToProps
-)(App)))));
+)(App))));

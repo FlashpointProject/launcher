@@ -19,6 +19,8 @@ import { getPlatforms } from '../../util/platform';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
+import { LangContext } from '../../util/lang';
+import { HomeLang } from 'src/shared/lang/interfaces';
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -41,7 +43,11 @@ export class HomePage extends React.Component<HomePageProps> {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   logoDelay = (Date.now() * -0.001) + 's';
 
+  static contextType = LangContext;
+
   render() {
+    const strings = this.context.home;
+
     const {
       onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick,
@@ -87,58 +93,58 @@ export class HomePage extends React.Component<HomePageProps> {
           </div>
           {/* Quick Start */}
           <div className='home-page__box'>
-            <div className='home-page__box__head'>Quick Start</div>
+            <div className='home-page__box__head'>{strings.quickStartHeader}</div>
             <ul className='home-page__box__body'>
               <QuickStartItem icon='badge'>
-                Only want the best of the best? Check out the <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>Hall of Fame</Link>!
+                {/* {strings.formatString(strings.hallOfFameInfo, <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>{strings.hallOfFame}</Link>)} */}
               </QuickStartItem>
               <QuickStartItem icon='play-circle'>
-                Looking for something to play? View <Link to={joinLibraryRoute('arcade')} onClick={this.onAllGamesClick}>All Games</Link>.
+                {/* {strings.formatString(strings.allGamesInfo, <Link to={joinLibraryRoute('arcade')} onClick={this.onAllGamesClick}>{strings.allGames}</Link>)} */}
               </QuickStartItem>
               <QuickStartItem icon='video'>
-                Just want something to watch? View <Link to={joinLibraryRoute('theatre')} onClick={this.onAllAnimationsClick}>All Animations</Link>.
+                {/* {strings.formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute('theatre')} onClick={this.onAllAnimationsClick}>{strings.allAnimations}</Link>)} */}
               </QuickStartItem>
               <QuickStartItem icon='wrench'>
-                Want to change something? Go to <Link to={Paths.CONFIG}>Config</Link>.
+                {/* {strings.formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)} */}
               </QuickStartItem>
               <QuickStartItem icon='info'>
-                Need help? <Link to='#' onClick={this.onHelpClick}>Read the readme</Link>.
+                {/* {strings.formatString(strings.helpInfo, <Link to='#' onClick={this.onHelpClick}>{strings.help}</Link>)} */}
               </QuickStartItem>
             </ul>
           </div>
           {/* Upgrades */}
           { upgradeData ? (
               <div className='home-page__box home-page__box--upgrades'>
-                <div className='home-page__box__head'>Upgrades</div>
+                <div className='home-page__box__head'>{strings.upgradesHeader}</div>
                 <ul className='home-page__box__body'>
-                  { this.renderStageSection(upgradeData.tech, techState, onDownloadTechUpgradeClick) }
+                  { this.renderStageSection(strings, upgradeData.tech, techState, onDownloadTechUpgradeClick) }
                   <br/>
-                  { this.renderStageSection(upgradeData.screenshots, screenshotsState, onDownloadScreenshotsUpgradeClick) }
+                  { this.renderStageSection(strings, upgradeData.screenshots, screenshotsState, onDownloadScreenshotsUpgradeClick) }
                 </ul>
               </div>
             ) : undefined
           }
           {/* Extras */}
           <div className='home-page__box home-page__box--extras'>
-            <div className='home-page__box__head'>Extras</div>
+            <div className='home-page__box__head'>{strings.extrasHeader}</div>
             <ul className='home-page__box__body'>
               <QuickStartItem icon='heart'>
                 <Link
                   to={this.getFavoriteBrowseRoute()}
                   onClick={this.onFavoriteClick}>
-                  Favorites Playlist
+                  {strings.favouritesPlaylist}
                 </Link>
               </QuickStartItem>
               <QuickStartItem icon='list'>
                 <a
                   href='http://bluemaxima.org/flashpoint/datahub/Genres'
                   target='_top'>
-                  Genre List
+                  {strings.genreList}
                 </a>
               </QuickStartItem>
               <br />
               <QuickStartItem icon='tag'>
-                Filter by platform:
+                {strings.filterByPlatform}
               </QuickStartItem>
               <QuickStartItem>
                 { formatPlatforms }
@@ -148,17 +154,17 @@ export class HomePage extends React.Component<HomePageProps> {
                 <a
                   href='https://trello.com/b/Tu9E5GLk/launcher'
                   target='_top'>
-                  Check out our planned features!
+                  {strings.plannedFeatures}
                 </a>
               </QuickStartItem>
             </ul>
           </div>
           {/* Notes */}
           <div className='home-page__box'>
-            <div className='home-page__box__head'>Notes</div>
+            <div className='home-page__box__head'>{strings.notesHeader}</div>
             <ul className='home-page__box__body'>
               <QuickStartItem>
-                Don't forget to read the readme if you're having issues.
+                {strings.notes}
               </QuickStartItem>
             </ul>
           </div>
@@ -166,7 +172,7 @@ export class HomePage extends React.Component<HomePageProps> {
           <SizeProvider width={width} height={height}>
             <div className='home-page__random-games'>
               <div className='home-page__random-games__inner'>
-                <p className='home-page__random-games__title'>Random Picks</p>
+                <p className='home-page__random-games__title'>{strings.randomPicks}</p>
                 { gamesDoneLoading ? (
                   <RandomGames
                     games={games.collection.games}
@@ -188,24 +194,24 @@ export class HomePage extends React.Component<HomePageProps> {
     );
   }
 
-  renderStageSection(stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
+  renderStageSection(strings: HomeLang, stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
     return (
       <>
         <QuickStartItem><b>{stageData && stageData.title || '...'}</b></QuickStartItem>
         <QuickStartItem><i>{stageData && stageData.description || '...'}</i></QuickStartItem>
-        <QuickStartItem>{ this.renderStageButton(stageState, onClick) }</QuickStartItem>
+        <QuickStartItem>{ this.renderStageButton(strings, stageState, onClick) }</QuickStartItem>
       </>
     );
   }
 
-  renderStageButton(stageState: UpgradeStageState, onClick: () => void) {
+  renderStageButton(strings: HomeLang, stageState: UpgradeStageState, onClick: () => void) {
     return (
       stageState.checksDone ? (
         stageState.alreadyInstalled ? (
-          <p className='home-page__grayed-out'>Already Installed</p>
+          <p className='home-page__grayed-out'>{strings.alreadyInstalled}</p>
         ) : (
           stageState.isInstallationComplete ? (
-            'Installation Complete! Restart the launcher!'
+            strings.installComplete
           ) : (
             stageState.isInstalling ? (
               <p>{stageState.installProgressNote}</p>
@@ -213,7 +219,7 @@ export class HomePage extends React.Component<HomePageProps> {
               <a
                 className='simple-button'
                 onClick={onClick}>
-                Download
+                {strings.download}
               </a>
             )
           )

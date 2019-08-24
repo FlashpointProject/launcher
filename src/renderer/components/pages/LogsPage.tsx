@@ -7,6 +7,7 @@ import { shallowStrictEquals } from '../../../shared/Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { Dropdown } from '../Dropdown';
 import { LogData } from '../LogData';
+import { LangContext } from '../../util/lang';
 
 type OwnProps = {};
 
@@ -23,6 +24,8 @@ const labels = [
 export class LogsPage extends React.Component<LogsPageProps> {
   stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
 
+  static contextType = LangContext;
+
   getLogString() {
     const logEntries = Object.assign([], window.External.log.entries);
     const filter = Object.assign({}, this.props.preferencesData.showLogSource);
@@ -38,6 +41,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
   }
 
   render() {
+    const strings = this.context.logs;
     const { preferencesData: { showLogSource } } = this.props;
     const logData = this.getLogString();
     return (
@@ -46,7 +50,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
         <div className='log-page__bar'>
           {/* Left */}
           <div className='log-page__bar__wrap'>
-            <Dropdown text='Filters'>
+            <Dropdown text={strings.filters}>
               { labels.map((label, index) => (
                 <label
                   key={index}
@@ -76,7 +80,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
                   <div>
                     <input
                       type='button'
-                      value='Copy Text'
+                      value={strings.copyText}
                       onClick={this.onCopyClick}
                       className='simple-button simple-center__vertical-inner' />
                   </div>
@@ -86,7 +90,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
                   <div className='simple-center'>
                     <input
                       type='button'
-                      value='Clear Log'
+                      value={strings.clearLog}
                       onClick={this.onClearClick}
                       className='simple-button simple-center__vertical-inner' />
                   </div>

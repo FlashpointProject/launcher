@@ -1,10 +1,10 @@
-import { readJsonFile, stringifyJsonDataFile } from '../../shared/Util';
+import { readJsonFile, stringifyJsonDataFile, recursiveReplace, deepCopy } from '../../shared/Util';
 import { FolderWatcher } from '../util/FolderWatcher';
 import { EventQueue } from '../util/EventQueue';
 import * as path from 'path';
 import { getDefaultLocalization } from '../util/lang';
-import { ILangData } from '../../shared/lang/interfaces';
 import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
+import { LangContainer } from 'src/shared/lang/interfaces';
 
 export interface ILangStrings {
   /** Kept for the watcher to keep track of ownership */
@@ -12,7 +12,7 @@ export interface ILangStrings {
   /** Language the localized strings are in */
   language: string;
   /** List of localized strings as a JSON object */
-  data: any;
+  data: LangContainer;
 }
 
 export interface ILangSortedStrings {
@@ -22,7 +22,7 @@ export interface ILangSortedStrings {
 
 export interface LangManager {
   /** Emitted when localized strings have been updated */
-  on(event: 'update', listener: (item: ILangData) => void): this;
+  on(event: 'update', listener: (item: LangContainer) => void): this;
 }
 
 export class LangManager extends WrappedEventEmitter {
@@ -39,7 +39,7 @@ export class LangManager extends WrappedEventEmitter {
   private items: ILangStrings[] = [];
 
   /** Working copy of LocalizedStrings for each page */
-  public strings: ILangData = getDefaultLocalization();
+  private defaultLang: LangContainer = getDefaultLocalization();
 
   constructor() {
     super();
@@ -98,7 +98,6 @@ export class LangManager extends WrappedEventEmitter {
       this.log('Reloading ' + item.language + ' language file.');
 
     }
-    console.log(this.items);
   }
 
   /**
@@ -125,19 +124,7 @@ export class LangManager extends WrappedEventEmitter {
    * Update the working copy of localized strings with any loaded language files
    */
   private updateLocalization() {
-    let sortedStrings = {config: {}, home: {}};
-
-    this.items.forEach( (item) => {
-      sortedStrings.config = { ...{ [item.language]: item.data.config }, ...sortedStrings.config };
-      // sortedStrings.home = { ...{ [item.language]: item.data.home }, ...sortedStrings.home };
-    });
-
-    this.strings.config.setContent(sortedStrings.config);
-    // this.strings.config.setContent(sortedStrings.home);
-
-    this.emit('update', this.strings);
-
-    console.log(this.strings);
+    this.emit('update', recursiveReplace(deepCopy(this.defaultLang),  this.items[0].data));
   }
 
   private log(content: string): void {

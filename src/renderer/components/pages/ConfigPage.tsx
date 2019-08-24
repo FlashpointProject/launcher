@@ -9,7 +9,7 @@ import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
 import { remote } from 'electron';
 import which = require('which');
-import { WithLangProps } from 'src/renderer/containers/withLang';
+import { LangContext } from '../../util/lang';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
@@ -18,7 +18,7 @@ type OwnProps = {
   reloadTheme(themePath: string | undefined): void;
 };
 
-export type ConfigPageProps = OwnProps & WithPreferencesProps & WithLangProps;
+export type ConfigPageProps = OwnProps & WithPreferencesProps;
 
 type ConfigPageState = {
   /** If the currently entered Flashpoint path points to a "valid" Flashpoint folder (it exists and "looks" like a Flashpoint folder). */
@@ -41,6 +41,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   /** Reference to the input element of the "current theme" drop-down field. */
   currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
 
+  static contextType = LangContext;
+
   constructor(props: ConfigPageProps) {
     super(props);
     const configData = window.External.config.data;
@@ -53,7 +55,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   render() {
-    const strings = this.props.lang.config;
+    const strings = this.context.config;
+    console.log(strings);
 
     return (
       <div className='config-page simple-scroll'>
@@ -63,7 +66,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {/* -- Preferences -- */}
             <div className='setting'>
-              <p className='setting__title'>Preferences</p>
+              <p className='setting__title'>{strings.preferencesHeader}</p>
               <div className='setting__body'>
                 {/* Show Extreme Games */}
                 {((!window.External.config.data.disableExtremeGames)) ? (

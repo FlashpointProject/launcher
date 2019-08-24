@@ -13,6 +13,7 @@ import { updateLibrary } from './store/library';
 import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
 import { LangManager } from './lang/LangManager';
+import { getDefaultLocalization } from './util/lang';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -49,7 +50,7 @@ import { LangManager } from './lang/LangManager';
       <Provider store={store}>
         <ContextReducerProvider context={CurationContext}>
           <ConnectedRouter history={history}>
-              <ConnectedApp themes={themes} langManager={lang} />
+            <ConnectedApp themes={themes} langManager={lang} />
           </ConnectedRouter>
         </ContextReducerProvider>
       </Provider>
