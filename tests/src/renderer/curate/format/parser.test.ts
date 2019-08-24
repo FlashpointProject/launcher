@@ -81,6 +81,18 @@ describe('parseCurationFormat()', function () {
       var: '123\nabc\n!?!'
     });
   });
+  test('Multiline value with indent changes', () => {
+    expect(parseCurationFormat(tokenizeCurationFormat(
+      'var: |\n'+
+      '    1\n'+
+      '\t\t\t2\n'+
+      '    \t    3\n'+
+      'var2: abc'
+    ))).toEqual({
+      var: '1\n\t\t2\n\t    3',
+      var2: 'abc',
+    });
+  });
   test('Comments', () => {
     expect(parseCurationFormat(tokenizeCurationFormat(
       '# This is a comment\n'+
