@@ -8,6 +8,7 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { Dropdown } from '../Dropdown';
 import { LogData } from '../LogData';
 import { LangContext } from '../../util/lang';
+import { LogsLang } from '../../../shared/lang/types';
 
 type OwnProps = {};
 
@@ -41,7 +42,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
   }
 
   render() {
-    const strings = this.context.logs;
+    const strings : LogsLang = this.context.logs;
     const { preferencesData: { showLogSource } } = this.props;
     const logData = this.getLogString();
     return (

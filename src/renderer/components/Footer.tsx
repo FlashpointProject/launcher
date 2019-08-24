@@ -2,6 +2,8 @@ import * as React from 'react';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameScaleSpan } from '../Util';
+import { LangContext } from '../util/lang';
+import { AppLang } from '../../shared/lang/types';
 
 type OwnProps = {
   /** If the "total" and "current label" counts should be shown. */
@@ -32,6 +34,8 @@ export class Footer extends React.Component<FooterProps> {
   /** Reference to the scale slider. */
   scaleSliderRef: React.RefObject<HTMLInputElement> = React.createRef();
 
+  static contextType = LangContext;
+
   componentDidMount() {
     window.addEventListener('keydown', this.onGlobalKeydown);
   }
@@ -41,6 +45,7 @@ export class Footer extends React.Component<FooterProps> {
   }
 
   render() {
+    const strings : AppLang = this.context.app;
     const { currentCount, currentLabel, layout, onNewGameClick, preferencesData, scaleSliderValue, showCount, totalCount } = this.props;
     const scale = Math.min(Math.max(0, scaleSliderValue), 1);
     return (
@@ -51,7 +56,7 @@ export class Footer extends React.Component<FooterProps> {
           <div className='footer__game-count'>
             {showCount ? (
               <>
-                <p>{`Total: ${totalCount}`}</p>
+                <p>{`${strings.total}: ${totalCount}`}</p>
                 { currentLabel !== undefined ? (
                   <p>{`${currentLabel}: ${currentCount}`}</p>
                 ) : undefined }
@@ -71,7 +76,7 @@ export class Footer extends React.Component<FooterProps> {
                   <div className='simple-center'>
                     <input
                       type='button'
-                      value='New Game'
+                      value={strings.newGame}
                       onClick={onNewGameClick}
                       className='footer__new-game simple-button simple-center__vertical-inner' />
                   </div>
@@ -84,8 +89,8 @@ export class Footer extends React.Component<FooterProps> {
                     className='footer__layout-selector simple-selector'
                     value={stringifyBrowsePageLayout(layout)}
                     onChange={this.onLayoutChange}>
-                    <option value='list'>List</option>
-                    <option value='grid'>Grid</option>
+                    <option value='list'>{strings.list}</option>
+                    <option value='grid'>{strings.grid}</option>
                   </select>
                 </div>
               </div>

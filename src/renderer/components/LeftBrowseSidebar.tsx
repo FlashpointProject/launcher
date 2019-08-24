@@ -6,6 +6,8 @@ import { IGamePlaylist } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItem } from './PlaylistItem';
+import { LangContext } from '../util/lang';
+import { BrowseLang } from 'src/shared/lang/types';
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -40,6 +42,8 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     };
   }
 
+  static contextType = LangContext;
+
   private filterAndSortPlaylists(): IGamePlaylist[] {
     const { central, currentLibrary } = this.props;
     let playlists = central.playlists.playlists.slice();
@@ -56,6 +60,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
   }
 
   render() {
+    const strings : BrowseLang = this.context.browse;
     const { central, onShowAllClick, preferencesData, selectedPlaylistID } = this.props;
     const { isEditing } = this.state;
     const editingDisabled = !preferencesData.enableEditing;
@@ -111,13 +116,13 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
               </div>
             ) : ( // Failed to load
               <div className='playlist-list__message'>
-                <h2>Failed to load playlist folder.</h2>
-                <p>Check the log for more information.</p>
+                <h2>{strings.failedToLoadPlaylistFolder}</h2>
+                <p>{strings.checkLogForInfo}</p>
               </div>
             )
           ) : ( // Loading
             <div className='playlist-list__message'>
-              <p>Loading Playlists...</p>
+              <p>{strings.loadingPlaylists}</p>
             </div>
           ) }
       </div>

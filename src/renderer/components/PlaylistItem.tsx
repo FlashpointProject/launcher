@@ -6,6 +6,7 @@ import { gameIdDataType } from '../Util';
 import { ConfirmButton } from './ConfirmButton';
 import { EditableTextElement, EditableTextElementArgs } from './EditableTextElement';
 import { OpenIcon } from './OpenIcon';
+import { LangContext } from '../util/lang';
 
 export type PlaylistItemProps = {
   /** Playlist to display. */
@@ -58,6 +59,8 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
   wrapperRef: React.RefObject<HTMLDivElement> = React.createRef();
   width: number = 0;
   height: number = 0;
+
+  static contextType = LangContext
 
   constructor(props: PlaylistItemProps) {
     super(props);

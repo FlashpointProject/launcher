@@ -34,7 +34,7 @@ import { downloadAndInstallUpgrade } from './util/upgrade';
 import which = require('which');
 import { LangManager } from './lang/LangManager';
 import { LangContext, getDefaultLocalization } from './util/lang';
-import { LangContainer } from 'src/shared/lang/interfaces';
+import { LangContainer } from '../shared/lang/types';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -178,7 +178,7 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
     // Listen for changes to lang files
-    this.props.langManager.on('update',   item => { console.log(item); this.setState({lang: item}); });
+    this.props.langManager.on('update',   item => { this.setState({lang: item}); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {

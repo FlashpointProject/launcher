@@ -12,6 +12,8 @@ import { uuid } from '../../uuid';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CurateBox } from '../CurateBox';
 import { SimpleButton } from '../SimpleButton';
+import { LangContext } from '../../util/lang';
+import { CurateLang } from '../../../shared/lang/types';
 
 export type CuratePageProps = {
   /** Game manager to add imported curations to. */
@@ -22,6 +24,7 @@ export type CuratePageProps = {
 
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
+  const strings : CurateLang = React.useContext(LangContext).curate;
   const [state, dispatch] = useContext(CurationContext.context);
   // Get default curation game meta values
   const defaultGameMetaValues = useMemo(() => {
@@ -189,16 +192,16 @@ export function CuratePage(props: CuratePageProps) {
           </div>
           <div className='curate-page-top__right'>
             <SimpleButton
-              value='Load Meta'
-              title='Load one or more Curation meta files.'
+              value={strings.loadMeta}
+              title={strings.loadMetaDesc}
               onClick={onLoadMetaClick} />
             <SimpleButton
-              value='Load Archive'
-              title='Load one or more Curation archives.'
+              value={strings.loadArchive}
+              title={strings.loadArchiveDesc}
               onClick={onLoadCurationArchiveClick} />
             <SimpleButton
-              value='Load Folder'
-              title='Load one or more Curation folders.'
+              value={strings.loadFolder}
+              title={strings.loadFolderDesc}
               onClick={onLoadCurationFolderClick} />
           </div>
         </div>

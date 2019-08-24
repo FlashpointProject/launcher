@@ -20,7 +20,8 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
 import { LangContext } from '../../util/lang';
-import { HomeLang } from 'src/shared/lang/interfaces';
+import { HomeLang } from '../../../shared/lang/types';
+import { formatString } from '../../../shared/utils/StringFormatter';
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -46,7 +47,7 @@ export class HomePage extends React.Component<HomePageProps> {
   static contextType = LangContext;
 
   render() {
-    const strings = this.context.home;
+    const strings : HomeLang = this.context.home;
 
     const {
       onDownloadTechUpgradeClick,
@@ -96,19 +97,19 @@ export class HomePage extends React.Component<HomePageProps> {
             <div className='home-page__box__head'>{strings.quickStartHeader}</div>
             <ul className='home-page__box__body'>
               <QuickStartItem icon='badge'>
-                {/* {strings.formatString(strings.hallOfFameInfo, <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>{strings.hallOfFame}</Link>)} */}
+                {formatString(strings.hallOfFameInfo, <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>{strings.hallOfFame}</Link>)}
               </QuickStartItem>
               <QuickStartItem icon='play-circle'>
-                {/* {strings.formatString(strings.allGamesInfo, <Link to={joinLibraryRoute('arcade')} onClick={this.onAllGamesClick}>{strings.allGames}</Link>)} */}
+                {formatString(strings.allGamesInfo, <Link to={joinLibraryRoute('arcade')} onClick={this.onAllGamesClick}>{strings.allGames}</Link>)}
               </QuickStartItem>
               <QuickStartItem icon='video'>
-                {/* {strings.formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute('theatre')} onClick={this.onAllAnimationsClick}>{strings.allAnimations}</Link>)} */}
+                {formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute('theatre')} onClick={this.onAllAnimationsClick}>{strings.allAnimations}</Link>)}
               </QuickStartItem>
               <QuickStartItem icon='wrench'>
-                {/* {strings.formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)} */}
+                {formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)}
               </QuickStartItem>
               <QuickStartItem icon='info'>
-                {/* {strings.formatString(strings.helpInfo, <Link to='#' onClick={this.onHelpClick}>{strings.help}</Link>)} */}
+                {formatString(strings.helpInfo, <Link to='#' onClick={this.onHelpClick}>{strings.help}</Link>)}
               </QuickStartItem>
             </ul>
           </div>

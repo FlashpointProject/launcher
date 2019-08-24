@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
+import { LangContext } from '../util/lang';
+import { GameLang } from 'src/shared/lang/types';
 
 export type GameOrderProps = {
   /** Called when the either the property to order by, or what way to order in, is changed. */
@@ -20,7 +22,12 @@ export type GameOrderChangeEvent = {
  * the second for selecting what way to order the games in.
  */
 export class GameOrder extends React.Component<GameOrderProps> {
+
+  static contextType = LangContext;
+
   render() {
+    const strings : GameLang = this.context.game;
+
     return (
       <>
         {/* Order By */}
@@ -28,19 +35,19 @@ export class GameOrder extends React.Component<GameOrderProps> {
           className='simple-selector'
           value={this.props.orderBy}
           onChange={this.onOrderByChange}>
-          <option value='dateAdded'>Date Added</option>
-          <option value='genre'>Genre</option>
-          <option value='platform'>Platform</option>
-          <option value='series'>Series</option>
-          <option value='title'>Title</option>
+          <option value='dateAdded'>{strings.dateAdded}</option>
+          <option value='genre'>{strings.genre}</option>
+          <option value='platform'>{strings.platform}</option>
+          <option value='series'>{strings.series}</option>
+          <option value='title'>{strings.title}</option>
         </select>
         {/* Order Reverse */}
         <select
           className='simple-selector'
           value={this.props.orderReverse}
           onChange={this.onOrderReverseChange}>
-          <option value='ascending'>Ascending</option>
-          <option value='descending'>Descending</option>
+          <option value='ascending'>{strings.ascending}</option>
+          <option value='descending'>{strings.descending}</option>
         </select>
       </>
     );

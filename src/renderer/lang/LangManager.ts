@@ -4,7 +4,7 @@ import { EventQueue } from '../util/EventQueue';
 import * as path from 'path';
 import { getDefaultLocalization } from '../util/lang';
 import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
-import { LangContainer } from 'src/shared/lang/interfaces';
+import { LangContainer } from '../../shared/lang/types';
 
 export interface ILangStrings {
   /** Kept for the watcher to keep track of ownership */

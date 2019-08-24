@@ -7,6 +7,8 @@ import { SearchQuery } from '../store/search';
 import { easterEgg, joinLibraryRoute } from '../Util';
 import { GameOrder, GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
+import { LangContext } from '../util/lang';
+import { AppLang } from 'src/shared/lang/types';
 
 type OwnProps = {
   /** The most recent search query. */
@@ -34,6 +36,8 @@ type HeaderState = {
 export class Header extends React.Component<HeaderProps, HeaderState> {
   searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
 
+  static contextType = LangContext;
+
   constructor(props: HeaderProps) {
     super(props);
     this.state = {
@@ -50,6 +54,8 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   }
 
   render() {
+    const strings : AppLang = this.context.app;
+
     const {
       preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab },
       libraryData: { libraries },
@@ -61,7 +67,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         {/* Header Menu */}
         <div className='header__wrap'>
           <ul className='header__menu'>
-            <MenuItem title='Home' link={Paths.HOME} />
+            <MenuItem title={strings.home} link={Paths.HOME} />
             { libraries.length > 0 ? (
               libraries.map(item => (
                 <MenuItem
@@ -71,26 +77,26 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
               ))
             ) : (
               <MenuItem
-                title='Browse'
+                title={strings.browse}
                 link={Paths.BROWSE} />
             ) }
             <MenuItem
-              title='Logs'
+              title={strings.logs}
               link={Paths.LOGS} />
             <MenuItem
-              title='Config'
+              title={strings.config}
               link={Paths.CONFIG} />
             <MenuItem
-              title='About'
+              title={strings.about}
               link={Paths.ABOUT} />
             { enableEditing ? (
               <MenuItem
-                title='Curate'
+                title={strings.curate}
                 link={Paths.CURATE} />
             ) : undefined }
             { showDeveloperTab ? (
               <MenuItem
-                title='Developer'
+                title={strings.developer}
                 link={Paths.DEVELOPER} />
             ) : undefined }
           </ul>
@@ -104,7 +110,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                   className='header__search__input'
                   ref={this.searchInputRef}
                   value={searchText}
-                  placeholder='Search...'
+                  placeholder={strings.searchPlaceholder}
                   onChange={this.onSearchChange}
                   onKeyDown={this.onSearchKeyDown} />
               </div>
@@ -135,14 +141,14 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             {/* Toggle Right Sidebar */}
             <div
               className='header__toggle-sidebar'
-              title={browsePageShowRightSidebar ? 'Hide right sidebar' : 'Show right sidebar'}
+              title={browsePageShowRightSidebar ? strings.hideRightSidebar : strings.showRightSidebar}
               onClick={onToggleRightSidebarClick}>
               <OpenIcon icon={browsePageShowRightSidebar ? 'collapse-right' : 'expand-right'} />
             </div>
             {/* Toggle Left Sidebar */}
             <div
               className='header__toggle-sidebar'
-              title={browsePageShowLeftSidebar ? 'Hide left sidebar' : 'Show left sidebar'}
+              title={browsePageShowLeftSidebar ? strings.hideLeftSidebar : strings.showLeftSidebar}
               onClick={onToggleLeftSidebarClick}>
               <OpenIcon icon={browsePageShowLeftSidebar ? 'collapse-left' : 'expand-left'} />
             </div>

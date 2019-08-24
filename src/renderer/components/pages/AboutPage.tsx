@@ -3,6 +3,9 @@ import { versionNumberToText } from '../../../shared/Util';
 import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
+import { LangContext } from '../../util/lang';
+import { string } from 'prop-types';
+import { AboutLang } from 'src/shared/lang/types';
 
 export type AboutPageProps = {
   /** Credits data (if any). */
@@ -23,40 +26,43 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     this.state = {};
   }
 
+  static contextType = LangContext;
+
   render() {
+    const strings : AboutLang = this.context.about;
     const { profile } = this.state;
     const { creditsData, creditsDoneLoading } = this.props;
     return (
       <div className='about-page simple-scroll'>
         <div className='about-page__inner'>
           <div className='about-page__top'>
-            <h1 className='about-page__title'>About</h1>
+            <h1 className='about-page__title'>{strings.aboutHeader}</h1>
             <CreditsTooltip profile={profile} />
             <div className='about-page__columns simple-columns'>
               {/* Left Column */}
               <div className='about-page__columns__left simple-columns__column'>
                 {/* About Flashpoint */}
                 <div className='about-page__section'>
-                  <p className='about-page__section__title'>BlueMaxima's Flashpoint</p>
+                  <p className='about-page__section__title'>{strings.flashpoint}</p>
                   <div className='about-page__section__content'>
                     <p className='about-page__section__content__description'>
-                      The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.
+                      {strings.flashpointDesc}
                     </p>
                     <div className='about-page__section__links'>
-                      {link('Website', 'http://bluemaxima.org/flashpoint/')}
+                      {link(strings.website, 'http://bluemaxima.org/flashpoint/')}
                       {link('Discord', 'https://discord.gg/Nc3DScn')}
                     </div>
                   </div>
                 </div>
                 {/* About Flashpoint Launcher */}
                 <div className='about-page__section'>
-                  <p className='about-page__section__title'>Flashpoint Launcher</p>
+                  <p className='about-page__section__title'>{strings.flashpointLauncher}</p>
                   <div className='about-page__section__content'>
                     <p className='about-page__section__content__description'>
-                      An open-source desktop application used to browse, manage and play games from the Flashpoint project.
+                      {strings.flashpointLauncherDesc}
                     </p>
-                    <p><b>Version:</b> {versionNumberToText(window.External.misc.version)} ({window.External.misc.version})</p>
-                    <p><b>License:</b> MIT (Read the file named "LICENSE" for more information)</p>
+                    <p><b>{strings.version}:</b> {versionNumberToText(window.External.misc.version)} ({window.External.misc.version})</p>
+                    <p><b>{strings.license}:</b> {strings.licenseInfo}</p>
                     <div className='about-page__section__links'>
                       {link('Github', 'https://github.com/FlashpointProject/launcher')}
                     </div>
@@ -67,7 +73,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
               <div className='about-page__columns__right simple-columns__column'>
                 {/* Credits */}
                 <div className='about-page__credits'>
-                  <div className='about-page__credits__title'>Credits</div>
+                  <div className='about-page__credits__title'>{strings.creditsHeader}</div>
                   <div className='about-page__credits__profiles'>
                     { (creditsDoneLoading && creditsData) ? (
                       creditsData.profiles.map((profile, index) => (

@@ -34,6 +34,7 @@ import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
+import { LangContext } from 'src/renderer/util/lang';
 
 const writeFile = promisify(fs.writeFile);
 

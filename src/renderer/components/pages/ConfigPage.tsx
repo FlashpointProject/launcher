@@ -10,6 +10,7 @@ import { DropdownInputField } from '../DropdownInputField';
 import { remote } from 'electron';
 import which = require('which');
 import { LangContext } from '../../util/lang';
+import { ConfigLang } from '../../../shared/lang/types';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
@@ -55,7 +56,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   render() {
-    const strings = this.context.config;
+    const strings : ConfigLang = this.context.config;
     console.log(strings);
 
     return (
