@@ -8,6 +8,8 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageGameScale: 0.087,
   browsePageShowExtreme: false,
   enableEditing: true,
+  defaultLanguage: 'en',
+  currentLanguage: 'en',
   browsePageLayout: BrowsePageLayout.grid,
   browsePageShowLeftSidebar: true,
   browsePageShowRightSidebar: true,
@@ -50,6 +52,8 @@ export function overwritePreferenceData(
   parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
   parser.prop('browsePageShowExtreme',       v => source.browsePageShowExtreme       = !!v);
   parser.prop('enableEditing',               v => source.enableEditing               = !!v);
+  parser.prop('defaultLanguage',             v => source.defaultLanguage             = str(v));
+  parser.prop('currentLanguage',             v => source.currentLanguage             = str(v));
   parser.prop('browsePageLayout',            v => source.browsePageLayout            = num(v));
   parser.prop('browsePageShowLeftSidebar',   v => source.browsePageShowLeftSidebar   = !!v);
   parser.prop('browsePageShowRightSidebar',  v => source.browsePageShowRightSidebar  = !!v);

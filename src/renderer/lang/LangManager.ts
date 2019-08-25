@@ -5,6 +5,7 @@ import * as path from 'path';
 import { getDefaultLocalization } from '../util/lang';
 import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
 import { LangContainer } from '../../shared/lang/types';
+import { defaultCellRangeRenderer, WindowScroller } from 'react-virtualized';
 
 export interface ILangStrings {
   /** Kept for the watcher to keep track of ownership */
@@ -38,8 +39,8 @@ export class LangManager extends WrappedEventEmitter {
   /** All loaded localized strings */
   private items: ILangStrings[] = [];
 
-  /** Working copy of LocalizedStrings for each page */
-  private defaultLang: LangContainer = getDefaultLocalization();
+  /** Default langugage (member names) to fall back on */
+  private defaultLang: ILangStrings = { path: '', language: 'default', data: getDefaultLocalization() };
 
   constructor() {
     super();
@@ -121,10 +122,21 @@ export class LangManager extends WrappedEventEmitter {
   }
 
   /**
-   * Update the working copy of localized strings with any loaded language files
+   * Emit a new copy of language data - 'update' event
    */
   private updateLocalization() {
-    this.emit('update', recursiveReplace(deepCopy(this.defaultLang),  this.items[0].data));
+    let fallback : ILangStrings | undefined = this.items.find(item => item.language === window.External.preferences.getData().defaultLanguage);
+    let current : ILangStrings | undefined = this.items.find(item => item.language === window.External.preferences.getData().currentLanguage);
+
+    if (fallback === undefined || fallback === current) {
+      fallback = this.defaultLang;
+    }
+
+    if (current === undefined) {
+      current = this.defaultLang;
+    }
+
+    this.emit('update', recursiveReplace(deepCopy(fallback.data), current.data));
   }
 
   private log(content: string): void {
