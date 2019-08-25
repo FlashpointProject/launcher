@@ -97,6 +97,7 @@ export function getDefaultLocalization() : LangContainer {
       title: 'title',
       ascending: 'ascending',
       descending: 'descending',
+      developer: 'developer'
     },
     developer:{
       developerHeader: 'developerHeader',
@@ -195,7 +196,12 @@ export function getDefaultLocalization() : LangContainer {
       loadArchive: 'loadArchive',
       loadArchiveDesc: 'loadArchiveDesc',
       loadFolder: 'loadFolder',
-      loadFolderDesc: 'loadFolderDesc'
+      loadFolderDesc: 'loadFolderDesc',
+      heading: 'heading',
+      noHeading: 'noHeading',
+      curationNotes: 'curationNotes',
+      noCurationNotes: 'noCurationNotes',
+      import: 'import'
     },
     misc:{
       blankNotFound: '{0} blankNotFound',

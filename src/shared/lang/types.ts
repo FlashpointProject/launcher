@@ -114,6 +114,7 @@ export type GameLang = LangObject<
   'platform' |
   'series' |
   'title' |
+  'developer' |
   'ascending' |
   'descending'
 >;
@@ -218,7 +219,12 @@ export type CurateLang = LangObject<
   'loadArchive' |
   'loadArchiveDesc' |
   'loadFolder' |
-  'loadFolderDesc'
+  'loadFolderDesc' |
+  'heading' |
+  'noHeading' |
+  'curationNotes' |
+  'noCurationNotes' |
+  'import'
 >;
 
 export type MiscLang = LangObject<
