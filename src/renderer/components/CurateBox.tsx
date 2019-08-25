@@ -20,6 +20,7 @@ import { DropdownInputField } from './DropdownInputField';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 import { LangContext } from '../util/lang';
+import { CurateLang, MiscLang } from 'src/shared/lang/types';
 
 const fsStat = promisify(fs.stat);
 
@@ -230,21 +231,21 @@ export function CurateBox(props: CurateBoxProps) {
       </div>
       <hr className='curate-box-divider' />
       {/* Fields */}
-      <CurateBoxRow title={strings.game.title + ':'}>
+      <CurateBoxRow title={strings.filter.title + ':'}>
         <InputField
           text={props.curation && props.curation.meta.title || ''}
           placeholder={strings.browse.noTitle}
           onChange={onTitleChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title={strings.game.series + ':'}>
+      <CurateBoxRow title={strings.filter.series + ':'}>
         <InputField
           text={props.curation && props.curation.meta.series || ''}
           placeholder={strings.browse.noSeries}
           onChange={onSeriesChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title={strings.game.developer + ':'}>
+      <CurateBoxRow title={strings.filter.developer + ':'}>
         <InputField
           text={props.curation && props.curation.meta.developer || ''}
           placeholder={strings.browse.noDeveloper}
@@ -396,7 +397,8 @@ export function CurateBox(props: CurateBoxProps) {
       <div className='curate-box-buttons'>
         <ConfirmElement
           onConfirm={onRemoveClick}
-          children={renderRemoveButton} />
+          children={renderRemoveButton}
+          extra={strings.curate} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.import}
@@ -406,15 +408,15 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function renderRemoveButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
   return (
     <SimpleButton
       className={
         'curate-box-buttons__button' +
         ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
       }
-      value='Remove'
-      title='Remove this curation (no changes will be made to any files)'
+      value={extra.remove}
+      title={extra.removeCurationDesc}
       onClick={activate}
       onMouseLeave={reset} />
   );
@@ -459,6 +461,8 @@ function useOnInputChange(property: keyof EditCurationMeta, key: string | undefi
 }
 
 function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
+  const strings = React.useContext(LangContext);
+
   return useCallback((checked: boolean) => {
     if (key !== undefined) {
       dispatch({
@@ -466,7 +470,7 @@ function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | und
         payload: {
           key: key,
           property: property,
-          value: boolToString(checked)
+          value: boolToString(checked, strings.misc)
         }
       });
     }
@@ -533,8 +537,8 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
  * Convert a boolean to a string ("Yes" or "No").
  * @param bool Boolean to convert.
  */
-function boolToString(bool: boolean): string {
-  return bool ? 'Yes' : 'No';
+function boolToString(bool: boolean, strings : MiscLang): string {
+  return bool ? strings.yes : strings.no;
 }
 
 /**

@@ -34,7 +34,7 @@ export function CuratePage(props: CuratePageProps) {
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
     if (games && gameImages && state.curations.length > 0) {
-      console.log(`Starting "Import All"... (${state.curations.length} curations)`);
+      console.log(`${strings.startingImportAll}... (${state.curations.length} curations)`);
       // Lock all curations
       dispatch({
         type: 'change-curation-lock-all',
@@ -45,7 +45,7 @@ export function CuratePage(props: CuratePageProps) {
         let success = 0;
         for (let curation of state.curations) {
           // Log status
-          console.log(`Importing... (id: ${curation.key})`);
+          console.log(`${strings.importing} (id: ${curation.key})`);
           // Try importing curation
           try {
             // Import curation (and wait for it to complete)
@@ -53,7 +53,7 @@ export function CuratePage(props: CuratePageProps) {
             // Increment success counter
             success += 1;
             // Log status
-            console.log(`Import SUCCESSFUL! (id: ${curation.key})`);
+            console.log(`${strings.importSuccessful} (id: ${curation.key})`);
             // Remove the curation
             dispatch({
               type: 'remove-curation',
@@ -61,7 +61,7 @@ export function CuratePage(props: CuratePageProps) {
             });
           } catch (error) {
             // Log error
-            console.log(`Import FAILED! (id: ${curation.key})`, error);
+            console.log(`${strings.importFailed} (id: ${curation.key})`, error);
             // Unlock the curation
             dispatch({
               type: 'change-curation-lock',
@@ -75,7 +75,7 @@ export function CuratePage(props: CuratePageProps) {
         // Log state
         const total = state.curations.length;
         console.log(
-          '"Import All" complete!\n'+
+          `${strings.importAllComplete}\n`+
           `  Total:   ${total}\n`+
           `  Success: ${success} (${100 * (success / total)}%)\n`+
           `  Failed:  ${total - success}`
@@ -188,7 +188,8 @@ export function CuratePage(props: CuratePageProps) {
           <div className='curate-page-top__left'>
             <ConfirmElement
               onConfirm={onImportAllClick}
-              children={renderImportAllButton} />
+              children={renderImportAllButton}
+              extra={strings} />
           </div>
           <div className='curate-page-top__right'>
             <SimpleButton
@@ -212,12 +213,12 @@ export function CuratePage(props: CuratePageProps) {
   ), [curateBoxes, onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick]);
 }
 
-function renderImportAllButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value='Import All'
-      title='Import all curations that are currently loaded.'
+      value={extra.importAll}
+      title={extra.importAllDesc}
       onClick={activate}
       onMouseLeave={reset} />
   );

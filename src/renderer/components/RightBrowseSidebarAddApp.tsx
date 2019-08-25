@@ -6,7 +6,7 @@ import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { LangContext } from '../util/lang';
 import { string } from 'prop-types';
-import { BrowseLang } from 'src/shared/lang/types';
+import { BrowseLang, LangContainer } from 'src/shared/lang/types';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */
@@ -94,7 +94,8 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
               { !editDisabled ? (
                 <ConfirmElement
                   onConfirm={this.onDeleteClick}
-                  children={this.renderDeleteButton} />
+                  children={this.renderDeleteButton}
+                  extra={strings} />
               ) : undefined}
             </div>
           </>
@@ -103,12 +104,12 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     );
   }
 
-  renderDeleteButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+  renderDeleteButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
     const className = 'browse-right-sidebar__additional-application__delete-button';
     return (
       <div
         className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
-        title='Delete Additional Application'
+        title={extra.deleteAdditionalApplication}
         onClick={activate}
         onMouseLeave={reset}>
         <OpenIcon icon='trash' />

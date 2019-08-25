@@ -73,7 +73,8 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             <p>{formatString(strings.removeBlank, text)}</p>
             <ConfirmElement
               onConfirm={onRemoveClick}
-              children={renderDeleteImageButton}/>
+              children={renderDeleteImageButton}
+              extra={strings}/>
           </div>
         ) }
       </div>
@@ -101,14 +102,14 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   }
 }
 
-function renderDeleteImageButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<MiscLang>): JSX.Element {
   return (
     <div
       className={
         'game-image-split__buttons__remove-image' +
         ((activationCounter > 0) ? ' game-image-split__buttons__remove-image--active simple-vertical-shake' : '')
       }
-      title='Delete Image (delete ALL images of this game of the same type)'
+      title={extra.deleteAllImages}
       onClick={activate}
       onMouseLeave={reset}>
       <OpenIcon icon='trash' />

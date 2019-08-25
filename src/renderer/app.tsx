@@ -8,7 +8,7 @@ import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
-import { versionNumberToText } from '../shared/Util';
+import { versionNumberToText, stringifyJsonDataFile } from '../shared/Util';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
@@ -34,7 +34,7 @@ import { downloadAndInstallUpgrade } from './util/upgrade';
 import which = require('which');
 import { LangManager } from './lang/LangManager';
 import { LangContext, getDefaultLocalization } from './util/lang';
-import { LangContainer, Language } from '../shared/lang/types';
+import { LangContainer, Language, MiscLang } from '../shared/lang/types';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -120,10 +120,10 @@ export class App extends React.Component<AppProps, AppState> {
       }
     };
     // Initialize app
-    this.init();
+    this.init(this.state.lang);
   }
 
-  init() {
+  init(strings : LangContainer) {
     const fullFlashpointPath = window.External.config.fullFlashpointPath;
     const fullJsonFolderPath = window.External.config.fullJsonFolderPath;
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
@@ -279,9 +279,8 @@ export class App extends React.Component<AppProps, AppState> {
           log('Warning : PHP not found in path, may cause unexpected behaviour.');
           remote.dialog.showMessageBox({
             type: 'error',
-            title: 'Program not found!',
-            message: 'PHP was not found on the path. Is it installed?\n' +
-                    'Running without PHP may cause unexpected behaviour.',
+            title: strings.misc.programNotFound,
+            message: strings.misc.phpNotFound,
             buttons: ['Ok']
           } );
         }
@@ -294,9 +293,8 @@ export class App extends React.Component<AppProps, AppState> {
             log('Warning : Wine is enabled but it was not found on the path.');
             remote.dialog.showMessageBox({
               type: 'error',
-              title: 'Program not found!',
-              message: 'Wine is enabled but not found on the path. Is it installed?\n' +
-                      'Some games may not be available without Wine',
+              title: strings.misc.programNotFound,
+              message: strings.misc.wineNotFound,
               buttons: ['Ok']
             } );
           }

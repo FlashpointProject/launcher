@@ -7,6 +7,7 @@ import { ConfirmButton } from './ConfirmButton';
 import { EditableTextElement, EditableTextElementArgs } from './EditableTextElement';
 import { OpenIcon } from './OpenIcon';
 import { LangContext } from '../util/lang';
+import { PlaylistLang } from 'src/shared/lang/types';
 
 export type PlaylistItemProps = {
   /** Playlist to display. */
@@ -93,6 +94,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
   }
 
   render() {
+    const strings : PlaylistLang = this.context.playlist;
     const playlist = this.state.editPlaylist || this.props.playlist;
     const expanded = !!this.props.expanded;
     const editingDisabled = !!this.props.editingDisabled;
@@ -174,9 +176,9 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
                   { editing ? (
                     <input
                       type='button'
-                      value='Save'
+                      value={strings.save}
+                      title={strings.saveDesc}
                       className='simple-button'
-                      title='Save changes made and stop editing'
                       onClick={this.onSaveClick}
                       disabled={!this.state.hasChanged} />
                   ) : undefined }
@@ -184,12 +186,12 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
                   { editing ? (
                     <ConfirmButton
                       props={{
-                        value: 'Discard',
-                        title: 'Discard the changes made and stop editing',
+                        value: strings.discard,
+                        title: strings.discardDesc,
                         className: 'simple-button'
                       }}
                       confirm={{
-                        value: 'Are you sure?',
+                        value: strings.areYouSure,
                         className: 'simple-button simple-button--red simple-vertical-shake'
                       }}
                       skipConfirm={!this.state.hasChanged}
@@ -197,20 +199,20 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
                   ) : (
                     <input
                       type='button'
-                      value='Edit'
+                      value={strings.edit}
+                      title={strings.editDesc}
                       className='simple-button'
-                      title='Start editing this playlist'
                       onClick={this.onEditClick} />
                   ) }
                   {/* Delete Button */}
                   <ConfirmButton
                     props={{
-                      value: 'Delete',
-                      title: 'Delete this playlist',
+                      value: strings.delete,
+                      title: strings.deleteDesc,
                       className: 'simple-button'
                     }}
                     confirm={{
-                      value: 'Are you sure?',
+                      value: strings.areYouSure,
                       className: 'simple-button simple-button--red simple-vertical-shake'
                     }}
                     onConfirm={this.onDeleteClick} />
@@ -222,7 +224,8 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
               text={playlist.description}
               onEditConfirm={this.onDescriptionEditDone}
               editable={editing}
-              children={this.renderDescription} />
+              children={this.renderDescription}
+              extra={strings} />
           </div>
         </div>
       </div>
@@ -257,12 +260,14 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
     };
   }
 
-  renderDescription = (o: EditableTextElementArgs) => {
+  renderDescription = (o: EditableTextElementArgs<PlaylistLang>) => {
+    const strings : PlaylistLang = o.extra;
+
     if (o.editing) {
       return (
         <textarea
           value={o.text}
-          placeholder='Enter a description here...'
+          placeholder={strings.enterDescriptionHere}
           onChange={o.onInputChange}
           onKeyDown={o.onInputKeyDown}
           autoFocus
@@ -276,7 +281,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
         <p
           onClick={o.startEdit}
           className={className}>
-          {o.text || '< No Description >'}
+          {o.text || '< ' + strings.noDescription +' >'}
         </p>
       );
     }

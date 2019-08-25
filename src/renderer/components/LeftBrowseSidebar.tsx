@@ -78,7 +78,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
                     <OpenIcon icon='eye' />
                   </div>
                   <div className='playlist-list-fake-item__inner'>
-                    <p className='playlist-list-fake-item__inner__title'>All Games</p>
+                    <p className='playlist-list-fake-item__inner__title'>{strings.allGames}</p>
                   </div>
                 </div>
                 {/* List all playlists */}
@@ -109,7 +109,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
                       <OpenIcon icon='plus' />
                     </div>
                     <div className='playlist-list-fake-item__inner'>
-                      <p className='playlist-list-fake-item__inner__title'>New Playlist</p>
+                      <p className='playlist-list-fake-item__inner__title'>{strings.newPlaylist}</p>
                     </div>
                   </div>
                 ) }

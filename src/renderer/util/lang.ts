@@ -63,6 +63,10 @@ export function getDefaultLocalization() : LangContainer {
       notesHeader: 'notesHeader',
       notes: 'notes',
       randomPicks: 'randomPicks',
+      upgradesTech: 'upgradesTech',
+      upgradesTechDesc: 'upgradesTechDesc',
+      upgradesScreenshots: 'upgradesScreenshots ({0})',
+      upgradesScreenshotsDesc: 'upgradesScreenshotsDesc ({0})'
     },
     logs:{
       filters: 'filters',
@@ -89,7 +93,7 @@ export function getDefaultLocalization() : LangContainer {
       list: 'list',
       grid: 'grid'
     },
-    game:{
+    filter:{
       dateAdded: 'dateAdded',
       genre: 'genre',
       platform: 'platform',
@@ -188,9 +192,19 @@ export function getDefaultLocalization() : LangContainer {
       loadingPlaylists: 'loadingPlaylists',
       titlePlaceholder: 'titlePlaceholder',
       author: 'author',
-      authorPlaceholder: 'authorPlaceholder'
+      authorPlaceholder: 'authorPlaceholder',
+      deleteAdditionalApplication: 'deleteAdditionalApplication',
+      deleteGameAndAdditionalApps: 'deleteGameAndAdditionalApps',
+      removeGameFromPlaylist: 'removeGameFromPlaylist',
+      saveChanges: 'saveChanges',
+      discardChanges: 'discardChanges',
+      editGame: 'editGame',
+      allGames: 'allGames',
+      newPlaylist: 'newPlaylist'
     },
     curate:{
+      importAll: 'importAll',
+      importAllDesc: 'importAllDesc',
       loadMeta: 'loadMeta',
       loadMetaDesc: 'loadMetaDesc',
       loadArchive: 'loadArchive',
@@ -201,12 +215,43 @@ export function getDefaultLocalization() : LangContainer {
       noHeading: 'noHeading',
       curationNotes: 'curationNotes',
       noCurationNotes: 'noCurationNotes',
-      import: 'import'
+      remove: 'remove',
+      removeDesc: 'removeDesc',
+      removeCurationDesc: 'removeCurationDesc',
+      import: 'import',
+      startingImportAll: 'startingImportAll',
+      importing: 'importing',
+      importSuccessful: 'importSuccessful',
+      importFailed: 'importFailed',
+      importAllComplete: 'importAllComplete'
+    },
+    playlist:{
+      enterDescriptionHere: 'enterDescriptionHere',
+      noDescription: 'noDescription',
+      save: 'save',
+      saveDesc: 'saveDesc',
+      discard: 'discard',
+      discardDesc: 'discardDesc',
+      edit: 'edit',
+      editDesc: 'editDesc',
+      delete: 'delete',
+      deleteDesc: 'deleteDesc',
+      areYouSure: 'areYouSure'
     },
     misc:{
       blankNotFound: '{0} blankNotFound',
       addBlank: 'addBlank {0}',
-      removeBlank: 'removeBlank {0}'
+      removeBlank: 'removeBlank {0}',
+      yes: 'yes',
+      no: 'no',
+      deleteAllImages: 'deleteAllImages',
+      programNotFound: 'programNotFound',
+      phpNotFound: 'phpNotFound',
+      wineNotFound: 'wineNotFound'
+    },
+    menu:{
+      viewThumbnailInFolder: 'viewThumbnailInFolder',
+      viewScreenshotInFolder: 'viewScreenshotInFolder'
     }
   };
 }

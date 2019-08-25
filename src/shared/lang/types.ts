@@ -1,14 +1,18 @@
+import { Menu } from 'electron';
+
 export type LangContainer = {
   config: ConfigLang;
   home: HomeLang;
   logs: LogsLang;
   app: AppLang;
-  game: GameLang;
+  filter: FilterLang;
   developer: DeveloperLang;
   about: AboutLang;
   browse: BrowseLang;
   curate: CurateLang;
+  playlist: PlaylistLang;
   misc: MiscLang;
+  menu: MenuLang;
 }
 
 export type Language = {
@@ -78,7 +82,11 @@ export type HomeLang = LangObject<
   'plannedFeatures' |
   'notesHeader' |
   'notes' |
-  'randomPicks'
+  'randomPicks' |
+  'upgradesTech' |
+  'upgradesTechDesc' |
+  'upgradesScreenshots' |
+  'upgradesScreenshotsDesc'
 >;
 
 export type LogsLang = LangObject<
@@ -108,7 +116,7 @@ export type AppLang = LangObject<
   'grid'
 >;
 
-export type GameLang = LangObject<
+export type FilterLang = LangObject<
   'dateAdded' |
   'genre' |
   'platform' |
@@ -210,10 +218,20 @@ export type BrowseLang = LangObject<
   'loadingPlaylists' |
   'titlePlaceholder' |
   'author' |
-  'authorPlaceholder'
+  'authorPlaceholder' |
+  'deleteAdditionalApplication' |
+  'deleteGameAndAdditionalApps' |
+  'removeGameFromPlaylist' |
+  'saveChanges' |
+  'discardChanges' |
+  'editGame' |
+  'allGames' |
+  'newPlaylist'
 >;
 
 export type CurateLang = LangObject<
+  'importAll' |
+  'importAllDesc' |
   'loadMeta' |
   'loadMetaDesc' |
   'loadArchive' |
@@ -224,14 +242,52 @@ export type CurateLang = LangObject<
   'noHeading' |
   'curationNotes' |
   'noCurationNotes' |
-  'import'
+  'remove' |
+  'removeDesc' |
+  'removeCurationDesc' |
+  'import' |
+  'startingImportAll' |
+  'importing' |
+  'importSuccessful' |
+  'importFailed' |
+  'importAllComplete'
+>;
+
+export type PlaylistLang = LangObject<
+  'enterDescriptionHere' |
+  'noDescription' |
+  'save' |
+  'saveDesc' |
+  'discard' |
+  'discardDesc' |
+  'edit' |
+  'editDesc' |
+  'delete' |
+  'deleteDesc' |
+  'areYouSure'
 >;
 
 export type MiscLang = LangObject<
   'blankNotFound' |
   'addBlank' |
-  'removeBlank'
+  'removeBlank' |
+  'deleteAllImages' |
+  'yes' |
+  'no' |
+  'programNotFound' |
+  'phpNotFound' |
+  'wineNotFound'
 >;
 
+export type MenuLang = LangObject<
+  'viewThumbnailInFolder' |
+  'viewScreenshotInFolder'
+>;
 
+export type ExternalLang = LangObject<
+  'otherTechnologies' |
+  'otherTechnologiesDesc' |
+  'screenshots' |
+  'screenshotsDesc'
+>;
 

@@ -23,7 +23,7 @@ import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { LangContext } from '../util/lang';
 import { string } from 'prop-types';
-import { BrowseLang } from 'src/shared/lang/types';
+import { BrowseLang, LangContainer } from 'src/shared/lang/types';
 
 type OwnProps = {
   gameImages: GameImageCollection;
@@ -137,14 +137,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           {/* "Save" Button */}
                           <div
                             className='browse-right-sidebar__title-row__buttons__save-button'
-                            title='Save Changes'
+                            title={strings.saveChanges}
                             onClick={this.props.onSaveGame}>
                             <OpenIcon icon='check' />
                           </div>
                           {/* "Discard" Button */}
                           <div
                             className='browse-right-sidebar__title-row__buttons__discard-button'
-                            title='Discard Changes'
+                            title={strings.discardChanges}
                             onClick={this.props.onDiscardClick}>
                             <OpenIcon icon='x' />
                           </div>
@@ -155,7 +155,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           { isPlaceholder ? undefined : (
                             <div
                               className='browse-right-sidebar__title-row__buttons__edit-button'
-                              title='Edit Game'
+                              title={strings.editGame}
                               onClick={this.props.onEditClick}>
                               <OpenIcon icon='pencil' />
                             </div>
@@ -164,13 +164,15 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           { gamePlaylistEntry ? (
                             <ConfirmElement
                               onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
-                              children={this.renderRemoveFromPlaylistButton} />
+                              children={this.renderRemoveFromPlaylistButton}
+                              extra={strings} />
                           ) : undefined }
                           {/* "Delete Game" Button */}
                           { (isPlaceholder || isNewGame || gamePlaylistEntry) ? undefined : (
                             <ConfirmElement
                               onConfirm={this.onDeleteGameClick}
-                              children={this.renderDeleteGameButton} />
+                              children={this.renderDeleteGameButton}
+                              extra={strings} />
                           ) }
                         </>
                       ) }
@@ -479,14 +481,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  renderDeleteGameButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+  renderDeleteGameButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
     return (
       <div
         className={
           'browse-right-sidebar__title-row__buttons__delete-game' +
           ((activationCounter > 0) ? ' browse-right-sidebar__title-row__buttons__delete-game--active simple-vertical-shake' : '')
         }
-        title='Delete Game (and Additional Applications)' // TODO: LOCALIZATION
+        title={extra.deleteGameAndAdditionalApps}
         onClick={activate}
         onMouseLeave={reset}>
         <OpenIcon icon='trash' />
@@ -494,14 +496,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     );
   }
 
-  renderRemoveFromPlaylistButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+  renderRemoveFromPlaylistButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
     return (
       <div
         className={
           'browse-right-sidebar__title-row__buttons__remove-from-playlist' +
           ((activationCounter > 0) ? ' browse-right-sidebar__title-row__buttons__remove-from-playlist--active simple-vertical-shake' : '')
         }
-        title='Remove Game from Playlist' // TODO: LOCALIZATION
+        title={extra.removeGameFromPlaylist} // TODO: LOCALIZATION
         onClick={activate}
         onMouseLeave={reset}>
         <OpenIcon icon='circle-x' />
@@ -532,13 +534,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onScreenshotContextMenu = (event: React.MouseEvent) => {
+    const strings : LangContainer = React.useContext(LangContext);
     const { currentGame, gameImages } = this.props;
     const template: MenuItemConstructorOptions[] = [];
     if (currentGame) {
       const thumbnailFilename = gameImages.getThumbnailPath(currentGame);
       const screenshotFilename = gameImages.getScreenshotPath(currentGame);
       template.push({
-        label: 'View Thumbnail in Folder',
+        label: strings.menu.viewThumbnailInFolder,
         click: () => {
           if (thumbnailFilename === undefined) { throw new Error('Can not view thumbnail, thumbnail filename not found'); }
           remote.shell.showItemInFolder(thumbnailFilename.replace(/\//g, '\\'));
@@ -546,7 +549,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         enabled: thumbnailFilename !== undefined
       });
       template.push({
-        label: 'View Screenshot in Folder',
+        label: strings.menu.viewScreenshotInFolder,
         click: () => {
           if (screenshotFilename === undefined) { throw new Error('Can not view screenshot, screenshot filename not found'); }
           remote.shell.showItemInFolder(screenshotFilename.replace(/\//g, '\\'));
