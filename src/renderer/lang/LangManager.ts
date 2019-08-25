@@ -69,7 +69,14 @@ export class LangManager extends WrappedEventEmitter {
       const fullPath = path.join(LangManager.folderPath, offsetPath, filename);
       const item = this.findOwner(fullPath);
       if (item) {
-        this.updateLocalization();
+        const data : any = await LangManager.readLangFile(fullPath, this.log.bind(this));
+        item.data = data;
+        const index = this.items.findIndex(item => item.path === fullPath);
+        this.items.splice(index, 1, item);
+        // Only updated localization if a used language is changed
+        if (item.code === current || item.code === fallback) {
+          this.updateLocalization();
+        }
       } else {
         // Check if it is a potential lang file
         if (filename.endsWith('.json')) {
@@ -83,7 +90,7 @@ export class LangManager extends WrappedEventEmitter {
               data: data
             };
             this.items.push(item);
-            this.log('Loaded ' + item.code + ' language file.');
+            this.log('Loaded ' + item.name + ' language file.');
             // Only updated localization if a used language is added
             if (item.code === current || item.code === fallback) {
               this.updateLocalization();
@@ -105,17 +112,48 @@ export class LangManager extends WrappedEventEmitter {
     const current = window.External.preferences.getData().currentLanguage;
     if (item) {
       this.itemsQueue.push(async () => {
-        const data : any = await LangManager.readLangFile(fullPath, this.log.bind(this));
-        item.data = data;
-        const index = this.items.findIndex(item => item.path === fullPath);
-        this.items.splice(index, 1, item);
-        // Only updated localization if a used language is changed
-        if (item.code === current || item.code === fallback) {
-          this.updateLocalization();
+        try {
+          const data : any = await LangManager.readLangFile(fullPath, this.log.bind(this));
+          const index = this.items.findIndex(item => item.path === fullPath);
+          const nameChanged = data.name !== item.name;
+
+          item.name = data.name;
+          item.data = data;
+          this.items.splice(index, 1, item);
+
+          if (item.code === current || item.code === fallback) {
+            this.updateLocalization();
+          }
+          if (nameChanged) {
+            this.updateLangList();
+          }
+
+          this.log('Reloaded ' + item.name + ' language file');
+        } catch (e) {
+          this.log('Failed to reload ' + item.name + ' language file, keeping old data.');
         }
       });
-      this.log('Reloading ' + item.code + ' language file.');
-
+    } else {
+      this.itemsQueue.push(async () => {
+        try {
+          const data : any = await LangManager.readLangFile(fullPath, this.log.bind(this));
+          const item: ILangStrings = {
+            path: fullPath,
+            code: filename.split('.')[0], // Get name without extension
+            name : data.name,
+            data: data
+          };
+          this.items.push(item);
+          this.log('Loaded ' + item.name + ' language file.');
+          // Only updated localization if a used language is added
+          if (item.code === current || item.code === fallback) {
+            this.updateLocalization();
+          }
+          this.updateLangList();
+        } catch (e) {
+          this.log('Failed to load ' + filename + ' language file.');
+        }
+      });
     }
   }
 
