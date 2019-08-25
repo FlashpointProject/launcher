@@ -312,7 +312,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             <>
               <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
               <br/>
-              <p>{strings.dropGameOnLeft}</p>}
+              <p>{strings.dropGameOnLeft}</p>
             </>
           ) : (
             /* No games found */
@@ -377,51 +377,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     };
   });
 
-  noRowsRenderer = (): JSX.Element => {
-    const strings : BrowseLang = this.context.browse;
-    return (
-      <div className='game-list__no-games'>
-        { this.props.central.gamesDoneLoading ? (
-          this.props.selectedPlaylist ? (
-            /* Empty Playlist */
-            <>
-              <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
-              <br/>
-              <p>{strings.dropGameOnLeft}</p>}
-            </>
-          ) : (
-            /* No games found */
-            <>
-              <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
-              <br/>
-              {(this.props.central.gamesFailedLoading) ? (
-                <>
-                  {strings.setFlashpointPathQuestion}
-                  <br/>
-                  {strings.noteSaveAndRestart}
-                </>
-              ) : (
-                (this.props.central.games.collection.games.length > 0) ? (
-                  <>
-                    {strings.noGameMatchedSearch}
-                  </>
-                ) : (
-                  <>
-                    {strings.thereAreNoGames}
-                  </>
-                )
-              )}
-            </>
-          )
-        ) : (
-          <p>
-            {strings.loadingGames}
-          </p>
-        ) }
-      </div>
-    );
-  }
-
   onLeftSidebarSelectPlaylist = (playlist: IGamePlaylist): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
     if (clearSearch)      { clearSearch();              }
@@ -481,32 +436,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onGameLaunch = (game: IGameInfo): void => {
     const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
     GameLauncher.launchGame(game, addApps);
-  }
-
-  onGameContextMenu = (game: IGameInfo): void => {
-    const strings : MenuLang = this.context.menu;
-    openContextMenu([{
-        label: strings.openFileLocation,
-        click: this.openFileLocationCallback(game)
-      }, {
-        type: 'separator'
-      }, {
-        label: strings.duplicateMetaOnly,
-        click: this.duplicateCallback(game, false),
-        enabled: this.props.preferencesData.enableEditing,
-      }, {
-        label: strings.duplicateMetaAndImages, // ("&&" will be shown as "&")
-        click: this.duplicateCallback(game, true),
-        enabled: this.props.preferencesData.enableEditing,
-      }, {
-        type: 'separator'
-      }, {
-        label: strings.exportMetaOnly,
-        click: this.exportMetaCallback(game)
-      }, {
-        label: strings.exportMetaAndImages, // ("&&" will be shown as "&")
-        click: this.exportMetaAndImagesCallback(game)
-    }]);
   }
 
   /** Create a callback for opening the file location of a game. */
