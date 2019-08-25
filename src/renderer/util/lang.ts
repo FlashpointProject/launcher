@@ -241,7 +241,11 @@ export function getDefaultLocalization() : LangContainer {
       editDesc: 'editDesc',
       delete: 'delete',
       deleteDesc: 'deleteDesc',
-      areYouSure: 'areYouSure'
+      areYouSure: 'areYouSure',
+      noTitle: 'No Title',
+      titlePlaceholder: 'Title...',
+      noAuthor: 'No Author',
+      authorPlaceholder: 'Author...'
     },
     misc:{
       blankNotFound: '{0} blankNotFound',
