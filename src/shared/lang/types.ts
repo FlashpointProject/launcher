@@ -11,6 +11,11 @@ export type LangContainer = {
   misc: MiscLang;
 }
 
+export type Language = {
+  code: string;
+  name: string;
+}
+
 type LangObject<T extends string> = {
   [key in T]: string;
 };
@@ -23,6 +28,12 @@ export type ConfigLang = LangObject<
   'extremeGamesDesc' |
   'enableEditing' |
   'enableEditingDesc' |
+  'currentLanguage' |
+  'currentLanguageDesc' |
+  'fallbackLanguage' |
+  'fallbackLanguageDesc' |
+  'auto' |
+  'none' |
   'flashpointHeader' |
   'flashpointPath' |
   'flashpointPathDesc' |

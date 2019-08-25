@@ -34,7 +34,7 @@ import { downloadAndInstallUpgrade } from './util/upgrade';
 import which = require('which');
 import { LangManager } from './lang/LangManager';
 import { LangContext, getDefaultLocalization } from './util/lang';
-import { LangContainer } from '../shared/lang/types';
+import { LangContainer, Language } from '../shared/lang/types';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -69,6 +69,8 @@ export type AppState = {
   wasNewGameClicked: boolean;
   /** Language strings */
   lang: LangContainer;
+  /** Available Languages */
+  availableLangs: Language[];
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -111,6 +113,7 @@ export class App extends React.Component<AppProps, AppState> {
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
       lang: getDefaultLocalization(),
+      availableLangs: [{code: '<auto>', name: 'Auto'}],
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
@@ -178,7 +181,8 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
     // Listen for changes to lang files
-    this.props.langManager.on('update',   item => { this.setState({lang: item}); });
+    this.props.langManager.on('add',    item => { this.setState({availableLangs : item}); });
+    this.props.langManager.on('update', item => { this.setState({lang: item}); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -344,6 +348,7 @@ export class App extends React.Component<AppProps, AppState> {
     const platforms = this.state.central.games.listPlatforms();
     const route = getBrowseSubPath(this.props.location.pathname);
     const library = findLibraryByRoute(libraries, route);
+    const availableLangs = this.state.availableLangs;
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
     if (this.state.central.gamesDoneLoading) {
@@ -368,6 +373,8 @@ export class App extends React.Component<AppProps, AppState> {
       gameLibraryRoute: route,
       themeItems: this.props.themes.items,
       reloadTheme: this.reloadTheme,
+      languages: availableLangs,
+      updateLocalization: this.updateLocalization,
     };
     // Render
     return (
@@ -507,6 +514,13 @@ export class App extends React.Component<AppProps, AppState> {
     } else { // (Clear the current theme)
       Theme.clear(Theme.findGlobal());
     }
+  }
+
+  /**
+   * Forces localization to be rebuilt
+   */
+  private updateLocalization = (): void => {
+    this.props.langManager.updateLocalization();
   }
 }
 

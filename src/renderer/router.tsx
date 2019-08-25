@@ -17,6 +17,7 @@ import { CentralState } from './interfaces';
 import { Paths } from './Paths';
 import { IGamePlaylist } from './playlist/interfaces';
 import { IThemeListItem } from './theme/ThemeManager';
+import { Language } from 'src/shared/lang/types';
 
 export type AppRouterProps = {
   /** Semi-global prop. */
@@ -38,6 +39,8 @@ export type AppRouterProps = {
   gameLibraryRoute: string;
   themeItems: IThemeListItem[];
   reloadTheme: (themePath: string | undefined) => void;
+  languages: Language[];
+  updateLocalization: () => void;
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -64,7 +67,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const configProps: ConnectedConfigPageProps = {
       themeItems: this.props.themeItems,
-      reloadTheme: this.props.reloadTheme
+      reloadTheme: this.props.reloadTheme,
+      availableLangs: this.props.languages,
+      updateLocalization: this.props.updateLocalization,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,

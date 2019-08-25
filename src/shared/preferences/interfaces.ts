@@ -13,7 +13,7 @@ export type IAppPreferencesData = {
   /** If editing games, additional applications and playlists should be allowed. */
   enableEditing: boolean;
   /** Default language used for fallback */
-  defaultLanguage: string;
+  fallbackLanguage: string;
   /** Current language */
   currentLanguage: string;
   /** Layout of game collection at BrowsePage. */

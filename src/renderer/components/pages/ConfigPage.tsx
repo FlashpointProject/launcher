@@ -10,13 +10,18 @@ import { DropdownInputField } from '../DropdownInputField';
 import { remote } from 'electron';
 import which = require('which');
 import { LangContext } from '../../util/lang';
-import { ConfigLang } from '../../../shared/lang/types';
+import { ConfigLang, Language } from '../../../shared/lang/types';
+import { LangManager } from '../../lang/LangManager';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
   themeItems: IThemeListItem[];
   /** Load and apply a theme. */
   reloadTheme(themePath: string | undefined): void;
+  /** List of available languages. */
+  availableLangs: Language[];
+  /** Method to update localization */
+  updateLocalization: () => void;
 };
 
 export type ConfigPageProps = OwnProps & WithPreferencesProps;
@@ -57,7 +62,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   render() {
     const strings : ConfigLang = this.context.config;
-    console.log(strings);
+    const currentLangs : Language[] = [...[{code: LangManager.autoCode, name: strings.auto}], ...this.props.availableLangs];
+    const fallbackLangs : Language[] = [...[{code: '<none>', name: strings.none}], ...currentLangs];
 
     return (
       <div className='config-page simple-scroll'>
@@ -105,6 +111,54 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                   <div className='setting__row__bottom'>
                     <p>{strings.enableEditingDesc}</p>
+                  </div>
+                </div>
+                {/* Current Language */}
+                <div className='setting__row'>
+                  <div className='setting__row__top'>
+                    <div className='setting__row__title'>
+                      <p>{strings.currentLanguage}</p>
+                    </div>
+                    <div className='setting__row__content setting__row__content--toggle'>
+                      <div>
+                        <select
+                          className='simple-selector'
+                          value={this.props.preferencesData.currentLanguage || ''}
+                          onChange={this.onCurrentLanguageSelect}
+                          >
+                          {currentLangs.map(function(lang : Language, index: number) {
+                              return <option key={index} value={lang.code}>{lang.name || lang.code}</option>;
+                          })}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='setting__row__bottom'>
+                    <p>{strings.currentLanguageDesc}</p>
+                  </div>
+                </div>
+                {/* Fallback Language */}
+                <div className='setting__row'>
+                  <div className='setting__row__top'>
+                    <div className='setting__row__title'>
+                      <p>{strings.fallbackLanguage}</p>
+                    </div>
+                    <div className='setting__row__content setting__row__content--toggle'>
+                      <div>
+                        <select
+                          className='simple-selector'
+                          value={this.props.preferencesData.fallbackLanguage || ''}
+                          onChange={this.onFallbackLanguageSelect}
+                          >
+                          {fallbackLangs.map(function(lang : Language, index: number) {
+                              return <option key={index} value={lang.code}>{lang.name || lang.code}</option>;
+                          })}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='setting__row__bottom'>
+                    <p>{strings.fallbackLanguageDesc}</p>
                   </div>
                 </div>
               </div>
@@ -279,6 +333,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onEnableEditingChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ enableEditing: isChecked });
     this.forceUpdate();
+  }
+
+  onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const code = event.target.value;
+    this.props.updatePreferences({ currentLanguage: code });
+    this.props.updateLocalization();
+  }
+
+  onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const code = event.target.value;
+    this.props.updatePreferences({ fallbackLanguage: code });
+    this.props.updateLocalization();
   }
 
   onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
