@@ -264,7 +264,11 @@ export type PlaylistLang = LangObject<
   'editDesc' |
   'delete' |
   'deleteDesc' |
-  'areYouSure'
+  'areYouSure' |
+  'noTitle' |
+  'titlePlaceholder' |
+  'noAuthor' |
+  'authorPlaceholder'
 >;
 
 export type MiscLang = LangObject<

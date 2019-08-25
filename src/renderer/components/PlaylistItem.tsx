@@ -1,13 +1,14 @@
 import * as React from 'react';
+import { PlaylistLang } from '../../shared/lang/types';
+import { memoizeOne } from '../../shared/memoize';
 import { deepCopy } from '../../shared/Util';
 import { CentralState } from '../interfaces';
 import { IGamePlaylist, IGamePlaylistEntry } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
+import { LangContext } from '../util/lang';
 import { ConfirmButton } from './ConfirmButton';
 import { EditableTextElement, EditableTextElementArgs } from './EditableTextElement';
 import { OpenIcon } from './OpenIcon';
-import { LangContext } from '../util/lang';
-import { PlaylistLang } from 'src/shared/lang/types';
 
 export type PlaylistItemProps = {
   /** Playlist to display. */
@@ -50,8 +51,8 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
   onAuthorEditDone       = this.wrapOnEditDone((edit, text) => { edit.author = text; });
   onDescriptionEditDone  = this.wrapOnEditDone((edit, text) => { edit.description = text; });
   //
-  renderTitle  = this.wrapRenderEditableText('No Title', 'Title...');
-  renderAuthor = this.wrapRenderEditableText('No Author', 'Author...');
+  renderTitle =  memoizeOne(this.wrapRenderEditableText);
+  renderAuthor = memoizeOne(this.wrapRenderEditableText);
   //
   contentRef: React.RefObject<HTMLDivElement> = React.createRef();
   contentHeight: number = 0;
@@ -140,7 +141,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
               text={playlist.title}
               onEditConfirm={this.onTitleEditDone}
               editable={editing}
-              children={this.renderTitle} />
+              children={this.renderTitle(strings.noTitle, strings.titlePlaceholder)} />
           </div>
           { editing || playlist.author ? (
             <>
@@ -152,7 +153,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
                   text={playlist.author}
                   onEditConfirm={this.onAuthorEditDone}
                   editable={editing}
-                  children={this.renderAuthor} />
+                  children={this.renderAuthor(strings.noAuthor, strings.authorPlaceholder)} />
               </div>
             </>
           ) : undefined }
