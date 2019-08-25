@@ -32,5 +32,9 @@
     "quickStartHeader": "Quick Start",
     "hallOfFameInfo": "Only want the best of the best? Check out the {0}!",
     "hallOfFame": "Hall of Fame"
+  },
+  "libraries": {
+    "arcade": "Games",
+    "theatre": "Animations"
   }
 }

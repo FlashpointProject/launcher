@@ -258,7 +258,13 @@ export class LangManager extends WrappedEventEmitter {
     }
 
     // Replace empty current with fallback, empty fallback with default
-    return recursiveReplace(recursiveReplace(deepCopy(this.defaultLang.data), fallback.data), current.data);
+    const data = deepCopy(this.defaultLang.data);
+    const libraries = Object.assign(data.libraries, fallback.data && fallback.data.libraries, current.data && current.data.libraries);
+    data.libraries = {};
+    recursiveReplace(data, fallback.data);
+    recursiveReplace(data, current.data);
+    data.libraries = libraries;
+    return data;
   }
 
   private log(content: string): void {
@@ -268,4 +274,3 @@ export class LangManager extends WrappedEventEmitter {
     });
   }
 }
-

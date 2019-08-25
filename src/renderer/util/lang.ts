@@ -256,6 +256,7 @@ export function getDefaultLocalization() : LangContainer {
     menu:{
       viewThumbnailInFolder: 'viewThumbnailInFolder',
       viewScreenshotInFolder: 'viewScreenshotInFolder'
-    }
+    },
+    libraries: {},
   };
 }

@@ -13,6 +13,7 @@ export type LangContainer = {
   playlist: PlaylistLang;
   misc: MiscLang;
   menu: MenuLang;
+  libraries: LibrariesLang;
 }
 
 export type Language = {
@@ -295,3 +296,4 @@ export type ExternalLang = LangObject<
   'screenshotsDesc'
 >;
 
+export type LibrariesLang = Partial<LangObject<string>>;
