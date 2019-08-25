@@ -200,7 +200,15 @@ export function getDefaultLocalization() : LangContainer {
       discardChanges: 'discardChanges',
       editGame: 'editGame',
       allGames: 'allGames',
-      newPlaylist: 'newPlaylist'
+      newPlaylist: 'newPlaylist',
+      emptyPlaylist: 'emptyPlaylist',
+      noGamesFound: 'noGamesFound',
+      dropGameOnLeft: 'dropGameOnLeft',
+      setFlashpointPathQuestion: 'setFlashpointPathQuestion',
+      noteSaveAndRestart: 'noteSaveAndRestart',
+      loadingGames: 'loadingGames',
+      noGameMatchedSearch: 'noGameMatchedSearch',
+      thereAreNoGames: 'thereAreNoGames'
     },
     curate:{
       importAll: 'importAll',
@@ -219,11 +227,8 @@ export function getDefaultLocalization() : LangContainer {
       removeDesc: 'removeDesc',
       removeCurationDesc: 'removeCurationDesc',
       import: 'import',
-      startingImportAll: 'startingImportAll',
-      importing: 'importing',
-      importSuccessful: 'importSuccessful',
-      importFailed: 'importFailed',
-      importAllComplete: 'importAllComplete'
+      contentFiles: 'contentFiles',
+      warnings: 'warnings',
     },
     playlist:{
       enterDescriptionHere: 'enterDescriptionHere',
@@ -245,13 +250,32 @@ export function getDefaultLocalization() : LangContainer {
       yes: 'yes',
       no: 'no',
       deleteAllImages: 'deleteAllImages',
-      programNotFound: 'programNotFound',
-      phpNotFound: 'phpNotFound',
-      wineNotFound: 'wineNotFound'
     },
     menu:{
       viewThumbnailInFolder: 'viewThumbnailInFolder',
-      viewScreenshotInFolder: 'viewScreenshotInFolder'
+      viewScreenshotInFolder: 'viewScreenshotInFolder',
+      openFileLocation: 'openFileLocation',
+      duplicateMetaOnly: 'duplicateMetaOnly',
+      duplicateMetaAndImages: 'duplicateMetaAndImages',
+      exportMetaOnly: 'exportMetaOnly',
+      exportMetaAndImages: 'exportMetaAndImages'
+    },
+    dialog:{
+      programNotFound: 'programNotFound',
+      phpNotFound: 'phpNotFound',
+      wineNotFound: 'wineNotFound',
+      fileNotFound: 'fileNotFound',
+      pathNotFound: 'pathNotFound',
+      selectFileToExportMeta: 'selectFileToExportMeta',
+      selectFolderToExportMetaAndImages: 'selectFolderToExportMetaAndImages',
+      replaceFilesQuestion: 'replaceFilesQuestions',
+      exportedAlreadyExistsYesNo: 'exportedAlreadyExistsYesNo',
+      selectScreenshot: 'selectScreenshot',
+      selectThumbnail: 'selectThumbnail',
+      selectThemeFile: 'selectThemeFile',
+      selectCurationFolder: 'selectCurationFolder',
+      selectCurationArchive: 'selectCurationArchive',
+      selectCurationMeta: 'selectCurationMeta'
     }
   };
 }

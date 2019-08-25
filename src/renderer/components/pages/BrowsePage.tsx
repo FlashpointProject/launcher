@@ -13,7 +13,7 @@ import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { memoizeOne } from '../../../shared/memoize';
-import { formatDate } from '../../../shared/Util';
+import { formatDate, deepCopy } from '../../../shared/Util';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithLibraryProps } from '../../containers/withLibrary';
@@ -34,7 +34,8 @@ import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
-import { LangContext } from 'src/renderer/util/lang';
+import { LangContext } from '../../util/lang';
+import { MenuLang, DialogLang, BrowseLang, LangContainer } from 'src/shared/lang/types';
 
 const writeFile = promisify(fs.writeFile);
 
@@ -128,6 +129,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.state = initialState;
   }
 
+  static contextType = LangContext;
+
   componentDidMount() {
     this.props.central.games.on('change', this.onGamesCollectionChange);
   }
@@ -189,6 +192,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   render() {
+    const strings : LangContainer = this.context;
     const { selectedGame, selectedPlaylist } = this.props;
     const { draggedGame } = this.state;
     const currentLibrary = this.getCurrentLibrary();
@@ -238,10 +242,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
                   gameImages={this.props.gameImages}
-                  noRowsRenderer={this.noRowsRenderer}
+                  noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenu}
+                  onContextMenu={this.onGameContextMenuMemo(strings.menu)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   orderBy={order.orderBy}
@@ -258,10 +262,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
                   gameImages={this.props.gameImages}
-                  noRowsRenderer={this.noRowsRenderer}
+                  noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenu}
+                  onContextMenu={this.onGameContextMenuMemo(strings.menu)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   orderBy={order.orderBy}
@@ -298,37 +302,37 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     );
   }
 
-  noRowsRenderer = (): JSX.Element => {
-    return (
-      <div className='game-list__no-games'>
+  private noRowsRendererMemo = memoizeOne((strings : BrowseLang) => {
+    return () => {
+      return (
+        <div className='game-list__no-games'>
         { this.props.central.gamesDoneLoading ? (
           this.props.selectedPlaylist ? (
             /* Empty Playlist */
             <>
-              <h2 className='game-list__no-games__title'>Empty Playlist</h2>
+              <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
               <br/>
-              <p>Drop a game on this playlist in the <i>left sidebar</i> to add it.</p>
+              <p>{strings.dropGameOnLeft}</p>}
             </>
           ) : (
             /* No games found */
             <>
-              <h1 className='game-list__no-games__title'>No Games Found!</h1>
+              <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
               <br/>
               {(this.props.central.gamesFailedLoading) ? (
                 <>
-                  Have you set the path to the <b>Flashpoint path</b> at the <i>Config</i> page?<br/>
+                  {strings.setFlashpointPathQuestion}
                   <br/>
-                  Note: You have to press <b>"Save & Restart"</b> for the change to take effect.
+                  {strings.noteSaveAndRestart}
                 </>
               ) : (
                 (this.props.central.games.collection.games.length > 0) ? (
                   <>
-                    No game title matched your search.<br/>
-                    Try searching for something less restrictive.
+                    {strings.noGameMatchedSearch}
                   </>
                 ) : (
                   <>
-                    There are no games.
+                    {strings.thereAreNoGames}
                   </>
                 )
               )}
@@ -336,7 +340,82 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           )
         ) : (
           <p>
-            Loading Games...
+            {strings.loadingGames}
+          </p>
+        ) }
+        </div>
+      );
+    };
+  });
+
+  private onGameContextMenuMemo = memoizeOne((strings : MenuLang) => {
+    return (game: IGameInfo) => {
+      return (
+        openContextMenu([{
+          label: strings.openFileLocation,
+          click: this.openFileLocationCallback(game)
+        }, {
+          type: 'separator'
+        }, {
+          label: strings.duplicateMetaOnly,
+          click: this.duplicateCallback(game, false),
+          enabled: this.props.preferencesData.enableEditing,
+        }, {
+          label: strings.duplicateMetaAndImages, // ("&&" will be shown as "&")
+          click: this.duplicateCallback(game, true),
+          enabled: this.props.preferencesData.enableEditing,
+        }, {
+          type: 'separator'
+        }, {
+          label: strings.exportMetaOnly,
+          click: this.exportMetaCallback(game)
+        }, {
+          label: strings.exportMetaAndImages, // ("&&" will be shown as "&")
+          click: this.exportMetaAndImagesCallback(game)
+        }])
+      );
+    };
+  });
+
+  noRowsRenderer = (): JSX.Element => {
+    const strings : BrowseLang = this.context.browse;
+    return (
+      <div className='game-list__no-games'>
+        { this.props.central.gamesDoneLoading ? (
+          this.props.selectedPlaylist ? (
+            /* Empty Playlist */
+            <>
+              <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
+              <br/>
+              <p>{strings.dropGameOnLeft}</p>}
+            </>
+          ) : (
+            /* No games found */
+            <>
+              <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
+              <br/>
+              {(this.props.central.gamesFailedLoading) ? (
+                <>
+                  {strings.setFlashpointPathQuestion}
+                  <br/>
+                  {strings.noteSaveAndRestart}
+                </>
+              ) : (
+                (this.props.central.games.collection.games.length > 0) ? (
+                  <>
+                    {strings.noGameMatchedSearch}
+                  </>
+                ) : (
+                  <>
+                    {strings.thereAreNoGames}
+                  </>
+                )
+              )}
+            </>
+          )
+        ) : (
+          <p>
+            {strings.loadingGames}
           </p>
         ) }
       </div>
@@ -405,32 +484,34 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onGameContextMenu = (game: IGameInfo): void => {
+    const strings : MenuLang = this.context.menu;
     openContextMenu([{
-        label: 'Open File Location',
+        label: strings.openFileLocation,
         click: this.openFileLocationCallback(game)
       }, {
         type: 'separator'
       }, {
-        label: 'Duplicate (Meta Only)',
+        label: strings.duplicateMetaOnly,
         click: this.duplicateCallback(game, false),
         enabled: this.props.preferencesData.enableEditing,
       }, {
-        label: 'Duplicate (Meta && Images)', // ("&&" will be shown as "&")
+        label: strings.duplicateMetaAndImages, // ("&&" will be shown as "&")
         click: this.duplicateCallback(game, true),
         enabled: this.props.preferencesData.enableEditing,
       }, {
         type: 'separator'
       }, {
-        label: 'Export (Meta Only)',
+        label: strings.exportMetaOnly,
         click: this.exportMetaCallback(game)
       }, {
-        label: 'Export (Meta && Images)', // ("&&" will be shown as "&")
+        label: strings.exportMetaAndImages, // ("&&" will be shown as "&")
         click: this.exportMetaAndImagesCallback(game)
     }]);
   }
 
   /** Create a callback for opening the file location of a game. */
   openFileLocationCallback(game: IGameInfo) {
+    const strings : DialogLang = this.context.dialog;
     return () => {
       // Extract the game's "entry"/"main" file path
       const gamePath = GameLauncher.getGamePath(game);
@@ -441,7 +522,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           else {
             remote.dialog.showMessageBox({
               type: 'warning',
-              title: 'File not found!',
+              title: strings.fileNotFound,
               message: 'Failed to find the game file.\n'+
                         'If you are using Flashpoint Infinity, make sure you download the game first.\n'+
                         '\n'+
@@ -455,7 +536,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       } else {
         remote.dialog.showMessageBox({
           type: 'warning',
-          title: 'No Path Found!',
+          title: strings.pathNotFound,
           message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
                     `Game: "${game.title}"`,
           buttons: ['Ok'],
@@ -510,11 +591,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   /** Create a callback for exporting the meta of a game (as a curation format meta file). */
   exportMetaCallback(game: IGameInfo) {
+    const strings : DialogLang = this.context.dialog;
     return () => {
       const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
       // Choose where to save the file
       const filePath = electron.remote.dialog.showSaveDialogSync({
-        title: 'Select the file to export the meta to.',
+        title: strings.selectFileToExportMeta,
         defaultPath: 'meta',
         filters: [{
           name: 'Meta file',
@@ -533,11 +615,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   /** Create a callback for exporting the meta and images of a game (as a curation format meta file and image files). */
   exportMetaAndImagesCallback(game: IGameInfo) {
+    const strings : DialogLang = this.context.dialog;
     return () => {
       const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
       // Choose where to save the file
       const filePaths = window.External.showOpenDialogSync({
-        title: 'Select the folder to export the meta and images to.',
+        title: strings.selectFolderToExportMetaAndImages,
         properties: ['promptToCreate', 'openDirectory']
       });
       if (filePaths && filePaths.length > 0) {
@@ -558,9 +641,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         if (exists.some(val => val)) { // (One or more of the files already exists)
           const result = electron.remote.dialog.showMessageBoxSync({
             type: 'warning',
-            title: 'Replace files?',
-            message: 'One or more of the exported files to already exists.\n\n'+
-                     'Do you want to replace them?\n',
+            title: strings.replaceFilesQuestion,
+            message: strings.exportedAlreadyExistsYesNo,
             buttons: ['Yes', 'No'],
             defaultId: 0,
           });

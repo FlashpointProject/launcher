@@ -279,8 +279,8 @@ export class App extends React.Component<AppProps, AppState> {
           log('Warning : PHP not found in path, may cause unexpected behaviour.');
           remote.dialog.showMessageBox({
             type: 'error',
-            title: strings.misc.programNotFound,
-            message: strings.misc.phpNotFound,
+            title: strings.dialog.programNotFound,
+            message: strings.dialog.phpNotFound,
             buttons: ['Ok']
           } );
         }
@@ -293,8 +293,8 @@ export class App extends React.Component<AppProps, AppState> {
             log('Warning : Wine is enabled but it was not found on the path.');
             remote.dialog.showMessageBox({
               type: 'error',
-              title: strings.misc.programNotFound,
-              message: strings.misc.wineNotFound,
+              title: strings.dialog.programNotFound,
+              message: strings.dialog.wineNotFound,
               buttons: ['Ok']
             } );
           }

@@ -10,7 +10,7 @@ import { DropdownInputField } from '../DropdownInputField';
 import { remote } from 'electron';
 import which = require('which');
 import { LangContext } from '../../util/lang';
-import { ConfigLang, Language } from '../../../shared/lang/types';
+import { ConfigLang, Language, DialogLang } from '../../../shared/lang/types';
 import { LangManager } from '../../lang/LangManager';
 
 type OwnProps = {
@@ -363,6 +363,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   useWineChange = (isChecked: boolean): void => {
+    const strings : DialogLang = this.context.dialog;
     this.props.updatePreferences({ useWine: isChecked });
     this.forceUpdate();
 
@@ -372,9 +373,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           log('Warning : Wine was enabled but it was not found on the path.');
           remote.dialog.showMessageBox({
             type: 'error',
-            title: 'Program not found!',
-            message: 'Wine was enabled but not found on the path. Is it installed?\n' +
-                    'Some games may not be available without Wine',
+            title: strings.programNotFound,
+            message: strings.wineNotFound,
             buttons: ['Ok'],
           });
         }
@@ -418,9 +418,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
+    const strings : DialogLang = this.context.dialog;
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialogSync({
-      title: 'Select a theme file',
+      title: strings.selectThemeFile,
       properties: ['openFile'],
     });
     if (filePaths) {

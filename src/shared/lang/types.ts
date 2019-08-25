@@ -13,6 +13,7 @@ export type LangContainer = {
   playlist: PlaylistLang;
   misc: MiscLang;
   menu: MenuLang;
+  dialog: DialogLang;
 }
 
 export type Language = {
@@ -226,7 +227,15 @@ export type BrowseLang = LangObject<
   'discardChanges' |
   'editGame' |
   'allGames' |
-  'newPlaylist'
+  'newPlaylist' |
+  'emptyPlaylist' |
+  'noGamesFound' |
+  'dropGameOnLeft' |
+  'setFlashpointPathQuestion' |
+  'noteSaveAndRestart' |
+  'loadingGames' |
+  'noGameMatchedSearch' |
+  'thereAreNoGames'
 >;
 
 export type CurateLang = LangObject<
@@ -246,11 +255,8 @@ export type CurateLang = LangObject<
   'removeDesc' |
   'removeCurationDesc' |
   'import' |
-  'startingImportAll' |
-  'importing' |
-  'importSuccessful' |
-  'importFailed' |
-  'importAllComplete'
+  'contentFiles' |
+  'warnings'
 >;
 
 export type PlaylistLang = LangObject<
@@ -273,21 +279,34 @@ export type MiscLang = LangObject<
   'removeBlank' |
   'deleteAllImages' |
   'yes' |
-  'no' |
-  'programNotFound' |
-  'phpNotFound' |
-  'wineNotFound'
+  'no'
 >;
 
 export type MenuLang = LangObject<
   'viewThumbnailInFolder' |
-  'viewScreenshotInFolder'
+  'viewScreenshotInFolder' |
+  'openFileLocation' |
+  'duplicateMetaOnly' |
+  'duplicateMetaAndImages' |
+  'exportMetaOnly' |
+  'exportMetaAndImages'
 >;
 
-export type ExternalLang = LangObject<
-  'otherTechnologies' |
-  'otherTechnologiesDesc' |
-  'screenshots' |
-  'screenshotsDesc'
+export type DialogLang = LangObject<
+  'programNotFound' |
+  'phpNotFound' |
+  'wineNotFound' |
+  'fileNotFound' |
+  'pathNotFound' |
+  'selectFileToExportMeta' |
+  'selectFolderToExportMetaAndImages' |
+  'replaceFilesQuestion' |
+  'replaceFilesQuestion' |
+  'exportedAlreadyExistsYesNo' |
+  'selectScreenshot' |
+  'selectThumbnail' |
+  'selectThemeFile' |
+  'selectCurationFolder' |
+  'selectCurationArchive' |
+  'selectCurationMeta'
 >;
-

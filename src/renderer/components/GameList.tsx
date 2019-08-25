@@ -7,6 +7,7 @@ import { findElementAncestor } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
+import { BrowseLang } from 'src/shared/lang/types';
 
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;

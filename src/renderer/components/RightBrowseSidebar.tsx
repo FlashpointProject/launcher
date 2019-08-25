@@ -23,7 +23,7 @@ import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { LangContext } from '../util/lang';
 import { string } from 'prop-types';
-import { BrowseLang, LangContainer } from 'src/shared/lang/types';
+import { BrowseLang, LangContainer, MenuLang, DialogLang } from 'src/shared/lang/types';
 
 type OwnProps = {
   gameImages: GameImageCollection;
@@ -534,14 +534,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onScreenshotContextMenu = (event: React.MouseEvent) => {
-    const strings : LangContainer = React.useContext(LangContext);
+    const strings : MenuLang = this.context.menu;
     const { currentGame, gameImages } = this.props;
     const template: MenuItemConstructorOptions[] = [];
     if (currentGame) {
       const thumbnailFilename = gameImages.getThumbnailPath(currentGame);
       const screenshotFilename = gameImages.getScreenshotPath(currentGame);
       template.push({
-        label: strings.menu.viewThumbnailInFolder,
+        label: strings.viewThumbnailInFolder,
         click: () => {
           if (thumbnailFilename === undefined) { throw new Error('Can not view thumbnail, thumbnail filename not found'); }
           remote.shell.showItemInFolder(thumbnailFilename.replace(/\//g, '\\'));
@@ -549,7 +549,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         enabled: thumbnailFilename !== undefined
       });
       template.push({
-        label: strings.menu.viewScreenshotInFolder,
+        label: strings.viewScreenshotInFolder,
         click: () => {
           if (screenshotFilename === undefined) { throw new Error('Can not view screenshot, screenshot filename not found'); }
           remote.shell.showItemInFolder(screenshotFilename.replace(/\//g, '\\'));
@@ -571,11 +571,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   addScreenshotDialog = async () => {
+    const strings : DialogLang = this.context.dialog;
     const { currentGame, gameImages } = this.props;
       if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialogSync({
-      title: 'Select a Screenshot Image',
+      title: strings.selectScreenshot,
       properties: ['openFile']
     });
     if (filePaths && filePaths[0]) {
@@ -586,11 +587,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   addThumbnailDialog = async () => {
+    const strings : DialogLang = this.context.dialog;
     const { currentGame, gameImages } = this.props;
       if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialogSync({
-      title: 'Select a Thumbnail Image',
+      title: strings.selectThumbnail,
       properties: ['openFile']
     });
     if (filePaths && filePaths[0]) {
