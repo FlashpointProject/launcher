@@ -188,11 +188,11 @@ export class LangManager extends WrappedEventEmitter {
    * Emit a new copy of language data - 'update' event
    */
   public updateLocalization() {
-    let fallback : ILangStrings | undefined = this.items.find(item => item.code === window.External.preferences.getData().fallbackLanguage);
-    let current : ILangStrings | undefined = this.items.find(item => item.code === window.External.preferences.getData().currentLanguage);
+    let fallback : any | undefined = this.items.find(item => item.code === window.External.preferences.getData().fallbackLanguage);
+    let current : any | undefined = this.items.find(item => item.code === window.External.preferences.getData().currentLanguage);
 
     if (fallback === undefined) {
-      fallback = this.defaultLang;
+      fallback = {};
     }
 
     // 'auto' will get system language, fallback to en then default if missing / undetectable
@@ -205,7 +205,7 @@ export class LangManager extends WrappedEventEmitter {
 
       current = this.items.find(item => item.code === code);
       if (current === undefined) {
-        current = this.defaultLang;
+        current = {};
       }
     }
 
