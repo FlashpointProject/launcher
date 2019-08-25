@@ -69,8 +69,6 @@ export type AppState = {
   wasNewGameClicked: boolean;
   /** Language strings */
   lang: LangContainer;
-  /** Available Languages */
-  availableLangs: Language[];
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -112,8 +110,7 @@ export class App extends React.Component<AppProps, AppState> {
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
-      lang: getDefaultLocalization(),
-      availableLangs: [{code: '<auto>', name: 'Auto'}],
+      lang: this.props.langManager.buildLocalization(),
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
@@ -180,8 +177,8 @@ export class App extends React.Component<AppProps, AppState> {
     });
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
-    // Listen for changes to lang files
-    this.props.langManager.on('add',    item => { this.setState({availableLangs : item}); });
+    // Listen for changes to lang files, load in used ones
+    this.props.langManager.on('listChanged',    () => { this.forceUpdate(); });
     this.props.langManager.on('update', item => { this.setState({lang: item}); });
     // Load Playlists
     this.state.central.playlists.load()
@@ -348,7 +345,7 @@ export class App extends React.Component<AppProps, AppState> {
     const platforms = this.state.central.games.listPlatforms();
     const route = getBrowseSubPath(this.props.location.pathname);
     const library = findLibraryByRoute(libraries, route);
-    const availableLangs = this.state.availableLangs;
+    const availableLangs = this.props.langManager.getLangList();
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
     if (this.state.central.gamesDoneLoading) {

@@ -25,7 +25,7 @@ export interface ILangSortedStrings {
 
 export interface LangManager {
   /** Emitted when a new language has been added */
-  on(event: 'add', listener: (item: Language[]) => void): this;
+  on(event: 'listChanged', listener: () => void): this;
   /** Emitted when localized strings have been updated */
   on(event: 'update', listener: (item: LangContainer) => void): this;
 }
@@ -59,7 +59,6 @@ export class LangManager extends WrappedEventEmitter {
         this.onWatcherAdd(filename, '');
       }
     });
-    this.watcher.watch(LangManager.folderPath);
   }
 
   private onWatcherAdd = (filename: string, offsetPath: string): void => {
@@ -95,7 +94,7 @@ export class LangManager extends WrappedEventEmitter {
             if (item.code === current || item.code === fallback) {
               this.updateLocalization();
             }
-            this.updateLangList();
+            this.emit('listChanged');
           } catch (e) {
             this.log('Failed to load ' + filename + ' language file.');
           }
@@ -125,7 +124,7 @@ export class LangManager extends WrappedEventEmitter {
             this.updateLocalization();
           }
           if (nameChanged) {
-            this.updateLangList();
+            this.emit('listChanged');
           }
 
           this.log('Reloaded ' + item.name + ' language file');
@@ -149,7 +148,7 @@ export class LangManager extends WrappedEventEmitter {
           if (item.code === current || item.code === fallback) {
             this.updateLocalization();
           }
-          this.updateLangList();
+          this.emit('listChanged');
         } catch (e) {
           this.log('Failed to load ' + filename + ' language file.');
         }
@@ -178,16 +177,65 @@ export class LangManager extends WrappedEventEmitter {
   }
 
   /**
-   * Update the list of selectable languages
+   * Starts the watcher, forces current and fallback languages to be loaded
    */
-  private updateLangList() {
-    this.emit('add', this.items.map(item => { return {code: item.code, name: item.name};}) );
+  public async startWatcher() {
+    let currentCode = window.External.preferences.getData().currentLanguage;
+    if (currentCode === LangManager.autoCode) {
+      currentCode = remote.app.getLocaleCountryCode().toLowerCase();
+    }
+    try {
+      const fullPath = path.join(LangManager.folderPath, currentCode + '.json');
+      const data : any = await LangManager.readLangFile(fullPath, this.log.bind(this));
+      const item: ILangStrings = {
+        path: fullPath,
+        code: currentCode, // Get name without extension
+        name : data.name,
+        data: data
+      };
+      this.items.push(item);
+      this.log('Loaded ' + item.name + ' language file.');
+    } catch (e) {
+      this.log('Failed to load current language file - ' + currentCode + '.json');
+    }
+
+    let fallbackCode = window.External.preferences.getData().fallbackLanguage;
+    try {
+      const fullPath = path.join(LangManager.folderPath, fallbackCode + '.json');
+      const data : any = await LangManager.readLangFile(fullPath, this.log.bind(this));
+      const item: ILangStrings = {
+        path: fullPath,
+        code: fallbackCode, // Get name without extension
+        name : data.name,
+        data: data
+      };
+      this.items.push(item);
+      this.log('Loaded ' + item.name + ' language file.');
+    } catch (e) {
+      this.log('Failed to load fallback language file - ' + fallbackCode + '.json');
+    }
+
+    this.watcher.watch(LangManager.folderPath);
   }
 
   /**
    * Emit a new copy of language data - 'update' event
    */
   public updateLocalization() {
+    this.emit('update', this.buildLocalization() );
+  }
+
+  /**
+   * Update the list of selectable languages
+   */
+  public getLangList() : Language[] {
+    return this.items.map(item => { return {code: item.code, name: item.name};});
+  }
+
+  /**
+   * Returns a new copy of language data
+   */
+  public buildLocalization() {
     let fallback : any | undefined = this.items.find(item => item.code === window.External.preferences.getData().fallbackLanguage);
     let current : any | undefined = this.items.find(item => item.code === window.External.preferences.getData().currentLanguage);
 
@@ -210,7 +258,7 @@ export class LangManager extends WrappedEventEmitter {
     }
 
     // Replace empty current with fallback, empty fallback with default
-    this.emit('update', recursiveReplace(recursiveReplace(deepCopy(this.defaultLang.data), fallback.data), current.data) );
+    return recursiveReplace(recursiveReplace(deepCopy(this.defaultLang.data), fallback.data), current.data);
   }
 
   private log(content: string): void {

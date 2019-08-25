@@ -28,8 +28,9 @@ import { getDefaultLocalization } from './util/lang';
   await window.External.preferences.waitUtilInitialized();
   // Get preferences data
   const preferencesData = window.External.preferences.getData();
-  // Watch languages folder and load existing language files
+  // Watch languages folder and load required language files
   const lang = new LangManager();
+  await lang.startWatcher();
   // Watch themes folder & Load current theme file
   const themes = new ThemeManager(path.join(window.External.config.fullFlashpointPath, window.External.config.data.themeFolderPath));
   if (preferencesData.currentTheme) { // (If there is a current theme and it is not an empty string)
