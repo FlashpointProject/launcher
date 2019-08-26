@@ -5,6 +5,7 @@ import { SimpleButton } from './SimpleButton';
 import { LangContext } from '../util/lang';
 import { MiscLang } from '../../shared/lang/types';
 import { formatString } from '../../shared/utils/StringFormatter';
+import { string } from 'prop-types';
 
 type GameImageSplitProps = {
   /** The internal name of the image */
@@ -74,7 +75,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             <ConfirmElement
               onConfirm={onRemoveClick}
               children={renderDeleteImageButton}
-              extra={strings}/>
+              extra={[strings, text]}/>
           </div>
         ) }
       </div>
@@ -102,14 +103,15 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   }
 }
 
-function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<MiscLang>): JSX.Element {
+function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[MiscLang, string]>): JSX.Element {
+  const [ strings, text ] = extra;
   return (
     <div
       className={
         'game-image-split__buttons__remove-image' +
         ((activationCounter > 0) ? ' game-image-split__buttons__remove-image--active simple-vertical-shake' : '')
       }
-      title={extra.deleteAllImages}
+      title={ formatString(strings.deleteAllBlankImages, text) }
       onClick={activate}
       onMouseLeave={reset}>
       <OpenIcon icon='trash' />

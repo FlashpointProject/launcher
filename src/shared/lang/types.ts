@@ -1,5 +1,3 @@
-import { Menu } from 'electron';
-
 export type LangContainer = {
   config: ConfigLang;
   home: HomeLang;
@@ -77,17 +75,13 @@ export type HomeLang = LangObject<
   'alreadyInstalled' |
   'download' |
   'extrasHeader' |
-  'favouritesPlaylist' |
+  'favoritesPlaylist' |
   'genreList' |
   'filterByPlatform' |
   'plannedFeatures' |
   'notesHeader' |
   'notes' |
-  'randomPicks' |
-  'upgradesTech' |
-  'upgradesTechDesc' |
-  'upgradesScreenshots' |
-  'upgradesScreenshotsDesc'
+  'randomPicks'
 >;
 
 export type LogsLang = LangObject<
@@ -99,8 +93,6 @@ export type LogsLang = LangObject<
 export type AppLang = LangObject<
   'home' |
   'browse' |
-  'arcade' |
-  'theatre' |
   'logs' |
   'config' |
   'about' |
@@ -217,9 +209,6 @@ export type BrowseLang = LangObject<
   'failedToLoadPlaylistFolder' |
   'checkLogForInfo' |
   'loadingPlaylists' |
-  'titlePlaceholder' |
-  'author' |
-  'authorPlaceholder' |
   'deleteAdditionalApplication' |
   'deleteGameAndAdditionalApps' |
   'removeGameFromPlaylist' |
@@ -281,7 +270,7 @@ export type MiscLang = LangObject<
   'blankNotFound' |
   'addBlank' |
   'removeBlank' |
-  'deleteAllImages' |
+  'deleteAllBlankImages' |
   'yes' |
   'no'
 >;
@@ -304,7 +293,6 @@ export type DialogLang = LangObject<
   'pathNotFound' |
   'selectFileToExportMeta' |
   'selectFolderToExportMetaAndImages' |
-  'replaceFilesQuestion' |
   'replaceFilesQuestion' |
   'exportedAlreadyExistsYesNo' |
   'selectScreenshot' |

@@ -12,6 +12,7 @@ import which = require('which');
 import { LangContext } from '../../util/lang';
 import { ConfigLang, Language, DialogLang } from '../../../shared/lang/types';
 import { LangManager } from '../../lang/LangManager';
+import { formatString } from 'src/shared/utils/StringFormatter';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
@@ -62,7 +63,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   render() {
     const strings : ConfigLang = this.context.config;
-    const currentLangs : Language[] = [...[{code: LangManager.autoCode, name: strings.auto}], ...this.props.availableLangs];
+    const currentLangs : Language[] = [...[{code: LangManager.autoCode, name: formatString(strings.auto, remote.app.getLocaleCountryCode().toLowerCase())}], ...this.props.availableLangs];
     const fallbackLangs : Language[] = [...[{code: '<none>', name: strings.none}], ...currentLangs];
 
     return (

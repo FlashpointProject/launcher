@@ -133,7 +133,7 @@ export class HomePage extends React.Component<HomePageProps> {
                 <Link
                   to={this.getFavoriteBrowseRoute()}
                   onClick={this.onFavoriteClick}>
-                  {strings.favouritesPlaylist}
+                  {strings.favoritesPlaylist}
                 </Link>
               </QuickStartItem>
               <QuickStartItem icon='list'>
@@ -145,7 +145,7 @@ export class HomePage extends React.Component<HomePageProps> {
               </QuickStartItem>
               <br />
               <QuickStartItem icon='tag'>
-                {strings.filterByPlatform}
+                {strings.filterByPlatform}:
               </QuickStartItem>
               <QuickStartItem>
                 { formatPlatforms }
