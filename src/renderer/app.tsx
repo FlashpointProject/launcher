@@ -396,7 +396,7 @@ export class App extends React.Component<AppProps, AppState> {
         {/* "Footer" stuff */}
         <ConnectedFooter showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
                          totalCount={gameCount}
-                         currentLabel={library && library.title}
+                         currentLabel={library && this.state.lang.libraries[library.route]}
                          currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
                          onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
                          onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
