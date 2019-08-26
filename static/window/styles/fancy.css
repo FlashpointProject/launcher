@@ -81,6 +81,7 @@
   --layout__log-source:                     #d4d4d4;
   --layout__log-source-background-services: #8d8d8d;
   --layout__log-source-game-launcher:       #ffd900;
+  --layout__log-source-language:            #b157ec;
   --layout__log-source-redirector:          #00ffff;
   --layout__log-source-router:              #00ff00;
   /* Credits */
@@ -245,6 +246,9 @@ body {
 }
 .log__source--game-launcher {
   color: var(--layout__log-source-game-launcher);
+}
+.log__source--language {
+  color: var(--layout__log-source-language);
 }
 .log__source--redirector {
   color: var(--layout__log-source-redirector);

@@ -1,9 +1,0 @@
-{
-  "name": "Español",
-  "config": {
-    "extremeGames":"Juegos Extremos",
-    "extremeGamesDesc":"Muestre juegos con contenido sexual, violento u otro inadecuado para niños.",
-    "enableEditing":"Permitir la Edición",
-    "enableEditingDesc":"Habilite la edición de juegos, aplicaciones adicionales y listas de reproducción. También muestra la pestaña 'Curate'."
-  }
-}

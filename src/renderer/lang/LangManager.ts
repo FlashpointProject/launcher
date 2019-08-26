@@ -269,7 +269,7 @@ export class LangManager extends WrappedEventEmitter {
 
   private log(content: string): void {
     window.External.log.addEntry({
-      source: 'Lang',
+      source: 'Language',
       content: content
     });
   }
