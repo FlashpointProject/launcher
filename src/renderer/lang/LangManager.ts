@@ -1,6 +1,6 @@
 import { remote } from 'electron';
 import * as path from 'path';
-import { LangContainer, Language } from '../../shared/lang/types';
+import { LangContainer, Language, autoCode } from '../../shared/lang/types';
 import { deepCopy, readJsonFile, recursiveReplace } from '../../shared/Util';
 import { EventQueue } from '../util/EventQueue';
 import { FolderWatcher } from '../util/FolderWatcher';
@@ -46,7 +46,7 @@ export class LangManager extends WrappedEventEmitter {
   /** Default langugage (member names) to fall back on */
   private defaultLang: ILangStrings = { path: '', code: 'default', name: 'default', data: getDefaultLocalization() };
   /** Auto Language for selection */
-  public static readonly autoCode : string = '<auto>';
+
 
   constructor() {
     super();
@@ -181,7 +181,7 @@ export class LangManager extends WrappedEventEmitter {
    */
   public async startWatcher() {
     let currentCode = window.External.preferences.getData().currentLanguage;
-    if (currentCode === LangManager.autoCode) {
+    if (currentCode === autoCode) {
       currentCode = remote.app.getLocaleCountryCode().toLowerCase();
     }
     try {
@@ -244,7 +244,7 @@ export class LangManager extends WrappedEventEmitter {
     }
 
     // 'auto' will get system language, fallback to en then default if missing / undetectable
-    if (current === undefined || current.code === LangManager.autoCode) {
+    if (current === undefined || current.code === autoCode) {
       let code : string = remote.app.getLocaleCountryCode().toLowerCase();
       console.log(code);
       if (code === '') {

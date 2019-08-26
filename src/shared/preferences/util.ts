@@ -1,8 +1,8 @@
-import { LangManager } from '../../renderer/lang/LangManager';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
+import { autoCode } from '../lang/types';
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze<IAppPreferencesData>({
@@ -10,7 +10,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageShowExtreme: false,
   enableEditing: true,
   fallbackLanguage: 'en',
-  currentLanguage: LangManager.autoCode,
+  currentLanguage: autoCode,
   browsePageLayout: BrowsePageLayout.grid,
   browsePageShowLeftSidebar: true,
   browsePageShowRightSidebar: true,

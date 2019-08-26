@@ -1,3 +1,5 @@
+export const autoCode : string = '<auto>';
+
 export type LangContainer = {
   config: ConfigLang;
   home: HomeLang;

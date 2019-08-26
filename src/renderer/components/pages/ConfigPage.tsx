@@ -3,10 +3,9 @@ import * as path from 'path';
 import * as React from 'react';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
-import { ConfigLang, DialogLang, Language } from '../../../shared/lang/types';
+import { ConfigLang, DialogLang, Language, autoCode } from '../../../shared/lang/types';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
-import { LangManager } from '../../lang/LangManager';
 import { IThemeListItem } from '../../theme/ThemeManager';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
@@ -63,7 +62,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   render() {
     const strings : ConfigLang = this.context.config;
-    const currentLangs : Language[] = [...[{code: LangManager.autoCode, name: formatString(strings.auto, remote.app.getLocaleCountryCode().toLowerCase())}], ...this.props.availableLangs];
+    const currentLangs : Language[] = [...[{code: autoCode, name: formatString(strings.auto, remote.app.getLocaleCountryCode().toLowerCase())}], ...this.props.availableLangs];
     const fallbackLangs : Language[] = [...[{code: '<none>', name: strings.none}], ...currentLangs];
 
     return (
