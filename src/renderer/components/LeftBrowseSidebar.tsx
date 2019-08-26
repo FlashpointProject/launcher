@@ -1,13 +1,13 @@
 import * as React from 'react';
+import { BrowseLang } from '../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { CentralState } from '../interfaces';
 import { IGamePlaylist } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
+import { LangContext } from '../util/lang';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItem } from './PlaylistItem';
-import { LangContext } from '../util/lang';
-import { BrowseLang } from '../../shared/lang/types';
 
 type OwnProps = {
   /** Semi-global prop. */

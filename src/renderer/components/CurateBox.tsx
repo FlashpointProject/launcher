@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
+import { CurateLang, MiscLang } from '../../shared/lang/types';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { importCuration, stringToBool } from '../curate/importCuration';
 import { CurationIndexContent } from '../curate/indexCuration';
@@ -9,6 +10,7 @@ import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { sizeToString } from '../Util';
+import { LangContext } from '../util/lang';
 import { GamePropSuggestions } from '../util/suggestions';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -19,8 +21,6 @@ import { CurateBoxWarnings, CurationWarnings } from './CurateBoxWarnings';
 import { DropdownInputField } from './DropdownInputField';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
-import { LangContext } from '../util/lang';
-import { CurateLang, MiscLang } from '../../shared/lang/types';
 
 const fsStat = promisify(fs.stat);
 

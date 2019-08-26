@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
+import { CurateLang, LangContainer } from '../../../shared/lang/types';
 import { createEditCuration, CurationAction, CurationContext, CurationSource, EditCurationMeta } from '../../context/CurationContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { importCuration } from '../../curate/importCuration';
@@ -7,13 +8,12 @@ import { CurationIndex, indexCurationArchive, indexCurationFolder } from '../../
 import { parseCurationMeta } from '../../curate/parse';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
+import { LangContext } from '../../util/lang';
 import { getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CurateBox } from '../CurateBox';
 import { SimpleButton } from '../SimpleButton';
-import { LangContext } from '../../util/lang';
-import { CurateLang, LangContainer } from '../../../shared/lang/types';
 
 export type CuratePageProps = {
   /** Game manager to add imported curations to. */

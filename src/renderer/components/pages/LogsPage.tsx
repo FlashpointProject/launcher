@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { ArgumentTypesOf } from '../../../shared/interfaces';
+import { LogsLang } from '../../../shared/lang/types';
 import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
 import { LogRendererApi } from '../../../shared/Log/LogRendererApi';
 import { memoizeOne } from '../../../shared/memoize';
 import { shallowStrictEquals } from '../../../shared/Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
+import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
 import { LogData } from '../LogData';
-import { LangContext } from '../../util/lang';
-import { LogsLang } from '../../../shared/lang/types';
 
 type OwnProps = {};
 

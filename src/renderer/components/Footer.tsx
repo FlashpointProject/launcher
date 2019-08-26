@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
+import { AppLang } from '../../shared/lang/types';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameScaleSpan } from '../Util';
 import { LangContext } from '../util/lang';
-import { AppLang } from '../../shared/lang/types';
 
 type OwnProps = {
   /** If the "total" and "current label" counts should be shown. */

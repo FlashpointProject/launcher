@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useCallback } from 'react';
 import { CurationAction, EditAddAppCuration, EditAddAppCurationMeta } from '../context/CurationContext';
+import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
-import { LangContext } from '../util/lang';
 
 export type CurateBoxAddAppProps = {
   /** Key of the curation the displayed additional application belongs to. */

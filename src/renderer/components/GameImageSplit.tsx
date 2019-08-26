@@ -1,11 +1,10 @@
 import * as React from 'react';
+import { MiscLang } from '../../shared/lang/types';
+import { formatString } from '../../shared/utils/StringFormatter';
+import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
-import { LangContext } from '../util/lang';
-import { MiscLang } from '../../shared/lang/types';
-import { formatString } from '../../shared/utils/StringFormatter';
-import { string } from 'prop-types';
 
 type GameImageSplitProps = {
   /** The internal name of the image */

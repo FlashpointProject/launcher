@@ -1,10 +1,10 @@
 import * as React from 'react';
+import { AboutLang } from '../../../shared/lang/types';
 import { versionNumberToText } from '../../../shared/Util';
 import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
+import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
-import { LangContext } from '../../util/lang';
-import { AboutLang } from '../../../shared/lang/types';
 
 export type AboutPageProps = {
   /** Credits data (if any). */

@@ -1,5 +1,5 @@
-import { LangContainer } from '../../shared/lang/types';
 import * as React from 'react';
+import { LangContainer } from '../../shared/lang/types';
 
 export const LangContext = React.createContext(getDefaultLocalization());
 

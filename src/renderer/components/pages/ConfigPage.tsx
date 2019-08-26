@@ -1,18 +1,18 @@
+import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
+import { ConfigLang, DialogLang, Language } from '../../../shared/lang/types';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
+import { formatString } from '../../../shared/utils/StringFormatter';
+import { LangManager } from '../../lang/LangManager';
 import { IThemeListItem } from '../../theme/ThemeManager';
+import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
-import { remote } from 'electron';
 import which = require('which');
-import { LangContext } from '../../util/lang';
-import { ConfigLang, Language, DialogLang } from '../../../shared/lang/types';
-import { LangManager } from '../../lang/LangManager';
-import { formatString } from '../../../shared/utils/StringFormatter';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */

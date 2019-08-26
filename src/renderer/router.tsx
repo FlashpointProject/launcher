@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
+import { Language } from '../shared/lang/types';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
@@ -17,7 +18,6 @@ import { CentralState } from './interfaces';
 import { Paths } from './Paths';
 import { IGamePlaylist } from './playlist/interfaces';
 import { IThemeListItem } from './theme/ThemeManager';
-import { Language } from '../shared/lang/types';
 
 export type AppRouterProps = {
   /** Semi-global prop. */

@@ -3,8 +3,10 @@ import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { IGameInfo } from '../../../shared/game/interfaces';
+import { HomeLang } from '../../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { findDefaultLibrary } from '../../../shared/library/util';
+import { formatString } from '../../../shared/utils/StringFormatter';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
@@ -15,13 +17,11 @@ import { Paths } from '../../Paths';
 import { IGamePlaylist } from '../../playlist/interfaces';
 import { IUpgradeStage } from '../../upgrade/upgrade';
 import { joinLibraryRoute } from '../../Util';
+import { LangContext } from '../../util/lang';
 import { getPlatforms } from '../../util/platform';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
-import { LangContext } from '../../util/lang';
-import { HomeLang } from '../../../shared/lang/types';
-import { formatString } from '../../../shared/utils/StringFormatter';
 
 type OwnProps = {
   /** Semi-global prop. */

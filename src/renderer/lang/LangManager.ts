@@ -1,11 +1,11 @@
-import { readJsonFile, stringifyJsonDataFile, recursiveReplace, deepCopy } from '../../shared/Util';
-import { FolderWatcher } from '../util/FolderWatcher';
-import { EventQueue } from '../util/EventQueue';
+import { remote } from 'electron';
 import * as path from 'path';
+import { LangContainer, Language } from '../../shared/lang/types';
+import { deepCopy, readJsonFile, recursiveReplace } from '../../shared/Util';
+import { EventQueue } from '../util/EventQueue';
+import { FolderWatcher } from '../util/FolderWatcher';
 import { getDefaultLocalization } from '../util/lang';
 import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
-import { LangContainer, Language } from '../../shared/lang/types';
-import { remote } from 'electron';
 
 export interface ILangStrings {
   /** Kept for the watcher to keep track of ownership */

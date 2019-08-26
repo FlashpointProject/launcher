@@ -9,11 +9,10 @@ import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { CurationContext } from './context/CurationContext';
+import { LangManager } from './lang/LangManager';
 import { updateLibrary } from './store/library';
 import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
-import { LangManager } from './lang/LangManager';
-import { getDefaultLocalization } from './util/lang';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed

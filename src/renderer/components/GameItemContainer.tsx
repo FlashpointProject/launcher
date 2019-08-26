@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BrowseLang } from 'src/shared/lang/types';
 
 /** All props of a DIV element (except for "ref"). */
 type HTMLDivProps = React.HTMLAttributes<HTMLDivElement>;

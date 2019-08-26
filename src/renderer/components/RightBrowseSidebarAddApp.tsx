@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
+import { BrowseLang } from '../../shared/lang/types';
+import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { LangContext } from '../util/lang';
-import { BrowseLang } from '../../shared/lang/types';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */
