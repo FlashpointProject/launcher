@@ -12,6 +12,7 @@ export type LangContainer = {
   misc: MiscLang;
   menu: MenuLang;
   dialog: DialogLang;
+  libraries: LibrariesLang;
 }
 
 export type Language = {
@@ -313,3 +314,5 @@ export type DialogLang = LangObject<
   'selectCurationArchive' |
   'selectCurationMeta'
 >;
+
+export type LibrariesLang = Partial<LangObject<string>>;

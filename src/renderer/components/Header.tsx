@@ -1,14 +1,15 @@
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
+import { LangContainer, LibrariesLang } from '../../shared/lang/types';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithLibraryProps } from '../containers/withLibrary';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
 import { SearchQuery } from '../store/search';
 import { easterEgg, joinLibraryRoute } from '../Util';
+import { LangContext } from '../util/lang';
 import { GameOrder, GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
-import { LangContext } from '../util/lang';
-import { AppLang } from '../../shared/lang/types';
 
 type OwnProps = {
   /** The most recent search query. */
@@ -32,6 +33,10 @@ type HeaderState = {
   searchText: string;
 };
 
+export interface Header {
+  context: LangContainer;
+}
+
 /** The header that is always visible at the top of the main window (just below the title bar). */
 export class Header extends React.Component<HeaderProps, HeaderState> {
   searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
@@ -54,7 +59,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   }
 
   render() {
-    const strings : AppLang = this.context.app;
+    const strings = this.context.app;
 
     const {
       preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab },
@@ -72,7 +77,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
               libraries.map(item => (
                 <MenuItem
                   key={item.route}
-                  title={item.title}
+                  title={this.context.libraries[item.route] || item.route}
                   link={joinLibraryRoute(item.route)} />
               ))
             ) : (
@@ -197,4 +202,8 @@ function MenuItem({ title, link }: { title: string, link: string }) {
       <Link to={link} className='header__menu__item__link'>{title}</Link>
     </li>
   );
+}
+
+function getItemTitle(item: IGameLibraryFileItem, lang: LibrariesLang): string {
+  return lang[item.route] || item.title;
 }

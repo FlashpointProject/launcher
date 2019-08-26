@@ -272,5 +272,9 @@
     "selectCurationFolder": "Select Curation Folder(s)",
     "selectCurationArchive": "Select Curation Archive(s)",
     "selectCurationMeta": "Select Curation Meta(s)"
+  },
+  "libraries": {
+    "arcade": "Games",
+    "theatre": "Animations"
   }
 }

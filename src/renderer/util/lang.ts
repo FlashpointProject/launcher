@@ -281,7 +281,8 @@ export function getDefaultLocalization() : LangContainer {
       selectThemeFile: 'selectThemeFile',
       selectCurationFolder: 'selectCurationFolder',
       selectCurationArchive: 'selectCurationArchive',
-      selectCurationMeta: 'selectCurationMeta'
-    }
+      selectCurationMeta: 'selectCurationMeta',
+    },
+    libraries: {},
   };
 }
