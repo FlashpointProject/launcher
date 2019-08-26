@@ -257,13 +257,13 @@ export class LangManager extends WrappedEventEmitter {
       }
     }
 
-    // Replace empty current with fallback, empty fallback with default
-    const data = deepCopy(this.defaultLang.data);
-    const libraries = Object.assign(data.libraries, fallback.data && fallback.data.libraries, current.data && current.data.libraries);
-    data.libraries = {};
-    recursiveReplace(data, fallback.data);
-    recursiveReplace(data, current.data);
-    data.libraries = libraries;
+    // Combine all language container objects (by overwriting the default with the fallback and the current)
+    const data = recursiveReplace(recursiveReplace(deepCopy(this.defaultLang.data), fallback.data), current.data);
+    data.libraries = { // Allow libraries to add new properties (and not just overwrite the default)
+      ...data.libraries,
+      ...(fallback.data && fallback.data.libraries),
+      ...(current.data && current.data.libraries)
+    };
     return data;
   }
 

@@ -138,30 +138,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                     <p>{strings.currentLanguageDesc}</p>
                   </div>
                 </div>
-                {/* Fallback Language */}
-                <div className='setting__row'>
-                  <div className='setting__row__top'>
-                    <div className='setting__row__title'>
-                      <p>{strings.fallbackLanguage}</p>
-                    </div>
-                    <div className='setting__row__content setting__row__content--toggle'>
-                      <div>
-                        <select
-                          className='simple-selector'
-                          value={this.props.preferencesData.fallbackLanguage || ''}
-                          onChange={this.onFallbackLanguageSelect}
-                          >
-                          {fallbackLangs.map(function(lang : Language, index: number) {
-                              return <option key={index} value={lang.code}>{lang.name || lang.code}</option>;
-                          })}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <div className='setting__row__bottom'>
-                    <p>{strings.fallbackLanguageDesc}</p>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -306,6 +282,30 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
                 <div className='setting__row__bottom'>
                   <p>{strings.showDeveloperTabDesc}</p>
+                </div>
+              </div>
+              {/* Fallback Language */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.fallbackLanguage}</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <select
+                        className='simple-selector'
+                        value={this.props.preferencesData.fallbackLanguage || ''}
+                        onChange={this.onFallbackLanguageSelect}
+                        >
+                        {fallbackLangs.map(function(lang : Language, index: number) {
+                            return <option key={index} value={lang.code}>{lang.name || lang.code}</option>;
+                        })}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.fallbackLanguageDesc}</p>
                 </div>
               </div>
             </div>
