@@ -4,8 +4,7 @@ import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
 import { LangContext } from '../../util/lang';
-import { string } from 'prop-types';
-import { AboutLang } from 'src/shared/lang/types';
+import { AboutLang } from '../../../shared/lang/types';
 
 export type AboutPageProps = {
   /** Credits data (if any). */

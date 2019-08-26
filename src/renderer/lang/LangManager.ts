@@ -229,7 +229,7 @@ export class LangManager extends WrappedEventEmitter {
    * Update the list of selectable languages
    */
   public getLangList() : Language[] {
-    return this.items.map(item => { return {code: item.code, name: item.name};});
+    return this.items.map(item => { return {code: item.code, name: item.name + ' (' + item.code + ')'};});
   }
 
   /**

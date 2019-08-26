@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { LangContext } from '../util/lang';
-import { FilterLang } from 'src/shared/lang/types';
+import { FilterLang } from '../../shared/lang/types';
 
 export type GameOrderProps = {
   /** Called when the either the property to order by, or what way to order in, is changed. */

@@ -20,7 +20,7 @@ import { DropdownInputField } from './DropdownInputField';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 import { LangContext } from '../util/lang';
-import { CurateLang, MiscLang } from 'src/shared/lang/types';
+import { CurateLang, MiscLang } from '../../shared/lang/types';
 
 const fsStat = promisify(fs.stat);
 

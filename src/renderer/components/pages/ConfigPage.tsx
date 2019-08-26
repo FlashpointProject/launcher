@@ -12,7 +12,7 @@ import which = require('which');
 import { LangContext } from '../../util/lang';
 import { ConfigLang, Language, DialogLang } from '../../../shared/lang/types';
 import { LangManager } from '../../lang/LangManager';
-import { formatString } from 'src/shared/utils/StringFormatter';
+import { formatString } from '../../../shared/utils/StringFormatter';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */

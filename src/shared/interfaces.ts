@@ -2,7 +2,6 @@ import { OpenDialogOptions } from 'electron';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
-import { LangManager } from 'src/renderer/lang/LangManager';
 
 export interface IMainWindowExternal {
   /** Miscellaneous data. */

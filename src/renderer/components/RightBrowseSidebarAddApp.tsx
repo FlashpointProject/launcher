@@ -5,8 +5,7 @@ import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { LangContext } from '../util/lang';
-import { string } from 'prop-types';
-import { BrowseLang, LangContainer } from 'src/shared/lang/types';
+import { BrowseLang } from '../../shared/lang/types';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */

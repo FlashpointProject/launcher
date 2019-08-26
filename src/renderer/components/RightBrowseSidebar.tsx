@@ -22,8 +22,7 @@ import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { LangContext } from '../util/lang';
-import { string } from 'prop-types';
-import { BrowseLang, LangContainer, MenuLang, DialogLang } from 'src/shared/lang/types';
+import { BrowseLang, MenuLang, DialogLang } from '../../shared/lang/types';
 
 type OwnProps = {
   gameImages: GameImageCollection;

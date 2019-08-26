@@ -38,7 +38,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
         <span
           key={key}
           className='curate-box-warnings__entry'>
-          {`- ${warningDescriptions[key as keyof CurationWarnings]}\n`}
+          {`- ${strings[key as keyof CurationWarnings]}\n`}
         </span>
       ) : undefined)
   ), [warnings]);

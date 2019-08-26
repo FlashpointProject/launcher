@@ -35,7 +35,8 @@ import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { LangContext } from '../../util/lang';
-import { MenuLang, DialogLang, BrowseLang, LangContainer } from 'src/shared/lang/types';
+import { MenuLang, DialogLang, BrowseLang, LangContainer } from '../../../shared/lang/types';
+import { formatString } from '../../../shared/utils/StringFormatter';
 
 const writeFile = promisify(fs.writeFile);
 
@@ -312,7 +313,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             <>
               <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
               <br/>
-              <p>{strings.dropGameOnLeft}</p>
+              <p>{formatString(strings.dropGameOnLeft, <i>{strings.leftSidebar}</i>)}</p>
             </>
           ) : (
             /* No games found */
@@ -321,9 +322,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               <br/>
               {(this.props.central.gamesFailedLoading) ? (
                 <>
-                  {strings.setFlashpointPathQuestion}
+                  {formatString(strings.setFlashpointPathQuestion, <b>{strings.flashpointPath}</b>, <i>{strings.config}</i>)}
                   <br/>
-                  {strings.noteSaveAndRestart}
+                  {formatString(strings.noteSaveAndRestart, <b>'{strings.saveAndRestart}'</b>)}
                 </>
               ) : (
                 (this.props.central.games.collection.games.length > 0) ? (

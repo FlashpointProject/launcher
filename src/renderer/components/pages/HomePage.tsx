@@ -333,3 +333,13 @@ function getPlaylistLibraryRoute(playlist: IGamePlaylist, libraries: IGameLibrar
     if (defLibrary) { return defLibrary.route; }
   }
 }
+
+function link(title: string, url: string): JSX.Element {
+  return (
+    <a
+      href={url}
+      title={url}>
+      {title}
+    </a>
+  );
+}

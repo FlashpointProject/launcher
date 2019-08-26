@@ -8,7 +8,7 @@ import { easterEgg, joinLibraryRoute } from '../Util';
 import { GameOrder, GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 import { LangContext } from '../util/lang';
-import { AppLang } from 'src/shared/lang/types';
+import { AppLang } from '../../shared/lang/types';
 
 type OwnProps = {
   /** The most recent search query. */

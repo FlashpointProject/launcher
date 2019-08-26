@@ -57,6 +57,8 @@
     "plannedFeatures": "Check out our planned features!",
     "notesHeader": "Notes",
     "notes": "Don't forget to read the readme if you're having issues.",
+    "linuxSupport": "Issues on Linux? {0}",
+    "linuxSupportLinkText": "Open FAQ",
     "randomPicks": "Random Picks"
   },
   "logs": {
@@ -187,9 +189,13 @@
     "newPlaylist": "New Playlist",
     "emptyPlaylist": "Empty Playlist",
     "noGamesFound": "No Games Found!",
-    "dropGameOnLeft": "Drop a game on this playlist in the <i>left sidebar</i> to add it.",
-    "setFlashpointPathQuestion" : "Have you set the path to the <b>Flashpoint path</b> at the <i>Config</i> page?",
-    "noteSaveAndRestart": "Note: You have to press <b>'Save & Restart'</b> for the change to take effect.",
+    "dropGameOnLeft": "Drop a game on this playlist in the {0} to add it.",
+    "leftSidebar": "left sidebar",
+    "setFlashpointPathQuestion" : "Have you set the path to the {0} at the {1} page?",
+    "flashpointPath": "Flashpoint path",
+    "config": "Config",
+    "noteSaveAndRestart": "Note: You have to press {0} for the change to take effect.",
+    "saveAndRestart": "Save & Restart",
     "loadingGames": "Loading Games...",
     "thereAreNoGames": "There are no games."
   },
@@ -207,11 +213,16 @@
     "curationNotes": "Curation Notes",
     "noCurationNotes": "No Curation Notes",
     "remove": "Remove",
-    "removeDesc": "LOCALIZATION REQUIRED HERE",
-    "removeCurationDesc": "LOCALIZATION REQUIRED HERE",
+    "removeCurationDesc": "Remove this curation (no changes will be made to any files)",
     "import": "Import",
     "contentFiles": "Content Files",
-    "warnings": "Warnings"
+    "warnings": "Warnings",
+    "isNotHttp": "'Launch Command' is not a URL using the HTTP protocol.",
+    "releaseDateInvalid": "'Release Date' must follow YYYY-MM-DD (month and day are optional).",
+    "unusedApplicationPath": "'Application Path' has an unused value. Make sure it's spelled correctly!",
+    "unusedGenre": "'Genre' has an unused value. Make sure it's spelled correctly!",
+    "unusedPlatform": "'Platform' has an unused value. Make sure it's spelled correctly!",
+    "noContent": "No content found! Make sure the folder is named and placed correctly!"
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",
@@ -247,8 +258,8 @@
   },
   "dialog": {
     "programNotFound": "Program not found!",
-    "phpNotFound": "",
-    "wineNotFound": "",
+    "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
+    "wineNotFound": "Wine was enabled but not found on the path. Is it installed?\nSome games may not be available without Wine",
     "fileNotFound": "File not found!",
     "pathNotFound": "Path not found!",
     "selectFileToExportMeta" : "Select file to save meta to",

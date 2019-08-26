@@ -17,7 +17,7 @@ import { CentralState } from './interfaces';
 import { Paths } from './Paths';
 import { IGamePlaylist } from './playlist/interfaces';
 import { IThemeListItem } from './theme/ThemeManager';
-import { Language } from 'src/shared/lang/types';
+import { Language } from '../shared/lang/types';
 
 export type AppRouterProps = {
   /** Semi-global prop. */

@@ -7,7 +7,7 @@ import { gameIdDataType } from '../Util';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItem } from './PlaylistItem';
 import { LangContext } from '../util/lang';
-import { BrowseLang } from 'src/shared/lang/types';
+import { BrowseLang } from '../../shared/lang/types';
 
 type OwnProps = {
   /** Semi-global prop. */

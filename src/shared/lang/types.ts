@@ -81,6 +81,8 @@ export type HomeLang = LangObject<
   'plannedFeatures' |
   'notesHeader' |
   'notes' |
+  'linuxSupport' |
+  'linuxSupportLinkText' |
   'randomPicks'
 >;
 
@@ -220,8 +222,12 @@ export type BrowseLang = LangObject<
   'emptyPlaylist' |
   'noGamesFound' |
   'dropGameOnLeft' |
+  'leftSidebar' |
   'setFlashpointPathQuestion' |
+  'flashpointPath' |
+  'config' |
   'noteSaveAndRestart' |
+  'saveAndRestart' |
   'loadingGames' |
   'noGameMatchedSearch' |
   'thereAreNoGames'
@@ -241,11 +247,16 @@ export type CurateLang = LangObject<
   'curationNotes' |
   'noCurationNotes' |
   'remove' |
-  'removeDesc' |
   'removeCurationDesc' |
   'import' |
   'contentFiles' |
-  'warnings'
+  'warnings' |
+  'isNotHttp' |
+  'releaseDateInvalid' |
+  'unusedApplicationPath' |
+  'unusedGenre' |
+  'unusedPlatform' |
+  'noContent'
 >;
 
 export type PlaylistLang = LangObject<
