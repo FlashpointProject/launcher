@@ -7,6 +7,7 @@ import { IAppConfigData } from '../../shared/config/interfaces';
 import { ILogPreEntry } from '../../shared/Log/interface';
 import { stringifyArray } from '../../shared/Util';
 import { ManagedChildProcess } from '../ManagedChildProcess';
+import { buildParseArgsConfig } from '../Util';
 import { BackgroundServicesFile } from './BackgroundServicesFile';
 import { IBackProcessInfo, IBackProcessInfoFile } from './interfaces';
 
@@ -57,7 +58,8 @@ class BackgroundServices extends EventEmitter {
     let serviceInfo: IBackProcessInfoFile;
     try {
       const jsonFolder = path.posix.join(config.flashpointPath, config.jsonFolderPath);
-      serviceInfo = await BackgroundServicesFile.readFile(jsonFolder, error => this.logContent(error));
+      const parseArgs = buildParseArgsConfig(config);
+      serviceInfo = await BackgroundServicesFile.readFile(jsonFolder, parseArgs, error => this.logContent(error));
     } catch (error) {
       this.logContent(`An error occurred while loading the background services file:\n  ${error.toString()}`);
       this.startDone();

@@ -2,6 +2,8 @@ import { IAppConfigData } from '../../shared/config/interfaces';
 import { deepCopy } from '../../shared/Util';
 import { ObjectParser } from '../../shared/utils/ObjectParser';
 import { parseVarStr } from '../Util';
+import { ParseArgs } from '../background/types';
+import { buildParseArgs } from '../Util';
 
 type IConfigDataDefaults = {
   [key: string]: Readonly<IAppConfigData>;
@@ -60,15 +62,16 @@ export function overwriteConfigData(
   data: Partial<IAppConfigData>,
   onError?: (error: string) => void
 ): IAppConfigData {
+  const parseArgs : ParseArgs = buildParseArgs();
   const parser = new ObjectParser({
     input: data,
     onError: onError && (error => onError(`Error while parsing Config: ${error.toString()}`)),
   });
-  parser.prop('flashpointPath',      v => source.flashpointPath      = parseVarStr(str(v)));
-  parser.prop('imageFolderPath',     v => source.imageFolderPath     = parseVarStr(str(v)));
-  parser.prop('logoFolderPath',      v => source.logoFolderPath      = parseVarStr(str(v)));
-  parser.prop('playlistFolderPath',  v => source.playlistFolderPath  = parseVarStr(str(v)));
-  parser.prop('jsonFolderPath',      v => source.jsonFolderPath      = parseVarStr(str(v)));
+  parser.prop('flashpointPath',      v => source.flashpointPath      = parseVarStr(str(v), parseArgs));
+  parser.prop('imageFolderPath',     v => source.imageFolderPath     = parseVarStr(str(v), parseArgs));
+  parser.prop('logoFolderPath',      v => source.logoFolderPath      = parseVarStr(str(v), parseArgs));
+  parser.prop('playlistFolderPath',  v => source.playlistFolderPath  = parseVarStr(str(v), parseArgs));
+  parser.prop('jsonFolderPath',      v => source.jsonFolderPath      = parseVarStr(str(v), parseArgs));
   parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
   parser.prop('startServer',         v => source.startServer         = !!v);
   parser.prop('startRedirector',     v => source.startRedirector     = !!v);
