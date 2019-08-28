@@ -59,6 +59,7 @@ export class LangManager extends WrappedEventEmitter {
       // Add event listeners for Watcher
       this.watcher.on('add',    this.onWatcherAdd);
       this.watcher.on('change', this.onWatcherChange);
+      this.watcher.on('remove', this.onWatcherRemove);
       // Add initial files
       for (let filename of this.watcher.filenames) {
         this.onWatcherAdd(filename, '');
@@ -94,7 +95,7 @@ export class LangManager extends WrappedEventEmitter {
               data: data
             };
             this.items.push(item);
-            log('Loaded ' + item.name + ' language file.');
+            log('Loaded ' + item.name + ' (' + item.code + '.json) language file.');
             // Only updated localization if a used language is added
             if (item.code === current || item.code === fallback) {
               this.updateLocalization();
@@ -132,9 +133,9 @@ export class LangManager extends WrappedEventEmitter {
             this.emit('listChanged', this.createLangList());
           }
 
-          log('Reloaded ' + item.name + ' language file');
+          log('Reloaded ' + item.name + ' (' + item.code + '.json) language file');
         } catch (e) {
-          log('Failed to reload ' + item.name + ' language file, keeping old data.');
+          log('Failed to reload ' + item.name + ' (' + item.code + '.json) language file, keeping old data.');
         }
       });
     } else {
@@ -148,7 +149,7 @@ export class LangManager extends WrappedEventEmitter {
             data: data
           };
           this.items.push(item);
-          log('Loaded ' + item.name + ' language file.');
+          log('Loaded ' + item.name + ' (' + item.code + '.json) language file.');
           // Only updated localization if a used language is added
           if (item.code === current || item.code === fallback) {
             this.updateLocalization();
@@ -157,6 +158,20 @@ export class LangManager extends WrappedEventEmitter {
         } catch (e) {
           log('Failed to load ' + filename + ' language file.');
         }
+      });
+    }
+  }
+
+  private onWatcherRemove = (filename: string, offsetPath: string): void => {
+    const fullPath = path.join(LangManager.folderPath, offsetPath, filename);
+    const item = this.findOwner(fullPath);
+    if (item) {
+      const index = this.items.indexOf(item);
+      this.itemsQueue.push(async () => {
+        this.items.splice(index, 1);
+        this.emit('listChanged', this.createLangList());
+        this.updateLocalization();
+        log(item.name + ' language file (' + item.code + '.json) has been unloaded due to being moved or deleted.');
       });
     }
   }
@@ -199,7 +214,7 @@ export class LangManager extends WrappedEventEmitter {
         data: data
       };
       this.items.push(item);
-      log('Loaded ' + item.name + ' language file.');
+      log('Loaded ' + item.name + ' (' + item.code + '.json) language file.');
     } catch (e) {
       log('Failed to load current language file - ' + currentCode + '.json');
     }
@@ -215,7 +230,7 @@ export class LangManager extends WrappedEventEmitter {
         data: data
       };
       this.items.push(item);
-      log('Loaded ' + item.name + ' language file.');
+      log('Loaded ' + item.name + ' (' + item.code + '.json) language file.');
     } catch (e) {
       log('Failed to load fallback language file - ' + fallbackCode + '.json');
     }
