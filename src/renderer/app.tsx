@@ -5,9 +5,9 @@ import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
-import { LangContainer } from '../shared/lang/types';
+import { LangContainer, Language } from '../shared/lang/types';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
-import { findDefaultLibrary, findLibraryByRoute, getLibraryPlatforms } from '../shared/library/util';
+import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { versionNumberToText } from '../shared/Util';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -69,6 +69,7 @@ export type AppState = {
   wasNewGameClicked: boolean;
   /** Language strings */
   lang: LangContainer;
+  langList: Language[];
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -111,6 +112,7 @@ export class App extends React.Component<AppProps, AppState> {
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
       lang: this.props.langManager.buildLocalization(),
+      langList: this.props.langManager.createLangList(),
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
@@ -120,10 +122,11 @@ export class App extends React.Component<AppProps, AppState> {
       }
     };
     // Initialize app
-    this.init(this.state.lang);
+    this.init();
   }
 
-  init(strings : LangContainer) {
+  init() {
+    const strings = this.state.lang;
     const fullFlashpointPath = window.External.config.fullFlashpointPath;
     const fullJsonFolderPath = window.External.config.fullJsonFolderPath;
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
@@ -178,8 +181,8 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
     // Listen for changes to lang files, load in used ones
-    this.props.langManager.on('listChanged',    () => { this.forceUpdate(); });
-    this.props.langManager.on('update', item => { this.setState({lang: item}); });
+    this.props.langManager.on('listChanged', list => { this.setState({ langList: list }); });
+    this.props.langManager.on('update',      data => { this.setState({ lang: data     }); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -343,7 +346,6 @@ export class App extends React.Component<AppProps, AppState> {
     const platforms = this.state.central.games.listPlatforms();
     const route = getBrowseSubPath(this.props.location.pathname);
     const library = findLibraryByRoute(libraries, route);
-    const availableLangs = this.props.langManager.getLangList();
     // Get game count (or undefined if no games are yet found)
     let gameCount: number|undefined;
     if (this.state.central.gamesDoneLoading) {
@@ -368,22 +370,22 @@ export class App extends React.Component<AppProps, AppState> {
       gameLibraryRoute: route,
       themeItems: this.props.themes.items,
       reloadTheme: this.reloadTheme,
-      languages: availableLangs,
+      languages: this.state.langList,
       updateLocalization: this.updateLocalization,
     };
     // Render
     return (
-      <>
       <LangContext.Provider value={this.state.lang}>
         {/* "TitleBar" stuff */}
         { window.External.config.data.useCustomTitlebar ? (
           <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
         ) : undefined }
         {/* "Header" stuff */}
-        <HeaderContainer onOrderChange={this.onOrderChange}
-                         onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-                         onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-                         order={this.state.order}/>
+        <HeaderContainer
+          onOrderChange={this.onOrderChange}
+          onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+          onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+          order={this.state.order} />
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter { ...routerProps } />
@@ -394,15 +396,15 @@ export class App extends React.Component<AppProps, AppState> {
           </noscript>
         </div>
         {/* "Footer" stuff */}
-        <ConnectedFooter showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-                         totalCount={gameCount}
-                         currentLabel={library && this.state.lang.libraries[library.route]}
-                         currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
-                         onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-                         onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-                         onNewGameClick={this.onNewGameClick} />
+        <ConnectedFooter
+          showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+          totalCount={gameCount}
+          currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
+          currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+          onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+          onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+          onNewGameClick={this.onNewGameClick} />
       </LangContext.Provider>
-      </>
     );
   }
 

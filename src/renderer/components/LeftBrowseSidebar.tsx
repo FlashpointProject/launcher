@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BrowseLang } from '../../shared/lang/types';
+import { BrowseLang, LangContainer } from '../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { CentralState } from '../interfaces';
@@ -33,6 +33,10 @@ type LeftBrowseSidebarState = {
   isEditing: boolean;
 };
 
+export interface LeftBrowseSidebar {
+  context: LangContainer;
+}
+
 /** Sidebar on the left side of BrowsePage. */
 export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, LeftBrowseSidebarState> {
   constructor(props: LeftBrowseSidebarProps) {
@@ -41,8 +45,6 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
       isEditing: false,
     };
   }
-
-  static contextType = LangContext;
 
   private filterAndSortPlaylists(): IGamePlaylist[] {
     const { central, currentLibrary } = this.props;
@@ -60,7 +62,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
   }
 
   render() {
-    const strings : BrowseLang = this.context.browse;
+    const strings = this.context.browse;
     const { central, onShowAllClick, preferencesData, selectedPlaylistID } = this.props;
     const { isEditing } = this.state;
     const editingDisabled = !preferencesData.enableEditing;
@@ -196,4 +198,6 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
       }, 1);
     }
   }
+
+  static contextType = LangContext;
 }

@@ -5,7 +5,7 @@ import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { DeveloperLang } from '../../../shared/lang/types';
+import { DeveloperLang, LangContainer } from '../../../shared/lang/types';
 import { removeFileExtension } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';
@@ -41,6 +41,10 @@ type DeveloperPageState = {
   text: string;
 };
 
+export interface DeveloperPage {
+  context: LangContainer;
+}
+
 /**
  * Page made for developers or advanced users only.
  * It has various "tools" that the user can run to gather information about the current Flashpoint folders data (games, playlists, images etc.), or edit that data on mass.
@@ -54,10 +58,8 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     };
   }
 
-  static contextType = LangContext;
-
   render() {
-    const strings : DeveloperLang = this.context.developer;
+    const strings = this.context.developer;
     const { text } = this.state;
     return (
       <div className='developer-page simple-scroll'>
@@ -169,6 +171,8 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       this.setState({ text: await createMissingFolders(collection) });
     }, 0);
   }
+
+  static contextType = LangContext;
 }
 
 function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollection): string {

@@ -379,7 +379,7 @@ export function CurateBox(props: CurateBoxProps) {
       {/* Content */}
       <div className='curate-box-files'>
         <div className='curate-box-files__head'>
-          {strings.curate.contentFiles}
+          {strings.curate.contentFiles + ': '}
           {(collisionCount !== undefined && collisionCount > 0) ? (
             <label className='curate-box-files__head-collision-count'>
               ({collisionCount} / {contentCollisions && contentCollisions.length} Files or Folders Already Exists)

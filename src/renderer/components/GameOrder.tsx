@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FilterLang } from '../../shared/lang/types';
+import { FilterLang, LangContainer } from '../../shared/lang/types';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { LangContext } from '../util/lang';
 
@@ -17,16 +17,17 @@ export type GameOrderChangeEvent = {
   orderReverse: GameOrderReverse;
 };
 
+export interface GameOrder {
+  context: LangContainer;
+}
+
 /**
  * Two drop down lists, the first for selecting what to order the games by, and
  * the second for selecting what way to order the games in.
  */
 export class GameOrder extends React.Component<GameOrderProps> {
-
-  static contextType = LangContext;
-
   render() {
-    const strings : FilterLang = this.context.filter;
+    const strings = this.context.filter;
 
     return (
       <>
@@ -74,6 +75,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
     }
   }
 
+  static contextType = LangContext;
 }
 
 /**

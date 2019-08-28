@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
-import { AppLang } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang/types';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameScaleSpan } from '../Util';
 import { LangContext } from '../util/lang';
@@ -28,13 +28,15 @@ type OwnProps = {
 
 export type FooterProps = OwnProps & WithPreferencesProps;
 
+export interface Footer {
+  context: LangContainer;
+}
+
 /** The footer that is always visible at the bottom of the main window. */
 export class Footer extends React.Component<FooterProps> {
   static scaleSliderMax: number = 1000;
   /** Reference to the scale slider. */
   scaleSliderRef: React.RefObject<HTMLInputElement> = React.createRef();
-
-  static contextType = LangContext;
 
   componentDidMount() {
     window.addEventListener('keydown', this.onGlobalKeydown);
@@ -45,7 +47,7 @@ export class Footer extends React.Component<FooterProps> {
   }
 
   render() {
-    const strings : AppLang = this.context.app;
+    const strings = this.context.app;
     const { currentCount, currentLabel, layout, onNewGameClick, preferencesData, scaleSliderValue, showCount, totalCount } = this.props;
     const scale = Math.min(Math.max(0, scaleSliderValue), 1);
     return (
@@ -174,4 +176,6 @@ export class Footer extends React.Component<FooterProps> {
       this.scaleSliderChange(this.scaleSliderRef.current);
     }
   }
+
+  static contextType = LangContext;
 }

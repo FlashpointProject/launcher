@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { AboutLang } from '../../../shared/lang/types';
+import { AboutLang, LangContainer } from '../../../shared/lang/types';
 import { versionNumberToText } from '../../../shared/Util';
 import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
 import { LangContext } from '../../util/lang';
@@ -18,6 +18,10 @@ export type AboutPageState = {
   profile?: ICreditsDataProfile;
 };
 
+export interface AboutPage {
+  context: LangContainer;
+}
+
 /** Page displaying information about this launcher, the "BlueMaxima's Flashpoint" project and its contributors. */
 export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
   constructor(props: AboutPageProps) {
@@ -25,10 +29,8 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     this.state = {};
   }
 
-  static contextType = LangContext;
-
   render() {
-    const strings : AboutLang = this.context.about;
+    const strings = this.context.about;
     const { profile } = this.state;
     const { creditsData, creditsDoneLoading } = this.props;
     return (
@@ -111,6 +113,8 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
       this.setState({ profile: undefined });
     }
   }
+
+  static contextType = LangContext;
 }
 
 function link(title: string, url: string): JSX.Element {

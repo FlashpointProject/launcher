@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { HomeLang } from '../../../shared/lang/types';
+import { HomeLang, LangContainer } from '../../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { findDefaultLibrary } from '../../../shared/library/util';
 import { formatString } from '../../../shared/utils/StringFormatter';
@@ -39,15 +39,17 @@ type OwnProps = {
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps & WithSearchProps;
 
+export interface HomePage {
+  context: LangContainer;
+}
+
 /** Page shown as soon as the application starts up. */
 export class HomePage extends React.Component<HomePageProps> {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   logoDelay = (Date.now() * -0.001) + 's';
 
-  static contextType = LangContext;
-
   render() {
-    const strings : HomeLang = this.context.home;
+    const strings = this.context.home;
 
     const {
       onDownloadTechUpgradeClick,
@@ -291,6 +293,8 @@ export class HomePage extends React.Component<HomePageProps> {
     if (fav && fav.library) { return joinLibraryRoute(fav.library); }
     else                    { return defaultRoute;                  }
   }
+
+  static contextType = LangContext;
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {

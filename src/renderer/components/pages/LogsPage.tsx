@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ArgumentTypesOf } from '../../../shared/interfaces';
-import { LogsLang } from '../../../shared/lang/types';
+import { LangContainer, LogsLang } from '../../../shared/lang/types';
 import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
 import { LogRendererApi } from '../../../shared/Log/LogRendererApi';
 import { memoizeOne } from '../../../shared/memoize';
@@ -22,11 +22,13 @@ const labels = [
   'Router',
 ];
 
+export interface LogsPage {
+  context: LangContainer;
+}
+
 /** Page displaying this launcher's log. */
 export class LogsPage extends React.Component<LogsPageProps> {
   stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
-
-  static contextType = LangContext;
 
   getLogString() {
     const logEntries = Object.assign([], window.External.log.entries);
@@ -43,7 +45,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
   }
 
   render() {
-    const strings : LogsLang = this.context.logs;
+    const strings = this.context.logs;
     const { preferencesData: { showLogSource } } = this.props;
     const logData = this.getLogString();
     return (
@@ -136,6 +138,8 @@ export class LogsPage extends React.Component<LogsPageProps> {
   onLogDataUpdate = (log: LogRendererApi): void => {
     this.forceUpdate();
   }
+
+  static contextType = LangContext;
 }
 
 /**

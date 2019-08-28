@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
+import { getLibraryItemTitle } from '../../shared/library/util';
 import { LangContainer, LibrariesLang } from '../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithLibraryProps } from '../containers/withLibrary';
@@ -41,8 +42,6 @@ export interface Header {
 export class Header extends React.Component<HeaderProps, HeaderState> {
   searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
 
-  static contextType = LangContext;
-
   constructor(props: HeaderProps) {
     super(props);
     this.state = {
@@ -77,7 +76,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
               libraries.map(item => (
                 <MenuItem
                   key={item.route}
-                  title={this.context.libraries[item.route] || item.route}
+                  title={getLibraryItemTitle(item, this.context.libraries)}
                   link={joinLibraryRoute(item.route)} />
               ))
             ) : (
@@ -192,6 +191,8 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     this.setState({ searchText: '' });
     this.props.onSearch('', false);
   }
+
+  static contextType = LangContext;
 }
 
 

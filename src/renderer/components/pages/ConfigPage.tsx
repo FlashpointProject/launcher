@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
-import { ConfigLang, DialogLang, Language, autoCode } from '../../../shared/lang/types';
+import { autoCode, ConfigLang, DialogLang, LangContainer, Language } from '../../../shared/lang/types';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { IThemeListItem } from '../../theme/ThemeManager';
@@ -37,6 +37,10 @@ type ConfigPageState = {
   useFiddler: boolean;
 };
 
+export interface ConfigPage {
+  context: LangContainer;
+}
+
 /**
  * A page displaying some of the current "configs" / "preferences", as well as a way of changing them.
  * All changed "configs" (settings stored in "config.json") require you to "Save & Restart" to take effect.
@@ -46,8 +50,6 @@ type ConfigPageState = {
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
   currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
-
-  static contextType = LangContext;
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -61,7 +63,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   render() {
-    const strings : ConfigLang = this.context.config;
+    const strings = this.context.config;
     const currentLangs : Language[] = [...[{code: autoCode, name: formatString(strings.auto, remote.app.getLocaleCountryCode().toLowerCase())}], ...this.props.availableLangs];
     const fallbackLangs : Language[] = [...[{code: '<none>', name: strings.none}], ...currentLangs];
 
@@ -363,18 +365,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   useWineChange = (isChecked: boolean): void => {
-    const strings : DialogLang = this.context.dialog;
     this.props.updatePreferences({ useWine: isChecked });
     this.forceUpdate();
 
     if (isChecked && process.platform === 'linux') {
-      which('wine', function(err: Error | null) {
+      which('wine', (err) => {
         if (err) {
           log('Warning : Wine was enabled but it was not found on the path.');
           remote.dialog.showMessageBox({
             type: 'error',
-            title: strings.programNotFound,
-            message: strings.wineNotFound,
+            title: this.context.dialog.programNotFound,
+            message: this.context.dialog.wineNotFound,
             buttons: ['Ok'],
           });
         }
@@ -418,10 +419,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
-    const strings : DialogLang = this.context.dialog;
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialogSync({
-      title: strings.selectThemeFile,
+      title: this.context.dialog.selectThemeFile,
       properties: ['openFile'],
     });
     if (filePaths) {
@@ -456,6 +456,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     .then(() => { window.External.restart(); })
     .catch((error: Error) => { console.log(error); });
   }
+
+  static contextType = LangContext;
 }
 
 /** Format a theme item into a displayable name for the themes drop-down. */

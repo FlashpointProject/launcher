@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MiscLang } from '../../shared/lang/types';
+import { LangContainer, MiscLang } from '../../shared/lang/types';
 import { formatString } from '../../shared/utils/StringFormatter';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -28,6 +28,10 @@ type GameImageSplitState = {
   hover: boolean;
 };
 
+export interface GameImageSplit {
+  context: LangContainer;
+}
+
 /**
  * An "image slot" inside the "game image split" area.
  * This component will either display a text and an "add" button, or an image and a "remove" button (depending on if the image source is undefined).
@@ -41,10 +45,8 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     };
   }
 
-  static contextType = LangContext;
-
   render() {
-    const strings : MiscLang = this.context.misc;
+    const strings = this.context.misc;
     const { disabled, imgSrc, onAddClick, onRemoveClick, text } = this.props;
     const { hover } = this.state;
     // Class name
@@ -100,6 +102,8 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   onDragLeave = (event: React.DragEvent): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
   }
+
+  static contextType = LangContext;
 }
 
 function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[MiscLang, string]>): JSX.Element {

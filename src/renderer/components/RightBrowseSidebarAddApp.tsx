@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
-import { BrowseLang } from '../../shared/lang/types';
+import { BrowseLang, LangContainer } from '../../shared/lang/types';
 import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -20,6 +20,10 @@ export type RightBrowseSidebarAddAppProps = {
   editDisabled?: boolean;
 };
 
+export interface RightBrowseSidebarAddApp {
+  context: LangContainer;
+}
+
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
 export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps> {
   onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
@@ -28,10 +32,8 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
   onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp) => { addApp.autoRunBefore = !addApp.autoRunBefore; });
   onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
 
-  static contextType = LangContext;
-
   render() {
-    const strings : BrowseLang = this.context.browse;
+    const strings = this.context.browse;
     const { addApp, editDisabled } = this.props;
     return (
       <div className='browse-right-sidebar__additional-application'>
@@ -155,4 +157,6 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
       }
     };
   }
+
+  static contextType = LangContext;
 }

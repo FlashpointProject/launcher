@@ -102,6 +102,10 @@ export type BrowsePageState = {
   suggestions?: Partial<GamePropSuggestions>;
 };
 
+export interface BrowsePage {
+  context: LangContainer;
+}
+
 /** Page displaying the games and playlists. */
 export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState> {
   /** Reference of the game grid/list element. */
@@ -129,8 +133,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.createNewGameIfClicked(false, assignToState);
     this.state = initialState;
   }
-
-  static contextType = LangContext;
 
   componentDidMount() {
     this.props.central.games.on('change', this.onGamesCollectionChange);
@@ -193,7 +195,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   render() {
-    const strings : LangContainer = this.context;
+    const strings = this.context;
     const { selectedGame, selectedPlaylist } = this.props;
     const { draggedGame } = this.state;
     const currentLibrary = this.getCurrentLibrary();
@@ -441,7 +443,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   /** Create a callback for opening the file location of a game. */
   openFileLocationCallback(game: IGameInfo) {
-    const strings : DialogLang = this.context.dialog;
     return () => {
       // Extract the game's "entry"/"main" file path
       const gamePath = GameLauncher.getGamePath(game);
@@ -452,7 +453,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           else {
             remote.dialog.showMessageBox({
               type: 'warning',
-              title: strings.fileNotFound,
+              title: this.context.dialog.fileNotFound,
               message: 'Failed to find the game file.\n'+
                         'If you are using Flashpoint Infinity, make sure you download the game first.\n'+
                         '\n'+
@@ -466,7 +467,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       } else {
         remote.dialog.showMessageBox({
           type: 'warning',
-          title: strings.pathNotFound,
+          title: this.context.dialog.pathNotFound,
           message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
                     `Game: "${game.title}"`,
           buttons: ['Ok'],
@@ -521,12 +522,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   /** Create a callback for exporting the meta of a game (as a curation format meta file). */
   exportMetaCallback(game: IGameInfo) {
-    const strings : DialogLang = this.context.dialog;
     return () => {
       const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
       // Choose where to save the file
       const filePath = electron.remote.dialog.showSaveDialogSync({
-        title: strings.selectFileToExportMeta,
+        title: this.context.dialog.selectFileToExportMeta,
         defaultPath: 'meta',
         filters: [{
           name: 'Meta file',
@@ -545,7 +545,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   /** Create a callback for exporting the meta and images of a game (as a curation format meta file and image files). */
   exportMetaAndImagesCallback(game: IGameInfo) {
-    const strings : DialogLang = this.context.dialog;
+    const strings = this.context.dialog;
     return () => {
       const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
       // Choose where to save the file
@@ -864,6 +864,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     orderBy: 'title',
     orderReverse: 'ascending',
   }
+
+  static contextType = LangContext;
 }
 
 function calcScale(defHeight: number, scale: number): number {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { PlaylistLang } from '../../shared/lang/types';
+import { LangContainer, PlaylistLang } from '../../shared/lang/types';
 import { memoizeOne } from '../../shared/memoize';
 import { deepCopy } from '../../shared/Util';
 import { CentralState } from '../interfaces';
@@ -44,6 +44,10 @@ type PlaylistItemState = {
   dragOver: boolean;
 };
 
+export interface PlaylistItem {
+  context: LangContainer;
+}
+
 /** Displays the information about a single playlist. Meant to be used in a list. */
 export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistItemState> {
   //
@@ -61,8 +65,6 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
   wrapperRef: React.RefObject<HTMLDivElement> = React.createRef();
   width: number = 0;
   height: number = 0;
-
-  static contextType = LangContext
 
   constructor(props: PlaylistItemProps) {
     super(props);
@@ -95,7 +97,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
   }
 
   render() {
-    const strings : PlaylistLang = this.context.playlist;
+    const strings = this.context.playlist;
     const playlist = this.state.editPlaylist || this.props.playlist;
     const expanded = !!this.props.expanded;
     const editingDisabled = !!this.props.editingDisabled;
@@ -436,6 +438,8 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
       wrapper.style.setProperty('--height', this.height+'');
     }
   }
+
+  static contextType = LangContext
 }
 
 /** Check if an element or one of its parents is the same as another element. */
