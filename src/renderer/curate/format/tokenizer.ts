@@ -80,6 +80,7 @@ type TokenizerState = {
 export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
   const tokens: CFTokenizer.AnyToken[] = [];
   const lines = text.replace(/\r/g, '').split('\n');
+  let indentPower;
   // State
   const state: TokenizerState = {
     inMultiLine: false,
@@ -101,7 +102,9 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
     } else {
       // Count spaces and indents
       const spaces = countSpacesLeft(line);
-      const indent = calculateIndent(line);
+      // If first indent in file (using spaces), use to calculate indent power (1 space = 1 power, 4 spaces = 4 power etc)
+      if (spaces > 0 && line[0] != '\t' && indentPower === undefined) { indentPower = spaces; }
+      const indent = calculateIndent(line, indentPower || 4);
       // Check if the multi-line value has ended, or if the indentation has changed
       if (state.inMultiLine) {
         // Check if the multi-line value has ended (by a lowering in indentation)
@@ -134,7 +137,7 @@ export function tokenizeCurationFormat(text: string): CFTokenizer.AnyToken[] {
       // Tokenize the remaining contents of the line
       if (state.inMultiLine) {
         // Copy data to state chunks
-        state.multiLineChunks.push(line.substring(countIndentChars(line, state.multiLineIndent)).trimRight());
+        state.multiLineChunks.push(line.substring(countIndentChars(line, state.multiLineIndent, indentPower || 4)).trimRight());
         // Set flag (because the indentation in the multi-line value shouldn't be confused with object indentation)
         skipIndentUpdate = true;
       } else {
@@ -246,14 +249,14 @@ function countSpacesLeft(str: string): number {
  * Calculate the indentation level of a line of text.
  * @param line Line of text (using the Curation Format).
  */
-function calculateIndent(line: string): number {
+function calculateIndent(line: string, indentPower: number): number {
   let count = 0;
   for (let i = 0; i < line.length; i++) {
     const val = indentPowerOfChar(line[i]);
     if (val !== undefined) { count += val; }
     else { break; }
   }
-  return (count / 4) | 0; // (Convert to indentation and round down)
+  return (count / indentPower) | 0; // (Convert to indentation and round down)
 }
 
 /**
@@ -261,8 +264,8 @@ function calculateIndent(line: string): number {
  * @param line Line of text.
  * @param target Target indentation level.
  */
-function countIndentChars(line: string, target: number): number {
-  const targetPower = target * 4;
+function countIndentChars(line: string, target: number, indentPower: number): number {
+  const targetPower = target * indentPower;
   let count = 0;
   for (let i = 0; i < line.length; i++) {
     const val = indentPowerOfChar(line[i]);
