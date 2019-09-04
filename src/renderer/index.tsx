@@ -21,9 +21,10 @@ import { ThemeManager } from './theme/ThemeManager';
       event.preventDefault();
     }
   });
-  // Wait for the preferences and config to initialize
+  // Wait for the preferences, config and background services to initialize
   await window.External.config.waitUtilInitialized();
   await window.External.preferences.waitUtilInitialized();
+  await window.External.backgroundServices.waitUtilInitialized();
   // Get preferences data
   const preferencesData = window.External.preferences.getData();
   // Watch themes folder & Load current theme file

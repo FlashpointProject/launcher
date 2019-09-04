@@ -1,4 +1,5 @@
 import { OpenDialogOptions } from 'electron';
+import { BackgroundServicesApi } from './background/BackgroundServicesApi';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
@@ -33,6 +34,9 @@ export interface IMainWindowExternal {
 
   /** Renderers interface for the Config data */
   config: AppConfigApi;
+
+  /** Renderers interface for Background Service data */
+  backgroundServices: BackgroundServicesApi;
 
   /** Renderers interface for the Log data */
   log: LogRendererApi;

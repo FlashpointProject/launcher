@@ -1,16 +1,21 @@
 import * as child_process from 'child_process';
+import { ipcMain, IpcMainEvent } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { promisify } from 'util';
+import { BackgroundServicesIPC } from '../../shared/background/BackgroundServicesApi';
+import { IBackgroundServicesAction, IBackgroundServicesData, IBackProcessInfo, ProcessState, ProcessAction, IBackgroundService, IBackgroundServicesUpdate } from '../../shared/background/interfaces';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
 import { IAppConfigData } from '../../shared/config/interfaces';
 import { ILogPreEntry } from '../../shared/Log/interface';
 import { stringifyArray } from '../../shared/Util';
 import { ManagedChildProcess } from '../ManagedChildProcess';
 import { BackgroundServicesFile } from './BackgroundServicesFile';
-import { IBackProcessInfo, IBackProcessInfoFile } from './interfaces';
+import { IBackProcessInfoFile } from './interfaces';
 
 const execFile = promisify(child_process.execFile);
+type SendFunc = (channel: string , ...rest: any[]) => boolean;
+
 
 declare interface BackgroundServices {
   /**
@@ -23,6 +28,9 @@ declare interface BackgroundServices {
   /** Fires when the this has executed all processes inside .start() */
   on(event: 'start-done'): this;
   emit(event: 'start-done'): boolean;
+  /** Fires whenever the status of a process changes */
+  on(event: 'change', listener: (data: IBackgroundServicesData) => void): this;
+  emit(event: 'change', data: IBackgroundServicesData): this;
 }
 
 class BackgroundServices extends EventEmitter {
@@ -34,8 +42,20 @@ class BackgroundServices extends EventEmitter {
   private serviceInfo?: IBackProcessInfoFile;
   /** Local web-server that serves games (this is the Router for Flashpoint Infinity) */
   private server?: ManagedChildProcess;
-  /* Program that redirects some out-going traffic to the local web-server (Windows only) */
+  /** Program that redirects some out-going traffic to the local web-server (Windows only) */
   private redirector?: ManagedChildProcess;
+  /** Current copy of background data info */
+  private _data?: IBackgroundServicesData;
+  /** Function that sends a message to the renderer via IPC */
+  private sendToRenderer: SendFunc;
+
+  constructor(sendToRenderer: SendFunc) {
+    super();
+    this.sendToRenderer = sendToRenderer;
+    ipcMain
+    .on(BackgroundServicesIPC.REQUEST_SYNC, this.onRequestDataSync.bind(this))
+    .on(BackgroundServicesIPC.ACTION, this.onAction.bind(this));
+  }
 
   /** Start all required background process for this platform */
   public async start(config: IAppConfigData): Promise<void> {
@@ -77,6 +97,7 @@ class BackgroundServices extends EventEmitter {
       if (!serviceInfo.server) { throw new Error('Server process information not found.'); }
       this.server = createManagedChildProcess('Router', serviceInfo.server);
       this.server.on('output', logOutput);
+      this.server.on('change', this.onChange.bind(this));
       this.spawnProc(this.server);
     }
 
@@ -87,6 +108,7 @@ class BackgroundServices extends EventEmitter {
       if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${config.useFiddler?'Fiddler':'Redirector'})`); }
       this.redirector = createManagedChildProcess('Redirector', redirectorInfo, config.useFiddler);
       this.redirector.on('output', logOutput);
+      this.redirector.on('change', this.onChange.bind(this));
       this.spawnProc(this.redirector);
     }
 
@@ -112,7 +134,7 @@ class BackgroundServices extends EventEmitter {
   }
 
   /** Stop all currently active background processes */
-  public async stop(): Promise<void> {
+  public async stopAll(): Promise<void> {
     if (!this.startDone) { throw new Error('You must not stop the background services before they are done starting.'); }
     if (!this.serviceInfo) { return; }
     // Kill processes
@@ -178,6 +200,113 @@ class BackgroundServices extends EventEmitter {
       this.logContent(`An unexpected error occurred while trying to run the background process "${proc.name}".`+
                     `  ${error.toString()}`);
     }
+  }
+
+  /** Called whenever the state of a process changes */
+  private onChange(name: string): Promise<boolean> {
+    const service = this.getServiceByName(name);
+    if (service) {
+      const newState = service.getState();
+      let data : Partial<IBackgroundService> = {
+        name: service.name,
+        state: newState
+      };
+
+      // New process, update pid and start time
+      if (newState === ProcessState.RUNNING) {
+        data = {
+          pid: service.pid,
+          startTime: service.getStartTime(),
+          ...data
+        };
+      }
+      return this.sendUpdate({updates: [data]});
+    } else {
+      // Unhandled service, resolve immediately
+      return new Promise<boolean>((resolve) => { resolve(); });
+    }
+  }
+
+  /** Send an update to the renderer */
+  private sendUpdate(data: Partial<IBackgroundServicesUpdate>): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      this.sendToRenderer(
+        BackgroundServicesIPC.UPDATE,
+        data
+      );
+    });
+  }
+
+  /** Get Router or Redirector by given name */
+  private getServiceByName(name: string) : ManagedChildProcess | undefined {
+    switch (name) {
+      case (this.server && this.server.name):
+        return this.server;
+      case (this.redirector && this.redirector.name):
+        return this.redirector;
+      default:
+        // Service not handled by BackgroundServices
+        return;
+    }
+  }
+
+  /** Called whenever the renderer requests an action be taken on a service */
+  private onAction(event: IpcMainEvent, data?: IBackgroundServicesAction) {
+    try {
+      if (!data) { throw new Error('You must send a data object, but no data was received.'); }
+      const service : ManagedChildProcess | undefined = this.getServiceByName(data.name);
+
+      // Perform action on requested service
+      if (service) {
+        switch (data.action) {
+          case ProcessAction.START:
+            if (service.getState() === ProcessState.STOPPED) {
+              service.spawn();
+            }
+            break;
+          case ProcessAction.STOP:
+            service.kill();
+            break;
+          case ProcessAction.RESTART:
+            service.restart();
+            break;
+          default:
+              throw new Error('Action functionality is not available.');
+        }
+      }
+    } catch (e) {
+      this.logContent(e.message);
+    }
+  }
+
+  /**
+  * Called when the background services data is requested from the renderer API.
+  * This sends the full background services data to the renderer.
+  */
+  private onRequestDataSync(event: IpcMainEvent): void {
+    let services = [];
+    if (this.serviceInfo && this.serviceInfo.server) {
+      if (this.server) {
+        services.push({
+          name: this.server.name,
+          state: this.server.getState(),
+          pid : this.server.pid,
+          startTime: this.server.getStartTime(),
+          info: this.serviceInfo.server,
+        });
+      }
+      if (this.redirector && this.serviceInfo.redirector) {
+        services.push({
+          name: this.redirector.name,
+          state: this.redirector.getState(),
+          pid : this.redirector.pid,
+          startTime: this.redirector.getStartTime(),
+          info: this.serviceInfo.redirector,
+        });
+      }
+    }
+
+    event.returnValue = {services: services};
   }
 }
 

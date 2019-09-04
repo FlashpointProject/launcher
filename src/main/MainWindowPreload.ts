@@ -1,5 +1,6 @@
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
+import { BackgroundServicesApi } from '../shared/background/BackgroundServicesApi';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
 import { MiscIPC } from '../shared/interfaces';
 import { LogRendererApi } from '../shared/Log/LogRendererApi';
@@ -12,6 +13,10 @@ preferences.initialize();
 // Set up Config API
 const config = new AppConfigApi();
 config.initialize();
+
+// Set up Background Services API
+const backgroundServices = new BackgroundServicesApi();
+backgroundServices.initialize();
 
 //
 const log = new LogRendererApi();
@@ -63,6 +68,8 @@ window.External = Object.freeze({
   preferences,
 
   config,
+
+  backgroundServices,
 
   log,
 });

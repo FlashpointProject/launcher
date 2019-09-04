@@ -60,7 +60,7 @@ export class Main {
       checkSanity(this._config.data)
       .then(console.log, console.error);
       // Start background services
-      this._backgroundServices = new BackgroundServices();
+      this._backgroundServices = new BackgroundServices(this.sendToMainWindowRenderer.bind(this));
       this._backgroundServices.on('output', this.pushLogData.bind(this));
       this._backgroundServices.start(this._config.data);
       // Create main window when ready
@@ -101,7 +101,7 @@ export class Main {
 
   private onAppWillQuit(): void {
     if (this._backgroundServices) {
-      this._backgroundServices.stop();
+      this._backgroundServices.stopAll();
     }
   }
 
