@@ -82,14 +82,14 @@ export class BackgroundServicesApi extends EventEmitter {
   /** Process changes to the background services */
   private async onUpdate(event: IpcRendererEvent, data?: IBackgroundServicesUpdate) {
     if (!data) { throw new Error('You must send a data object, but no data was received.'); }
-    // Update / Add each given service to the data
-    data.updates.map((item) => {
+    data.updates.map((update) => {
       if (this._data) {
-        const service = this._data.services.find(item => item.name === item.name);
+        // If service exists in data then update it, otherwise create a new one
+        const service = this._data.services.find(item => item.name === update.name);
         if (service) {
-          overwriteServiceData(service, item);
+          overwriteServiceData(service, update);
         } else {
-          const newService = overwriteServiceData(getDefaultServiceData(), item);
+          const newService = overwriteServiceData(getDefaultServiceData(), update);
           this._data.services.push(newService);
         }
       }

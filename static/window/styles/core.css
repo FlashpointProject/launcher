@@ -1615,6 +1615,54 @@ body {
   border-radius: 0.5rem;
   text-align: left;
 }
+.developer-page__services__title {
+  flex: 0 1 auto;
+  font-size: 2em;
+  font-weight: bold;
+}
+
+/* Service Box */
+.service-box__top {
+  display: flex;
+  font-size: 1.15em;
+  font-weight: bold;
+}
+.service-box__title {
+  width: 25%;
+  text-align: left;
+}
+.service-box__filename {
+  width: 50%;
+  text-align: center;
+}
+.service-box__status {
+  width: 25%;
+  text-align: right;
+}
+.service-box__bottom {
+  display: flex;
+}
+.service-box__bottom__buttons {
+  text-align: left;
+}
+.service-box__bottom__buttons input {
+  padding: 0.1em;
+  margin-right: 0.5rem;
+  width: 5em;
+}
+.service-box__bottom__uptime {
+  flex: 1 1 auto;
+  text-align: right;
+  align-items: center;
+  justify-content: flex-end;
+  display: flex;
+}
+.service-box__log {
+  margin-top: 0.4em;
+  height: 20em;
+  text-align: left;
+  flex: 1 1 auto;
+}
 
 
 /** ------ Config ------ */

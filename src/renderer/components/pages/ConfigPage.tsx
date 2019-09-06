@@ -1,3 +1,4 @@
+import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
@@ -7,7 +8,6 @@ import { IThemeListItem } from '../../theme/ThemeManager';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
-import { remote } from 'electron';
 import which = require('which');
 
 type OwnProps = {

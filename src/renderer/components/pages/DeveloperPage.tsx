@@ -5,7 +5,9 @@ import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { removeFileExtension } from '../../../shared/Util';
+import { ArgumentTypesOf } from '../../../shared/interfaces';
+import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
+import { removeFileExtension, shallowStrictEquals } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
@@ -17,6 +19,7 @@ import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
 import { getFileExtension } from '../../Util';
 import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
+import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
 
 const rename = promisify(fs.rename);
@@ -52,8 +55,20 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     };
   }
 
+  componentDidMount() {
+    window.External.backgroundServices.on('change', this.onServiceUpdate);
+    window.External.log.on('change', this.onServiceUpdate);
+  }
+
+  componentWillUnmount() {
+    window.External.backgroundServices.removeListener('change', this.onServiceUpdate);
+    window.External.log.removeListener('change', this.onServiceUpdate);
+  }
+
   render() {
     const { text } = this.state;
+    const services = window.External.backgroundServices.data.services;
+
     return (
       <div className='developer-page simple-scroll'>
         <div className='developer-page__inner'>
@@ -102,6 +117,13 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value='Create Missing Folders'
               title='Find all missing folders in the Flashpoint folder structure and create them.'
               onClick={this.onCreateMissingFoldersClick} />
+            {/* -- Services -- */}
+            <p className='developer-page__services__title'>Background Services</p>
+              {services.map((item, index) => {
+                return <ServiceBox
+                          key={index}
+                          service={item} />;
+              })}
           </div>
         </div>
       </div>
@@ -164,6 +186,11 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       this.setState({ text: await createMissingFolders(collection) });
     }, 0);
   }
+
+  onServiceUpdate = (): void => {
+    this.forceUpdate();
+  }
+
 }
 
 function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollection): string {
@@ -701,4 +728,10 @@ export function removeLastItemOfPath(filePath: string): string {
 
 function repeat(char: string, n: number): string {
   return char.repeat(Math.max(0, n));
+}
+
+type ArgsType = ArgumentTypesOf<typeof stringifyLogEntries>;
+function stringifyLogEntriesEquals(newArgs: ArgsType, prevArgs: ArgsType): boolean {
+  return (newArgs[0].length === prevArgs[0].length) && // (Only compare lengths of log entry arrays)
+         shallowStrictEquals(newArgs[1], prevArgs[1]); // (Do a proper compare of the filters)
 }
