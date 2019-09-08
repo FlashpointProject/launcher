@@ -114,7 +114,7 @@ function renderDeleteImageButton({ activate, activationCounter, reset, extra }: 
         'game-image-split__buttons__remove-image' +
         ((activationCounter > 0) ? ' game-image-split__buttons__remove-image--active simple-vertical-shake' : '')
       }
-      title={ formatString(strings.deleteAllBlankImages, text) }
+      title={formatString(strings.deleteAllBlankImages, text)}
       onClick={activate}
       onMouseLeave={reset}>
       <OpenIcon icon='trash' />

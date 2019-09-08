@@ -11,7 +11,7 @@ import { GameCollection } from '../../../shared/game/GameCollection';
 import { IOrderGamesArgs, orderGames } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
-import { BrowseLang, DialogLang, LangContainer, MenuLang } from '../../../shared/lang/types';
+import { BrowseLang, LangContainer, MenuLang } from '../../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { memoizeOne } from '../../../shared/memoize';
 import { formatDate } from '../../../shared/Util';
@@ -305,50 +305,46 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     );
   }
 
-  private noRowsRendererMemo = memoizeOne((strings : BrowseLang) => {
-    return () => {
-      return (
-        <div className='game-list__no-games'>
-        { this.props.central.gamesDoneLoading ? (
-          this.props.selectedPlaylist ? (
-            /* Empty Playlist */
-            <>
-              <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
-              <br/>
-              <p>{formatString(strings.dropGameOnLeft, <i>{strings.leftSidebar}</i>)}</p>
-            </>
-          ) : (
-            /* No games found */
-            <>
-              <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
-              <br/>
-              {(this.props.central.gamesFailedLoading) ? (
+  private noRowsRendererMemo = memoizeOne((strings: BrowseLang) => {
+    return () => (
+      <div className='game-list__no-games'>
+      { this.props.central.gamesDoneLoading ? (
+        this.props.selectedPlaylist ? (
+          /* Empty Playlist */
+          <>
+            <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
+            <br/>
+            <p>{formatString(strings.dropGameOnLeft, <i>{strings.leftSidebar}</i>)}</p>
+          </>
+        ) : (
+          /* No games found */
+          <>
+            <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
+            <br/>
+            {(this.props.central.gamesFailedLoading) ? (
+              <>
+                {formatString(strings.setFlashpointPathQuestion, <b>{strings.flashpointPath}</b>, <i>{strings.config}</i>)}
+                <br/>
+                {formatString(strings.noteSaveAndRestart, <b>'{strings.saveAndRestart}'</b>)}
+              </>
+            ) : (
+              (this.props.central.games.collection.games.length > 0) ? (
                 <>
-                  {formatString(strings.setFlashpointPathQuestion, <b>{strings.flashpointPath}</b>, <i>{strings.config}</i>)}
+                  {strings.noGameMatchedDesc}
                   <br/>
-                  {formatString(strings.noteSaveAndRestart, <b>'{strings.saveAndRestart}'</b>)}
+                  {strings.noGameMatchedSearch}
                 </>
               ) : (
-                (this.props.central.games.collection.games.length > 0) ? (
-                  <>
-                    {strings.noGameMatchedSearch}
-                  </>
-                ) : (
-                  <>
-                    {strings.thereAreNoGames}
-                  </>
-                )
-              )}
-            </>
-          )
-        ) : (
-          <p>
-            {strings.loadingGames}
-          </p>
-        ) }
-        </div>
-      );
-    };
+                <>{strings.thereAreNoGames}</>
+              )
+            )}
+          </>
+        )
+      ) : (
+        <p>{strings.loadingGames}</p>
+      ) }
+      </div>
+    );
   });
 
   private onGameContextMenuMemo = memoizeOne((strings : MenuLang) => {

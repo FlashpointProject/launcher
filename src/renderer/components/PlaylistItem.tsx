@@ -264,8 +264,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
   }
 
   renderDescription = (o: EditableTextElementArgs<PlaylistLang>) => {
-    const strings : PlaylistLang = o.extra;
-
+    const strings = o.extra;
     if (o.editing) {
       return (
         <textarea

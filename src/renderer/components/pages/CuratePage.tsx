@@ -24,7 +24,7 @@ export type CuratePageProps = {
 
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
-  const strings : LangContainer = React.useContext(LangContext);
+  const strings = React.useContext(LangContext);
   const [state, dispatch] = useContext(CurationContext.context);
   // Get default curation game meta values
   const defaultGameMetaValues = useMemo(() => {
@@ -34,7 +34,7 @@ export function CuratePage(props: CuratePageProps) {
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
     if (games && gameImages && state.curations.length > 0) {
-      console.log(`Starting 'Import All'... (${state.curations.length} curations)`);
+      console.log(`Starting "Import All"... (${state.curations.length} curations)`);
       // Lock all curations
       dispatch({
         type: 'change-curation-lock-all',
@@ -53,7 +53,7 @@ export function CuratePage(props: CuratePageProps) {
             // Increment success counter
             success += 1;
             // Log status
-            console.log(`Import Successful (id: ${curation.key})`);
+            console.log(`Import SUCCESSFUL! (id: ${curation.key})`);
             // Remove the curation
             dispatch({
               type: 'remove-curation',
@@ -61,7 +61,7 @@ export function CuratePage(props: CuratePageProps) {
             });
           } catch (error) {
             // Log error
-            console.log(`Import Failed (id: ${curation.key})`, error);
+            console.log(`Import FAILED! (id: ${curation.key})`, error);
             // Unlock the curation
             dispatch({
               type: 'change-curation-lock',
@@ -75,7 +75,7 @@ export function CuratePage(props: CuratePageProps) {
         // Log state
         const total = state.curations.length;
         console.log(
-          'Import all complete\n'+
+          '"Import All" complete\n'+
           `  Total:   ${total}\n`+
           `  Success: ${success} (${100 * (success / total)}%)\n`+
           `  Failed:  ${total - success}`

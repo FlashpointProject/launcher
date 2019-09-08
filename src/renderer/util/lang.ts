@@ -3,7 +3,7 @@ import { LangContainer } from '../../shared/lang/types';
 
 export const LangContext = React.createContext(getDefaultLocalization());
 
-export function getDefaultLocalization() : LangContainer {
+export function getDefaultLocalization(): LangContainer {
   return {
     config: {
       configHeader: 'configHeader',
@@ -177,7 +177,7 @@ export function getDefaultLocalization() : LangContainer {
       applicationPath: 'applicationPath',
       noApplicationPath: 'noApplicationPath',
       launchCommand: 'launchCommand',
-      noLaunchCommand : 'noLaunchCommand',
+      noLaunchCommand: 'noLaunchCommand',
       thumbnail: 'thumbnail',
       screenshot: 'screenshot',
       dropImageHere: 'dropImageHere',
@@ -204,6 +204,7 @@ export function getDefaultLocalization() : LangContainer {
       noteSaveAndRestart: 'noteSaveAndRestart {0}',
       saveAndRestart: 'saveAndRestart',
       loadingGames: 'loadingGames',
+      noGameMatchedDesc: 'noGameMatchedDesc',
       noGameMatchedSearch: 'noGameMatchedSearch',
       thereAreNoGames: 'thereAreNoGames'
     },

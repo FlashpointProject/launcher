@@ -1,9 +1,12 @@
 import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
+import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
-import { autoCode, ConfigLang, DialogLang, LangContainer, Language } from '../../../shared/lang/types';
+import { autoCode } from '../../../shared/lang/misc';
+import { LangContainer, LangFile } from '../../../shared/lang/types';
+import { memoizeOne } from '../../../shared/memoize';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { IThemeListItem } from '../../theme/ThemeManager';
@@ -11,7 +14,6 @@ import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
-import which = require('which');
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
@@ -19,7 +21,7 @@ type OwnProps = {
   /** Load and apply a theme. */
   reloadTheme(themePath: string | undefined): void;
   /** List of available languages. */
-  availableLangs: Language[];
+  availableLangs: LangFile[];
   /** Method to update localization */
   updateLocalization: () => void;
 };
@@ -50,6 +52,8 @@ export interface ConfigPage {
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
   currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
+  /** Country code if the local machine (used to detect which language to use for "auto"). */
+  countryCode: string = remote.app.getLocaleCountryCode().toLowerCase();
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -64,9 +68,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   render() {
     const strings = this.context.config;
-    const currentLangs : Language[] = [...[{code: autoCode, name: formatString(strings.auto, remote.app.getLocaleCountryCode().toLowerCase())}], ...this.props.availableLangs];
-    const fallbackLangs : Language[] = [...[{code: '<none>', name: strings.none}], ...currentLangs];
-
+    const autoString = formatString(strings.auto, this.countryCode);
+    const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -126,11 +129,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                         <select
                           className='simple-selector'
                           value={this.props.preferencesData.currentLanguage || ''}
-                          onChange={this.onCurrentLanguageSelect}
-                          >
-                          {currentLangs.map(function(lang : Language, index: number) {
-                              return <option key={index} value={lang.code}>{lang.name || lang.code}</option>;
-                          })}
+                          onChange={this.onCurrentLanguageSelect}>
+                          <option value={autoCode}>{autoString}</option>
+                          {langOptions}
                         </select>
                       </div>
                     </div>
@@ -296,11 +297,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       <select
                         className='simple-selector'
                         value={this.props.preferencesData.fallbackLanguage || ''}
-                        onChange={this.onFallbackLanguageSelect}
-                        >
-                        {fallbackLangs.map(function(lang : Language, index: number) {
-                            return <option key={index} value={lang.code}>{lang.name || lang.code}</option>;
-                        })}
+                        onChange={this.onFallbackLanguageSelect}>
+                        <option value='<none>'>None</option>
+                        <option value={autoCode}>{autoString}</option>
+                        {langOptions}
                       </select>
                     </div>
                   </div>
@@ -326,6 +326,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       </div>
     );
   }
+
+  renderLangOptionsMemo = memoizeOne((langs: LangFile[]) =>
+    langs.map((lang, index) => (
+      <option
+        key={index}
+        value={lang.code}>
+        {lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code}
+      </option>
+    ))
+  );
 
   onShowExtremeChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ browsePageShowExtreme: isChecked });

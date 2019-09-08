@@ -1,5 +1,6 @@
-export const autoCode : string = '<auto>';
+import { RecursivePartial } from '../interfaces';
 
+/** Container of all language strings used by the launcher. */
 export type LangContainer = {
   config: ConfigLang;
   home: HomeLang;
@@ -15,12 +16,23 @@ export type LangContainer = {
   menu: MenuLang;
   dialog: DialogLang;
   libraries: LibrariesLang;
-}
+};
 
-export type Language = {
+/** Contents of a language file. */
+export type LangFile = {
+  /** Kept for the watcher to keep track of ownership. */
+  filename: string;
+  /** 2 letter language code. */
   code: string;
+  /** Contents of the language file. */
+  data: RecursivePartial<LangFileContent>;
+};
+
+/** Contents of a language file. */
+export type LangFileContent = LangContainer & {
+  /** Name of the language (this will be displayed in the drop-down). */
   name: string;
-}
+};
 
 type LangObject<T extends string> = {
   [key in T]: string;
@@ -232,6 +244,7 @@ export type BrowseLang = LangObject<
   'noteSaveAndRestart' |
   'saveAndRestart' |
   'loadingGames' |
+  'noGameMatchedDesc' |
   'noGameMatchedSearch' |
   'thereAreNoGames'
 >;

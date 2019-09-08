@@ -59,7 +59,6 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
 
   render() {
     const strings = this.context.app;
-
     const {
       preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab },
       libraryData: { libraries },

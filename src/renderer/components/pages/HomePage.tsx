@@ -50,7 +50,6 @@ export class HomePage extends React.Component<HomePageProps> {
 
   render() {
     const strings = this.context.home;
-
     const {
       onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick,
@@ -336,14 +335,4 @@ function getPlaylistLibraryRoute(playlist: IGamePlaylist, libraries: IGameLibrar
     const defLibrary = findDefaultLibrary(libraries);
     if (defLibrary) { return defLibrary.route; }
   }
-}
-
-function link(title: string, url: string): JSX.Element {
-  return (
-    <a
-      href={url}
-      title={url}>
-      {title}
-    </a>
-  );
 }

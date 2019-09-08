@@ -197,7 +197,9 @@
     "noteSaveAndRestart": "Note: You have to press {0} for the change to take effect.",
     "saveAndRestart": "Save & Restart",
     "loadingGames": "Loading Games...",
-    "thereAreNoGames": "There are no games."
+    "thereAreNoGames": "There are no games.",
+    "noGameMatchedDesc": "No game title matched your search.",
+    "noGameMatchedSearch": "Try searching for something less restrictive."
   },
   "curate": {
     "importAll": "Import All",

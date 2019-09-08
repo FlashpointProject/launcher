@@ -28,7 +28,6 @@ export interface GameOrder {
 export class GameOrder extends React.Component<GameOrderProps> {
   render() {
     const strings = this.context.filter;
-
     return (
       <>
         {/* Order By */}

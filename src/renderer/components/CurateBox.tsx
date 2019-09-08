@@ -462,7 +462,6 @@ function useOnInputChange(property: keyof EditCurationMeta, key: string | undefi
 
 function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
   const strings = React.useContext(LangContext);
-
   return useCallback((checked: boolean) => {
     if (key !== undefined) {
       dispatch({

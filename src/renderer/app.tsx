@@ -1,11 +1,12 @@
 import { ipcRenderer, remote } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
-import { LangContainer, Language } from '../shared/lang/types';
+import { LangContainer, LangFile } from '../shared/lang/types';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
@@ -34,7 +35,6 @@ import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upg
 import { joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade } from './util/upgrade';
-import which = require('which');
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -67,9 +67,10 @@ export type AppState = {
   selectedPlaylists: IObjectMap<IGamePlaylist>;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
-  /** Language strings */
+  /** Current language container. */
   lang: LangContainer;
-  langList: Language[];
+  /** Current list of available language files. */
+  langList: LangFile[];
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -111,8 +112,8 @@ export class App extends React.Component<AppProps, AppState> {
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
-      lang: this.props.langManager.buildLocalization(),
-      langList: this.props.langManager.createLangList(),
+      lang: this.props.langManager.container,
+      langList: this.props.langManager.items,
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
@@ -181,7 +182,7 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
     // Listen for changes to lang files, load in used ones
-    this.props.langManager.on('listChanged', list => { this.setState({ langList: list }); });
+    this.props.langManager.on('list-change', list => { this.setState({ langList: list }); });
     this.props.langManager.on('update',      data => { this.setState({ lang: data     }); });
     // Load Playlists
     this.state.central.playlists.load()
@@ -371,7 +372,7 @@ export class App extends React.Component<AppProps, AppState> {
       themeItems: this.props.themes.items,
       reloadTheme: this.reloadTheme,
       languages: this.state.langList,
-      updateLocalization: this.updateLocalization,
+      updateLocalization: this.updateLanguage,
     };
     // Render
     return (
@@ -513,11 +514,9 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  /**
-   * Forces localization to be rebuilt
-   */
-  private updateLocalization = (): void => {
-    this.props.langManager.updateLocalization();
+  /** Update the combined language container. */
+  private updateLanguage = (): void => {
+    this.props.langManager.updateContainer();
   }
 }
 

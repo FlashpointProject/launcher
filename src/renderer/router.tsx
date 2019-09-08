@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
-import { Language } from '../shared/lang/types';
+import { LangFile } from '../shared/lang/types';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
@@ -39,7 +39,7 @@ export type AppRouterProps = {
   gameLibraryRoute: string;
   themeItems: IThemeListItem[];
   reloadTheme: (themePath: string | undefined) => void;
-  languages: Language[];
+  languages: LangFile[];
   updateLocalization: () => void;
 };
 
