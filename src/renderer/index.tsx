@@ -1,4 +1,5 @@
 import { ConnectedRouter } from 'connected-react-router';
+import { remote } from 'electron';
 import { createMemoryHistory } from 'history';
 import * as path from 'path';
 import * as React from 'react';
@@ -9,6 +10,7 @@ import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { CurationContext } from './context/CurationContext';
+import { LangManager } from './lang/LangManager';
 import { updateLibrary } from './store/library';
 import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
@@ -22,10 +24,15 @@ import { ThemeManager } from './theme/ThemeManager';
     }
   });
   // Wait for the preferences and config to initialize
-  await window.External.config.waitUtilInitialized();
-  await window.External.preferences.waitUtilInitialized();
+  await Promise.all([
+    window.External.config.waitUtilInitialized(),
+    window.External.preferences.waitUtilInitialized(),
+  ]);
   // Get preferences data
   const preferencesData = window.External.preferences.getData();
+  // Watch language folder & Load current/fallback language files
+  const lang = new LangManager();
+  await lang.waitToInit();
   // Watch themes folder & Load current theme file
   const themes = new ThemeManager(path.join(window.External.config.fullFlashpointPath, window.External.config.data.themeFolderPath));
   if (preferencesData.currentTheme) { // (If there is a current theme and it is not an empty string)
@@ -45,7 +52,9 @@ import { ThemeManager } from './theme/ThemeManager';
       <Provider store={store}>
         <ContextReducerProvider context={CurationContext}>
           <ConnectedRouter history={history}>
-              <ConnectedApp themes={themes} />
+            <ConnectedApp
+              themes={themes}
+              langManager={lang} />
           </ConnectedRouter>
         </ContextReducerProvider>
       </Provider>

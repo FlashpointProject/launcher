@@ -40,9 +40,9 @@ class GameManagerPlatform extends EventEmitter {
     const filePath = path.join(flashpointPath, LaunchboxData.platformsPath, this.filename);
     // Parse data into XML
     const parser = new fastXmlParser.j2xParser({
-      ignoreAttributes: true,  // Attributes are never used, this might increase performance?
-      supressEmptyNode : true, // Empty tags are self closed ("<Tag />" instead of "<Tag></Tag>")
-      format: true,            // Breaks XML into multiple lines and indents it
+      ignoreAttributes: true, // Attributes are never used, this might increase performance?
+      supressEmptyNode: true, // Empty tags are self closed ("<Tag />" instead of "<Tag></Tag>")
+      format: true,           // Breaks XML into multiple lines and indents it
     });
     const parsedData = parser.parse(this.data);
     // Add save to the queue

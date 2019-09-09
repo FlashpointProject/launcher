@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
+import { BrowseLang, LangContainer } from '../../shared/lang/types';
+import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputField } from './InputField';
@@ -18,6 +20,10 @@ export type RightBrowseSidebarAddAppProps = {
   editDisabled?: boolean;
 };
 
+export interface RightBrowseSidebarAddApp {
+  context: LangContainer;
+}
+
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
 export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps> {
   onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
@@ -27,6 +33,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
   onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
 
   render() {
+    const strings = this.context.browse;
     const { addApp, editDisabled } = this.props;
     return (
       <div className='browse-right-sidebar__additional-application'>
@@ -34,32 +41,32 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
         <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-name'>
           <InputField
             text={addApp.name}
-            placeholder='No Name'
+            placeholder={strings.noName}
             onChange={this.onNameEditDone}
             editable={!editDisabled} />
           <input
             type='button'
             className='simple-button'
-            value='Launch'
+            value={strings.launch}
             onClick={this.onLaunchClick}/>
         </div>
         { editDisabled ? undefined : (
           <>
             {/* Application Path */}
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Application Path: </p>
+              <p>{strings.applicationPath}: </p>
               <InputField
                 text={addApp.applicationPath}
-                placeholder='No Application Path'
+                placeholder={strings.noApplicationPath}
                 onChange={this.onApplicationPathEditDone}
                 editable={!editDisabled} />
             </div>
             {/* Command Line */}
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>Command Line: </p>
+              <p>{strings.commandLine}: </p>
               <InputField
                 text={addApp.commandLine}
-                placeholder='No Command Line'
+                placeholder={strings.noCommandLine}
                 onChange={this.onCommandLineEditDone}
                 editable={!editDisabled} />
             </div>
@@ -71,7 +78,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
                 <CheckBox
                   className='browse-right-sidebar__row__check-box'
                   checked={addApp.autoRunBefore} />
-                <p> Auto Run Before</p>
+                <p> {strings.autoRunBefore}</p>
               </div>
             </div>
             {/* Wait for Exit */}
@@ -82,13 +89,14 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
                 <CheckBox
                   className='browse-right-sidebar__row__check-box'
                   checked={addApp.waitForExit} />
-                <p> Wait for Exit</p>
+                <p> {strings.waitForExit}</p>
               </div>
               {/* Delete Button */}
               { !editDisabled ? (
                 <ConfirmElement
                   onConfirm={this.onDeleteClick}
-                  children={this.renderDeleteButton} />
+                  children={this.renderDeleteButton}
+                  extra={strings} />
               ) : undefined}
             </div>
           </>
@@ -97,12 +105,12 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     );
   }
 
-  renderDeleteButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+  renderDeleteButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
     const className = 'browse-right-sidebar__additional-application__delete-button';
     return (
       <div
         className={className + ((activationCounter > 0) ? ` ${className}--active simple-vertical-shake` : '')}
-        title='Delete Additional Application'
+        title={extra.deleteAdditionalApplication}
         onClick={activate}
         onMouseLeave={reset}>
         <OpenIcon icon='trash' />
@@ -149,4 +157,6 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
       }
     };
   }
+
+  static contextType = LangContext;
 }

@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
+import { CurateLang, MiscLang } from '../../shared/lang/types';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { importCuration, stringToBool } from '../curate/importCuration';
 import { CurationIndexContent } from '../curate/indexCuration';
@@ -9,6 +10,7 @@ import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { sizeToString } from '../Util';
+import { LangContext } from '../util/lang';
 import { GamePropSuggestions } from '../util/suggestions';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -37,6 +39,8 @@ export type CurateBoxProps = {
 
 /** A box that displays and lets the user edit a curation. */
 export function CurateBox(props: CurateBoxProps) {
+  // Localized strings
+  const strings = React.useContext(LangContext);
   // Content file collisions
   const [contentCollisions, setContentCollisions] = useState<ContentCollision[] | undefined>(undefined);
   // Check for content file collisions
@@ -218,8 +222,8 @@ export function CurateBox(props: CurateBoxProps) {
     <div className='curate-box'>
       {/* Images */}
       <div className='curate-box-image-titles'>
-        <p className='curate-box-image-titles__title'>Thumbnail</p>
-        <p className='curate-box-image-titles__title'>Screenshot</p>
+        <p className='curate-box-image-titles__title'>{strings.browse.thumbnail}</p>
+        <p className='curate-box-image-titles__title'>{strings.browse.screenshot}</p>
       </div>
       <div className='curate-box-images'>
         <CurateBoxImage image={props.curation && props.curation.thumbnail} />
@@ -227,141 +231,141 @@ export function CurateBox(props: CurateBoxProps) {
       </div>
       <hr className='curate-box-divider' />
       {/* Fields */}
-      <CurateBoxRow title='Title:'>
+      <CurateBoxRow title={strings.filter.title + ':'}>
         <InputField
           text={props.curation && props.curation.meta.title || ''}
-          placeholder='No Title'
+          placeholder={strings.browse.noTitle}
           onChange={onTitleChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Series:'>
+      <CurateBoxRow title={strings.filter.series + ':'}>
         <InputField
           text={props.curation && props.curation.meta.series || ''}
-          placeholder='No Series'
+          placeholder={strings.browse.noSeries}
           onChange={onSeriesChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Developer:'>
+      <CurateBoxRow title={strings.filter.developer + ':'}>
         <InputField
           text={props.curation && props.curation.meta.developer || ''}
-          placeholder='No Developer'
+          placeholder={strings.browse.noDeveloper}
           onChange={onDeveloperChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Publisher:'>
+      <CurateBoxRow title={strings.browse.publisher + ':'}>
         <InputField
           text={props.curation && props.curation.meta.publisher || ''}
-          placeholder='No Publisher'
+          placeholder={strings.browse.noPublisher}
           onChange={onPublisherChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Genre:'>
+      <CurateBoxRow title={strings.browse.genre + ':'}>
         <DropdownInputField
           text={props.curation && props.curation.meta.genre || ''}
-          placeholder='No Genre'
+          placeholder={strings.browse.noGenre}
           onChange={onGenreChange}
           items={props.suggestions && props.suggestions.genre || []}
           onItemSelect={onGenreItemSelect}
           className={warnings.unusedGenre ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Play Mode:'>
+      <CurateBoxRow title={strings.browse.playMode + ':'}>
         <InputField
           text={props.curation && props.curation.meta.playMode || ''}
-          placeholder='No Play Mode'
+          placeholder={strings.browse.noPlayMode}
           onChange={onPlayModeChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Status:'>
+      <CurateBoxRow title={strings.browse.status + ':'}>
         <InputField
           text={props.curation && props.curation.meta.status || ''}
-          placeholder='No Status'
+          placeholder={strings.browse.noStatus}
           onChange={onStatusChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Version:'>
+      <CurateBoxRow title={strings.browse.version + ':'}>
         <InputField
           text={props.curation && props.curation.meta.version || ''}
-          placeholder='No Version'
+          placeholder={strings.browse.noVersion}
           onChange={onVersionChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Release Date:'>
+      <CurateBoxRow title={strings.browse.releaseDate + ':'}>
         <InputField
           text={props.curation && props.curation.meta.releaseDate || ''}
-          placeholder='No Release Date'
+          placeholder={strings.browse.noReleaseDate}
           onChange={onReleaseDateChange}
           className={warnings.releaseDateInvalid ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Language:'>
+      <CurateBoxRow title={strings.browse.language + ':'}>
         <InputField
           text={props.curation && props.curation.meta.language || ''}
-          placeholder='No Language'
+          placeholder={strings.browse.noLanguage}
           onChange={onLanguageChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Source:'>
+      <CurateBoxRow title={strings.browse.source + ':'}>
         <InputField
           text={props.curation && props.curation.meta.source || ''}
-          placeholder='No Source'
+          placeholder={strings.browse.noSource}
           onChange={onSourceChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Platform:'>
+      <CurateBoxRow title={strings.browse.platform + ':'}>
         <DropdownInputField
           text={props.curation && props.curation.meta.platform || ''}
-          placeholder='No Platform'
+          placeholder={strings.browse.noPlatform}
           onChange={onPlatformChange}
           items={props.suggestions && props.suggestions.platform || []}
           onItemSelect={onPlatformItemSelect}
           className={warnings.unusedPlatform ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Application Path:'>
+      <CurateBoxRow title={strings.browse.applicationPath + ':'}>
         <DropdownInputField
           text={props.curation && props.curation.meta.applicationPath || ''}
-          placeholder='No Application Path'
+          placeholder={strings.browse.noApplicationPath}
           onChange={onApplicationPathChange}
           items={props.suggestions && props.suggestions.applicationPath || []}
           onItemSelect={onApplicationPathItemSelect}
           className={warnings.unusedApplicationPath ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Launch Command:'>
+      <CurateBoxRow title={strings.browse.launchCommand + ':'}>
         <InputField
           text={props.curation && props.curation.meta.launchCommand || ''}
-          placeholder='No Launch Command'
+          placeholder={strings.browse.noLaunchCommand}
           onChange={onLaunchCommandChange}
           className={warnings.isNotHttp ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Notes:'>
+      <CurateBoxRow title={strings.browse.notes + ':'}>
         <InputField
           text={props.curation && props.curation.meta.notes || ''}
-          placeholder='No Notes'
+          placeholder={strings.browse.noNotes}
           onChange={onNotesChange}
           multiline={true}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Original Description:'>
+      <CurateBoxRow title={strings.browse.originalDescription + ':'}>
         <InputField
           text={props.curation && props.curation.meta.originalDescription || ''}
-          placeholder='No Original Description'
+          placeholder={strings.browse.noOriginalDescription}
           onChange={onOriginalDescriptionChange}
           multiline={true}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Curation Notes:'>
+      <CurateBoxRow title={strings.curate.curationNotes + ':'}>
         <InputField
           text={authorNotes}
-          placeholder='No Curation Notes'
+          placeholder={strings.curate.noCurationNotes}
           onChange={onAuthorNotesChange}
           multiline={true}
           className={authorNotes.length > 0 ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title='Extreme:'>
+      <CurateBoxRow title={strings.browse.extreme + ':'}>
         <CheckBox
           checked={stringToBool(props.curation && props.curation.meta.extreme || '')}
           onToggle={onExtremeChange}
@@ -375,7 +379,7 @@ export function CurateBox(props: CurateBoxProps) {
       {/* Content */}
       <div className='curate-box-files'>
         <div className='curate-box-files__head'>
-          {'Content Files: '}
+          {strings.curate.contentFiles + ': '}
           {(collisionCount !== undefined && collisionCount > 0) ? (
             <label className='curate-box-files__head-collision-count'>
               ({collisionCount} / {contentCollisions && contentCollisions.length} Files or Folders Already Exists)
@@ -393,25 +397,26 @@ export function CurateBox(props: CurateBoxProps) {
       <div className='curate-box-buttons'>
         <ConfirmElement
           onConfirm={onRemoveClick}
-          children={renderRemoveButton} />
+          children={renderRemoveButton}
+          extra={strings.curate} />
         <SimpleButton
           className='curate-box-buttons__button'
-          value='Import'
+          value={strings.curate.import}
           onClick={onImportClick} />
       </div>
     </div>
   );
 }
 
-function renderRemoveButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
   return (
     <SimpleButton
       className={
         'curate-box-buttons__button' +
         ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
       }
-      value='Remove'
-      title='Remove this curation (no changes will be made to any files)'
+      value={extra.remove}
+      title={extra.removeCurationDesc}
       onClick={activate}
       onMouseLeave={reset} />
   );
@@ -456,6 +461,7 @@ function useOnInputChange(property: keyof EditCurationMeta, key: string | undefi
 }
 
 function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
+  const strings = React.useContext(LangContext);
   return useCallback((checked: boolean) => {
     if (key !== undefined) {
       dispatch({
@@ -463,7 +469,7 @@ function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | und
         payload: {
           key: key,
           property: property,
-          value: boolToString(checked)
+          value: boolToString(checked, strings.misc)
         }
       });
     }
@@ -530,8 +536,8 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
  * Convert a boolean to a string ("Yes" or "No").
  * @param bool Boolean to convert.
  */
-function boolToString(bool: boolean): string {
-  return bool ? 'Yes' : 'No';
+function boolToString(bool: boolean, strings : MiscLang): string {
+  return bool ? strings.yes : strings.no;
 }
 
 /**

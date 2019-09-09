@@ -1,20 +1,29 @@
+import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
+import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
+import { autoCode } from '../../../shared/lang/misc';
+import { LangContainer, LangFile } from '../../../shared/lang/types';
+import { memoizeOne } from '../../../shared/memoize';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
+import { formatString } from '../../../shared/utils/StringFormatter';
 import { IThemeListItem } from '../../theme/ThemeManager';
+import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
-import { remote } from 'electron';
-import which = require('which');
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
   themeItems: IThemeListItem[];
   /** Load and apply a theme. */
   reloadTheme(themePath: string | undefined): void;
+  /** List of available languages. */
+  availableLangs: LangFile[];
+  /** Method to update localization */
+  updateLocalization: () => void;
 };
 
 export type ConfigPageProps = OwnProps & WithPreferencesProps;
@@ -30,6 +39,10 @@ type ConfigPageState = {
   useFiddler: boolean;
 };
 
+export interface ConfigPage {
+  context: LangContainer;
+}
+
 /**
  * A page displaying some of the current "configs" / "preferences", as well as a way of changing them.
  * All changed "configs" (settings stored in "config.json") require you to "Save & Restart" to take effect.
@@ -39,6 +52,8 @@ type ConfigPageState = {
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
   currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
+  /** Country code if the local machine (used to detect which language to use for "auto"). */
+  countryCode: string = remote.app.getLocaleCountryCode().toLowerCase();
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -52,22 +67,25 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   render() {
+    const strings = this.context.config;
+    const autoString = formatString(strings.auto, this.countryCode);
+    const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
-          <h1 className='config-page__title'>Config</h1>
-          <i>(You must press 'Save & Restart' for some changes to take effect)</i>
+          <h1 className='config-page__title'>{strings.configHeader}</h1>
+          <i>{strings.configDesc}</i>
 
           {/* -- Preferences -- */}
             <div className='setting'>
-              <p className='setting__title'>Preferences</p>
+              <p className='setting__title'>{strings.preferencesHeader}</p>
               <div className='setting__body'>
                 {/* Show Extreme Games */}
                 {((!window.External.config.data.disableExtremeGames)) ? (
                   <div className='setting__row'>
                     <div className='setting__row__top'>
                       <div className='setting__row__title'>
-                        <p>Show Extreme Games</p>
+                        <p>{strings.extremeGames}</p>
                       </div>
                       <div className='setting__row__content setting__row__content--toggle'>
                         <div>
@@ -78,7 +96,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       </div>
                     </div>
                     <div className='setting__row__bottom'>
-                      <p>Show games with sexual, violent or other content unsuitable for children.</p>
+                      <p>{strings.extremeGamesDesc}</p>
                     </div>
                   </div>
                 ) : undefined }
@@ -86,7 +104,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 <div className='setting__row'>
                   <div className='setting__row__top'>
                     <div className='setting__row__title'>
-                      <p>Enable Editing</p>
+                      <p>{strings.enableEditing}</p>
                     </div>
                     <div className='setting__row__content setting__row__content--toggle'>
                       <div>
@@ -97,7 +115,29 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                     </div>
                   </div>
                   <div className='setting__row__bottom'>
-                    <p>Enable editing of games, additional applications and playlists. Also shows the "Curate" tab.</p>
+                    <p>{strings.enableEditingDesc}</p>
+                  </div>
+                </div>
+                {/* Current Language */}
+                <div className='setting__row'>
+                  <div className='setting__row__top'>
+                    <div className='setting__row__title'>
+                      <p>{strings.currentLanguage}</p>
+                    </div>
+                    <div className='setting__row__content setting__row__content--toggle'>
+                      <div>
+                        <select
+                          className='simple-selector'
+                          value={this.props.preferencesData.currentLanguage || ''}
+                          onChange={this.onCurrentLanguageSelect}>
+                          <option value={autoCode}>{autoString}</option>
+                          {langOptions}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='setting__row__bottom'>
+                    <p>{strings.currentLanguageDesc}</p>
                   </div>
                 </div>
               </div>
@@ -105,28 +145,29 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {/* -- Flashpoint -- */}
           <div className='setting'>
-            <p className='setting__title'>Flashpoint</p>
+            <p className='setting__title'>{strings.flashpointHeader}</p>
             <div className='setting__body'>
               {/* Flashpoint Path */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
-                  <p className='setting__row__title'>Flashpoint Path</p>
+                  <p className='setting__row__title'>{strings.flashpointPath}</p>
                   <div className='setting__row__content setting__row__content--filepath-path'>
                     <ConfigFlashpointPathInput
                       input={this.state.flashpointPath}
+                      buttonText={strings.browse}
                       onInputChange={this.onFlashpointPathChange}
                       isValid={this.state.isFlashpointPathValid} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Path to the Flashpoint folder (can be relative)</p>
+                  <p>{strings.flashpointPathDesc}</p>
                 </div>
               </div>
               {/* Redirector / Fiddler */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Redirector</p>
+                    <p>{strings.redirector}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--redirector'>
                     <div>
@@ -134,26 +175,26 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                         type='radio'
                         checked={!this.state.useFiddler}
                         onChange={this.onRedirectorRedirectorChange} />
-                      <p>Redirector</p>
+                      <p>{strings.redirector}</p>
                     </div>
                     <div>
                       <input
                         type='radio'
                         checked={this.state.useFiddler}
                         onChange={this.onRedirectorFiddlerChange} />
-                      <p>Fiddler</p>
+                      <p>{strings.redirectorFiddler}</p>
                     </div>
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Which software to use for redirecting the game traffic to the local web server. Neither is used on Linux.</p>
+                  <p>{strings.redirectorDesc}</p>
                 </div>
               </div>
               {/* Wine */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Use Wine</p>
+                    <p>{strings.useWine}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
@@ -164,7 +205,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Launch applications with Wine. Only enable this if Wine is installed.</p>
+                  <p>{strings.useWineDesc}</p>
                 </div>
               </div>
             </div>
@@ -172,13 +213,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {/* -- Visuals -- */}
           <div className='setting'>
-            <p className='setting__title'>Visuals</p>
+            <p className='setting__title'>{strings.visualsHeader}</p>
             <div className='setting__body'>
               {/* Custom Title Bar */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Use Custom Title Bar</p>
+                    <p>{strings.useCustomTitleBar}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
@@ -189,19 +230,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Use a custom title bar at the top of this window.</p>
+                  <p>{strings.useCustomTitleBarDesc}</p>
                 </div>
               </div>
               {/* Theme */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Theme</p>
+                    <p>{strings.theme}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--input-field setting__row__content--theme-input-field'>
                     <DropdownInputField
                       text={this.props.preferencesData.currentTheme || ''}
-                      placeholder='No Theme'
+                      placeholder={strings.noTheme}
                       onChange={this.onCurrentThemeChange}
                       editable={true}
                       onKeyDown={this.onCurrentThemeKeyDown}
@@ -211,13 +252,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       />
                     <input
                       type='button'
-                      value='Browse'
+                      value={strings.browse}
                       className='simple-button'
                       onClick={this.onCurrentThemeBrowseClick} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>File path of the theme to use (relative to the themes folder).</p>
+                  <p>{strings.themeDesc}</p>
                 </div>
               </div>
             </div>
@@ -225,13 +266,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
           {/* -- Advanced -- */}
           <div className='setting'>
-            <p className='setting__title'>Advanced</p>
+            <p className='setting__title'>{strings.advancedHeader}</p>
             <div className='setting__body'>
               {/* Show Developer Tab */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>Show Developer Tab</p>
+                    <p>{strings.showDeveloperTab}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
@@ -242,7 +283,30 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>Show the "Developer" tab. This is most likely only useful for developers and curators.</p>
+                  <p>{strings.showDeveloperTabDesc}</p>
+                </div>
+              </div>
+              {/* Fallback Language */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.fallbackLanguage}</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <select
+                        className='simple-selector'
+                        value={this.props.preferencesData.fallbackLanguage || ''}
+                        onChange={this.onFallbackLanguageSelect}>
+                        <option value='<none>'>None</option>
+                        <option value={autoCode}>{autoString}</option>
+                        {langOptions}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.fallbackLanguageDesc}</p>
                 </div>
               </div>
             </div>
@@ -253,7 +317,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <div className='setting__row'>
               <input
                 type='button'
-                value='Save & Restart'
+                value={strings.saveAndRestart}
                 className='simple-button save-and-restart'
                 onClick={this.onSaveAndRestartClick} />
             </div>
@@ -263,6 +327,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     );
   }
 
+  renderLangOptionsMemo = memoizeOne((langs: LangFile[]) =>
+    langs.map((lang, index) => (
+      <option
+        key={index}
+        value={lang.code}>
+        {lang.data.name ? `${lang.data.name} (${lang.code})` : lang.code}
+      </option>
+    ))
+  );
+
   onShowExtremeChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ browsePageShowExtreme: isChecked });
     this.forceUpdate();
@@ -271,6 +345,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onEnableEditingChange = (isChecked: boolean): void => {
     this.props.updatePreferences({ enableEditing: isChecked });
     this.forceUpdate();
+  }
+
+  onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const code = event.target.value;
+    this.props.updatePreferences({ currentLanguage: code });
+    this.props.updateLocalization();
+  }
+
+  onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const code = event.target.value;
+    this.props.updatePreferences({ fallbackLanguage: code });
+    this.props.updateLocalization();
   }
 
   onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -293,14 +379,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.forceUpdate();
 
     if (isChecked && process.platform === 'linux') {
-      which('wine', function(err: Error | null) {
+      which('wine', (err) => {
         if (err) {
           log('Warning : Wine was enabled but it was not found on the path.');
           remote.dialog.showMessageBox({
             type: 'error',
-            title: 'Program not found!',
-            message: 'Wine was enabled but not found on the path. Is it installed?\n' +
-                    'Some games may not be available without Wine',
+            title: this.context.dialog.programNotFound,
+            message: this.context.dialog.wineNotFound,
             buttons: ['Ok'],
           });
         }
@@ -346,7 +431,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialogSync({
-      title: 'Select a theme file',
+      title: this.context.dialog.selectThemeFile,
       properties: ['openFile'],
     });
     if (filePaths) {
@@ -381,6 +466,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     .then(() => { window.External.restart(); })
     .catch((error: Error) => { console.log(error); });
   }
+
+  static contextType = LangContext;
 }
 
 /** Format a theme item into a displayable name for the themes drop-down. */

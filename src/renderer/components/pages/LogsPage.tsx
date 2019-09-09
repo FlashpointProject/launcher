@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { ArgumentTypesOf } from '../../../shared/interfaces';
+import { LangContainer, LogsLang } from '../../../shared/lang/types';
 import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
 import { LogRendererApi } from '../../../shared/Log/LogRendererApi';
 import { memoizeOne } from '../../../shared/memoize';
 import { shallowStrictEquals } from '../../../shared/Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
+import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
 import { LogData } from '../LogData';
 
@@ -15,9 +17,14 @@ export type LogsPageProps = OwnProps & WithPreferencesProps;
 const labels = [
   'Background Services',
   'Game Launcher',
+  'Language',
   'Redirector',
   'Router',
 ];
+
+export interface LogsPage {
+  context: LangContainer;
+}
 
 /** Page displaying this launcher's log. */
 export class LogsPage extends React.Component<LogsPageProps> {
@@ -38,6 +45,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
   }
 
   render() {
+    const strings = this.context.logs;
     const { preferencesData: { showLogSource } } = this.props;
     const logData = this.getLogString();
     return (
@@ -46,7 +54,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
         <div className='log-page__bar'>
           {/* Left */}
           <div className='log-page__bar__wrap'>
-            <Dropdown text='Filters'>
+            <Dropdown text={strings.filters}>
               { labels.map((label, index) => (
                 <label
                   key={index}
@@ -76,7 +84,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
                   <div>
                     <input
                       type='button'
-                      value='Copy Text'
+                      value={strings.copyText}
                       onClick={this.onCopyClick}
                       className='simple-button simple-center__vertical-inner' />
                   </div>
@@ -86,7 +94,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
                   <div className='simple-center'>
                     <input
                       type='button'
-                      value='Clear Log'
+                      value={strings.clearLog}
                       onClick={this.onClearClick}
                       className='simple-button simple-center__vertical-inner' />
                   </div>
@@ -130,6 +138,8 @@ export class LogsPage extends React.Component<LogsPageProps> {
   onLogDataUpdate = (log: LogRendererApi): void => {
     this.forceUpdate();
   }
+
+  static contextType = LangContext;
 }
 
 /**

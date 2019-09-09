@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
+import { CurateLang, LangContainer } from '../../../shared/lang/types';
 import { createEditCuration, CurationAction, CurationContext, CurationSource, EditCurationMeta } from '../../context/CurationContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { importCuration } from '../../curate/importCuration';
@@ -7,6 +8,7 @@ import { CurationIndex, indexCurationArchive, indexCurationFolder } from '../../
 import { parseCurationMeta } from '../../curate/parse';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
+import { LangContext } from '../../util/lang';
 import { getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
@@ -22,6 +24,7 @@ export type CuratePageProps = {
 
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
+  const strings = React.useContext(LangContext);
   const [state, dispatch] = useContext(CurationContext.context);
   // Get default curation game meta values
   const defaultGameMetaValues = useMemo(() => {
@@ -72,7 +75,7 @@ export function CuratePage(props: CuratePageProps) {
         // Log state
         const total = state.curations.length;
         console.log(
-          '"Import All" complete!\n'+
+          '"Import All" complete\n'+
           `  Total:   ${total}\n`+
           `  Success: ${success} (${100 * (success / total)}%)\n`+
           `  Failed:  ${total - success}`
@@ -84,7 +87,7 @@ export function CuratePage(props: CuratePageProps) {
   const onLoadCurationArchiveClick = useCallback(async () => {
     // Show dialog
     const filePaths = window.External.showOpenDialogSync({
-      title: 'Select the curation archive(s) to load',
+      title: strings.dialog.selectCurationArchive,
       properties: ['openFile', 'multiSelections'],
       filters: [{ extensions: ['zip'], name: 'Curation archive' }],
     });
@@ -103,7 +106,7 @@ export function CuratePage(props: CuratePageProps) {
   const onLoadCurationFolderClick = useCallback(async () => {
     // Show dialog
     const filePaths = window.External.showOpenDialogSync({
-      title: 'Select the curation folder(s) to load',
+      title: strings.dialog.selectCurationFolder,
       properties: ['openDirectory', 'multiSelections'],
     });
     if (filePaths) {
@@ -124,7 +127,7 @@ export function CuratePage(props: CuratePageProps) {
   const onLoadMetaClick = useCallback(() => {
     // Show dialog
     const filePaths = window.External.showOpenDialogSync({
-      title: 'Select the curation meta to load',
+      title: strings.dialog.selectCurationMeta,
       properties: ['openFile', 'multiSelections'],
       filters: [{ extensions: ['txt'], name: 'Curation meta file' }],
     });
@@ -185,20 +188,21 @@ export function CuratePage(props: CuratePageProps) {
           <div className='curate-page-top__left'>
             <ConfirmElement
               onConfirm={onImportAllClick}
-              children={renderImportAllButton} />
+              children={renderImportAllButton}
+              extra={strings.curate} />
           </div>
           <div className='curate-page-top__right'>
             <SimpleButton
-              value='Load Meta'
-              title='Load one or more Curation meta files.'
+              value={strings.curate.loadMeta}
+              title={strings.curate.loadMetaDesc}
               onClick={onLoadMetaClick} />
             <SimpleButton
-              value='Load Archive'
-              title='Load one or more Curation archives.'
+              value={strings.curate.loadArchive}
+              title={strings.curate.loadArchiveDesc}
               onClick={onLoadCurationArchiveClick} />
             <SimpleButton
-              value='Load Folder'
-              title='Load one or more Curation folders.'
+              value={strings.curate.loadFolder}
+              title={strings.curate.loadFolderDesc}
               onClick={onLoadCurationFolderClick} />
           </div>
         </div>
@@ -209,12 +213,12 @@ export function CuratePage(props: CuratePageProps) {
   ), [curateBoxes, onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick]);
 }
 
-function renderImportAllButton({ activate, activationCounter, reset }: ConfirmElementArgs): JSX.Element {
+function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value='Import All'
-      title='Import all curations that are currently loaded.'
+      value={extra.importAll}
+      title={extra.importAllDesc}
       onClick={activate}
       onMouseLeave={reset} />
   );

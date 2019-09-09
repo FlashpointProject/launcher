@@ -12,6 +12,10 @@ export type IAppPreferencesData = {
   browsePageShowExtreme: boolean;
   /** If editing games, additional applications and playlists should be allowed. */
   enableEditing: boolean;
+  /** Default language used for fallback */
+  fallbackLanguage: string;
+  /** Current language */
+  currentLanguage: string;
   /** Layout of game collection at BrowsePage. */
   browsePageLayout: BrowsePageLayout;
   /** If the left sidebar at the BrowsePage should be visible. */

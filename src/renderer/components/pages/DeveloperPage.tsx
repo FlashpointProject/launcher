@@ -5,6 +5,7 @@ import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
+import { DeveloperLang, LangContainer } from '../../../shared/lang/types';
 import { removeFileExtension } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';
@@ -15,6 +16,7 @@ import { CentralState } from '../../interfaces';
 import { LaunchboxData } from '../../LaunchboxData';
 import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
 import { getFileExtension } from '../../Util';
+import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
 import { SimpleButton } from '../SimpleButton';
@@ -39,6 +41,10 @@ type DeveloperPageState = {
   text: string;
 };
 
+export interface DeveloperPage {
+  context: LangContainer;
+}
+
 /**
  * Page made for developers or advanced users only.
  * It has various "tools" that the user can run to gather information about the current Flashpoint folders data (games, playlists, images etc.), or edit that data on mass.
@@ -53,37 +59,38 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   render() {
+    const strings = this.context.developer;
     const { text } = this.state;
     return (
       <div className='developer-page simple-scroll'>
         <div className='developer-page__inner'>
-          <h1 className='developer-page__title'>Developer</h1>
-          This is where all the useful developer tools will go.
+          <h1 className='developer-page__title'>{strings.developerHeader}</h1>
+          {strings.developerDesc}
           <div className='developer-page__buttons'>
             {/* Top Buttons */}
             <SimpleButton
-              value='Check Missing Images'
-              title='List all games without a thumbnail or screenshot.'
+              value={strings.checkMissingImages}
+              title={strings.checkMissingImagesDesc}
               onClick={this.onCheckMissingImagesClick} />
             <SimpleButton
-              value='Check Game IDs'
-              title='List all games with duplicate or invalid IDs'
+              value={strings.checkGameIds}
+              title={strings.checkGameIdsDesc}
               onClick={this.onCheckGameIDsClick} />
             <SimpleButton
-              value='Check Game Titles'
-              title='List all games with duplicate titles on the same platform'
+              value={strings.checkGameTitles}
+              title={strings.checkGameTitlesDesc}
               onClick={this.onCheckGameNamesClick} />
             <SimpleButton
-              value='Check Game Fields'
-              title='List all games with empty fields (of the fields that should not be empty)'
+              value={strings.checkGameFields}
+              title={strings.checkGameFieldsDesc}
               onClick={this.onCheckGameFieldsClick} />
             <SimpleButton
-              value='Check Playlists'
-              title='List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs'
+              value={strings.checkPlaylists}
+              title={strings.checkPlaylistsDesc}
               onClick={this.onCheckPlaylistsClick} />
             <SimpleButton
-              value='Check Game File Location'
-              title='List all games with launch commands that can not be parsed into file paths (this is related to the "Open File Location" function, not launching the game).'
+              value={strings.checkGameFileLocation}
+              title={strings.checkGameFileLocationDesc}
               onClick={this.onCheckFileLocation} />
             {/* Log */}
             <LogData
@@ -91,16 +98,16 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               logData={text} />
             {/* Bottom Buttons */}
             <SimpleButton
-              value='Rename Images (Title => ID)'
-              title='Find all game images with the games title in their filename, and rename it to use its ID instead.'
+              value={strings.renameImagesTitleToId}
+              title={strings.renameImagesTitleToIdDesc}
               onClick={this.onRenameImagesTitleToIDClick} />
             <SimpleButton
-              value='Rename Images (ID => Title)'
-              title='Find all game images with the games ID in their filename, and rename it to use its title instead.'
+              value={strings.renameImagesIdToTitle}
+              title={strings.renameImagesIdToTitleDesc}
               onClick={this.onRenameImagesIDToTitleClick} />
             <SimpleButton
-              value='Create Missing Folders'
-              title='Find all missing folders in the Flashpoint folder structure and create them.'
+              value={strings.createMissingFolders}
+              title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
           </div>
         </div>
@@ -164,6 +171,8 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       this.setState({ text: await createMissingFolders(collection) });
     }, 0);
   }
+
+  static contextType = LangContext;
 }
 
 function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollection): string {
