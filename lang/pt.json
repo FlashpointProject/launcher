@@ -113,7 +113,19 @@
     "renameImagesIdToTitle": "Renomear Imagens (ID => Título)",
     "renameImagesIdToTitleDesc": "Encontrar todas as imagens dos jogos com os IDs dos jogos no nome do ficheiro e renomea-las para usar o título do jogo",
     "createMissingFolders": "Criar Pastas em Falta",
-    "createMissingFoldersDesc": "Encontrar todas as pastas em falta na estrutura da pasta do Flashpoint e criá-las"
+    "createMissingFoldersDesc": "Encontrar todas as pastas em falta na estrutura da pasta do Flashpoint e criá-las",
+    "servicesHeader": "Serviços de Plano de Fundo",
+    "running": "Em execução",
+    "stopped": "Parou",
+    "killing": "Encerrando",
+    "start": "Começar",
+    "startDesc": "Começar o serviço",
+    "stop": "Parar",
+    "stopDesc": "Parando de executar o serviço",
+    "restart": "Reiniciar",
+    "restartDesc": "Reiniciar o serviço",
+    "details": "Detalhes",
+    "detailsDesc": "Abrir janela com detalhes de serviço"
   },
   "about": {
     "aboutHeader": "Sobre",
