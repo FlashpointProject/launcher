@@ -11,6 +11,7 @@ import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { versionNumberToText } from '../shared/Util';
+import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
@@ -133,7 +134,7 @@ export class App extends React.Component<AppProps, AppState> {
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
     (() => {
       let askBeforeClosing = true;
-      window.onbeforeunload = event => {
+      window.onbeforeunload = (event: BeforeUnloadEvent) => {
         const { central } = this.state;
         if (askBeforeClosing && (central.upgrade.screenshotsState.isInstalling || central.upgrade.techState.isInstalling)) {
           event.returnValue = 1; // (Prevent closing the window)
@@ -211,25 +212,24 @@ export class App extends React.Component<AppProps, AppState> {
       this.state.gameImages.addImageFolders(platforms);
       // Load and parse platform XMLs
       this.state.central.games.loadPlatforms()
-      .then(() => {
-        this.setState({
-          central: Object.assign({}, this.state.central, {
-            gamesDoneLoading: true,
-          })
+      .catch((errors : Error[]) => {
+        errors.map((error) => log(error.toString()));
+        remote.dialog.showMessageBox({
+          type: 'error',
+          title: strings.dialog.errorParsingPlatforms,
+          message: formatString(strings.dialog.errorParsingPlatformsMessage, String(errors.length)),
+          buttons: ['Ok']
         });
       })
-      .catch((error) => {
-        console.error(error);
+      .finally(() => {
         this.setState({
           central: Object.assign({}, this.state.central, {
             gamesDoneLoading: true,
-            gamesFailedLoading: true,
           })
         });
       });
     })
-    .catch((error) => {
-      log(error+'');
+    .catch(() => {
       this.setState({
         central: Object.assign({}, this.state.central, {
           gamesDoneLoading: true,
@@ -347,11 +347,6 @@ export class App extends React.Component<AppProps, AppState> {
     const platforms = this.state.central.games.listPlatforms();
     const route = getBrowseSubPath(this.props.location.pathname);
     const library = findLibraryByRoute(libraries, route);
-    // Get game count (or undefined if no games are yet found)
-    let gameCount: number|undefined;
-    if (this.state.central.gamesDoneLoading) {
-      gameCount = games.length;
-    }
     // Props to set to the router
     const routerProps: AppRouterProps = {
       central: this.state.central,
@@ -399,7 +394,7 @@ export class App extends React.Component<AppProps, AppState> {
         {/* "Footer" stuff */}
         <ConnectedFooter
           showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-          totalCount={gameCount}
+          totalCount={games.length}
           currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
           currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
           onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}

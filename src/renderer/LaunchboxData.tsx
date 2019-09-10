@@ -31,8 +31,8 @@ export class LaunchboxData {
               fs.stat(path.posix.join(folderPath, fileName), (err: NodeJS.ErrnoException | null, stats: fs.Stats) => {
                 if (err) { reject(err); }
                 else {
-                  // Add to array if it is a file
-                  if (stats.isFile()) {
+                  // Add to array if it is an XML file
+                  if (stats.isFile() && fileName.endsWith('.xml')) {
                     fileNames.push(fileName);
                   }
                   // Decrement counter and check if this was the last file
@@ -140,7 +140,7 @@ export class LaunchboxData {
             // @TODO Look into which settings are most appropriate
           });
           if (!data) {
-            reject(new Error('Failed to parse XML'));
+            reject(new Error('Failed to parse XML file - ' + source));
             return;
           }
           // Make sure the sub-object exists

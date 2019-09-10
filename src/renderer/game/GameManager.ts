@@ -38,6 +38,7 @@ class GameManager extends EventEmitter {
         resolve(); // No files found
       } else {
         let done: number = 0;
+        let errors: any[] = [];
         for (let i = this.platforms.length - 1; i >= 0; i--) {
           const platform = this.platforms[i];
           LaunchboxData.loadPlatform(path.join(flashpointPath, LaunchboxData.platformsPath, platform.filename))
@@ -45,12 +46,20 @@ class GameManager extends EventEmitter {
             platform.data = data;
             platform.collection = new GameCollection().push(GameParser.parse(data, platform.filename));
             this.collection.push(platform.collection);
+          })
+          .catch((error) => {
+            errors.push(error);
+          })
+          .finally(() => {
             done++;
             if (done === this.platforms.length) {
-              resolve();
+              if (errors.length > 0) {
+                reject(errors);
+              } else {
+                resolve();
+              }
             }
-          })
-          .catch(reject);
+          });
         }
       }
     });
