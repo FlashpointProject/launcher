@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { FilterLang, LangContainer } from '../../shared/lang/types';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
+import { LangContext } from '../util/lang';
 
 export type GameOrderProps = {
   /** Called when the either the property to order by, or what way to order in, is changed. */
@@ -15,12 +17,17 @@ export type GameOrderChangeEvent = {
   orderReverse: GameOrderReverse;
 };
 
+export interface GameOrder {
+  context: LangContainer;
+}
+
 /**
  * Two drop down lists, the first for selecting what to order the games by, and
  * the second for selecting what way to order the games in.
  */
 export class GameOrder extends React.Component<GameOrderProps> {
   render() {
+    const strings = this.context.filter;
     return (
       <>
         {/* Order By */}
@@ -28,19 +35,19 @@ export class GameOrder extends React.Component<GameOrderProps> {
           className='simple-selector'
           value={this.props.orderBy}
           onChange={this.onOrderByChange}>
-          <option value='dateAdded'>Date Added</option>
-          <option value='genre'>Genre</option>
-          <option value='platform'>Platform</option>
-          <option value='series'>Series</option>
-          <option value='title'>Title</option>
+          <option value='dateAdded'>{strings.dateAdded}</option>
+          <option value='genre'>{strings.genre}</option>
+          <option value='platform'>{strings.platform}</option>
+          <option value='series'>{strings.series}</option>
+          <option value='title'>{strings.title}</option>
         </select>
         {/* Order Reverse */}
         <select
           className='simple-selector'
           value={this.props.orderReverse}
           onChange={this.onOrderReverseChange}>
-          <option value='ascending'>Ascending</option>
-          <option value='descending'>Descending</option>
+          <option value='ascending'>{strings.ascending}</option>
+          <option value='descending'>{strings.descending}</option>
         </select>
       </>
     );
@@ -67,6 +74,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
     }
   }
 
+  static contextType = LangContext;
 }
 
 /**

@@ -1,12 +1,14 @@
 import { ipcRenderer, remote } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
+import { LangContainer, LangFile } from '../shared/lang/types';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
-import { findDefaultLibrary, findLibraryByRoute, getLibraryPlatforms } from '../shared/library/util';
+import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { versionNumberToText } from '../shared/Util';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -21,6 +23,7 @@ import GameManager from './game/GameManager';
 import GameManagerPlatform from './game/GameManagerPlatform';
 import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
+import { LangManager } from './lang/LangManager';
 import { Paths } from './Paths';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { IGamePlaylist } from './playlist/interfaces';
@@ -30,14 +33,16 @@ import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
 import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
 import { joinLibraryRoute } from './Util';
+import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade } from './util/upgrade';
-import which = require('which');
 
 type AppOwnProps = {
   /** Most recent search query. */
   search: SearchQuery;
   /** Theme manager. */
   themes: ThemeManager;
+  /** Lang manager. */
+  langManager: LangManager;
 };
 
 export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
@@ -62,6 +67,10 @@ export type AppState = {
   selectedPlaylists: IObjectMap<IGamePlaylist>;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
+  /** Current language container. */
+  lang: LangContainer;
+  /** Current list of available language files. */
+  langList: LangFile[];
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -103,6 +112,8 @@ export class App extends React.Component<AppProps, AppState> {
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
+      lang: this.props.langManager.container,
+      langList: this.props.langManager.items,
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
@@ -116,6 +127,7 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   init() {
+    const strings = this.state.lang;
     const fullFlashpointPath = window.External.config.fullFlashpointPath;
     const fullJsonFolderPath = window.External.config.fullJsonFolderPath;
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
@@ -169,6 +181,9 @@ export class App extends React.Component<AppProps, AppState> {
     });
     this.props.themes.on('add',    item => { this.forceUpdate(); });
     this.props.themes.on('remove', item => { this.forceUpdate(); });
+    // Listen for changes to lang files, load in used ones
+    this.props.langManager.on('list-change', list => { this.setState({ langList: list }); });
+    this.props.langManager.on('update',      data => { this.setState({ lang: data     }); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -268,9 +283,8 @@ export class App extends React.Component<AppProps, AppState> {
           log('Warning : PHP not found in path, may cause unexpected behaviour.');
           remote.dialog.showMessageBox({
             type: 'error',
-            title: 'Program not found!',
-            message: 'PHP was not found on the path. Is it installed?\n' +
-                    'Running without PHP may cause unexpected behaviour.',
+            title: strings.dialog.programNotFound,
+            message: strings.dialog.phpNotFound,
             buttons: ['Ok']
           } );
         }
@@ -283,9 +297,8 @@ export class App extends React.Component<AppProps, AppState> {
             log('Warning : Wine is enabled but it was not found on the path.');
             remote.dialog.showMessageBox({
               type: 'error',
-              title: 'Program not found!',
-              message: 'Wine is enabled but not found on the path. Is it installed?\n' +
-                      'Some games may not be available without Wine',
+              title: strings.dialog.programNotFound,
+              message: strings.dialog.wineNotFound,
               buttons: ['Ok']
             } );
           }
@@ -358,19 +371,22 @@ export class App extends React.Component<AppProps, AppState> {
       gameLibraryRoute: route,
       themeItems: this.props.themes.items,
       reloadTheme: this.reloadTheme,
+      languages: this.state.langList,
+      updateLocalization: this.updateLanguage,
     };
     // Render
     return (
-      <>
+      <LangContext.Provider value={this.state.lang}>
         {/* "TitleBar" stuff */}
         { window.External.config.data.useCustomTitlebar ? (
           <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
         ) : undefined }
         {/* "Header" stuff */}
-        <HeaderContainer onOrderChange={this.onOrderChange}
-                         onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-                         onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-                         order={this.state.order}/>
+        <HeaderContainer
+          onOrderChange={this.onOrderChange}
+          onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+          onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+          order={this.state.order} />
         {/* "Main" / "Content" stuff */}
         <div className='main'>
           <AppRouter { ...routerProps } />
@@ -381,14 +397,15 @@ export class App extends React.Component<AppProps, AppState> {
           </noscript>
         </div>
         {/* "Footer" stuff */}
-        <ConnectedFooter showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-                         totalCount={gameCount}
-                         currentLabel={library && library.title}
-                         currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
-                         onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-                         onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-                         onNewGameClick={this.onNewGameClick} />
-      </>
+        <ConnectedFooter
+          showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+          totalCount={gameCount}
+          currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
+          currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+          onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+          onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+          onNewGameClick={this.onNewGameClick} />
+      </LangContext.Provider>
     );
   }
 
@@ -495,6 +512,11 @@ export class App extends React.Component<AppProps, AppState> {
     } else { // (Clear the current theme)
       Theme.clear(Theme.findGlobal());
     }
+  }
+
+  /** Update the combined language container. */
+  private updateLanguage = (): void => {
+    this.props.langManager.updateContainer();
   }
 }
 

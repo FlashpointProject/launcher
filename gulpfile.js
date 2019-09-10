@@ -107,6 +107,8 @@ gulp.task('pack', (done) => {
         if (config.isStaticInstall) {
           fs.createFileSync(path.join(buildPath, '.installed'));
         }
+        // Copy Language folder
+        fs.copySync('./lang', path.join(buildPath, 'lang/'));
         // Create build version file
         fs.writeFileSync(path.join(buildPath, '.version'), config.buildVersion, done);
         // Copy licenses folder and the LICENSE file

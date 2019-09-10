@@ -1,4 +1,5 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
+import { autoCode } from '../lang/misc';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
@@ -8,6 +9,8 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageGameScale: 0.087,
   browsePageShowExtreme: false,
   enableEditing: true,
+  fallbackLanguage: 'en',
+  currentLanguage: autoCode,
   browsePageLayout: BrowsePageLayout.grid,
   browsePageShowLeftSidebar: true,
   browsePageShowRightSidebar: true,
@@ -50,6 +53,8 @@ export function overwritePreferenceData(
   parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
   parser.prop('browsePageShowExtreme',       v => source.browsePageShowExtreme       = !!v);
   parser.prop('enableEditing',               v => source.enableEditing               = !!v);
+  parser.prop('fallbackLanguage',            v => source.fallbackLanguage            = str(v));
+  parser.prop('currentLanguage',             v => source.currentLanguage             = str(v));
   parser.prop('browsePageLayout',            v => source.browsePageLayout            = num(v));
   parser.prop('browsePageShowLeftSidebar',   v => source.browsePageShowLeftSidebar   = !!v);
   parser.prop('browsePageShowRightSidebar',  v => source.browsePageShowRightSidebar  = !!v);

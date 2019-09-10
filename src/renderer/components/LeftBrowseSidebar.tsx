@@ -1,9 +1,11 @@
 import * as React from 'react';
+import { BrowseLang, LangContainer } from '../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { CentralState } from '../interfaces';
 import { IGamePlaylist } from '../playlist/interfaces';
 import { gameIdDataType } from '../Util';
+import { LangContext } from '../util/lang';
 import { OpenIcon } from './OpenIcon';
 import { PlaylistItem } from './PlaylistItem';
 
@@ -31,6 +33,10 @@ type LeftBrowseSidebarState = {
   isEditing: boolean;
 };
 
+export interface LeftBrowseSidebar {
+  context: LangContainer;
+}
+
 /** Sidebar on the left side of BrowsePage. */
 export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, LeftBrowseSidebarState> {
   constructor(props: LeftBrowseSidebarProps) {
@@ -56,6 +62,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
   }
 
   render() {
+    const strings = this.context.browse;
     const { central, onShowAllClick, preferencesData, selectedPlaylistID } = this.props;
     const { isEditing } = this.state;
     const editingDisabled = !preferencesData.enableEditing;
@@ -73,7 +80,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
                     <OpenIcon icon='eye' />
                   </div>
                   <div className='playlist-list-fake-item__inner'>
-                    <p className='playlist-list-fake-item__inner__title'>All Games</p>
+                    <p className='playlist-list-fake-item__inner__title'>{strings.allGames}</p>
                   </div>
                 </div>
                 {/* List all playlists */}
@@ -104,20 +111,20 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
                       <OpenIcon icon='plus' />
                     </div>
                     <div className='playlist-list-fake-item__inner'>
-                      <p className='playlist-list-fake-item__inner__title'>New Playlist</p>
+                      <p className='playlist-list-fake-item__inner__title'>{strings.newPlaylist}</p>
                     </div>
                   </div>
                 ) }
               </div>
             ) : ( // Failed to load
               <div className='playlist-list__message'>
-                <h2>Failed to load playlist folder.</h2>
-                <p>Check the log for more information.</p>
+                <h2>{strings.failedToLoadPlaylistFolder}</h2>
+                <p>{strings.checkLogForInfo}</p>
               </div>
             )
           ) : ( // Loading
             <div className='playlist-list__message'>
-              <p>Loading Playlists...</p>
+              <p>{strings.loadingPlaylists}</p>
             </div>
           ) }
       </div>
@@ -191,4 +198,6 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
       }, 1);
     }
   }
+
+  static contextType = LangContext;
 }

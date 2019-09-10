@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useCallback } from 'react';
 import { CurationAction, EditAddAppCuration, EditAddAppCurationMeta } from '../context/CurationContext';
+import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
 
@@ -27,31 +28,33 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   // Misc.
   const editable = true;
   const disabled = props.disabled;
+  // Localized strings
+  const strings = React.useContext(LangContext);
   // Render
   return (
     <div className='curate-box-add-app'>
-      <CurateBoxRow title='Heading:'>
+      <CurateBoxRow title={strings.curate.heading + ':'}>
         <InputField
           text={props.curation && props.curation.meta.heading || ''}
-          placeholder='No Heading'
+          placeholder={strings.curate.noHeading}
           onChange={onHeadingChange}
           editable={editable}
           disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
-      <CurateBoxRow title='Application Path:'>
+      <CurateBoxRow title={strings.browse.applicationPath + ':'}>
         <InputField
           text={props.curation && props.curation.meta.applicationPath || ''}
-          placeholder='No Application Path'
+          placeholder={strings.browse.noApplicationPath}
           onChange={onApplicationPathChange}
           editable={editable}
           disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
-      <CurateBoxRow title='Launch Command:'>
+      <CurateBoxRow title={strings.browse.launchCommand + ':'}>
         <InputField
           text={props.curation && props.curation.meta.launchCommand || ''}
-          placeholder='No Launch Command'
+          placeholder={strings.browse.noLaunchCommand}
           onChange={onLaunchCommandChange}
           editable={editable}
           disabled={disabled}

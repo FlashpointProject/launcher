@@ -5,6 +5,8 @@ export type ConfigFlashpointPathInputProps = {
   input?: string;
   /** If the current input is valid. */
   isValid?: boolean;
+  /** Text to display on the button */
+  buttonText?: string;
   /** Called when the value of the input field is changed. */
   onInputChange?: (input: string) => void;
 };
@@ -31,7 +33,7 @@ export class ConfigFlashpointPathInput extends React.Component<ConfigFlashpointP
         </div>
         <input
           type='button'
-          value='Browse'
+          value={this.props.buttonText}
           className='simple-button'
           onClick={this.onBrowseClick} />
       </>

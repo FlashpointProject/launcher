@@ -1,10 +1,14 @@
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
+import { getLibraryItemTitle } from '../../shared/library/util';
+import { LangContainer, LibrariesLang } from '../../shared/lang/types';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithLibraryProps } from '../containers/withLibrary';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
 import { SearchQuery } from '../store/search';
 import { easterEgg, joinLibraryRoute } from '../Util';
+import { LangContext } from '../util/lang';
 import { GameOrder, GameOrderChangeEvent } from './GameOrder';
 import { OpenIcon } from './OpenIcon';
 
@@ -30,6 +34,10 @@ type HeaderState = {
   searchText: string;
 };
 
+export interface Header {
+  context: LangContainer;
+}
+
 /** The header that is always visible at the top of the main window (just below the title bar). */
 export class Header extends React.Component<HeaderProps, HeaderState> {
   searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
@@ -50,6 +58,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   }
 
   render() {
+    const strings = this.context.app;
     const {
       preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab },
       libraryData: { libraries },
@@ -61,36 +70,36 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
         {/* Header Menu */}
         <div className='header__wrap'>
           <ul className='header__menu'>
-            <MenuItem title='Home' link={Paths.HOME} />
+            <MenuItem title={strings.home} link={Paths.HOME} />
             { libraries.length > 0 ? (
               libraries.map(item => (
                 <MenuItem
                   key={item.route}
-                  title={item.title}
+                  title={getLibraryItemTitle(item, this.context.libraries)}
                   link={joinLibraryRoute(item.route)} />
               ))
             ) : (
               <MenuItem
-                title='Browse'
+                title={strings.browse}
                 link={Paths.BROWSE} />
             ) }
             <MenuItem
-              title='Logs'
+              title={strings.logs}
               link={Paths.LOGS} />
             <MenuItem
-              title='Config'
+              title={strings.config}
               link={Paths.CONFIG} />
             <MenuItem
-              title='About'
+              title={strings.about}
               link={Paths.ABOUT} />
             { enableEditing ? (
               <MenuItem
-                title='Curate'
+                title={strings.curate}
                 link={Paths.CURATE} />
             ) : undefined }
             { showDeveloperTab ? (
               <MenuItem
-                title='Developer'
+                title={strings.developer}
                 link={Paths.DEVELOPER} />
             ) : undefined }
           </ul>
@@ -104,7 +113,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                   className='header__search__input'
                   ref={this.searchInputRef}
                   value={searchText}
-                  placeholder='Search...'
+                  placeholder={strings.searchPlaceholder}
                   onChange={this.onSearchChange}
                   onKeyDown={this.onSearchKeyDown} />
               </div>
@@ -135,14 +144,14 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
             {/* Toggle Right Sidebar */}
             <div
               className='header__toggle-sidebar'
-              title={browsePageShowRightSidebar ? 'Hide right sidebar' : 'Show right sidebar'}
+              title={browsePageShowRightSidebar ? strings.hideRightSidebar : strings.showRightSidebar}
               onClick={onToggleRightSidebarClick}>
               <OpenIcon icon={browsePageShowRightSidebar ? 'collapse-right' : 'expand-right'} />
             </div>
             {/* Toggle Left Sidebar */}
             <div
               className='header__toggle-sidebar'
-              title={browsePageShowLeftSidebar ? 'Hide left sidebar' : 'Show left sidebar'}
+              title={browsePageShowLeftSidebar ? strings.hideLeftSidebar : strings.showLeftSidebar}
               onClick={onToggleLeftSidebarClick}>
               <OpenIcon icon={browsePageShowLeftSidebar ? 'collapse-left' : 'expand-left'} />
             </div>
@@ -181,6 +190,8 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     this.setState({ searchText: '' });
     this.props.onSearch('', false);
   }
+
+  static contextType = LangContext;
 }
 
 
@@ -191,4 +202,8 @@ function MenuItem({ title, link }: { title: string, link: string }) {
       <Link to={link} className='header__menu__item__link'>{title}</Link>
     </li>
   );
+}
+
+function getItemTitle(item: IGameLibraryFileItem, lang: LibrariesLang): string {
+  return lang[item.route] || item.title;
 }

@@ -1,5 +1,6 @@
 import GameManagerPlatform from '../../renderer/game/GameManagerPlatform';
 import { IGameLibraryFileItem } from './interfaces';
+import { LibrariesLang } from '../lang/types';
 
 /** Find the first library flagged as default (undefined if none was found) */
 export function findDefaultLibrary(libraries: IGameLibraryFileItem[]): IGameLibraryFileItem|undefined {
@@ -38,4 +39,13 @@ export function getLibraryPlatforms(libraries: IGameLibraryFileItem[], platforms
     const prefix = targetLibrary.prefix;
     return platforms.filter(platform => platform.filename.startsWith(prefix));
   } else { return []; }
+}
+
+/**
+ * Get the title of a library item from a language sub-container (or return the item's route if none was found).
+ * @param item Item to get title of.
+ * @param lang Language sub-container to look for title in.
+ */
+export function getLibraryItemTitle(item: IGameLibraryFileItem, lang?: LibrariesLang): string {
+  return lang && lang[item.route] || item.route;
 }

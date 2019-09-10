@@ -40,6 +40,9 @@ export interface IMainWindowExternal {
 
   /** Renderers interface for the Log data */
   log: LogRendererApi;
+
+  /** If the launcher is running in development mode (using something like "npm run start"). */
+  isDev: boolean;
 }
 
 /** Callback for Electron.dialog.showOpenDialog */
@@ -57,6 +60,11 @@ export type AnyFunction = (...args: any[]) => any;
 export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 
 export interface IObjectMap<T> { [key: string]: T|undefined; }
+
+/** Make all properties optional recursively. */
+export type RecursivePartial<T> = {
+  [key in keyof T]?: RecursivePartial<T[key]>;
+};
 
 /** IPC channels used to relay window events from main to renderer. */
 export enum WindowIPC {

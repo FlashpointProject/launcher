@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useMemo } from 'react';
+import { LangContext } from '../util/lang';
 
 export type CurateBoxWarningsProps = {
   /** Warnings to display. */
@@ -24,6 +25,7 @@ export type CurationWarnings = {
 
 /** The part of a Curation Box that displays all the warnings (if any). */
 export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
+  const strings = React.useContext(LangContext).curate;
   const { warnings } = props;
   // Count the number of warnings
   const warningCount = useMemo(() =>
@@ -36,7 +38,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
         <span
           key={key}
           className='curate-box-warnings__entry'>
-          {`- ${warningDescriptions[key as keyof CurationWarnings]}\n`}
+          {`- ${strings[key as keyof CurationWarnings]}\n`}
         </span>
       ) : undefined)
   ), [warnings]);
@@ -48,7 +50,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
       {/* Warnings */}
       <div className={'curate-box-warnings' + (isEmpty ? ' curate-box-warnings--empty' : '')}>
         <div className='curate-box-warnings__head'>
-          Warnings: {warningCount}
+          {strings.warnings}: {warningCount}
         </div>
         <pre className='curate-box-warnings__body'>
           {warningElements}

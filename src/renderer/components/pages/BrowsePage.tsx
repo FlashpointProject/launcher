@@ -11,9 +11,11 @@ import { GameCollection } from '../../../shared/game/GameCollection';
 import { IOrderGamesArgs, orderGames } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
+import { BrowseLang, LangContainer, MenuLang } from '../../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { memoizeOne } from '../../../shared/memoize';
 import { formatDate } from '../../../shared/Util';
+import { formatString } from '../../../shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithLibraryProps } from '../../containers/withLibrary';
@@ -28,6 +30,7 @@ import { CentralState } from '../../interfaces';
 import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getFileExtension } from '../../Util';
 import { copyGameImageFile } from '../../util/game';
+import { LangContext } from '../../util/lang';
 import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { GameGrid } from '../GameGrid';
@@ -98,6 +101,10 @@ export type BrowsePageState = {
    */
   suggestions?: Partial<GamePropSuggestions>;
 };
+
+export interface BrowsePage {
+  context: LangContainer;
+}
 
 /** Page displaying the games and playlists. */
 export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState> {
@@ -188,6 +195,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   render() {
+    const strings = this.context;
     const { selectedGame, selectedPlaylist } = this.props;
     const { draggedGame } = this.state;
     const currentLibrary = this.getCurrentLibrary();
@@ -237,10 +245,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
                   gameImages={this.props.gameImages}
-                  noRowsRenderer={this.noRowsRenderer}
+                  noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenu}
+                  onContextMenu={this.onGameContextMenuMemo(strings.menu)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   orderBy={order.orderBy}
@@ -257,10 +265,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
                   gameImages={this.props.gameImages}
-                  noRowsRenderer={this.noRowsRenderer}
+                  noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenu}
+                  onContextMenu={this.onGameContextMenuMemo(strings.menu)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   orderBy={order.orderBy}
@@ -297,50 +305,76 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     );
   }
 
-  noRowsRenderer = (): JSX.Element => {
-    return (
+  private noRowsRendererMemo = memoizeOne((strings: BrowseLang) => {
+    return () => (
       <div className='game-list__no-games'>
-        { this.props.central.gamesDoneLoading ? (
-          this.props.selectedPlaylist ? (
-            /* Empty Playlist */
-            <>
-              <h2 className='game-list__no-games__title'>Empty Playlist</h2>
-              <br/>
-              <p>Drop a game on this playlist in the <i>left sidebar</i> to add it.</p>
-            </>
-          ) : (
-            /* No games found */
-            <>
-              <h1 className='game-list__no-games__title'>No Games Found!</h1>
-              <br/>
-              {(this.props.central.gamesFailedLoading) ? (
+      { this.props.central.gamesDoneLoading ? (
+        this.props.selectedPlaylist ? (
+          /* Empty Playlist */
+          <>
+            <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
+            <br/>
+            <p>{formatString(strings.dropGameOnLeft, <i>{strings.leftSidebar}</i>)}</p>
+          </>
+        ) : (
+          /* No games found */
+          <>
+            <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
+            <br/>
+            {(this.props.central.gamesFailedLoading) ? (
+              <>
+                {formatString(strings.setFlashpointPathQuestion, <b>{strings.flashpointPath}</b>, <i>{strings.config}</i>)}
+                <br/>
+                {formatString(strings.noteSaveAndRestart, <b>'{strings.saveAndRestart}'</b>)}
+              </>
+            ) : (
+              (this.props.central.games.collection.games.length > 0) ? (
                 <>
-                  Have you set the path to the <b>Flashpoint path</b> at the <i>Config</i> page?<br/>
+                  {strings.noGameMatchedDesc}
                   <br/>
-                  Note: You have to press <b>"Save & Restart"</b> for the change to take effect.
+                  {strings.noGameMatchedSearch}
                 </>
               ) : (
-                (this.props.central.games.collection.games.length > 0) ? (
-                  <>
-                    No game title matched your search.<br/>
-                    Try searching for something less restrictive.
-                  </>
-                ) : (
-                  <>
-                    There are no games.
-                  </>
-                )
-              )}
-            </>
-          )
-        ) : (
-          <p>
-            Loading Games...
-          </p>
-        ) }
+                <>{strings.thereAreNoGames}</>
+              )
+            )}
+          </>
+        )
+      ) : (
+        <p>{strings.loadingGames}</p>
+      ) }
       </div>
     );
-  }
+  });
+
+  private onGameContextMenuMemo = memoizeOne((strings : MenuLang) => {
+    return (game: IGameInfo) => {
+      return (
+        openContextMenu([{
+          label: strings.openFileLocation,
+          click: this.openFileLocationCallback(game)
+        }, {
+          type: 'separator'
+        }, {
+          label: strings.duplicateMetaOnly,
+          click: this.duplicateCallback(game, false),
+          enabled: this.props.preferencesData.enableEditing,
+        }, {
+          label: strings.duplicateMetaAndImages, // ("&&" will be shown as "&")
+          click: this.duplicateCallback(game, true),
+          enabled: this.props.preferencesData.enableEditing,
+        }, {
+          type: 'separator'
+        }, {
+          label: strings.exportMetaOnly,
+          click: this.exportMetaCallback(game)
+        }, {
+          label: strings.exportMetaAndImages, // ("&&" will be shown as "&")
+          click: this.exportMetaAndImagesCallback(game)
+        }])
+      );
+    };
+  });
 
   onLeftSidebarSelectPlaylist = (playlist: IGamePlaylist): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
@@ -403,31 +437,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     GameLauncher.launchGame(game, addApps);
   }
 
-  onGameContextMenu = (game: IGameInfo): void => {
-    openContextMenu([{
-        label: 'Open File Location',
-        click: this.openFileLocationCallback(game)
-      }, {
-        type: 'separator'
-      }, {
-        label: 'Duplicate (Meta Only)',
-        click: this.duplicateCallback(game, false),
-        enabled: this.props.preferencesData.enableEditing,
-      }, {
-        label: 'Duplicate (Meta && Images)', // ("&&" will be shown as "&")
-        click: this.duplicateCallback(game, true),
-        enabled: this.props.preferencesData.enableEditing,
-      }, {
-        type: 'separator'
-      }, {
-        label: 'Export (Meta Only)',
-        click: this.exportMetaCallback(game)
-      }, {
-        label: 'Export (Meta && Images)', // ("&&" will be shown as "&")
-        click: this.exportMetaAndImagesCallback(game)
-    }]);
-  }
-
   /** Create a callback for opening the file location of a game. */
   openFileLocationCallback(game: IGameInfo) {
     return () => {
@@ -440,7 +449,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           else {
             remote.dialog.showMessageBox({
               type: 'warning',
-              title: 'File not found!',
+              title: this.context.dialog.fileNotFound,
               message: 'Failed to find the game file.\n'+
                         'If you are using Flashpoint Infinity, make sure you download the game first.\n'+
                         '\n'+
@@ -454,7 +463,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       } else {
         remote.dialog.showMessageBox({
           type: 'warning',
-          title: 'No Path Found!',
+          title: this.context.dialog.pathNotFound,
           message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
                     `Game: "${game.title}"`,
           buttons: ['Ok'],
@@ -513,7 +522,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
       // Choose where to save the file
       const filePath = electron.remote.dialog.showSaveDialogSync({
-        title: 'Select the file to export the meta to.',
+        title: this.context.dialog.selectFileToExportMeta,
         defaultPath: 'meta',
         filters: [{
           name: 'Meta file',
@@ -532,11 +541,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   /** Create a callback for exporting the meta and images of a game (as a curation format meta file and image files). */
   exportMetaAndImagesCallback(game: IGameInfo) {
+    const strings = this.context.dialog;
     return () => {
       const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
       // Choose where to save the file
       const filePaths = window.External.showOpenDialogSync({
-        title: 'Select the folder to export the meta and images to.',
+        title: strings.selectFolderToExportMetaAndImages,
         properties: ['promptToCreate', 'openDirectory']
       });
       if (filePaths && filePaths.length > 0) {
@@ -557,9 +567,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         if (exists.some(val => val)) { // (One or more of the files already exists)
           const result = electron.remote.dialog.showMessageBoxSync({
             type: 'warning',
-            title: 'Replace files?',
-            message: 'One or more of the exported files to already exists.\n\n'+
-                     'Do you want to replace them?\n',
+            title: strings.replaceFilesQuestion,
+            message: strings.exportedAlreadyExistsYesNo,
             buttons: ['Yes', 'No'],
             defaultId: 0,
           });
@@ -851,6 +860,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     orderBy: 'title',
     orderReverse: 'ascending',
   }
+
+  static contextType = LangContext;
 }
 
 function calcScale(defHeight: number, scale: number): number {

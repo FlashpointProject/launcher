@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
+import { LangFile } from '../shared/lang/types';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
@@ -38,6 +39,8 @@ export type AppRouterProps = {
   gameLibraryRoute: string;
   themeItems: IThemeListItem[];
   reloadTheme: (themePath: string | undefined) => void;
+  languages: LangFile[];
+  updateLocalization: () => void;
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -64,7 +67,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const configProps: ConnectedConfigPageProps = {
       themeItems: this.props.themeItems,
-      reloadTheme: this.props.reloadTheme
+      reloadTheme: this.props.reloadTheme,
+      availableLangs: this.props.languages,
+      updateLocalization: this.props.updateLocalization,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,
