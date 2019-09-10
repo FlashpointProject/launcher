@@ -271,7 +271,9 @@
     "selectThemeFile": "Selecione um Ficheiro de Tema",
     "selectCurationFolder": "Selecione Pasta(s) Preservadas",
     "selectCurationArchive": "Selecione Arquivo(s) Preservados",
-    "selectCurationMeta": "Selecione Metadado(s) Preservados"
+    "selectCurationMeta": "Selecione Metadado(s) Preservados",
+    "errorParsingPlatforms": "Erro ao analisar as plataformas!",
+    "errorParsingPlatformsMessage": "{0} Erro(s)  encontrados durante a análise da plataforma XMLs\nPorfavor verificar os logs por detalhes"
   },
   "libraries": {
     "arcade": "Jogos",
