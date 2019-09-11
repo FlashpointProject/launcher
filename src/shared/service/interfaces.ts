@@ -31,7 +31,7 @@ export enum ProcessAction {
 }
 
 /** Data describing the state of a background service */
-export type IBackgroundService = {
+export type IService = {
   name: string;
   state: ProcessState;
   pid: number;
@@ -40,17 +40,13 @@ export type IBackgroundService = {
 }
 
 /** Stored data describing the new state of 1 or more services */
-export type IBackgroundServicesData = {
-  services: IBackgroundService[];
-}
+export type IServicesData = IService[];
 
 /** Partial updates sent or fetched describing changed services */
-export type IBackgroundServicesUpdate = {
-  updates: Partial<IBackgroundService>[];
-}
+export type IServicesUpdate = Partial<IService>[];
 
 /** Data describing an action to be taken on a service */
-export type IBackgroundServicesAction = {
+export type IServiceAction = {
   name: string,
   action: ProcessAction
 }

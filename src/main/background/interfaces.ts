@@ -1,4 +1,4 @@
-import { IBackProcessInfo } from '../../shared/background/interfaces';
+import { IBackProcessInfo } from '../../shared/service/interfaces';
 
 export interface IBackProcessInfoFile {
   redirector?: IBackProcessInfo;

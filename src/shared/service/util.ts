@@ -1,7 +1,7 @@
-import { IBackgroundService, ProcessState } from './interfaces';
 import { ObjectParser } from '../utils/ObjectParser';
+import { IService, ProcessState } from './interfaces';
 
-export function getDefaultServiceData(): IBackgroundService {
+export function getDefaultServiceData(): IService {
   return ({
     name: 'invalid',
     state: ProcessState.STOPPED,
@@ -11,10 +11,10 @@ export function getDefaultServiceData(): IBackgroundService {
 }
 
 export function overwriteServiceData(
-  source: IBackgroundService,
-  data: Partial<IBackgroundService>,
+  source: IService,
+  data: Partial<IService>,
   onError?: (error: string) => void
-): IBackgroundService {
+): IService {
   const parser = new ObjectParser({
     input: data,
     onError: onError && (error => onError(`Error while parsing Config: ${error.toString()}`)),

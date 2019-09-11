@@ -119,7 +119,19 @@ export function getDefaultLocalization(): LangContainer {
       renameImagesTitleToId: 'renameImagesTitleToId',
       renameImagesTitleToIdDesc: 'renameImagesTitleToIdDesc',
       createMissingFolders: 'createMissingFolders',
-      createMissingFoldersDesc: 'createMissingFolderDesc'
+      createMissingFoldersDesc: 'createMissingFolderDesc',
+      servicesHeader: 'servicesHeader',
+      running: 'running',
+      stopped: 'stopped',
+      killing: 'killing',
+      start: 'start',
+      startDesc: 'startDesc',
+      stop: 'stop',
+      stopDesc: 'stopDesc',
+      restart: 'restart',
+      restartDesc: 'restartDesc',
+      details: 'details',
+      detailsDesc: 'detailsDesc'
     },
     about:{
       aboutHeader: 'aboutHeader',

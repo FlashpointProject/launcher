@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { ILogPreEntry } from '../shared/Log/interface';
-import { ProcessState } from '../shared/background/interfaces';
+import { ProcessState } from '../shared/service/interfaces';
 
 export declare interface ManagedChildProcess {
   /**

@@ -1,16 +1,19 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import { EventEmitter } from 'events';
 import { deepCopy } from '../Util';
-import { overwriteServiceData, getDefaultServiceData } from './util';
-import { IBackgroundServicesAction, IBackgroundServicesData, IBackgroundServicesUpdate } from './interfaces';
+import { IService, IServiceAction, IServicesData, IServicesUpdate } from './interfaces';
+import { getDefaultServiceData, overwriteServiceData } from './util';
 
-export interface BackgroundServicesApi {
+export interface ServicesApi {
   /** Emitted when the API is done initializing. */
   on(event: 'init', listener: () => void): this;
   once(event: 'init', listener: () => void): this;
-  /** Emitted whenever a service changes, to allow for renderer updates */
+  /** Emitted whenever a service changes. */
   on(event: 'change', listener: () => void): this;
-  once(event: 'change') : this;
+  once(event: 'change', listener: () => void) : this;
+  /** Emitted whenever an action is requested. */
+  on(event: 'action', listener: (action: IServiceAction) => void) : this;
+  once(event: 'action', listener: (action: IServiceAction) => void) : this;
 }
 
 /**
@@ -18,8 +21,8 @@ export interface BackgroundServicesApi {
  * This exposes the API methods and data to the renderer process, and communicates
  * with the API on the main process through IPC.
  */
-export class BackgroundServicesApi extends EventEmitter {
-  private _data?: IBackgroundServicesData;
+export class ServicesApi extends EventEmitter {
+  private _data?: IServicesData;
   /** If this has been initialized. */
   private _isInit: boolean = false;
 
@@ -30,7 +33,7 @@ export class BackgroundServicesApi extends EventEmitter {
   }
 
   /** Current config data. This can only be changed between sessions. */
-  public get data(): IBackgroundServicesData {
+  public get data(): IServicesData {
     if (this._data === undefined) {
       throw createAccessError('data');
     }
@@ -43,7 +46,7 @@ export class BackgroundServicesApi extends EventEmitter {
       if (this._isInit) { throw new Error('You can only initialize this once'); }
       // Fetch initial background services data from the main process. May not exist.
       const data = await this.fetch();
-      if (!data) { this._data = { services: [] }; }
+      if (!data) { this._data = []; }
       else       { this._data = deepCopy(data);}
       // Done
       this._isInit = true; // Update Flag
@@ -61,15 +64,66 @@ export class BackgroundServicesApi extends EventEmitter {
     });
   }
 
-  /** Send an action to main to be resolved */
-  public sendAction(data: IBackgroundServicesAction) {
+  /**
+   * Send an action to main in order to be executed
+   * @param data Action to be resolved (start, stop, restart)
+   */
+  public sendAction(data: IServiceAction) {
     ipcRenderer.send(BackgroundServicesIPC.ACTION, data);
+    this.emit('action', data);
+  }
+
+  /**
+   * Updates / Creates stored service info. MUST include the name attribute, otherwise ignored.
+   * @param data Service(s) info to add or update
+   */
+  public updateServicesData(data?: Partial<IService>[]) {
+    if (data) {
+      data.map((update) => {
+        if (this._data) {
+          // Ignored services without names (Required to reference actions)
+          if (update.name) {
+            let service = this._data.find(item => item.name === update.name);
+            if (service) {
+              overwriteServiceData(service, update);
+            // Create service if non-existant
+            } else {
+              service = overwriteServiceData(getDefaultServiceData(), update);
+              this._data.push(service);
+            }
+          }
+        }
+      });
+      this.emit('change');
+    }
+  }
+
+  /**
+   * Returns the stored service data of a named service
+   * @param name Name of the service to get
+   */
+  public getServiceData(name: string) : IService | undefined {
+    if (this._data) {
+      return this._data.find(item => item.name === name);
+    }
+  }
+
+  /**
+   * Removes a service from stored services and emits a change
+   * @param name Name of service to remove
+   */
+  public removeServiceData(name: string) {
+    if (this._data) {
+      const index = this._data.findIndex(item => item.name === name);
+      this._data.splice(index, 1);
+      this.emit('change');
+    }
   }
 
   /** Fetch the background services data from the main process. */
-  private async fetch(): Promise<IBackgroundServicesData> {
+  private fetch(): Promise<IServicesData> {
     // Request data and wait for a response.
-    return new Promise<IBackgroundServicesData>((resolve, reject) => {
+    return new Promise<IServicesData>((resolve, reject) => {
       const data = ipcRenderer.sendSync(BackgroundServicesIPC.REQUEST_SYNC);
       if (data) { resolve(data); }
       else {
@@ -79,32 +133,20 @@ export class BackgroundServicesApi extends EventEmitter {
     });
   }
 
-  /** Process changes to the background services */
-  private async onUpdate(event: IpcRendererEvent, data?: IBackgroundServicesUpdate) {
+  /** Process changes to background services */
+  private onUpdate(event: IpcRendererEvent, data?: IServicesUpdate) {
     if (!data) { throw new Error('You must send a data object, but no data was received.'); }
-    data.updates.map((update) => {
-      if (this._data) {
-        // If service exists in data then update it, otherwise create a new one
-        const service = this._data.services.find(item => item.name === update.name);
-        if (service) {
-          overwriteServiceData(service, update);
-        } else {
-          const newService = overwriteServiceData(getDefaultServiceData(), update);
-          this._data.services.push(newService);
-        }
-      }
-    });
-    this.emit('change');
+    this.updateServicesData(data);
   }
 }
 
-/** IPC channels used by the config API. */
+/** IPC channels used to communicate with BackgroundServices main */
 export enum BackgroundServicesIPC {
   /** Updates to the status of background services (main -> renderer). */
   UPDATE = 'background-services-api-update',
   /** Request the background services data to be sent to the renderer (renderer -> main). */
   REQUEST_SYNC  = 'background-services-api-request-sync',
-  /** Tell the main process to resolve an action on a service */
+  /** Tell the main process to resolve an action on a service (renderer -> main) */
   ACTION = 'background-services-api-action',
 }
 
@@ -114,7 +156,7 @@ export enum BackgroundServicesIPC {
  */
 function createAccessError(propName: string): Error {
   return new Error(
-    `You must not access BackgroundServicesApi.${propName} before the config data has fetched. `+
+    `You must not access ServicesApi.${propName} before the initial background services data has fetched. `+
     'Wait for the this to finish initializing and this error should go away.'
   );
 }

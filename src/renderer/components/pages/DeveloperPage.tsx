@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as React from 'react';
+import { ArgumentTypesOf } from 'src/shared/interfaces';
+import { stringifyLogEntries } from 'src/shared/Log/LogCommon';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
@@ -21,8 +23,6 @@ import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
-import { ArgumentTypesOf } from 'src/shared/interfaces';
-import { stringifyLogEntries } from 'src/shared/Log/LogCommon';
 
 const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
@@ -62,20 +62,19 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   componentDidMount() {
-    window.External.backgroundServices.on('change', this.onServiceUpdate);
+    window.External.services.on('change', this.onServiceUpdate);
     window.External.log.on('change', this.onServiceUpdate);
   }
 
   componentWillUnmount() {
-    window.External.backgroundServices.removeListener('change', this.onServiceUpdate);
+    window.External.services.removeListener('change', this.onServiceUpdate);
     window.External.log.removeListener('change', this.onServiceUpdate);
   }
 
   render() {
     const strings = this.context.developer;
     const { text } = this.state;
-    const services = window.External.backgroundServices.data.services;
-
+    const services = window.External.services.data;
     return (
       <div className='developer-page simple-scroll'>
         <div className='developer-page__inner'>
@@ -125,7 +124,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
             {/* -- Services -- */}
-            <p className='developer-page__services__title'>Background Services</p>
+            <p className='developer-page__services__title'>{strings.servicesHeader}</p>
               {services.map((item, index) => {
                 return <ServiceBox
                           key={index}

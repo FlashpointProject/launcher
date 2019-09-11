@@ -3,11 +3,11 @@ import { ipcMain, IpcMainEvent } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { promisify } from 'util';
-import { BackgroundServicesIPC } from '../../shared/background/BackgroundServicesApi';
-import { IBackgroundServicesAction, IBackgroundServicesData, IBackProcessInfo, ProcessState, ProcessAction, IBackgroundService, IBackgroundServicesUpdate } from '../../shared/background/interfaces';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
 import { IAppConfigData } from '../../shared/config/interfaces';
 import { ILogPreEntry } from '../../shared/Log/interface';
+import { IBackProcessInfo, IService, IServiceAction, IServicesData, IServicesUpdate, ProcessAction, ProcessState } from '../../shared/service/interfaces';
+import { BackgroundServicesIPC } from '../../shared/service/ServicesApi';
 import { stringifyArray } from '../../shared/Util';
 import { ManagedChildProcess } from '../ManagedChildProcess';
 import { BackgroundServicesFile } from './BackgroundServicesFile';
@@ -29,8 +29,8 @@ declare interface BackgroundServices {
   on(event: 'start-done'): this;
   emit(event: 'start-done'): boolean;
   /** Fires whenever the status of a process changes */
-  on(event: 'change', listener: (data: IBackgroundServicesData) => void): this;
-  emit(event: 'change', data: IBackgroundServicesData): this;
+  on(event: 'change', listener: (data: IServicesData) => void): this;
+  emit(event: 'change', data: IServicesData): this;
 }
 
 class BackgroundServices extends EventEmitter {
@@ -45,7 +45,7 @@ class BackgroundServices extends EventEmitter {
   /** Program that redirects some out-going traffic to the local web-server (Windows only) */
   private redirector?: ManagedChildProcess;
   /** Current copy of background data info */
-  private _data?: IBackgroundServicesData;
+  private _data?: IServicesData;
   /** Function that sends a message to the renderer via IPC */
   private sendToRenderer: SendFunc;
 
@@ -83,7 +83,6 @@ class BackgroundServices extends EventEmitter {
       this.startDone();
       return;
     }
-    // console.log('Services:', serviceInfo);
     this.serviceInfo = serviceInfo;
 
     // Run start commands
@@ -97,7 +96,7 @@ class BackgroundServices extends EventEmitter {
       if (!serviceInfo.server) { throw new Error('Server process information not found.'); }
       this.server = createManagedChildProcess('Router', serviceInfo.server);
       this.server.on('output', logOutput);
-      this.server.on('change', this.onChange.bind(this));
+      this.server.on('change', this.onServiceChange.bind(this));
       this.spawnProc(this.server);
     }
 
@@ -108,7 +107,7 @@ class BackgroundServices extends EventEmitter {
       if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${config.useFiddler?'Fiddler':'Redirector'})`); }
       this.redirector = createManagedChildProcess('Redirector', redirectorInfo, config.useFiddler);
       this.redirector.on('output', logOutput);
-      this.redirector.on('change', this.onChange.bind(this));
+      this.redirector.on('change', this.onServiceChange.bind(this));
       this.spawnProc(this.redirector);
     }
 
@@ -203,11 +202,11 @@ class BackgroundServices extends EventEmitter {
   }
 
   /** Called whenever the state of a process changes */
-  private onChange(name: string): Promise<boolean> {
+  private onServiceChange(name: string): Promise<boolean> {
     const service = this.getServiceByName(name);
     if (service) {
       const newState = service.getState();
-      let data : Partial<IBackgroundService> = {
+      let data : Partial<IService> = {
         name: service.name,
         state: newState
       };
@@ -220,7 +219,7 @@ class BackgroundServices extends EventEmitter {
           ...data
         };
       }
-      return this.sendUpdate({updates: [data]});
+      return this.sendUpdate([data]);
     } else {
       // Unhandled service, resolve immediately
       return new Promise<boolean>((resolve) => { resolve(); });
@@ -228,7 +227,7 @@ class BackgroundServices extends EventEmitter {
   }
 
   /** Send an update to the renderer */
-  private sendUpdate(data: Partial<IBackgroundServicesUpdate>): Promise<boolean> {
+  private sendUpdate(data: Partial<IServicesUpdate>): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
       this.sendToRenderer(
         BackgroundServicesIPC.UPDATE,
@@ -237,7 +236,7 @@ class BackgroundServices extends EventEmitter {
     });
   }
 
-  /** Get Router or Redirector by given name */
+  /** Get managed service given its name */
   private getServiceByName(name: string) : ManagedChildProcess | undefined {
     switch (name) {
       case (this.server && this.server.name):
@@ -251,7 +250,7 @@ class BackgroundServices extends EventEmitter {
   }
 
   /** Called whenever the renderer requests an action be taken on a service */
-  private onAction(event: IpcMainEvent, data?: IBackgroundServicesAction) {
+  private onAction(event: IpcMainEvent, data?: IServiceAction) {
     try {
       if (!data) { throw new Error('You must send a data object, but no data was received.'); }
       const service : ManagedChildProcess | undefined = this.getServiceByName(data.name);
@@ -306,7 +305,7 @@ class BackgroundServices extends EventEmitter {
       }
     }
 
-    event.returnValue = {services: services};
+    event.returnValue = services;
   }
 }
 

@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { IBackProcessInfo } from '../../shared/background/interfaces';
+import { IBackProcessInfo } from '../../shared/service/interfaces';
 import { readJsonFile } from '../../shared/Util';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
 import { parseVarStr } from '../Util';

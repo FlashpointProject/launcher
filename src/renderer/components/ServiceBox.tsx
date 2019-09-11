@@ -1,20 +1,26 @@
 import { remote } from 'electron';
 import * as React from 'react';
+import { LangContainer } from 'src/shared/lang/types';
 import { setInterval } from 'timers';
-import { IBackgroundService, IBackgroundServicesAction, IBackProcessInfo, ProcessState, ProcessAction } from '../../shared/background/interfaces';
 import { ILogEntry } from '../../shared/Log/interface';
 import { escapeHTML, formatTime, padLines, timeChars } from '../../shared/Log/LogCommon';
 import { memoizeOne } from '../../shared/memoize';
+import { IBackProcessInfo, IService, IServiceAction, ProcessAction, ProcessState } from '../../shared/service/interfaces';
+import { LangContext } from '../util/lang';
 import { LogData } from './LogData';
 
 export type ServiceBoxProps = {
   /** Service to use */
-  service: IBackgroundService;
+  service: IService;
 };
 
 export type ServiceBoxState = {
   /** Uptime counter for this service */
   uptime: number;
+}
+
+export interface ServiceBox {
+  context: LangContainer;
 }
 
 /** Title bar of the window (the top-most part of the window). */
@@ -23,6 +29,8 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
   private interval: NodeJS.Timeout | undefined;
   /** Memo of stringified service logs to pass to LogData during render */
   stringifyServiceLogEntriesMemo = memoizeOne(this.stringifySeviceLogEntries.bind(this));
+
+  static contextType = LangContext;
 
   constructor(props : ServiceBoxProps, state : ServiceBoxState) {
     super(props, state);
@@ -47,6 +55,7 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
   render() {
     const { service } = this.props;
     const { uptime } = this.state;
+    const strings = this.context.developer;
     const uptimeString = formatMsTime(uptime);
     const logData = this.getLogString(service.name);
 
@@ -64,10 +73,10 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
             ): undefined}
             <div className='service-box__status'>
               {service.state === ProcessState.RUNNING ?
-                'Running (' + service.pid + ')' :
+                strings.running + ' (' + service.pid + ')' :
                 service.state === ProcessState.KILLING ?
-                  'Killing (' + service.pid + ')' :
-                  'Stopped'}
+                  strings.killing + ' (' + service.pid + ')' :
+                  strings.stopped}
             </div>
           </div>
           <div className='service-box__bottom'>
@@ -75,31 +84,31 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
               { service.state === ProcessState.RUNNING ? (
                 <input
                   type='button'
-                  value='Stop'
+                  value={strings.stop}
                   className='simple-button'
-                  title='Stop the running service'
+                  title={strings.stopDesc}
                   onClick={() => { this.sendAction({name: service.name, action: ProcessAction.STOP}); }}/>
               ) : (
                 <input
                     type='button'
-                    value='Start'
+                    value={strings.start}
                     className='simple-button'
-                    title='Start the stopped service'
+                    title={strings.startDesc}
                     disabled={service.state != ProcessState.STOPPED}
                     onClick={() => { this.sendAction({name: service.name, action: ProcessAction.START}); }}/>
               )}
               <input
                   type='button'
-                  value='Restart'
+                  value={strings.restart}
                   className='simple-button'
-                  title='Restart the service'
+                  title={strings.restartDesc}
                   onClick={() => { this.sendAction({name: service.name, action: ProcessAction.RESTART}); }}/>
               {service.info ? (
               <input
                   type='button'
-                  value='Details'
+                  value={strings.details}
                   className='simple-button'
-                  title='Show details of service'
+                  title={strings.detailsDesc}
                   onClick={() => { if (service) { this.onDetailsClick(service.info); } }}/>
               ) : undefined}
             </div>
@@ -118,10 +127,6 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
     );
   }
 
-  sendAction = (data: IBackgroundServicesAction): void => {
-    window.External.backgroundServices.sendAction(data);
-  };
-
   onDetailsClick = (info: IBackProcessInfo | undefined): void => {
     if (info) {
       remote.dialog.showMessageBox({
@@ -134,6 +139,10 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
         buttons: ['Ok']
       } );
     }
+  };
+
+  sendAction = (data: IServiceAction): void => {
+    window.External.services.sendAction(data);
   };
 
   getLogString(source: string) {

@@ -157,7 +157,19 @@ export type DeveloperLang = LangObject<
   'renameImagesIdToTitle' |
   'renameImagesIdToTitleDesc' |
   'createMissingFolders' |
-  'createMissingFoldersDesc'
+  'createMissingFoldersDesc' |
+  'servicesHeader' |
+  'running' |
+  'stopped' |
+  'killing' |
+  'start' |
+  'startDesc' |
+  'stop' |
+  'stopDesc' |
+  'restart' |
+  'restartDesc' |
+  'details' |
+  'detailsDesc'
 >;
 
 export type AboutLang = LangObject<
