@@ -62,7 +62,7 @@ export class LangManager extends WrappedEventEmitter {
     this.watcher.watch(path.join(
       window.External.isDev
         ? remote.process.cwd()
-        : remote.app.getPath('exe'),
+        : path.dirname(remote.app.getPath('exe')),
       'lang'
     ));
   }
