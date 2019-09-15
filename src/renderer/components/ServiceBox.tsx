@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import * as React from 'react';
-import { LangContainer } from 'src/shared/lang/types';
 import { setInterval } from 'timers';
+import { LangContainer } from '../../shared/lang/types';
 import { ILogEntry } from '../../shared/Log/interface';
 import { escapeHTML, formatTime, padLines, timeChars } from '../../shared/Log/LogCommon';
 import { memoizeOne } from '../../shared/memoize';
@@ -66,44 +66,45 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
             <div className='service-box__title'>
               <p>{service.name}</p>
             </div>
-            {service.info ? (
-              <div className='service-box__filename'>
-                {service.info.filename}
-              </div>
-            ): undefined}
             <div className='service-box__status'>
               {service.state === ProcessState.RUNNING ?
                 strings.running + ' (' + service.pid + ')' :
                 service.state === ProcessState.KILLING ?
                   strings.killing + ' (' + service.pid + ')' :
-                  strings.stopped}
+                  service.state === ProcessState.STOPPED ?
+                    strings.stopped :
+                    strings.failed }
             </div>
           </div>
           <div className='service-box__bottom'>
             <div className='service-box__bottom__buttons'>
-              { service.state === ProcessState.RUNNING ? (
-                <input
-                  type='button'
-                  value={strings.stop}
-                  className='simple-button'
-                  title={strings.stopDesc}
-                  onClick={() => { this.sendAction({name: service.name, action: ProcessAction.STOP}); }}/>
-              ) : (
+              { service.state != ProcessState.FAILED ? (
+              <div>
+                { service.state === ProcessState.RUNNING ? (
+                  <input
+                    type='button'
+                    value={strings.stop}
+                    className='simple-button'
+                    title={strings.stopDesc}
+                    onClick={() => { this.sendAction({identifier: service.identifier, action: ProcessAction.STOP}); }}/>
+                ) : (
+                  <input
+                      type='button'
+                      value={strings.start}
+                      className='simple-button'
+                      title={strings.startDesc}
+                      disabled={service.state != ProcessState.STOPPED}
+                      onClick={() => { this.sendAction({identifier: service.identifier, action: ProcessAction.START}); }}/>
+                )}
                 <input
                     type='button'
-                    value={strings.start}
+                    value={strings.restart}
                     className='simple-button'
-                    title={strings.startDesc}
-                    disabled={service.state != ProcessState.STOPPED}
-                    onClick={() => { this.sendAction({name: service.name, action: ProcessAction.START}); }}/>
-              )}
-              <input
-                  type='button'
-                  value={strings.restart}
-                  className='simple-button'
-                  title={strings.restartDesc}
-                  onClick={() => { this.sendAction({name: service.name, action: ProcessAction.RESTART}); }}/>
-              {service.info ? (
+                    title={strings.restartDesc}
+                    onClick={() => { this.sendAction({identifier: service.identifier, action: ProcessAction.RESTART}); }}/>
+              </div>
+              ) : undefined }
+              { service.info ? (
               <input
                   type='button'
                   value={strings.details}

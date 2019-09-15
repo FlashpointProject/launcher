@@ -1628,15 +1628,11 @@ body {
   font-weight: bold;
 }
 .service-box__title {
-  width: 25%;
+  width: 50%;
   text-align: left;
 }
-.service-box__filename {
-  width: 50%;
-  text-align: center;
-}
 .service-box__status {
-  width: 25%;
+  width: 50%;
   text-align: right;
 }
 .service-box__bottom {

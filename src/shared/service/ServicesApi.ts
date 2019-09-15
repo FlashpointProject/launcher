@@ -5,7 +5,7 @@ import { IService, IServiceAction, IServicesData, IServicesUpdate } from './inte
 import { getDefaultServiceData, overwriteServiceData } from './util';
 
 export interface ServicesApi {
-  /** Emitted when the API is done initializing. */
+  /** Emitted when the API is done initializing. (Background Services fetched) */
   on(event: 'init', listener: () => void): this;
   once(event: 'init', listener: () => void): this;
   /** Emitted whenever a service changes. */
@@ -17,9 +17,10 @@ export interface ServicesApi {
 }
 
 /**
- * "Front end" part of the API for managing config data.
- * This exposes the API methods and data to the renderer process, and communicates
- * with the API on the main process through IPC.
+ * Holds a list of registered services with state info.
+ * The `action` emitter fires whenever a action is requested to be taken (services must listen to this).
+ * The `change` emitter fires whenever a registered service changes state.
+ * Background Services are handled via IPC.
  */
 export class ServicesApi extends EventEmitter {
   private _data?: IServicesData;
@@ -65,7 +66,8 @@ export class ServicesApi extends EventEmitter {
   }
 
   /**
-   * Send an action to main in order to be executed
+   * Send an action to all registered services.
+   * Services use uuid to verify it is theirs to carry out.
    * @param data Action to be resolved (start, stop, restart)
    */
   public sendAction(data: IServiceAction) {
@@ -74,24 +76,25 @@ export class ServicesApi extends EventEmitter {
   }
 
   /**
-   * Updates / Creates stored service info. MUST include the name attribute, otherwise ignored.
-   * @param data Service(s) info to add or update
+   * Updates / Registers service(s) in the api. MUST include the name attribute, otherwise ignored.
+   * @param data Service(s) to update / register
    */
-  public updateServicesData(data?: Partial<IService>[]) {
+  public updateServices(data?: Partial<IService>[]) {
     if (data) {
       data.map((update) => {
         if (this._data) {
-          // Ignored services without names (Required to reference actions)
-          if (update.name) {
-            let service = this._data.find(item => item.name === update.name);
+          // Ignore updates without an associated service
+          if (update.identifier) {
+            // Update service if already registered
+            let service = this.getServiceData(update.identifier);
             if (service) {
               overwriteServiceData(service, update);
-            // Create service if non-existant
+            // Create service if not registered yet
             } else {
               service = overwriteServiceData(getDefaultServiceData(), update);
               this._data.push(service);
             }
-          }
+          } else { throw new Error('Service update did not reference a service.'); }
         }
       });
       this.emit('change');
@@ -99,24 +102,26 @@ export class ServicesApi extends EventEmitter {
   }
 
   /**
-   * Returns the stored service data of a named service
-   * @param name Name of the service to get
+   * Unregisters a service from the api
+   * @param name Unique identifier of the service to remove
    */
-  public getServiceData(name: string) : IService | undefined {
+  public removeService(identifier: string) {
     if (this._data) {
-      return this._data.find(item => item.name === name);
+      const index = this._data.findIndex(item => item.identifier === identifier);
+      if (index >= 0) {
+        this._data.splice(index, 1);
+        this.emit('change');
+      }
     }
   }
 
   /**
-   * Removes a service from stored services and emits a change
-   * @param name Name of service to remove
+   * Returns the service associated with a given identifier
+   * @param identifier Unique identifier of the service to get
    */
-  public removeServiceData(name: string) {
+  private getServiceData(identifier: string) : IService | undefined {
     if (this._data) {
-      const index = this._data.findIndex(item => item.name === name);
-      this._data.splice(index, 1);
-      this.emit('change');
+      return this._data.find(item => item.identifier === identifier);
     }
   }
 
@@ -136,7 +141,7 @@ export class ServicesApi extends EventEmitter {
   /** Process changes to background services */
   private onUpdate(event: IpcRendererEvent, data?: IServicesUpdate) {
     if (!data) { throw new Error('You must send a data object, but no data was received.'); }
-    this.updateServicesData(data);
+    this.updateServices(data);
   }
 }
 
@@ -144,9 +149,9 @@ export class ServicesApi extends EventEmitter {
 export enum BackgroundServicesIPC {
   /** Updates to the status of background services (main -> renderer). */
   UPDATE = 'background-services-api-update',
-  /** Request the background services data to be sent to the renderer (renderer -> main). */
+  /** Request the background services data to be sent to the renderer api (renderer -> main). */
   REQUEST_SYNC  = 'background-services-api-request-sync',
-  /** Tell the main process to resolve an action on a service (renderer -> main) */
+  /** Tell the main process to resolve an action (renderer -> main) */
   ACTION = 'background-services-api-action',
 }
 

@@ -6,7 +6,7 @@ import { promisify } from 'util';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
 import { IAppConfigData } from '../../shared/config/interfaces';
 import { ILogPreEntry } from '../../shared/Log/interface';
-import { IBackProcessInfo, IService, IServiceAction, IServicesData, IServicesUpdate, ProcessAction, ProcessState } from '../../shared/service/interfaces';
+import { IBackProcessInfo, IService, IServicesData } from '../../shared/service/interfaces';
 import { BackgroundServicesIPC } from '../../shared/service/ServicesApi';
 import { stringifyArray } from '../../shared/Util';
 import { ManagedChildProcess } from '../ManagedChildProcess';
@@ -53,8 +53,7 @@ class BackgroundServices extends EventEmitter {
     super();
     this.sendToRenderer = sendToRenderer;
     ipcMain
-    .on(BackgroundServicesIPC.REQUEST_SYNC, this.onRequestDataSync.bind(this))
-    .on(BackgroundServicesIPC.ACTION, this.onAction.bind(this));
+    .on(BackgroundServicesIPC.REQUEST_SYNC, this.onRequestDataSync.bind(this));
   }
 
   /** Start all required background process for this platform */
@@ -96,7 +95,7 @@ class BackgroundServices extends EventEmitter {
       if (!serviceInfo.server) { throw new Error('Server process information not found.'); }
       this.server = createManagedChildProcess('Router', serviceInfo.server);
       this.server.on('output', logOutput);
-      this.server.on('change', this.onServiceChange.bind(this));
+      this.server.on('change', this.sendUpdate.bind(this));
       this.spawnProc(this.server);
     }
 
@@ -107,7 +106,7 @@ class BackgroundServices extends EventEmitter {
       if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${config.useFiddler?'Fiddler':'Redirector'})`); }
       this.redirector = createManagedChildProcess('Redirector', redirectorInfo, config.useFiddler);
       this.redirector.on('output', logOutput);
-      this.redirector.on('change', this.onServiceChange.bind(this));
+      this.redirector.on('change', this.sendUpdate.bind(this));
       this.spawnProc(this.redirector);
     }
 
@@ -180,17 +179,6 @@ class BackgroundServices extends EventEmitter {
     }
   }
 
-  private log(entry: ILogPreEntry): void {
-    this.emit('output', entry);
-  }
-
-  private logContent(content: string): void {
-    this.emit('output', {
-      source: 'Background Services',
-      content,
-    });
-  }
-
   /** Try to spawn a ManagedChildProcess, and log error if it fails */
   private spawnProc(proc: ManagedChildProcess): void {
     try {
@@ -201,81 +189,14 @@ class BackgroundServices extends EventEmitter {
     }
   }
 
-  /** Called whenever the state of a process changes */
-  private onServiceChange(name: string): Promise<boolean> {
-    const service = this.getServiceByName(name);
-    if (service) {
-      const newState = service.getState();
-      let data : Partial<IService> = {
-        name: service.name,
-        state: newState
-      };
-
-      // New process, update pid and start time
-      if (newState === ProcessState.RUNNING) {
-        data = {
-          pid: service.pid,
-          startTime: service.getStartTime(),
-          ...data
-        };
-      }
-      return this.sendUpdate([data]);
-    } else {
-      // Unhandled service, resolve immediately
-      return new Promise<boolean>((resolve) => { resolve(); });
-    }
-  }
-
-  /** Send an update to the renderer */
-  private sendUpdate(data: Partial<IServicesUpdate>): Promise<boolean> {
+  /** Send a service update to the renderer (Service Api) */
+  private sendUpdate(data: Partial<IService>): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
       this.sendToRenderer(
         BackgroundServicesIPC.UPDATE,
-        data
+        [data]
       );
     });
-  }
-
-  /** Get managed service given its name */
-  private getServiceByName(name: string) : ManagedChildProcess | undefined {
-    switch (name) {
-      case (this.server && this.server.name):
-        return this.server;
-      case (this.redirector && this.redirector.name):
-        return this.redirector;
-      default:
-        // Service not handled by BackgroundServices
-        return;
-    }
-  }
-
-  /** Called whenever the renderer requests an action be taken on a service */
-  private onAction(event: IpcMainEvent, data?: IServiceAction) {
-    try {
-      if (!data) { throw new Error('You must send a data object, but no data was received.'); }
-      const service : ManagedChildProcess | undefined = this.getServiceByName(data.name);
-
-      // Perform action on requested service
-      if (service) {
-        switch (data.action) {
-          case ProcessAction.START:
-            if (service.getState() === ProcessState.STOPPED) {
-              service.spawn();
-            }
-            break;
-          case ProcessAction.STOP:
-            service.kill();
-            break;
-          case ProcessAction.RESTART:
-            service.restart();
-            break;
-          default:
-              throw new Error('Action functionality is not available.');
-        }
-      }
-    } catch (e) {
-      this.logContent(e.message);
-    }
   }
 
   /**
@@ -283,29 +204,41 @@ class BackgroundServices extends EventEmitter {
   * This sends the full background services data to the renderer.
   */
   private onRequestDataSync(event: IpcMainEvent): void {
-    let services = [];
+    let services : IService[] = [];
     if (this.serviceInfo && this.serviceInfo.server) {
       if (this.server) {
         services.push({
+          identifier: this.server.identifier,
           name: this.server.name,
           state: this.server.getState(),
-          pid : this.server.pid,
+          pid : this.server.getPid(),
           startTime: this.server.getStartTime(),
           info: this.serviceInfo.server,
         });
       }
       if (this.redirector && this.serviceInfo.redirector) {
         services.push({
+          identifier: this.redirector.identifier,
           name: this.redirector.name,
           state: this.redirector.getState(),
-          pid : this.redirector.pid,
+          pid : this.redirector.getPid(),
           startTime: this.redirector.getStartTime(),
           info: this.serviceInfo.redirector,
         });
       }
     }
-
     event.returnValue = services;
+  }
+
+  private log(entry: ILogPreEntry): void {
+    this.emit('output', entry);
+  }
+
+  private logContent(content: string): void {
+    this.emit('output', {
+      source: 'Background Services',
+      content,
+    });
   }
 }
 

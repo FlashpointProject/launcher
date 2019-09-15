@@ -118,6 +118,7 @@
     "running": "Running",
     "stopped": "Stopped",
     "killing": "Killing",
+    "failed": "Failed",
     "start": "Start",
     "startDesc": "Start the service",
     "stop": "Stop",

@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as React from 'react';
-import { ArgumentTypesOf } from 'src/shared/interfaces';
-import { stringifyLogEntries } from 'src/shared/Log/LogCommon';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
+import { ArgumentTypesOf } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang/types';
+import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
 import { removeFileExtension, shallowStrictEquals } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';

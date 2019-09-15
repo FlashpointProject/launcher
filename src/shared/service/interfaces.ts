@@ -18,7 +18,9 @@ export enum ProcessState {
   /** The process is running. */
   RUNNING,
   /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
-  KILLING
+  KILLING,
+  /** The process failed to start */
+  FAILED
 }
 
 export enum ProcessAction {
@@ -32,6 +34,7 @@ export enum ProcessAction {
 
 /** Data describing the state of a background service */
 export type IService = {
+  identifier: string;
   name: string;
   state: ProcessState;
   pid: number;
@@ -45,8 +48,22 @@ export type IServicesData = IService[];
 /** Partial updates sent or fetched describing changed services */
 export type IServicesUpdate = Partial<IService>[];
 
-/** Data describing an action to be taken on a service */
+/** Data describing an action to be taken on a serviceable process */
 export type IServiceAction = {
-  name: string,
+  identifier: string,
   action: ProcessAction
+}
+
+/**
+ * Required for process to be handled by the Service Api
+ */
+export declare interface ServiceableProcess {
+  readonly identifier: string;
+  readonly name: string;
+  getState(): ProcessState;
+  getPid(): number;
+  getStartTime(): number;
+  spawn(): void;
+  kill(): void;
+  restart(): void;
 }
