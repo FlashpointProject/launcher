@@ -4,6 +4,15 @@ import { GameInfo } from './GameInfo';
 import { IGameInfo, IGameSearchQuery } from './interfaces';
 
 export type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
+type TitleFilter = {
+  phrase: string,
+  inverse: boolean
+}
+type FieldFilter = {
+  field: string,
+  phrase: string,
+  inverse: boolean
+}
 
 /** Order games by their order title alphabetically (ascending) */
 export function orderByTitle(a: IGameInfo, b: IGameInfo): number {
@@ -127,58 +136,149 @@ export function filterPlaylist(playlist: IGamePlaylist|undefined, games: IGameIn
   return filteredGames;
 }
 
-/** Return a new array with all games that doesn't match the search removed (if there is a search) */
-export function filterSearch(search: IGameSearchQuery, games: IGameInfo[]): IGameInfo[] {
-  const filteredGames: Array<IGameInfo|undefined> = games.slice();
-  if (search.text) {
-    const text = search.text;
-    for (let i = filteredGames.length - 1; i >= 0; i--) {
-      const game = filteredGames[i];
-      if (game) {
-        if (game.title.toLowerCase().indexOf(text)     === -1 &&
-            game.developer.toLowerCase().indexOf(text) === -1 &&
-            game.publisher.toLowerCase().indexOf(text) === -1 &&
-            game.series.toLowerCase().indexOf(text)    === -1) {
-          filteredGames[i] = undefined;
-        }
+function getQuickSearch(text: string): FieldFilter | undefined {
+  switch (text.charAt(0)) {
+    case '-':
+      const filter = getQuickSearch(text.substring(1))
+      if (filter) {
+        filter.inverse = !filter.inverse;
+        return filter;
       }
+      break;
+    case '@':
+      return {field: 'developer', phrase: text.substring(1), inverse: false};
+    case '#':
+      return {field: 'genre', phrase: text.substring(1), inverse: false};
+    case '!':
+      return {field: 'platform', phrase: text.substring(1), inverse: false};
+  }
+}
 
+/** Return a new array with all games that doesn't match the search removed (if there is a search) */
+export function filterSearch(text: string, games: IGameInfo[]): IGameInfo[] {
+  const filteredGames: Array<IGameInfo|undefined> = games.slice();
+  /**
+   * Stick it in regex101 so it's readable, it won't make sense otherwise
+   * Special characters are left outside of matches (-!"sonic" matches "sonic")
+   * Group 1 - Field name (source, developer...)
+   * Group 2 - Field phrase
+   * Group 3 - Field phrase (was wrapped in "")
+   * Group 4 - Title phrase 
+   * Group 5 - Title phrase (was wrapped in "")
+   */
+  const regex = /(?:(\b\w+)?:(?:"(.+?)"|([^\s]+))?(?=\s?)|([^\s\-"!@#]+)|"([^"]+)")/gu;
+  let titleFilters : TitleFilter[] = [];
+  let fieldFilters : FieldFilter[] = [];
+
+  // Parse search string
+  let match;
+  while (match = regex.exec(text)) {
+    const preIndex = match.index - 1;
+    // Field filter matches
+    if (match[1]) {
+      let field = match[1];
+      const phrase = match[2] || match[3];
+      let inverse = false;
+      if (preIndex >= 0 && text.charAt(preIndex) === '-') { inverse = true; }
+      if (field && phrase) {
+        fieldFilters.push({field: field, phrase: phrase, inverse: inverse});
+      }
+    // Title filter matches
+    } else {
+      let phrase = match[4] || match[5];
+      if (phrase && preIndex >= 0) {
+        // Create temp phrase including preceding specials (e.g --!"sonic" -> --!sonic)
+        let i = preIndex;
+        let tempPhrase = phrase;
+        while (i-- >= 0) {
+          if (text.charAt(i).trim() != '') {
+            tempPhrase = text.substring(i + 1, preIndex) + tempPhrase;
+            break;
+          }
+        }
+        // Get quick search from created temp phrase (If undefined, there is no quick search)
+        const filter = getQuickSearch(tempPhrase);
+        if (filter) { fieldFilters.push(filter) }
+        else        { titleFilters.push({phrase: phrase, inverse: text.charAt(preIndex) === '-'}) }
+        continue;
+      } else {
+        titleFilters.push({phrase: phrase, inverse: false});
+      }
     }
   }
-  if (search.developers) {
-    for (let developer of search.developers) {
-      for (let i = filteredGames.length - 1; i >= 0; i--) {
-        const game = filteredGames[i];
-        if (game && game.developer.toLowerCase().indexOf(developer) === -1) {
+
+  // Filter the titles out
+  for (let i = filteredGames.length - 1; i >= 0; i--) {
+    const game = filteredGames[i];
+    if (game) {
+      for (let j = titleFilters.length - 1; j >= 0; j--){
+        const filter = titleFilters[j];
+        const word = filter.phrase.toLowerCase();
+        if (game.title.toLowerCase().indexOf(word) === -1 &&
+            game.developer.toLowerCase().indexOf(word) === -1 &&
+            game.publisher.toLowerCase().indexOf(word) === -1 &&
+            game.series.toLowerCase().indexOf(word)    === -1) {
+          if (!filter.inverse) {
+            filteredGames[i] = undefined;
+            break;
+          }
+        } else if (filter.inverse) {
           filteredGames[i] = undefined;
+          break;
         }
       }
     }
   }
-  if (search.platforms) {
-    for (let platform of search.platforms) {
-      for (let i = filteredGames.length - 1; i >= 0; i--) {
-        const game = filteredGames[i];
-        if (game && game.platform.toLowerCase().indexOf(platform) === -1) {
+
+  // Filter the fields out
+  for (let i = filteredGames.length - 1; i >= 0; i--) {
+    const game = filteredGames[i];
+    if (game) {
+      filterBreak:
+      for (let j = fieldFilters.length - 1; j >= 0; j--){
+        const filter = fieldFilters[j];
+        let gameField;
+        // Special filters
+        switch (filter.field) {
+          case 'has':
+          case 'is':
+            gameField = game[filter.phrase as keyof typeof game];
+            if (!gameField) {
+              filteredGames[i] = undefined;
+              break filterBreak;
+            }
+            continue;
+          case 'missing':
+          case 'not':
+            gameField = game[filter.phrase as keyof typeof game];
+            if (gameField) {
+              filteredGames[i] = undefined;
+              break filterBreak;
+            }
+            continue;
+          default:
+        }
+        // Generic filter
+        gameField = game[filter.field as keyof typeof game];
+        if (gameField === undefined || gameField.toString().toLowerCase().indexOf(filter.phrase.toLowerCase()) === -1) {
+          if (!filter.inverse) {
+            filteredGames[i] = undefined;
+            break;
+          }
+        } else if (filter.inverse) {
           filteredGames[i] = undefined;
+          break;
         }
       }
     }
   }
-  if (search.genres) {
-    for (let genre of search.genres) {
-      for (let i = filteredGames.length - 1; i >= 0; i--) {
-        const game = filteredGames[i];
-        if (game && game.genre.toLowerCase().indexOf(genre) === -1) {
-          filteredGames[i] = undefined;
-        }
-      }
-    }
-  }
+
+  // Remove nulled entries
   const finalFilteredGames = [];
   for (let game of filteredGames) {
     if (game) { finalFilteredGames.push(game); }
   }
+
   return finalFilteredGames;
 }
 
@@ -198,9 +298,8 @@ export function orderGames(args: IOrderGamesArgs): IGameInfo[] {
   if (!games) { return []; } // (No games found)
   games = games.slice(); // (Copy array)
   // -- Filter games --
-  const filters = parseFilters(args.search);
   const filteredGames = (
-    filterSearch(filters,
+    filterSearch(args.search,
     filterBroken(args.broken,
     filterExtreme(args.extreme,
     filterPlatforms(args.platforms,
@@ -213,75 +312,6 @@ export function orderGames(args: IOrderGamesArgs): IGameInfo[] {
   }
   // -- Return --
   return orderedGames;
-}
-
-/**
- * Parse a search string into an object with the different search "types" separated
- * @param input Search string
- */
-function parseFilters(input: string): IGameSearchQuery {
-  const filter: IGameSearchQuery = {
-    text: '',
-    platforms: undefined,
-    developers: undefined,
-    genres: undefined,
-  };
-  // Abort if string is empty
-  if (!input) { return filter; }
-  // Do filtering
-  const splits = input.replace(/  +/g, ' ').split(' ');
-  let str = ''; // Current string that is being built
-  let mode = 0; // What "mode" the string current is in (Normal, Platform, Genre etc.)
-  for (let i = 0; i < splits.length; i++) {
-    const split = splits[i];
-    if (!split) { continue; } // Skip if split is empty
-    switch (split[0]) {
-      case '!': // Platform (1)
-        startNewString(split, 1);
-        break;
-      case '@': // Developer (2)
-        startNewString(split, 2);
-        break;
-      case '#': // Genre (3)
-        startNewString(split, 3);
-        break;
-      default:
-        str += split+' ';
-        break;
-    }
-  }
-  finishPreviousString();
-  return filter;
-  // -- Functions --
-  /** Start a new string with a given mode */
-  function startNewString(split: string, newMode: number) {
-    finishPreviousString();
-    str = split.substr(1)+' '; // Remove first character and add a space to the end
-    mode = newMode;
-  }
-  /** Add the current string to the filter object where it belongs (depending on its mode) */
-  function finishPreviousString() {
-    // Clean string up (remove last character which is a space, and turn into lower case)
-    let cleanStr = str.substr(0, str.length-1).toLowerCase();
-    // Add string at the correct place
-    switch (mode) {
-      case 0:
-        filter.text = cleanStr;
-        break;
-      case 1:
-        if (!filter.platforms) { filter.platforms = []; }
-        filter.platforms.push(cleanStr);
-        break;
-      case 2:
-        if (!filter.developers) { filter.developers = []; }
-        filter.developers.push(cleanStr);
-        break;
-      case 3:
-        if (!filter.genres) { filter.genres = []; }
-        filter.genres.push(cleanStr);
-        break;
-    }
-  }
 }
 
 /* "Game" used for displaying games that are not found */
