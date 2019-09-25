@@ -5,12 +5,13 @@ on: [push]
 jobs:
   build:
     name: Build for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
         node-version: [10.x, 12.x]
-        os: [ubuntu-latest]
+        release-arch: [linux]
+        release-path: [flashpoint-launcher-linux-x64]
 
     steps:
     - uses: actions/checkout@v1
@@ -18,20 +19,23 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install, build, release for ${{ matrix.os }}
+    - name: npm install, build for linux
       run: |
         npm install
         npm run build --if-present
-        npm run release
-        7z a -r ${{ matrix.os }}.zip dist/*
       env:
         CI: true
+    - name: npm release for all platforms
+      run: |
+        npm run release:${{ matrix.release-arch }}
+        cd dist
+        7z a -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{ matrix.os }}.zip
-        asset_name: ${{ matrix.os}}.zip
+        file: dist/${{ matrix.release-path }}.zip
+        asset_name: ${{ matrix.release-path }}.zip
         tag: latest
         overwrite: true
       
