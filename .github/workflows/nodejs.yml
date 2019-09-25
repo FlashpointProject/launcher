@@ -27,12 +27,12 @@ jobs:
   release:
     name: Release for all platforms
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     
     strategy:
       matrix:
-        release-arch: [win32]
-        release-path: [flashpoint-launcher-win32-ia32]
+        release-arch: [win32, linux]
+        release-path: [flashpoint-launcher-win32-ia32, flashpoint-launcher-linux-x64]
         
     steps:
     - uses: actions/checkout@v1
@@ -46,13 +46,9 @@ jobs:
       env:
         CI: true
     - name: npm release for all platforms
-      run: |
-        npm run release:${{ matrix.release-arch }}
-        cd dist
-        dir
-        7z a -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
-      env:
-        CI: true
+      run: npm run release:${{ matrix.release-arch }}
+    - name: Package releases
+      run: 7z -a -r dist/${{ matrix.release-path }} dist/${{ matrix.release-path }}/*
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
