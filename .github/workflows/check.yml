@@ -1,0 +1,28 @@
+name: Build Check
+
+on: [pull_request]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: npm install
+      run: npm install
+      env:
+        CI: true
+    - name: npm build
+      run: npm run build --if-present
+      env:
+        CI: true
+        
