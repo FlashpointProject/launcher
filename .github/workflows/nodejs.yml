@@ -27,7 +27,7 @@ jobs:
   release:
     name: Release for all platforms
     needs: build
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
     strategy:
       matrix:
@@ -47,12 +47,12 @@ jobs:
         CI: true
     - name: npm release for all platforms
       run: |
-        dir
         npm run release:${{ matrix.release-arch }}
-        dir
         cd dist
         dir
         7z a -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
+      env:
+        CI: true
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
