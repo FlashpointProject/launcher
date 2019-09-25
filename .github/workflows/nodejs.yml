@@ -17,8 +17,12 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 12.x
-    - name: npm install, build
-      run: npm install; npm run build --if-present
+    - name: npm install
+      run: npm install
+      env:
+        CI: true
+    - name: npm build
+      run: npm run build --if-present
       env:
         CI: true
         
@@ -37,8 +41,10 @@ jobs:
       run: npm install
       env:
         CI: true
-    - name: npm release for all platforms
-      run: npm run release:linux; npm run release:win32
+    - name: npm release for win32
+      run: npm run release:win32
+    - name: npm release for linux
+      run: npm run release:linux
     - name: Package releases
       run: |
         7z a -r dist/flashpoint-launcher-linux-x64.zip dist/flashpoint-launcher-linux-x64/*
