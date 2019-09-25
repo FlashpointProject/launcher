@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Lint
-        uses: mooyoul/tslint-actions@v1.1.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pattern: '*.ts'
+      uses: mooyoul/tslint-actions@v1.1.1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        pattern: '*.ts'
