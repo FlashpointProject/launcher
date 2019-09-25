@@ -42,12 +42,12 @@ jobs:
         CI: true
     - name: npm release for all platforms
       run: |
-        npm run release:win32
         npm run release:linux
+        npm run release:win32
     - name: Package releases
       run: |
-        7z -a -r dist/flashpoint-launcher-linux-x64.zip dist/flashpoint-launcher-linux-x64/*
-        7z -a -r dist/flashpoint-launcher-win32-ia32.zip dist/flashpoint-launcher-win32-ia32/*
+        7z a -r dist/flashpoint-launcher-linux-x64.zip dist/flashpoint-launcher-linux-x64/*
+        7z a -r dist/flashpoint-launcher-win32-ia32.zip dist/flashpoint-launcher-win32-ia32/*
     - name: Upload windows binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
