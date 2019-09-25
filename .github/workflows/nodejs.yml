@@ -1,6 +1,9 @@
-name: Node CI
+name: Build and Release
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -27,7 +30,7 @@ jobs:
         CI: true
         
   release:
-    name: Release for all platforms
+    name: Release
     needs: build
     runs-on: windows-latest
     
