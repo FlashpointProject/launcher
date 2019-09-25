@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x]
+        node-version: [10.x]
         release-arch: [linux]
         release-path: [flashpoint-launcher-linux-x64]
 
