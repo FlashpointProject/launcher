@@ -23,18 +23,15 @@ jobs:
         npm install
         npm run build --if-present
         npm run release
-        cd dist
-        7z a -r ${{ matrix.os }}.zip *
+        7z a -r ${{ matrix.os }}.zip dist/*
       env:
         CI: true
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v1-release
       with:
-        files: |
-          /dist/${{ matrix.os }}.zip
-        name: test
-        prerelease: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/${{ matrix.os }}.zip
+        asset_name: ${{ matrix.os}}.zip
+        tag: latest
+        overwrite: true
       
