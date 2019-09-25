@@ -1,13 +1,14 @@
 name: Linter
 
-on: [pull_request]
+on: [push]
 
 jobs:
   es-lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: ESLint checks
-      uses: gimenete/eslint-action@1.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Lint
+        uses: mooyoul/tslint-actions@v1.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: '*.ts'
