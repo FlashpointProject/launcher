@@ -4,8 +4,8 @@ on: [push]
 
 jobs:
   build:
-    name: Build for ${{ matrix.os }}
-    runs-on: ubuntu-latest
+    name: Build and release
+    runs-on: windows-latest
 
     strategy:
       matrix:
@@ -38,4 +38,13 @@ jobs:
         asset_name: ${{ matrix.release-path }}.zip
         tag: latest
         overwrite: true
+        
+    name: Build for windows
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x]
+        release-arch: [win32]
+        release-path: [flashpoint-launcher-linux-x64]
       
