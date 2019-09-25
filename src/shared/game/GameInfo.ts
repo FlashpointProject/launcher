@@ -32,7 +32,7 @@ export class GameInfo {
 
   /**
    * Override the properties of a game info object with those of another
-   * @param target Object to override property values of
+   * @param target Object to overide property values of
    * @param source Object to copy property values from
    */
   public static override(target: IGameInfo, source: Partial<IGameInfo>): void {
