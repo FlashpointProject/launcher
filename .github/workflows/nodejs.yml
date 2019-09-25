@@ -17,11 +17,11 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install, build, and test
+    - name: npm install, build, release for win32 and linux
       run: |
         npm install
         npm run build --if-present
-        npm release:win32
-        npm release
+        npm run release:win32
+        npm run release
       env:
         CI: true
