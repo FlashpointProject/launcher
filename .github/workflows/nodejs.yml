@@ -49,6 +49,7 @@ jobs:
       run: |
         dir
         npm run release:${{ matrix.release-arch }}
+        dir
         cd dist
         dir
         7z a -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
