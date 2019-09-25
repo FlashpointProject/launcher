@@ -4,8 +4,12 @@ on: [push]
 
 jobs:
   build:
-    name: Build for Windows
-    runs-on: windows-latest
+    name: Build
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macOS-latest]
 
     steps:
     - uses: actions/checkout@v1
@@ -13,7 +17,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 12.x
-    - name: npm install, build for win32
+    - name: npm install, build
       run: |
         npm install
         npm run build --if-present
@@ -27,8 +31,8 @@ jobs:
     
     strategy:
       matrix:
-        release-arch: [linux]
-        release-path: [flashpoint-launcher-linux-x64]
+        release-arch: [win32]
+        release-path: [flashpoint-launcher-win32-ia32]
         
     steps:
     - uses: actions/checkout@v1
@@ -43,10 +47,11 @@ jobs:
         CI: true
     - name: npm release for all platforms
       run: |
+        dir
         npm run release:${{ matrix.release-arch }}
         cd dist
         dir
-        zip -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
+        7z a -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
