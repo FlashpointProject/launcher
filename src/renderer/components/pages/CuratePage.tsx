@@ -17,7 +17,11 @@ export type CuratePageProps = {
   /** Game manager to add imported curations to. */
   games?: GameManager;
   /** Game images collection to add imported images to. */
-  gameImages?: GameImageCollection;
+  gameImages?: GameImageCollection;     
+
+
+
+
 };
 
 /** Page that is used for importing curations. */
@@ -34,7 +38,7 @@ export function CuratePage(props: CuratePageProps) {
       console.log(`Starting "Import All"... (${state.curations.length} curations)`);
       // Lock all curations
       dispatch({
-        type: 'change-curation-lock-all',
+        type: "change-curation-lock-all",
         payload: { lock: true },
       });
       // Import all curations, one at a time

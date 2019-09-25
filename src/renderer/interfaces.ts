@@ -20,7 +20,8 @@ export type CentralState = {
   /** If all the playlists are done loading (even if it was unsuccessful). */
   playlistsDoneLoading: boolean;
   /** If the playlists failed to load (this value is only meaningful after the playlists are done loading). */
-  playlistsFailedLoading: boolean;
+  playlistsFailedLoading: boolean;   
+     
 };
 
 /** Data and state used for the upgrade system. */
