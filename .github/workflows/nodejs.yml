@@ -48,12 +48,20 @@ jobs:
       run: |
         7z -a -r dist/flashpoint-launcher-linux-x64.zip dist/flashpoint-launcher-linux-x64/*
         7z -a -r dist/flashpoint-launcher-win32-ia32.zip dist/flashpoint-launcher-win32-ia32/*
-    - name: Upload binaries to release
+    - name: Upload windows binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: [dist/flashpoint-launcher-linux-x64.zip, dist/flashpoint-launcher-win32-ia32.zip]
-        asset_name: [flashpoint-launcher-linux-x64.zip, flashpoint-launcher-win32-ia32.zip]
+        file: dist/flashpoint-launcher-win32-ia32.zip
+        asset_name: flashpoint-launcher-win32-ia32.zip
         tag: latest
         overwrite: true
+    - name: Upload linux binaries to release
+     uses: svenstaro/upload-release-action@v1-release
+     with:
+       repo_token: ${{ secrets.GITHUB_TOKEN }}
+       file: dist/flashpoint-launcher-linux-x64.zip
+       asset_name: flashpoint-launcher-linux-x64.zip
+       tag: latest
+       overwrite: true
       
