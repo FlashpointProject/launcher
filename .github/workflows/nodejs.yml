@@ -27,9 +27,11 @@ jobs:
         7z a -r flashpoint-latest-${{ matrix.os }}.zip *
       env:
         CI: true
-    - name: Github Release
-      uses: fnkr/github-action-ghr@v1
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: flashpoint-latest-${{ matrix.os }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GHR_PATH: flashpoint-latest-${{ matrix.os }}.zip
       
