@@ -34,14 +34,13 @@ jobs:
         release-arch: [linux]
         release-path: [flashpoint-launcher-linux-x64]
         
-      steps:
-      - name: npm release for all platforms
+    steps:
+    - name: npm release for all platforms
       run: |
         npm run release:${{ matrix.release-arch }}
         cd dist
         dir
         zip -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
-        dir
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
