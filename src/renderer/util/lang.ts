@@ -95,9 +95,10 @@ export function getDefaultLocalization(): LangContainer {
       platform: 'platform',
       series: 'series',
       title: 'title',
+      developer: 'developer',
+      publisher: 'publisher',
       ascending: 'ascending',
-      descending: 'descending',
-      developer: 'developer'
+      descending: 'descending'
     },
     developer:{
       developerHeader: 'developerHeader',

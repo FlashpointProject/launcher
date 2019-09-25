@@ -90,6 +90,8 @@
     "platform": "Platform",
     "series": "Series",
     "title": "Title",
+    "developer": "Developer",
+    "publisher": "Publisher",
     "ascending": "Ascending",
     "descending": "Descending"
   },
