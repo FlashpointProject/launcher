@@ -29,7 +29,9 @@ jobs:
       run: |
         npm run release:${{ matrix.release-arch }}
         cd dist
-        7z a -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
+        ls
+        7za a -r ${{ matrix.release-path }}.zip ${{ matrix.release-path }}
+        ls
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
