@@ -1,0 +1,13 @@
+name: Linter
+
+on: [pull_request]
+
+jobs:
+  es-lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: ESLint checks
+      uses: gimenete/eslint-action@1.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
