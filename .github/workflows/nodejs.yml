@@ -18,9 +18,7 @@ jobs:
       with:
         node-version: 12.x
     - name: npm install, build
-      run: |
-        npm install
-        npm run build --if-present
+      run: npm install; npm run build --if-present
       env:
         CI: true
         
@@ -36,14 +34,11 @@ jobs:
       with:
         node-version: 12.x
     - name: npm install
-      run: |
-        npm install
+      run: npm install
       env:
         CI: true
     - name: npm release for all platforms
-      run: |
-        npm run release:linux
-        npm run release:win32
+      run: npm run release:linux; npm run release:win32
     - name: Package releases
       run: |
         7z a -r dist/flashpoint-launcher-linux-x64.zip dist/flashpoint-launcher-linux-x64/*
