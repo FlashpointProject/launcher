@@ -7,17 +7,13 @@ jobs:
     name: Build for Windows
     runs-on: windows-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x]  
-
     steps:
     - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 12.x
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
-    - name: npm install, build for linux
+        node-version: 12.x
+    - name: npm install, build for win32
       run: |
         npm install
         npm run build --if-present
@@ -35,6 +31,16 @@ jobs:
         release-path: [flashpoint-launcher-linux-x64]
         
     steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: npm install
+      run: |
+        npm install
+      env:
+        CI: true
     - name: npm release for all platforms
       run: |
         npm run release:${{ matrix.release-arch }}
