@@ -26,6 +26,7 @@ jobs:
         
   release:
     name: Release for all platforms
+    needs: build
     runs-on: windows-latest
     
     strategy:
@@ -34,7 +35,6 @@ jobs:
         release-path: [flashpoint-launcher-linux-x64]
         
       steps:
-      - uses: build
       - name: npm release for all platforms
       run: |
         npm run release:${{ matrix.release-arch }}
