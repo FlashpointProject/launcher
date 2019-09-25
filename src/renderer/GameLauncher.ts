@@ -289,6 +289,7 @@ export class GameLauncher {
     if (proc.stdout) { proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); }); }
     if (proc.stderr) { proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); }); }
     // Return process
+    
     return proc;
   }
 }
