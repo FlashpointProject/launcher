@@ -30,7 +30,7 @@ jobs:
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: dist/${{ matrix.os }}.zip
+        file: ${{ matrix.os }}.zip
         asset_name: ${{ matrix.os}}.zip
         tag: latest
         overwrite: true
