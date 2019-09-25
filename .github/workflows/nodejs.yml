@@ -30,6 +30,10 @@ jobs:
     name: Release for all platforms
     needs: build
     runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        arch: [win32, linux, darwin]
         
     steps:
     - uses: actions/checkout@v1
@@ -41,28 +45,17 @@ jobs:
       run: npm install
       env:
         CI: true
-    - name: npm release for win32
-      run: npm run release:win32
-    - name: npm release for linux
-      run: npm run release:linux
+    - name: npm release
+      run: npm run release:${{ matrix.arch }}
     - name: Package releases
       run: |
-        7z a -r dist/flashpoint-launcher-linux-x64.zip dist/flashpoint-launcher-linux-x64/*
-        7z a -r dist/flashpoint-launcher-win32-ia32.zip dist/flashpoint-launcher-win32-ia32/*
-    - name: Upload windows binaries to release
+        7z a dist/flashpoint-launcher-${{ matrix.arch }}.zip ./dist/*/*
+    - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: dist/flashpoint-launcher-win32-ia32.zip
-        asset_name: flashpoint-launcher-win32-ia32.zip
-        tag: latest
-        overwrite: true
-    - name: Upload linux binaries to release
-      uses: svenstaro/upload-release-action@v1-release
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: dist/flashpoint-launcher-linux-x64.zip
-        asset_name: flashpoint-launcher-linux-x64.zip
+        file: dist/flashpoint-launcher-${{ matrix.arch }}
+        asset_name: flashpoint-launcher-${{ matrix.arch }}
         tag: latest
         overwrite: true
       
