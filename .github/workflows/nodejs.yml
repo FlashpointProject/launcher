@@ -4,12 +4,13 @@ on: [push]
 
 jobs:
   build:
-    name: Build for Linux
-    runs-on: ubuntu-latest
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         node-version: [10.x, 12.x]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v1
@@ -18,28 +19,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install, build, release for linux
-      run: |
-        npm install
-        npm run build --if-present
-        npm run release
-      env:
-        CI: true
-       
-  build:
-    name: Build for Windows
-    runs-on: windows-latest
-    
-    strategy:
-      matrix:
-        node-version: [10.x, 12.x]
-        
-    steps:
-    - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: npm install, build, release for win32
       run: |
         npm install
         npm run build --if-present
