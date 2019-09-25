@@ -54,8 +54,8 @@ jobs:
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: dist/flashpoint-launcher-${{ matrix.arch }}
-        asset_name: flashpoint-launcher-${{ matrix.arch }}
+        file: dist/flashpoint-launcher-${{ matrix.arch }}.zip
+        asset_name: flashpoint-launcher-${{ matrix.arch }}.zip
         tag: latest
         overwrite: true
       
