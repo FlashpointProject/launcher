@@ -272,7 +272,7 @@ export class HomePage extends React.Component<HomePageProps> {
   /** Gets the platform as a string and performs a search dynamically for each platform generated. */
   onPlatformClick = (platform: string) => (event: any) => {
     // Search to filter out all other platforms
-    this.props.onSearch('!' + platform);
+    this.props.onSearch('!"' + platform + '"');
     // Deselect the curret playlist
     this.props.onSelectPlaylist(undefined, 'arcade');
   }
