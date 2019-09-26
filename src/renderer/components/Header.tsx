@@ -30,6 +30,8 @@ type OwnProps = {
 export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
 
 type HeaderState = {
+  /** State of the store last render (for seeing external changes) */
+  oldStoreSearch: string;
   /** Current text in the search field. */
   searchText: string;
 };
@@ -45,6 +47,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   constructor(props: HeaderProps) {
     super(props);
     this.state = {
+      oldStoreSearch: this.props.searchQuery.text,
       searchText: this.props.searchQuery.text,
     };
   }
@@ -64,7 +67,13 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       libraryData: { libraries },
       onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick
     } = this.props;
-    const { searchText } = this.state;
+    const { oldStoreSearch, searchText } = this.state;
+    
+    // If changed externally, update own search string to latest
+    if (oldStoreSearch != this.props.searchQuery.text) {
+      this.setState({searchText: this.props.searchQuery.text, oldStoreSearch: this.props.searchQuery.text});
+    }
+
     return (
       <div className='header'>
         {/* Header Menu */}
