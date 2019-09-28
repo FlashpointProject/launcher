@@ -21,6 +21,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   useFiddler: false,
   disableExtremeGames: false,
   showBrokenGames: false,
+  nativeLocks: []
 });
 
 /**
@@ -75,10 +76,15 @@ export function overwriteConfigData(
   parser.prop('useFiddler',          v => source.useFiddler          = !!v);
   parser.prop('disableExtremeGames', v => source.disableExtremeGames = !!v);
   parser.prop('showBrokenGames',     v => source.showBrokenGames     = !!v);
+  parser.prop('nativeLocks',         v => source.nativeLocks         = strArray(v));
   // Do some alterations
   source.flashpointPath = source.flashpointPath.replace(/\\/g, '/'); // (Clean path)
   // Return
   return source;
+}
+
+function strArray(strArray:any): string[] {
+  return (strArray || []);
 }
 
 /** Coerce anything to a string. */

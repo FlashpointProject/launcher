@@ -60,6 +60,9 @@ export type ConfigLang = LangObject<
   'redirectorDesc' |
   'useWine' |
   'useWineDesc' |
+  'platforms' |
+  'nativeLocks' |
+  'nativeLocksDesc' |
   'visualsHeader' |
   'useCustomTitleBar' |
   'useCustomTitleBarDesc' |
@@ -152,6 +155,8 @@ export type DeveloperLang = LangObject<
   'checkPlaylistsDesc' |
   'checkGameFileLocation' |
   'checkGameFileLocationDesc' |
+  'checkMissingExecMappings' |
+  'checkMissingExecMappingsDesc' |
   'renameImagesTitleToId' |
   'renameImagesTitleToIdDesc' |
   'renameImagesIdToTitle' |

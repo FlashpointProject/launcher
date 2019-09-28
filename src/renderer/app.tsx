@@ -19,8 +19,10 @@ import { WithLibraryProps } from './containers/withLibrary';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { readCreditsFile } from './credits/Credits';
 import { ICreditsData } from './credits/interfaces';
+import { loadExecMappingsFile } from './game/Execs';
 import GameManager from './game/GameManager';
 import GameManagerPlatform from './game/GameManagerPlatform';
+import { GameLauncher } from './GameLauncher';
 import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
 import { LangManager } from './lang/LangManager';
@@ -35,6 +37,7 @@ import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upg
 import { joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade } from './util/upgrade';
+import { getPlatforms } from './util/platform';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -276,6 +279,15 @@ export class App extends React.Component<AppProps, AppState> {
       log(`Failed to load credits.\n${error}`);
       this.setState({ creditsDoneLoading: true });
     });
+    loadExecMappingsFile(fullJsonFolderPath, log)
+    .then((data) => {
+      GameLauncher.setExecMappings(data);
+    })
+    .catch((error) => {
+      console.error(error);
+      log(`Failed to load exec mappings.\n${error}`);
+    });
+
     // Check for Wine and PHP on Linux
     if (process.platform === 'linux') {
       which('php', function(err: Error | null) {
@@ -345,6 +357,7 @@ export class App extends React.Component<AppProps, AppState> {
     const games = this.state.central.games.collection.games;
     const libraries = this.props.libraryData.libraries;
     const platforms = this.state.central.games.listPlatforms();
+    console.log(platforms);
     const route = getBrowseSubPath(this.props.location.pathname);
     const library = findLibraryByRoute(libraries, route);
     // Get game count (or undefined if no games are yet found)
@@ -373,6 +386,7 @@ export class App extends React.Component<AppProps, AppState> {
       reloadTheme: this.reloadTheme,
       languages: this.state.langList,
       updateLocalization: this.updateLanguage,
+      platformList: getPlatforms(this.state.central.games.collection)
     };
     // Render
     return (

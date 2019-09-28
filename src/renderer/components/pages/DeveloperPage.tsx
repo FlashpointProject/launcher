@@ -5,7 +5,7 @@ import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { DeveloperLang, LangContainer } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang/types';
 import { removeFileExtension } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';
@@ -92,6 +92,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.checkGameFileLocation}
               title={strings.checkGameFileLocationDesc}
               onClick={this.onCheckFileLocation} />
+            <SimpleButton
+              value={strings.checkMissingExecMappings}
+              title={strings.checkMissingExecMappingsDesc}
+              onClick={this.onCheckMissingExecMappings}/>
             {/* Log */}
             <LogData
               className='developer-page__log'
@@ -145,6 +149,11 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onCheckFileLocation = (): void => {
     const games = this.props.central.games.collection.games;
     this.setState({ text: checkFileLocation(games) });
+  }
+
+  onCheckMissingExecMappings = (): void => {
+    const games = this.props.central.games.collection.games;
+    this.setState({ text: checkMissingExecMappings(games) });
   }
 
   onRenameImagesTitleToIDClick = (): void => {
@@ -386,6 +395,47 @@ function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string 
     }
   });
   text += '\n';
+  return text;
+}
+
+function checkMissingExecMappings(games: IGameInfo[]): string {
+  const execMappings = GameLauncher.getExecMappings();
+  console.log(execMappings);
+  let allExecs: string[] = [];
+  let text = '';
+  // Gather list of all unique execs
+  for (let i = 0; i < games.length; i++) {
+    const game = games[i];
+    if (allExecs.findIndex((exec) => { return exec === game.applicationPath; }) === -1) {
+      allExecs.push(game.applicationPath);
+    }
+  }
+  // Report missing win32 exec mappings
+  text += 'Missing "win32" Exec Mappings:\n';
+  for (let i = 0; i < allExecs.length; i++) {
+    const exec = allExecs[i];
+    if (execMappings.findIndex((mapping) => { return mapping.win32 === exec; }) === -1) {
+      text += `    ${exec}\n`;
+    }
+  }
+  text += '\n';
+  // Report missing linux exec mappings
+  text += 'Missing "linux" Exec Mappings:\n';
+  for (let i = 0; i < allExecs.length; i++) {
+    const exec = allExecs[i];
+    if (execMappings.findIndex((mapping) => { return mapping.win32 === exec && mapping.linux; }) === -1) {
+      text += `    ${exec}\n`;
+    }
+  }
+  text += '\n';
+  // Report missing darwin exec mappings
+  text += 'Missing "darwin" Exec Mappings:\n';
+  for (let i = 0; i < allExecs.length; i++) {
+    const exec = allExecs[i];
+    if (execMappings.findIndex((mapping) => { return mapping.win32 === exec && mapping.darwin; }) === -1) {
+      text += `    ${exec}\n`;
+    }
+  }
   return text;
 }
 

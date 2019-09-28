@@ -30,6 +30,8 @@ export type IAppConfigData = {
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
+  /** Array of native locked platforms */
+  nativeLocks: string[];
 };
 
 /** Data fetched from the Main by the Renderer */

@@ -1,6 +1,7 @@
 import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
+import GameManagerPlatform from 'src/renderer/game/GameManagerPlatform';
 import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
@@ -13,9 +14,12 @@ import { IThemeListItem } from '../../theme/ThemeManager';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
+import { Dropdown } from '../Dropdown';
 import { DropdownInputField } from '../DropdownInputField';
 
 type OwnProps = {
+  /** List of all platforms */
+  platformList: string[];
   /** Filenames of all files in the themes folder. */
   themeItems: IThemeListItem[];
   /** Load and apply a theme. */
@@ -37,6 +41,8 @@ type ConfigPageState = {
   useCustomTitlebar: boolean;
   /** If the "use fiddler" checkbox is checked. */
   useFiddler: boolean;
+  /** Array of native locks */
+  nativeLocks: string[];
 };
 
 export interface ConfigPage {
@@ -63,11 +69,15 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       useFiddler: configData.useFiddler,
+      nativeLocks: configData.nativeLocks
     };
   }
 
   render() {
     const strings = this.context.config;
+    const { platformList } = this.props;
+    const { nativeLocks } = this.state;
+    console.log(nativeLocks[0]);
     const autoString = formatString(strings.auto, this.countryCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     return (
@@ -206,6 +216,41 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
                 <div className='setting__row__bottom'>
                   <p>{strings.useWineDesc}</p>
+                </div>
+              </div>
+              {/* Native Locks */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.nativeLocks}</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <Dropdown text={strings.platforms}>
+                        { platformList.map((platform, index) => (
+                          <label
+                            key={index}
+                            className='log-page__dropdown-item'>
+                            <div className='simple-center'>
+                              <input
+                                type='checkbox'
+                                checked={nativeLocks.findIndex((item) => item === platform) != -1}
+                                onChange={() => { this.onNativeCheckboxChange(platform); }}
+                                className='simple-center__vertical-inner' />
+                            </div>
+                            <div className='simple-center'>
+                              <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
+                                {platform}
+                              </p>
+                            </div>
+                          </label>
+                        )) }
+                      </Dropdown>
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.nativeLocksDesc}</p>
                 </div>
               </div>
             </div>
@@ -359,6 +404,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.props.updateLocalization();
   }
 
+  onNativeCheckboxChange = (platform: string): void => {
+    const { nativeLocks } = this.state;
+    const index = nativeLocks.findIndex(item => item === platform);
+
+    if (index != -1) {
+      nativeLocks.splice(index, 1);
+    } else {
+      nativeLocks.push(platform);
+    }
+    console.log(nativeLocks);
+    this.setState({ nativeLocks: nativeLocks });
+  }
+
   onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ useFiddler: !event.target.checked });
   }
@@ -460,6 +518,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
       useFiddler: this.state.useFiddler,
+      nativeLocks: this.state.nativeLocks
     });
     // Save new config to file, then restart the app
     window.External.config.save(newConfig)

@@ -4,12 +4,36 @@ import { EventEmitter } from 'events';
 import * as path from 'path';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { padStart, stringifyArray } from '../shared/Util';
+import { ExecMapping } from './game/Execs';
 
 type IGamePathInfo = Pick<IGameInfo, 'platform' | 'launchCommand'>;
 
 export class GameLauncher {
   /** Path of the "htdocs" folder (relative to the Flashpoint folder) */
   private static htdocsPath = 'Server/htdocs';
+  /** Exec mappings between platforms */
+  private static execMappings: ExecMapping[] = [];
+
+  /**
+   * Replaces the current exec mappings object
+   * @param data Exec mappings object
+   */
+  public static setExecMappings(data: ExecMapping[]): void {
+    console.log('SET - ' + data);
+    this.execMappings = data;
+  }
+
+  public static getExecMappings(): ExecMapping[] {
+    return this.execMappings;
+  }
+
+  /**
+   * Checks whether the platform is native locked
+   * @param platform Platform name
+   */
+  public static isPlatformNativeLocked(platform: string) {
+    return window.External.config.data.nativeLocks.findIndex((lock) => { return lock === platform; }) != -1;
+  }
 
   /**
    * Try to get the ("entry"/"main") file path of a game.
@@ -161,11 +185,11 @@ export class GameLauncher {
         });
         break;
       default:
-        const appPath: string = fixSlashes(relativeToFlashpoint(addApp.applicationPath));
         const appArgs: string = addApp.commandLine;
-        const useWine = window.External.preferences.getData().useWine;
+        const useWine: boolean = window.External.preferences.getData().useWine;
+        const appPath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(addApp.applicationPath, useWine)));
         const proc = GameLauncher.launch(
-          GameLauncher.createCommand(appPath, appArgs, useWine),
+          GameLauncher.createCommand(appPath, appArgs),
           { env: GameLauncher.getEnvironment(useWine) }
         );
         log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.commandLine}" ]`);
@@ -187,13 +211,14 @@ export class GameLauncher {
       }
     });
     // Launch game
-    const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game)));
     const gameArgs: string = game.launchCommand;
-    const useWine: boolean = window.External.preferences.getData().useWine;
-    const command: string = GameLauncher.createCommand(gamePath, gameArgs, useWine);
+    const useWine: boolean = !this.isPlatformNativeLocked(game.platform) && window.External.preferences.getData().useWine;
+    const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game.applicationPath, useWine)));
+    const command: string = GameLauncher.createCommand(gamePath, gameArgs);
     const proc = GameLauncher.launch(command, { env: GameLauncher.getEnvironment(useWine) });
     log(`Launch Game "${game.title}" (PID: ${proc.pid}) [\n`+
         `    applicationPath: "${game.applicationPath}",\n`+
+        `    gamePath:        "${gamePath}",\n` +
         `    launchCommand:   "${game.launchCommand}",\n`+
         `    command:         "${command}" ]`);
     // Show popups for Unity games
@@ -217,19 +242,35 @@ export class GameLauncher {
 
   /**
    * The paths provided in the Game/AdditionalApplication XMLs are only accurate
-   * on Windows. So we replace them with other hard-coded paths here.
+   * on Windows. Use platform specific paths (if mapped and required)
    */
-  private static getApplicationPath(game: IGameInfo): string {
-    // @TODO Let the user change these paths from a file or something (services.json?).
-    if (window.External.platform === 'linux')  {
-      if (game.platform === 'Java') {
-        return 'FPSoftware/startJava.sh';
-      }
-      if (game.platform === 'Unity') {
-        return 'FPSoftware/startUnity.sh';
+  private static getApplicationPath(path: string, useWine: boolean): string {
+    const platform = process.platform;
+
+    // Special case for bat/sh files, always use native
+    if (platform != 'win32' && path.endsWith('.bat')) {
+      return path.substr(0, path.length - 4) + '.sh';
+    }
+
+    // No mapping required for Windows and Wine, skip
+    if (platform != 'win32' && !useWine) {
+      for (let i = 0; i < this.execMappings.length; i++) {
+        const mapping = this.execMappings[i];
+        if (mapping.win32 === path) {
+          switch (platform) {
+            case 'linux':
+              return mapping.linux || mapping.win32;
+            case 'darwin':
+              return mapping.darwin || mapping.win32;
+            default:
+              return path;
+          }
+        }
       }
     }
-    return game.applicationPath;
+
+    // No non-Windows mapping found/required
+    return path;
   }
 
   /**
@@ -254,19 +295,21 @@ export class GameLauncher {
     };
   }
 
-  private static createCommand(filename: string, args: string, useWine: boolean): string {
+  private static createCommand(filename: string, args: string): string {
     // Escape filename and args
     let escFilename: string = filename;
     let escArgs: string = args;
-    if (useWine) {
+    // Use wine for any exe files (unless on Windows)
+    if (process.platform != 'win32' && filename.endsWith('.exe')) {
       escFilename = 'wine';
-      escArgs = `start /unix "${filename}" "${args}"`;
+      escArgs = `start /unix "${filename}" "${escapeLinuxArgs(args)}"`;
     } else {
       switch (window.External.platform) {
         case 'win32':
           escFilename = filename;
           escArgs = escapeWin(args);
           break;
+        case 'darwin':
         case 'linux':
           escFilename = filename;
           escArgs = escapeLinuxArgs(args);
