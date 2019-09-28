@@ -1,7 +1,6 @@
 import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
-import GameManagerPlatform from 'src/renderer/game/GameManagerPlatform';
 import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
@@ -41,8 +40,8 @@ type ConfigPageState = {
   useCustomTitlebar: boolean;
   /** If the "use fiddler" checkbox is checked. */
   useFiddler: boolean;
-  /** Array of native locks */
-  nativeLocks: string[];
+  /** Array of native platforms */
+  nativePlatforms: string[];
 };
 
 export interface ConfigPage {
@@ -69,15 +68,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       useFiddler: configData.useFiddler,
-      nativeLocks: configData.nativeLocks
+      nativePlatforms: configData.nativePlatforms
     };
   }
 
   render() {
     const strings = this.context.config;
     const { platformList } = this.props;
-    const { nativeLocks } = this.state;
-    console.log(nativeLocks[0]);
+    const { nativePlatforms } = this.state;
     const autoString = formatString(strings.auto, this.countryCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     return (
@@ -222,7 +220,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>{strings.nativeLocks}</p>
+                    <p>{strings.nativePlatforms}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
@@ -234,7 +232,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                             <div className='simple-center'>
                               <input
                                 type='checkbox'
-                                checked={nativeLocks.findIndex((item) => item === platform) != -1}
+                                checked={nativePlatforms.findIndex((item) => item === platform) != -1}
                                 onChange={() => { this.onNativeCheckboxChange(platform); }}
                                 className='simple-center__vertical-inner' />
                             </div>
@@ -250,7 +248,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>{strings.nativeLocksDesc}</p>
+                  <p>{strings.nativePlatformsDesc}</p>
                 </div>
               </div>
             </div>
@@ -405,16 +403,15 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onNativeCheckboxChange = (platform: string): void => {
-    const { nativeLocks } = this.state;
-    const index = nativeLocks.findIndex(item => item === platform);
+    const { nativePlatforms } = this.state;
+    const index = nativePlatforms.findIndex(item => item === platform);
 
     if (index != -1) {
-      nativeLocks.splice(index, 1);
+      nativePlatforms.splice(index, 1);
     } else {
-      nativeLocks.push(platform);
+      nativePlatforms.push(platform);
     }
-    console.log(nativeLocks);
-    this.setState({ nativeLocks: nativeLocks });
+    this.setState({ nativePlatforms: nativePlatforms });
   }
 
   onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -436,7 +433,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.props.updatePreferences({ useWine: isChecked });
     this.forceUpdate();
 
-    if (isChecked && process.platform === 'linux') {
+    if (isChecked && process.platform != 'win32') {
       which('wine', (err) => {
         if (err) {
           log('Warning : Wine was enabled but it was not found on the path.');
@@ -518,7 +515,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
       useFiddler: this.state.useFiddler,
-      nativeLocks: this.state.nativeLocks
+      nativePlatforms: this.state.nativePlatforms
     });
     // Save new config to file, then restart the app
     window.External.config.save(newConfig)

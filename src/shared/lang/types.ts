@@ -61,8 +61,8 @@ export type ConfigLang = LangObject<
   'useWine' |
   'useWineDesc' |
   'platforms' |
-  'nativeLocks' |
-  'nativeLocksDesc' |
+  'nativePlatforms' |
+  'nativePlatformsDesc' |
   'visualsHeader' |
   'useCustomTitleBar' |
   'useCustomTitleBarDesc' |

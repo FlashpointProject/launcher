@@ -31,7 +31,7 @@ export type IAppConfigData = {
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
   /** Array of native locked platforms */
-  nativeLocks: string[];
+  nativePlatforms: string[];
 };
 
 /** Data fetched from the Main by the Renderer */

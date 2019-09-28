@@ -19,7 +19,6 @@ export class GameLauncher {
    * @param data Exec mappings object
    */
   public static setExecMappings(data: ExecMapping[]): void {
-    console.log('SET - ' + data);
     this.execMappings = data;
   }
 
@@ -32,7 +31,7 @@ export class GameLauncher {
    * @param platform Platform name
    */
   public static isPlatformNativeLocked(platform: string) {
-    return window.External.config.data.nativeLocks.findIndex((lock) => { return lock === platform; }) != -1;
+    return window.External.config.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
   }
 
   /**
@@ -186,10 +185,12 @@ export class GameLauncher {
         break;
       default:
         const appArgs: string = addApp.commandLine;
-        const useWine: boolean = window.External.preferences.getData().useWine;
+        let useWine: boolean = window.External.preferences.getData().useWine;
         const appPath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(addApp.applicationPath, useWine)));
+        // Only Exe available, force Wine
+        if (appPath.endsWith('.exe')) { useWine = true; }
         const proc = GameLauncher.launch(
-          GameLauncher.createCommand(appPath, appArgs),
+          GameLauncher.createCommand(appPath, appArgs, useWine),
           { env: GameLauncher.getEnvironment(useWine) }
         );
         log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.commandLine}" ]`);
@@ -212,9 +213,11 @@ export class GameLauncher {
     });
     // Launch game
     const gameArgs: string = game.launchCommand;
-    const useWine: boolean = !this.isPlatformNativeLocked(game.platform) && window.External.preferences.getData().useWine;
+    let useWine: boolean = !this.isPlatformNativeLocked(game.platform) && window.External.preferences.getData().useWine;
     const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game.applicationPath, useWine)));
-    const command: string = GameLauncher.createCommand(gamePath, gameArgs);
+    // Only Exe available, force Wine
+    if (gamePath.endsWith('.exe')) { useWine = true; }
+    const command: string = GameLauncher.createCommand(gamePath, gameArgs, useWine);
     const proc = GameLauncher.launch(command, { env: GameLauncher.getEnvironment(useWine) });
     log(`Launch Game "${game.title}" (PID: ${proc.pid}) [\n`+
         `    applicationPath: "${game.applicationPath}",\n`+
@@ -295,14 +298,14 @@ export class GameLauncher {
     };
   }
 
-  private static createCommand(filename: string, args: string): string {
+  private static createCommand(filename: string, args: string, useWine: boolean): string {
     // Escape filename and args
     let escFilename: string = filename;
     let escArgs: string = args;
     // Use wine for any exe files (unless on Windows)
-    if (process.platform != 'win32' && filename.endsWith('.exe')) {
+    if (process.platform != 'win32' && useWine) {
       escFilename = 'wine';
-      escArgs = `start /unix "${filename}" "${escapeLinuxArgs(args)}"`;
+      escArgs = `start /unix "${filename}" ${escapeLinuxArgs(args)}`;
     } else {
       switch (window.External.platform) {
         case 'win32':
@@ -444,7 +447,13 @@ function splitQuotes(str: string): string[] {
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
  */
 function escapeLinuxArgs(str: string): string {
-  return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
+  return (
+    splitQuotes(str)
+    .reduce((acc, val, i) => acc + ((i % 2 === 0)
+      ? val.replace(/[~`#$&*()\\|[\]{};<>?!]/g, '\\$&')
+      : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
+    ), '')
+  );
 }
 
 const unityOutputResponses = [

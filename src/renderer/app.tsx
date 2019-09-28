@@ -288,8 +288,8 @@ export class App extends React.Component<AppProps, AppState> {
       log(`Failed to load exec mappings.\n${error}`);
     });
 
-    // Check for Wine and PHP on Linux
-    if (process.platform === 'linux') {
+    // Check for Wine and PHP on Linux/Mac
+    if (process.platform != 'win32') {
       which('php', function(err: Error | null) {
         if (err) {
           log('Warning : PHP not found in path, may cause unexpected behaviour.');
@@ -357,7 +357,6 @@ export class App extends React.Component<AppProps, AppState> {
     const games = this.state.central.games.collection.games;
     const libraries = this.props.libraryData.libraries;
     const platforms = this.state.central.games.listPlatforms();
-    console.log(platforms);
     const route = getBrowseSubPath(this.props.location.pathname);
     const library = findLibraryByRoute(libraries, route);
     // Get game count (or undefined if no games are yet found)
