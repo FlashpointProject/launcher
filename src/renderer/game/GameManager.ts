@@ -4,7 +4,7 @@ import { GameCollection } from '../../shared/game/GameCollection';
 import { GameParser, generateGameOrderTitle } from '../../shared/game/GameParser';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
-import { removeFileExtension } from '../../shared/Util';
+import { clearArray, removeFileExtension } from '../../shared/Util';
 import { LaunchboxData } from '../LaunchboxData';
 import GameManagerPlatform from './GameManagerPlatform';
 import { formatUnknownPlatformName } from './util';
@@ -32,37 +32,31 @@ class GameManager extends EventEmitter {
 
   /** Fetch and parse all platform XMLs and put them into this manager */
   public async loadPlatforms(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      const flashpointPath = window.External.config.fullFlashpointPath;
-      if (this.platforms.length === 0) {
-        resolve(); // No files found
-      } else {
-        let done: number = 0;
-        let errors: any[] = [];
-        for (let i = this.platforms.length - 1; i >= 0; i--) {
-          const platform = this.platforms[i];
-          LaunchboxData.loadPlatform(path.join(flashpointPath, LaunchboxData.platformsPath, platform.filename))
-          .then((data) => {
-            platform.data = data;
-            platform.collection = new GameCollection().push(GameParser.parse(data, platform.filename));
-            this.collection.push(platform.collection);
-          })
-          .catch((error) => {
-            errors.push(error);
-          })
-          .finally(() => {
-            done++;
-            if (done === this.platforms.length) {
-              if (errors.length > 0) {
-                reject(errors);
-              } else {
-                resolve();
-              }
-            }
-          });
+    const flashpointPath = window.External.config.fullFlashpointPath;
+    if (this.platforms.length > 0) {
+      // Attempt to load and parse all platform files
+      // (It will store all errors in an array instead of giving up after the first one)
+      const errors: LoadPlatformError[] = [];
+      const map = await Promise.all(this.platforms.map(platform => {
+        return (async () => {
+          try {
+            const data = await LaunchboxData.loadPlatform(path.join(flashpointPath, LaunchboxData.platformsPath, platform.filename));
+            return { platform, data };
+          } catch (error) {
+            errors.push(new LoadPlatformError(error, platform));
+          }
+        })();
+      }));
+      // Apply parsed platform data if no errors occurred
+      // (Otherwise throw the array of errors)
+      if (errors.length === 0) {
+        for (let { platform, data } of clearArray(map)) {
+          platform.data = data;
+          platform.collection = new GameCollection().push(GameParser.parse(data, platform.filename));
+          this.collection.push(platform.collection);
         }
-      }
-    });
+      } else { throw errors; }
+    }
   }
 
   /**
@@ -308,5 +302,23 @@ type AddOrUpdateGameOpts = {
   /** If the changes should be saved to file immediately. Defaults to false. */
   saveToFile?: boolean;
 };
+
+class LoadPlatformError extends Error {
+  /** Filename of the platform file the error is related to. */
+  filename: string;
+
+  constructor(error: Error, platform: GameManagerPlatform) {
+    super();
+    // Copy error properties
+    this.message = error.message;
+    this.stack = error.stack;
+    // Store info about the platform
+    this.filename = platform.filename;
+  }
+
+  toString(): string {
+    return `Error (with file "${this.filename}"): ${this.message}`;
+  }
+}
 
 export default GameManager;

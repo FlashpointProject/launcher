@@ -1,58 +1,46 @@
 import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
+import { promisify } from 'util';
 import { GameCollection } from '../shared/game/GameCollection';
 import { GameParser } from '../shared/game/GameParser';
 import { IGameCollection } from '../shared/game/interfaces';
 import { IRawLaunchBoxPlatformRoot } from '../shared/launchbox/interfaces';
-import { getFilename } from '../shared/Util';
+import { clearArray, getFilename } from '../shared/Util';
+
+const readdir = promisify(fs.readdir);
+const stat = promisify(fs.stat);
 
 export class LaunchboxData {
-  public static platformsPath = './Data/Platforms';
+  public static platformsPath = 'Data/Platforms';
 
   /**
-   * Fetch the filenames of all platform XML files
-   * @param flashpointPath Path to the root flashpoint folder
+   * Fetch the filenames of all platform XML files.
+   * @param flashpointPath Path to the root Flashpoint folder.
    */
-  public static fetchPlatformFilenames(flashpointPath: string): Promise<string[]> {
+  public static async fetchPlatformFilenames(flashpointPath: string): Promise<string[]> {
     const folderPath = path.posix.join(flashpointPath, LaunchboxData.platformsPath);
-    return new Promise((resolve, reject) => {
-      // Get the names of all files and folders in the platforms folder
-      fs.readdir(folderPath, (error: NodeJS.ErrnoException | null, files: string[]): void => {
-        if (error) { reject(error); }
-        else {
-          if (files.length === 0) {
-            resolve([]); // No files found
-          } else {
-            // Filter out all folders
-            const fileNames: string[] = [];
-            let filesLeft: number = files.length;
-            files.forEach((fileName) => {
-              fs.stat(path.posix.join(folderPath, fileName), (err: NodeJS.ErrnoException | null, stats: fs.Stats) => {
-                if (err) { reject(err); }
-                else {
-                  // Add to array if it is an XML file
-                  if (stats.isFile() && fileName.endsWith('.xml')) {
-                    fileNames.push(fileName);
-                  }
-                  // Decrement counter and check if this was the last file
-                  filesLeft -= 1;
-                  if (filesLeft === 0) {
-                    resolve(fileNames);
-                  }
-                }
-              });
-            });
-          }
-        }
-      });
-    });
+    const fileNames = await readdir(folderPath);
+    if (fileNames.length > 0) {
+      // Validate the filenames
+      const validNames = await Promise.all(fileNames.map(fileName => {
+        return stat(path.posix.join(folderPath, fileName))
+        .then<string | undefined>((stats) => {
+          // Check if it is an XML file
+          return (stats.isFile() && fileName.endsWith('.xml'))
+            ? fileName
+            : undefined;
+        });
+      }));
+      // Clear and return validated filenames
+      return clearArray(validNames);
+    } else { return []; }
   }
 
   /**
    * Fetch multiple Launchbox Platform XML files and parse their contents into a single IGameCollection
-   * @param flashpointPath Path to the root flashpoint folder
-   * @param platforms Filenames of the platform files (including file extensions)
+   * @param flashpointPath Path to the root flashpoint folder.
+   * @param platforms Filenames of the platform files (including file extensions).
    */
   public static fetchPlatforms(flashpointPath: string, platforms: string[]): Promise<IGameCollection> {
     return new Promise((resolve, reject) => {
@@ -140,7 +128,7 @@ export class LaunchboxData {
             // @TODO Look into which settings are most appropriate
           });
           if (!data) {
-            reject(new Error('Failed to parse XML file - ' + source));
+            reject(new Error(`Failed to parse XML file: ${source}`));
             return;
           }
           // Make sure the sub-object exists

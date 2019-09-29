@@ -210,30 +210,38 @@ export class App extends React.Component<AppProps, AppState> {
       // Prepare images
       const platforms: string[] = filenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
       this.state.gameImages.addImageFolders(platforms);
-      // Load and parse platform XMLs
-      this.state.central.games.loadPlatforms()
-      .catch((errors : Error[]) => {
-        errors.map((error) => log(error.toString()));
+    })
+    .then(async () => {
+      // Load platform data
+      try {
+        await this.state.central.games.loadPlatforms();
+      } catch (errors) {
+        // @TODO Make this errors passing a bit safer? Expecting specially formatted errors seems dangerous.
+        errors.forEach((error: Error) => log(error.toString()));
+        // Show a popup about the errors
         remote.dialog.showMessageBox({
           type: 'error',
           title: strings.dialog.errorParsingPlatforms,
           message: formatString(strings.dialog.errorParsingPlatformsMessage, String(errors.length)),
           buttons: ['Ok']
         });
-      })
-      .finally(() => {
-        this.setState({
-          central: Object.assign({}, this.state.central, {
-            gamesDoneLoading: true,
-          })
-        });
-      });
+        // Throw errors (since this catch was only for logging)
+        throw errors;
+      }
     })
     .catch(() => {
+      // Flag loading as failed
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          gamesFailedLoading: true,
+        })
+      });
+    })
+    .finally(() => {
+      // Flag loading as done
       this.setState({
         central: Object.assign({}, this.state.central, {
           gamesDoneLoading: true,
-          gamesFailedLoading: true,
         })
       });
     });
