@@ -23,7 +23,7 @@ export function orderByGenre(a: IGameInfo, b: IGameInfo): number {
 export function orderByDateAdded(a: IGameInfo, b: IGameInfo): number {
   if (a.dateAdded < b.dateAdded) { return -1; }
   if (a.dateAdded > b.dateAdded) { return  1; }
-  return 0; 
+  return 0;
 }
 
 /** Order games by their series alphabetically (ascending) */
