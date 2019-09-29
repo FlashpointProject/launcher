@@ -273,7 +273,9 @@
     "selectThemeFile": "Select Theme File",
     "selectCurationFolder": "Select Curation Folder(s)",
     "selectCurationArchive": "Select Curation Archive(s)",
-    "selectCurationMeta": "Select Curation Meta(s)"
+    "selectCurationMeta": "Select Curation Meta(s)",
+    "errorParsingPlatforms": "Error parsing platforms!",
+    "errorParsingPlatformsMessage": "{0} Error(s) raised while parsing platform XMLs\nPlease check the logs for details."
   },
   "libraries": {
     "arcade": "Games",

@@ -327,7 +327,9 @@ export type DialogLang = LangObject<
   'selectThemeFile' |
   'selectCurationFolder' |
   'selectCurationArchive' |
-  'selectCurationMeta'
+  'selectCurationMeta' |
+  'errorParsingPlatforms' |
+  'errorParsingPlatformsMessage'
 >;
 
 export type LibrariesLang = Partial<LangObject<string>>;

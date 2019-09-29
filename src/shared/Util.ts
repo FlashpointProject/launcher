@@ -337,3 +337,15 @@ export function versionNumberToText(version: number): string {
     }
   }
 }
+
+/**
+ * Create a copy of an array with all the undefined values taken out (shifting everything along to not leave any empty spaces).
+ * @param array Array to copy and clear.
+ */
+export function clearArray<T>(array: Array<T | undefined>): Array<T> {
+  const clear: T[] = [];
+  for (let val of array) {
+    if (val !== undefined) { clear.push(val); }
+  }
+  return clear;
+}

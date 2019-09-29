@@ -283,6 +283,8 @@ export function getDefaultLocalization(): LangContainer {
       selectCurationFolder: 'selectCurationFolder',
       selectCurationArchive: 'selectCurationArchive',
       selectCurationMeta: 'selectCurationMeta',
+      errorParsingPlatforms: 'errorParsingPlatforms',
+      errorParsingPlatformsMessage: '{0} errorParsingPlatformsMessage'
     },
     libraries: {},
   };

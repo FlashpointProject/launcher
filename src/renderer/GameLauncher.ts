@@ -110,6 +110,7 @@ export class GameLauncher {
       case 'html5':
       case 'popcap plugin':
       case 'silverlight':
+      default:
         return GameLauncher.getPathOfHtdocsUrl(game.launchCommand, ffpPath);
     }
   }
