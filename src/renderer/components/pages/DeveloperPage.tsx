@@ -400,7 +400,6 @@ function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string 
 
 function checkMissingExecMappings(games: IGameInfo[]): string {
   const execMappings = GameLauncher.getExecMappings();
-  console.log(execMappings);
   let allExecs: string[] = [];
   let text = '';
   // Gather list of all unique execs
