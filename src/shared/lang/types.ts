@@ -133,6 +133,7 @@ export type FilterLang = LangObject<
   'series' |
   'title' |
   'developer' |
+  'publisher' |
   'ascending' |
   'descending'
 >;

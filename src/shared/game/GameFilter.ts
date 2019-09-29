@@ -40,6 +40,20 @@ export function orderByPlatform(a: IGameInfo, b: IGameInfo): number {
   return orderByTitle(a, b);
 }
 
+/** Order games by their developer alphabetically (ascending) */
+export function orderByDeveloper(a: IGameInfo, b: IGameInfo): number {
+  if (a.developer < b.developer) { return -1; }
+  if (a.developer > b.developer) { return  1; }
+  return orderByTitle(a, b);
+}
+
+/** Order games by their publisher alphabetically (ascending) */
+export function orderByPublisher(a: IGameInfo, b: IGameInfo): number {
+  if (a.publisher < b.publisher) { return -1; }
+  if (a.publisher > b.publisher) { return  1; }
+  return orderByTitle(a, b);
+}
+
 /** Reverse the order (makes an ascending order function descending instead) */
 export function reverseOrder(compareFn: OrderFn): OrderFn {
   return (a: IGameInfo, b: IGameInfo) => {
@@ -58,6 +72,8 @@ export function getOrderFunction(order: GameOrderChangeEvent): OrderFn {
     case 'genre':     orderFn = orderByGenre;     break;
     case 'platform':  orderFn = orderByPlatform;  break;
     case 'series':    orderFn = orderBySeries;    break;
+    case 'developer': orderFn = orderByDeveloper; break;
+    case 'publisher': orderFn = orderByPublisher; break;
     default: /* case 'title': */ orderFn = orderByTitle; break;
   }
   if (order.orderReverse === 'descending') {
