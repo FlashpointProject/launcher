@@ -2,7 +2,7 @@ import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as React from 'react';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { BrowseLang, DialogLang, LangContainer, MenuLang } from '../../shared/lang/types';
+import { BrowseLang, LangContainer } from '../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import GameManager from '../game/GameManager';
@@ -385,6 +385,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 <RightBrowseSidebarAddApp
                   key={addApp.id}
                   addApp={addApp}
+                  native={GameLauncher.isPlatformNativeLocked(game.platform)}
                   editDisabled={!editable}
                   onLaunch={this.onAddAppLaunch}
                   onDelete={this.onAddAppDelete} />
@@ -656,8 +657,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
-    GameLauncher.launchAdditionalApplication(addApp);
+  onAddAppLaunch(addApp: IAdditionalApplicationInfo, native: boolean): void {
+    GameLauncher.launchAdditionalApplication(addApp, native);
   }
 
   onAddAppDelete = (addApp: IAdditionalApplicationInfo): void => {

@@ -10,12 +10,14 @@ import { OpenIcon } from './OpenIcon';
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */
   addApp: IAdditionalApplicationInfo;
+  /** Whether to use Native execs */
+  native: boolean;
   /** Called when a field is edited */
   onEdit?: () => void;
   /** Called when a field is edited */
   onDelete?: (addApp: IAdditionalApplicationInfo) => void;
   /** Called when the launch button is clicked */
-  onLaunch?: (addApp: IAdditionalApplicationInfo) => void;
+  onLaunch?: (addApp: IAdditionalApplicationInfo, native: boolean) => void;
   /** If the editing is disabled (it cant go into "edit mode") */
   editDisabled?: boolean;
 };
@@ -120,7 +122,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
 
   onLaunchClick = (): void => {
     if (this.props.onLaunch) {
-      this.props.onLaunch(this.props.addApp);
+      this.props.onLaunch(this.props.addApp, this.props.native);
     }
   }
 

@@ -25,8 +25,6 @@ export function getDefaultLocalization(): LangContainer {
       redirector: 'redirector',
       redirectorFiddler: 'redirectorFiddler',
       redirectorDesc: 'redirectorDesc',
-      useWine: 'useWine',
-      useWineDesc: 'useWineDesc',
       platforms: 'platforms',
       nativePlatforms: 'nativePlatforms',
       nativePlatformsDesc: 'nativePlatformsDesc',

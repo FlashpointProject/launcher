@@ -2,6 +2,8 @@ import { ChildProcess, exec, ExecOptions } from 'child_process';
 import { remote } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
+import { DialogLang } from 'src/shared/lang/types';
+import * as which from 'which';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { padStart, stringifyArray } from '../shared/Util';
 import { ExecMapping } from './game/Execs';
@@ -158,7 +160,7 @@ export class GameLauncher {
     if (urlObj) { return path.join(GameLauncher.getHtdocsPath(flashpointPath), urlToFilePath(urlObj)); }
   }
 
-  public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
+  public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo, native: boolean): void {
     switch (addApp.applicationPath) {
       case ':message:':
         remote.dialog.showMessageBox({
@@ -185,10 +187,8 @@ export class GameLauncher {
         break;
       default:
         const appArgs: string = addApp.commandLine;
-        let useWine: boolean = window.External.preferences.getData().useWine;
-        const appPath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(addApp.applicationPath, useWine)));
-        // Only Exe available, force Wine
-        if (appPath.endsWith('.exe')) { useWine = true; }
+        const appPath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(addApp.applicationPath, native)));
+        const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
         const proc = GameLauncher.launch(
           GameLauncher.createCommand(appPath, appArgs, useWine),
           { env: GameLauncher.getEnvironment(useWine) }
@@ -201,22 +201,36 @@ export class GameLauncher {
   /**
    * Launch a game
    * @param game Game to launch
+   * @param addApps Additional applications to launch first
+   * @param lang String to use for Wine warning. Static functions don't have a context to use.
    */
-  public static launchGame(game: IGameInfo, addApps?: IAdditionalApplicationInfo[]): void {
+  public static launchGame(game: IGameInfo, lang: DialogLang, addApps?: IAdditionalApplicationInfo[]): void {
     // Abort if placeholder (placeholders are not "actual" games)
     if (game.placeholder) { return; }
+    const native = this.isPlatformNativeLocked(game.platform);
     // Run all provided additional applications with "AutoRunBefore" enabled
     addApps && addApps.forEach((addApp) => {
       if (addApp.autoRunBefore) {
-        GameLauncher.launchAdditionalApplication(addApp);
+        GameLauncher.launchAdditionalApplication(addApp, native);
       }
     });
     // Launch game
     const gameArgs: string = game.launchCommand;
-    let useWine: boolean = !this.isPlatformNativeLocked(game.platform) && window.External.preferences.getData().useWine;
-    const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game.applicationPath, useWine)));
-    // Only Exe available, force Wine
-    if (gamePath.endsWith('.exe')) { useWine = true; }
+    const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game.applicationPath, native)));
+    const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+    if (useWine) {
+      which('wine', (err) => {
+        if (err) {
+          log('Warning : Wine is required but was not found. Is it installed?');
+          remote.dialog.showMessageBox({
+            type: 'error',
+            title: lang.programNotFound,
+            message: lang.wineNotFound,
+            buttons: ['Ok'],
+          });
+        }
+      });
+    }
     const command: string = GameLauncher.createCommand(gamePath, gameArgs, useWine);
     const proc = GameLauncher.launch(command, { env: GameLauncher.getEnvironment(useWine) });
     log(`Launch Game "${game.title}" (PID: ${proc.pid}) [\n`+
@@ -247,7 +261,7 @@ export class GameLauncher {
    * The paths provided in the Game/AdditionalApplication XMLs are only accurate
    * on Windows. Use platform specific paths (if mapped and required)
    */
-  private static getApplicationPath(path: string, useWine: boolean): string {
+  private static getApplicationPath(path: string, native: boolean): string {
     const platform = process.platform;
 
     // Special case for bat/sh files, always use native
@@ -256,7 +270,7 @@ export class GameLauncher {
     }
 
     // No mapping required for Windows and Wine, skip
-    if (platform != 'win32' && !useWine) {
+    if (platform != 'win32' && native) {
       for (let i = 0; i < this.execMappings.length; i++) {
         const mapping = this.execMappings[i];
         if (mapping.win32 === path) {
@@ -303,7 +317,7 @@ export class GameLauncher {
     let escFilename: string = filename;
     let escArgs: string = args;
     // Use wine for any exe files (unless on Windows)
-    if (process.platform != 'win32' && useWine) {
+    if (useWine) {
       escFilename = 'wine';
       escArgs = `start /unix "${filename}" ${escapeLinuxArgs(args)}`;
     } else {

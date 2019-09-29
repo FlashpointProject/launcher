@@ -58,8 +58,6 @@ export type ConfigLang = LangObject<
   'redirector' |
   'redirectorFiddler' |
   'redirectorDesc' |
-  'useWine' |
-  'useWineDesc' |
   'platforms' |
   'nativePlatforms' |
   'nativePlatformsDesc' |

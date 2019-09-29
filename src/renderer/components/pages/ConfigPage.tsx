@@ -1,7 +1,6 @@
 import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
-import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { autoCode } from '../../../shared/lang/misc';
@@ -198,25 +197,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <p>{strings.redirectorDesc}</p>
                 </div>
               </div>
-              {/* Wine */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.useWine}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--toggle'>
-                    <div>
-                      <CheckBox
-                        checked={this.props.preferencesData.useWine}
-                        onToggle={this.useWineChange} />
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.useWineDesc}</p>
-                </div>
-              </div>
-              {/* Native Locks */}
+              {/* Native Platforms */}
+              { process.platform != 'win32' ?
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
@@ -251,6 +233,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <p>{strings.nativePlatformsDesc}</p>
                 </div>
               </div>
+              : undefined }
             </div>
           </div>
 
@@ -427,25 +410,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     // Check if the file-path points at a valid FlashPoint folder
     const isValid = await isFlashpointValidCheck(filePath);
     this.setState({ isFlashpointPathValid: isValid });
-  }
-
-  useWineChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ useWine: isChecked });
-    this.forceUpdate();
-
-    if (isChecked && process.platform != 'win32') {
-      which('wine', (err) => {
-        if (err) {
-          log('Warning : Wine was enabled but it was not found on the path.');
-          remote.dialog.showMessageBox({
-            type: 'error',
-            title: this.context.dialog.programNotFound,
-            message: this.context.dialog.wineNotFound,
-            buttons: ['Ok'],
-          });
-        }
-      });
-    }
   }
 
   onUseCustomTitlebarChange = (isChecked: boolean): void => {

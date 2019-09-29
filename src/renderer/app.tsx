@@ -36,8 +36,8 @@ import { ThemeManager } from './theme/ThemeManager';
 import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
 import { joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
-import { downloadAndInstallUpgrade } from './util/upgrade';
 import { getPlatforms } from './util/platform';
+import { downloadAndInstallUpgrade } from './util/upgrade';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -299,21 +299,6 @@ export class App extends React.Component<AppProps, AppState> {
             message: strings.dialog.phpNotFound,
             buttons: ['Ok']
           } );
-        }
-      });
-
-
-      which('wine', function(err: Error | null) {
-        if (err) {
-          if (window.External.preferences.getData().useWine) {
-            log('Warning : Wine is enabled but it was not found on the path.');
-            remote.dialog.showMessageBox({
-              type: 'error',
-              title: strings.dialog.programNotFound,
-              message: strings.dialog.wineNotFound,
-              buttons: ['Ok']
-            } );
-          }
         }
       });
     }

@@ -434,7 +434,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onGameLaunch = (game: IGameInfo): void => {
     const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
-    GameLauncher.launchGame(game, addApps);
+    GameLauncher.launchGame(game, this.context.dialog, addApps);
   }
 
   /** Create a callback for opening the file location of a game. */

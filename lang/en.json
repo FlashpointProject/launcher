@@ -21,8 +21,6 @@
     "redirector": "Redirector",
     "redirectorFiddler": "Fiddler",
     "redirectorDesc": "Which software to use for redirecting the game traffic to the local web server. Neither is used on Linux.",
-    "useWine": "Use Wine",
-    "useWineDesc": "Launch applications with Wine. Only enable this if Wine is installed.",
     "platforms": "Platforms",
     "nativePlatforms": "Native Platforms",
     "nativePlatformsDesc": "Platforms to force use of native applications (if available) in any circumstance",
@@ -266,7 +264,7 @@
   "dialog": {
     "programNotFound": "Program not found!",
     "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
-    "wineNotFound": "Wine was enabled but not found on the path. Is it installed?\nSome games may not be available without Wine",
+    "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
     "fileNotFound": "File not found!",
     "pathNotFound": "Path not found!",
     "selectFileToExportMeta" : "Select file to save meta to",

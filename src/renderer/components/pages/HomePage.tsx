@@ -231,7 +231,7 @@ export class HomePage extends React.Component<HomePageProps> {
   }
 
   onLaunchGame(game: IGameInfo): void {
-    GameLauncher.launchGame(game);
+    GameLauncher.launchGame(game, this.context.dialog);
   }
 
   onHelpClick = () => {

@@ -21,8 +21,6 @@
     "redirector": "Redirecionador",
     "redirectorFiddler": "Fiddler",
     "redirectorDesc": "Que software utilizar para redirecionar o tráfego de jogo para o web server local. Nenhum é usado no Linux.",
-    "useWine": "Usar Wine",
-    "useWineDesc": "Iniciar aplicações com Wine. So ative isto se Wine estiver instalado.",
     "visualsHeader": "Visuais",
     "useCustomTitleBar": "Customizar a Barra de Título",
     "useCustomTitleBarDesc": "Usar uma Barra de Título customizada no topo desta janela.",
