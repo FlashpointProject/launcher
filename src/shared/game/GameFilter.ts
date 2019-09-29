@@ -67,7 +67,6 @@ export function reverseOrder(compareFn: OrderFn): OrderFn {
 /** Get the order function for a given game order */
 export function getOrderFunction(order: GameOrderChangeEvent): OrderFn {
   let orderFn: OrderFn;
-  console.log(order);
   switch (order.orderBy) {
     case 'dateAdded': orderFn = orderByDateAdded; break;
     case 'genre':     orderFn = orderByGenre;     break;
