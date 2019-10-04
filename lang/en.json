@@ -110,12 +110,18 @@
     "checkPlaylistsDesc": "List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs",
     "checkGameFileLocation": "Check Game File Location",
     "checkGameFileLocationDesc": "List all games with launch commands that can not be parsed into file paths (this is related to the 'Open File Location' function, not launching the game)",
+    "checkApplicationPath": "Check Application Path",
+    "checkApplicationPathDesc": "List all games with an invalid application path (e.g Missing File)",
+    "checkLaunchCommand": "Check Launch Command",
+    "checkLaunchCommandDesc": "List all games with https command (optionally check for launch command files missing on disk)",
     "renameImagesTitleToId": "Rename Images (Title => ID)",
     "renameImagesTitleToIdDesc": "Find all game images with the games title in their filename and rename them to use its ID instead",
     "renameImagesIdToTitle": "Rename Images (ID => Title)",
     "renameImagesIdToTitleDesc": "Find all game images with the games ID in their filename and rename them to use its title instead",
     "createMissingFolders": "Create Missing Folders",
-    "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them"
+    "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them",
+    "removeUnusedImages": "Remove Unused Images",
+    "removeUnusedImagesDesc": "Find and remove all unused images (Will be prompted to delete or keep)"
   },
   "about": {
     "aboutHeader": "About",

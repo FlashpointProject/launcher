@@ -115,12 +115,18 @@ export function getDefaultLocalization(): LangContainer {
       checkPlaylistsDesc: 'checkPlaylistsDesc',
       checkGameFileLocation: 'checkGameFileLocation',
       checkGameFileLocationDesc: 'checkGameFileLocationDesc',
+      checkApplicationPath: 'checkApplicationPath',
+      checkApplicationPathDesc: 'checkApplicationPathDesc',
+      checkLaunchCommand: 'checkLaunchCommand',
+      checkLaunchCommandDesc: 'checkLaunchCommandDesc',
       renameImagesIdToTitle: 'renameImagesIdToTitle',
       renameImagesIdToTitleDesc: 'renameImagesIdToTitleDesc',
       renameImagesTitleToId: 'renameImagesTitleToId',
       renameImagesTitleToIdDesc: 'renameImagesTitleToIdDesc',
       createMissingFolders: 'createMissingFolders',
-      createMissingFoldersDesc: 'createMissingFolderDesc'
+      createMissingFoldersDesc: 'createMissingFolderDesc',
+      removeUnusedImages: 'removeUnusedImages',
+      removeUnusedImagesDesc: 'removeUnusedImagesDesc'
     },
     about:{
       aboutHeader: 'aboutHeader',

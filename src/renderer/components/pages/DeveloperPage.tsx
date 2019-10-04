@@ -1,11 +1,13 @@
+import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
+import { orderByTitle } from '../../../shared/game/GameFilter';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { DeveloperLang, LangContainer } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang/types';
 import { removeFileExtension } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';
@@ -15,7 +17,7 @@ import { formatImageFilename, organizeImageFilepaths } from '../../image/util';
 import { CentralState } from '../../interfaces';
 import { LaunchboxData } from '../../LaunchboxData';
 import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
-import { getFileExtension } from '../../Util';
+import { getFileExtension, sizeToString } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
@@ -92,6 +94,14 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.checkGameFileLocation}
               title={strings.checkGameFileLocationDesc}
               onClick={this.onCheckFileLocation} />
+            <SimpleButton
+              value={strings.checkApplicationPath}
+              title={strings.checkApplicationPathDesc}
+              onClick={this.onCheckApplicationPaths} />
+            <SimpleButton
+              value={strings.checkLaunchCommand}
+              title={strings.checkLaunchCommandDesc}
+              onClick={this.onCheckLaunchCommands} />
             {/* Log */}
             <LogData
               className='developer-page__log'
@@ -109,6 +119,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.createMissingFolders}
               title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
+            <SimpleButton
+              value={strings.removeUnusedImages}
+              title={strings.removeUnusedImagesDesc}
+              onClick={this.onRemoveUnusedImagesClick} />
           </div>
         </div>
       </div>
@@ -147,6 +161,28 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     this.setState({ text: checkFileLocation(games) });
   }
 
+  onCheckApplicationPaths = (): void => {
+    const games = this.props.central.games.collection.games;
+    const fullFlashpointPath = window.External.config.fullFlashpointPath;
+    this.setState({ text: checkApplicationPaths(games, fullFlashpointPath) });
+  }
+
+  onCheckLaunchCommands = (): void => {
+    const button = remote.dialog.showMessageBoxSync({
+      type: 'warning',
+      title: 'Check path exists?',
+      message: 'Check whether the launch command is an existing path?\n' +
+               'Must be using Ultimate to work properly.',
+      buttons: ['Yes', 'No'],
+    });
+    this.setState({ text: 'Please be patient. This may take a few seconds...' });
+    setTimeout(async () => {
+      const games = this.props.central.games.collection.games;
+      const fullFlashpointPath = window.External.config.fullFlashpointPath;
+      this.setState({ text: await checkLaunchCommands(games, fullFlashpointPath, button === 0) });
+    }, 0);
+  }
+
   onRenameImagesTitleToIDClick = (): void => {
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
@@ -169,6 +205,15 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     setTimeout(async () => {
       const collection = this.props.central.games.collection;
       this.setState({ text: await createMissingFolders(collection) });
+    }, 0);
+  }
+
+  onRemoveUnusedImagesClick = (): void => {
+    this.setState({ text: 'Please be patient. This may take a few minutes... (Progress is in the console)\n\n' });
+    setTimeout(async () => {
+      const games = this.props.central.games.collection.games;
+      const imagesPath = path.join(window.External.config.fullFlashpointPath, window.External.config.data.imageFolderPath);
+      this.setState({ text: await removeUnusedImages(games, imagesPath) });
     }, 0);
   }
 
@@ -469,6 +514,73 @@ function checkFileLocation(games: IGameInfo[]): string {
   return text;
 }
 
+function checkApplicationPaths(games: IGameInfo[], fullFlashpointPath: string): string {
+  let invalidGames : IGameInfo[] = [];
+  const startTime = Date.now();
+  games.forEach((game) => {
+    path.join(fullFlashpointPath, game.applicationPath);
+    if (!fs.existsSync(path.join(fullFlashpointPath, game.applicationPath))){
+      invalidGames.push(game);
+    }
+  });
+  let text = `Checked all Application Paths (in ${Date.now() - startTime}ms)\n\n`;
+  invalidGames.sort(orderByTitle);
+  invalidGames.forEach((game) => {
+    text += `${('"' + game.title + '"').padEnd(50, ' ')} (ID: ${game.id}) - Application Path - "${game.applicationPath}"\n`
+  });
+  return text;
+}
+
+async function checkLaunchCommands(games: IGameInfo[], fullFlashpointPath: string, checkMissing: boolean): Promise<string> {
+  let httpsGames : string[]  = [];
+  let missingGames : string[] = [];
+  const startTime = Date.now();
+  games.forEach((game) => {
+    // Extract first string (Usually URL, Inside quotes will keep spaces)
+    let match = game.launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+    if (match) {
+      // Match 1 - Inside quotes, Match 0 - No Quotes Found
+      let launchCommand = match[1] || match[0];
+      // Only check URLS (ignore bash/shell script non-URL commands) )
+      if (launchCommand.toLowerCase().startsWith('http')) {
+        if (launchCommand.toLowerCase().startsWith('https')) {
+          httpsGames.push(`${('"' + game.title + '"').padEnd(50, ' ')} (ID: ${game.id})  - Launch Command "${launchCommand}"\n`);
+        }
+        const ending = launchCommand.split('/').pop();
+        // If the string doesn't end in a file, assume the spaced URL was not inside quotes, use full launch command
+        if (ending && !ending.includes('.')){
+          launchCommand = game.launchCommand.split('?')[0];
+        }
+        if (checkMissing) {
+          const filePath = path.join(fullFlashpointPath, 'Server/htdocs', launchCommand.replace(/(^\w+:|^)\/\//, ''));
+          if (!fs.existsSync(filePath)) {
+            missingGames.push(`${('"' + game.title + '"').padEnd(50, ' ')} (ID: ${game.id})  - Launch Command "${launchCommand}"\n`);
+          }
+        }
+      }
+    }
+  });
+
+  // Sort lists then print everything out
+  let text = `Checked all Launch Commands (in ${Date.now() - startTime}ms)\n\n` +
+             `Launch commands using HTTPS: (${httpsGames.length} games)\n\n`;
+  httpsGames.sort();
+  missingGames.sort();
+
+  httpsGames.forEach((game) => {
+    text += game;
+  });
+
+  if (checkMissing) {
+    text += `\nLaunch command files missing on disk: (${missingGames.length} games)\n\n`;
+    missingGames.forEach((game) => {
+      text += game;
+    })
+  }
+
+  return text;
+}
+
 type FilterFlags<Base, Condition> = {
   [Key in keyof Base]: Base[Key] extends Condition ? Key : never
 };
@@ -685,6 +797,7 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
       return false;
     }
   }
+
   /** Find the image folder names of all the current platforms platforms. */
   async function findPlatformFolderImageNames() {
     // Get the platform filenames
@@ -697,10 +810,115 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
       .map(filename => filename.split('.')[0]) // "Flash.xml" => "Flash"
     );
   }
+
   /** Log error (if there is any). */
   function logError(error: any): void {
     if (error) { console.warn(error); }
   }
+}
+
+type ImageDirectory = {
+  path: string;
+  files: number;
+  filesUnused: string[];
+  totalBytesUnused: number;
+}
+
+async function removeUnusedImages(games: IGameInfo[], imagesPath: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const startTime = Date.now();
+    getImageDirs(imagesPath)
+    .then((folders) => {
+      let promises: Promise<ImageDirectory>[] = [];
+      folders.forEach((dir, index) => {
+        console.log('Processing - ' + (index+1) + ' of ' + folders.length + ' - ' + dir.path);
+        promises.push(new Promise<ImageDirectory>((resolve) => {
+          // Find all files
+          const files = fs.readdirSync(dir.path);
+          for (let i = 0; i < files.length; i++) {
+            const fullPath = path.join(dir.path, files[i]);
+            if (!fs.lstatSync(fullPath).isDirectory()) {
+              dir.files++;
+              let j = 0;
+              for (; j < games.length; j++) {
+                if (fullPath.includes(games[j].id)) {
+                  break;
+                }
+              }
+              // No match found from any game, must be unused
+              if (j === games.length) {
+                dir.totalBytesUnused += fs.statSync(fullPath).size;
+                dir.filesUnused.push(fullPath);
+               }
+            }
+          }
+          resolve(dir);
+        }));
+      });
+      return Promise.all(promises);
+    })
+    .then((folders) => {
+      console.log('Processing Finished.');
+      let text = `Processed all image folders (in ${Date.now() - startTime}ms)`;
+      let totalUnusedFiles = 0;
+      let totalSize = 0;
+      folders.forEach((dir) => {
+        totalUnusedFiles += dir.filesUnused.length;
+        totalSize += dir.totalBytesUnused;
+        text += dir.path.padEnd(75,' ') +
+               ` - File Count : ${dir.files.toString().padEnd(8,' ')}` +
+               ` - Files Unused : ${dir.filesUnused.length.toString().padEnd(8, ' ')}` +
+               ` - Total Unused Size : ${sizeToString(dir.totalBytesUnused)}\n`;
+      });
+      const button = remote.dialog.showMessageBoxSync({
+        type: 'warning',
+        title: 'Delete unused images?',
+        message: totalUnusedFiles + `${totalUnusedFiles} Images found unused totaling + ${sizeToString(totalSize)} + \n` + 
+                'Delete unused images? They cannot be recovered.',
+        buttons: ['Yes', 'No'],
+      });
+      // Button Index 0 - Yes
+      if (button === 0) {
+        folders.forEach((dir) => {
+          dir.filesUnused.forEach((file) => {
+            text += 'Deleted - ' + file + '\n';
+            fs.unlinkSync(file);
+          })
+        });
+        text += `\nDeleted ${totalUnusedFiles} unused images totalling ${sizeToString(totalSize)}`;
+      } else {
+        text += 'No images deleted.';
+      }
+      resolve(text);
+    })
+    .catch((error) => {
+      console.error(error);
+      reject(error);
+    });
+  });
+}
+
+async function getImageDirs(fullImagesPath: string): Promise<ImageDirectory[]> {
+  return new Promise<ImageDirectory[]>((resolve) => {
+    let dirs: ImageDirectory[] = [];
+    recursiveImageDirs(fullImagesPath).forEach((dir) => {
+      dirs.push({path: dir, files: 0, filesUnused: [], totalBytesUnused: 0});
+    });
+    resolve(dirs);
+  });
+}
+
+function recursiveImageDirs(dir: string): string[] {
+  let list: string[] = [];
+  const files = fs.readdirSync(dir);
+  for (let i = 0; i < files.length; i++) {
+    const fullPath = path.join(dir, files[i]);
+    if (fs.lstatSync(fullPath).isDirectory()) {
+      list = list.concat(recursiveImageDirs(fullPath));
+    }
+  }
+  if (list.length === 0) { list.push(dir); }
+  return list;
 }
 
 /** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */

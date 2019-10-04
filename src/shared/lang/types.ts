@@ -153,12 +153,18 @@ export type DeveloperLang = LangObject<
   'checkPlaylistsDesc' |
   'checkGameFileLocation' |
   'checkGameFileLocationDesc' |
+  'checkApplicationPath' |
+  'checkApplicationPathDesc' |
+  'checkLaunchCommand' |
+  'checkLaunchCommandDesc' |
   'renameImagesTitleToId' |
   'renameImagesTitleToIdDesc' |
   'renameImagesIdToTitle' |
   'renameImagesIdToTitleDesc' |
   'createMissingFolders' |
-  'createMissingFoldersDesc'
+  'createMissingFoldersDesc' |
+  'removeUnusedImages' |
+  'removeUnusedImagesDesc'
 >;
 
 export type AboutLang = LangObject<
