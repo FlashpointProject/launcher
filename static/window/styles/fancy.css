@@ -739,3 +739,11 @@ body {
   /* Change the color of the "No Theme" suggestion in the drop-down list. */
   color: var(--layout__no-theme-suggestion-color);
 }
+
+/* Splash Screen */
+.splash-screen {
+  background: var(--layout__primary-background);
+}
+.splash-screen_status {
+  color: var(--layout__primary-text-color);
+}

@@ -13,6 +13,7 @@ import { memoizeOne } from '../shared/memoize';
 import { versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
+import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
@@ -350,6 +351,10 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   render() {
+    const loaded = this.state.central.gamesDoneLoading &&
+                  this.state.central.playlistsDoneLoading &&
+                  this.state.central.upgrade.doneLoading &&
+                  this.state.creditsDoneLoading;
     const games = this.state.central.games.collection.games;
     const libraries = this.props.libraryData.libraries;
     const platforms = this.state.central.games.listPlatforms();
@@ -380,34 +385,40 @@ export class App extends React.Component<AppProps, AppState> {
     // Render
     return (
       <LangContext.Provider value={this.state.lang}>
-        {/* "TitleBar" stuff */}
-        { window.External.config.data.useCustomTitlebar ? (
-          <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
-        ) : undefined }
-        {/* "Header" stuff */}
-        <HeaderContainer
-          onOrderChange={this.onOrderChange}
-          onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-          onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-          order={this.state.order} />
-        {/* "Main" / "Content" stuff */}
-        <div className='main'>
-          <AppRouter { ...routerProps } />
-          <noscript className='nojs'>
-            <div style={{textAlign:'center'}}>
-              This website requires JavaScript to be enabled.
-            </div>
-          </noscript>
-        </div>
-        {/* "Footer" stuff */}
-        <ConnectedFooter
-          showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-          totalCount={games.length}
-          currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-          currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
-          onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-          onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-          onNewGameClick={this.onNewGameClick} />
+        {/* Fading Splash */}
+        <SplashScreen fade={loaded} />
+        {loaded ?
+          <>
+          {/* "TitleBar" stuff */}
+          { window.External.config.data.useCustomTitlebar ? (
+            <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
+          ) : undefined }
+          {/* "Header" stuff */}
+          <HeaderContainer
+            onOrderChange={this.onOrderChange}
+            onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+            onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+            order={this.state.order} />
+          {/* "Main" / "Content" stuff */}
+          <div className='main'>
+            <AppRouter { ...routerProps } />
+            <noscript className='nojs'>
+              <div style={{textAlign:'center'}}>
+                This website requires JavaScript to be enabled.
+              </div>
+            </noscript>
+          </div>
+          {/* "Footer" stuff */}
+          <ConnectedFooter
+            showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+            totalCount={games.length}
+            currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
+            currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+            onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+            onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+            onNewGameClick={this.onNewGameClick} />
+          </>
+        : undefined}
       </LangContext.Provider>
     );
   }

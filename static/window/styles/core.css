@@ -1736,3 +1736,21 @@ body {
 .setting__row__content--input-field .input-dropdown__content {
   border: 1px solid;
 }
+
+/** --- Splash Screen --- **/
+.splash-screen {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s;
+}
+.splash-screen.fade-out{
+  opacity: 0;
+}
+.splash-screen_status {
+  font-size: 8em
+}
