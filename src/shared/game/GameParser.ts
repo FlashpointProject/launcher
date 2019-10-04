@@ -83,10 +83,10 @@ export class GameParser {
       Source: escapeHTML(game.source),
       ApplicationPath: escapeHTML(game.applicationPath),
       CommandLine: escapeHTML(game.launchCommand),
-      ReleaseDate: unescapeHTML(game.releaseDate),
-      Version: unescapeHTML(game.version),
-      OriginalDescription: unescapeHTML(game.originalDescription),
-      Language: unescapeHTML(game.language),
+      ReleaseDate: escapeHTML(game.releaseDate),
+      Version: escapeHTML(game.version),
+      OriginalDescription: escapeHTML(game.originalDescription),
+      Language: escapeHTML(game.language),
     };
   }
 
