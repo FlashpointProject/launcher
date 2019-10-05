@@ -386,7 +386,12 @@ export class App extends React.Component<AppProps, AppState> {
     return (
       <LangContext.Provider value={this.state.lang}>
         {/* Fading Splash */}
-        <SplashScreen fade={loaded} />
+        <SplashScreen 
+          gamesLoaded={this.state.central.gamesDoneLoading}
+          playlistsLoaded={this.state.central.playlistsDoneLoading}
+          upgradesLoaded={this.state.central.upgrade.doneLoading}
+          creditsLoaded={this.state.creditsDoneLoading}
+          />
         {loaded ?
           <>
           {/* "TitleBar" stuff */}

@@ -40,6 +40,7 @@ body {
 /* Measure elements by the outline of their border instead of by their content */
 :root {
   box-sizing: border-box;
+  --splash-screen_size: 20em;
 }
 *, ::before, ::after {
   box-sizing: inherit;
@@ -1744,6 +1745,7 @@ body {
   position: absolute;
   pointer-events: none;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   transition: opacity 0.8s;
@@ -1751,6 +1753,20 @@ body {
 .splash-screen.fade-out{
   opacity: 0;
 }
-.splash-screen_status {
-  font-size: 8em
+.splash-screen_loading_logo {
+  position: absolute;
+  --size: var(--splash-screen_size);
+  /* Keep the mask's aspect ratio */
+  width: var(--size);
+  height: calc(var(--size) * 0.9);
+}
+.splash-screen_status_block {
+  position: absolute;
+  font-size: 1.5em;
+  margin: calc(var(--splash-screen_size)/3) 0 0 0;
+  text-align: center;
+  height: 0;
+}
+.splash-screen_status_header {
+  font-size: 2.5em;
 }
