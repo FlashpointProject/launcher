@@ -143,7 +143,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
-    const { central, gameLibraryRoute, onSelectGame, selectedGame, selectedPlaylist } = this.props;
+    const { central, gameLibraryRoute, libraryData, onSelectGame, selectedGame, selectedPlaylist } = this.props;
     const { isEditing, quickSearch } = this.state;
     // Check if it ended editing
     if (!isEditing && prevState.isEditing) {
@@ -153,7 +153,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Check if it started editing
     if (isEditing && !prevState.isEditing) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ suggestions: getSuggestions(central.games.collection) });
+      this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) });
     }
     // Update current game and add-apps if the selected game changes
     if (selectedGame && selectedGame !== prevProps.selectedGame) {

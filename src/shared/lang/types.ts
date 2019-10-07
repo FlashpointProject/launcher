@@ -219,6 +219,8 @@ export type BrowseLang = LangObject<
   'noApplicationPath' |
   'launchCommand' |
   'noLaunchCommand' |
+  'library' |
+  'defaultLibrary' |
   'thumbnail' |
   'screenshot' |
   'dropImageHere' |
@@ -273,6 +275,7 @@ export type CurateLang = LangObject<
   'unusedApplicationPath' |
   'unusedGenre' |
   'unusedPlatform' |
+  'nonExistingLibrary' |
   'noContent'
 >;
 

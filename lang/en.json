@@ -173,6 +173,8 @@
     "noApplicationPath": "No Application Path",
     "launchCommand": "Launch Command",
     "noLaunchCommand": "No Launch Command",
+    "library": "Library",
+    "defaultLibrary": "Default Library",
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Drop an image here to add it",
@@ -226,6 +228,7 @@
     "unusedApplicationPath": "'Application Path' has an unused value. Make sure it's spelled correctly!",
     "unusedGenre": "'Genre' has an unused value. Make sure it's spelled correctly!",
     "unusedPlatform": "'Platform' has an unused value. Make sure it's spelled correctly!",
+    "nonExistingLibrary": "'Library' is not the name of an existing library! (Default will be used)",
     "noContent": "No content found! Make sure the folder is named and placed correctly!"
   },
   "playlist": {

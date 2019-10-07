@@ -5,10 +5,10 @@ import { IGameInfo } from '../shared/game/interfaces';
 import { LangFile } from '../shared/lang/types';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
-import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
+import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
 import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
@@ -75,7 +75,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       creditsData: this.props.creditsData,
       creditsDoneLoading: this.props.creditsDoneLoading
     };
-    const curateProps: CuratePageProps = {
+    const curateProps: ConnectedCuratePageProps = {
       games: this.props.central.games,
       gameImages: this.props.gameImages
     };
@@ -103,7 +103,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
           { ...aboutProps } />
         <PropsRoute
           path={Paths.CURATE}
-          component={CuratePage}
+          component={ConnectedCuratePage}
           { ...curateProps } />
         <PropsRoute
           path={Paths.DEVELOPER}
