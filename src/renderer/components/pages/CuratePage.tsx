@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
-import { CurateLang, LangContainer } from '../../../shared/lang/types';
-import { createEditCuration, CurationAction, CurationContext, CurationSource, EditCurationMeta } from '../../context/CurationContext';
+import { CurateLang } from '../../../shared/lang/types';
+import { createEditCuration, CurationAction, CurationContext, EditCurationMeta } from '../../context/CurationContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { importCuration } from '../../curate/importCuration';
 import { CurationIndex, indexCurationArchive, indexCurationFolder } from '../../curate/indexCuration';
@@ -98,7 +98,7 @@ export function CuratePage(props: CuratePageProps) {
         const curationIndex = await indexCurationArchive(source);
         // Add curation index
         setGameMetaDefaults(curationIndex.meta.game, defaultGameMetaValues);
-        addCurationIndex(source, curationIndex, CurationSource.ARCHIVE, dispatch);
+        addCurationIndex(curationIndex, dispatch);
       }
     }
   }, [dispatch]);
@@ -110,6 +110,7 @@ export function CuratePage(props: CuratePageProps) {
       properties: ['openDirectory', 'multiSelections'],
     });
     if (filePaths) {
+      console.log('FOLDER');
       Promise.all(
         filePaths.map(source => (
           // Read and index the folder
@@ -117,7 +118,7 @@ export function CuratePage(props: CuratePageProps) {
           // Add curation index
           .then(curationIndex => {
             setGameMetaDefaults(curationIndex.meta.game, defaultGameMetaValues);
-            addCurationIndex(source, curationIndex, CurationSource.FOLDER, dispatch);
+            addCurationIndex(curationIndex, dispatch);
           })
         ))
       );
@@ -149,7 +150,6 @@ export function CuratePage(props: CuratePageProps) {
               curation: {
                 ...createEditCuration(),
                 key: uuid(),
-                source: filepath,
                 meta: meta.game,
                 addApps: meta.addApps.map(meta => ({
                   key: uuid(),
@@ -232,9 +232,7 @@ function renderImportAllButton({ activate, activationCounter, reset, extra }: Co
  * @param dispatch Dispatcher to add the curation with.
  */
 async function addCurationIndex(
-  source: string,
   curation: CurationIndex,
-  sourceType: CurationSource,
   dispatch: React.Dispatch<CurationAction>
 ): Promise<void> {
   // Check for errors
@@ -246,9 +244,7 @@ async function addCurationIndex(
       type: 'add-curation',
       payload: {
         curation: Object.assign(createEditCuration(), {
-          key: uuid(),
-          source: source,
-          sourceType: sourceType,
+          key: curation.key,
           meta: curation.meta.game,
           addApps: curation.meta.addApps.map(meta => ({
             key: uuid(),

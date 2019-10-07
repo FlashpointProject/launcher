@@ -1,16 +1,18 @@
-import * as fs from 'fs';
+import * as extract from 'extract-zip';
+import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as stream from 'stream';
 import { promisify } from 'util';
-import * as yauzl from 'yauzl';
 import { stripBOM } from '../../shared/Util';
+import { uuid } from '../uuid';
 import { parseCurationMeta, ParsedCurationMeta } from './parse';
-
+import { getCurationFolder } from './util';
 const fsReadFile = promisify(fs.readFile);
 const fsReaddir = promisify(fs.readdir);
 const fsStat = promisify(fs.stat);
 
 export type CurationIndex = {
+  /** UUID of the curation, used for storage */
+  key: string;
   /** Data of each file in the content folder (and sub-folders). */
   content: CurationIndexContent[];
   /** Errors that occurred while indexing. */
@@ -48,17 +50,15 @@ export type CurationIndexImage = {
   filePath?: string;
 };
 
-/**
- * Index a curation folder (index all content files, load and parse meta etc.)
- * @param filepath Path of the folder to index.
- */
-export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
+/** Finished a curation index given its existance in its unique folder */
+function indexCuration(curation: CurationIndex): Promise<CurationIndex> {
   return new Promise((resolve, reject) => {
-    const curation = createCurationIndex();
+    const curationFolder = getCurationFolder(curation);
     return Promise.all([
+      // Find root dir
       // Index content files and folders
       new Promise((resolve, reject) => {
-        const contentPath = path.join(filepath, 'content');
+        const contentPath = path.join(curationFolder, 'content');
         fsStat(contentPath)
         .then(() => { // (Content file found)
           // Index the cotent file (and its content recursively)
@@ -67,14 +67,14 @@ export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
           .catch(error => { reject(error); });
         }, (error) => { // (Failed to find content folder)
           if (error.code === 'ENOENT') { // No content folder found
-            console.error(`Skipped indexing of content. No content folder found in:\n"${filepath}"`);
+            console.warn(`Skipped indexing of content. No content folder found in:\n"${curationFolder}"`);
             resolve();
           } else { reject(error); } // Unexpected error
         });
       }),
       // Check if the image files exist
       (async () => {
-        const filenames = await fsReaddir(filepath);
+        const filenames = await fs.readdir(curationFolder);
         for (let filename of filenames) {
           const lowerFilename = filename.toLowerCase();
           let image: CurationIndexImage | undefined = undefined;
@@ -88,18 +88,38 @@ export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
           if (image) {
             image.exists = true;
             image.fileName = filename;
-            image.filePath = fixSlashes(path.join(filepath, filename));
+            image.filePath = fixSlashes(path.join(curationFolder, filename));
           }
         }
       })(),
       // Read and parse the meta
       (async () => {
-        const metaFileData = await fsReadFile(path.join(filepath, 'meta.txt'));
+        const metaFileData = await fs.readFile(path.join(curationFolder, 'meta.txt'));
         curation.meta = parseCurationMeta(stripBOM(metaFileData.toString()));
       })(),
     ])
-    .then(() => { resolve(curation); })
+    .then(() => { 
+      console.log(curation);
+      resolve(curation); })
     .catch(error => { reject(error); });
+  });
+}
+
+/**
+ * Index a curation folder (index all content files, load and parse meta etc.)
+ * @param filepath Path of the folder to index.
+ */
+export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
+  return new Promise<CurationIndex>((resolve, reject) => {
+    const curation = createCurationIndex();
+
+    const curationFolder = getCurationFolder(curation);
+    fs.copySync(filepath, curationFolder);
+
+    resolve(curation);
+  })
+  .then((curation) => {
+    return indexCuration(curation);
   });
 }
 
@@ -108,110 +128,60 @@ export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
  * @param filepath Path of the archive to index.
  */
 export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
-  return new Promise((resolve, reject) => {
+  return new Promise<CurationIndex>((resolve, reject) => {
     const curation = createCurationIndex();
-    // Open archive
-    yauzl.open(filepath, { lazyEntries: true }, (error, zip) => {
-      // Failed to open archive
-      if (error || !zip) {
-        curation.errors.push({ message: error ? error.message : '"zipfile" is missing.' });
-        resolve(curation);
-        return;
+
+    const curationFolder = getCurationFolder(curation);
+    fs.mkdirsSync(curationFolder);
+    // Extract to Curation folder
+    extract(filepath, {dir: curationFolder}, (error) => {
+      if (error) {
+        console.error('Error unpacking curation - ' + error.message);
+        reject();  
       }
-      // Iterate over the contents of the zip, then resolve
-      zip
-      .on('close', () => { resolve(curation); })
-      .on('entry', (entry: yauzl.Entry) => {
-        const splitFileName = entry.fileName.toLowerCase().split('/');
-        // Meta data file
-        if (splitFileName.length === 2 && splitFileName[1] === 'meta.txt') {
-          // Try to read and parse the file
-          readEntryContent(zip, entry)
-          .then((buffer) => {
-            curation.meta = parseCurationMeta(stripBOM(buffer.toString()));
-            zip.readEntry();
-          })
-          .catch(error => {
-            curation.errors.push(error);
-            resolve(curation);
-          });
-        }
-        // Content file(s)
-        else if (splitFileName.length > 2 && splitFileName[1] === 'content' &&
-                 splitFileName[2] !== '') {
-          // Remove the two first folders from the filename
-          const splits = entry.fileName.split('/');
-          splits.splice(0, 2);
-          const fileName = splits.join('/');
-          // Add content to curation index
-          curation.content.push({
-            fileName: fileName,
-            fileSize: entry.uncompressedSize,
-          });
-          // Read the next file
-          zip.readEntry();
-        }
-        // Thumbnail and Screenshot
-        else if (splitFileName.length === 2 &&
-                (splitFileName[1].startsWith('logo.') || splitFileName[1].startsWith('ss.'))) {
-          // Try to read and parse the file
-          readEntryContent(zip, entry)
-          .then((buffer) => {
-            // ...
-            const isThumbnail = splitFileName[1].startsWith('logo.');
-            const image: CurationIndexImage = {
-              exists: true,
-              fileName: entry.fileName,
-              data: bufferToBase64(buffer),
-              rawData: buffer,
-            };
-            if (isThumbnail) { curation.thumbnail  = image; }
-            else             { curation.screenshot = image; }
-            // Read the next file
-            zip.readEntry();
-          })
-          .catch(error => {
-            curation.errors.push(error);
-            resolve(curation);
-          });
-        }
-        // Other files (they are ignored)
-        else {
-          // Read the next file
-          zip.readEntry();
-        }
-      });
-      // Start iterating
-      zip.readEntry();
+      // Move folder down to meta.txt
+      const rootPath = getRootPath(curationFolder);
+      console.log(rootPath);
+      if (rootPath && rootPath != curationFolder) {
+        fs.copySync(rootPath, curationFolder);
+        fs.removeSync(rootPath);
+      } else if (!rootPath) {
+        curation.errors.push({
+          message: 'No meta.txt found in imported curation.'
+        });
+      }
+      resolve(curation);
     });
+  })
+  .then((curation) => {
+    return indexCuration(curation);
   });
 }
 
-/**
- * Stream the contents of an entry into a buffer and return it.
- * @param zip Zip to read from.
- * @param entry Entry to read the contents of.
- */
-function readEntryContent(zip: yauzl.ZipFile, entry: yauzl.Entry): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    zip.openReadStream(entry, (error, readStream) => {
-      // Failed to open read stream
-      if (error || !readStream) {
-        reject(error || new Error('"stream" is missing.'));
-        return;
+function getRootPath(dir: string): string|undefined {
+  const files = fs.readdirSync(dir);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const fullPath = path.join(dir, file);
+    console.log(fullPath);
+    // Found root, pass back
+    if (fullPath.endsWith('meta.txt')) {
+      return dir;
+    } else if (fs.lstatSync(fullPath).isDirectory()) {
+      const deeper = getRootPath(fullPath);
+      if (deeper) {
+        return deeper;
       }
-      // Read file into buffer
-      const buffer = Buffer.alloc(entry.uncompressedSize);
-      const writeStream = createBufferStream(buffer);
-      writeStream.on('finish', () => { resolve(buffer); });
-      readStream.pipe(writeStream);
-    });
-  });
+    }
+  }
+  // Return undefined, so that higher level knows this is pointless
+  return;
 }
 
 /** Create an "empty" curation index object. */
 function createCurationIndex(): CurationIndex {
   return {
+    key: uuid(),
     meta: {
       game: {},
       addApps: [],
@@ -228,45 +198,6 @@ export function createCurationIndexImage(): CurationIndexImage {
   return {
     exists: false,
   };
-}
-
-/**
- * Create a write stream that stores the data in a buffer.
- * @param buffer Buffer to store that data in.
- */
-function createBufferStream(buffer: Buffer) {
-  // Current offset in the write buffer
-  let offset = 0;
-  // Create stream
-  return new stream.Writable({
-    write(chunk, encoding, callback) {
-      switch (encoding) {
-        case 'buffer':
-          (chunk as Buffer).copy(buffer, offset);
-          offset += (chunk as Buffer).length;
-          callback();
-          break;
-        default:
-          callback(new Error(`Encoding not supported (encoding: "${encoding}").`));
-          break;
-      }
-    }
-  });
-}
-
-/**
- * Copy a buffers data to a base64 string.
- * @param buffer Buffer to copy data from.
- * @returns Base64 string.
- */
-function bufferToBase64(buffer: Buffer): string {
-  let binary = '';
-  let bytes = new Uint8Array(buffer);
-  let len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return window.btoa(binary);
 }
 
 /**
@@ -296,12 +227,12 @@ export function isInCurationFolder(filePath: string): boolean {
 function indexContentFolder(folderPath: string, contentPath: string, curation: CurationIndex): Promise<void[]> {
   return (
     // List all sub-files (and folders)
-    fsReaddir(folderPath)
+    fs.readdir(folderPath)
     // Run a promise on each file (and wait for all to finish)
     .then(files => Promise.all(
       files.map(fileName => {
         const filePath = path.join(folderPath, fileName);
-        return fsStat(filePath)
+        return fs.stat(filePath)
         .then(stats => new Promise<void>((resolve, reject) => {
           const isDirectory = stats.isDirectory();
           // Add content index

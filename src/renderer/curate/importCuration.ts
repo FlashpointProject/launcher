@@ -59,52 +59,32 @@ export async function importCuration(
     .then(() => { if (log) { logMsg('Screenshot Copied', curation); } }),
     // Copy content files
     (async () => {
-      switch (curation.sourceType) {
-        case CurationSource.NONE:
-          // Do nothing (maybe it should show a warning or message or something?)
-          break;
-        case CurationSource.ARCHIVE:
-          // Copy all content files in the archive
-          await new Promise((resolve, reject) => {
-            unzip({
-              source: curation.source,
-              output: GameLauncher.getHtdocsPath(),
-              // Remove the path leading up to and including the content folder
-              generateOutputPath: (entry, opts) => removeFoldersStart(entry.fileName, 2),
-              // Only allow files/folders inside the curation folder
-              filter: (entry, opts) => isInCurationFolder(entry.fileName),
-            })
-            .once('done', () => { resolve(); });
-          });
-          break;
-        case CurationSource.FOLDER:
-          const contentPath = path.join(curation.source, 'content');
-          // Create promises that copies one content file/folder each
-          await Promise.all(
-            curation.content.map(content => {
-              // Check if the content is a folder (all folders end with "/")
-              if (content.fileName.endsWith('/')) { // (Folder)
-                return (async () => {
-                  // Create the folder if it is missing
-                  try { await ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName), undefined); }
-                  catch (e) { /* Ignore error */ }
-                })();
-              } else { // (File)
-                return (async () => {
-                  // Copy file from the curation source folder
-                  const source = path.join(contentPath, content.fileName);
-                  const output = path.join(GameLauncher.getHtdocsPath(), content.fileName);
-                  // Ensure that the folders leading up to the file exists
-                  try { await ensureDir(path.dirname(output), undefined); }
-                  catch (e) { /* Ignore error */ }
-                  // Copy the file
-                  await copyFile(source, output);
-                })();
-              }
-            })
-          );
-          break;
-      }
+      const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', curation.key);
+      const contentPath = path.join(curationPath, 'content');
+      // Create promises that copies one content file/folder each
+      await Promise.all(
+        curation.content.map(content => {
+          // Check if the content is a folder (all folders end with "/")
+          if (content.fileName.endsWith('/')) { // (Folder)
+            return (async () => {
+              // Create the folder if it is missing
+              try { await ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName), undefined); }
+              catch (e) { /* Ignore error */ }
+            })();
+          } else { // (File)
+            return (async () => {
+              // Copy file from the curation source folder
+              const source = path.join(contentPath, content.fileName);
+              const output = path.join(GameLauncher.getHtdocsPath(), content.fileName);
+              // Ensure that the folders leading up to the file exists
+              try { await ensureDir(path.dirname(output), undefined); }
+              catch (e) { /* Ignore error */ }
+              // Copy the file
+              await copyFile(source, output);
+            })();
+          }
+        })
+      );
     })()
     .then(() => { if (log) { logMsg('Content Copied', curation); } }),
   ]);
@@ -208,4 +188,14 @@ export function stringToBool(str: string, defaultVal: boolean = false): boolean 
   if (lowerStr === 'yes') { return true;  }
   if (lowerStr === 'no' ) { return false; }
   return defaultVal;
+}
+
+/**
+ * Create and launch a game from curation metadata.
+ * @param curation Curation to launch
+ */
+export function launchCuration(curation: EditCuration) {
+  const game = createGameFromCurationMeta(curation);
+  const addApps = createAddAppsFromCurationMeta(curation);
+  GameLauncher.launchGame(game, addApps);
 }

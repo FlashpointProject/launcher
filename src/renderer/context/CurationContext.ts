@@ -1,6 +1,8 @@
+import * as fs from 'fs-extra';
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
 import { createCurationIndexImage, CurationIndexContent, CurationIndexImage } from '../curate/indexCuration';
+import { getCurationFolder } from '../curate/util';
 
 const curationDefaultState: CurationsState = {
   curations: [],
@@ -23,7 +25,9 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
   switch (action.type) {
     default: throw new Error(`Invalid or not-yet-supported action type (type: "${(action as any).type}").`);
     // Add curation
+    console.log(action);
     case 'add-curation':
+      console.log(action);
       return { ...prevState, curations: [ ...prevState.curations, action.payload.curation ] };
     // Remove curation
     case 'remove-curation': {
@@ -32,7 +36,10 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       const index = nextCurations.findIndex(c => c.key === action.payload.key);
       if (index >= 0) {
         // Remove it from the (copied) array
-        nextCurations.splice(index, 1);
+        const curationToRemove = nextCurations.splice(index, 1).pop();
+        if (curationToRemove) {
+          fs.removeSync(getCurationFolder(curationToRemove));
+        }
       }
       return { ...prevState, curations: nextCurations };
     }
@@ -111,8 +118,6 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
 export function createEditCuration(): EditCuration {
   return {
     key: '',
-    source: '',
-    sourceType: CurationSource.NONE,
     meta: {},
     content: [],
     addApps: [],
@@ -177,10 +182,6 @@ export type CurationAction = (
 export type EditCuration = {
   /** Unique key of the curation (UUIDv4). Generated when loaded. */
   key: string;
-  /** Path of the folder or archive file the curation was loaded from. */
-  source: string;
-  /** Type of source the curation was loaded from. */
-  sourceType: CurationSource;
   /** Meta data of the curation. */
   meta: EditCurationMeta;
   /** Keys of additional applications that belong to this game. */

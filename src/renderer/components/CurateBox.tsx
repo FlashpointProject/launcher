@@ -1,10 +1,12 @@
 import * as fs from 'fs';
+import * as fsEx from 'fs-extra';
+import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
 import { CurateLang, MiscLang } from '../../shared/lang/types';
-import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
-import { importCuration, stringToBool } from '../curate/importCuration';
+import { CurationAction, CurationSource, EditCuration, EditCurationMeta } from '../context/CurationContext';
+import { importCuration, launchCuration, stringToBool } from '../curate/importCuration';
 import { CurationIndexContent } from '../curate/indexCuration';
 import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
@@ -121,6 +123,21 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation, props.games, props.gameImages]);
+  // Callback for testing a curation works
+  const onRunCuration = useCallback(async () => {
+    if (props.curation) {
+      const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', props.curation.key);
+      const serverPath = path.join(window.External.config.fullFlashpointPath, 'Server/content');
+      // Clear out old folder if exists
+      if (fs.existsSync(serverPath)) {
+        fsEx.removeSync(serverPath);
+      }
+      const contentPath = path.join(curationPath, 'content');
+      if (fs.existsSync(contentPath)) { fsEx.copySync(contentPath, serverPath); }
+      else                            { return; }
+      launchCuration(props.curation);
+    }
+  }, [props.curation && props.curation.key]);
   // Callback for when the remove button is clicked
   const onRemoveClick = useCallback(() => {
     if (props.curation) {
@@ -399,6 +416,10 @@ export function CurateBox(props: CurateBoxProps) {
           onConfirm={onRemoveClick}
           children={renderRemoveButton}
           extra={strings.curate} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.run}
+          onClick={onRunCuration} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.import}

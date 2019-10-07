@@ -36,6 +36,7 @@
   "dependencies": {
     "connected-react-router": "6.5.2",
     "electron": "6.0.0",
+    "extract-zip": "1.6.7",
     "fast-xml-parser": "3.12.19",
     "follow-redirects": "1.7.0",
     "fs-extra": "8.1.0",
@@ -54,6 +55,7 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
+    "@types/extract-zip": "1.6.2",
     "@types/fs-extra": "8.0.0",
     "@types/jest": "24.0.17",
     "@types/node": "12.7.0",

@@ -218,6 +218,7 @@
     "noCurationNotes": "No Curation Notes",
     "remove": "Remove",
     "removeCurationDesc": "Remove this curation (no changes will be made to any files)",
+    "run": "Run",
     "import": "Import",
     "contentFiles": "Content Files",
     "warnings": "Warnings",
