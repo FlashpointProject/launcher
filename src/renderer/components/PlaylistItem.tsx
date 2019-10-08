@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LangContainer, PlaylistLang } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { memoizeOne } from '../../shared/memoize';
 import { deepCopy } from '../../shared/Util';
 import { CentralState } from '../interfaces';
@@ -263,7 +263,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
     };
   }
 
-  renderDescription = (o: EditableTextElementArgs<PlaylistLang>) => {
+  renderDescription = (o: EditableTextElementArgs<LangContainer['playlist']>) => {
     const strings = o.extra;
     if (o.editing) {
       return (

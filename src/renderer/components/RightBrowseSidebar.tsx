@@ -2,7 +2,7 @@ import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as React from 'react';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { BrowseLang, DialogLang, LangContainer, MenuLang } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import GameManager from '../game/GameManager';
@@ -482,7 +482,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  renderDeleteGameButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
+  renderDeleteGameButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
         className={
@@ -497,7 +497,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     );
   }
 
-  renderRemoveFromPlaylistButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
+  renderRemoveFromPlaylistButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
         className={
