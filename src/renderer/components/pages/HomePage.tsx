@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { HomeLang, LangContainer } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { findDefaultLibrary } from '../../../shared/library/util';
 import { formatString } from '../../../shared/utils/StringFormatter';
@@ -196,7 +196,7 @@ export class HomePage extends React.Component<HomePageProps> {
     );
   }
 
-  renderStageSection(strings: HomeLang, stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
+  renderStageSection(strings: LangContainer['home'], stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
     return (
       <>
         <QuickStartItem><b>{stageData && stageData.title || '...'}</b></QuickStartItem>
@@ -206,7 +206,7 @@ export class HomePage extends React.Component<HomePageProps> {
     );
   }
 
-  renderStageButton(strings: HomeLang, stageState: UpgradeStageState, onClick: () => void) {
+  renderStageButton(strings: LangContainer['home'], stageState: UpgradeStageState, onClick: () => void) {
     return (
       stageState.checksDone ? (
         stageState.alreadyInstalled ? (

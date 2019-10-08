@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
-import { CurateLang, LangContainer } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang';
 import { createEditCuration, CurationAction, CurationContext, CurationSource, EditCurationMeta } from '../../context/CurationContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { importCuration } from '../../curate/importCuration';
@@ -213,7 +213,7 @@ export function CuratePage(props: CuratePageProps) {
   ), [curateBoxes, onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick]);
 }
 
-function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
+function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}

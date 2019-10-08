@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FilterLang, LangContainer } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { LangContext } from '../util/lang';
 
