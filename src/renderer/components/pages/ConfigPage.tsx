@@ -380,7 +380,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (isChecked && process.platform === 'linux') {
       which('wine', (err) => {
         if (err) {
-          log('Warning : Wine was enabled but it was not found on the path.');
+          log('Warning: Wine was enabled but it was not found on the path.');
           remote.dialog.showMessageBox({
             type: 'error',
             title: this.context.dialog.programNotFound,

@@ -288,7 +288,7 @@ export class App extends React.Component<AppProps, AppState> {
     if (process.platform === 'linux') {
       which('php', function(err: Error | null) {
         if (err) {
-          log('Warning : PHP not found in path, may cause unexpected behaviour.');
+          log('Warning: PHP not found in path, may cause unexpected behaviour.');
           remote.dialog.showMessageBox({
             type: 'error',
             title: strings.dialog.programNotFound,
@@ -302,7 +302,7 @@ export class App extends React.Component<AppProps, AppState> {
       which('wine', function(err: Error | null) {
         if (err) {
           if (window.External.preferences.getData().useWine) {
-            log('Warning : Wine is enabled but it was not found on the path.');
+            log('Warning: Wine is enabled but it was not found on the path.');
             remote.dialog.showMessageBox({
               type: 'error',
               title: strings.dialog.programNotFound,
