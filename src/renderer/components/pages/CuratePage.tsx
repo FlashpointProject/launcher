@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import { LangContainer } from '../../../shared/lang';
-import { createEditCuration, CurationAction, CurationContext, CurationSource, EditCurationMeta } from '../../context/CurationContext';
+import { WithLibraryProps } from '../../containers/withLibrary';
+import { createEditCuration, CurationAction, CurationContext, CurationSource, EditCuration, EditCurationMeta } from '../../context/CurationContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { importCuration } from '../../curate/importCuration';
 import { CurationIndex, indexCurationArchive, indexCurationFolder } from '../../curate/indexCuration';
@@ -15,12 +16,14 @@ import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CurateBox } from '../CurateBox';
 import { SimpleButton } from '../SimpleButton';
 
-export type CuratePageProps = {
+type OwnProps = {
   /** Game manager to add imported curations to. */
   games?: GameManager;
   /** Game images collection to add imported images to. */
   gameImages?: GameImageCollection;
 };
+
+export type CuratePageProps = OwnProps & WithLibraryProps;
 
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
@@ -30,6 +33,12 @@ export function CuratePage(props: CuratePageProps) {
   const defaultGameMetaValues = useMemo(() => {
     return props.games ? getDefaultMetaValues(props.games.collection.games) : undefined;
   }, [props.games]);
+  // Import a curation callback
+  const importCurationCallback = useCallback((curation: EditCuration, log?: boolean) => {
+    if (!props.games)      { throw new Error('Failed to import curation. "games" is undefined.'); }
+    if (!props.gameImages) { throw new Error('Failed to import curation. "gameImages" is undefined.'); }
+    return importCuration(curation, props.games, props.gameImages, props.libraryData.libraries, log);
+  }, [props.games, props.gameImages, props.libraryData.libraries]);
   // Import All Curations Callback
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
@@ -49,7 +58,7 @@ export function CuratePage(props: CuratePageProps) {
           // Try importing curation
           try {
             // Import curation (and wait for it to complete)
-            await importCuration(curation, games, gameImages, true);
+            await importCurationCallback(curation, true);
             // Increment success counter
             success += 1;
             // Log status
@@ -165,8 +174,8 @@ export function CuratePage(props: CuratePageProps) {
   }, [dispatch]);
   // Game property suggestions
   const suggestions = useMemo(() => {
-    return props.games && getSuggestions(props.games.collection);
-  }, [props.games]);
+    return props.games && getSuggestions(props.games.listPlatforms(), props.libraryData.libraries);
+  }, [props.games, props.libraryData.libraries]);
   // Render CurateBox
   const curateBoxes = React.useMemo(() => {
     return state.curations.map((curation, index) => (
@@ -174,8 +183,7 @@ export function CuratePage(props: CuratePageProps) {
         key={index}
         curation={curation}
         dispatch={dispatch}
-        games={props.games}
-        gameImages={props.gameImages}
+        importCuration={importCurationCallback}
         suggestions={suggestions} />
     ));
   }, [state.curations, props.games, suggestions]);

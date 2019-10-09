@@ -179,6 +179,8 @@ const langTemplate = {
     'noApplicationPath',
     'launchCommand',
     'noLaunchCommand',
+    'library',
+    'defaultLibrary',
     'thumbnail',
     'screenshot',
     'dropImageHere',
@@ -208,6 +210,8 @@ const langTemplate = {
     'noGameMatchedDesc',
     'noGameMatchedSearch',
     'thereAreNoGames',
+    'library',
+    'defaultLibrary',
   ] as const,
   curate: [
     'importAll',
@@ -232,6 +236,7 @@ const langTemplate = {
     'unusedApplicationPath',
     'unusedGenre',
     'unusedPlatform',
+    'nonExistingLibrary',
     'noContent',
   ] as const,
   playlist: [
