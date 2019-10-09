@@ -1,11 +1,12 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import { extractFull } from 'node-7z';
 import { IncomingMessage } from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
 import { IUpgradeStage } from '../upgrade/upgrade';
-import { unzipAll } from '../util/unzip';
+import { get7zExec } from '../../shared/utils/SevenZip';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -78,23 +79,20 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
       status.currentTask = 'extracting';
       log(`Download of the "${upgrade.title}" upgrade complete!`);
       log(`Installation of the "${upgrade.title}" upgrade started.`);
-      const unzipStatus = (
-        unzipAll(zipPath, opts.installPath)
-        .on('warn', warning => { log(warning); })
-        .on('progress', () => {
-          status.extractProgress =  unzipStatus.extractedSize / unzipStatus.totalSize;
-          status.emit('progress');
-        })
-        .once('done', () => {
-          log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
-              'Restart the launcher for the upgrade to take effect.');
-          status.emit('done');
-        })
-        .once('error', (error) => {
-          log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
-          status.emit('error', error);
-        })
-      );
+      extractFull(zipPath, opts.installPath, { $bin: get7zExec(), $progress: true })
+      .on('progress', (progress) => {
+        status.extractProgress = progress.percent / 100;
+        status.emit('progress');
+      })
+      .once('end', () => {
+        log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
+            'Restart the launcher for the upgrade to take effect.');
+        status.emit('done');
+      })
+      .once('error', (error) => {
+        log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
+        status.emit('error', error);
+      })
     })
     .once('error', (error) => {
       log(`Download of the "${upgrade.title}" upgrade failed!\n${error}`);

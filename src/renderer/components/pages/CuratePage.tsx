@@ -205,7 +205,7 @@ export function CuratePage(props: CuratePageProps) {
     const filePaths = window.External.showOpenDialogSync({
       title: strings.dialog.selectCurationArchive,
       properties: ['openFile', 'multiSelections'],
-      filters: [{ extensions: ['zip'], name: 'Curation archive' }],
+      filters: [{ extensions: ['zip', '7z', 'rar'], name: 'Curation archive' }],
     });
     if (filePaths) {
       for (let i = 0; i < filePaths.length; i++) {

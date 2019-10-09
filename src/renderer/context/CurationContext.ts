@@ -287,13 +287,3 @@ export type EditAddAppCurationMeta = {
   applicationPath?: string;
   launchCommand?: string;
 };
-
-/** Types of sources for a loaded curation. */
-export enum CurationSource {
-  /** No source (or not yet decided). */
-  NONE,
-  /** Archive (zip file). */
-  ARCHIVE,
-  /** Folder. */
-  FOLDER,
-}

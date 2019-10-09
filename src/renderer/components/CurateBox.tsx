@@ -185,7 +185,7 @@ export function CurateBox(props: CurateBoxProps) {
         title: strings.dialog.selectFileToExportMeta,
         defaultPath: path.join(window.External.config.fullFlashpointPath, 'Curations'),
         filters: [{
-          name: 'Archive file',
+          name: 'Curation archive',
           extensions: ['zip'],
         }]
       });
