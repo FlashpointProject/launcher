@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { AboutLang, LangContainer } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang/types';
 import { versionNumberToText } from '../../../shared/Util';
 import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
 import { LangContext } from '../../util/lang';
@@ -28,7 +28,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     super(props);
     this.state = {};
   }
-
+  
   render() {
     const strings = this.context.about;
     const { profile } = this.state;

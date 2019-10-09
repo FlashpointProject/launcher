@@ -122,3 +122,16 @@ export function getFileExtension(filename: string): string {
   if (firstDot === -1) { return ''; }
   return filename.substr(firstDot);
 }
+
+/**
+ * Create a new array and populate it with the properties and values from another array or array like object.
+ * @param arrayLike Array or array like object to copy properties and values from.
+ * @returns New array with the same properties and values as the argument.
+ */
+export function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
+  const array: T[] = [];
+  for (let key in arrayLike) {
+    array[key] = arrayLike[key];
+  }
+  return array;
+}

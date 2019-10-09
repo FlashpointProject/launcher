@@ -3,7 +3,7 @@ import * as path from 'path';
 import { promisify } from 'util';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { formatDate, removeFileExtension } from '../../shared/Util';
-import { CurationSource, EditCuration } from '../context/CurationContext';
+import { EditCuration } from '../context/CurationContext';
 import GameManager from '../game/GameManager';
 import { formatUnknownPlatformName } from '../game/util';
 import { GameLauncher } from '../GameLauncher';
@@ -12,11 +12,9 @@ import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
 import { getFileExtension } from '../Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
-import { unzip } from '../util/unzip';
-import { CurationIndexImage, isInCurationFolder } from './indexCuration';
+import { CurationIndex, CurationIndexImage, indexExistingCuration } from './indexCuration';
 
 const ensureDir = promisify(fs.ensureDir);
-const copyFile = promisify(fs.copyFile);
 
 /**
  * Import a curation.
@@ -79,8 +77,8 @@ export async function importCuration(
               // Ensure that the folders leading up to the file exists
               try { await ensureDir(path.dirname(output), undefined); }
               catch (e) { /* Ignore error */ }
-              // Copy the file
-              await copyFile(source, output);
+              // Move the file
+              await fs.move(source, output, { overwrite: true });
             })();
           }
         })
@@ -198,4 +196,26 @@ export function launchCuration(curation: EditCuration) {
   const game = createGameFromCurationMeta(curation);
   const addApps = createAddAppsFromCurationMeta(curation);
   GameLauncher.launchGame(game, addApps);
+}
+
+export async function getNewCurations(existingCurations: EditCuration[]): Promise<CurationIndex[]> {
+  return new Promise<CurationIndex[]>((resolve) => {
+    const curationsFolder = path.join(window.External.config.fullFlashpointPath, 'Curations');
+    const files = fs.readdirSync(curationsFolder);
+    const curations: Promise<CurationIndex>[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fullPath = path.join(curationsFolder, file);
+      if (fs.lstatSync(fullPath).isDirectory()) {
+        // Make sure it doesn't already exist
+        if (existingCurations.findIndex((item) => item.key === file) === -1) {
+          curations.push(indexExistingCuration(file));
+        }
+      }
+    }
+    Promise.all(curations)
+    .then((curations) => {
+      resolve(curations);
+    })
+  });
 }

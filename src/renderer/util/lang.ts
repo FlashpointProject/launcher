@@ -212,6 +212,8 @@ export function getDefaultLocalization(): LangContainer {
     curate:{
       importAll: 'importAll',
       importAllDesc: 'importAllDesc',
+      newCuration: 'newCuration',
+      newCurationDesc: 'newCurationDesc',
       loadMeta: 'loadMeta',
       loadMetaDesc: 'loadMetaDesc',
       loadArchive: 'loadArchive',
@@ -224,7 +226,9 @@ export function getDefaultLocalization(): LangContainer {
       noCurationNotes: 'noCurationNotes',
       remove: 'remove',
       removeCurationDesc: 'removeCurationDesc',
+      openFolder: 'openFolder',
       run: 'run',
+      export: 'export',
       import: 'import',
       contentFiles: 'contentFiles',
       warnings: 'warnings',

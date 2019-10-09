@@ -14,9 +14,9 @@ type GameImageSplitProps = {
   /** Source of the image (undefined if there is no image). */
   imgSrc?: string;
   /** Called when the "add" button is clicked. This button is only shown while there is no image. */
-  onAddClick: () => void;
+  onAddClick: (type: string) => void;
   /** Called when the "remove" button is clicked. This button is only shown while there is an image. */
-  onRemoveClick: () => void;
+  onRemoveClick: (type: string) => void;
   /** Called when something is dropped on this component. */
   onDrop: (event: React.DragEvent, type: string) => void;
   /** If the user should not be able to add a new image. */
@@ -47,7 +47,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
 
   render() {
     const strings = this.context.misc;
-    const { disabled, imgSrc, onAddClick, onRemoveClick, text } = this.props;
+    const { disabled, imgSrc, text } = this.props;
     const { hover } = this.state;
     // Class name
     let className = 'game-image-split';
@@ -58,7 +58,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     return (
       <div
         className={className}
-        style={{ backgroundImage: `url("${imgSrc}")` }}
+        style={{ backgroundImage: imgSrc ? `url("${imgSrc}")` : undefined }}
         onDragOver={this.onDragOver}
         onDragLeave={this.onDragLeave}
         onDrop={this.onDrop}>
@@ -67,20 +67,28 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             <h1>{formatString(strings.blankNotFound, text)}</h1>
             <SimpleButton
               value={formatString(strings.addBlank, text)}
-              onClick={onAddClick}
+              onClick={this.onAddClick}
               disabled={disabled}/>
           </div>
         ) : (
           <div className='game-image-split__buttons'>
             <p>{formatString(strings.removeBlank, text)}</p>
             <ConfirmElement
-              onConfirm={onRemoveClick}
+              onConfirm={this.onRemoveClick}
               children={renderDeleteImageButton}
               extra={[strings, text]}/>
           </div>
         ) }
       </div>
     );
+  }
+
+  onAddClick = (event: React.MouseEvent) => {
+    this.props.onAddClick(this.props.type);
+  }
+
+  onRemoveClick = () => {
+    this.props.onRemoveClick(this.props.type);
   }
 
   onDragOver = (event: React.DragEvent): void => {

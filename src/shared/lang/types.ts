@@ -253,6 +253,8 @@ export type BrowseLang = LangObject<
 export type CurateLang = LangObject<
   'importAll' |
   'importAllDesc' |
+  'newCuration' |
+  'newCurationDesc' |
   'loadMeta' |
   'loadMetaDesc' |
   'loadArchive' |
@@ -265,7 +267,9 @@ export type CurateLang = LangObject<
   'noCurationNotes' |
   'remove' |
   'removeCurationDesc' |
+  'openFolder' |
   'run' |
+  'export' |
   'import' |
   'contentFiles' |
   'warnings' |

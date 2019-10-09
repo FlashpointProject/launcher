@@ -5,18 +5,28 @@ import { ImagePreview } from './ImagePreview';
 
 type CurateBoxImageProps = {
   image?: CurationIndexImage;
+  field: string;
+  onDrop: (event: React.DragEvent<HTMLDivElement>, field: string) => void;
 };
 
 /** An image inside a curate box (screenshot or thumbnail). */
 export function CurateBoxImage(props: CurateBoxImageProps) {
   // If the preview should be displayed
   const [showPreview, setShowPreview] = useState(false);
+  // Dropped image
+  const [imgSrc, setImgSrc] = useState('');
   // If the image should be able to be previewed
   const previewable = props.image && props.image.exists;
   // Callback for when the image is clicked
   const onImageClick = useCallback(() => {
     if (previewable) { setShowPreview(true); }
   }, [setShowPreview, previewable]);
+  // Image dropped
+  const onDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    {
+      if (imgSrc === undefined) { props.onDrop(event, props.field); }
+    }
+  }, [props.onDrop, imgSrc]);
   // Callback for when the preview is cancelled
   const onPreviewCancel = useCallback(() => {
     setShowPreview(false);
@@ -30,6 +40,7 @@ export function CurateBoxImage(props: CurateBoxImageProps) {
       <div
         className={'curate-box-images__image' + (!previewable ? ' curate-box-images__image--placeholder' : '')}
         onClick={onImageClick}
+        onDrop={onDrop}
         style={{ backgroundImage: image }}
         />
       {/* Preview */}
@@ -56,7 +67,7 @@ function useImageSource(image?: CurationIndexImage): [string?, string?] {
         const base64 = 'data:image/png;base64,' + image.data;
         return [`url("${base64}")`, base64];
       } else if (image.filePath) {
-        return [`url("${image.filePath}")`, image.filePath];
+        return [`url("${image.filePath}?v=${image.version}")`, image.filePath];
       } else {
         // Image file not found
         return [];

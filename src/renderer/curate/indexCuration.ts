@@ -1,14 +1,10 @@
-import * as extract from 'extract-zip';
 import * as fs from 'fs-extra';
+import { extractFull } from 'node-7z';
 import * as path from 'path';
-import { promisify } from 'util';
-import { stripBOM } from '../../shared/Util';
+import { get7zExec } from '../../shared/utils/SevenZip';
 import { uuid } from '../uuid';
-import { parseCurationMeta, ParsedCurationMeta } from './parse';
+import { ParsedCurationMeta } from './parse';
 import { getCurationFolder } from './util';
-const fsReadFile = promisify(fs.readFile);
-const fsReaddir = promisify(fs.readdir);
-const fsStat = promisify(fs.stat);
 
 export type CurationIndex = {
   /** UUID of the curation, used for storage */
@@ -48,62 +44,9 @@ export type CurationIndexImage = {
   fileName?: string;
   /** Full path of the image (in case it was loaded from a folder). */
   filePath?: string;
+  /** Version to force CSS refresh later */
+  version: number;
 };
-
-/** Finished a curation index given its existance in its unique folder */
-function indexCuration(curation: CurationIndex): Promise<CurationIndex> {
-  return new Promise((resolve, reject) => {
-    const curationFolder = getCurationFolder(curation);
-    return Promise.all([
-      // Find root dir
-      // Index content files and folders
-      new Promise((resolve, reject) => {
-        const contentPath = path.join(curationFolder, 'content');
-        fsStat(contentPath)
-        .then(() => { // (Content file found)
-          // Index the cotent file (and its content recursively)
-          return indexContentFolder(contentPath, contentPath, curation)
-          .then(() => { resolve(); })
-          .catch(error => { reject(error); });
-        }, (error) => { // (Failed to find content folder)
-          if (error.code === 'ENOENT') { // No content folder found
-            console.warn(`Skipped indexing of content. No content folder found in:\n"${curationFolder}"`);
-            resolve();
-          } else { reject(error); } // Unexpected error
-        });
-      }),
-      // Check if the image files exist
-      (async () => {
-        const filenames = await fs.readdir(curationFolder);
-        for (let filename of filenames) {
-          const lowerFilename = filename.toLowerCase();
-          let image: CurationIndexImage | undefined = undefined;
-          // Check which image the file is (if any)
-          if (lowerFilename.startsWith('logo.')) {
-            image = curation.thumbnail;
-          } else if (lowerFilename.startsWith('ss.')) {
-            image = curation.screenshot;
-          }
-          // Check if it was an image file
-          if (image) {
-            image.exists = true;
-            image.fileName = filename;
-            image.filePath = fixSlashes(path.join(curationFolder, filename));
-          }
-        }
-      })(),
-      // Read and parse the meta
-      (async () => {
-        const metaFileData = await fs.readFile(path.join(curationFolder, 'meta.txt'));
-        curation.meta = parseCurationMeta(stripBOM(metaFileData.toString()));
-      })(),
-    ])
-    .then(() => { 
-      console.log(curation);
-      resolve(curation); })
-    .catch(error => { reject(error); });
-  });
-}
 
 /**
  * Index a curation folder (index all content files, load and parse meta etc.)
@@ -112,14 +55,9 @@ function indexCuration(curation: CurationIndex): Promise<CurationIndex> {
 export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
   return new Promise<CurationIndex>((resolve, reject) => {
     const curation = createCurationIndex();
-
     const curationFolder = getCurationFolder(curation);
     fs.copySync(filepath, curationFolder);
-
     resolve(curation);
-  })
-  .then((curation) => {
-    return indexCuration(curation);
   });
 }
 
@@ -127,23 +65,19 @@ export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
  * Index a curation archive (index all content files, load and parse meta etc.)
  * @param filepath Path of the archive to index.
  */
-export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
+export function indexCurationArchive(filePath: string): Promise<CurationIndex> {
   return new Promise<CurationIndex>((resolve, reject) => {
     const curation = createCurationIndex();
-
-    const curationFolder = getCurationFolder(curation);
-    fs.mkdirsSync(curationFolder);
+    const curationPath = getCurationFolder(curation);
+    const extractPath = path.join(curationPath, 'Extracted');
+    fs.mkdirsSync(extractPath);
     // Extract to Curation folder
-    extract(filepath, {dir: curationFolder}, (error) => {
-      if (error) {
-        console.error('Error unpacking curation - ' + error.message);
-        reject();  
-      }
-      // Move folder down to meta.txt
-      const rootPath = getRootPath(curationFolder);
-      console.log(rootPath);
-      if (rootPath && rootPath != curationFolder) {
-        fs.copySync(rootPath, curationFolder);
+    extractFull(filePath, extractPath, { $bin: get7zExec() })
+    .on(('end'), () => {
+      const rootPath = getRootPath(extractPath);
+      if (rootPath) {
+        fs.copySync(rootPath, curationPath);
+        // Won't clear folders, but will clear files
         fs.removeSync(rootPath);
       } else if (!rootPath) {
         curation.errors.push({
@@ -151,10 +85,19 @@ export function indexCurationArchive(filepath: string): Promise<CurationIndex> {
         });
       }
       resolve(curation);
+    })
+    .on('error', (error) => {
+      log('Error extracting archive - ' + error.message);
+      console.error(error.message);
     });
-  })
-  .then((curation) => {
-    return indexCuration(curation);
+  });
+}
+
+export function indexExistingCuration(key: string): Promise<CurationIndex> {
+  return new Promise<CurationIndex>((resolve) => {
+    const curation = createCurationIndex();
+    curation.key = key;
+    resolve(curation);
   });
 }
 
@@ -163,7 +106,6 @@ function getRootPath(dir: string): string|undefined {
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const fullPath = path.join(dir, file);
-    console.log(fullPath);
     // Found root, pass back
     if (fullPath.endsWith('meta.txt')) {
       return dir;
@@ -197,6 +139,7 @@ function createCurationIndex(): CurationIndex {
 export function createCurationIndexImage(): CurationIndexImage {
   return {
     exists: false,
+    version: 0,
   };
 }
 
@@ -253,6 +196,13 @@ function indexContentFolder(folderPath: string, contentPath: string, curation: C
 }
 
 /** Replace all back-slashes with forward slashes. */
-function fixSlashes(str: string): string {
+export function fixSlashes(str: string): string {
   return str.replace(/\\/g, '/');
+}
+
+function log(content: string): void {
+  window.External.log.addEntry({
+    source: 'Curate',
+    content: content
+  });
 }

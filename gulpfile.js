@@ -107,6 +107,19 @@ gulp.task('pack', (done) => {
         if (config.isStaticInstall) {
           fs.createFileSync(path.join(buildPath, '.installed'));
         }
+        // Copy relevant 7za
+        fs.ensureDirSync(path.join(buildPath, 'extern/7zip'));
+        switch (platform) {
+          case 'darwin':
+            fs.copyFileSync('./extern/7zip/mac/7za', path.join(buildPath, 'extern/7zip/7za'));
+            break;
+          case 'win32':
+            fs.copyFileSync(path.join(process.cwd(), 'extern/7zip/win', arch, '7za.exe'), path.join(buildPath, 'extern/7zip/7za.exe'));
+            break;
+          case 'linux':
+            fs.copyFileSync(path.join(process.cwd(), 'extern/7zip/linux', arch, '7za'), path.join(buildPath, 'extern/7zip/7za'));
+            break;
+        }
         // Copy Language folder
         fs.copySync('./lang', path.join(buildPath, 'lang/'));
         // Create build version file

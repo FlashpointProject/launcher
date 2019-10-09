@@ -1,10 +1,12 @@
-import * as fs from 'fs-extra';
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
+import { GameMetaDefaults } from '../curate/defaultValues';
+import { launchCuration } from '../curate/importCuration';
 import { createCurationIndexImage, CurationIndexContent, CurationIndexImage } from '../curate/indexCuration';
-import { getCurationFolder } from '../curate/util';
+import { removeCurationFile, updateCurationFile } from '../curate/util';
 
 const curationDefaultState: CurationsState = {
+  defaultMetaData: undefined,
   curations: [],
 };
 
@@ -25,9 +27,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
   switch (action.type) {
     default: throw new Error(`Invalid or not-yet-supported action type (type: "${(action as any).type}").`);
     // Add curation
-    console.log(action);
     case 'add-curation':
-      console.log(action);
       return { ...prevState, curations: [ ...prevState.curations, action.payload.curation ] };
     // Remove curation
     case 'remove-curation': {
@@ -36,10 +36,33 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       const index = nextCurations.findIndex(c => c.key === action.payload.key);
       if (index >= 0) {
         // Remove it from the (copied) array
-        const curationToRemove = nextCurations.splice(index, 1).pop();
-        if (curationToRemove) {
-          fs.removeSync(getCurationFolder(curationToRemove));
-        }
+        nextCurations.splice(index, 1);
+      }
+      return { ...prevState, curations: nextCurations };
+    }
+    // Remove a curations file
+    case 'remove-curation-file': {
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex(c => c.key === action.payload.key);
+      if (index >= 0) {
+        let nextCuration = nextCurations[index];
+        nextCurations[index] = removeCurationFile(action.payload.file, nextCuration);
+      }
+      return { ...prevState, curations: nextCurations };
+    }
+    // Update a curations file
+    case 'update-curation-file': {
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex(c => c.key === action.payload.key);
+      if (index >= 0) {
+        let nextCuration = nextCurations[index];
+        nextCurations[index] = updateCurationFile(action.payload.file, nextCuration, prevState.defaultMetaData);
+      } else {
+        // Not imported yet, do here
+        const newCuration = createEditCuration();
+        newCuration.key = action.payload.key;
+        updateCurationFile(action.payload.file, newCuration,  prevState.defaultMetaData);
+        nextCurations.push(newCuration);
       }
       return { ...prevState, curations: nextCurations };
     }
@@ -58,6 +81,10 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
+    }
+    // Set default metadata for new curations
+    case 'set-default-meta': {
+      return {...prevState, defaultMetaData: action.payload.defaultMeta};
     }
     // Edit additional application's meta
     case 'edit-addapp-meta': {
@@ -82,6 +109,14 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
+    }
+    // Run a curation
+    case 'run-curation': {
+      const curation = prevState.curations.find((item) => item.key === action.payload.key);
+      if (curation) {
+        launchCuration(curation);
+      }
+      return { ...prevState };
     }
     // Change the lock status of a curation
     case 'change-curation-lock': {
@@ -128,7 +163,9 @@ export function createEditCuration(): EditCuration {
 }
 
 /** State of the current curations. */
-type CurationsState = {
+export type CurationsState = {
+  /** Default metadata for new curations */
+  defaultMetaData?: GameMetaDefaults;
   /** Currently loaded curations. */
   curations: EditCuration[];
 };
@@ -143,6 +180,20 @@ export type CurationAction = (
   ReducerAction<'remove-curation', {
     /** Key of the curation to remove. */
     key: string;
+  }> |
+  /** Remove a file from a curation */
+  ReducerAction<'remove-curation-file', {
+    key: string;
+    file: string;
+  }> |
+  /** Update a file for a curation */
+  ReducerAction<'update-curation-file', {
+    key: string;
+    file: string;
+  }> |
+  /** Set the default metadata for new curations */
+  ReducerAction<'set-default-meta', {
+    defaultMeta: GameMetaDefaults;
   }> |
   /** Edit the value of a curation's meta's property. */
   ReducerAction<'edit-curation-meta', {
@@ -163,6 +214,9 @@ export type CurationAction = (
     property: keyof EditAddAppCurationMeta;
     /** Value to set the property to. */
     value: EditAddAppCurationMeta[keyof EditAddAppCurationMeta];
+  }> |
+  ReducerAction<'run-curation', {
+    key: string;
   }> |
   /** Change the lock status of a curation. */
   ReducerAction<'change-curation-lock', {

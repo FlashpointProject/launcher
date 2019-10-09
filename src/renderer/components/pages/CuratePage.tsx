@@ -1,11 +1,17 @@
+import * as chokidar from 'chokidar';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import { CurateLang } from '../../../shared/lang/types';
 import { createEditCuration, CurationAction, CurationContext, EditCurationMeta } from '../../context/CurationContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
+import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { importCuration } from '../../curate/importCuration';
 import { CurationIndex, indexCurationArchive, indexCurationFolder } from '../../curate/indexCuration';
+import { convertEditToCurationMeta } from '../../curate/metaToMeta';
 import { parseCurationMeta } from '../../curate/parse';
+import { getCurationFolder } from '../../curate/util';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { LangContext } from '../../util/lang';
@@ -21,7 +27,6 @@ export type CuratePageProps = {
   /** Game images collection to add imported images to. */
   gameImages?: GameImageCollection;
 };
-
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
   const strings = React.useContext(LangContext);
@@ -30,6 +35,109 @@ export function CuratePage(props: CuratePageProps) {
   const defaultGameMetaValues = useMemo(() => {
     return props.games ? getDefaultMetaValues(props.games.collection.games) : undefined;
   }, [props.games]);
+  // Callbacks for curation files
+  const removeCurationFile = useCallback(async (fullPath) => {
+    const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
+    const relativePath = path.relative(curationsPath, fullPath);
+    const splitPath = relativePath.split(path.sep);
+    // Ignore root files, no dir
+    if (splitPath.length > 1) {
+      const key = splitPath.shift();
+      const filePath = path.join(splitPath.join(path.sep));
+      if (key) {
+        dispatch({
+          type: 'remove-curation-file',
+          payload: { 
+            key: key,
+            file: filePath
+          }
+        });
+      }
+    }
+  }, [dispatch]);
+  const updateCurationFile = useCallback(async (fullPath) => {
+    const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
+    const relativePath = path.relative(curationsPath, fullPath);
+    const splitPath = relativePath.split(path.sep);
+    // Ignore root files, no dir
+    if (splitPath.length > 1) {
+      const key = splitPath.shift();
+      const filePath = path.join(splitPath.join(path.sep));
+      if (key) {
+        dispatch({
+          type: 'update-curation-file',
+          payload: { 
+            key: key,
+            file: filePath
+          }
+        });
+      }
+    }
+  }, [dispatch]);
+  // Watcher data
+  const ownState = useMemo(() => { return { state: state }; }, []);
+  const watcher = useMemo(() => { 
+    if (defaultGameMetaValues) {
+      dispatch({
+        type: 'set-default-meta',
+        payload: {
+          defaultMeta: defaultGameMetaValues
+        }
+      });
+    }
+    const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
+    return chokidar.watch(curationsPath, {
+      awaitWriteFinish: {
+        stabilityThreshold: 500,
+        pollInterval: 100
+      }
+    })
+    .on('change', (fullPath) => {
+      updateCurationFile(fullPath);
+    })
+    .on('add', (fullPath) => {
+      updateCurationFile(fullPath);
+    })
+    .on('addDir', (fullPath) => {
+      if (fs.readdirSync(fullPath).length > 20) {
+        watcher.unwatch(fullPath + '/**');
+      }
+      updateCurationFile(fullPath);
+    })
+    .on('unlink', (fullPath) => {
+      removeCurationFile(fullPath);
+    })
+    .on('unlinkDir', (fullPath) => {
+      removeCurationFile(fullPath);
+    })
+  }, [dispatch]);
+  React.useEffect(() => {
+    ownState.state = state;
+  }, [state]);
+  React.useEffect(() => {
+    return () => { 
+      // Stop watcher to release locks
+      watcher.close();
+      const state = ownState.state;
+      for (let curation of state.curations) {
+        const metaPath = path.join(getCurationFolder(curation), 'meta.txt');
+        const meta = stringifyCurationFormat(convertEditToCurationMeta(curation.meta, curation.addApps));
+        fs.writeFileSync(metaPath, meta);
+      }
+      // Cleanup unused curation folders
+      const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
+      if (fs.pathExistsSync(curationsPath)) {
+        fs.readdirSync(curationsPath).map((file) => {
+          const fullPath = path.join(curationsPath, file)
+          if (fs.lstatSync(fullPath).isDirectory()) {
+            if (state.curations.findIndex((item) => item.key === file) === -1) {
+              fs.removeSync(fullPath);
+            }
+          }
+        })
+      }
+     };
+  }, []);
   // Import All Curations Callback
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
@@ -83,6 +191,14 @@ export function CuratePage(props: CuratePageProps) {
       })();
     }
   }, [dispatch, state.curations, props.games, props.gameImages]);
+  // Make a new curation (folder watcher does most of the work)
+  const onNewCurationClick = useCallback(async () => {
+    const newCurationFolder = path.join(window.External.config.fullFlashpointPath, 'Curations', uuid());
+    // Create content folder and empty meta.txt
+    fs.mkdirSync(newCurationFolder);
+    fs.mkdirSync(path.join(newCurationFolder, 'content'));
+    fs.closeSync(fs.openSync(path.join(newCurationFolder, 'meta.txt'), 'w'))
+  }, []);
   // Load Curation Archive Callback
   const onLoadCurationArchiveClick = useCallback(async () => {
     // Show dialog
@@ -95,10 +211,7 @@ export function CuratePage(props: CuratePageProps) {
       for (let i = 0; i < filePaths.length; i++) {
         const source = filePaths[i];
         // Read and index the archive
-        const curationIndex = await indexCurationArchive(source);
-        // Add curation index
-        setGameMetaDefaults(curationIndex.meta.game, defaultGameMetaValues);
-        addCurationIndex(curationIndex, dispatch);
+        await indexCurationArchive(source);
       }
     }
   }, [dispatch]);
@@ -110,7 +223,6 @@ export function CuratePage(props: CuratePageProps) {
       properties: ['openDirectory', 'multiSelections'],
     });
     if (filePaths) {
-      console.log('FOLDER');
       Promise.all(
         filePaths.map(source => (
           // Read and index the folder
@@ -193,6 +305,11 @@ export function CuratePage(props: CuratePageProps) {
           </div>
           <div className='curate-page-top__right'>
             <SimpleButton
+              value={strings.curate.newCuration}
+              title={strings.curate.newCurationDesc}
+              onClick={onNewCurationClick}
+              />
+            <SimpleButton
               value={strings.curate.loadMeta}
               title={strings.curate.loadMetaDesc}
               onClick={onLoadMetaClick} />
@@ -231,7 +348,7 @@ function renderImportAllButton({ activate, activationCounter, reset, extra }: Co
  * @param sourceType Type of source the curation originates from.
  * @param dispatch Dispatcher to add the curation with.
  */
-async function addCurationIndex(
+export async function addCurationIndex(
   curation: CurationIndex,
   dispatch: React.Dispatch<CurationAction>
 ): Promise<void> {
@@ -264,7 +381,7 @@ async function addCurationIndex(
  * @param meta Meta to set values of.
  * @param defaults Container of default values.
  */
-function setGameMetaDefaults(meta: EditCurationMeta, defaults?: GameMetaDefaults): void {
+export function setGameMetaDefaults(meta: EditCurationMeta, defaults?: GameMetaDefaults): void {
   if (defaults) {
     // Set default meta values
     if (!meta.language) { meta.language = defaults.language; }

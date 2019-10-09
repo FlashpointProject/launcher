@@ -107,6 +107,7 @@ export class App extends React.Component<AppProps, AppState> {
         gamesFailedLoading: false,
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
+        stopRender: false,
       },
       gameImages: new GameImageCollection(config.fullFlashpointPath),
       creditsData: undefined,
@@ -150,9 +151,11 @@ export class App extends React.Component<AppProps, AppState> {
           .then(({ response }) => {
             if (response === 0) {
               askBeforeClosing = false;
-              remote.getCurrentWindow().close();
+              this.stopBeforeClosure();
             }
           });
+        } else {
+          this.stopBeforeClosure();
         }
       };
     })();
@@ -380,34 +383,38 @@ export class App extends React.Component<AppProps, AppState> {
     // Render
     return (
       <LangContext.Provider value={this.state.lang}>
-        {/* "TitleBar" stuff */}
-        { window.External.config.data.useCustomTitlebar ? (
-          <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
-        ) : undefined }
-        {/* "Header" stuff */}
-        <HeaderContainer
-          onOrderChange={this.onOrderChange}
-          onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-          onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-          order={this.state.order} />
-        {/* "Main" / "Content" stuff */}
-        <div className='main'>
-          <AppRouter { ...routerProps } />
-          <noscript className='nojs'>
-            <div style={{textAlign:'center'}}>
-              This website requires JavaScript to be enabled.
-            </div>
-          </noscript>
-        </div>
-        {/* "Footer" stuff */}
-        <ConnectedFooter
-          showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-          totalCount={games.length}
-          currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-          currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
-          onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-          onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-          onNewGameClick={this.onNewGameClick} />
+        { !this.state.central.stopRender ?
+        <>
+          {/* "TitleBar" stuff */}
+          { window.External.config.data.useCustomTitlebar ? (
+            <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
+          ) : undefined }
+          {/* "Header" stuff */}
+          <HeaderContainer
+            onOrderChange={this.onOrderChange}
+            onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+            onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+            order={this.state.order} />
+          {/* "Main" / "Content" stuff */}
+          <div className='main'>
+            <AppRouter { ...routerProps } />
+            <noscript className='nojs'>
+              <div style={{textAlign:'center'}}>
+                This website requires JavaScript to be enabled.
+              </div>
+            </noscript>
+          </div>
+          {/* "Footer" stuff */}
+          <ConnectedFooter
+            showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+            totalCount={games.length}
+            currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
+            currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+            onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+            onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+            onNewGameClick={this.onNewGameClick} />
+        </>
+        : undefined}
       </LangContext.Provider>
     );
   }
@@ -520,6 +527,16 @@ export class App extends React.Component<AppProps, AppState> {
   /** Update the combined language container. */
   private updateLanguage = (): void => {
     this.props.langManager.updateContainer();
+  }
+
+  private stopBeforeClosure = (): void => {
+    const { central } = this.state;
+    central.stopRender = true;
+    this.setState({ central: central })
+
+    setTimeout(() => {
+      remote.getCurrentWindow().close();
+    }, 100);
   }
 }
 

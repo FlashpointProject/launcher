@@ -19,5 +19,9 @@ module.exports = {
         loader: 'ts-loader'
       }
     ]
+  },
+  externals: {
+    fsevents: 'require(\'fsevents\')',
+    // archiver: 'require(\'archiver\')'
   }
 };

@@ -1,26 +1,32 @@
-import * as fs from 'fs';
-import * as fsEx from 'fs-extra';
+import { exec } from 'child_process';
+import { remote } from 'electron';
+import * as fs from 'fs-extra';
+import { add } from 'node-7z';
 import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
 import { CurateLang, MiscLang } from '../../shared/lang/types';
-import { CurationAction, CurationSource, EditCuration, EditCurationMeta } from '../context/CurationContext';
-import { importCuration, launchCuration, stringToBool } from '../curate/importCuration';
+import { get7zExec } from '../../shared/utils/SevenZip';
+import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
+import { stringifyCurationFormat } from '../curate/format/stringifier';
+import { importCuration, stringToBool } from '../curate/importCuration';
 import { CurationIndexContent } from '../curate/indexCuration';
+import { convertEditToCurationMeta } from '../curate/metaToMeta';
+import { getCurationFolder } from '../curate/util';
 import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
-import { sizeToString } from '../Util';
+import { copyArrayLike, sizeToString } from '../Util';
 import { LangContext } from '../util/lang';
 import { GamePropSuggestions } from '../util/suggestions';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
-import { CurateBoxImage } from './CurateBoxImage';
 import { CurateBoxRow } from './CurateBoxRow';
 import { CurateBoxWarnings, CurationWarnings } from './CurateBoxWarnings';
 import { DropdownInputField } from './DropdownInputField';
+import { GameImageSplit } from './GameImageSplit';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 
@@ -127,17 +133,41 @@ export function CurateBox(props: CurateBoxProps) {
   const onRunCuration = useCallback(async () => {
     if (props.curation) {
       const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', props.curation.key);
-      const serverPath = path.join(window.External.config.fullFlashpointPath, 'Server/content');
+      const serverPath = path.join(GameLauncher.getHtdocsPath(), 'content');
       // Clear out old folder if exists
       if (fs.existsSync(serverPath)) {
-        fsEx.removeSync(serverPath);
+        fs.removeSync(serverPath);
       }
       const contentPath = path.join(curationPath, 'content');
-      if (fs.existsSync(contentPath)) { fsEx.copySync(contentPath, serverPath); }
-      else                            { return; }
-      launchCuration(props.curation);
+      if (fs.existsSync(contentPath)) {
+        // Use symlinks on windows if running as Admin
+        if (process.platform === 'win32') {
+          exec('NET SESSION', (err,so,se) => {
+            if (se.length === 0) {
+              console.log('SYM');
+              fs.symlinkSync(contentPath, serverPath);
+            } else {
+              fs.copySync(contentPath, serverPath);
+            }
+          });
+        } else {
+          fs.copySync(contentPath, serverPath);
+        }
+        props.dispatch({
+          type: 'run-curation',
+          payload: {
+            key: props.curation.key
+          }
+        });
+      }
     }
-  }, [props.curation && props.curation.key]);
+  }, [props.dispatch, props.curation]);
+  // Callback for when the open folder button is clicked
+  const onOpenFolder = useCallback(() => {
+    if (props.curation) {
+      remote.shell.openItem(getCurationFolder(props.curation));
+    }
+  }, [props.curation && props.curation.key])
   // Callback for when the remove button is clicked
   const onRemoveClick = useCallback(() => {
     if (props.curation) {
@@ -147,6 +177,83 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
+  // Callback for when the export button is clicked
+  const onExportClick = useCallback(() => {
+    if (props.curation) {
+      // Choose where to save the file
+      const filePath = remote.dialog.showSaveDialogSync({
+        title: strings.dialog.selectFileToExportMeta,
+        defaultPath: path.join(window.External.config.fullFlashpointPath, 'Curations'),
+        filters: [{
+          name: 'Archive file',
+          extensions: ['zip'],
+        }]
+      });
+      if (filePath) {
+        fs.ensureDir(path.dirname(filePath))
+        .then(() => {
+          if (props.curation) {
+            // Save working meta
+            const metaPath = path.join(getCurationFolder(props.curation), 'meta.txt');
+            const meta = stringifyCurationFormat(convertEditToCurationMeta(props.curation.meta, props.curation.addApps));
+            fs.writeFileSync(metaPath, meta);
+            // Zip it all up
+            const _7zPath = get7zExec();
+            add(filePath, getCurationFolder(props.curation), { recursive: true, $bin: _7zPath });
+          }
+        });
+      }
+    }
+  }, [props.curation]);
+  // Image buttons
+  const onImageAddClick = useCallback((type: string) => {
+    const filePaths = window.External.showOpenDialogSync({
+      title: strings.dialog.selectScreenshot,
+      properties: ['openFile']
+    });
+    if (props.curation && filePaths && filePaths[0].toLowerCase().endsWith('.png')) {
+      switch (type) {
+        case 'thumbnail':
+          fs.copyFileSync(filePaths[0], path.join(getCurationFolder(props.curation), 'logo.png'));
+          break;
+        case 'screenshot':
+          fs.copyFileSync(filePaths[0], path.join(getCurationFolder(props.curation), 'ss.png'));
+          break;
+      }
+    }
+  }, []);
+  const onImageRemoveClick = useCallback((type: string) => {
+    if (props.curation) {
+      let filePath: string | undefined = undefined;
+      switch (type) {
+        case 'thumbnail':
+          filePath = path.join(getCurationFolder(props.curation), 'logo.png');
+          break;
+        case 'screenshot':
+          filePath = path.join(getCurationFolder(props.curation), 'ss.png');
+          break;
+      }
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  }, [props.curation && props.curation.key]);
+  // Set image
+  const onDrop = useCallback((event: React.DragEvent<Element>, type: string) => {
+    const files = copyArrayLike(event.dataTransfer.files);
+    if (props.curation && files && files[0].name.toLowerCase().endsWith('.png')) {
+      switch (type) {
+        // Logo
+        case 'thumbnail':
+          fs.copyFileSync(files[0].path, path.join(getCurationFolder(props.curation), 'logo.png'));
+          break;
+        // Screenshot
+        case 'screenshot':
+          fs.copyFileSync(files[0].path, path.join(getCurationFolder(props.curation), 'ss.png'));
+          break;
+      }
+    }
+  }, [props.curation && props.curation.key]);
   // Input props
   const editable = true;
   const disabled = props.curation ? props.curation.locked : false;
@@ -154,7 +261,7 @@ export function CurateBox(props: CurateBoxProps) {
   const addApps = useMemo(() => (
     (props.curation && props.curation.addApps.length > 0) ? (
       <>
-        Additional Applications:
+        { strings.browse.additionalApplications }:
         { props.curation.addApps.map(addApp => (
           <CurateBoxAddApp
             key={addApp.key}
@@ -243,8 +350,22 @@ export function CurateBox(props: CurateBoxProps) {
         <p className='curate-box-image-titles__title'>{strings.browse.screenshot}</p>
       </div>
       <div className='curate-box-images'>
-        <CurateBoxImage image={props.curation && props.curation.thumbnail} />
-        <CurateBoxImage image={props.curation && props.curation.screenshot} />
+        <GameImageSplit
+          type='thumbnail'
+          text={strings.browse.thumbnail}
+          imgSrc={props.curation && props.curation.thumbnail.filePath}
+          onAddClick={onImageAddClick}
+          onRemoveClick={onImageRemoveClick}
+          onDrop={onDrop}
+          />
+        <GameImageSplit
+          type='screenshot'
+          text={strings.browse.screenshot}
+          imgSrc={props.curation && props.curation.screenshot.filePath}
+          onAddClick={onImageAddClick}
+          onRemoveClick={onImageRemoveClick}
+          onDrop={onDrop}
+          />
       </div>
       <hr className='curate-box-divider' />
       {/* Fields */}
@@ -418,8 +539,16 @@ export function CurateBox(props: CurateBoxProps) {
           extra={strings.curate} />
         <SimpleButton
           className='curate-box-buttons__button'
+          value={strings.curate.openFolder}
+          onClick={onOpenFolder} />
+        <SimpleButton
+          className='curate-box-buttons__button'
           value={strings.curate.run}
           onClick={onRunCuration} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.export}
+          onClick={onExportClick} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.import}
@@ -531,7 +660,7 @@ async function checkCollisions(content: CurationIndexContent[]) {
     };
     collisions[i] = collision;
     if (collision.fileName !== undefined) {
-      const [stats, error] = await safeAwait(fsStat(collision.fileName));
+      const [stats, error] = await safeAwait(fs.stat(collision.fileName));
       if (stats) {
         collision.fileSize = stats.size;
         collision.fileExists = true;
@@ -581,4 +710,11 @@ function isHttp(url: string): boolean {
  */
 function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
+}
+
+function log(content: string): void {
+  window.External.log.addEntry({
+    source: 'Curate',
+    content: content
+  });
 }
