@@ -705,7 +705,6 @@ body {
   background-color: var(--layout__quaternary-background);
   border-color: var(--layout__tertiary-background);
   box-shadow: 0px 2px 4px 0px #09090a;
-  padding: 0.5em;
 }
 
 .service-box__log {

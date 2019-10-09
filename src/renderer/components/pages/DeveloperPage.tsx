@@ -5,10 +5,8 @@ import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { ArgumentTypesOf } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang/types';
-import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
-import { removeFileExtension, shallowStrictEquals } from '../../../shared/Util';
+import { removeFileExtension } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
@@ -124,12 +122,12 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
             {/* -- Services -- */}
-            <p className='developer-page__services__title'>{strings.servicesHeader}</p>
-              {services.map((item, index) => {
-                return <ServiceBox
-                          key={index}
-                          service={item} />;
-              })}
+            <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
+            {services.map((item, index) => (
+              <ServiceBox
+                key={index}
+                service={item} />
+            ))}
           </div>
         </div>
       </div>
@@ -735,10 +733,4 @@ export function removeLastItemOfPath(filePath: string): string {
 
 function repeat(char: string, n: number): string {
   return char.repeat(Math.max(0, n));
-}
-
-type ArgsType = ArgumentTypesOf<typeof stringifyLogEntries>;
-function stringifyLogEntriesEquals(newArgs: ArgsType, prevArgs: ArgsType): boolean {
-  return (newArgs[0].length === prevArgs[0].length) && // (Only compare lengths of log entry arrays)
-         shallowStrictEquals(newArgs[1], prevArgs[1]); // (Do a proper compare of the filters)
 }

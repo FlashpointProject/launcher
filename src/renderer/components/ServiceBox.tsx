@@ -17,7 +17,7 @@ export type ServiceBoxProps = {
 export type ServiceBoxState = {
   /** Uptime counter for this service */
   uptime: number;
-}
+};
 
 export interface ServiceBox {
   context: LangContainer;
@@ -28,11 +28,9 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
   /** Keeps the uptime counter updated */
   private interval: NodeJS.Timeout | undefined;
   /** Memo of stringified service logs to pass to LogData during render */
-  stringifyServiceLogEntriesMemo = memoizeOne(this.stringifySeviceLogEntries.bind(this));
+  stringifyServiceLogEntriesMemo = memoizeOne(stringifyServiceLogEntries.bind(this));
 
-  static contextType = LangContext;
-
-  constructor(props : ServiceBoxProps, state : ServiceBoxState) {
+  constructor(props: ServiceBoxProps, state: ServiceBoxState) {
     super(props, state);
     this.state = {
       uptime: Date.now() - props.service.startTime
@@ -43,7 +41,7 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
     this.interval = setInterval(() => {
       const newUptime = Date.now() - this.props.service.startTime;
       if ((newUptime - this.state.uptime) / 1000) {
-        this.setState( {uptime: newUptime} );
+        this.setState({uptime: newUptime});
       }
     }, 50);
   }
@@ -57,8 +55,7 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
     const { uptime } = this.state;
     const strings = this.context.developer;
     const uptimeString = formatMsTime(uptime);
-    const logData = this.getLogString(service.name);
-
+    const logData = this.getLogString();
     return (
       <div>
         <div className='service-box'>
@@ -67,17 +64,17 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
               <p>{service.name}</p>
             </div>
             <div className='service-box__status'>
-              {service.state === ProcessState.RUNNING ?
-                strings.running + ' (' + service.pid + ')' :
-                service.state === ProcessState.KILLING ?
-                  strings.killing + ' (' + service.pid + ')' :
-                  service.state === ProcessState.STOPPED ?
-                    strings.stopped :
-                    strings.failed }
+              { service.state === ProcessState.RUNNING
+                ? strings.running + ' (' + service.pid + ')'
+                : service.state === ProcessState.KILLING
+                  ? strings.killing + ' (' + service.pid + ')'
+                  : service.state === ProcessState.STOPPED
+                    ? strings.stopped
+                    : strings.failed }
             </div>
           </div>
           <div className='service-box__bottom'>
-            <div className='service-box__bottom__buttons'>
+            <div className='service-box__bottom-buttons'>
               { service.state != ProcessState.FAILED ? (
               <div>
                 { service.state === ProcessState.RUNNING ? (
@@ -113,7 +110,7 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
                   onClick={() => { if (service) { this.onDetailsClick(service.info); } }}/>
               ) : undefined}
             </div>
-            <div className='service-box__bottom__uptime'>
+            <div className='service-box__bottom-uptime'>
               { service.state === ProcessState.RUNNING ? (
                 <p>{uptimeString}</p>
               ) : undefined }
@@ -146,36 +143,45 @@ export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState
     window.External.services.sendAction(data);
   };
 
-  getLogString(source: string) {
-    const logEntries = Object.assign([], window.External.log.entries);
-    let filter : any = {};
-    filter[source] = true;
-    return this.stringifyServiceLogEntriesMemo(logEntries);
+  getLogString() {
+    const logEntries = window.External.log.entries;
+    return this.stringifyServiceLogEntriesMemo(logEntries, this.props.service.name, logEntries.length);
   }
 
-  stringifySeviceLogEntries(entries: ILogEntry[]): string {
-    let str = '';
-    for (let i = 0; i < entries.length; i++) {
-      const entry = entries[i];
-      if (entry.source === this.props.service.name) {
-        str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
-        str += padLines(escapeHTML(entry.content), timeChars + 2);
-        str += '\n';
-      }
-    }
-    return str;
-  }
+  static contextType = LangContext;
 }
 
+/**
+ * Stringify all entires that are from a specific source.
+ * @param entries Entries to stringify.
+ * @param source The source to filter by.
+ * @param pass Unused arguments (lets you bypass the memo by passing different values here).
+ */
+function stringifyServiceLogEntries(entries: ILogEntry[], source: string, ...pass: any[]): string {
+  let str = '';
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    if (entry.source === source) {
+      str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
+      str += padLines(escapeHTML(entry.content), timeChars + 2);
+      str += '\n';
+    }
+  }
+  return str;
+}
+
+/**
+ * Format time as a string of hours, minutes and seconds ("hh:mm:ss").
+ * @param ms Time (in milliseconds).
+ */
 function formatMsTime(ms: number): string {
   let hours = String(Math.floor((ms / (1000 * 60 * 60)) % 24));
-  let mins = String(Math.floor((ms / (1000 * 60)) % 60));
-  let secs = String(Math.floor((ms / 1000) % 60));
+  let mins  = String(Math.floor((ms / (1000 * 60))      % 60));
+  let secs  = String(Math.floor((ms /  1000)            % 60));
 
   hours = (hours.length < 2) ? '0' + hours : hours;
-  mins = (mins.length < 2) ? '0' + mins : mins;
-  secs = (secs.length < 2) ? '0' + secs : secs;
+  mins  = (mins.length  < 2) ? '0' + mins  : mins;
+  secs  = (secs.length  < 2) ? '0' + secs  : secs;
 
   return hours + ':' + mins + ':' + secs;
 }
-

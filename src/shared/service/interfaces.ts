@@ -1,4 +1,4 @@
-export interface IBackProcessInfo {
+export type IBackProcessInfo = {
   /** Path of the file (relative to the Flashpoint root) */
   path: string;
   /** Name of the file to execute */
@@ -10,8 +10,9 @@ export interface IBackProcessInfo {
    * (This does not do anything for "start" and "stop" processes)
    */
   kill: boolean;
-}
+};
 
+/** State of a managed process. */
 export enum ProcessState {
   /** The process is stopped or has not been spawned yet. */
   STOPPED,
@@ -19,10 +20,11 @@ export enum ProcessState {
   RUNNING,
   /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
   KILLING,
-  /** The process failed to start */
+  /** The process failed to start. */
   FAILED
 }
 
+/** Actions that can be performed on a service. */
 export enum ProcessAction {
   /** Start the process if it is stopped */
   START,
@@ -32,7 +34,7 @@ export enum ProcessAction {
   RESTART
 }
 
-/** Data describing the state of a background service */
+/** Object describing the state of a service. */
 export type IService = {
   identifier: string;
   name: string;
@@ -40,30 +42,12 @@ export type IService = {
   pid: number;
   startTime: number;
   info?: IBackProcessInfo;
-}
+};
 
-/** Stored data describing the new state of 1 or more services */
-export type IServicesData = IService[];
-
-/** Partial updates sent or fetched describing changed services */
-export type IServicesUpdate = Partial<IService>[];
-
-/** Data describing an action to be taken on a serviceable process */
+/** A service action directed at a specific service (by identifier). */
 export type IServiceAction = {
-  identifier: string,
-  action: ProcessAction
-}
-
-/**
- * Required for process to be handled by the Service Api
- */
-export declare interface ServiceableProcess {
-  readonly identifier: string;
-  readonly name: string;
-  getState(): ProcessState;
-  getPid(): number;
-  getStartTime(): number;
-  spawn(): void;
-  kill(): void;
-  restart(): void;
-}
+  /** Identifier of the service the action is for. */
+  identifier: string;
+  /** Action to perform on service. */
+  action: ProcessAction;
+};

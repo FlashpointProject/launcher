@@ -1,11 +1,11 @@
 import { IBackProcessInfo } from '../../shared/service/interfaces';
 
-export interface IBackProcessInfoFile {
+export type ServiceFileData = {
   redirector?: IBackProcessInfo;
   fiddler?: IBackProcessInfo;
   server?: IBackProcessInfo;
-  /** Processes to run before the launcher starts */
+  /** Processes to run before the launcher starts. */
   start: IBackProcessInfo[];
-  /** Processes to run when the launcher closes */
+  /** Processes to run when the launcher closes. */
   stop: IBackProcessInfo[];
-}
+};

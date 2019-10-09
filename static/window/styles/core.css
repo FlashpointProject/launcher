@@ -1615,13 +1615,15 @@ body {
   border-radius: 0.5rem;
   text-align: left;
 }
-.developer-page__services__title {
+.developer-page__services-title {
   flex: 0 1 auto;
   font-size: 2em;
   font-weight: bold;
 }
-
 /* Service Box */
+.service-box {
+  padding: 0.5em;
+}
 .service-box__top {
   display: flex;
   font-size: 1.15em;
@@ -1638,15 +1640,15 @@ body {
 .service-box__bottom {
   display: flex;
 }
-.service-box__bottom__buttons {
+.service-box__bottom-buttons {
   text-align: left;
 }
-.service-box__bottom__buttons input {
+.service-box__bottom-buttons input {
   padding: 0.1em;
   margin-right: 0.5rem;
   width: 5em;
 }
-.service-box__bottom__uptime {
+.service-box__bottom-uptime {
   flex: 1 1 auto;
   text-align: right;
   align-items: center;

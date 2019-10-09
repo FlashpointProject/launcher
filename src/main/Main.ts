@@ -1,19 +1,19 @@
 import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
-import { IMiscData, MiscIPC } from '../shared/interfaces';
 import checkSanity from '../shared/checkSanity';
+import { IMiscData, MiscIPC } from '../shared/interfaces';
 import { ILogPreEntry } from '../shared/Log/interface';
 import { LogMainApi } from '../shared/Log/LogMainApi';
-import BackgroundServices from './background/BackgroundServices';
 import { AppConfigMain } from './config/AppConfigMain';
 import MainWindow from './MainWindow';
 import { AppPreferencesMain } from './preferences/AppPreferencesMain';
+import { ServicesMainApi } from './service/ServicesMainApi';
 import * as Util from './Util';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
-  private _backgroundServices?: BackgroundServices;
+  private _services?: ServicesMainApi;
   private _config: AppConfigMain = new AppConfigMain();
   private _preferences: AppPreferencesMain = new AppPreferencesMain();
   private _installed: boolean = fs.existsSync('./.installed');
@@ -60,11 +60,11 @@ export class Main {
       checkSanity(this._config.data)
       .then(console.log, console.error);
       // Start background services
-      this._backgroundServices = new BackgroundServices(this.sendToMainWindowRenderer.bind(this));
-      this._backgroundServices.on('output', this.pushLogData.bind(this));
-      this._backgroundServices.start(this._config.data);
+      this._services = new ServicesMainApi(this.sendToMainWindowRenderer.bind(this));
+      this._services.on('output', this.pushLogData.bind(this));
+      this._services.start(this._config.data);
       // Create main window when ready
-      this._backgroundServices.waitUntilDoneStarting()
+      this._services.waitUntilDoneStarting()
       .then(Util.waitUntilReady)
       .then(() => { this._mainWindow.createWindow(); });
     })
@@ -100,8 +100,8 @@ export class Main {
   }
 
   private onAppWillQuit(): void {
-    if (this._backgroundServices) {
-      this._backgroundServices.stopAll();
+    if (this._services) {
+      this._services.stopAll();
     }
   }
 
