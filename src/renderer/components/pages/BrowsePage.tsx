@@ -11,7 +11,7 @@ import { GameCollection } from '../../../shared/game/GameCollection';
 import { IOrderGamesArgs, orderGames } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
-import { BrowseLang, LangContainer, MenuLang } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { memoizeOne } from '../../../shared/memoize';
 import { formatDate } from '../../../shared/Util';
@@ -305,7 +305,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     );
   }
 
-  private noRowsRendererMemo = memoizeOne((strings: BrowseLang) => {
+  private noRowsRendererMemo = memoizeOne((strings: LangContainer['browse']) => {
     return () => (
       <div className='game-list__no-games'>
       { this.props.central.gamesDoneLoading ? (
@@ -347,7 +347,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     );
   });
 
-  private onGameContextMenuMemo = memoizeOne((strings : MenuLang) => {
+  private onGameContextMenuMemo = memoizeOne((strings: LangContainer['menu']) => {
     return (game: IGameInfo) => {
       return (
         openContextMenu([{

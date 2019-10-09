@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
-import { CurateLang, MiscLang } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { stringToBool } from '../curate/importCuration';
 import { CurationIndexContent } from '../curate/indexCuration';
@@ -421,7 +421,7 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
+function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
   return (
     <SimpleButton
       className={
@@ -549,7 +549,7 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
  * Convert a boolean to a string ("Yes" or "No").
  * @param bool Boolean to convert.
  */
-function boolToString(bool: boolean, strings : MiscLang): string {
+function boolToString(bool: boolean, strings: LangContainer['misc']): string {
   return bool ? strings.yes : strings.no;
 }
 

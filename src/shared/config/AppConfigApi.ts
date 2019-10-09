@@ -50,22 +50,20 @@ export class AppConfigApi extends EventEmitter {
   }
 
   /** Initialize the API. */
-  public initialize(): Promise<void> {
-    return new Promise(async () => {
-      if (this._isInit) { throw new Error('You can only initialize this once'); }
-      // Fetch initial config data from the main process
-      const data = await this.fetch();
-      // Keep data
-      this._data = deepCopy(data.data);
-      this._fullFlashpointPath = data.fullFlashpointPath;
-      this._fullJsonFolderPath = path.posix.join(
-        data.fullFlashpointPath,
-        data.data.jsonFolderPath
-      );
-      // Done
-      this._isInit = true; // Update Flag
-      this.emit('init'); // Emit event
-    });
+  public async initialize(): Promise<void> {
+    if (this._isInit) { throw new Error('You can only initialize this once'); }
+    // Fetch initial config data from the main process
+    const data = await this.fetch();
+    // Keep data
+    this._data = deepCopy(data.data);
+    this._fullFlashpointPath = data.fullFlashpointPath;
+    this._fullJsonFolderPath = path.posix.join(
+      data.fullFlashpointPath,
+      data.data.jsonFolderPath
+    );
+    // Done
+    this._isInit = true; // Update Flag
+    this.emit('init'); // Emit event
   }
 
   /** Wait until the API is initialized (or resolve immediately if it's already initialized). */

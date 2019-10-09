@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LangContainer, MiscLang } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { formatString } from '../../shared/utils/StringFormatter';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -106,7 +106,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   static contextType = LangContext;
 }
 
-function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[MiscLang, string]>): JSX.Element {
+function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['misc'], string]>): JSX.Element {
   const [ strings, text ] = extra;
   return (
     <div
