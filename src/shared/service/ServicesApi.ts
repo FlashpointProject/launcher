@@ -107,7 +107,7 @@ export class ServicesApi extends EventEmitter {
       }
     }
   }
-  
+
   /**
    * Find a service by its identifier.
    * @param identifier Identifier of the service.
