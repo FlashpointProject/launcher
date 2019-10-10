@@ -224,6 +224,8 @@ export function getDefaultLocalization(): LangContainer {
       noHeading: 'noHeading',
       curationNotes: 'curationNotes',
       noCurationNotes: 'noCurationNotes',
+      newAddApp: 'newAddApp',
+      removeAddApp: 'removeAddApp',
       remove: 'remove',
       removeCurationDesc: 'removeCurationDesc',
       indexContent: 'indexContent',

@@ -7,10 +7,9 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
 import { CurateLang, MiscLang } from '../../shared/lang/types';
-import { get7zExec } from '../util/SevenZip';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { stringifyCurationFormat } from '../curate/format/stringifier';
-import { importCuration, stringToBool } from '../curate/importCuration';
+import { importCuration, launchCuration, stringToBool } from '../curate/importCuration';
 import { CurationIndexContent } from '../curate/indexCuration';
 import { convertEditToCurationMeta } from '../curate/metaToMeta';
 import { getCurationFolder } from '../curate/util';
@@ -19,6 +18,7 @@ import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { copyArrayLike, sizeToString } from '../Util';
 import { LangContext } from '../util/lang';
+import { get7zExec } from '../util/SevenZip';
 import { GamePropSuggestions } from '../util/suggestions';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -130,36 +130,9 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.dispatch, props.curation, props.games, props.gameImages]);
   // Callback for testing a curation works
-  const onRunCuration = useCallback(async () => {
+  const onRun = useCallback(async () => {
     if (props.curation) {
-      const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', props.curation.key);
-      const serverPath = path.join(GameLauncher.getHtdocsPath(), 'content');
-      // Clear out old folder if exists
-      if (fs.existsSync(serverPath)) {
-        fs.removeSync(serverPath);
-      }
-      const contentPath = path.join(curationPath, 'content');
-      if (fs.existsSync(contentPath)) {
-        // Use symlinks on windows if running as Admin
-        if (process.platform === 'win32') {
-          exec('NET SESSION', (err,so,se) => {
-            if (se.length === 0) {
-              console.log('SYM');
-              fs.symlinkSync(contentPath, serverPath);
-            } else {
-              fs.copySync(contentPath, serverPath);
-            }
-          });
-        } else {
-          fs.copySync(contentPath, serverPath);
-        }
-        props.dispatch({
-          type: 'run-curation',
-          payload: {
-            key: props.curation.key
-          }
-        });
-      }
+      launchCuration(props.curation);
     }
   }, [props.dispatch, props.curation]);
   // Callback for when the index content button is clicked
@@ -172,7 +145,7 @@ export function CurateBox(props: CurateBoxProps) {
         }
       });
     }
-  }, [props.curation && props.curation.key, props.dispatch]);
+  }, [ props.dispatch, props.curation && props.curation.key]);
   // Callback for when the open folder button is clicked
   const onOpenFolder = useCallback(() => {
     if (props.curation) {
@@ -184,6 +157,15 @@ export function CurateBox(props: CurateBoxProps) {
     if (props.curation) {
       props.dispatch({
         type: 'remove-curation',
+        payload: { key: props.curation.key }
+      });
+    }
+  }, [props.dispatch, props.curation && props.curation.key]);
+  // Callback for when the new additional application button is clicked
+  const onNewAddApp = useCallback(() => {
+    if (props.curation) {
+      props.dispatch({
+        type: 'new-addapp',
         payload: { key: props.curation.key }
       });
     }
@@ -270,9 +252,10 @@ export function CurateBox(props: CurateBoxProps) {
   const disabled = props.curation ? props.curation.locked : false;
   // Render additional application elements
   const addApps = useMemo(() => (
-    (props.curation && props.curation.addApps.length > 0) ? (
+    <>
+    { strings.browse.additionalApplications }:
+    { props.curation && props.curation.addApps.length > 0 ? (
       <>
-        { strings.browse.additionalApplications }:
         { props.curation.addApps.map(addApp => (
           <CurateBoxAddApp
             key={addApp.key}
@@ -282,9 +265,9 @@ export function CurateBox(props: CurateBoxProps) {
             disabled={disabled}
             onInputKeyDown={onInputKeyDown} />
         )) }
-        <hr className='curate-box-divider' />
       </>
-    ) : undefined
+    ) : undefined }
+    </>
   ), [
     props.curation && props.curation.addApps,
     props.curation && props.curation.key,
@@ -524,6 +507,11 @@ export function CurateBox(props: CurateBoxProps) {
       {/* Additional Application */}
       <div className='curate-box-add-apps'>
         {addApps}
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.newAddApp}
+          onClick={onNewAddApp} />
+        <hr className='curate-box-divider' />
       </div>
       {/* Content */}
       <div className='curate-box-files'>
@@ -559,7 +547,7 @@ export function CurateBox(props: CurateBoxProps) {
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.run}
-          onClick={onRunCuration} />
+          onClick={onRun} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.export}

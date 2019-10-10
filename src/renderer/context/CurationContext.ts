@@ -1,9 +1,9 @@
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
 import { GameMetaDefaults } from '../curate/defaultValues';
-import { launchCuration } from '../curate/importCuration';
 import { createCurationIndexImage, CurationIndexContent, CurationIndexImage, indexContentFolder } from '../curate/indexCuration';
 import { removeCurationFile, updateCurationFile } from '../curate/util';
+import { uuid } from '../uuid';
 
 const curationDefaultState: CurationsState = {
   defaultMetaData: undefined,
@@ -68,7 +68,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       return { ...prevState, curations: nextCurations };
     }
     // Index a curations content folder
-    case 'index-curation-content':
+    case 'index-curation-content': {
       const nextCurations = [ ...prevState.curations ];
       const index = nextCurations.findIndex((item) => item.key === action.payload.key);
       if (index >= 0) {
@@ -84,6 +84,43 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations.push(newCuration);
       }
       return { ...prevState, curations: nextCurations };
+    }
+    // Add an additional application to a curation
+    case 'new-addapp': {
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex(c => c.key === action.payload.key);
+      if (index >= 0) {
+        // Copy the previous curation (and the nested addApps array)
+        const prevCuration = nextCurations[index];
+        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+        nextCuration.addApps.push({
+          key: uuid(),
+          meta: {}
+        });
+        nextCurations[index] = nextCuration;
+      }
+      return { ...prevState, curations: nextCurations };
+    }
+    // Remove an additional application from a curation
+    case 'remove-addapp': {
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex(c => c.key === action.payload.curationKey);
+      if (index >= 0) {
+        // Copy the previous curation (and the nested addApps array)
+        const prevCuration = nextCurations[index];
+        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+        const addAppIndex = nextCuration.addApps.findIndex(c => c.key === action.payload.key);
+        if (addAppIndex >= 0) {
+          nextCuration.addApps.splice(addAppIndex, 1);
+        }
+        nextCurations[index] = nextCuration;
+      }
+      return { ...prevState, curations: nextCurations };
+    }
+    // Set default metadata for new curations
+    case 'set-default-meta': {
+      return {...prevState, defaultMetaData: action.payload.defaultMeta};
+    }
     // Edit curation's meta
     case 'edit-curation-meta': {
       // Find the curation
@@ -99,10 +136,6 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
-    }
-    // Set default metadata for new curations
-    case 'set-default-meta': {
-      return {...prevState, defaultMetaData: action.payload.defaultMeta};
     }
     // Edit additional application's meta
     case 'edit-addapp-meta': {
@@ -127,14 +160,6 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
-    }
-    // Run a curation
-    case 'run-curation': {
-      const curation = prevState.curations.find((item) => item.key === action.payload.key);
-      if (curation) {
-        launchCuration(curation);
-      }
-      return { ...prevState };
     }
     // Change the lock status of a curation
     case 'change-curation-lock': {
@@ -209,6 +234,15 @@ export type CurationAction = (
     key: string;
     file: string;
   }> |
+  /** Add an empty additional application to curation */
+  ReducerAction<'new-addapp', {
+    key: string;
+  }> |
+  /** Add an empty additional application to curation */
+  ReducerAction<'remove-addapp', {
+    curationKey: string;
+    key: string;
+  }> |
   /** Index a curations content folder */
   ReducerAction<'index-curation-content', {
     key: string;
@@ -236,9 +270,6 @@ export type CurationAction = (
     property: keyof EditAddAppCurationMeta;
     /** Value to set the property to. */
     value: EditAddAppCurationMeta[keyof EditAddAppCurationMeta];
-  }> |
-  ReducerAction<'run-curation', {
-    key: string;
   }> |
   /** Change the lock status of a curation. */
   ReducerAction<'change-curation-lock', {

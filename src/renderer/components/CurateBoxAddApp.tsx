@@ -1,9 +1,11 @@
 import * as React from 'react';
 import { useCallback } from 'react';
 import { CurationAction, EditAddAppCuration, EditAddAppCurationMeta } from '../context/CurationContext';
+import { launchAddAppCuration } from '../curate/importCuration';
 import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
+import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxAddAppProps = {
   /** Key of the curation the displayed additional application belongs to. */
@@ -30,6 +32,19 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   const disabled = props.disabled;
   // Localized strings
   const strings = React.useContext(LangContext);
+  // Callback for remove additional application button
+  const onRemove = useCallback(() => {
+    props.dispatch({
+      type: 'remove-addapp',
+      payload: {
+        curationKey: props.curationKey,
+        key: props.curation.key
+      }
+    });
+  }, [props.curationKey, props.curation.key, props.dispatch]);
+  const onRun = useCallback(() => {
+    launchAddAppCuration(props.curationKey, props.curation);
+  }, [props.curation && props.curation.meta && props.curationKey]);
   // Render
   return (
     <div className='curate-box-add-app'>
@@ -60,6 +75,14 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
+      <SimpleButton
+        className='curate-box-buttons__button'
+        value={strings.curate.removeAddApp}
+        onClick={onRemove} />
+      <SimpleButton
+        className='curate-box-buttons__button'
+        value={strings.curate.run}
+        onClick={onRun} />
     </div>
   );
 }

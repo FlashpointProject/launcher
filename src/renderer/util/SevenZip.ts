@@ -6,11 +6,11 @@ export function get7zExec(): string {
         const basePath = process.cwd();
         switch (process.platform) {
             case 'darwin':
-                return path.join(basePath, 'extern/7zip/mac', '7za');
+                return path.join(basePath, 'extern/7zip-bin/mac', '7za');
             case 'win32':
-                return path.join(basePath, 'extern/7zip/win', process.arch, '7za');
+                return path.join(basePath, 'extern/7zip-bin/win', process.arch, '7za');
             case 'linux':
-                return path.join(basePath, 'extern/7zip/linux', process.arch, '7za');
+                return path.join(basePath, 'extern/7zip-bin/linux', process.arch, '7za');
         }
         return '7za';
     } else {
@@ -19,7 +19,7 @@ export function get7zExec(): string {
             case 'darwin':
             case 'win32':
             case 'linux':
-                return path.join(basePath, 'extern/7zip/7za');
+                return path.join(basePath, 'extern/7zip-bin/7za');
         }
         return '7za';
     }

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { promisify } from 'util';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { formatDate, removeFileExtension } from '../../shared/Util';
-import { EditCuration } from '../context/CurationContext';
+import { EditAddAppCuration, EditCuration } from '../context/CurationContext';
 import GameManager from '../game/GameManager';
 import { formatUnknownPlatformName } from '../game/util';
 import { GameLauncher } from '../GameLauncher';
@@ -13,6 +13,7 @@ import { getImageFolderName } from '../image/util';
 import { getFileExtension } from '../Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { CurationIndex, CurationIndexImage, importExistingCuration, indexContentFolder } from './indexCuration';
+import { exec } from 'child_process';
 
 const ensureDir = promisify(fs.ensureDir);
 
@@ -33,7 +34,7 @@ export async function importCuration(
   const libraryPrefix = '';
   // Create and add game and additional applications
   const game = createGameFromCurationMeta(curation);
-  const addApps = createAddAppsFromCurationMeta(curation);
+  const addApps = createAddAppsFromCurationMeta(curation.key, curation.addApps);
   // Get the nome of the folder to put the images in
   const imageFolderName = (
     getImageFolderName(game, libraryPrefix, true) ||
@@ -131,12 +132,12 @@ function createGameFromCurationMeta(curation: EditCuration): IGameInfo {
  * Create an array of additional application infos from a curation.
  * @param curation Curation to get data from.
  */
-function createAddAppsFromCurationMeta(curation: EditCuration): IAdditionalApplicationInfo[] {
-  return curation.addApps.map<IAdditionalApplicationInfo>(addApp => {
+function createAddAppsFromCurationMeta(key: string, addApps: EditAddAppCuration[]): IAdditionalApplicationInfo[] {
+  return addApps.map<IAdditionalApplicationInfo>(addApp => {
     const meta = addApp.meta;
     return {
       id: addApp.key,
-      gameId: curation.key,
+      gameId: key,
       applicationPath: meta.applicationPath || '',
       commandLine: meta.launchCommand || '',
       name: meta.heading || '',
@@ -195,9 +196,48 @@ export function stringToBool(str: string, defaultVal: boolean = false): boolean 
  * @param curation Curation to launch
  */
 export function launchCuration(curation: EditCuration) {
+  linkContentFolder(curation.key);
   const game = createGameFromCurationMeta(curation);
-  const addApps = createAddAppsFromCurationMeta(curation);
+  const addApps = createAddAppsFromCurationMeta(curation.key, curation.addApps);
   GameLauncher.launchGame(game, addApps);
+}
+
+/**
+ * Create and launch an additional application from curation metadata.
+ * @param curation Curation to launch
+ */
+export function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration) {
+  linkContentFolder(curationKey);
+  const addApp = createAddAppsFromCurationMeta(curationKey, [appCuration]);
+  GameLauncher.launchAdditionalApplication(addApp[0]);
+}
+
+/** Symlinks (or copies if symlink is unavailble) a curations `content` folder to `htdocs\content`
+ * @params curationKey: Key of the (game) curation to link
+ */
+function linkContentFolder(curationKey: string) {
+  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', curationKey);
+  const serverPath = path.join(GameLauncher.getHtdocsPath(), 'content');
+  // Clear out old folder if exists
+  if (fs.existsSync(serverPath)) {
+    fs.removeSync(serverPath);
+  }
+  const contentPath = path.join(curationPath, 'content');
+  if (fs.existsSync(contentPath)) {
+    // Use symlinks on windows if running as Admin
+    if (process.platform === 'win32') {
+      exec('NET SESSION', (err,so,se) => {
+        if (se.length === 0) {
+          console.log('SYM');
+          fs.symlinkSync(contentPath, serverPath);
+        } else {
+          fs.copySync(contentPath, serverPath);
+        }
+      });
+    } else {
+      fs.copySync(contentPath, serverPath);
+    }
+  }
 }
 
 export async function getNewCurations(existingCurations: EditCuration[]): Promise<CurationIndex[]> {

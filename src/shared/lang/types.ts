@@ -265,6 +265,8 @@ export type CurateLang = LangObject<
   'noHeading' |
   'curationNotes' |
   'noCurationNotes' |
+  'newAddApp' |
+  'removeAddApp' |
   'remove' |
   'removeCurationDesc' |
   'indexContent' |
