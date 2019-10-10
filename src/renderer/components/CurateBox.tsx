@@ -162,6 +162,17 @@ export function CurateBox(props: CurateBoxProps) {
       }
     }
   }, [props.dispatch, props.curation]);
+  // Callback for when the index content button is clicked
+  const onIndexContent = useCallback(() => {
+    if (props.curation) {
+      props.dispatch({
+        type: 'index-curation-content',
+        payload: {
+          key: props.curation.key
+        }
+      });
+    }
+  }, [props.curation && props.curation.key, props.dispatch]);
   // Callback for when the open folder button is clicked
   const onOpenFolder = useCallback(() => {
     if (props.curation) {
@@ -537,6 +548,10 @@ export function CurateBox(props: CurateBoxProps) {
           onConfirm={onRemoveClick}
           children={renderRemoveButton}
           extra={strings.curate} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.indexContent}
+          onClick={onIndexContent} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.openFolder}

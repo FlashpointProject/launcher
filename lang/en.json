@@ -218,6 +218,7 @@
     "noHeading": "No Heading",
     "curationNotes": "Curation Notes",
     "noCurationNotes": "No Curation Notes",
+    "indexContent": "Update Content",
     "remove": "Remove",
     "removeCurationDesc": "Remove this curation (no changes will be made to any files)",
     "openFolder": "Open Folder",

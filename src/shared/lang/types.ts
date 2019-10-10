@@ -267,6 +267,7 @@ export type CurateLang = LangObject<
   'noCurationNotes' |
   'remove' |
   'removeCurationDesc' |
+  'indexContent' |
   'openFolder' |
   'run' |
   'export' |

@@ -226,6 +226,7 @@ export function getDefaultLocalization(): LangContainer {
       noCurationNotes: 'noCurationNotes',
       remove: 'remove',
       removeCurationDesc: 'removeCurationDesc',
+      indexContent: 'indexContent',
       openFolder: 'openFolder',
       run: 'run',
       export: 'export',

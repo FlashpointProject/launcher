@@ -2,7 +2,7 @@ import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
 import { GameMetaDefaults } from '../curate/defaultValues';
 import { launchCuration } from '../curate/importCuration';
-import { createCurationIndexImage, CurationIndexContent, CurationIndexImage } from '../curate/indexCuration';
+import { createCurationIndexImage, CurationIndexContent, CurationIndexImage, indexContentFolder } from '../curate/indexCuration';
 import { removeCurationFile, updateCurationFile } from '../curate/util';
 
 const curationDefaultState: CurationsState = {
@@ -58,14 +58,32 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         let nextCuration = nextCurations[index];
         nextCurations[index] = updateCurationFile(action.payload.file, nextCuration, prevState.defaultMetaData);
       } else {
-        // Not imported yet, do here
+        // Curation not imported, do before file update
         const newCuration = createEditCuration();
         newCuration.key = action.payload.key;
+        indexContentFolder(newCuration);
         updateCurationFile(action.payload.file, newCuration,  prevState.defaultMetaData);
         nextCurations.push(newCuration);
       }
       return { ...prevState, curations: nextCurations };
     }
+    // Index a curations content folder
+    case 'index-curation-content':
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex((item) => item.key === action.payload.key);
+      if (index >= 0) {
+        const prevCuration = nextCurations[index];
+        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+        indexContentFolder(nextCuration);
+        nextCurations[index] = nextCuration;
+      } else {
+        // Curation not imported, do before file update
+        const newCuration = createEditCuration();
+        newCuration.key = action.payload.key;
+        indexContentFolder(newCuration);
+        nextCurations.push(newCuration);
+      }
+      return { ...prevState, curations: nextCurations };
     // Edit curation's meta
     case 'edit-curation-meta': {
       // Find the curation
@@ -190,6 +208,10 @@ export type CurationAction = (
   ReducerAction<'update-curation-file', {
     key: string;
     file: string;
+  }> |
+  /** Index a curations content folder */
+  ReducerAction<'index-curation-content', {
+    key: string;
   }> |
   /** Set the default metadata for new curations */
   ReducerAction<'set-default-meta', {

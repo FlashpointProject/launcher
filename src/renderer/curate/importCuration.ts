@@ -12,7 +12,7 @@ import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
 import { getFileExtension } from '../Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
-import { CurationIndex, CurationIndexImage, indexExistingCuration } from './indexCuration';
+import { CurationIndex, CurationIndexImage, importExistingCuration, indexContentFolder } from './indexCuration';
 
 const ensureDir = promisify(fs.ensureDir);
 
@@ -27,6 +27,8 @@ const ensureDir = promisify(fs.ensureDir);
 export async function importCuration(
   curation: EditCuration, games: GameManager, gameImages: GameImageCollection, log: boolean = false
 ): Promise<void> {
+  // Make sure the content folder is an up to date index
+  indexContentFolder(curation);
   // @TODO Add support for selecting what library to save the game to
   const libraryPrefix = '';
   // Create and add game and additional applications
@@ -209,7 +211,7 @@ export async function getNewCurations(existingCurations: EditCuration[]): Promis
       if (fs.lstatSync(fullPath).isDirectory()) {
         // Make sure it doesn't already exist
         if (existingCurations.findIndex((item) => item.key === file) === -1) {
-          curations.push(indexExistingCuration(file));
+          curations.push(importExistingCuration(file));
         }
       }
     }

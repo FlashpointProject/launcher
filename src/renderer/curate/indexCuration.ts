@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
+import { EditCuration } from '../context/CurationContext';
 import { get7zExec } from '../util/SevenZip';
 import { uuid } from '../uuid';
 import { ParsedCurationMeta } from './parse';
@@ -52,7 +53,7 @@ export type CurationIndexImage = {
  * Index a curation folder (index all content files, load and parse meta etc.)
  * @param filepath Path of the folder to index.
  */
-export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
+export function importCurationFolder(filepath: string): Promise<CurationIndex> {
   return new Promise<CurationIndex>((resolve, reject) => {
     const curation = createCurationIndex();
     const curationFolder = getCurationFolder(curation);
@@ -65,11 +66,11 @@ export function indexCurationFolder(filepath: string): Promise<CurationIndex> {
  * Index a curation archive (index all content files, load and parse meta etc.)
  * @param filepath Path of the archive to index.
  */
-export function indexCurationArchive(filePath: string): Promise<CurationIndex> {
+export function importCurationArchive(filePath: string): Promise<CurationIndex> {
   return new Promise<CurationIndex>((resolve, reject) => {
     const curation = createCurationIndex();
     const curationPath = getCurationFolder(curation);
-    const extractPath = path.join(curationPath, 'Extracted');
+    const extractPath = path.join(curationPath, '.temp');
     fs.mkdirsSync(extractPath);
     // Extract to Curation folder
     extractFull(filePath, extractPath, { $bin: get7zExec() })
@@ -77,8 +78,7 @@ export function indexCurationArchive(filePath: string): Promise<CurationIndex> {
       const rootPath = getRootPath(extractPath);
       if (rootPath) {
         fs.copySync(rootPath, curationPath);
-        // Won't clear folders, but will clear files
-        fs.removeSync(rootPath);
+        fs.removeSync(extractPath);
       } else if (!rootPath) {
         curation.errors.push({
           message: 'No meta.txt found in imported curation.'
@@ -93,7 +93,7 @@ export function indexCurationArchive(filePath: string): Promise<CurationIndex> {
   });
 }
 
-export function indexExistingCuration(key: string): Promise<CurationIndex> {
+export function importExistingCuration(key: string): Promise<CurationIndex> {
   return new Promise<CurationIndex>((resolve) => {
     const curation = createCurationIndex();
     curation.key = key;
@@ -144,55 +144,35 @@ export function createCurationIndexImage(): CurationIndexImage {
 }
 
 /**
- * Check if a file (inside an archive file) is inside a curation folder.
- * @param filePath Path of the file (inside the archive).
+ * Recursively index the content folder
+ * @param curation Curation to set the indexed content of
  */
-export function isInCurationFolder(filePath: string): boolean {
-  const split = filePath.toLowerCase().split('/');
-  return (
-    // Check if the file is two or more folders deep
-    split.length > 2 &&
-    // Check if the second folder in the path is the content folder
-    // (The first folder is usually named after the name)
-    split[1] === 'content' &&
-    // Check if the third name is not empty (if it is, then this is a folder)
-    split[2] !== ''
-  );
+export function indexContentFolder(curation: EditCuration) {
+  const contentPath = path.join(getCurationFolder(curation), 'content');
+  curation.content = [];
+  if (fs.existsSync(contentPath)) {
+    recursiveFolderIndex(contentPath, contentPath, curation);
+  }
 }
 
-/**
- * Recursively index the content folder (or one of it's sub-folders, at any depth).
- * @param folderPath Path of the folder to index.
- * @param contentPath Path of the content folder of the curation.
- * @param curation Curation index to add the indexed content to.
- * @returns A promise that is resolved once the index is done.
- */
-function indexContentFolder(folderPath: string, contentPath: string, curation: CurationIndex): Promise<void[]> {
-  return (
-    // List all sub-files (and folders)
-    fs.readdir(folderPath)
-    // Run a promise on each file (and wait for all to finish)
-    .then(files => Promise.all(
-      files.map(fileName => {
-        const filePath = path.join(folderPath, fileName);
-        return fs.stat(filePath)
-        .then(stats => new Promise<void>((resolve, reject) => {
-          const isDirectory = stats.isDirectory();
-          // Add content index
-          curation.content.push({
-            fileName: fixSlashes(path.relative(contentPath, filePath)) + (isDirectory ? '/' : ''),
-            fileSize: stats.size,
-          });
-          // Check if it should recurse
-          if (isDirectory) {
-            indexContentFolder(filePath, contentPath, curation)
-            .then(() => { resolve(); })
-            .catch(error => { reject(error); });
-          } else { resolve(); } // (It's a file, don't recurse)
-        }));
-      })
-    ))
-  );
+function recursiveFolderIndex(folderPath: string, contentPath: string, curation: EditCuration) {
+  // List all sub-files (and folders)
+  const files = fs.readdirSync(folderPath);
+  // Run a promise on each file (and wait for all to finish)
+  for (let fileName of files) {
+    const filePath = path.join(folderPath, fileName);
+    const stats = fs.lstatSync(filePath);
+    const isDirectory = stats.isDirectory();
+    // Add content index
+    curation.content.push({
+      fileName: fixSlashes(path.relative(contentPath, filePath)) + (isDirectory ? '/' : ''),
+      fileSize: stats.size,
+    });
+    // Check if it should recurse
+    if (isDirectory) {
+      recursiveFolderIndex(filePath, contentPath, curation);
+    }
+  }
 }
 
 /** Replace all back-slashes with forward slashes. */

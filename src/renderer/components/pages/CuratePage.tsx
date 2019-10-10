@@ -8,7 +8,7 @@ import { createEditCuration, CurationAction, CurationContext, EditCurationMeta }
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { importCuration } from '../../curate/importCuration';
-import { CurationIndex, indexCurationArchive, indexCurationFolder } from '../../curate/indexCuration';
+import { CurationIndex, importCurationArchive, importCurationFolder } from '../../curate/indexCuration';
 import { convertEditToCurationMeta } from '../../curate/metaToMeta';
 import { parseCurationMeta } from '../../curate/parse';
 import { getCurationFolder } from '../../curate/util';
@@ -40,8 +40,8 @@ export function CuratePage(props: CuratePageProps) {
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
     const relativePath = path.relative(curationsPath, fullPath);
     const splitPath = relativePath.split(path.sep);
-    // Ignore root files, no dir
-    if (splitPath.length > 1) {
+    // Ignore root files, no dirs
+    if (fs.lstatSync(fullPath).isFile() && splitPath.length > 1) {
       const key = splitPath.shift();
       const filePath = path.join(splitPath.join(path.sep));
       if (key) {
@@ -59,8 +59,8 @@ export function CuratePage(props: CuratePageProps) {
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
     const relativePath = path.relative(curationsPath, fullPath);
     const splitPath = relativePath.split(path.sep);
-    // Ignore root files, no dir
-    if (splitPath.length > 1) {
+    // Ignore root files, no dirs
+    if (fs.lstatSync(fullPath).isFile() && splitPath.length > 1) {
       const key = splitPath.shift();
       const filePath = path.join(splitPath.join(path.sep));
       if (key) {
@@ -86,11 +86,13 @@ export function CuratePage(props: CuratePageProps) {
       });
     }
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
+    fs.ensureDirSync(curationsPath);
     return chokidar.watch(curationsPath, {
       awaitWriteFinish: {
         stabilityThreshold: 500,
         pollInterval: 100
-      }
+      },
+      depth: 1
     })
     .on('change', (fullPath) => {
       updateCurationFile(fullPath);
@@ -99,9 +101,6 @@ export function CuratePage(props: CuratePageProps) {
       updateCurationFile(fullPath);
     })
     .on('addDir', (fullPath) => {
-      if (fs.readdirSync(fullPath).length > 20) {
-        watcher.unwatch(fullPath + '/**');
-      }
       updateCurationFile(fullPath);
     })
     .on('unlink', (fullPath) => {
@@ -211,7 +210,15 @@ export function CuratePage(props: CuratePageProps) {
       for (let i = 0; i < filePaths.length; i++) {
         const source = filePaths[i];
         // Read and index the archive
-        await indexCurationArchive(source);
+        importCurationArchive(source)
+        .then((curation) => {
+          dispatch({
+            type: 'index-curation-content',
+            payload: {
+              key: curation.key
+            }
+          });
+        });
       }
     }
   }, [dispatch]);
@@ -225,12 +232,16 @@ export function CuratePage(props: CuratePageProps) {
     if (filePaths) {
       Promise.all(
         filePaths.map(source => (
-          // Read and index the folder
-          indexCurationFolder(source)
+          // Copy files to curation folder
+          importCurationFolder(source)
           // Add curation index
-          .then(curationIndex => {
-            setGameMetaDefaults(curationIndex.meta.game, defaultGameMetaValues);
-            addCurationIndex(curationIndex, dispatch);
+          .then(curation => {
+            dispatch({
+              type: 'index-curation-content',
+              payload: {
+                key: curation.key
+              }
+            });
           })
         ))
       );
