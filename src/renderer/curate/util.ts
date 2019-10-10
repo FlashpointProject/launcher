@@ -2,17 +2,23 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { stripBOM } from '../../shared/Util';
 import { setGameMetaDefaults } from '../components/pages/CuratePage';
-import { EditCuration } from "../context/CurationContext";
+import { EditCuration } from '../context/CurationContext';
 import { uuid } from '../uuid';
 import { GameMetaDefaults } from './defaultValues';
-import { createCurationIndexImage, CurationIndex, CurationIndexContent, fixSlashes } from "./indexCuration";
+import { createCurationIndexImage, CurationIndex, CurationIndexContent, fixSlashes } from './indexCuration';
 import { parseCurationMeta } from './parse';
 
-/** Full path to Curation's unique folder */
+/** Full path to Curation's unique folder
+ * @param curation: Curation to fetch folder from
+ */
 export function getCurationFolder(curation: CurationIndex|EditCuration) {
     return path.join(window.External.config.fullFlashpointPath, 'Curations', curation.key);
 }
 
+/** Remove a file from a curation and return it
+ * @param file: Relative path to file from curation folder
+ * @param curation: Curation to edit
+ */
 export function removeCurationFile(file: string, curation: EditCuration): EditCuration {
     if (file.startsWith('logo.')) {
         const image = createCurationIndexImage();
@@ -36,6 +42,11 @@ export function removeCurationFile(file: string, curation: EditCuration): EditCu
     return curation;
 }
 
+/** Add a file to a curation and return it
+ * @param file: Relative path to file from curation folder
+ * @param curation: Curation to edit
+ * @param defaultMetaData: Default metadata to apply to imported meta.txt files
+ */
 export function updateCurationFile(file: string, curation: EditCuration, defaultMetaData?: GameMetaDefaults): EditCuration {
     const fullPath = path.join(getCurationFolder(curation), file);
     if (file === 'meta.txt') {

@@ -28,7 +28,6 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     super(props);
     this.state = {};
   }
-  
   render() {
     const strings = this.context.about;
     const { profile } = this.state;

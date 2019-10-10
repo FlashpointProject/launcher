@@ -6,7 +6,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
 import { IUpgradeStage } from '../upgrade/upgrade';
-import { get7zExec } from '../../shared/utils/SevenZip';
+import { get7zExec } from './SevenZip';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -92,7 +92,7 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
       .once('error', (error) => {
         log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
         status.emit('error', error);
-      })
+      });
     })
     .once('error', (error) => {
       log(`Download of the "${upgrade.title}" upgrade failed!\n${error}`);

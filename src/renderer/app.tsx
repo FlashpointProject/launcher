@@ -151,11 +151,11 @@ export class App extends React.Component<AppProps, AppState> {
           .then(({ response }) => {
             if (response === 0) {
               askBeforeClosing = false;
-              this.stopBeforeClosure();
+              this.unmountBeforeClose();
             }
           });
         } else {
-          this.stopBeforeClosure();
+          this.unmountBeforeClose();
         }
       };
     })();
@@ -529,10 +529,10 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.langManager.updateContainer();
   }
 
-  private stopBeforeClosure = (): void => {
+  private unmountBeforeClose = (): void => {
     const { central } = this.state;
     central.stopRender = true;
-    this.setState({ central: central })
+    this.setState({ central: central });
 
     setTimeout(() => {
       remote.getCurrentWindow().close();

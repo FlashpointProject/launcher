@@ -47,7 +47,7 @@ export function CuratePage(props: CuratePageProps) {
       if (key) {
         dispatch({
           type: 'remove-curation-file',
-          payload: { 
+          payload: {
             key: key,
             file: filePath
           }
@@ -66,7 +66,7 @@ export function CuratePage(props: CuratePageProps) {
       if (key) {
         dispatch({
           type: 'update-curation-file',
-          payload: { 
+          payload: {
             key: key,
             file: filePath
           }
@@ -76,7 +76,7 @@ export function CuratePage(props: CuratePageProps) {
   }, [dispatch]);
   // Watcher data
   const ownState = useMemo(() => { return { state: state }; }, []);
-  const watcher = useMemo(() => { 
+  const watcher = useMemo(() => {
     if (defaultGameMetaValues) {
       dispatch({
         type: 'set-default-meta',
@@ -109,13 +109,13 @@ export function CuratePage(props: CuratePageProps) {
     })
     .on('unlinkDir', (fullPath) => {
       removeCurationFile(fullPath);
-    })
+    });
   }, [dispatch]);
   React.useEffect(() => {
     ownState.state = state;
   }, [state]);
   React.useEffect(() => {
-    return () => { 
+    return () => {
       // Stop watcher to release locks
       watcher.close();
       const state = ownState.state;
@@ -128,13 +128,13 @@ export function CuratePage(props: CuratePageProps) {
       const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
       if (fs.pathExistsSync(curationsPath)) {
         fs.readdirSync(curationsPath).map((file) => {
-          const fullPath = path.join(curationsPath, file)
+          const fullPath = path.join(curationsPath, file);
           if (fs.lstatSync(fullPath).isDirectory()) {
             if (state.curations.findIndex((item) => item.key === file) === -1) {
               fs.removeSync(fullPath);
             }
           }
-        })
+        });
       }
      };
   }, []);
@@ -197,7 +197,7 @@ export function CuratePage(props: CuratePageProps) {
     // Create content folder and empty meta.txt
     fs.mkdirSync(newCurationFolder);
     fs.mkdirSync(path.join(newCurationFolder, 'content'));
-    fs.closeSync(fs.openSync(path.join(newCurationFolder, 'meta.txt'), 'w'))
+    fs.closeSync(fs.openSync(path.join(newCurationFolder, 'meta.txt'), 'w'));
   }, []);
   // Load Curation Archive Callback
   const onLoadCurationArchiveClick = useCallback(async () => {

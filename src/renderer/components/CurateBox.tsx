@@ -7,7 +7,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
 import { CurateLang, MiscLang } from '../../shared/lang/types';
-import { get7zExec } from '../../shared/utils/SevenZip';
+import { get7zExec } from '../util/SevenZip';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { stringifyCurationFormat } from '../curate/format/stringifier';
 import { importCuration, stringToBool } from '../curate/importCuration';
@@ -167,7 +167,7 @@ export function CurateBox(props: CurateBoxProps) {
     if (props.curation) {
       remote.shell.openItem(getCurationFolder(props.curation));
     }
-  }, [props.curation && props.curation.key])
+  }, [props.curation && props.curation.key]);
   // Callback for when the remove button is clicked
   const onRemoveClick = useCallback(() => {
     if (props.curation) {

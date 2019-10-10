@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
-import { get7zExec } from '../../shared/utils/SevenZip';
+import { get7zExec } from '../util/SevenZip';
 import { uuid } from '../uuid';
 import { ParsedCurationMeta } from './parse';
 import { getCurationFolder } from './util';

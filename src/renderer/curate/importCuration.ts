@@ -216,6 +216,6 @@ export async function getNewCurations(existingCurations: EditCuration[]): Promis
     Promise.all(curations)
     .then((curations) => {
       resolve(curations);
-    })
+    });
   });
 }
