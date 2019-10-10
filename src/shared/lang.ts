@@ -257,9 +257,8 @@ const langTemplate = {
     'authorPlaceholder',
   ] as const,
   misc: [
-    'blankNotFound',
+    'noBlankFound',
     'addBlank',
-    'removeBlank',
     'deleteAllBlankImages',
     'yes',
     'no',

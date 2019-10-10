@@ -17,9 +17,8 @@ export function getDefaultLocalization(): LangContainer {
   lang.browse.dropGameOnLeft += ' {0}';
   lang.browse.setFlashpointPathQuestion += ' {0} {1}';
   lang.browse.noteSaveAndRestart += ' {0}';
-  lang.misc.blankNotFound = '{0} ' + lang.misc.blankNotFound;
+  lang.misc.noBlankFound = '{0} ' + lang.misc.noBlankFound;
   lang.misc.addBlank += ' {0}';
-  lang.misc.removeBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';
   lang.dialog.errorParsingPlatformsMessage = '{0} ' + lang.dialog.errorParsingPlatformsMessage;
   // Return object

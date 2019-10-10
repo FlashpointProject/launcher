@@ -240,9 +240,8 @@
     "authorPlaceholder": "Autor..."
   },
   "misc": {
-    "blankNotFound": "{0} Não Foi Encontrado",
+    "noBlankFound": "{0} Não Foi Encontrado",
     "addBlank": "Adicionar {0}",
-    "removeBlank": "Remover {0}",
     "deleteAllBlankImages": "Eliminar TODAS {0} as imagens para este jogo",
     "yes": "Sim",
     "no": "Não"

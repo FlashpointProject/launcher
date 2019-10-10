@@ -64,7 +64,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
         onDrop={this.onDrop}>
         { (imgSrc === undefined) ? (
           <div className='game-image-split__not-found'>
-            <h1>{formatString(strings.blankNotFound, text)}</h1>
+            <h1>{formatString(strings.noBlankFound, text)}</h1>
             <SimpleButton
               value={formatString(strings.addBlank, text)}
               onClick={onAddClick}
@@ -72,7 +72,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
           </div>
         ) : (
           <div className='game-image-split__buttons'>
-            <p>{formatString(strings.removeBlank, text)}</p>
+            <p>{text}</p>
             <ConfirmElement
               onConfirm={onRemoveClick}
               children={renderDeleteImageButton}
