@@ -14,14 +14,12 @@ export type IBackProcessInfo = {
 
 /** State of a managed process. */
 export enum ProcessState {
-  /** The process is stopped or has not been spawned yet. */
+  /** The process is not running. */
   STOPPED,
   /** The process is running. */
   RUNNING,
   /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
-  KILLING,
-  /** The process failed to start. */
-  FAILED
+  KILLING
 }
 
 /** Actions that can be performed on a service. */

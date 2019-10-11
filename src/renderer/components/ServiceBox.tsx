@@ -4,160 +4,173 @@ import { setInterval } from 'timers';
 import { LangContainer } from '../../shared/lang/types';
 import { ILogEntry } from '../../shared/Log/interface';
 import { escapeHTML, formatTime, padLines, timeChars } from '../../shared/Log/LogCommon';
-import { memoizeOne } from '../../shared/memoize';
-import { IBackProcessInfo, IService, IServiceAction, ProcessAction, ProcessState } from '../../shared/service/interfaces';
+import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '../../shared/service/interfaces';
 import { LangContext } from '../util/lang';
 import { LogData } from './LogData';
+import { SimpleButton } from './SimpleButton';
 
 export type ServiceBoxProps = {
-  /** Service to use */
+  /** Service to display. */
   service: IService;
 };
 
-export type ServiceBoxState = {
-  /** Uptime counter for this service */
-  uptime: number;
-};
-
-export interface ServiceBox {
-  context: LangContainer;
-}
-
-/** Title bar of the window (the top-most part of the window). */
-export class ServiceBox extends React.Component<ServiceBoxProps, ServiceBoxState> {
-  /** Keeps the uptime counter updated */
-  private interval: NodeJS.Timeout | undefined;
-  /** Memo of stringified service logs to pass to LogData during render */
-  stringifyServiceLogEntriesMemo = memoizeOne(stringifyServiceLogEntries.bind(this));
-
-  constructor(props: ServiceBoxProps, state: ServiceBoxState) {
-    super(props, state);
-    this.state = {
-      uptime: Date.now() - props.service.startTime
-    };
-  }
-
-  componentDidMount() {
-    this.interval = setInterval(() => {
-      const newUptime = Date.now() - this.props.service.startTime;
-      if ((newUptime - this.state.uptime) / 1000) {
-        this.setState({uptime: newUptime});
+/** A box that displays information about, and lets you interact with, a single service. */
+export function ServiceBox(props: ServiceBoxProps) {
+  const { service } = props;
+  // Get language strings
+  const lang = React.useContext(LangContext);
+  const strings = lang.developer;
+  // Log
+  const entries = window.External.log.entries;
+  const logData = React.useMemo(() => {
+    return stringifyServiceLogEntries(entries, service.name);
+  }, [entries, entries.length, service.name]);
+  // Uptime
+  const uptimeRef = React.useRef<HTMLDivElement>(null);
+  useInterval(() => { // (Update the value of the timer at an interval)
+    // @PERF This interval still runs and updates the uptime even when the process is not running.
+    if (uptimeRef.current) {
+      const text = (service.state === ProcessState.RUNNING)
+        ? formatMsTime(Date.now() - service.startTime)
+        : '';
+      if (uptimeRef.current.innerText !== text) {
+        uptimeRef.current.innerText = text;
       }
-    }, 50);
-  }
-
-  componentWillUnmount() {
-    if (this.interval) { clearInterval(this.interval); }
-  }
-
-  render() {
-    const { service } = this.props;
-    const { uptime } = this.state;
-    const strings = this.context.developer;
-    const uptimeString = formatMsTime(uptime);
-    const logData = this.getLogString();
-    return (
-      <div>
-        <div className='service-box'>
-          <div className='service-box__top'>
-            <div className='service-box__title'>
-              <p>{service.name}</p>
-            </div>
-            <div className='service-box__status'>
-              { service.state === ProcessState.RUNNING
-                ? strings.running + ' (' + service.pid + ')'
-                : service.state === ProcessState.KILLING
-                  ? strings.killing + ' (' + service.pid + ')'
-                  : service.state === ProcessState.STOPPED
-                    ? strings.stopped
-                    : strings.failed }
-            </div>
-          </div>
-          <div className='service-box__bottom'>
-            <div className='service-box__bottom-buttons'>
-              { service.state != ProcessState.FAILED ? (
-              <div>
-                { service.state === ProcessState.RUNNING ? (
-                  <input
-                    type='button'
-                    value={strings.stop}
-                    className='simple-button'
-                    title={strings.stopDesc}
-                    onClick={() => { this.sendAction({identifier: service.identifier, action: ProcessAction.STOP}); }}/>
-                ) : (
-                  <input
-                      type='button'
-                      value={strings.start}
-                      className='simple-button'
-                      title={strings.startDesc}
-                      disabled={service.state != ProcessState.STOPPED}
-                      onClick={() => { this.sendAction({identifier: service.identifier, action: ProcessAction.START}); }}/>
-                )}
-                <input
-                    type='button'
-                    value={strings.restart}
-                    className='simple-button'
-                    title={strings.restartDesc}
-                    onClick={() => { this.sendAction({identifier: service.identifier, action: ProcessAction.RESTART}); }}/>
-              </div>
-              ) : undefined }
-              { service.info ? (
-              <input
-                  type='button'
-                  value={strings.details}
-                  className='simple-button'
-                  title={strings.detailsDesc}
-                  onClick={() => { if (service) { this.onDetailsClick(service.info); } }}/>
-              ) : undefined}
-            </div>
-            <div className='service-box__bottom-uptime'>
-              { service.state === ProcessState.RUNNING ? (
-                <p>{uptimeString}</p>
-              ) : undefined }
-            </div>
-          </div>
-          <LogData
-            className='service-box__log'
-            logData={logData}
-            isLogDataHTML={true} />
+    }
+  }, 50, [service, service.startTime]);
+  // Button callbacks
+  const onStopClick    = useProcessActionCallback(ProcessAction.STOP,    service.identifier);
+  const onStartClick   = useProcessActionCallback(ProcessAction.START,   service.identifier);
+  const onRestartClick = useProcessActionCallback(ProcessAction.RESTART, service.identifier);
+  const onDetailsClick = React.useCallback(() => {
+    displayDetails(service.info);
+  }, [service.info]);
+  // Misc
+  const statusText = generateStatusText(service, strings);
+  // Render
+  return (
+    <div className='service-box'>
+      {/* Title */}
+      <div className='service-box__head-top'>
+        <div className='service-box__title'>
+          {service.name}
+        </div>
+        <div className='service-box__status'>
+          {statusText}
         </div>
       </div>
-    );
+      {/* Uhm */}
+      <div className='service-box__head-bottom'>
+        <div className='service-box__buttons'>
+          {/* Start / Stop Button */}
+          { service.state === ProcessState.RUNNING ? (
+            <SimpleButton
+              className='service-box__button'
+              value={strings.stop}
+              title={strings.stopDesc}
+              onClick={onStopClick} />
+          ) : (
+            <SimpleButton
+              className='service-box__button'
+              value={strings.start}
+              title={strings.startDesc}
+              onClick={onStartClick} />
+          )}
+          {/* Restart Button */}
+          <SimpleButton
+            className='service-box__button'
+            value={strings.restart}
+            title={strings.restartDesc}
+            onClick={onRestartClick} />
+          {/* Details Button */}
+          { service.info ? (
+            <SimpleButton
+              className='service-box__button'
+              value={strings.details}
+              title={strings.detailsDesc}
+              onClick={onDetailsClick} />
+          ) : undefined }
+        </div>
+        <div
+          className='service-box__uptime'
+          ref={uptimeRef}>
+          { '' }
+        </div>
+      </div>
+      {/* Log */}
+      <LogData
+        className='service-box__log'
+        logData={logData}
+        isLogDataHTML={true} />
+    </div>
+  );
+}
+
+/**
+ * Generate a human readable status text from a service.
+ * @param service Service to generate the text about.
+ * @param lang Language object.
+ */
+function generateStatusText(service: IService, lang: LangContainer['developer']): string {
+  switch (service.state) {
+    default: throw new Error('Failed to generate status text. Unexpected process state value.');
+    case ProcessState.RUNNING:
+      return `${lang.running} (PID: ${service.pid})`;
+    case ProcessState.KILLING:
+      return `${lang.killing} (PID: ${service.pid})`;
+    case ProcessState.STOPPED:
+      return lang.stopped;
   }
+}
 
-  onDetailsClick = (info: IBackProcessInfo | undefined): void => {
-    if (info) {
-      remote.dialog.showMessageBox({
-        type: 'info',
-        title: 'Service Details',
-        message:  'Path: ' + info.path +
-                  '\nFilename: ' + info.filename +
-                  '\nArguments: ' + info.arguments +
-                  '\nKill on Exit: ' + info.kill,
-        buttons: ['Ok']
-      } );
-    }
-  };
-
-  sendAction = (data: IServiceAction): void => {
-    window.External.services.sendAction(data);
-  };
-
-  getLogString() {
-    const logEntries = window.External.log.entries;
-    return this.stringifyServiceLogEntriesMemo(logEntries, this.props.service.name, logEntries.length);
+/**
+ * Display the info of a service in a dialog window.
+ * @param info Info to display.
+ */
+function displayDetails(info: IBackProcessInfo | undefined): void {
+  if (info) {
+    remote.dialog.showMessageBox({
+      type: 'info',
+      title: 'Service Details',
+      message: `Path: ${info.path}\n`+
+               `Filename: ${info.filename}\n`+
+               `Arguments: ${info.arguments}\n`+
+               `Kill on Exit: ${info.kill}`,
+      buttons: ['Ok']
+    });
   }
+}
 
-  static contextType = LangContext;
+/**
+ * Return a memoized callback that sends a request to perform an action on a service.
+ * @param action Action to perform (this value is only read the first time).
+ * @param identifier Identifier of the service.
+ */
+function useProcessActionCallback(action: ProcessAction, identifier: string): () => void {
+  return React.useCallback(() => {
+    window.External.services.sendAction({ action, identifier });
+  }, [identifier]);
+}
+
+/**
+ * Set an interval (wrapper around the "setInterval" function).
+ * @param callback Function to call every interval.
+ * @param ms Minimum time between each call.
+ * @param deps If present, the interval will reset if any value in the array change.
+ */
+function useInterval(callback: () => void, ms: number, deps?: any[]): void {
+  React.useEffect(() => {
+    const interval = setInterval(callback, ms);
+    return () => { clearInterval(interval); };
+  }, deps);
 }
 
 /**
  * Stringify all entires that are from a specific source.
  * @param entries Entries to stringify.
  * @param source The source to filter by.
- * @param pass Unused arguments (lets you bypass the memo by passing different values here).
  */
-function stringifyServiceLogEntries(entries: ILogEntry[], source: string, ...pass: any[]): string {
+function stringifyServiceLogEntries(entries: ILogEntry[], source: string): string {
   let str = '';
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];

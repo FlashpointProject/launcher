@@ -124,7 +124,6 @@ export function getDefaultLocalization(): LangContainer {
       running: 'running',
       stopped: 'stopped',
       killing: 'killing',
-      failed: 'failed',
       start: 'start',
       startDesc: 'startDesc',
       stop: 'stop',

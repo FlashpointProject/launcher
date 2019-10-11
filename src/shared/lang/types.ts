@@ -162,7 +162,6 @@ export type DeveloperLang = LangObject<
   'running' |
   'stopped' |
   'killing' |
-  'failed' |
   'start' |
   'startDesc' |
   'stop' |

@@ -19,8 +19,11 @@ export declare interface ManagedChildProcess {
 
 /** Manages a single process. Wrapper around node's ChildProcess. */
 export class ManagedChildProcess extends EventEmitter {
+  // @TODO Add timeouts for restarting and killing the process (it should give up after some time, like 10 seconds) maybe?
   /** Process that this is wrapping/managing. */
   private process?: ChildProcess;
+  /** If the process is currently being restarted. */
+  private _isRestarting: boolean = false;
   /** Display name of the service. */
   public readonly name: string;
   /** Command of the process (usually a filename of a program). */
@@ -62,36 +65,37 @@ export class ManagedChildProcess extends EventEmitter {
 
   /** Spawn process and keep track on it. */
   public spawn(): void {
-    // Spawn process
-    if (this.process) { throw Error('You must not spawn the same ManagedChildProcess while it\'s running.'); }
-    this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
-    // Check if spawn failed
-    if (!this.process.pid) { // (No PID means that the spawn failed)
-      this.process = undefined;
-      this.setState(ProcessState.FAILED);
-      return;
-    }
-    // Set start timestamp
-    this.startTime = Date.now();
-    // Log
-    this.logContent(this.name + ' has been started');
-    // Setup listeners
-    if (this.process.stdout) {
-      this.process.stdout.on('data', this.logContent);
-    }
-    if (this.process.stderr) {
-      this.process.stderr.on('data', (data: Buffer) => {
-        this.logContent(data.toString('utf8'));
+    if (!this.process && !this._isRestarting) {
+      // Spawn process
+      this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
+      // Check if spawn failed
+      if (!this.process.pid) { // (No PID means that the spawn failed)
+        this.logContent(`${this.name} failed to start`);
+        this.process = undefined;
+        return;
+      }
+      // Set start timestamp
+      this.startTime = Date.now();
+      // Log
+      this.logContent(this.name + ' has been started');
+      // Setup listeners
+      if (this.process.stdout) {
+        this.process.stdout.on('data', this.logContent);
+      }
+      if (this.process.stderr) {
+        this.process.stderr.on('data', (data: Buffer) => {
+          this.logContent(data.toString('utf8'));
+        });
+      }
+      this.process.on('exit', (code, signal) => {
+        if (code) { this.logContent(`${this.name} exited with code ${code}`);     }
+        else      { this.logContent(`${this.name} exited with signal ${signal}`); }
+        this.process = undefined;
+        this.setState(ProcessState.STOPPED);
       });
+      // Update state
+      this.setState(ProcessState.RUNNING);
     }
-    this.process.on('exit', (code, signal) => {
-      if (code) { this.logContent(`${this.name} exited with code ${code}`);     }
-      else      { this.logContent(`${this.name} exited with signal ${signal}`); }
-      this.process = undefined;
-      this.setState(ProcessState.STOPPED);
-    });
-    // Update state
-    this.setState(ProcessState.RUNNING);
   }
 
   /** Politely ask the child process to exit (if it is running). */
@@ -102,23 +106,31 @@ export class ManagedChildProcess extends EventEmitter {
     }
   }
 
-  /** Restart the managed child process (by creating a new one). */
+  /** Restart the managed child process (by killing the current, and spawning a new). */
   public restart(): void {
-    this.logContent(`Restarting ${this.name} process`);
-    if (this.process) {
+    if (this.process && !this._isRestarting) {
+      this._isRestarting = true;
+      this.logContent(`Restarting ${this.name} process`);
+      // Replace all listeners with a single listener waiting for the process to exit
       this.process.removeAllListeners();
-      // Keep track of old process, but don't alert listeners on state change
-      this.process.on('exit', (code, signal) => {
+      this.process.once('exit', (code, signal) => {
         if (code) { this.logContent(`Old ${this.name} exited with code ${code}`);     }
         else      { this.logContent(`Old ${this.name} exited with signal ${signal}`); }
+        this._isRestarting = false;
+        this.spawn();
       });
-      killAll(this.process.pid);
+      // Kill process
+      this.kill();
       this.process = undefined;
+    } else {
+      this.spawn();
     }
-    this.spawn();
   }
 
-  /** Set the state of the process. */
+  /**
+    * Set the state of the process.
+   * @param state State to set.
+   */
   private setState(state: ProcessState): void {
     if (this.state != state) {
       this.state = state;
@@ -126,6 +138,10 @@ export class ManagedChildProcess extends EventEmitter {
     }
   }
 
+  /**
+   * Add an entry in the log.
+   * @param content Content of the entry.
+   */
   private logContent(content: string): void {
     this.emit('output', {
       source: this.name,

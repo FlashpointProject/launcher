@@ -121,14 +121,14 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.createMissingFolders}
               title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
-            {/* -- Services -- */}
-            <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
-            {services.map((item, index) => (
-              <ServiceBox
-                key={index}
-                service={item} />
-            ))}
           </div>
+          {/* -- Services -- */}
+          <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
+          {services.map((item, index) => (
+            <ServiceBox
+              key={index}
+              service={item} />
+          ))}
         </div>
       </div>
     );

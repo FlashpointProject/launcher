@@ -700,13 +700,12 @@ body {
   background-color: var(--layout__developer-page-log-background);
   border-color: var(--layout__developer-page-log-border);
 }
-
+/* Service Box */
 .service-box {
   background-color: var(--layout__quaternary-background);
   border-color: var(--layout__tertiary-background);
   box-shadow: 0px 2px 4px 0px #09090a;
 }
-
 .service-box__log {
   background-color: var(--layout__primary-background);
 }

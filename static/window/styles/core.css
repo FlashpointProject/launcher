@@ -1622,42 +1622,40 @@ body {
 }
 /* Service Box */
 .service-box {
-  padding: 0.5em;
+  margin: 0.5rem;
+  padding: 0.5rem;
+  text-align: initial;
 }
-.service-box__top {
+.service-box__head-top {
   display: flex;
-  font-size: 1.15em;
+  font-size: 1.15rem;
   font-weight: bold;
 }
 .service-box__title {
-  width: 50%;
-  text-align: left;
+  flex: 1 1 auto;
 }
 .service-box__status {
-  width: 50%;
-  text-align: right;
+  flex: 0 1 auto;
+  float: right;
 }
-.service-box__bottom {
+.service-box__head-bottom {
   display: flex;
 }
-.service-box__bottom-buttons {
-  text-align: left;
-}
-.service-box__bottom-buttons input {
-  padding: 0.1em;
-  margin-right: 0.5rem;
-  width: 5em;
-}
-.service-box__bottom-uptime {
+.service-box__buttons {
   flex: 1 1 auto;
-  text-align: right;
-  align-items: center;
-  justify-content: flex-end;
-  display: flex;
+}
+.service-box__button {
+  padding: 0.1rem;
+  margin-right: 0.5rem;
+  min-width: 5rem;
+}
+.service-box__uptime {
+  flex: 0 1 auto;
+  float: right;
 }
 .service-box__log {
-  margin-top: 0.4em;
-  height: 20em;
+  margin-top: 0.4rem;
+  height: 20rem;
   text-align: left;
   flex: 1 1 auto;
 }
