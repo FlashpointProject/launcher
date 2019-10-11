@@ -30,8 +30,6 @@ type OwnProps = {
 export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
 
 type HeaderState = {
-  /** State of the store last render (for seeing external changes) */
-  oldStoreSearch: string;
   /** Current text in the search field. */
   searchText: string;
 };
@@ -47,7 +45,6 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
   constructor(props: HeaderProps) {
     super(props);
     this.state = {
-      oldStoreSearch: this.props.searchQuery.text,
       searchText: this.props.searchQuery.text,
     };
   }
@@ -60,6 +57,15 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     window.removeEventListener('keypress', this.onKeypress);
   }
 
+  componentDidUpdate(prevProps: HeaderProps, prevState: HeaderState) {
+    // Update the text in the text-box if the search text has changed
+    const text = this.props.searchQuery.text;
+    if (text !== prevProps.searchQuery.text &&
+        text !== prevState.searchText) {
+      this.setState({ searchText: text });
+    }
+  }
+
   render() {
     const strings = this.context.app;
     const {
@@ -67,13 +73,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       libraryData: { libraries },
       onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick
     } = this.props;
-    const { oldStoreSearch, searchText } = this.state;
-    
-    // If changed externally, update own search string to latest
-    if (oldStoreSearch != this.props.searchQuery.text) {
-      this.setState({searchText: this.props.searchQuery.text, oldStoreSearch: this.props.searchQuery.text});
-    }
-
+    const { searchText } = this.state;
     return (
       <div className='header'>
         {/* Header Menu */}
