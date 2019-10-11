@@ -1,18 +1,20 @@
-import { GameOrderChangeEvent } from '../../renderer/components/GameOrder';
 import { IGamePlaylist } from '../../renderer/playlist/interfaces';
+import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
 import { GameInfo } from './GameInfo';
-import { IGameInfo, IGameSearchQuery } from './interfaces';
+import { IGameInfo } from './interfaces';
 
 export type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
+
 type TitleFilter = {
   phrase: string,
   inverse: boolean
-}
+};
+
 type FieldFilter = {
   field: string,
   phrase: string,
   inverse: boolean
-}
+};
 
 /** Order games by their order title alphabetically (ascending) */
 export function orderByTitle(a: IGameInfo, b: IGameInfo): number {
@@ -60,32 +62,30 @@ export function reverseOrder(compareFn: OrderFn): OrderFn {
 }
 
 /** Get the order function for a given game order */
-export function getOrderFunction(order: GameOrderChangeEvent): OrderFn {
+export function getOrderFunction(orderBy: GameOrderBy, orderReverse: GameOrderReverse): OrderFn {
   let orderFn: OrderFn;
-  switch (order.orderBy) {
+  switch (orderBy) {
     case 'dateAdded': orderFn = orderByDateAdded; break;
     case 'genre':     orderFn = orderByGenre;     break;
     case 'platform':  orderFn = orderByPlatform;  break;
     case 'series':    orderFn = orderBySeries;    break;
     default: /* case 'title': */ orderFn = orderByTitle; break;
   }
-  if (order.orderReverse === 'descending') {
+  if (orderReverse === 'descending') {
     orderFn = reverseOrder(orderFn);
   }
   return orderFn;
 }
 
-export function filterPlatforms(platforms: string[]|undefined, games: IGameInfo[]): IGameInfo[] {
+export function filterPlatforms(platforms: string[] | undefined, games: IGameInfo[]): IGameInfo[] {
   if (!platforms) { return games; }
   if (platforms.length === 0) { return []; }
-  console.time('filterPlatforms');
   const filteredGames: IGameInfo[] = [];
   for (let game of games) {
     if (platforms.indexOf(game.platform) !== -1) {
       filteredGames.push(game);
     }
   }
-  console.timeEnd('filterPlatforms');
   return filteredGames;
 }
 
@@ -139,7 +139,7 @@ export function filterPlaylist(playlist: IGamePlaylist|undefined, games: IGameIn
 function getQuickSearch(text: string): FieldFilter | undefined {
   switch (text.charAt(0)) {
     case '-':
-      const filter = getQuickSearch(text.substring(1))
+      const filter = getQuickSearch(text.substring(1));
       if (filter) {
         filter.inverse = !filter.inverse;
         return filter;
@@ -157,55 +157,8 @@ function getQuickSearch(text: string): FieldFilter | undefined {
 /** Return a new array with all games that doesn't match the search removed (if there is a search) */
 export function filterSearch(text: string, games: IGameInfo[]): IGameInfo[] {
   const filteredGames: Array<IGameInfo | undefined> = games.slice();
-  /**
-   * Stick it in regex101 so it's readable, it won't make sense otherwise
-   * Special characters are left outside of matches (-!"sonic" matches "sonic")
-   * Group 1 - Field name (source, developer...)
-   * Group 2 - Field phrase
-   * Group 3 - Field phrase (was wrapped in "")
-   * Group 4 - Title phrase 
-   * Group 5 - Title phrase (was wrapped in "")
-   */
-  const regex = /(?:(\b\w+)?:(?:"(.+?)"|([^\s]+))?(?=\s?)|([^\s\-"!@#]+)|"([^"]+)")/gu;
-  let titleFilters: TitleFilter[] = [];
-  let fieldFilters: FieldFilter[] = [];
-
-  // Parse search string
-  let match;
-  while (match = regex.exec(text)) {
-    const preIndex = match.index - 1;
-    // Field filter matches
-    if (match[1]) {
-      let field = match[1];
-      const phrase = match[2] || match[3];
-      let inverse = false;
-      if (preIndex >= 0 && text.charAt(preIndex) === '-') { inverse = true; }
-      if (field && phrase) {
-        fieldFilters.push({ field: field, phrase: phrase, inverse: inverse });
-      }
-      // Title filter matches
-    } else {
-      let phrase = match[4] || match[5];
-      if (phrase && preIndex >= 0) {
-        // Create temp phrase including preceding specials (e.g --!"sonic" -> --!sonic)
-        let i = preIndex;
-        let tempPhrase = phrase;
-        while (i >= 0) {
-          if (text.charAt(i).trim() === '') { break; }
-          tempPhrase = text.charAt(i) + tempPhrase;
-          i--;
-        }
-        // Get quick search from created temp phrase (If undefined, there is no quick search)
-        const filter = getQuickSearch(tempPhrase);
-        if (filter) { fieldFilters.push(filter) }
-        else { titleFilters.push({ phrase: phrase, inverse: text.charAt(preIndex) === '-' }) }
-        continue;
-      } else {
-        titleFilters.push({ phrase: phrase, inverse: false });
-      }
-    }
-  }
-
+  // Parse search text
+  const { titleFilters, fieldFilters } = parseSearchText(text);
   // Filter the titles out
   for (let i = filteredGames.length - 1; i >= 0; i--) {
     const game = filteredGames[i];
@@ -213,10 +166,10 @@ export function filterSearch(text: string, games: IGameInfo[]): IGameInfo[] {
       for (let j = titleFilters.length - 1; j >= 0; j--) {
         const filter = titleFilters[j];
         const word = filter.phrase.toLowerCase();
-        if (game.title.toLowerCase().indexOf(word) === -1 &&
-          game.developer.toLowerCase().indexOf(word) === -1 &&
-          game.publisher.toLowerCase().indexOf(word) === -1 &&
-          game.series.toLowerCase().indexOf(word) === -1) {
+        if (game.title.toLowerCase().indexOf(word)     === -1 &&
+            game.developer.toLowerCase().indexOf(word) === -1 &&
+            game.publisher.toLowerCase().indexOf(word) === -1 &&
+            game.series.toLowerCase().indexOf(word)    === -1) {
           if (!filter.inverse) {
             filteredGames[i] = undefined;
             break;
@@ -228,7 +181,6 @@ export function filterSearch(text: string, games: IGameInfo[]): IGameInfo[] {
       }
     }
   }
-
   // Filter the fields out
   for (let i = filteredGames.length - 1; i >= 0; i--) {
     const game = filteredGames[i];
@@ -271,27 +223,99 @@ export function filterSearch(text: string, games: IGameInfo[]): IGameInfo[] {
       }
     }
   }
-
   // Remove nulled entries
-  const finalFilteredGames = [];
+  const finalFilteredGames: IGameInfo[] = [];
   for (let game of filteredGames) {
     if (game) { finalFilteredGames.push(game); }
   }
-
   return finalFilteredGames;
 }
 
-export interface IOrderGamesArgs {
-  games: IGameInfo[];
-  search: string;
-  extreme: boolean;
-  broken: boolean;
-  playlist?: IGamePlaylist;
-  platforms?: string[];
-  order: GameOrderChangeEvent;
+/**
+ * Parse a search query text into an object.
+ * @param text Search query text.
+ */
+function parseSearchText(text: string): ParsedSearch {
+  const parsed: ParsedSearch = {
+    titleFilters: [],
+    fieldFilters: [],
+  };
+  /**
+   * Stick it in regex101 so it's readable, it won't make sense otherwise
+   * Special characters are left outside of matches (-!"sonic" matches "sonic")
+   * Group 1 - Field name (source, developer...)
+   * Group 2 - Field phrase
+   * Group 3 - Field phrase (was wrapped in "")
+   * Group 4 - Title phrase
+   * Group 5 - Title phrase (was wrapped in "")
+   */
+  const regex = /(?:(\b\w+)?:(?:"(.+?)"|([^\s]+))?(?=\s?)|([^\s\-"!@#]+)|"([^"]+)")/gu;
+  // Parse search string
+  let match;
+  while (match = regex.exec(text)) { // eslint-disable-line no-cond-assign
+    const preIndex = match.index - 1;
+    // Field filter matches
+    if (match[1]) {
+      const field = match[1];
+      const phrase = match[2] || match[3];
+      let inverse = false;
+      if (preIndex >= 0 && text.charAt(preIndex) === '-') { inverse = true; }
+      if (field && phrase) {
+        parsed.fieldFilters.push({ field, phrase, inverse });
+      }
+      // Title filter matches
+    } else {
+      const phrase = match[4] || match[5];
+      if (phrase && preIndex >= 0) {
+        // Create temp phrase including preceding specials (e.g --!"sonic" -> --!sonic)
+        let i = preIndex;
+        let tempPhrase = phrase;
+        while (i >= 0) {
+          if (text.charAt(i).trim() === '') { break; }
+          tempPhrase = text.charAt(i) + tempPhrase;
+          i--;
+        }
+        // Get quick search from created temp phrase (If undefined, there is no quick search)
+        const filter = getQuickSearch(tempPhrase);
+        if (filter) { parsed.fieldFilters.push(filter); }
+        else { parsed.titleFilters.push({ phrase: phrase, inverse: text.charAt(preIndex) === '-' }); }
+        continue;
+      } else {
+        parsed.titleFilters.push({ phrase, inverse: false });
+      }
+    }
+  }
+  return parsed;
 }
 
-export function orderGames(args: IOrderGamesArgs): IGameInfo[] {
+/** Object representation of a parsed search query. */
+type ParsedSearch = {
+  /** Generic filter to apply to some predetermined fields. */
+  titleFilters: TitleFilter[];
+  /** Filters to apply to specific fields. */
+  fieldFilters: FieldFilter[];
+};
+
+export type IOrderGamesOpts = {
+  /** Games to filter and order. */
+  games: IGameInfo[];
+  /** Search query to filter games by. */
+  search: string;
+  /** If extreme games should be included in the result. */
+  extreme: boolean;
+  /** If broken games should be included in the result. */
+  broken: boolean;
+  /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
+  playlist?: IGamePlaylist;
+  /** Platforms to limit the results to (games from all platforms will be filtered if undefined). */
+  platforms?: string[];
+  /** The field to order the games by. */
+  orderBy: GameOrderBy;
+  /** The way to order the games. */
+  orderReverse: GameOrderReverse;
+};
+
+export function orderGames(args: IOrderGamesOpts): IGameInfo[] {
   // -- Get the array of games --
   let games = args.games;
   if (!games) { return []; } // (No games found)
@@ -307,7 +331,7 @@ export function orderGames(args: IOrderGamesArgs): IGameInfo[] {
   // -- Order games --
   let orderedGames = filteredGames;
   if (!args.playlist) { // (Dont order if a playlist is selected - kind of a hack)
-    orderedGames = filteredGames.sort(getOrderFunction(args.order));
+    orderedGames = filteredGames.sort(getOrderFunction(args.orderBy, args.orderReverse));
   }
   // -- Return --
   return orderedGames;

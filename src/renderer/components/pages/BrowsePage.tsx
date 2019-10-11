@@ -8,7 +8,7 @@ import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/in
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
 import { GameCollection } from '../../../shared/game/GameCollection';
-import { IOrderGamesArgs, orderGames } from '../../../shared/game/GameFilter';
+import { IOrderGamesOpts, orderGames } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { BrowseLang, LangContainer, MenuLang } from '../../../shared/lang/types';
@@ -46,7 +46,7 @@ type StateCallback2 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isNe
 
 type IOrderGamesForceArgs = [
   /** Arguments passed to the order function. */
-  IOrderGamesArgs,
+  IOrderGamesOpts,
   /** If the ordering should be forced. */
   boolean
 ];
@@ -793,7 +793,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   );
 
   /** Memoized wrapper around the order games function. */
-  orderGamesMemo = memoizeOne((args: IOrderGamesArgs, force?: boolean): IGameInfo[] => {
+  orderGamesMemo = memoizeOne((args: IOrderGamesOpts, force?: boolean): IGameInfo[] => {
     return orderGames(args);
   }, checkOrderGamesArgsEqual);
 
@@ -808,6 +808,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       platforms: this.props.central.games.listPlatforms(),
       libraries: this.props.libraryData.libraries
     }, force) || this.props.central.games.collection.games;
+    // Get the order
+    const order = this.props.order || BrowsePage.defaultOrder;
     // Order (and filter) the games according to the current settings
     return this.orderGamesMemo({
       games: games,
@@ -817,7 +819,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       broken: window.External.config.data.showBrokenGames,
       playlist: this.props.selectedPlaylist,
       platforms: undefined,
-      order: this.props.order || BrowsePage.defaultOrder,
+      orderBy: order.orderBy,
+      orderReverse: order.orderReverse,
     }, force);
   }
 
@@ -929,7 +932,7 @@ function getLibraryGames({ library, platforms, libraries }: GetLibraryGamesArgs)
  *              If the "force" value of this is true, the check will fail no matter what.
  * @param args2 Old arguments.
  */
-function checkOrderGamesArgsEqual(args1: [IOrderGamesArgs, boolean?], args2: [IOrderGamesArgs, boolean?]): boolean {
+function checkOrderGamesArgsEqual(args1: [IOrderGamesOpts, boolean?], args2: [IOrderGamesOpts, boolean?]): boolean {
   const [a, force] = args1;
   const [b]        = args2 || [undefined];
   // Check if this is "forced" to be updated
@@ -937,11 +940,12 @@ function checkOrderGamesArgsEqual(args1: [IOrderGamesArgs, boolean?], args2: [IO
   // Check if the second argument array is missing
   if (!b)                        { return false; }
   // Compare each value
-  if (a.search   !== b.search)   { return false; }
-  if (a.extreme  !== b.extreme)  { return false; }
-  if (a.broken   !== b.broken)   { return false; }
-  if (a.playlist !== b.playlist) { return false; }
-  if (a.order    !== b.order)    { return false; }
+  if (a.search        !== b.search)       { return false; }
+  if (a.extreme       !== b.extreme)      { return false; }
+  if (a.broken        !== b.broken)       { return false; }
+  if (a.playlist      !== b.playlist)     { return false; }
+  if (a.orderBy       !== b.orderBy)      { return false; }
+  if (a.orderReverse  !== b.orderReverse) { return false; }
   if (!checkIfArraysAreEqual(a.platforms, b.platforms)) { return false; }
   if (!checkIfArraysAreEqual(a.games, b.games)) { return false; }
   return true;
