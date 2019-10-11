@@ -67,25 +67,38 @@ export interface RightBrowseSidebar {
 
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
-  // Bound "on done" handlers for various input elements
-  onTitleChange = this.wrapOnTextChange((game, text) => { game.title = text; });
-  onDeveloperChange = this.wrapOnTextChange((game, text) => { game.developer = text; });
-  onGenreChange = this.wrapOnTextChange((game, text) => { game.genre = text; });
-  onSeriesChange = this.wrapOnTextChange((game, text) => { game.series = text; });
-  onSourceChange = this.wrapOnTextChange((game, text) => { game.source = text; });
-  onPublisherChange = this.wrapOnTextChange((game, text) => { game.publisher = text; });
-  onPlatformChange = this.wrapOnTextChange((game, text) => { game.platform = text; });
-  onPlayModeChange = this.wrapOnTextChange((game, text) => { game.playMode = text; });
-  onStatusChange = this.wrapOnTextChange((game, text) => { game.status = text; });
-  onVersionChange = this.wrapOnTextChange((game, text) => { game.version = text; });
-  onReleaseDateChange = this.wrapOnTextChange((game, text) => { game.releaseDate = text; });
-  onLanguageChange = this.wrapOnTextChange((game, text) => { game.language = text; });
-  onLaunchCommandChange = this.wrapOnTextChange((game, text) => { game.launchCommand = text; });
-  onApplicationPathChange = this.wrapOnTextChange((game, text) => { game.applicationPath = text; });
-  onNotesChange = this.wrapOnTextChange((game, text) => { game.notes = text; });
+  // Bound "on change" callbacks for game fields
+  onTitleChange               = this.wrapOnTextChange((game, text) => { game.title               = text; });
+  onDeveloperChange           = this.wrapOnTextChange((game, text) => { game.developer           = text; });
+  onGenreChange               = this.wrapOnTextChange((game, text) => { game.genre               = text; });
+  onSeriesChange              = this.wrapOnTextChange((game, text) => { game.series              = text; });
+  onSourceChange              = this.wrapOnTextChange((game, text) => { game.source              = text; });
+  onPublisherChange           = this.wrapOnTextChange((game, text) => { game.publisher           = text; });
+  onPlatformChange            = this.wrapOnTextChange((game, text) => { game.platform            = text; });
+  onPlayModeChange            = this.wrapOnTextChange((game, text) => { game.playMode            = text; });
+  onStatusChange              = this.wrapOnTextChange((game, text) => { game.status              = text; });
+  onVersionChange             = this.wrapOnTextChange((game, text) => { game.version             = text; });
+  onReleaseDateChange         = this.wrapOnTextChange((game, text) => { game.releaseDate         = text; });
+  onLanguageChange            = this.wrapOnTextChange((game, text) => { game.language            = text; });
+  onLaunchCommandChange       = this.wrapOnTextChange((game, text) => { game.launchCommand       = text; });
+  onApplicationPathChange     = this.wrapOnTextChange((game, text) => { game.applicationPath     = text; });
+  onNotesChange               = this.wrapOnTextChange((game, text) => { game.notes               = text; });
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => { game.originalDescription = text; });
-  onBrokenChange = this.wrapOnCheckBoxChange(game => { game.broken = !game.broken; });
-  onExtremeChange = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
+  onBrokenChange              = this.wrapOnCheckBoxChange(game => { game.broken  = !game.broken;  });
+  onExtremeChange             = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
+  // Bound "on click" callbacks for game fields
+  onTitleClick                = this.wrapOnTextClick('title');
+  onDeveloperClick            = this.wrapOnTextClick('developer');
+  onGenreClick                = this.wrapOnTextClick('genre');
+  onSeriesClick               = this.wrapOnTextClick('series');
+  onSourceClick               = this.wrapOnTextClick('source');
+  onPublisherClick            = this.wrapOnTextClick('publisher');
+  onPlatformClick             = this.wrapOnTextClick('platform');
+  onPlayModeClick             = this.wrapOnTextClick('playMode');
+  onStatusClick               = this.wrapOnTextClick('status');
+  onVersionClick              = this.wrapOnTextClick('version');
+  onReleaseDateClick          = this.wrapOnTextClick('releaseDate');
+  onLanguageClick             = this.wrapOnTextClick('language');
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
@@ -128,13 +141,16 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <InputField
                     text={game.title}
                     placeholder={strings.noTitle}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
                     onChange={this.onTitleChange}
-                    editable={editable} />
+                    onClick={this.onTitleClick}
+                    onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
-                  {editDisabled ? undefined : (
+                  { editDisabled ? undefined : (
                     <>
-                      {isEditing ? ( /* While Editing */
+                      { isEditing ? ( /* While Editing */
                         <>
                           {/* "Save" Button */}
                           <div
@@ -152,125 +168,125 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           </div>
                         </>
                       ) : ( /* While NOT Editing */
-                          <>
-                            {/* "Edit" Button */}
-                            {isPlaceholder ? undefined : (
-                              <div
-                                className='browse-right-sidebar__title-row__buttons__edit-button'
-                                title={strings.editGame}
-                                onClick={this.props.onEditClick}>
-                                <OpenIcon icon='pencil' />
-                              </div>
-                            )}
-                            {/* "Remove From Playlist" Button */}
-                            {gamePlaylistEntry ? (
-                              <ConfirmElement
-                                onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
-                                children={this.renderRemoveFromPlaylistButton}
-                                extra={strings} />
-                            ) : undefined}
-                            {/* "Delete Game" Button */}
-                            {(isPlaceholder || isNewGame || gamePlaylistEntry) ? undefined : (
-                              <ConfirmElement
-                                onConfirm={this.onDeleteGameClick}
-                                children={this.renderDeleteGameButton}
-                                extra={strings} />
-                            )}
-                          </>
-                        )}
+                        <>
+                          {/* "Edit" Button */}
+                          { isPlaceholder ? undefined : (
+                            <div
+                              className='browse-right-sidebar__title-row__buttons__edit-button'
+                              title={strings.editGame}
+                              onClick={this.props.onEditClick}>
+                              <OpenIcon icon='pencil' />
+                            </div>
+                          ) }
+                          {/* "Remove From Playlist" Button */}
+                          { gamePlaylistEntry ? (
+                            <ConfirmElement
+                              onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
+                              children={this.renderRemoveFromPlaylistButton}
+                              extra={strings} />
+                          ) : undefined }
+                          {/* "Delete Game" Button */}
+                          { (isPlaceholder || isNewGame || gamePlaylistEntry) ? undefined : (
+                            <ConfirmElement
+                              onConfirm={this.onDeleteGameClick}
+                              children={this.renderDeleteGameButton}
+                              extra={strings} />
+                          ) }
+                        </>
+                      ) }
                     </>
-                  )}
+                  ) }
                 </div>
               </div>
             </div>
-            {isPlaceholder ? undefined : (
+            { isPlaceholder ? undefined : (
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>{strings.by} </p>
                 <InputField
                   text={game.developer}
-                  field='developer'
-                  onFieldClick={this.onFieldClick}
                   placeholder={strings.noDeveloper}
-                  onChange={this.onDeveloperChange}
+                  className='browse-right-sidebar__searchable'
                   editable={editable}
+                  onChange={this.onDeveloperChange}
+                  onClick={this.onDeveloperClick}
                   onKeyDown={this.onInputKeyDown} />
               </div>
-            )}
+            ) }
           </div>
           {/* -- Most Fields -- */}
-          {isPlaceholder ? undefined : (
+          { isPlaceholder ? undefined : (
             <>
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.genre}: </p>
                   <DropdownInputField
                     text={game.genre}
-                    field='genre'
-                    onFieldClick={this.onFieldClick}
                     placeholder={strings.noGenre}
+                    className='browse-right-sidebar__searchable'
                     onChange={this.onGenreChange}
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.genre) || []}
                     onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
+                    onClick={this.onGenreClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.series}: </p>
                   <InputField
                     text={game.series}
-                    field='series'
-                    onFieldClick={this.onFieldClick}
                     placeholder={strings.noSeries}
+                    className='browse-right-sidebar__searchable'
                     onChange={this.onSeriesChange}
                     editable={editable}
+                    onClick={this.onSeriesClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.publisher}: </p>
                   <InputField
                     text={game.publisher}
-                    field='publisher'
-                    onFieldClick={this.onFieldClick}
                     placeholder={strings.noPublisher}
+                    className='browse-right-sidebar__searchable'
                     onChange={this.onPublisherChange}
                     editable={editable}
+                    onClick={this.onPublisherClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.source}: </p>
                   <InputField
                     text={game.source}
-                    field='source'
-                    onFieldClick={this.onFieldClick}
                     placeholder={strings.noSource}
                     onChange={this.onSourceChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
+                    onClick={this.onSourceClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.platform}: </p>
                   <DropdownInputField
                     text={game.platform}
-                    field='platform'
-                    onFieldClick={this.onFieldClick}
                     placeholder={strings.noPlatform}
                     onChange={this.onPlatformChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.platform) || []}
                     onItemSelect={text => { game.platform = text; this.forceUpdate(); }}
+                    onClick={this.onPlatformClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.playMode}: </p>
                   <DropdownInputField
                     text={game.playMode}
-                    field='playMode'
-                    onFieldClick={this.onFieldClick}
                     placeholder={strings.noPlayMode}
                     onChange={this.onPlayModeChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.playMode) || []}
                     onItemSelect={text => { game.playMode = text; this.forceUpdate(); }}
+                    onClick={this.onPlayModeClick}
                     onKeyDown={this.onInputKeyDown} />
 
                 </div>
@@ -278,13 +294,13 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <p>{strings.status}: </p>
                   <DropdownInputField
                     text={game.status}
-                    field='status'
-                    onFieldClick={this.onFieldClick}
                     placeholder={strings.noStatus}
                     onChange={this.onStatusChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.status) || []}
                     onItemSelect={text => { game.status = text; this.forceUpdate(); }}
+                    onClick={this.onStatusClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -292,8 +308,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <InputField
                     text={game.version}
                     placeholder={strings.noVersion}
+                    className='browse-right-sidebar__searchable'
                     onChange={this.onVersionChange}
                     editable={editable}
+                    onClick={this.onVersionClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -302,25 +320,29 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.releaseDate}
                     placeholder={strings.noReleaseDate}
                     onChange={this.onReleaseDateChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
+                    onClick={this.onReleaseDateClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.language}: </p>
                   <InputField
                     text={game.language}
-                    field='language'
-                    onFieldClick={this.onFieldClick}
                     placeholder={strings.noLanguage}
                     onChange={this.onLanguageChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
+                    onClick={this.onLanguageClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.dateAdded}: </p>
                   <p
                     className='browse-right-sidebar__row__date-added'
-                    title={dateAdded}>{dateAdded}</p>
+                    title={dateAdded}>
+                    {dateAdded}
+                  </p>
                 </div>
                 <div className='browse-right-sidebar__row'>
                   <div
@@ -344,9 +366,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 </div>
               </div>
             </>
-          )}
+          ) }
           {/* -- Playlist Game Entry Notes -- */}
-          {gamePlaylistEntry ? (
+          { gamePlaylistEntry ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>{strings.playlistNotes}: </p>
@@ -358,9 +380,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   multiline={true} />
               </div>
             </div>
-          ) : undefined}
+          ) : undefined }
           {/* -- Notes -- */}
-          {(!editDisabled || game.notes) && !isPlaceholder ? (
+          { (!editDisabled || game.notes) && !isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>{strings.notes}: </p>
@@ -372,9 +394,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   multiline={true} />
               </div>
             </div>
-          ) : undefined}
+          ) : undefined }
           {/* -- Original Description -- */}
-          {(!editDisabled || game.originalDescription) && !isPlaceholder ? (
+          { (!editDisabled || game.originalDescription) && !isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>{strings.originalDescription}: </p>
@@ -386,32 +408,32 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   multiline={true} />
               </div>
             </div>
-          ) : undefined}
+          ) : undefined }
           {/* -- Additional Applications -- */}
-          {editable || (currentAddApps && currentAddApps.length > 0) ? (
+          { editable || (currentAddApps && currentAddApps.length > 0) ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--additional-applications-header'>
                 <p>{strings.additionalApplications}:</p>
-                {editable ? (
+                { editable ? (
                   <input
                     type='button'
                     value={strings.new}
                     className='simple-button'
                     onClick={this.onNewAddAppClick} />
-                ) : undefined}
+                ) : undefined }
               </div>
-              {currentAddApps && currentAddApps.map((addApp) => (
+              { currentAddApps && currentAddApps.map((addApp) => (
                 <RightBrowseSidebarAddApp
                   key={addApp.id}
                   addApp={addApp}
                   editDisabled={!editable}
                   onLaunch={this.onAddAppLaunch}
                   onDelete={this.onAddAppDelete} />
-              ))}
+              )) }
             </div>
-          ) : undefined}
+          ) : undefined }
           {/* -- Application Path & Launch Command -- */}
-          {editable && !isPlaceholder ? (
+          { editable && !isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>{strings.applicationPath}: </p>
@@ -435,23 +457,24 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   reference={this.launchCommandRef} />
               </div>
             </div>
-          ) : undefined}
+          ) : undefined }
           {/* -- Game ID -- */}
-          {editable || isPlaceholder ? (
+          { editable || isPlaceholder ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                 <p>ID: </p>
                 <p className='browse-right-sidebar__row__game-id'>{game.id}</p>
               </div>
             </div>
-          ) : undefined}
+          ) : undefined }
           {/* -- Screenshot -- */}
           <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
             <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
             <div className='browse-right-sidebar__row'>
-              <div className='browse-right-sidebar__row__screenshot'
+              <div
+                className='browse-right-sidebar__row__screenshot'
                 onContextMenu={this.onScreenshotContextMenu}>
-                {isEditing ? (
+                { isEditing ? (
                   <div className='browse-right-sidebar__row__screenshot__placeholder'>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
                       <GameImageSplit
@@ -476,19 +499,19 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     </div>
                   </div>
                 ) : (
-                    <img
-                      src={screenshotSrc}
-                      onClick={this.onScreenshotClick} />
-                  )}
+                  <img
+                    src={screenshotSrc}
+                    onClick={this.onScreenshotClick} />
+                ) }
               </div>
             </div>
           </div>
           {/* -- Screenshot Preview -- */}
-          {this.state.showPreview ? (
+          { this.state.showPreview ? (
             <ImagePreview
               src={screenshotSrc}
               onCancel={this.onScreenshotPreviewClick} />
-          ) : undefined}
+          ) : undefined }
         </div>
       );
     } else {
@@ -536,7 +559,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const { currentGame, isEditing, onEditClick } = this.props;
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
-      !isEditing && currentGame) { // ... while not editing, and a game is selected)
+        !isEditing && currentGame) { // ... while not editing, and a game is selected)
       if (onEditClick) { onEditClick(); }
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
       event.preventDefault();
@@ -547,7 +570,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const { currentGame, isEditing, onSaveGame } = this.props;
     // Save changes
     if (event.ctrlKey && event.key === 's' && // (CTRL + S ...
-      isEditing && currentGame) { // ... while editing, and a game is selected)
+        isEditing && currentGame) { // ... while editing, and a game is selected)
       if (onSaveGame) { onSaveGame(); }
       event.preventDefault();
     }
@@ -582,10 +605,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  deleteImage(cache: ImageFolderCache | undefined): void {
+  deleteImage(cache: ImageFolderCache|undefined): void {
     const { currentGame } = this.props;
     if (!currentGame) { throw new Error('Failed to delete image file. The currently selected game could not be found.'); }
-    if (!cache) { throw new Error('Failed to delete image file. The image cache could not be found.'); }
+    if (!cache)       { throw new Error('Failed to delete image file. The image cache could not be found.'); }
     deleteGameImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
   }
 
@@ -697,7 +720,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onNewAddAppClick = (): void => {
     if (!this.props.currentAddApps) { throw new Error('Unable to add a new AddApp. "currentAddApps" is missing.'); }
-    if (!this.props.currentGame) { throw new Error('Unable to add a new AddApp. "currentGame" is missing.'); }
+    if (!this.props.currentGame)    { throw new Error('Unable to add a new AddApp. "currentGame" is missing.'); }
     const newAddApp = AdditionalApplicationInfo.create();
     newAddApp.id = uuid();
     newAddApp.gameId = this.props.currentGame.id;
@@ -720,17 +743,22 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  onFieldClick = (field: string, value: string): void => {
-    if (value != '') {
-      this.props.onSearch(field + ':"' + value + '"');
-    }
-  }
-
   /** When a key is pressed while an input field is selected (except for multiline fields) */
   onInputKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === 'Enter') {
       if (this.props.onSaveGame) { this.props.onSaveGame(); }
     }
+  }
+
+  /** Create a callback for when a game field is clicked. */
+  wrapOnTextClick(field: keyof IGameInfo): () => void {
+    return () => {
+      const { currentGame, isEditing } = this.props;
+      if (!isEditing && currentGame) {
+        const value = currentGame[field];
+        if (value) { this.props.onSearch(`${field}:"${value}"`); }
+      }
+    };
   }
 
   /** Create a wrapper for a EditableTextWrap's onChange callback (this is to reduce redundancy). */

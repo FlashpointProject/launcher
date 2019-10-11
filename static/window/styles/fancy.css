@@ -57,7 +57,7 @@
   /* Right Browse Sidebar */
   --layout__browse-right-sidebar-screenshot-placeholder-background: #1b1b1b;
   --layout__browse-right-sidebar-screenshot-placeholder-border:     #818181;
-  --layout__browse-right-sidebar-field-hover:                       #857df3;
+  --layout__browse-right-sidebar-searchable-hover:                  #857df3;
   /* Playlist List */
   --layout__playlist-list-item-even-background:                #1e1e1f;
   --layout__playlist-list-fake-even-background:                #19191b;
@@ -192,9 +192,6 @@ body {
 /* Input Field */
 .input-field--warn {
   background-color: var(--layout__warning-medium-color);
-}
-.input-field--selectable:hover {
-  color: var(--layout__browse-right-sidebar-field-hover);
 }
 /* Checkbox Dropdown */
 .simple-dropdown {
@@ -495,6 +492,9 @@ body {
 }
 .game-browser__sidebar__divider {
   background-color: var(--layout__browse-sidebar-divider-background);
+}
+.browse-right-sidebar--edit-disabled .browse-right-sidebar__searchable:hover {
+  color: var(--layout__browse-right-sidebar-searchable-hover);
 }
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application:nth-child(2n) {
