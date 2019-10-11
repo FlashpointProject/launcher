@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
-import { Subtract } from 'utility-types';
+import { Subtract } from '../../shared/interfaces';
 import { HomePage, HomePageProps } from '../components/pages/HomePage';
 import * as searchActions from '../store/search/actions';
 import { withLibrary, WithLibraryProps } from './withLibrary';

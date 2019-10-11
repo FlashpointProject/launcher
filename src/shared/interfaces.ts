@@ -4,6 +4,9 @@ import { LogRendererApi } from './Log/LogRendererApi';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
 import { ServicesApi } from './service/ServicesApi';
 
+/** Subtract the properties of U from T. */
+export type Subtract<T extends U, U extends object> = Pick<T, Exclude<keyof T, keyof U>>;
+
 export interface IMainWindowExternal {
   /** Miscellaneous data. */
   misc: IMiscData;
