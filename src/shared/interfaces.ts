@@ -2,6 +2,7 @@ import { OpenDialogOptions } from 'electron';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
+import { ServicesApi } from './service/ServicesApi';
 
 export interface IMainWindowExternal {
   /** Miscellaneous data. */
@@ -33,6 +34,9 @@ export interface IMainWindowExternal {
 
   /** Renderers interface for the Config data */
   config: AppConfigApi;
+
+  /** Renderers interface for Service data */
+  services: ServicesApi;
 
   /** Renderers interface for the Log data */
   log: LogRendererApi;

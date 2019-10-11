@@ -115,7 +115,19 @@
     "renameImagesIdToTitle": "Rename Images (ID => Title)",
     "renameImagesIdToTitleDesc": "Find all game images with the games ID in their filename and rename them to use its title instead",
     "createMissingFolders": "Create Missing Folders",
-    "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them"
+    "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them",
+    "servicesHeader": "Background Services",
+    "running": "Running",
+    "stopped": "Stopped",
+    "killing": "Killing",
+    "start": "Start",
+    "startDesc": "Start the service",
+    "stop": "Stop",
+    "stopDesc": "Stop the running service",
+    "restart": "Restart",
+    "restartDesc": "Restart the service",
+    "details": "Details",
+    "detailsDesc": "Open dialog with service details"
   },
   "about": {
     "aboutHeader": "About",
