@@ -20,6 +20,7 @@ const labels = [
   'Language',
   'Redirector',
   'Router',
+  'Curation',
 ];
 
 export interface LogsPage {

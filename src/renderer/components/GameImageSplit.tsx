@@ -70,7 +70,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
               onClick={this.onAddClick}
               disabled={disabled}/>
           </div>
-        ) : (
+        ) : (!disabled) ? (
           <div className='game-image-split__buttons'>
             <p>{formatString(strings.removeBlank, text)}</p>
             <ConfirmElement
@@ -78,7 +78,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
               children={renderDeleteImageButton}
               extra={[strings, text]}/>
           </div>
-        ) }
+        ) : undefined }
       </div>
     );
   }

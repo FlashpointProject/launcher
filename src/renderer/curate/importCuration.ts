@@ -1,6 +1,6 @@
+import { exec } from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { promisify } from 'util';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { formatDate, removeFileExtension } from '../../shared/Util';
 import { EditAddAppCuration, EditCuration } from '../context/CurationContext';
@@ -12,10 +12,10 @@ import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
 import { getFileExtension } from '../Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
-import { CurationIndex, CurationIndexImage, importExistingCuration, indexContentFolder } from './indexCuration';
-import { exec } from 'child_process';
+import { uuid } from '../uuid';
+import { CurationIndexImage, indexContentFolder } from './indexCuration';
+import { getContentFolderByKey } from './util';
 
-const ensureDir = promisify(fs.ensureDir);
 
 /**
  * Import a curation.
@@ -29,12 +29,13 @@ export async function importCuration(
   curation: EditCuration, games: GameManager, gameImages: GameImageCollection, log: boolean = false
 ): Promise<void> {
   // Make sure the content folder is an up to date index
-  indexContentFolder(curation);
+  curation.content = await indexContentFolder(getContentFolderByKey(curation.key));
   // @TODO Add support for selecting what library to save the game to
   const libraryPrefix = '';
   // Create and add game and additional applications
-  const game = createGameFromCurationMeta(curation);
-  const addApps = createAddAppsFromCurationMeta(curation.key, curation.addApps);
+  const gameId = uuid();
+  const game = createGameFromCurationMeta(gameId, curation);
+  const addApps = createAddAppsFromCurationMeta(gameId, curation.addApps);
   // Get the nome of the folder to put the images in
   const imageFolderName = (
     getImageFolderName(game, libraryPrefix, true) ||
@@ -69,7 +70,7 @@ export async function importCuration(
           if (content.fileName.endsWith('/')) { // (Folder)
             return (async () => {
               // Create the folder if it is missing
-              try { await ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName), undefined); }
+              try { await fs.ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName), undefined); }
               catch (e) { /* Ignore error */ }
             })();
           } else { // (File)
@@ -78,7 +79,7 @@ export async function importCuration(
               const source = path.join(contentPath, content.fileName);
               const output = path.join(GameLauncher.getHtdocsPath(), content.fileName);
               // Ensure that the folders leading up to the file exists
-              try { await ensureDir(path.dirname(output), undefined); }
+              try { await fs.ensureDir(path.dirname(output), undefined); }
               catch (e) { /* Ignore error */ }
               // Move the file
               await fs.move(source, output, { overwrite: true });
@@ -98,11 +99,12 @@ function logMsg(text: string, curation: EditCuration): void {
 /**
  * Create a game info from a curation.
  * @param curation Curation to get data from.
+ * @param gameId ID to use for Game
  */
-function createGameFromCurationMeta(curation: EditCuration): IGameInfo {
+function createGameFromCurationMeta(gameId: string, curation: EditCuration): IGameInfo {
   const meta = curation.meta;
   return {
-    id:                  curation.key, // (Re-use the id of the curation)
+    id:                  gameId, // (Re-use the id of the curation)
     title:               meta.title               || '',
     series:              meta.series              || '',
     developer:           meta.developer           || '',
@@ -136,7 +138,7 @@ function createAddAppsFromCurationMeta(key: string, addApps: EditAddAppCuration[
   return addApps.map<IAdditionalApplicationInfo>(addApp => {
     const meta = addApp.meta;
     return {
-      id: addApp.key,
+      id: uuid(),
       gameId: key,
       applicationPath: meta.applicationPath || '',
       commandLine: meta.launchCommand || '',
@@ -167,19 +169,6 @@ async function importGameImage(image: CurationIndexImage, cache: ImageFolderCach
 }
 
 /**
- * Remove a number of folders from the start of a path.
- * Example: ("a/b/c/d.txt", 2) => "c/d.txt"
- * @param filePath Path to remove folders from.
- * @param count Number of folders to remove.
- * @param separator Separator between file and folder names.
- */
-function removeFoldersStart(filePath: string, count: number, separator: string = '/'): string {
-  const splits = filePath.split(separator);
-  splits.splice(0, count);
-  return splits.join(separator);
-}
-
-/**
  * Convert a string to a boolean (case insensitive).
  * @param str String to convert ("Yes" is true, "No" is false).
  * @param defaultVal Value returned if the string is neither true nor false.
@@ -197,7 +186,7 @@ export function stringToBool(str: string, defaultVal: boolean = false): boolean 
  */
 export function launchCuration(curation: EditCuration) {
   linkContentFolder(curation.key);
-  const game = createGameFromCurationMeta(curation);
+  const game = createGameFromCurationMeta(curation.key, curation);
   const addApps = createAddAppsFromCurationMeta(curation.key, curation.addApps);
   GameLauncher.launchGame(game, addApps);
 }
@@ -213,51 +202,29 @@ export function launchAddAppCuration(curationKey: string, appCuration: EditAddAp
 }
 
 /** Symlinks (or copies if symlink is unavailble) a curations `content` folder to `htdocs\content`
- * @params curationKey: Key of the (game) curation to link
+ * @param curationKey Key of the (game) curation to link
  */
-function linkContentFolder(curationKey: string) {
+async function linkContentFolder(curationKey: string) {
   const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', curationKey);
-  const serverPath = path.join(GameLauncher.getHtdocsPath(), 'content');
+  const htdocsContentPath = path.join(GameLauncher.getHtdocsPath(), 'content');
   // Clear out old folder if exists
-  if (fs.existsSync(serverPath)) {
-    fs.removeSync(serverPath);
-  }
+  await fs.access(htdocsContentPath, fs.constants.F_OK)
+    .then(() => fs.remove(htdocsContentPath));
   const contentPath = path.join(curationPath, 'content');
   if (fs.existsSync(contentPath)) {
-    // Use symlinks on windows if running as Admin
     if (process.platform === 'win32') {
-      exec('NET SESSION', (err,so,se) => {
-        if (se.length === 0) {
-          console.log('SYM');
-          fs.symlinkSync(contentPath, serverPath);
-        } else {
-          fs.copySync(contentPath, serverPath);
-        }
+      // Use symlinks on windows if running as Admin - Much faster than copying
+      await new Promise(() => {
+        exec('NET SESSION', (err,so,se) => {
+          if (se.length === 0) {
+            return fs.symlink(contentPath, htdocsContentPath);
+          } else {
+            return fs.copy(contentPath, htdocsContentPath);
+          }
+        });
       });
     } else {
-      fs.copySync(contentPath, serverPath);
+      await fs.copy(contentPath, htdocsContentPath);
     }
   }
-}
-
-export async function getNewCurations(existingCurations: EditCuration[]): Promise<CurationIndex[]> {
-  return new Promise<CurationIndex[]>((resolve) => {
-    const curationsFolder = path.join(window.External.config.fullFlashpointPath, 'Curations');
-    const files = fs.readdirSync(curationsFolder);
-    const curations: Promise<CurationIndex>[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const fullPath = path.join(curationsFolder, file);
-      if (fs.lstatSync(fullPath).isDirectory()) {
-        // Make sure it doesn't already exist
-        if (existingCurations.findIndex((item) => item.key === file) === -1) {
-          curations.push(importExistingCuration(file));
-        }
-      }
-    }
-    Promise.all(curations)
-    .then((curations) => {
-      resolve(curations);
-    });
-  });
 }

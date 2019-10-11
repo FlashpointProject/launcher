@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import * as path from 'path';
 
-export function get7zExec(): string {
+function get7zExec(): string {
     if (window.External.isDev) {
         const basePath = process.cwd();
         switch (process.platform) {
@@ -24,3 +24,5 @@ export function get7zExec(): string {
         return '7za';
     }
 }
+
+export const pathTo7z = get7zExec();

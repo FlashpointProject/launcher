@@ -1,11 +1,9 @@
 import * as fs from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
-import { EditCuration } from '../context/CurationContext';
-import { get7zExec } from '../util/SevenZip';
+import { pathTo7z } from '../util/SevenZip';
 import { uuid } from '../uuid';
 import { ParsedCurationMeta } from './parse';
-import { getCurationFolder } from './util';
 
 export type CurationIndex = {
   /** UUID of the curation, used for storage */
@@ -50,57 +48,85 @@ export type CurationIndexImage = {
 };
 
 /**
- * Index a curation folder (index all content files, load and parse meta etc.)
- * @param filepath Path of the folder to index.
+ * Import a curation meta file (Copy meta.txt to unique folder)
+ * @param filePath Path of the meta file to import
+ * @return Curation key
  */
-export function importCurationFolder(filepath: string): Promise<CurationIndex> {
-  return new Promise<CurationIndex>((resolve, reject) => {
-    const curation = createCurationIndex();
-    const curationFolder = getCurationFolder(curation);
-    fs.copySync(filepath, curationFolder);
-    resolve(curation);
-  });
+export async function importCurationMeta(filePath: string, key: string = uuid()): Promise<string> {
+  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  const metaPath = path.join(curationPath, 'meta.txt');
+  try {
+    await fs.ensureDir(metaPath);
+    await fs.copyFile(filePath, metaPath);
+  } catch (error) {
+    log('Error importing curation meta - ' + error.message);
+    console.error(error);
+  }
+  return key;
 }
 
 /**
- * Index a curation archive (index all content files, load and parse meta etc.)
- * @param filepath Path of the archive to index.
+ * Import a curation folder (Copy all files to unique folder)
+ * @param filePath Path of the folder to import
+ * @return Curation key
  */
-export function importCurationArchive(filePath: string): Promise<CurationIndex> {
-  return new Promise<CurationIndex>((resolve, reject) => {
-    const curation = createCurationIndex();
-    const curationPath = getCurationFolder(curation);
-    const extractPath = path.join(curationPath, '.temp');
-    fs.mkdirsSync(extractPath);
-    // Extract to Curation folder
-    extractFull(filePath, extractPath, { $bin: get7zExec() })
+export async function importCurationFolder(filePath: string, key: string = uuid()): Promise<string> {
+  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  try {
+    await fs.copy(filePath, curationPath);
+  } catch (error) {
+    log('Error importing curation folder - ' + error.message);
+    console.error(error);
+  }
+  return key;
+}
+
+/**
+ * Import a curation archive (Extract all files to unique folder)
+ * @param filePath Path of the archive to import
+ * @return Curation key
+ */
+export async function importCurationArchive(filePath: string, key: string = uuid()): Promise<string> {
+  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  const extractPath = path.join(curationPath, '.temp');
+  await fs.ensureDir(extractPath);
+  // Extract to temp folder inside curation folder
+  await new Promise<void>((resolve, reject) => {
+    extractFull(filePath, extractPath, { $bin: pathTo7z })
     .on(('end'), () => {
+      // Find root folder (folder containing meta.txt) and move contents
       const rootPath = getRootPath(extractPath);
       if (rootPath) {
-        fs.copySync(rootPath, curationPath);
-        fs.removeSync(extractPath);
-      } else if (!rootPath) {
-        curation.errors.push({
-          message: 'No meta.txt found in imported curation.'
+        console.log('extracted - ' + rootPath + '\n' + curationPath);
+        fs.copy(rootPath, curationPath)
+        .then(() => {
+          fs.remove(extractPath)
+          .then(() => {
+            resolve();
+          });
+        })
+        .catch((error) => {
+          reject(error);
         });
+        // Clean up temp folder
       }
-      resolve(curation);
     })
     .on('error', (error) => {
-      log('Error extracting archive - ' + error.message);
-      console.error(error.message);
+      reject(error);
     });
+  })
+  .catch((error) => {
+    log('Error extracting archive - ' + error.message);
+    console.error(error.message);
   });
+  console.log('extracted');
+  return key;
 }
 
-export function importExistingCuration(key: string): Promise<CurationIndex> {
-  return new Promise<CurationIndex>((resolve) => {
-    const curation = createCurationIndex();
-    curation.key = key;
-    resolve(curation);
-  });
-}
-
+/**
+ * Return the first path containing meta.txt (undefined if none found)
+ * @param dir Path to search
+ */
 function getRootPath(dir: string): string|undefined {
   const files = fs.readdirSync(dir);
   for (let i = 0; i < files.length; i++) {
@@ -120,21 +146,6 @@ function getRootPath(dir: string): string|undefined {
   return;
 }
 
-/** Create an "empty" curation index object. */
-function createCurationIndex(): CurationIndex {
-  return {
-    key: uuid(),
-    meta: {
-      game: {},
-      addApps: [],
-    },
-    content: [],
-    errors: [],
-    screenshot: createCurationIndexImage(),
-    thumbnail: createCurationIndexImage(),
-  };
-}
-
 /** Create an "empty" curation index image. */
 export function createCurationIndexImage(): CurationIndexImage {
   return {
@@ -145,32 +156,36 @@ export function createCurationIndexImage(): CurationIndexImage {
 
 /**
  * Recursively index the content folder
- * @param curation Curation to set the indexed content of
+ * @param contentPath Folder to index
  */
-export function indexContentFolder(curation: EditCuration) {
-  const contentPath = path.join(getCurationFolder(curation), 'content');
-  curation.content = [];
-  if (fs.existsSync(contentPath)) {
-    recursiveFolderIndex(contentPath, contentPath, curation);
+export async function indexContentFolder(contentPath: string) : Promise<CurationIndexContent[]> {
+  const content: CurationIndexContent[] = [];
+  try {
+    await fs.access(contentPath, fs.constants.F_OK);
+    await recursiveFolderIndex(contentPath, contentPath, content);
+  } catch (error) {
+    log('Error indexing curation - ' + error.message);
+    console.error(error);
   }
+  return content;
 }
 
-function recursiveFolderIndex(folderPath: string, contentPath: string, curation: EditCuration) {
+async function recursiveFolderIndex(folderPath: string, contentPath: string, content: CurationIndexContent[]): Promise<void> {
   // List all sub-files (and folders)
-  const files = fs.readdirSync(folderPath);
+  const files = await fs.readdir(folderPath);
   // Run a promise on each file (and wait for all to finish)
   for (let fileName of files) {
     const filePath = path.join(folderPath, fileName);
-    const stats = fs.lstatSync(filePath);
+    const stats = await fs.lstat(filePath);
     const isDirectory = stats.isDirectory();
     // Add content index
-    curation.content.push({
+    content.push({
       fileName: fixSlashes(path.relative(contentPath, filePath)) + (isDirectory ? '/' : ''),
       fileSize: stats.size,
     });
     // Check if it should recurse
     if (isDirectory) {
-      recursiveFolderIndex(filePath, contentPath, curation);
+      await recursiveFolderIndex(filePath, contentPath, content);
     }
   }
 }
@@ -182,7 +197,7 @@ export function fixSlashes(str: string): string {
 
 function log(content: string): void {
   window.External.log.addEntry({
-    source: 'Curate',
+    source: 'Curation',
     content: content
   });
 }

@@ -1,24 +1,22 @@
-import { exec } from 'child_process';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import { add } from 'node-7z';
 import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { promisify } from 'util';
 import { CurateLang, MiscLang } from '../../shared/lang/types';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { stringifyCurationFormat } from '../curate/format/stringifier';
 import { importCuration, launchCuration, stringToBool } from '../curate/importCuration';
-import { CurationIndexContent } from '../curate/indexCuration';
+import { CurationIndexContent, indexContentFolder } from '../curate/indexCuration';
 import { convertEditToCurationMeta } from '../curate/metaToMeta';
-import { getCurationFolder } from '../curate/util';
+import { getContentFolderByKey, getCurationFolder } from '../curate/util';
 import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { copyArrayLike, sizeToString } from '../Util';
 import { LangContext } from '../util/lang';
-import { get7zExec } from '../util/SevenZip';
+import { pathTo7z } from '../util/SevenZip';
 import { GamePropSuggestions } from '../util/suggestions';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -29,8 +27,6 @@ import { DropdownInputField } from './DropdownInputField';
 import { GameImageSplit } from './GameImageSplit';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
-
-const fsStat = promisify(fs.stat);
 
 export type CurateBoxProps = {
   /** Game manager to add imported curations to. */
@@ -66,7 +62,7 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation && props.curation.content]);
   // Callbacks for the fields (onChange)
-  const key = props.curation ? props.curation.key : undefined;
+  const key                         = props.curation ? props.curation.key : undefined;
   const onTitleChange               = useOnInputChange('title',               key, props.dispatch);
   const onSeriesChange              = useOnInputChange('series',              key, props.dispatch);
   const onDeveloperChange           = useOnInputChange('developer',           key, props.dispatch);
@@ -130,22 +126,24 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.dispatch, props.curation, props.games, props.gameImages]);
   // Callback for testing a curation works
-  const onRun = useCallback(async () => {
+  const onRun = useCallback(() => {
     if (props.curation) {
       launchCuration(props.curation);
     }
   }, [props.dispatch, props.curation]);
   // Callback for when the index content button is clicked
-  const onIndexContent = useCallback(() => {
+  const onIndexContent = useCallback(async () => {
     if (props.curation) {
+      const content = await indexContentFolder(getContentFolderByKey(props.curation.key));
       props.dispatch({
-        type: 'index-curation-content',
+        type: 'set-curation-content',
         payload: {
-          key: props.curation.key
+          key: props.curation.key,
+          content: content
         }
       });
     }
-  }, [ props.dispatch, props.curation && props.curation.key]);
+  }, [ props.dispatch, props.curation && props.curation.key ]);
   // Callback for when the open folder button is clicked
   const onOpenFolder = useCallback(() => {
     if (props.curation) {
@@ -173,6 +171,7 @@ export function CurateBox(props: CurateBoxProps) {
   // Callback for when the export button is clicked
   const onExportClick = useCallback(() => {
     if (props.curation) {
+      const curation = props.curation;
       // Choose where to save the file
       const filePath = remote.dialog.showSaveDialogSync({
         title: strings.dialog.selectFileToExportMeta,
@@ -184,16 +183,15 @@ export function CurateBox(props: CurateBoxProps) {
       });
       if (filePath) {
         fs.ensureDir(path.dirname(filePath))
-        .then(() => {
-          if (props.curation) {
-            // Save working meta
-            const metaPath = path.join(getCurationFolder(props.curation), 'meta.txt');
-            const meta = stringifyCurationFormat(convertEditToCurationMeta(props.curation.meta, props.curation.addApps));
-            fs.writeFileSync(metaPath, meta);
+        .then(async () => {
+          // Save working meta
+          const metaPath = path.join(getCurationFolder(curation), 'meta.txt');
+          const meta = stringifyCurationFormat(convertEditToCurationMeta(curation.meta, curation.addApps));
+          return fs.writeFile(metaPath, meta)
+          .then(() => {
             // Zip it all up
-            const _7zPath = get7zExec();
-            add(filePath, getCurationFolder(props.curation), { recursive: true, $bin: _7zPath });
-          }
+            add(filePath, getCurationFolder(curation), { recursive: true, $bin: pathTo7z });
+          });
         });
       }
     }
@@ -202,20 +200,21 @@ export function CurateBox(props: CurateBoxProps) {
   const onImageAddClick = useCallback((type: string) => {
     const filePaths = window.External.showOpenDialogSync({
       title: strings.dialog.selectScreenshot,
-      properties: ['openFile']
+      properties: ['openFile'],
+      filters: [{ extensions: ['png', 'PNG'], name: 'Image File' }]
     });
     if (props.curation && filePaths && filePaths[0].toLowerCase().endsWith('.png')) {
       switch (type) {
         case 'thumbnail':
-          fs.copyFileSync(filePaths[0], path.join(getCurationFolder(props.curation), 'logo.png'));
+          fs.copyFile(filePaths[0], path.join(getCurationFolder(props.curation), 'logo.png'));
           break;
         case 'screenshot':
-          fs.copyFileSync(filePaths[0], path.join(getCurationFolder(props.curation), 'ss.png'));
+          fs.copyFile(filePaths[0], path.join(getCurationFolder(props.curation), 'ss.png'));
           break;
       }
     }
   }, []);
-  const onImageRemoveClick = useCallback((type: string) => {
+  const onImageRemoveClick = useCallback(async (type: string) => {
     if (props.curation) {
       let filePath: string | undefined = undefined;
       switch (type) {
@@ -226,8 +225,14 @@ export function CurateBox(props: CurateBoxProps) {
           filePath = path.join(getCurationFolder(props.curation), 'ss.png');
           break;
       }
-      if (filePath && fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      if (filePath) {
+        try {
+          await fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK );
+          await fs.unlink(filePath);
+        } catch (error) {
+          log('Error replacing image - ' + error.message);
+          console.log(error);
+        }
       }
     }
   }, [props.curation && props.curation.key]);
@@ -238,11 +243,11 @@ export function CurateBox(props: CurateBoxProps) {
       switch (type) {
         // Logo
         case 'thumbnail':
-          fs.copyFileSync(files[0].path, path.join(getCurationFolder(props.curation), 'logo.png'));
+          fs.copyFile(files[0].path, path.join(getCurationFolder(props.curation), 'logo.png'));
           break;
         // Screenshot
         case 'screenshot':
-          fs.copyFileSync(files[0].path, path.join(getCurationFolder(props.curation), 'ss.png'));
+          fs.copyFile(files[0].path, path.join(getCurationFolder(props.curation), 'ss.png'));
           break;
       }
     }
@@ -327,6 +332,32 @@ export function CurateBox(props: CurateBoxProps) {
     }
     return warns;
   }, [props.curation && props.curation.meta, props.curation && props.curation.content]);
+  const imageSplit = useMemo(() => {
+    if (props.curation) {
+      const thumbnailPath = props.curation.thumbnail.exists ? `${props.curation.thumbnail.filePath}?v=${props.curation.thumbnail.version}` : undefined;
+      const screenshotPath = props.curation.screenshot.exists ? `${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}` : undefined;
+      return (
+        <>
+        <GameImageSplit
+          type='thumbnail'
+          text={strings.browse.thumbnail}
+          imgSrc={thumbnailPath}
+          onAddClick={onImageAddClick}
+          onRemoveClick={onImageRemoveClick}
+          onDrop={onDrop}
+          />
+        <GameImageSplit
+          type='screenshot'
+          text={strings.browse.screenshot}
+          imgSrc={screenshotPath}
+          onAddClick={onImageAddClick}
+          onRemoveClick={onImageRemoveClick}
+          onDrop={onDrop}
+          />
+        </>
+      );
+    }
+  }, [props.curation && props.curation.thumbnail, props.curation && props.curation.screenshot]);
   // Meta
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
   // Misc
@@ -344,22 +375,7 @@ export function CurateBox(props: CurateBoxProps) {
         <p className='curate-box-image-titles__title'>{strings.browse.screenshot}</p>
       </div>
       <div className='curate-box-images'>
-        <GameImageSplit
-          type='thumbnail'
-          text={strings.browse.thumbnail}
-          imgSrc={props.curation && props.curation.thumbnail.filePath}
-          onAddClick={onImageAddClick}
-          onRemoveClick={onImageRemoveClick}
-          onDrop={onDrop}
-          />
-        <GameImageSplit
-          type='screenshot'
-          text={strings.browse.screenshot}
-          imgSrc={props.curation && props.curation.screenshot.filePath}
-          onAddClick={onImageAddClick}
-          onRemoveClick={onImageRemoveClick}
-          onDrop={onDrop}
-          />
+        {imageSplit}
       </div>
       <hr className='curate-box-divider' />
       {/* Fields */}
@@ -539,23 +555,28 @@ export function CurateBox(props: CurateBoxProps) {
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.indexContent}
-          onClick={onIndexContent} />
+          onClick={onIndexContent}
+          disabled={disabled} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.openFolder}
-          onClick={onOpenFolder} />
+          onClick={onOpenFolder}
+          disabled={disabled} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.run}
-          onClick={onRun} />
+          onClick={onRun}
+          disabled={disabled} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.export}
-          onClick={onExportClick} />
+          onClick={onExportClick}
+          disabled={disabled} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.import}
-          onClick={onImportClick} />
+          onClick={onImportClick}
+          disabled={disabled} />
       </div>
     </div>
   );
@@ -717,7 +738,7 @@ function isValidDate(str: string): boolean {
 
 function log(content: string): void {
   window.External.log.addEntry({
-    source: 'Curate',
+    source: 'Curation',
     content: content
   });
 }

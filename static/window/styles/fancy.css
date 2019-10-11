@@ -84,6 +84,7 @@
   --layout__log-source-language:            #b157ec;
   --layout__log-source-redirector:          #00ffff;
   --layout__log-source-router:              #00ff00;
+  --layout__log-source-curation:            #924200;
   /* Credits */
   --layout__credits-tooltip-border:           #000000;
   --layout__credits-tooltip-background:       #000000DD;
@@ -255,6 +256,9 @@ body {
 }
 .log__source--router {
   color: var(--layout__log-source-router);
+}
+.log__source--curation {
+  color: var(--layout__log-source-curation);
 }
 
 

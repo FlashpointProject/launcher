@@ -1,12 +1,12 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import { extractFull } from 'node-7z';
 import { IncomingMessage } from 'http';
+import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
 import { IUpgradeStage } from '../upgrade/upgrade';
-import { get7zExec } from './SevenZip';
+import { pathTo7z } from './SevenZip';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -79,7 +79,7 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
       status.currentTask = 'extracting';
       log(`Download of the "${upgrade.title}" upgrade complete!`);
       log(`Installation of the "${upgrade.title}" upgrade started.`);
-      extractFull(zipPath, opts.installPath, { $bin: get7zExec(), $progress: true })
+      extractFull(zipPath, opts.installPath, { $bin: pathTo7z, $progress: true })
       .on('progress', (progress) => {
         status.extractProgress = progress.percent / 100;
         status.emit('progress');
