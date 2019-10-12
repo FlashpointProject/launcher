@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ArgumentTypesOf } from '../../../shared/interfaces';
-import { LangContainer, LogsLang } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang';
 import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
 import { LogRendererApi } from '../../../shared/Log/LogRendererApi';
 import { memoizeOne } from '../../../shared/memoize';

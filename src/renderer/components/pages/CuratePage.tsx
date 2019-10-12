@@ -4,11 +4,11 @@ import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
-import { CurateLang } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang';
 import { findLibraryByRoute } from '../../../shared/library/util';
 import { memoizeOne } from '../../../shared/memoize';
 import { WithLibraryProps } from '../../containers/withLibrary';
-import { CurationContext, EditCurationMeta } from '../../context/CurationContext';
+import { CurationContext, EditCuration, EditCurationMeta } from '../../context/CurationContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { importCuration } from '../../curate/importCuration';
@@ -24,7 +24,7 @@ import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CurateBox } from '../CurateBox';
 import { SimpleButton } from '../SimpleButton';
 
-export type OwnProps = {
+type OwnProps = {
   /** Game manager to add imported curations to. */
   games?: GameManager;
   /** Game images collection to add imported images to. */
@@ -239,6 +239,12 @@ export function CuratePage(props: CuratePageProps) {
     };
   }, []);
 
+  // Import a curation callback
+  const importCurationCallback = useCallback((curation: EditCuration, log?: boolean) => {
+    if (!props.games)      { throw new Error('Failed to import curation. "games" is undefined.'); }
+    if (!props.gameImages) { throw new Error('Failed to import curation. "gameImages" is undefined.'); }
+    return importCuration(curation, props.games, props.gameImages, props.libraryData.libraries, log);
+  }, [props.games, props.gameImages, props.libraryData.libraries]);
   // Import All Curations Callback
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
@@ -262,7 +268,7 @@ export function CuratePage(props: CuratePageProps) {
               library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
             }
             // Import curation (and wait for it to complete)
-            await importCuration(curation, games, gameImages, library, true);
+            await importCurationCallback(curation, true);
             // Increment success counter
             success += 1;
             // Log status
@@ -393,8 +399,8 @@ export function CuratePage(props: CuratePageProps) {
 
   // Game property suggestions
   const suggestions = useMemo(() => {
-    return props.games && getSuggestions(props.games.collection);
-  }, [props.games]);
+    return props.games && getSuggestions(props.games.listPlatforms(), props.libraryData.libraries);
+  }, [props.games, props.libraryData.libraries]);
 
   // Libraries an options list
   const libraryOptions = memoizeOne(() => {
@@ -423,10 +429,9 @@ export function CuratePage(props: CuratePageProps) {
     return state.curations.map((curation, index) => (
       <CurateBox
         key={index}
+        importCuration={importCurationCallback}
         curation={curation}
         dispatch={dispatch}
-        games={props.games}
-        gameImages={props.gameImages}
         suggestions={suggestions}
         libraryOptions={libraryOptions()}
         libraryData={props.libraryData} />
@@ -472,7 +477,7 @@ export function CuratePage(props: CuratePageProps) {
   ), [curateBoxes, onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick]);
 }
 
-function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
+function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}

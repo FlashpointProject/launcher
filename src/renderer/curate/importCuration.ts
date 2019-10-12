@@ -14,8 +14,7 @@ import { getImageFolderName } from '../image/util';
 import { getFileExtension } from '../Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { uuid } from '../uuid';
-import { CurationIndexImage, indexContentFolder } from './indexCuration';
-import { getContentFolderByKey } from './util';
+import { CurationIndexImage } from './indexCuration';
 
 
 /**
@@ -27,15 +26,15 @@ import { getContentFolderByKey } from './util';
  * @returns A promise that resolves when the import is complete.
  */
 export async function importCuration(
-  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, library?: IGameLibraryFileItem, log: boolean = false
+  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, libraries: IGameLibraryFileItem[], log: boolean = false
 ): Promise<void> {
-  // Make sure the content folder is an up to date index
-  curation.content = await indexContentFolder(getContentFolderByKey(curation.key));
+  // Find the library and get its prefix
+  const library = libraries.find(lib => lib.title === curation.meta.library);
+  const libraryPrefix = library && library.prefix || '';
   // Create and add game and additional applications
   const gameId = uuid();
   const game = createGameFromCurationMeta(gameId, curation);
   const addApps = createAddAppsFromCurationMeta(gameId, curation.addApps);
-  const libraryPrefix = library && library.prefix || '';
   // Get the nome of the folder to put the images in
   const imageFolderName = (
     getImageFolderName(game, libraryPrefix, true) ||

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FilterLang, LangContainer } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { LangContext } from '../util/lang';
 
@@ -12,6 +12,7 @@ export type GameOrderProps = {
   orderReverse: GameOrderReverse;
 };
 
+/** Object emitted when the game order changes. */
 export type GameOrderChangeEvent = {
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;

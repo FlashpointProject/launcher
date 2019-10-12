@@ -1,6 +1,6 @@
 import GameManagerPlatform from '../../renderer/game/GameManagerPlatform';
-import { LibrariesLang } from '../lang/types';
 import { IGameLibraryFileItem } from './interfaces';
+import { LangContainer } from '../lang';
 
 /** Find the first library flagged as default (undefined if none was found) */
 export function findDefaultLibrary(libraries: IGameLibraryFileItem[]): IGameLibraryFileItem|undefined {
@@ -46,6 +46,6 @@ export function getLibraryPlatforms(libraries: IGameLibraryFileItem[], platforms
  * @param item Item to get title of.
  * @param lang Language sub-container to look for title in.
  */
-export function getLibraryItemTitle(item: IGameLibraryFileItem, lang?: LibrariesLang): string {
+export function getLibraryItemTitle(item: IGameLibraryFileItem, lang?: LangContainer['libraries']): string {
   return lang && lang[item.route] || item.route;
 }

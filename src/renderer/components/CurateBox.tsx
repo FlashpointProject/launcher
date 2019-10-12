@@ -4,18 +4,16 @@ import { add } from 'node-7z';
 import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CurateLang, MiscLang } from '../../shared/lang/types';
+import { LangContainer } from 'src/shared/lang';
 import { IGameLibraryFile, IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { findLibraryByRoute } from '../../shared/library/util';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { stringifyCurationFormat } from '../curate/format/stringifier';
-import { importCuration, launchCuration, stringToBool } from '../curate/importCuration';
+import { launchCuration, stringToBool } from '../curate/importCuration';
 import { CurationIndexContent, indexContentFolder } from '../curate/indexCuration';
 import { convertEditToCurationMeta } from '../curate/metaToMeta';
 import { curationLog, getContentFolderByKey, getCurationFolder } from '../curate/util';
-import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
-import { GameImageCollection } from '../image/GameImageCollection';
 import { copyArrayLike, sizeToString } from '../Util';
 import { LangContext } from '../util/lang';
 import { pathTo7z } from '../util/SevenZip';
@@ -31,14 +29,12 @@ import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxProps = {
-  /** Game manager to add imported curations to. */
-  games?: GameManager;
-  /** Game images collection to add imported images to. */
-  gameImages?: GameImageCollection;
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
   dispatch: React.Dispatch<CurationAction>;
+  /** Import a curation. */
+  importCuration: (curation: EditCuration, log?: boolean) => Promise<void>;
   /** Suggestions for the drop-down input fields. */
   suggestions?: Partial<GamePropSuggestions> | undefined;
   /** Libraries to pick in the drop-down input field. */
@@ -76,7 +72,6 @@ export function CurateBox(props: CurateBoxProps) {
   const onGenreChange               = useOnInputChange('genre',               key, props.dispatch);
   const onPlayModeChange            = useOnInputChange('playMode',            key, props.dispatch);
   const onStatusChange              = useOnInputChange('status',              key, props.dispatch);
-  const onLibraryChange             = useOnInputChange('library',             key, props.dispatch);
   const onVersionChange             = useOnInputChange('version',             key, props.dispatch);
   const onReleaseDateChange         = useOnInputChange('releaseDate',         key, props.dispatch);
   const onLanguageChange            = useOnInputChange('language',            key, props.dispatch);
@@ -84,6 +79,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onPlatformChange            = useOnInputChange('platform',            key, props.dispatch);
   const onApplicationPathChange     = useOnInputChange('applicationPath',     key, props.dispatch);
   const onLaunchCommandChange       = useOnInputChange('launchCommand',       key, props.dispatch);
+  const onLibraryChange             = useOnInputChange('library',             key, props.dispatch);
   const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
   const onAuthorNotesChange         = useOnInputChange('authorNotes',         key, props.dispatch);
@@ -92,6 +88,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onGenreItemSelect           = useCallback(transformOnItemSelect(onGenreChange),           [onGenreChange]);
   const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
   const onApplicationPathItemSelect = useCallback(transformOnItemSelect(onApplicationPathChange), [onPlatformChange]);
+  const onLibraryItemSelect         = useCallback(transformOnItemSelect(onLibraryChange),         [onPlatformChange]);
   // Callback for the fields (onInputKeyDown)
   const onInputKeyDown = useCallback((event: React.KeyboardEvent<InputElement>) => {
     // @TODO Add keyboard shortcuts for things like importing and removing the curation.
@@ -99,8 +96,8 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
   // Callback for when the import button is clicked
   const onImportClick = useCallback(async () => {
-    const { curation, games, gameImages } = props;
-    if (curation && games && gameImages) {
+    const { curation } = props;
+    if (curation) {
       // Lock the curation (so it can't be edited while importing)
       props.dispatch({
         type: 'change-curation-lock',
@@ -115,7 +112,7 @@ export function CurateBox(props: CurateBoxProps) {
         library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
       }
       // Import the curation
-      importCuration(curation, games, gameImages, library)
+      props.importCuration(curation)
       .then(() => {
         curationLog(`Curation successfully imported! (title: ${curation.meta.title} id: ${curation.key})`);
         // Remove the curation
@@ -138,7 +135,7 @@ export function CurateBox(props: CurateBoxProps) {
         });
       });
     }
-  }, [props.dispatch, props.curation, props.games, props.gameImages]);
+  }, [props.dispatch, props.curation]);
   // Callback for testing a curation works
   const onRun = useCallback(() => {
     if (props.curation) {
@@ -341,11 +338,15 @@ export function CurateBox(props: CurateBoxProps) {
       warns.unusedGenre = !isValueSuggested(props, 'genre');
       warns.unusedPlatform = !isValueSuggested(props, 'platform');
       warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
+      warns.nonExistingLibrary = !!(
+        (props.curation && props.curation.meta['library']) && // "Library" field is not empty
+        !isValueSuggested(props, 'library')
+      );
       // Check if there is no content
       warns.noContent = props.curation.content.length === 0;
       // Check if library is set 
       const curLibrary = props.curation.meta.library;
-      warns.invalidLibrary = props.libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
+      warns.nonExistingLibrary = props.libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
     }
     return warns;
   }, [props.curation && props.curation.meta, props.curation && props.curation.content]);
@@ -378,8 +379,8 @@ export function CurateBox(props: CurateBoxProps) {
   // Own Lirary Options
   const ownLibraryOptions = useMemo(() => {
     // Add meta's library if invalid (special option)
-    if (warnings.invalidLibrary && props.curation) {
-      const invalidLibrary = (
+    if (warnings.nonExistingLibrary && props.curation) {
+      const nonExistingLibrary = (
         <option
           className='curate-box-select__invalid-option'
           key={props.libraryOptions.length} 
@@ -387,7 +388,7 @@ export function CurateBox(props: CurateBoxProps) {
           {props.curation.meta.library}
         </option>
       );
-      return [ ...props.libraryOptions, invalidLibrary ];
+      return [ ...props.libraryOptions, nonExistingLibrary ];
     }
     return props.libraryOptions;
   }, [props.curation && props.curation.meta.library, props.libraryOptions, warnings]);
@@ -424,7 +425,7 @@ export function CurateBox(props: CurateBoxProps) {
       </CurateBoxRow>
       <CurateBoxRow title={strings.browse.library + ':'}>
         {/* Look like a DropdownInputField */}
-        <div className={warnings.invalidLibrary ? 'curate-box-select--warn' : ''}>
+        <div className={warnings.nonExistingLibrary ? 'curate-box-select--warn' : ''}>
           <select
             className={'input-field input-field--edit simple-input ' +
                       'input-dropdown__input-field__input__inner'}
@@ -536,6 +537,16 @@ export function CurateBox(props: CurateBoxProps) {
           className={warnings.isNotHttp ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
+      <CurateBoxRow title={strings.browse.library + ':'}>
+        <DropdownInputField
+          text={props.curation && props.curation.meta.library || ''}
+          placeholder={strings.browse.defaultLibrary}
+          onChange={onLibraryChange}
+          items={props.suggestions && props.suggestions.library || []}
+          onItemSelect={onLibraryItemSelect}
+          className={warnings.nonExistingLibrary ? 'input-field--warn' : ''}
+          { ...sharedInputProps } />
+      </CurateBoxRow>
       <CurateBoxRow title={strings.browse.notes + ':'}>
         <InputField
           text={props.curation && props.curation.meta.notes || ''}
@@ -630,7 +641,7 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[CurateLang, boolean]>): JSX.Element {
+function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
   return (
     <SimpleButton
       className={
@@ -759,7 +770,7 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
  * Convert a boolean to a string ("Yes" or "No").
  * @param bool Boolean to convert.
  */
-function boolToString(bool: boolean, strings : MiscLang): string {
+function boolToString(bool: boolean, strings: LangContainer['misc']): string {
   return bool ? strings.yes : strings.no;
 }
 

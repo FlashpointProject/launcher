@@ -5,7 +5,7 @@ import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { LangContainer } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang';
 import { removeFileExtension } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';
@@ -19,6 +19,7 @@ import { getFileExtension } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
+import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
 
 const rename = promisify(fs.rename);
@@ -58,9 +59,20 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     };
   }
 
+  componentDidMount() {
+    window.External.services.on('change', this.onServiceUpdate);
+    window.External.log.on('change', this.onServiceUpdate);
+  }
+
+  componentWillUnmount() {
+    window.External.services.removeListener('change', this.onServiceUpdate);
+    window.External.log.removeListener('change', this.onServiceUpdate);
+  }
+
   render() {
     const strings = this.context.developer;
     const { text } = this.state;
+    const services = window.External.services.data;
     return (
       <div className='developer-page simple-scroll'>
         <div className='developer-page__inner'>
@@ -110,6 +122,13 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
           </div>
+          {/* -- Services -- */}
+          <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
+          {services.map((item, index) => (
+            <ServiceBox
+              key={index}
+              service={item} />
+          ))}
         </div>
       </div>
     );
@@ -170,6 +189,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       const collection = this.props.central.games.collection;
       this.setState({ text: await createMissingFolders(collection) });
     }, 0);
+  }
+
+  onServiceUpdate = (): void => {
+    this.forceUpdate();
   }
 
   static contextType = LangContext;

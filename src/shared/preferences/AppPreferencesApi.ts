@@ -35,39 +35,37 @@ export class AppPreferencesApi extends EventEmitter {
    * Initialize (this should be called after construction, and before accessing the data object)
    */
   public async initialize() {
-    return new Promise(async () => {
-      if (this._isInit) { throw new Error('You can only initialize this once'); }
-      // Fetch initial preferences data from the main process
-      const data = await this.fetch();
-      // Keep data
-      this._dataCache = deepCopy<IAppPreferencesData>(data);
-      // Create proxy for data object
-      this._dataProxy = new Proxy(this._dataCache, {
-        // Whenever the value of a data property is set
-        set: (target, p, value, receiver) => {
-          // Check if the property's value was changed
-          if ((target as any)[p] !== value) {
-            this._dataChanged = true;
-          }
-          // Set property's value as normal
-          return Reflect.set(target, p, value, receiver);
-        },
-      });
-      // Start send loop
-      setInterval(() => {
-        if (this._dataChanged) {
-          this._dataChanged = false;
-          this.send();
+    if (this._isInit) { throw new Error('You can only initialize this once'); }
+    // Fetch initial preferences data from the main process
+    const data = await this.fetch();
+    // Keep data
+    this._dataCache = deepCopy<IAppPreferencesData>(data);
+    // Create proxy for data object
+    this._dataProxy = new Proxy(this._dataCache, {
+      // Whenever the value of a data property is set
+      set: (target, p, value, receiver) => {
+        // Check if the property's value was changed
+        if ((target as any)[p] !== value) {
+          this._dataChanged = true;
         }
-      }, AppPreferencesApi.sendDataInterval);
-      // Send data when window is closing
-      window.addEventListener('unload', () => {
-        this.send();
-      });
-      // Done
-      this._isInit = true; // Update Flag
-      this.emit('init'); // Emit event
+        // Set property's value as normal
+        return Reflect.set(target, p, value, receiver);
+      },
     });
+    // Start send loop
+    setInterval(() => {
+      if (this._dataChanged) {
+        this._dataChanged = false;
+        this.send();
+      }
+    }, AppPreferencesApi.sendDataInterval);
+    // Send data when window is closing
+    window.addEventListener('unload', () => {
+      this.send();
+    });
+    // Done
+    this._isInit = true; // Update Flag
+    this.emit('init'); // Emit event
   }
 
   /** Wait until the API is initialized (or resolve immediately if it's already initialized). */
