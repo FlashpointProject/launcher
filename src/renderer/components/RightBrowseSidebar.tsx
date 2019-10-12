@@ -758,7 +758,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const { currentGame, isEditing } = this.props;
       if (!isEditing && currentGame) {
         const value = currentGame[field];
-        if (value) { this.props.onSearch(`${field}:${wrapSearchTerm(value)}`); }
+        const search = (value)
+          ? `${field}:${wrapSearchTerm(value)}`
+          : `missing:${field}`;
+        this.props.onSearch(search);
       }
     };
   }
