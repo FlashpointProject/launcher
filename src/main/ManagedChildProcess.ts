@@ -68,12 +68,6 @@ export class ManagedChildProcess extends EventEmitter {
     if (!this.process && !this._isRestarting) {
       // Spawn process
       this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
-      // Check if spawn failed
-      if (!this.process.pid) { // (No PID means that the spawn failed)
-        this.logContent(`${this.name} failed to start`);
-        this.process = undefined;
-        return;
-      }
       // Set start timestamp
       this.startTime = Date.now();
       // Log
@@ -87,14 +81,20 @@ export class ManagedChildProcess extends EventEmitter {
           this.logContent(data.toString('utf8'));
         });
       }
+      // Update state
+      this.setState(ProcessState.RUNNING);
+      // Register child process listeners
       this.process.on('exit', (code, signal) => {
         if (code) { this.logContent(`${this.name} exited with code ${code}`);     }
         else      { this.logContent(`${this.name} exited with signal ${signal}`); }
         this.process = undefined;
         this.setState(ProcessState.STOPPED);
+      })
+      .on('error', error => {
+        this.logContent(`${this.name} failed to start - ${error.message}`);
+        this.setState(ProcessState.STOPPED);
+        this.process = undefined;
       });
-      // Update state
-      this.setState(ProcessState.RUNNING);
     }
   }
 
