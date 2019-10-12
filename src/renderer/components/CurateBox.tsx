@@ -2,11 +2,10 @@ import * as fs from 'fs';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { promisify } from 'util';
-import { CurateLang, MiscLang } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
-import { importCuration, stringToBool } from '../curate/importCuration';
+import { stringToBool } from '../curate/importCuration';
 import { CurationIndexContent } from '../curate/indexCuration';
-import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { sizeToString } from '../Util';
@@ -25,14 +24,12 @@ import { SimpleButton } from './SimpleButton';
 const fsStat = promisify(fs.stat);
 
 export type CurateBoxProps = {
-  /** Game manager to add imported curations to. */
-  games?: GameManager;
-  /** Game images collection to add imported images to. */
-  gameImages?: GameImageCollection;
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
   dispatch: React.Dispatch<CurationAction>;
+  /** Import a curation. */
+  importCuration: (curation: EditCuration, log?: boolean) => Promise<void>;
   /** Suggestions for the drop-down input fields. */
   suggestions?: Partial<GamePropSuggestions> | undefined;
 };
@@ -73,6 +70,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onPlatformChange            = useOnInputChange('platform',            key, props.dispatch);
   const onApplicationPathChange     = useOnInputChange('applicationPath',     key, props.dispatch);
   const onLaunchCommandChange       = useOnInputChange('launchCommand',       key, props.dispatch);
+  const onLibraryChange             = useOnInputChange('library',             key, props.dispatch);
   const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
   const onAuthorNotesChange         = useOnInputChange('authorNotes',         key, props.dispatch);
@@ -81,6 +79,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onGenreItemSelect           = useCallback(transformOnItemSelect(onGenreChange),           [onGenreChange]);
   const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
   const onApplicationPathItemSelect = useCallback(transformOnItemSelect(onApplicationPathChange), [onPlatformChange]);
+  const onLibraryItemSelect         = useCallback(transformOnItemSelect(onLibraryChange),         [onPlatformChange]);
   // Callback for the fields (onInputKeyDown)
   const onInputKeyDown = useCallback((event: React.KeyboardEvent<InputElement>) => {
     // @TODO Add keyboard shortcuts for things like importing and removing the curation.
@@ -88,8 +87,8 @@ export function CurateBox(props: CurateBoxProps) {
   }, []);
   // Callback for when the import button is clicked
   const onImportClick = useCallback(async () => {
-    const { curation, games, gameImages } = props;
-    if (curation && games && gameImages) {
+    const { curation } = props;
+    if (curation) {
       // Lock the curation (so it can't be edited while importing)
       props.dispatch({
         type: 'change-curation-lock',
@@ -99,7 +98,7 @@ export function CurateBox(props: CurateBoxProps) {
         },
       });
       // Import the curation
-      importCuration(curation, games, gameImages)
+      props.importCuration(curation)
       .then(() => {
         // Remove the curation
         props.dispatch({
@@ -120,7 +119,7 @@ export function CurateBox(props: CurateBoxProps) {
         });
       });
     }
-  }, [props.dispatch, props.curation, props.games, props.gameImages]);
+  }, [props.dispatch, props.curation]);
   // Callback for when the remove button is clicked
   const onRemoveClick = useCallback(() => {
     if (props.curation) {
@@ -204,6 +203,10 @@ export function CurateBox(props: CurateBoxProps) {
       warns.unusedGenre = !isValueSuggested(props, 'genre');
       warns.unusedPlatform = !isValueSuggested(props, 'platform');
       warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
+      warns.nonExistingLibrary = !!(
+        (props.curation && props.curation.meta['library']) && // "Library" field is not empty
+        !isValueSuggested(props, 'library')
+      );
       // Check if there is no content
       warns.noContent = props.curation.content.length === 0;
     }
@@ -340,6 +343,16 @@ export function CurateBox(props: CurateBoxProps) {
           className={warnings.isNotHttp ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
+      <CurateBoxRow title={strings.browse.library + ':'}>
+        <DropdownInputField
+          text={props.curation && props.curation.meta.library || ''}
+          placeholder={strings.browse.defaultLibrary}
+          onChange={onLibraryChange}
+          items={props.suggestions && props.suggestions.library || []}
+          onItemSelect={onLibraryItemSelect}
+          className={warnings.nonExistingLibrary ? 'input-field--warn' : ''}
+          { ...sharedInputProps } />
+      </CurateBoxRow>
       <CurateBoxRow title={strings.browse.notes + ':'}>
         <InputField
           text={props.curation && props.curation.meta.notes || ''}
@@ -408,7 +421,7 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
+function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
   return (
     <SimpleButton
       className={
@@ -536,7 +549,7 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
  * Convert a boolean to a string ("Yes" or "No").
  * @param bool Boolean to convert.
  */
-function boolToString(bool: boolean, strings : MiscLang): string {
+function boolToString(bool: boolean, strings: LangContainer['misc']): string {
   return bool ? strings.yes : strings.no;
 }
 

@@ -4,8 +4,7 @@ import * as React from 'react';
 import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
-import { autoCode } from '../../../shared/lang/misc';
-import { LangContainer, LangFile } from '../../../shared/lang/types';
+import { LangFile, LangContainer, autoCode } from '../../../shared/lang';
 import { memoizeOne } from '../../../shared/memoize';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
@@ -381,7 +380,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (isChecked && process.platform === 'linux') {
       which('wine', (err) => {
         if (err) {
-          log('Warning : Wine was enabled but it was not found on the path.');
+          log('Warning: Wine was enabled but it was not found on the path.');
           remote.dialog.showMessageBox({
             type: 'error',
             title: this.context.dialog.programNotFound,

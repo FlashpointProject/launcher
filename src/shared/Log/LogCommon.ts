@@ -34,8 +34,8 @@ export enum LogChannel {
   removeEntriesReply = 'log-remove-entries-reply',
 }
 
-const timeChars = 11; /* "[HH:MM:SS] " */
-const sourceChars = 19; /* "Background Services" (sometimes used with +2 to add the length of ": ") */
+export const timeChars = 11; /* "[HH:MM:SS] " */
+export const sourceChars = 19; /* "Background Services" (sometimes used with +2 to add the length of ": ") */
 
 /** Create a HTML string of a number of entries */
 export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string]: boolean } = {}): string {
@@ -60,7 +60,7 @@ export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string
 }
 
 /** Formats a date to a string in the format HH:MM:SS */
-function formatTime(date: Date): string {
+export function formatTime(date: Date): string {
   return (
     ('0'+date.getHours()  ).slice(-2)+':'+
     ('0'+date.getMinutes()).slice(-2)+':'+
@@ -69,7 +69,7 @@ function formatTime(date: Date): string {
 }
 
 /** Mak a string safe to use as HTML content (only safe if used as "text" between tags, not inside a tag) */
-function escapeHTML(str: string): string {
+export function escapeHTML(str: string): string {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
@@ -87,6 +87,6 @@ function getClassModifier(source: string): string {
 }
 
 /** Pad all lines (except for the first one) by a number of spaces */
-function padLines(text: string, padding: number): string {
+export function padLines(text: string, padding: number): string {
   return text.replace(/\n/g, '\n'+' '.repeat(padding));
 }

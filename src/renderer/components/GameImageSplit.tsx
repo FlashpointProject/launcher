@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LangContainer, MiscLang } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { formatString } from '../../shared/utils/StringFormatter';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -64,7 +64,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
         onDrop={this.onDrop}>
         { (imgSrc === undefined) ? (
           <div className='game-image-split__not-found'>
-            <h1>{formatString(strings.blankNotFound, text)}</h1>
+            <h1>{formatString(strings.noBlankFound, text)}</h1>
             <SimpleButton
               value={formatString(strings.addBlank, text)}
               onClick={onAddClick}
@@ -72,7 +72,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
           </div>
         ) : (
           <div className='game-image-split__buttons'>
-            <p>{formatString(strings.removeBlank, text)}</p>
+            <p>{text}</p>
             <ConfirmElement
               onConfirm={onRemoveClick}
               children={renderDeleteImageButton}
@@ -106,7 +106,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   static contextType = LangContext;
 }
 
-function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[MiscLang, string]>): JSX.Element {
+function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['misc'], string]>): JSX.Element {
   const [ strings, text ] = extra;
   return (
     <div

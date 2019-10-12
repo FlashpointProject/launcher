@@ -11,7 +11,7 @@ import { GameCollection } from '../../../shared/game/GameCollection';
 import { filterAndOrderGames, FilterAndOrderGamesOpts } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
-import { BrowseLang, LangContainer, MenuLang } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { memoizeOne } from '../../../shared/memoize';
 import { formatDate } from '../../../shared/Util';
@@ -136,7 +136,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
-    const { central, gameLibraryRoute, onSelectGame, selectedGame, selectedPlaylist } = this.props;
+    const { central, gameLibraryRoute, libraryData, onSelectGame, selectedGame, selectedPlaylist } = this.props;
     const { isEditing, quickSearch } = this.state;
     // Check if it ended editing
     if (!isEditing && prevState.isEditing) {
@@ -146,7 +146,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Check if it started editing
     if (isEditing && !prevState.isEditing) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ suggestions: getSuggestions(central.games.collection) });
+      this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) });
     }
     // Update current game and add-apps if the selected game changes
     if (selectedGame && selectedGame !== prevProps.selectedGame) {
@@ -298,7 +298,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     );
   }
 
-  private noRowsRendererMemo = memoizeOne((strings: BrowseLang) => {
+  private noRowsRendererMemo = memoizeOne((strings: LangContainer['browse']) => {
     return () => (
       <div className='game-list__no-games'>
       { this.props.central.gamesDoneLoading ? (
@@ -340,7 +340,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     );
   });
 
-  private onGameContextMenuMemo = memoizeOne((strings : MenuLang) => {
+  private onGameContextMenuMemo = memoizeOne((strings: LangContainer['menu']) => {
     return (game: IGameInfo) => {
       return (
         openContextMenu([{

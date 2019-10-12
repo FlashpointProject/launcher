@@ -207,6 +207,7 @@ export type EditCurationMeta = {
   genre?: string;
   source?: string;
   launchCommand?: string;
+  library?: string;
   notes?: string;
   authorNotes?: string;
   platform?: string;

@@ -1,28 +1,29 @@
 import * as path from 'path';
+import { IBackProcessInfo } from '../../shared/service/interfaces';
 import { readJsonFile } from '../../shared/Util';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
 import { parseVarStr } from '../Util';
-import { IBackProcessInfo, IBackProcessInfoFile } from './interfaces';
+import { ServiceFileData } from './interfaces';
 
-export class BackgroundServicesFile {
+export class ServicesFile {
   /** Path to the background services file (relative to the flashpoint root folder) */
   private static filePath: string = './services.json';
   /** Encoding used by background services file */
   private static fileEncoding: string = 'utf8';
 
   /** Read and parse the file asynchronously */
-  public static readFile(jsonFolder: string, onError?: (error: string) => void): Promise<IBackProcessInfoFile> {
+  public static readFile(jsonFolder: string, onError?: (error: string) => void): Promise<ServiceFileData> {
     return new Promise((resolve, reject) => {
-      readJsonFile(path.join(jsonFolder, BackgroundServicesFile.filePath),
-                   BackgroundServicesFile.fileEncoding)
+      readJsonFile(path.join(jsonFolder, ServicesFile.filePath),
+                   ServicesFile.fileEncoding)
       .then(json => resolve(parseBackProcessInfoFile(json, onError)))
       .catch(reject);
     });
   }
 }
 
-function parseBackProcessInfoFile(data: any, onError?: (error: string) => void): IBackProcessInfoFile {
-  let parsed: IBackProcessInfoFile = {
+function parseBackProcessInfoFile(data: any, onError?: (error: string) => void): ServiceFileData {
+  let parsed: ServiceFileData = {
     redirector: undefined,
     fiddler: undefined,
     server: undefined,

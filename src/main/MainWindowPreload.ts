@@ -4,6 +4,7 @@ import { AppConfigApi } from '../shared/config/AppConfigApi';
 import { MiscIPC } from '../shared/interfaces';
 import { LogRendererApi } from '../shared/Log/LogRendererApi';
 import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
+import { ServicesApi } from '../shared/service/ServicesApi';
 import { isDev } from './Util';
 
 // Set up Preferences API
@@ -13,6 +14,10 @@ preferences.initialize();
 // Set up Config API
 const config = new AppConfigApi();
 config.initialize();
+
+// Set up Services API
+const services = new ServicesApi();
+services.initialize();
 
 //
 const log = new LogRendererApi();
@@ -64,6 +69,8 @@ window.External = Object.freeze({
   preferences,
 
   config,
+
+  services,
 
   log,
 
