@@ -272,7 +272,7 @@ function parseSearchText(text: string): ParsedSearch {
         // Get quick search from created temp phrase (If undefined, there is no quick search)
         const filter = parseQuickSearch(tempPhrase);
         if (filter) { parsed.fieldFilters.push(filter); }
-        else { parsed.titleFilters.push({ phrase: phrase, inverse: text.charAt(preIndex) === '-' }); }
+        else { parsed.titleFilters.push({ phrase, inverse: text.charAt(preIndex) === '-' }); }
         continue;
       } else {
         parsed.titleFilters.push({ phrase, inverse: false });

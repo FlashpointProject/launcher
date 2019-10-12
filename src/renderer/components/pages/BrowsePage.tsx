@@ -928,9 +928,9 @@ function checkOrderGamesArgsEqual(args1: OrderGamesForceArgs, args2: OrderGamesF
   const [gamesA, optsA, force] = args1;
   const [gamesB, optsB]        = args2 || [undefined, undefined];
   // Check if this is "forced" to be updated
-  if (force)                     { return false; }
+  if (force) { return false; }
   // Check if the second argument array is missing
-  if (!optsB)                        { return false; }
+  if (!optsB) { return false; }
   // Compare each value
   if (optsA.search        !== optsB.search)                     { return false; }
   if (optsA.extreme       !== optsB.extreme)                    { return false; }
