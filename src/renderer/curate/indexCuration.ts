@@ -4,6 +4,7 @@ import * as path from 'path';
 import { pathTo7z } from '../util/SevenZip';
 import { uuid } from '../uuid';
 import { ParsedCurationMeta } from './parse';
+import { curationLog } from './util';
 
 export type CurationIndex = {
   /** UUID of the curation, used for storage */
@@ -59,7 +60,7 @@ export async function importCurationMeta(filePath: string, key: string = uuid())
     await fs.ensureDir(metaPath);
     await fs.copyFile(filePath, metaPath);
   } catch (error) {
-    log('Error importing curation meta - ' + error.message);
+    curationLog('Error importing curation meta - ' + error.message);
     console.error(error);
   }
   return key;
@@ -75,7 +76,7 @@ export async function importCurationFolder(filePath: string, key: string = uuid(
   try {
     await fs.copy(filePath, curationPath);
   } catch (error) {
-    log('Error importing curation folder - ' + error.message);
+    curationLog('Error importing curation folder - ' + error.message);
     console.error(error);
   }
   return key;
@@ -89,61 +90,56 @@ export async function importCurationFolder(filePath: string, key: string = uuid(
 export async function importCurationArchive(filePath: string, key: string = uuid()): Promise<string> {
   const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
   const extractPath = path.join(curationPath, '.temp');
-  await fs.ensureDir(extractPath);
-  // Extract to temp folder inside curation folder
-  await new Promise<void>((resolve, reject) => {
-    extractFull(filePath, extractPath, { $bin: pathTo7z })
-    .on(('end'), () => {
-      // Find root folder (folder containing meta.txt) and move contents
-      const rootPath = getRootPath(extractPath);
-      if (rootPath) {
-        console.log('extracted - ' + rootPath + '\n' + curationPath);
-        fs.copy(rootPath, curationPath)
-        .then(() => {
-          fs.remove(extractPath)
-          .then(() => {
-            resolve();
-          });
-        })
-        .catch((error) => {
-          reject(error);
-        });
-        // Clean up temp folder
+  try {
+    await fs.ensureDir(extractPath);
+    await extractFullPromise([filePath, extractPath, { $bin: pathTo7z }]);
+    const rootPath = await getRootPath(extractPath);
+    if (rootPath) {
+      for (let file of await fs.readdir(rootPath)) {
+        const fileSource = path.join(rootPath, file);
+        const fileDest = path.join(curationPath, file);
+        await fs.move(fileSource, fileDest);
       }
-    })
-    .on('error', (error) => {
-      reject(error);
-    });
-  })
-  .catch((error) => {
-    log('Error extracting archive - ' + error.message);
+      await fs.remove(extractPath);
+    } else {
+      throw new Error('Meta.txt not found in extracted archive');
+    }
+  } catch (error) {
+    curationLog('Error extracting archive - ' + error.message);
     console.error(error.message);
-  });
-  console.log('extracted');
+  }
   return key;
+}
+
+function extractFullPromise(args: Parameters<typeof extractFull>) : Promise<void> {
+  return new Promise<void>((resolve) => {
+    extractFull(...args)
+    .on(('end'), async () => {
+      resolve();
+    })
+  });
 }
 
 /**
  * Return the first path containing meta.txt (undefined if none found)
  * @param dir Path to search
  */
-function getRootPath(dir: string): string|undefined {
-  const files = fs.readdirSync(dir);
+async function getRootPath(dir: string): Promise<string | undefined> {
+  const files = await fs.readdir(dir);
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const fullPath = path.join(dir, file);
+    const stats = await fs.lstat(fullPath);
     // Found root, pass back
-    if (fullPath.endsWith('meta.txt')) {
+    if (stats.isFile() && file === 'meta.txt') {
       return dir;
-    } else if (fs.lstatSync(fullPath).isDirectory()) {
-      const deeper = getRootPath(fullPath);
-      if (deeper) {
-        return deeper;
+    } else if (stats.isDirectory()) {
+      const foundRoot = await getRootPath(fullPath);
+      if (foundRoot) {
+        return foundRoot;
       }
     }
   }
-  // Return undefined, so that higher level knows this is pointless
-  return;
 }
 
 /** Create an "empty" curation index image. */
@@ -164,7 +160,7 @@ export async function indexContentFolder(contentPath: string) : Promise<Curation
     await fs.access(contentPath, fs.constants.F_OK);
     await recursiveFolderIndex(contentPath, contentPath, content);
   } catch (error) {
-    log('Error indexing curation - ' + error.message);
+    curationLog('Error indexing curation - ' + error.message);
     console.error(error);
   }
   return content;
@@ -193,11 +189,4 @@ async function recursiveFolderIndex(folderPath: string, contentPath: string, con
 /** Replace all back-slashes with forward slashes. */
 export function fixSlashes(str: string): string {
   return str.replace(/\\/g, '/');
-}
-
-function log(content: string): void {
-  window.External.log.addEntry({
-    source: 'Curation',
-    content: content
-  });
 }

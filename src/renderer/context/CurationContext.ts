@@ -312,6 +312,7 @@ export type EditCurationMeta = {
   developer?: string;
   publisher?: string;
   status?: string;
+  library?: string;
   extreme?: string;
   genre?: string;
   source?: string;

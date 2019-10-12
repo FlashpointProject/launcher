@@ -5,12 +5,14 @@ import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CurateLang, MiscLang } from '../../shared/lang/types';
+import { IGameLibraryFile, IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { findLibraryByRoute } from '../../shared/library/util';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { stringifyCurationFormat } from '../curate/format/stringifier';
 import { importCuration, launchCuration, stringToBool } from '../curate/importCuration';
 import { CurationIndexContent, indexContentFolder } from '../curate/indexCuration';
 import { convertEditToCurationMeta } from '../curate/metaToMeta';
-import { getContentFolderByKey, getCurationFolder } from '../curate/util';
+import { curationLog, getContentFolderByKey, getCurationFolder } from '../curate/util';
 import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
@@ -39,6 +41,10 @@ export type CurateBoxProps = {
   dispatch: React.Dispatch<CurationAction>;
   /** Suggestions for the drop-down input fields. */
   suggestions?: Partial<GamePropSuggestions> | undefined;
+  /** Libraries to pick in the drop-down input field. */
+  libraryOptions: JSX.Element[];
+  /** Full library data (for importing) */
+  libraryData: IGameLibraryFile;
 };
 
 /** A box that displays and lets the user edit a curation. */
@@ -70,6 +76,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onGenreChange               = useOnInputChange('genre',               key, props.dispatch);
   const onPlayModeChange            = useOnInputChange('playMode',            key, props.dispatch);
   const onStatusChange              = useOnInputChange('status',              key, props.dispatch);
+  const onLibraryChange             = useOnInputChange('library',             key, props.dispatch);
   const onVersionChange             = useOnInputChange('version',             key, props.dispatch);
   const onReleaseDateChange         = useOnInputChange('releaseDate',         key, props.dispatch);
   const onLanguageChange            = useOnInputChange('language',            key, props.dispatch);
@@ -102,9 +109,15 @@ export function CurateBox(props: CurateBoxProps) {
           lock: true,
         },
       });
+      // Find the library prefix from the entered title
+      let library: IGameLibraryFileItem | undefined = undefined;
+      if (curation.meta.library) {
+        library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
+      }
       // Import the curation
-      importCuration(curation, games, gameImages)
+      importCuration(curation, games, gameImages, library)
       .then(() => {
+        curationLog(`Curation successfully imported! (title: ${curation.meta.title} id: ${curation.key})`);
         // Remove the curation
         props.dispatch({
           type: 'remove-curation',
@@ -113,6 +126,7 @@ export function CurateBox(props: CurateBoxProps) {
       })
       .catch((error) => {
         // Log error
+        curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
         console.error(error);
         // Unlock the curation
         props.dispatch({
@@ -230,7 +244,7 @@ export function CurateBox(props: CurateBoxProps) {
           await fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK );
           await fs.unlink(filePath);
         } catch (error) {
-          log('Error replacing image - ' + error.message);
+          curationLog('Error replacing image - ' + error.message);
           console.log(error);
         }
       }
@@ -329,6 +343,9 @@ export function CurateBox(props: CurateBoxProps) {
       warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
       // Check if there is no content
       warns.noContent = props.curation.content.length === 0;
+      // Check if library is set 
+      const curLibrary = props.curation.meta.library;
+      warns.invalidLibrary = props.libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
     }
     return warns;
   }, [props.curation && props.curation.meta, props.curation && props.curation.content]);
@@ -338,26 +355,42 @@ export function CurateBox(props: CurateBoxProps) {
       const screenshotPath = props.curation.screenshot.exists ? `${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}` : undefined;
       return (
         <>
-        <GameImageSplit
-          type='thumbnail'
-          text={strings.browse.thumbnail}
-          imgSrc={thumbnailPath}
-          onAddClick={onImageAddClick}
-          onRemoveClick={onImageRemoveClick}
-          onDrop={onDrop}
-          />
-        <GameImageSplit
-          type='screenshot'
-          text={strings.browse.screenshot}
-          imgSrc={screenshotPath}
-          onAddClick={onImageAddClick}
-          onRemoveClick={onImageRemoveClick}
-          onDrop={onDrop}
-          />
+          <GameImageSplit
+            type='thumbnail'
+            text={strings.browse.thumbnail}
+            imgSrc={thumbnailPath}
+            onAddClick={onImageAddClick}
+            onRemoveClick={onImageRemoveClick}
+            onDrop={onDrop}
+            />
+          <GameImageSplit
+            type='screenshot'
+            text={strings.browse.screenshot}
+            imgSrc={screenshotPath}
+            onAddClick={onImageAddClick}
+            onRemoveClick={onImageRemoveClick}
+            onDrop={onDrop}
+            />
         </>
       );
     }
   }, [props.curation && props.curation.thumbnail, props.curation && props.curation.screenshot]);
+  // Own Lirary Options
+  const ownLibraryOptions = useMemo(() => {
+    // Add meta's library if invalid (special option)
+    if (warnings.invalidLibrary && props.curation) {
+      const invalidLibrary = (
+        <option
+          className='curate-box-select__invalid-option'
+          key={props.libraryOptions.length} 
+          value={props.curation.meta.library}>
+          {props.curation.meta.library}
+        </option>
+      );
+      return [ ...props.libraryOptions, invalidLibrary ];
+    }
+    return props.libraryOptions;
+  }, [props.curation && props.curation.meta.library, props.libraryOptions, warnings]);
   // Meta
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
   // Misc
@@ -377,6 +410,9 @@ export function CurateBox(props: CurateBoxProps) {
       <div className='curate-box-images'>
         {imageSplit}
       </div>
+      <div className='curate-box-images-footer'>
+        <p>{strings.browse.dropImageHere}</p>
+      </div>
       <hr className='curate-box-divider' />
       {/* Fields */}
       <CurateBoxRow title={strings.filter.title + ':'}>
@@ -385,6 +421,18 @@ export function CurateBox(props: CurateBoxProps) {
           placeholder={strings.browse.noTitle}
           onChange={onTitleChange}
           { ...sharedInputProps } />
+      </CurateBoxRow>
+      <CurateBoxRow title={strings.browse.library + ':'}>
+        {/* Look like a DropdownInputField */}
+        <div className={warnings.invalidLibrary ? 'curate-box-select--warn' : ''}>
+          <select
+            className={'input-field input-field--edit simple-input ' +
+                      'input-dropdown__input-field__input__inner'}
+            value={props.curation && props.curation.meta.library || ''}
+            onChange={onLibraryChange}>
+            {ownLibraryOptions}
+          </select>
+        </div>
       </CurateBoxRow>
       <CurateBoxRow title={strings.filter.series + ':'}>
         <InputField
@@ -551,7 +599,7 @@ export function CurateBox(props: CurateBoxProps) {
         <ConfirmElement
           onConfirm={onRemoveClick}
           children={renderRemoveButton}
-          extra={strings.curate} />
+          extra={[strings.curate, disabled]} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.indexContent}
@@ -582,15 +630,16 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<CurateLang>): JSX.Element {
+function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[CurateLang, boolean]>): JSX.Element {
   return (
     <SimpleButton
       className={
         'curate-box-buttons__button' +
         ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
       }
-      value={extra.remove}
-      title={extra.removeCurationDesc}
+      value={extra[0].remove}
+      title={extra[0].removeCurationDesc}
+      disabled={extra[1]}
       onClick={activate}
       onMouseLeave={reset} />
   );
@@ -734,11 +783,4 @@ function isHttp(url: string): boolean {
  */
 function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
-}
-
-function log(content: string): void {
-  window.External.log.addEntry({
-    source: 'Curation',
-    content: content
-  });
 }

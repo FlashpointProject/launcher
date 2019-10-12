@@ -147,6 +147,8 @@
     "noPlayMode": "No Play Mode",
     "status": "Status",
     "noStatus": "No Status",
+    "library": "Library",
+    "noLibrary": "No Library",
     "version": "Version",
     "noVersion": "No Version",
     "releaseDate": "Release Date",
@@ -234,7 +236,8 @@
     "unusedApplicationPath": "'Application Path' has an unused value. Make sure it's spelled correctly!",
     "unusedGenre": "'Genre' has an unused value. Make sure it's spelled correctly!",
     "unusedPlatform": "'Platform' has an unused value. Make sure it's spelled correctly!",
-    "noContent": "No content found! Make sure the folder is named and placed correctly!"
+    "noContent": "No content found! Make sure the folder is named and placed correctly!",
+    "noLibrary": "No library has been selected! Games will be used by default."
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",

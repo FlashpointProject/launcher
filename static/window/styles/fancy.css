@@ -80,11 +80,11 @@
   --layout__log-time-stamp:                 #857df3;
   --layout__log-source:                     #d4d4d4;
   --layout__log-source-background-services: #8d8d8d;
-  --layout__log-source-game-launcher:       #ffd900;
+  --layout__log-source-game-launcher:       #e67e22;
   --layout__log-source-language:            #b157ec;
   --layout__log-source-redirector:          #00ffff;
   --layout__log-source-router:              #00ff00;
-  --layout__log-source-curation:            #924200;
+  --layout__log-source-curation:            #efff00;
   /* Credits */
   --layout__credits-tooltip-border:           #000000;
   --layout__credits-tooltip-background:       #000000DD;
@@ -466,11 +466,23 @@ body {
   cursor: zoom-in;
 }
 .curate-box-images__image--placeholder {
-  cursor: default;
+  display: flex;
+  background-color: var(--layout__browse-right-sidebar-screenshot-placeholder-background);
+  border-color: var(--layout__browse-right-sidebar-screenshot-placeholder-border);
+}
+.curate-box-images__image--placeholder p {
+  color: var(--layout__disabled-text-color);
 }
 /* Curate Box Buttons */
 .curate-box-buttons__button--active:hover { /* ":hover" to get higher specificity */
   background-color: var(--layout__warning-medium-color);
+}
+/* Curate Box Select Dropdowns */
+.curate-box-select--warn select {
+  background-color: var(--layout__warning-medium-color);
+}
+.curate-box-select--warn select option:not(.curate-box-select__invalid-option) {
+  background-color: var(--layout__secondary-background);
 }
 
 

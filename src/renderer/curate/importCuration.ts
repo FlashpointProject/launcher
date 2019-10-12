@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { formatDate, removeFileExtension } from '../../shared/Util';
 import { EditAddAppCuration, EditCuration } from '../context/CurationContext';
@@ -26,16 +27,15 @@ import { getContentFolderByKey } from './util';
  * @returns A promise that resolves when the import is complete.
  */
 export async function importCuration(
-  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, log: boolean = false
+  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, library?: IGameLibraryFileItem, log: boolean = false
 ): Promise<void> {
   // Make sure the content folder is an up to date index
   curation.content = await indexContentFolder(getContentFolderByKey(curation.key));
-  // @TODO Add support for selecting what library to save the game to
-  const libraryPrefix = '';
   // Create and add game and additional applications
   const gameId = uuid();
   const game = createGameFromCurationMeta(gameId, curation);
   const addApps = createAddAppsFromCurationMeta(gameId, curation.addApps);
+  const libraryPrefix = library && library.prefix || '';
   // Get the nome of the folder to put the images in
   const imageFolderName = (
     getImageFolderName(game, libraryPrefix, true) ||
@@ -43,7 +43,7 @@ export async function importCuration(
   );
   // Copy/extract content and image files
   await Promise.all([
-    games.addOrUpdateGame({ game, addApps, saveToFile: true })
+    games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
     .then(() => { if (log) { logMsg('Meta Added', curation); } }),
     // Copy Thumbnail
     (async () => {

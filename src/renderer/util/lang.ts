@@ -152,6 +152,8 @@ export function getDefaultLocalization(): LangContainer {
       noPlayMode: 'noPlaymode',
       status: 'status',
       noStatus: 'noStatus',
+      library: 'library',
+      noLibrary: 'noLibrary',
       version: 'version',
       noVersion: 'noVersion',
       releaseDate: 'releaseDate',
@@ -235,12 +237,14 @@ export function getDefaultLocalization(): LangContainer {
       import: 'import',
       contentFiles: 'contentFiles',
       warnings: 'warnings',
+      default: 'default',
       isNotHttp: 'isNotHttp',
       releaseDateInvalid: 'releaseDateInvalid',
       unusedApplicationPath: 'unusedApplicationPath',
       unusedGenre: 'unusedGenre',
       unusedPlatform: 'unusedPlatform',
-      noContent: 'noContent'
+      noContent: 'noContent',
+      invalidLibrary: 'invalidLibrary'
     },
     playlist:{
       enterDescriptionHere: 'enterDescriptionHere',

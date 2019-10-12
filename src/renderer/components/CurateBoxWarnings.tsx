@@ -21,6 +21,8 @@ export type CurationWarnings = {
   unusedPlatform?: boolean;
   /** If there are no content files or folders. */
   noContent?: boolean;
+  /** If the library value set isn't available */
+  invalidLibrary?: boolean;
 };
 
 /** The part of a Curation Box that displays all the warnings (if any). */

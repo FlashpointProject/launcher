@@ -192,6 +192,8 @@ export type BrowseLang = LangObject<
   'noPlayMode' |
   'status' |
   'noStatus' |
+  'library' |
+  'noLibrary' |
   'version' |
   'noVersion' |
   'releaseDate' |
@@ -275,13 +277,15 @@ export type CurateLang = LangObject<
   'export' |
   'import' |
   'contentFiles' |
+  'default' |
   'warnings' |
   'isNotHttp' |
   'releaseDateInvalid' |
   'unusedApplicationPath' |
   'unusedGenre' |
   'unusedPlatform' |
-  'noContent'
+  'noContent' |
+  'invalidLibrary'
 >;
 
 export type PlaylistLang = LangObject<

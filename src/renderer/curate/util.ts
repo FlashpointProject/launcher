@@ -34,9 +34,16 @@ export async function createCurationImage(filePath: string): Promise<CurationInd
     return image;
 }
 
-export function readCurationMeta(filePath: string, defaultMetaData?: GameMetaDefaults): ParsedCurationMeta {
-    const metaFileData = fs.readFileSync(filePath);
+export async function readCurationMeta(filePath: string, defaultMetaData?: GameMetaDefaults): Promise<ParsedCurationMeta> {
+    const metaFileData = await fs.readFile(filePath);
     const parsedMeta = parseCurationMeta(stripBOM(metaFileData.toString()));
     setGameMetaDefaults(parsedMeta.game, defaultMetaData);
     return parsedMeta;
+}
+
+export function curationLog(content: string): void {
+    window.External.log.addEntry({
+      source: 'Curation',
+      content: content
+    });
 }

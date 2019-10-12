@@ -78,10 +78,12 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
       <SimpleButton
         className='curate-box-buttons__button'
         value={strings.curate.removeAddApp}
+        disabled={disabled}
         onClick={onRemove} />
       <SimpleButton
         className='curate-box-buttons__button'
         value={strings.curate.run}
+        disabled={disabled}
         onClick={onRun} />
     </div>
   );

@@ -65,8 +65,9 @@ export function convertToCurationMeta(game: IGameInfo, addApps?: IAdditionalAppl
 }
 export function convertEditToCurationMeta(game: EditCurationMeta, addApps?: EditAddAppCuration[]): CurationFormatMeta {
   const parsed: CurationFormatMeta = {};
-  // Game meta
+  // Edit curation meta
   parsed['Title']                = game.title;
+  parsed['Library']              = game.library;
   parsed['Series']               = game.series;
   parsed['Developer']            = game.developer;
   parsed['Publisher']            = game.publisher;
@@ -140,6 +141,7 @@ type CurationFormatMeta = {
   'Status'?: string;
   'Tags'?: string;
   'Title'?: string;
+  'Library'?: string;
   'Version'?: string;
   'Additional Applications'?: CurationFormatAddApps;
 };

@@ -3,14 +3,18 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
+import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
 import { CurateLang } from '../../../shared/lang/types';
+import { findLibraryByRoute } from '../../../shared/library/util';
+import { memoizeOne } from '../../../shared/memoize';
+import { WithLibraryProps } from '../../containers/withLibrary';
 import { CurationContext, EditCurationMeta } from '../../context/CurationContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { importCuration } from '../../curate/importCuration';
 import { createCurationIndexImage, importCurationArchive, importCurationFolder, importCurationMeta, indexContentFolder } from '../../curate/indexCuration';
 import { convertEditToCurationMeta } from '../../curate/metaToMeta';
-import { createCurationImage, getContentFolderByKey, getCurationFolder, readCurationMeta } from '../../curate/util';
+import { createCurationImage, curationLog, getContentFolderByKey, getCurationFolder, readCurationMeta } from '../../curate/util';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { LangContext } from '../../util/lang';
@@ -20,12 +24,14 @@ import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CurateBox } from '../CurateBox';
 import { SimpleButton } from '../SimpleButton';
 
-export type CuratePageProps = {
+export type OwnProps = {
   /** Game manager to add imported curations to. */
   games?: GameManager;
   /** Game images collection to add imported images to. */
   gameImages?: GameImageCollection;
 };
+
+export type CuratePageProps = OwnProps & WithLibraryProps;
 
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
@@ -109,7 +115,7 @@ export function CuratePage(props: CuratePageProps) {
         // Send update based on filename
         switch (filePath) {
           case 'meta.txt':
-            const parsedMeta = readCurationMeta(fullPath, defaultGameMetaValues);
+            const parsedMeta = await readCurationMeta(fullPath, defaultGameMetaValues);
             dispatch({
               type: 'set-curation-meta',
               payload: {
@@ -200,21 +206,37 @@ export function CuratePage(props: CuratePageProps) {
       for (let curation of state.curations) {
         const metaPath = path.join(getCurationFolder(curation), 'meta.txt');
         const meta = stringifyCurationFormat(convertEditToCurationMeta(curation.meta, curation.addApps));
-        fs.writeFileSync(metaPath, meta);
+        fs.writeFile(metaPath, meta)
+        .catch((error) => {
+          curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
+          console.error(error);
+        });
       }
       // Cleanup unused curation folders
       const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
-      if (fs.pathExistsSync(curationsPath)) {
-        fs.readdirSync(curationsPath).map((file) => {
-          const fullPath = path.join(curationsPath, file);
-          if (fs.lstatSync(fullPath).isDirectory()) {
-            if (state.curations.findIndex((item) => item.key === file) === -1) {
-              fs.removeSync(fullPath);
+      fs.readdir(curationsPath)
+      .then((files) => {
+          files.map(async (file) => {
+            try {
+              const fullPath = path.join(curationsPath, file);
+              const stats = await fs.lstat(fullPath);
+              // Remove directories without an attached curations
+              if (stats.isDirectory() && state.curations.findIndex((item) => item.key === file) === -1) {
+                await fs.remove(fullPath);
+              }
+            } catch (error) {
+              curationLog(`Error deleting curation folder "${file}" - ` + error.message);
+              console.error(error);
             }
-          }
-        });
-      }
-     };
+          });
+      })
+      .catch((error) => {
+        curationLog('Error reading curations folder - ' + error.message);
+        console.error(error);
+      })
+      
+
+    };
   }, []);
 
   // Import All Curations Callback
@@ -235,20 +257,25 @@ export function CuratePage(props: CuratePageProps) {
           console.log(`Importing... (id: ${curation.key})`);
           // Try importing curation
           try {
+            let library: IGameLibraryFileItem | undefined = undefined;
+            if (curation.meta.library) {
+              library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
+            }
             // Import curation (and wait for it to complete)
-            await importCuration(curation, games, gameImages, true);
+            await importCuration(curation, games, gameImages, library, true);
             // Increment success counter
             success += 1;
             // Log status
-            console.log(`Import SUCCESSFUL! (id: ${curation.key})`);
+            curationLog(`Curation successfully imported! (title: ${curation.meta.title} id: ${curation.key})`);
             // Remove the curation
             dispatch({
               type: 'remove-curation',
               payload: { key: curation.key }
             });
           } catch (error) {
-            // Log errorA
-            console.log(`Import FAILED! (id: ${curation.key})`, error);
+            // Log error
+            curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
+            console.error(error);
             // Unlock the curation
             dispatch({
               type: 'change-curation-lock',
@@ -274,10 +301,15 @@ export function CuratePage(props: CuratePageProps) {
   // Make a new curation (folder watcher does most of the work)
   const onNewCurationClick = useCallback(async () => {
     const newCurationFolder = path.join(window.External.config.fullFlashpointPath, 'Curations', uuid());
-    // Create content folder and empty meta.txt
-    fs.mkdirSync(newCurationFolder);
-    fs.mkdirSync(path.join(newCurationFolder, 'content'));
-    fs.closeSync(fs.openSync(path.join(newCurationFolder, 'meta.txt'), 'w'));
+    try {
+      // Create content folder and empty meta.txt
+      await fs.mkdir(newCurationFolder);
+      await fs.mkdir(path.join(newCurationFolder, 'content'));
+      await fs.close(await fs.open(path.join(newCurationFolder, 'meta.txt'), 'w'));
+    } catch (error) {
+      curationLog('Error creating new curation - ' + error.message);
+      console.error(error);
+    }
   }, []);
 
   // Load Curation Archive Callback
@@ -364,6 +396,28 @@ export function CuratePage(props: CuratePageProps) {
     return props.games && getSuggestions(props.games.collection);
   }, [props.games]);
 
+  // Libraries an options list
+  const libraryOptions = memoizeOne(() => {
+    // Map library routes to options
+    let options = props.libraryData.libraries.map((library, index) => (
+      <option
+        key={index}
+        value={library.route}>
+        {library.title}
+      </option>
+    ));
+    // Add default entry if no libraries available
+    if (props.libraryData.libraries.length === 0) {
+      const defaultLibrary = (
+        <option key={0}>
+          {strings.curate.default}
+        </option>
+      )
+      options.push(defaultLibrary);
+    }
+    return options;
+  });
+
   // Render CurateBox
   const curateBoxes = React.useMemo(() => {
     return state.curations.map((curation, index) => (
@@ -373,7 +427,9 @@ export function CuratePage(props: CuratePageProps) {
         dispatch={dispatch}
         games={props.games}
         gameImages={props.gameImages}
-        suggestions={suggestions} />
+        suggestions={suggestions}
+        libraryOptions={libraryOptions()}
+        libraryData={props.libraryData} />
     ));
   }, [state.curations, props.games, suggestions]);
 
@@ -439,6 +495,7 @@ export function setGameMetaDefaults(meta: EditCurationMeta, defaults?: GameMetaD
     if (!meta.playMode) { meta.playMode = defaults.playMode; }
     if (!meta.status)   { meta.status   = defaults.status;   }
     if (!meta.platform) { meta.platform = defaults.platform; }
+    if (!meta.library)  { meta.library  = defaults.library;  }
     // Set default application path
     // (Note: This has to be set after the default platform)
     if (!meta.applicationPath) {

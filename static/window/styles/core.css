@@ -833,8 +833,15 @@ body {
   display: inline-block;
   flex: 1 1 auto;
 }
+/* Curate Box Image Footer */
+.curate-box-images-footer {
+  color: var(--layout__disabled-text-color);
+  font-style: italic;
+  text-align: center;
+}
 /* Curate Box Images */
 .curate-box-images {
+  position: relative;
   display: flex;
   height: 8rem;
   margin: 0.35rem 0;
@@ -844,6 +851,9 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+}
+.curate-box-images__footer {
+  position: absolute;
 }
 /* Curate Box Divider */
 .curate-box-divider {
