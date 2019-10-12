@@ -350,6 +350,16 @@ export function filterAndOrderGames(games: IGameInfo[], opts: FilterAndOrderGame
   return orderedGames;
 }
 
+/**
+ * Wrap a search term in quotes if they are needed (to keep it as a single search term).
+ * @param text Search term to wrap.
+ */
+export function wrapSearchTerm(text: string): string {
+  return ((text === '') || /\s/.test(text))
+    ? `"${text}"`
+    : text;
+}
+
 /* "Game" used for displaying games that are not found. */
 const notFoundGame: IGameInfo = Object.freeze({
   ...GameInfo.create(),

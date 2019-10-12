@@ -1,7 +1,9 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as React from 'react';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
+import { wrapSearchTerm } from '../../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
+import { PickType } from '../../shared/interfaces';
 import { BrowseLang, LangContainer } from '../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -751,12 +753,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   /** Create a callback for when a game field is clicked. */
-  wrapOnTextClick(field: keyof IGameInfo): () => void {
+  wrapOnTextClick<T extends PickType<IGameInfo, string>>(field: T): () => void {
     return () => {
       const { currentGame, isEditing } = this.props;
       if (!isEditing && currentGame) {
         const value = currentGame[field];
-        if (value) { this.props.onSearch(`${field}:"${value}"`); }
+        if (value) { this.props.onSearch(`${field}:${wrapSearchTerm(value)}`); }
       }
     };
   }

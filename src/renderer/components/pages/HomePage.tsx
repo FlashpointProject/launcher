@@ -2,6 +2,7 @@ import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import { wrapSearchTerm } from '../../../shared/game/GameFilter';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { HomeLang, LangContainer } from '../../../shared/lang/types';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
@@ -272,7 +273,7 @@ export class HomePage extends React.Component<HomePageProps> {
   /** Gets the platform as a string and performs a search dynamically for each platform generated. */
   onPlatformClick = (platform: string) => (event: any) => {
     // Search to filter out all other platforms
-    this.props.onSearch('!"' + platform + '"');
+    this.props.onSearch('!' + wrapSearchTerm(platform));
     // Deselect the curret playlist
     this.props.onSelectPlaylist(undefined, 'arcade');
   }
