@@ -69,6 +69,11 @@ export type RecursivePartial<T> = {
   [key in keyof T]?: RecursivePartial<T[key]>;
 };
 
+/** From T, pick a set of properties whose values are assignable to U. */
+export type PickType<T, U> = {
+  [P in keyof T]: T[P] extends U ? P : never
+}[keyof T];
+
 /** IPC channels used to relay window events from main to renderer. */
 export enum WindowIPC {
   /** Sent whenever the windows "maximize" status changes. (main -> renderer). */

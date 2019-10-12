@@ -57,6 +57,15 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     window.removeEventListener('keypress', this.onKeypress);
   }
 
+  componentDidUpdate(prevProps: HeaderProps, prevState: HeaderState) {
+    // Update the text in the text-box if the search text has changed
+    const text = this.props.searchQuery.text;
+    if (text !== prevProps.searchQuery.text &&
+        text !== prevState.searchText) {
+      this.setState({ searchText: text });
+    }
+  }
+
   render() {
     const strings = this.context.app;
     const {

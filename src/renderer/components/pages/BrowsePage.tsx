@@ -8,7 +8,7 @@ import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/in
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
 import { GameCollection } from '../../../shared/game/GameCollection';
-import { IOrderGamesArgs, orderGames } from '../../../shared/game/GameFilter';
+import { filterAndOrderGames, FilterAndOrderGamesOpts } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
@@ -43,13 +43,6 @@ const writeFile = promisify(fs.writeFile);
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isEditing'|'isNewGame'>;
 type StateCallback2 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isNewGame'>;
-
-type IOrderGamesForceArgs = [
-  /** Arguments passed to the order function. */
-  IOrderGamesArgs,
-  /** If the ordering should be forced. */
-  boolean
-];
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -793,8 +786,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   );
 
   /** Memoized wrapper around the order games function. */
-  orderGamesMemo = memoizeOne((args: IOrderGamesArgs, force?: boolean): IGameInfo[] => {
-    return orderGames(args);
+  orderGamesMemo = memoizeOne((games: IGameInfo[], opts: FilterAndOrderGamesOpts, force?: boolean): IGameInfo[] => {
+    return filterAndOrderGames(games, opts);
   }, checkOrderGamesArgsEqual);
 
   /**
@@ -808,16 +801,18 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       platforms: this.props.central.games.listPlatforms(),
       libraries: this.props.libraryData.libraries
     }, force) || this.props.central.games.collection.games;
+    // Get the order
+    const order = this.props.order || BrowsePage.defaultOrder;
     // Order (and filter) the games according to the current settings
-    return this.orderGamesMemo({
-      games: games,
+    return this.orderGamesMemo(games, {
       search: this.props.search ? this.props.search.text : '',
       extreme: !window.External.config.data.disableExtremeGames &&
                this.props.preferencesData.browsePageShowExtreme,
       broken: window.External.config.data.showBrokenGames,
       playlist: this.props.selectedPlaylist,
       platforms: undefined,
-      order: this.props.order || BrowsePage.defaultOrder,
+      orderBy: order.orderBy,
+      orderReverse: order.orderReverse,
     }, force);
   }
 
@@ -929,21 +924,22 @@ function getLibraryGames({ library, platforms, libraries }: GetLibraryGamesArgs)
  *              If the "force" value of this is true, the check will fail no matter what.
  * @param args2 Old arguments.
  */
-function checkOrderGamesArgsEqual(args1: [IOrderGamesArgs, boolean?], args2: [IOrderGamesArgs, boolean?]): boolean {
-  const [a, force] = args1;
-  const [b]        = args2 || [undefined];
+function checkOrderGamesArgsEqual(args1: OrderGamesForceArgs, args2: OrderGamesForceArgs): boolean {
+  const [gamesA, optsA, force] = args1;
+  const [gamesB, optsB]        = args2 || [undefined, undefined];
   // Check if this is "forced" to be updated
-  if (force)                     { return false; }
+  if (force) { return false; }
   // Check if the second argument array is missing
-  if (!b)                        { return false; }
+  if (!optsB) { return false; }
   // Compare each value
-  if (a.search   !== b.search)   { return false; }
-  if (a.extreme  !== b.extreme)  { return false; }
-  if (a.broken   !== b.broken)   { return false; }
-  if (a.playlist !== b.playlist) { return false; }
-  if (a.order    !== b.order)    { return false; }
-  if (!checkIfArraysAreEqual(a.platforms, b.platforms)) { return false; }
-  if (!checkIfArraysAreEqual(a.games, b.games)) { return false; }
+  if (optsA.search        !== optsB.search)                     { return false; }
+  if (optsA.extreme       !== optsB.extreme)                    { return false; }
+  if (optsA.broken        !== optsB.broken)                     { return false; }
+  if (optsA.playlist      !== optsB.playlist)                   { return false; }
+  if (optsA.orderBy       !== optsB.orderBy)                    { return false; }
+  if (optsA.orderReverse  !== optsB.orderReverse)               { return false; }
+  if (!checkIfArraysAreEqual(optsA.platforms, optsB.platforms)) { return false; }
+  if (!checkIfArraysAreEqual(gamesA, gamesB))                   { return false; }
   return true;
 }
 
@@ -962,3 +958,12 @@ function checkIfArraysAreEqual(a: any[] | undefined, b: any[] | undefined): bool
   // The arrays are equal
   return true;
 }
+
+/** Arguments used by the filter & order games function wrapper. */
+type OrderGamesForceArgs = [
+  // Arguments passed to the order function
+  IGameInfo[],
+  FilterAndOrderGamesOpts,
+  // If it should force it to filter and order (even if the arguments are identical)
+  boolean?
+];

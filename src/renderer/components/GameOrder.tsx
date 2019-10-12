@@ -12,6 +12,7 @@ export type GameOrderProps = {
   orderReverse: GameOrderReverse;
 };
 
+/** Object emitted when the game order changes. */
 export type GameOrderChangeEvent = {
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
