@@ -3,6 +3,7 @@ import { LangContainer } from '../../shared/lang';
 import { formatString } from '../../shared/utils/StringFormatter';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
+import { ImagePreview } from './ImagePreview';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
@@ -26,6 +27,8 @@ type GameImageSplitProps = {
 type GameImageSplitState = {
   /** If the cursor is dragging something over this element. */
   hover: boolean;
+  /** If the preview should be shown */
+  showPreview: boolean;
 };
 
 export interface GameImageSplit {
@@ -42,13 +45,14 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     super(props);
     this.state = {
       hover: false,
+      showPreview: false
     };
   }
 
   render() {
     const strings = this.context.misc;
     const { disabled, imgSrc, text } = this.props;
-    const { hover } = this.state;
+    const { hover, showPreview } = this.state;
     // Class name
     let className = 'game-image-split';
     if (imgSrc === undefined) { className += ' simple-center'; }
@@ -61,6 +65,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
         style={{ backgroundImage: imgSrc ? `url("${imgSrc}")` : undefined }}
         onDragOver={this.onDragOver}
         onDragLeave={this.onDragLeave}
+        onClick={this.onPreview}
         onDrop={this.onDrop}>
         { (imgSrc === undefined) ? (
           <div className='game-image-split__not-found'>
@@ -70,15 +75,21 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
               onClick={this.onAddClick}
               disabled={disabled}/>
           </div>
-        ) : (!disabled) ? (
+        ) : (
           <div className='game-image-split__buttons'>
             <p>{text}</p>
             <ConfirmElement
               onConfirm={this.onRemoveClick}
               children={renderDeleteImageButton}
-              extra={[strings, text]}/>
+              extra={[strings, text, !!disabled]}/>
+            { showPreview ?
+              <ImagePreview
+                src={this.props.imgSrc}
+                onCancel={this.onPreviewCancel}
+                />
+            : undefined }
           </div>
-        ) : undefined }
+        )}
       </div>
     );
   }
@@ -111,19 +122,30 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     if (this.state.hover) { this.setState({ hover: false }); }
   }
 
+  onPreview = (event: React.MouseEvent) => {
+    if (event.target === event.currentTarget && this.props.imgSrc) {
+      this.setState({showPreview : true});
+    }
+  }
+
+  onPreviewCancel = () => {
+    this.setState({showPreview: false});
+  }
+
   static contextType = LangContext;
 }
 
-function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['misc'], string]>): JSX.Element {
-  const [ strings, text ] = extra;
+function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['misc'], string, boolean]>): JSX.Element {
+  const [ strings, text, disabled ] = extra;
   return (
     <div
       className={
         'game-image-split__buttons__remove-image' +
-        ((activationCounter > 0) ? ' game-image-split__buttons__remove-image--active simple-vertical-shake' : '')
+        ((activationCounter > 0) ? ' game-image-split__buttons__remove-image--active simple-vertical-shake' : '') +
+        (disabled ? ' game-image-split__buttons__remove-image--disabled' : '')
       }
       title={formatString(strings.deleteAllBlankImages, text)}
-      onClick={activate}
+      onClick={disabled ? activate : undefined}
       onMouseLeave={reset}>
       <OpenIcon icon='trash' />
     </div>

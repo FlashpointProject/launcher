@@ -88,7 +88,6 @@ export function CurateBox(props: CurateBoxProps) {
   const onGenreItemSelect           = useCallback(transformOnItemSelect(onGenreChange),           [onGenreChange]);
   const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
   const onApplicationPathItemSelect = useCallback(transformOnItemSelect(onApplicationPathChange), [onPlatformChange]);
-  const onLibraryItemSelect         = useCallback(transformOnItemSelect(onLibraryChange),         [onPlatformChange]);
   // Callback for the fields (onInputKeyDown)
   const onInputKeyDown = useCallback((event: React.KeyboardEvent<InputElement>) => {
     // @TODO Add keyboard shortcuts for things like importing and removing the curation.
@@ -362,6 +361,7 @@ export function CurateBox(props: CurateBoxProps) {
             imgSrc={thumbnailPath}
             onAddClick={onImageAddClick}
             onRemoveClick={onImageRemoveClick}
+            disabled={disabled}
             onDrop={onDrop}
             />
           <GameImageSplit
@@ -370,12 +370,13 @@ export function CurateBox(props: CurateBoxProps) {
             imgSrc={screenshotPath}
             onAddClick={onImageAddClick}
             onRemoveClick={onImageRemoveClick}
+            disabled={disabled}
             onDrop={onDrop}
             />
         </>
       );
     }
-  }, [props.curation && props.curation.thumbnail, props.curation && props.curation.screenshot]);
+  }, [props.curation && props.curation.thumbnail, props.curation && props.curation.screenshot, disabled]);
   // Own Lirary Options
   const ownLibraryOptions = useMemo(() => {
     // Add meta's library if invalid (special option)
@@ -404,10 +405,6 @@ export function CurateBox(props: CurateBoxProps) {
   return (
     <div className='curate-box'>
       {/* Images */}
-      <div className='curate-box-image-titles'>
-        <p className='curate-box-image-titles__title'>{strings.browse.thumbnail}</p>
-        <p className='curate-box-image-titles__title'>{strings.browse.screenshot}</p>
-      </div>
       <div className='curate-box-images'>
         {imageSplit}
       </div>
@@ -430,7 +427,8 @@ export function CurateBox(props: CurateBoxProps) {
             className={'input-field input-field--edit simple-input ' +
                       'input-dropdown__input-field__input__inner'}
             value={props.curation && props.curation.meta.library || ''}
-            onChange={onLibraryChange}>
+            onChange={onLibraryChange}
+            disabled={disabled}>
             {ownLibraryOptions}
           </select>
         </div>
@@ -537,16 +535,6 @@ export function CurateBox(props: CurateBoxProps) {
           className={warnings.isNotHttp ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title={strings.browse.library + ':'}>
-        <DropdownInputField
-          text={props.curation && props.curation.meta.library || ''}
-          placeholder={strings.browse.defaultLibrary}
-          onChange={onLibraryChange}
-          items={props.suggestions && props.suggestions.library || []}
-          onItemSelect={onLibraryItemSelect}
-          className={warnings.nonExistingLibrary ? 'input-field--warn' : ''}
-          { ...sharedInputProps } />
-      </CurateBoxRow>
       <CurateBoxRow title={strings.browse.notes + ':'}>
         <InputField
           text={props.curation && props.curation.meta.notes || ''}
@@ -607,50 +595,55 @@ export function CurateBox(props: CurateBoxProps) {
       <CurateBoxWarnings warnings={warnings} />
       {/* Buttons */}
       <div className='curate-box-buttons'>
-        <ConfirmElement
-          onConfirm={onRemoveClick}
-          children={renderRemoveButton}
-          extra={[strings.curate, disabled]} />
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value={strings.curate.indexContent}
-          onClick={onIndexContent}
-          disabled={disabled} />
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value={strings.curate.openFolder}
-          onClick={onOpenFolder}
-          disabled={disabled} />
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value={strings.curate.run}
-          onClick={onRun}
-          disabled={disabled} />
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value={strings.curate.export}
-          onClick={onExportClick}
-          disabled={disabled} />
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value={strings.curate.import}
-          onClick={onImportClick}
-          disabled={disabled} />
+        <div className='curate-box-buttons__left'>
+          <SimpleButton
+            className='curate-box-buttons__button'
+            value={strings.curate.indexContent}
+            onClick={onIndexContent}
+            disabled={disabled} />
+          <SimpleButton
+            className='curate-box-buttons__button'
+            value={strings.curate.openFolder}
+            onClick={onOpenFolder}
+            disabled={disabled} />
+          <SimpleButton
+            className='curate-box-buttons__button'
+            value={strings.curate.run}
+            onClick={onRun}
+            disabled={disabled} />
+        </div>
+        <div className='curate-box-buttons__right'>
+          <ConfirmElement
+            onConfirm={onRemoveClick}
+            children={renderRemoveButton}
+            extra={[strings.curate, disabled]} />
+          <SimpleButton
+            className='curate-box-buttons__button'
+            value={strings.curate.export}
+            onClick={onExportClick}
+            disabled={disabled} />
+          <SimpleButton
+            className='curate-box-buttons__button'
+            value={strings.curate.import}
+            onClick={onImportClick}
+            disabled={disabled} />
+        </div>
       </div>
     </div>
   );
 }
 
 function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
+  const [ strings, disabled ] = extra;
   return (
     <SimpleButton
       className={
         'curate-box-buttons__button' +
         ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
       }
-      value={extra[0].remove}
-      title={extra[0].removeCurationDesc}
-      disabled={extra[1]}
+      value={strings.remove}
+      title={strings.removeCurationDesc}
+      disabled={disabled}
       onClick={activate}
       onMouseLeave={reset} />
   );

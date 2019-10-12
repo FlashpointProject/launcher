@@ -124,6 +124,7 @@ export function CuratePage(props: CuratePageProps) {
               }
             });
             break;
+          case 'logo.PNG':
           case 'logo.png':
             dispatch({
               type: 'set-curation-logo',
@@ -133,6 +134,7 @@ export function CuratePage(props: CuratePageProps) {
               }
             });
             break;
+          case 'ss.PNG':
           case 'ss.png':
             dispatch({
               type: 'set-curation-screenshot',

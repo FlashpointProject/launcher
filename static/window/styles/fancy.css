@@ -586,6 +586,9 @@ body {
 .game-image-split__buttons__remove-image--active:hover .icon__use {
   fill: var(--layout__warning-medium-color);
 }
+.game-image-split__buttons__remove-image--disabled .icon__use {
+  fill: var(--layout__disabled-text-color);
+}
 
 
 /* GameList Item */

@@ -843,7 +843,7 @@ body {
 .curate-box-images {
   position: relative;
   display: flex;
-  height: 8rem;
+  height: 10rem;
   margin: 0.35rem 0;
 }
 .curate-box-images__image {
@@ -901,9 +901,18 @@ body {
 /* Curate Box Buttons */
 .curate-box-buttons {
   text-align: right;
+  display: flex;
 }
 .curate-box-buttons__button {
   margin: 0 0.2rem;
+}
+.curate-box-buttons__left {
+  flex: 1 0;
+  text-align: left;
+}
+.curate-box-buttons__right {
+  flex: 1 0;
+  text-align:right;
 }
 .curate-box-buttons__button:last-child {
   margin-right: 0;
@@ -1190,6 +1199,10 @@ body {
   background-repeat: no-repeat;
   background-position: center;
 }
+.game-image-split p {
+  color: var(--layout__disabled-text-color);
+  font-style: italic;
+}
 .game-image-split:first-child {
   border-right: 1px dashed;
   margin-bottom: -1px;
@@ -1200,13 +1213,17 @@ body {
 }
 .game-image-split__buttons {
   top: 0;
-  padding: 0.5rem;
 }
 .game-image-split__buttons > * {
   float: right;
 }
 .game-image-split__buttons > p {
   float: left;
+  padding: 0.5rem;
+  pointer-events: none;
+}
+.game-image-split__buttons__remove-image {
+  padding: 0.5rem;
 }
 .game-image-split__not-found {
   display: inline-block;
