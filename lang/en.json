@@ -117,6 +117,7 @@
     "createMissingFolders": "Create Missing Folders",
     "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them",
     "servicesHeader": "Background Services",
+    "servicesMissing": "There are no services.",
     "running": "Running",
     "stopped": "Stopped",
     "killing": "Killing",
