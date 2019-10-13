@@ -352,9 +352,9 @@ export class App extends React.Component<AppProps, AppState> {
 
   render() {
     const loaded = this.state.central.gamesDoneLoading &&
-                  this.state.central.playlistsDoneLoading &&
-                  this.state.central.upgrade.doneLoading &&
-                  this.state.creditsDoneLoading;
+                   this.state.central.playlistsDoneLoading &&
+                   this.state.central.upgrade.doneLoading &&
+                   this.state.creditsDoneLoading;
     const games = this.state.central.games.collection.games;
     const libraries = this.props.libraryData.libraries;
     const platforms = this.state.central.games.listPlatforms();
