@@ -1,6 +1,5 @@
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import * as killAll from 'tree-kill';
 import { ILogPreEntry } from '../shared/Log/interface';
 import { ProcessState } from '../shared/service/interfaces';
 
@@ -102,7 +101,7 @@ export class ManagedChildProcess extends EventEmitter {
   public kill(): void {
     if (this.process) {
       this.setState(ProcessState.KILLING);
-      killAll(this.process.pid);
+      this.process.kill();
     }
   }
 

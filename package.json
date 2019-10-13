@@ -46,7 +46,6 @@
     "react-virtualized": "9.21.1",
     "redux": "4.0.4",
     "redux-devtools-extension": "2.13.8",
-    "tree-kill": "1.2.1",
     "typesafe-actions": "4.4.2",
     "uuid": "3.3.2",
     "uuid-validate": "0.0.3",
