@@ -96,8 +96,8 @@ export class HomePage extends React.Component<HomePageProps> {
           </div>
           {/* Quick Start */}
           <div className='home-page__box'>
-            <div className='home-page__box__head'>{strings.quickStartHeader}</div>
-            <ul className='home-page__box__body'>
+            <div className='home-page__box-head'>{strings.quickStartHeader}</div>
+            <ul className='home-page__box-body'>
               <QuickStartItem icon='badge'>
                 {formatString(strings.hallOfFameInfo, <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>{strings.hallOfFame}</Link>)}
               </QuickStartItem>
@@ -118,8 +118,8 @@ export class HomePage extends React.Component<HomePageProps> {
           {/* Upgrades */}
           { upgradeData ? (
               <div className='home-page__box home-page__box--upgrades'>
-                <div className='home-page__box__head'>{strings.upgradesHeader}</div>
-                <ul className='home-page__box__body'>
+                <div className='home-page__box-head'>{strings.upgradesHeader}</div>
+                <ul className='home-page__box-body'>
                   { this.renderStageSection(strings, upgradeData.tech, techState, onDownloadTechUpgradeClick) }
                   <br/>
                   { this.renderStageSection(strings, upgradeData.screenshots, screenshotsState, onDownloadScreenshotsUpgradeClick) }
@@ -129,8 +129,8 @@ export class HomePage extends React.Component<HomePageProps> {
           }
           {/* Extras */}
           <div className='home-page__box home-page__box--extras'>
-            <div className='home-page__box__head'>{strings.extrasHeader}</div>
-            <ul className='home-page__box__body'>
+            <div className='home-page__box-head'>{strings.extrasHeader}</div>
+            <ul className='home-page__box-body'>
               <QuickStartItem icon='heart'>
                 <Link
                   to={this.getFavoriteBrowseRoute()}
@@ -164,8 +164,8 @@ export class HomePage extends React.Component<HomePageProps> {
           </div>
           {/* Notes */}
           <div className='home-page__box'>
-            <div className='home-page__box__head'>{strings.notesHeader}</div>
-            <ul className='home-page__box__body'>
+            <div className='home-page__box-head'>{strings.notesHeader}</div>
+            <ul className='home-page__box-body'>
               <QuickStartItem>
                 {strings.notes}
               </QuickStartItem>
@@ -299,9 +299,9 @@ export class HomePage extends React.Component<HomePageProps> {
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {
   return (
-    <li className={'home-page__box__item simple-center ' + (props.className||'')}>
+    <li className={'home-page__box-item simple-center ' + (props.className||'')}>
       { props.icon ? (
-         <div className='home-page__box__item__icon simple-center__vertical-inner'>
+         <div className='home-page__box-item-icon simple-center__vertical-inner'>
           <OpenIcon icon={props.icon} />
         </div>
       ) : undefined }

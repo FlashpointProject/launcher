@@ -604,23 +604,23 @@ body {
   width: 30em;
   border: 1px solid;
 }
-.home-page__box__head {
+.home-page__box-head {
   padding: 0.15rem 0.3rem;
   border-bottom: 1px solid;
   font-weight: bold;
 }
-.home-page__box__body {
+.home-page__box-body {
   padding: 0.3rem;
 }
-.home-page__box__item {
+.home-page__box-item {
   display: flex;
   flex-direction: row;
   list-style: none;
 }
-.home-page__box__item:not(:last-child) {
+.home-page__box-item:not(:last-child) {
   margin-bottom: 0.1rem;
 }
-.home-page__box__item__icon {
+.home-page__box-item-icon {
   margin-right: 0.35rem;
 }
 /* HomePage Box - Upgrades */

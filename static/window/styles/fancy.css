@@ -400,7 +400,7 @@ body {
   border-color: var(--layout__home-page-box-border);
   background-color: var(--layout__home-page-box-background);
 }
-.home-page__box__head {
+.home-page__box-head {
   border-bottom-color: var(--layout__home-page-box-border);
 }
 /* HomePage Box - Upgrades */
