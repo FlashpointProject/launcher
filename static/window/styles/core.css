@@ -630,6 +630,11 @@ body {
   text-align: center;
   white-space: pre-line;
 }
+/* HomePage Box Item - Platforms */
+.home-page__box-item--platforms {
+  padding: 0 1rem;
+  text-align: center;
+}
 /* Random Games */
 .home-page__random-games {
   text-align: center;

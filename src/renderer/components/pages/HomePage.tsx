@@ -149,7 +149,7 @@ export class HomePage extends React.Component<HomePageProps> {
               <QuickStartItem icon='tag'>
                 {strings.filterByPlatform}:
               </QuickStartItem>
-              <QuickStartItem>
+              <QuickStartItem className='home-page__box-item--platforms'>
                 { formatPlatforms }
               </QuickStartItem>
               <br />
