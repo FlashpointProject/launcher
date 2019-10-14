@@ -10,31 +10,33 @@ export type SplashScreenProps = {
 export function SplashScreen(props: SplashScreenProps) {
   const { gamesLoaded, playlistsLoaded, creditsLoaded, upgradesLoaded } = props;
   const loaded = gamesLoaded && playlistsLoaded && creditsLoaded && upgradesLoaded;
-  const extraClass = loaded ? 'fade-out' : '';
+  const extraClass = loaded ? ' splash-screen--fade-out' : '';
   return (
-    <div className={'splash-screen ' + extraClass}>
-      <div className='splash-screen_loading_logo'/>
-      <div className='splash-screen_status_block'>
-        <div className='splash-screen_status_header'>
+    <div className={'splash-screen' + extraClass}>
+      <div className='splash-screen__logo fp-logo-box'>
+        <div className='fp-logo' />
+      </div>
+      <div className='splash-screen__status-block'>
+        <div className='splash-screen__status-header'>
           Loading
         </div>
         {!gamesLoaded ?
-          <div className='splash-screen_status'>
+          <div className='splash-screen__status'>
             Games
           </div>
         : undefined}
         {!creditsLoaded ?
-          <div className='splash-screen_status'>
+          <div className='splash-screen__status'>
             Credits
           </div>
         : undefined}
         {!playlistsLoaded ?
-          <div className='splash-screen_status'>
+          <div className='splash-screen__status'>
             Playlists
           </div>
         : undefined}
         {!upgradesLoaded ?
-          <div className='splash-screen_status'>
+          <div className='splash-screen__status'>
               Upgrades
           </div>
         : undefined}

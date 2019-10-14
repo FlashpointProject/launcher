@@ -40,7 +40,6 @@ body {
 /* Measure elements by the outline of their border instead of by their content */
 :root {
   box-sizing: border-box;
-  --splash-screen_size: 20em;
 }
 *, ::before, ::after {
   box-sizing: inherit;
@@ -356,6 +355,7 @@ body {
   margin: 4px 0 0 4px;
   -webkit-app-region: drag; /* Dragging this moves the window */
   -webkit-user-select: none; /* Disable text selection */
+  z-index: 1; /* Hacky way of displaying it in from of the splash screen. */
 }
 /* Title */
 .title-bar__title {
@@ -591,11 +591,6 @@ body {
   /* Keep the mask's aspect ratio */
   width: var(--size);
   height: calc(var(--size) * 0.9);
-}
-.home-page__logo__image {
-  --zoom: 1800%;
-  width: 100%;
-  height: 100%;
 }
 /* HomePage Box */
 .home-page__box {
@@ -1738,35 +1733,44 @@ body {
   border: 1px solid;
 }
 
-/** --- Splash Screen --- **/
+/* ------ FP Logo ------ */
+.fp-logo-box {
+  /* --size: 1rem; */
+  /* Keep the mask's aspect ratio */
+  --zoom: 1800%;
+  width: var(--size);
+  height: calc(var(--size) * 0.9);
+}
+.fp-logo {
+  width: 100%;
+  height: 100%;
+}
+
+/* ------ Splash Screen ------ */
 .splash-screen {
   width: 100%;
   height: 100%;
-  position: absolute;
-  pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.8s;
+  user-select: none;
+  /* Position relative to the window - not the parent */
+  position: fixed;
+  top: 0;
 }
-.splash-screen.fade-out{
+.splash-screen--fade-out {
   opacity: 0;
+  pointer-events: none;
 }
-.splash-screen_loading_logo {
-  position: absolute;
-  --size: var(--splash-screen_size);
-  /* Keep the mask's aspect ratio */
-  width: var(--size);
-  height: calc(var(--size) * 0.9);
+.splash-screen__logo {
+  --size: 16rem;
 }
-.splash-screen_status_block {
-  position: absolute;
-  font-size: 1.5em;
-  margin: calc(var(--splash-screen_size)/3) 0 0 0;
+.splash-screen__status-block {
+  font-size: 1.5rem;
   text-align: center;
-  height: 0;
+  height: 0; /* "Hack" to make content not move the logo. */
 }
-.splash-screen_status_header {
-  font-size: 2.5em;
+.splash-screen__status-header {
+  font-size: 2.5rem;
 }

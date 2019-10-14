@@ -379,23 +379,6 @@ body {
 
 
 /* ------ Home ------ */
-/* Logo */
-.home-page__logo__image {
-  /* Mask the background color with the FP logo */
-  -webkit-mask: url('../images/logo-solid.svg');
-  -webkit-mask-size: var(--size);
-  -webkit-mask-repeat: no-repeat;
-  /* Cool colors yall */
-  background:
-    linear-gradient(rgba(0, 0, 0, 0), var(--layout__primary-background)),
-    linear-gradient(90deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400);
-  background-size: var(--zoom) 100%;
-  -webkit-animation: home-page__logo__slide 1200s linear infinite;
-}
-@-webkit-keyframes home-page__logo__slide {
-     0% { background-position-x:          0%; }
-   100% { background-position-x: var(--zoom); }
-}
 /* HomePage Box */
 .home-page__box {
   border-color: var(--layout__home-page-box-border);
@@ -742,11 +725,10 @@ body {
   color: var(--layout__no-theme-suggestion-color);
 }
 
-/* Splash Screen */
-.splash-screen {
-  background: var(--layout__primary-background);
-}
-.splash-screen_loading_logo {
+/* ------ FP Logo ------ */
+.fp-logo {
+  /* --size: 1rem; */
+  /* --zoom: 100%; */
   /* Mask the background color with the FP logo */
   -webkit-mask: url('../images/logo-solid.svg');
   -webkit-mask-size: var(--size);
@@ -754,10 +736,24 @@ body {
   /* Cool colors yall */
   background:
     linear-gradient(rgba(0, 0, 0, 0), var(--layout__primary-background)),
-    linear-gradient(90deg, #ff2400, #e81d1d, #ff2400);
+    linear-gradient(90deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400);
   background-size: var(--zoom) 100%;
-  -webkit-animation: home-page__logo__slide 60s linear infinite;
 }
-.splash-screen_status {
+.fp-logo--animated {
+  -webkit-animation: fp-logo__slide 1200s linear infinite;
+}
+@-webkit-keyframes fp-logo__slide {
+    0% { background-position-x:          0%; }
+  100% { background-position-x: var(--zoom); }
+}
+
+/* ------ Splash Screen ------ */
+.splash-screen {
+  background: var(--layout__primary-background);
+}
+.splash-screen--fade-out {
+  transition: opacity 0.8s;
+}
+.splash-screen__status {
   color: var(--layout__primary-text-color);
 }

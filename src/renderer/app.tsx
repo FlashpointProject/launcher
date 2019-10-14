@@ -385,45 +385,45 @@ export class App extends React.Component<AppProps, AppState> {
     // Render
     return (
       <LangContext.Provider value={this.state.lang}>
-        {/* Fading Splash */}
-        <SplashScreen 
+        {/* Splash screen */}
+        <SplashScreen
           gamesLoaded={this.state.central.gamesDoneLoading}
           playlistsLoaded={this.state.central.playlistsDoneLoading}
           upgradesLoaded={this.state.central.upgrade.doneLoading}
-          creditsLoaded={this.state.creditsDoneLoading}
-          />
-        {loaded ?
+          creditsLoaded={this.state.creditsDoneLoading} />
+        {/* Title-bar (if enabled) */}
+        { window.External.config.data.useCustomTitlebar ? (
+          <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
+        ) : undefined }
+        {/* "Content" */}
+        {loaded ? (
           <>
-          {/* "TitleBar" stuff */}
-          { window.External.config.data.useCustomTitlebar ? (
-            <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
-          ) : undefined }
-          {/* "Header" stuff */}
-          <HeaderContainer
-            onOrderChange={this.onOrderChange}
-            onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-            onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-            order={this.state.order} />
-          {/* "Main" / "Content" stuff */}
-          <div className='main'>
-            <AppRouter { ...routerProps } />
-            <noscript className='nojs'>
-              <div style={{textAlign:'center'}}>
-                This website requires JavaScript to be enabled.
-              </div>
-            </noscript>
-          </div>
-          {/* "Footer" stuff */}
-          <ConnectedFooter
-            showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-            totalCount={games.length}
-            currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-            currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
-            onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-            onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-            onNewGameClick={this.onNewGameClick} />
+            {/* Header */}
+            <HeaderContainer
+              onOrderChange={this.onOrderChange}
+              onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+              onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+              order={this.state.order} />
+            {/* Main */}
+            <div className='main'>
+              <AppRouter { ...routerProps } />
+              <noscript className='nojs'>
+                <div style={{textAlign:'center'}}>
+                  This website requires JavaScript to be enabled.
+                </div>
+              </noscript>
+            </div>
+            {/* Footer */}
+            <ConnectedFooter
+              showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+              totalCount={games.length}
+              currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
+              currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+              onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+              onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+              onNewGameClick={this.onNewGameClick} />
           </>
-        : undefined}
+        ) : undefined}
       </LangContext.Provider>
     );
   }
