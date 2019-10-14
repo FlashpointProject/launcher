@@ -259,7 +259,7 @@ function parseSearchText(text: string): ParsedSearch {
    * Group 4 - Title phrase
    * Group 5 - Title phrase (was wrapped in "")
    */
-  const regex = /(?:(\b\w+)?:(?:"(.+?)"|([^\s]+))?(?=\s?)|([^\s\-"!@#]+)|"([^"]+)")/gu;
+  const regex = /(?:(\b\w+)?:(?:"(.+?)"|([^\s]+))?(?=\s?)|([^\s\-"!@#][^\s"]+)(?:$|\s)|"([^"]+)")/gu;
   // Parse search string
   let match;
   while (match = regex.exec(text)) { // eslint-disable-line no-cond-assign
