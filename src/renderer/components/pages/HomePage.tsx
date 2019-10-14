@@ -89,9 +89,9 @@ export class HomePage extends React.Component<HomePageProps> {
       <div className='home-page simple-scroll'>
         <div className='home-page__inner'>
           {/* Logo */}
-          <div className='home-page__logo'>
+          <div className='home-page__logo fp-logo-box'>
             <div
-              className='home-page__logo__image'
+              className='fp-logo fp-logo--animated'
               style={{ animationDelay: this.logoDelay }} />
           </div>
           {/* Quick Start */}
