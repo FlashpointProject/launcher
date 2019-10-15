@@ -424,6 +424,7 @@ function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string 
   return text;
 }
 
+// Find and list any used executables missing an entry in the exec mapping file
 function checkMissingExecMappings(games: IGameInfo[]): string {
   const execMappings = GameLauncher.getExecMappings();
   let allExecs: string[] = [];

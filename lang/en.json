@@ -23,7 +23,7 @@
     "redirectorDesc": "Which software to use for redirecting the game traffic to the local web server. Neither is used on Linux.",
     "platforms": "Platforms",
     "nativePlatforms": "Native Platforms",
-    "nativePlatformsDesc": "Platforms to force use of native applications (if available) in any circumstance",
+    "nativePlatformsDesc": "Use Native versions of these platforms. (If not available it will use Wine)",
     "visualsHeader": "Visuals",
     "useCustomTitleBar": "Use Custom Title Bar",
     "useCustomTitleBarDesc": "Use a custom title bar at the top of this window.",

@@ -3,13 +3,17 @@ import { parseVarStr } from '../../main/Util';
 import { readJsonFile } from '../../shared/Util';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
 
+/* Represents an applications exec mapping */
 export declare type ExecMapping = {
-  /** Exec paths for Windows (required), Linux and Mac */
+  // Windows path
   win32: string;
+  // Linux path (if exists)
   linux?: string;
+  // Mac path (if exists)
   darwin?: string;
 }
 
+/* Holds all Exec Mappings from execs file */
 declare type ExecMappingFile = {
   execs: ExecMapping[];
 }

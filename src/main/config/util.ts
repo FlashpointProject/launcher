@@ -83,8 +83,10 @@ export function overwriteConfigData(
   return source;
 }
 
-function strArray(strArray:any): string[] {
-  return (strArray || []);
+function strArray(array: any): string[] {
+  return Array.isArray(array)
+    ? Array.prototype.map.call(array, v => str(v)) as string[]
+    : [];
 }
 
 /** Coerce anything to a string. */

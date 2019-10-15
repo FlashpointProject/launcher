@@ -294,7 +294,7 @@ export class App extends React.Component<AppProps, AppState> {
     })
     .catch((error) => {
       console.error(error);
-      log(`Failed to load exec mappings.\n${error}`);
+      log(`Failed to load exec mappings file. Ignore if on Windows. - ${error}`);
     });
 
     // Check for Wine and PHP on Linux/Mac

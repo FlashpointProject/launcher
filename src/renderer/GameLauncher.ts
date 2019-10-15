@@ -218,17 +218,22 @@ export class GameLauncher {
     // Launch game
     const gameArgs: string = game.launchCommand;
     const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game.applicationPath, native)));
+    // Force Wine usage if application path resolves to an .exe file (and not on Windows)
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+    // Warn when Wine isn't on the PATH, but is going to be used
     if (useWine) {
       which('wine', (err) => {
         if (err) {
-          log('Warning : Wine is required but was not found. Is it installed?');
-          remote.dialog.showMessageBox({
+          log('Warning : Wine is required but was not found. Is it installed?' +
+              'Installation instructions may be found on your distro\'s website, or through the Flashpoint Wiki');
+          const response = remote.dialog.showMessageBoxSync({
             type: 'error',
             title: lang.programNotFound,
             message: lang.wineNotFound,
-            buttons: ['Ok'],
+            buttons: ['Ok', 'Open Wiki'],
           });
+          // Open wiki in default browser (Some Linux distro's might no support xdg-open, but any sane distro will, best bet)
+          if (response === 1) { exec('xdg-open https://bluemaxima.org/flashpoint/datahub/Linux_Support#Wine'); }
         }
       });
     }
@@ -259,18 +264,19 @@ export class GameLauncher {
   }
 
   /**
-   * The paths provided in the Game/AdditionalApplication XMLs are only accurate
-   * on Windows. Use platform specific paths (if mapped and required)
+   * Returns either a Windows or Native path (if available and requested)
+   * @param path Windows/XML application path
+   * @param native Prefer native execs
    */
   private static getApplicationPath(path: string, native: boolean): string {
     const platform = process.platform;
 
-    // Special case for bat/sh files, always use native
+    // Bat files won't work on Wine, force a .sh file on non-Windows platforms instead. Sh File may not exist.
     if (platform != 'win32' && path.endsWith('.bat')) {
       return path.substr(0, path.length - 4) + '.sh';
     }
 
-    // No mapping required for Windows and Wine, skip
+    // Skip mapping if on Windows or Native application was not requested
     if (platform != 'win32' && native) {
       for (let i = 0; i < this.execMappings.length; i++) {
         const mapping = this.execMappings[i];
@@ -287,7 +293,7 @@ export class GameLauncher {
       }
     }
 
-    // No non-Windows mapping found/required
+    // No Native exec found, return Windows/XML application path
     return path;
   }
 
@@ -312,7 +318,7 @@ export class GameLauncher {
       ...process.env,
     };
   }
-
+  
   private static createCommand(filename: string, args: string, useWine: boolean): string {
     // Escape filename and args
     let escFilename: string = filename;
