@@ -1,5 +1,5 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
-import { autoCode } from '../lang/misc';
+import { autoCode } from '../lang';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';

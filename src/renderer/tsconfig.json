@@ -5,6 +5,6 @@
   "extends": "../../tsconfig.json",
   "include": [
     "../../typings/**/*",
-    "./**/*",
+    "./**/*"
   ]
 }

@@ -91,6 +91,8 @@
     "platform": "Platform",
     "series": "Series",
     "title": "Title",
+    "developer": "Developer",
+    "publisher": "Publisher",
     "ascending": "Ascending",
     "descending": "Descending"
   },
@@ -116,7 +118,20 @@
     "renameImagesIdToTitle": "Rename Images (ID => Title)",
     "renameImagesIdToTitleDesc": "Find all game images with the games ID in their filename and rename them to use its title instead",
     "createMissingFolders": "Create Missing Folders",
-    "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them"
+    "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them",
+    "servicesHeader": "Background Services",
+    "servicesMissing": "There are no services.",
+    "running": "Running",
+    "stopped": "Stopped",
+    "killing": "Killing",
+    "start": "Start",
+    "startDesc": "Start the service",
+    "stop": "Stop",
+    "stopDesc": "Stop the running service",
+    "restart": "Restart",
+    "restartDesc": "Restart the service",
+    "details": "Details",
+    "detailsDesc": "Open dialog with service details"
   },
   "about": {
     "aboutHeader": "About",
@@ -174,6 +189,8 @@
     "noApplicationPath": "No Application Path",
     "launchCommand": "Launch Command",
     "noLaunchCommand": "No Launch Command",
+    "library": "Library",
+    "defaultLibrary": "Default Library",
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Drop an image here to add it",
@@ -184,7 +201,7 @@
     "loadingPlaylists": "Loading Playlists...",
     "deleteAdditionalApplication": "Delete Additional Application",
     "deleteGameAndAdditionalApps": "Delete Game (and Additional Applications)",
-    "removeGameFromPlaylist" : "Remove Game from Playlist",
+    "removeGameFromPlaylist": "Remove Game from Playlist",
     "saveChanges": "Save Changes",
     "discardChanges": "Discard Changes",
     "editGame": "Edit Game",
@@ -194,7 +211,7 @@
     "noGamesFound": "No Games Found!",
     "dropGameOnLeft": "Drop a game on this playlist in the {0} to add it.",
     "leftSidebar": "left sidebar",
-    "setFlashpointPathQuestion" : "Have you set the path to the {0} at the {1} page?",
+    "setFlashpointPathQuestion": "Have you set the path to the {0} at the {1} page?",
     "flashpointPath": "Flashpoint path",
     "config": "Config",
     "noteSaveAndRestart": "Note: You have to press {0} for the change to take effect.",
@@ -227,6 +244,7 @@
     "unusedApplicationPath": "'Application Path' has an unused value. Make sure it's spelled correctly!",
     "unusedGenre": "'Genre' has an unused value. Make sure it's spelled correctly!",
     "unusedPlatform": "'Platform' has an unused value. Make sure it's spelled correctly!",
+    "nonExistingLibrary": "'Library' is not the name of an existing library! (Default will be used)",
     "noContent": "No content found! Make sure the folder is named and placed correctly!"
   },
   "playlist": {
@@ -245,9 +263,8 @@
     "authorPlaceholder": "Author..."
   },
   "misc": {
-    "blankNotFound": "{0} Not Found",
+    "noBlankFound": "No {0} Found",
     "addBlank": "Add {0}",
-    "removeBlank": "Remove {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
     "yes": "Yes",
     "no": "No"
@@ -267,7 +284,7 @@
     "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
     "fileNotFound": "File not found!",
     "pathNotFound": "Path not found!",
-    "selectFileToExportMeta" : "Select file to save meta to",
+    "selectFileToExportMeta": "Select file to save meta to",
     "selectFolderToExportMetaAndImages": "Select folder to save meta and images to",
     "replaceFilesQuestion": "Replace files?",
     "exportedAlreadyExistsYesNo": "One or more of the exported files already exists.\n Do you want to replace them?",
@@ -276,7 +293,9 @@
     "selectThemeFile": "Select Theme File",
     "selectCurationFolder": "Select Curation Folder(s)",
     "selectCurationArchive": "Select Curation Archive(s)",
-    "selectCurationMeta": "Select Curation Meta(s)"
+    "selectCurationMeta": "Select Curation Meta(s)",
+    "errorParsingPlatforms": "Error parsing platforms!",
+    "errorParsingPlatformsMessage": "{0} Error(s) raised while parsing platform XMLs\nPlease check the logs for details."
   },
   "libraries": {
     "arcade": "Games",

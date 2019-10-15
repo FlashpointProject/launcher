@@ -2,6 +2,10 @@ import { OpenDialogOptions } from 'electron';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
 import { AppPreferencesApi } from './preferences/AppPreferencesApi';
+import { ServicesApi } from './service/ServicesApi';
+
+/** Subtract the properties of U from T. */
+export type Subtract<T extends U, U extends object> = Pick<T, Exclude<keyof T, keyof U>>;
 
 export interface IMainWindowExternal {
   /** Miscellaneous data. */
@@ -34,6 +38,9 @@ export interface IMainWindowExternal {
   /** Renderers interface for the Config data */
   config: AppConfigApi;
 
+  /** Renderers interface for Service data */
+  services: ServicesApi;
+
   /** Renderers interface for the Log data */
   log: LogRendererApi;
 
@@ -61,6 +68,11 @@ export interface IObjectMap<T> { [key: string]: T|undefined; }
 export type RecursivePartial<T> = {
   [key in keyof T]?: RecursivePartial<T[key]>;
 };
+
+/** From T, pick a set of properties whose values are assignable to U. */
+export type PickType<T, U> = {
+  [P in keyof T]: T[P] extends U ? P : never
+}[keyof T];
 
 /** IPC channels used to relay window events from main to renderer. */
 export enum WindowIPC {

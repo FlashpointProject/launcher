@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { getLibraryItemTitle } from '../../shared/library/util';
-import { LangContainer, LibrariesLang } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithLibraryProps } from '../containers/withLibrary';
 import { WithPreferencesProps } from '../containers/withPreferences';
@@ -55,6 +55,15 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
 
   componentWillUnmount() {
     window.removeEventListener('keypress', this.onKeypress);
+  }
+
+  componentDidUpdate(prevProps: HeaderProps, prevState: HeaderState) {
+    // Update the text in the text-box if the search text has changed
+    const text = this.props.searchQuery.text;
+    if (text !== prevProps.searchQuery.text &&
+        text !== prevState.searchText) {
+      this.setState({ searchText: text });
+    }
   }
 
   render() {
@@ -204,6 +213,6 @@ function MenuItem({ title, link }: { title: string, link: string }) {
   );
 }
 
-function getItemTitle(item: IGameLibraryFileItem, lang: LibrariesLang): string {
+function getItemTitle(item: IGameLibraryFileItem, lang: LangContainer['libraries']): string {
   return lang[item.route] || item.title;
 }

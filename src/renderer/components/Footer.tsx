@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
-import { LangContainer } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameScaleSpan } from '../Util';
 import { LangContext } from '../util/lang';

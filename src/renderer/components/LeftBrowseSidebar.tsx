@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BrowseLang, LangContainer } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { CentralState } from '../interfaces';

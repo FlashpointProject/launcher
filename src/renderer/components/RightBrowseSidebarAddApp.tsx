@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
-import { BrowseLang, LangContainer } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -107,7 +107,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
     );
   }
 
-  renderDeleteButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
+  renderDeleteButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     const className = 'browse-right-sidebar__additional-application__delete-button';
     return (
       <div

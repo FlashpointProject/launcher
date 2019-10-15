@@ -2,8 +2,9 @@ import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import { wrapSearchTerm } from '../../../shared/game/GameFilter';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { HomeLang, LangContainer } from '../../../shared/lang/types';
+import { LangContainer } from '../../../shared/lang';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { findDefaultLibrary } from '../../../shared/library/util';
 import { formatString } from '../../../shared/utils/StringFormatter';
@@ -88,15 +89,15 @@ export class HomePage extends React.Component<HomePageProps> {
       <div className='home-page simple-scroll'>
         <div className='home-page__inner'>
           {/* Logo */}
-          <div className='home-page__logo'>
+          <div className='home-page__logo fp-logo-box'>
             <div
-              className='home-page__logo__image'
+              className='fp-logo fp-logo--animated'
               style={{ animationDelay: this.logoDelay }} />
           </div>
           {/* Quick Start */}
           <div className='home-page__box'>
-            <div className='home-page__box__head'>{strings.quickStartHeader}</div>
-            <ul className='home-page__box__body'>
+            <div className='home-page__box-head'>{strings.quickStartHeader}</div>
+            <ul className='home-page__box-body'>
               <QuickStartItem icon='badge'>
                 {formatString(strings.hallOfFameInfo, <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>{strings.hallOfFame}</Link>)}
               </QuickStartItem>
@@ -117,8 +118,8 @@ export class HomePage extends React.Component<HomePageProps> {
           {/* Upgrades */}
           { upgradeData ? (
               <div className='home-page__box home-page__box--upgrades'>
-                <div className='home-page__box__head'>{strings.upgradesHeader}</div>
-                <ul className='home-page__box__body'>
+                <div className='home-page__box-head'>{strings.upgradesHeader}</div>
+                <ul className='home-page__box-body'>
                   { this.renderStageSection(strings, upgradeData.tech, techState, onDownloadTechUpgradeClick) }
                   <br/>
                   { this.renderStageSection(strings, upgradeData.screenshots, screenshotsState, onDownloadScreenshotsUpgradeClick) }
@@ -128,8 +129,8 @@ export class HomePage extends React.Component<HomePageProps> {
           }
           {/* Extras */}
           <div className='home-page__box home-page__box--extras'>
-            <div className='home-page__box__head'>{strings.extrasHeader}</div>
-            <ul className='home-page__box__body'>
+            <div className='home-page__box-head'>{strings.extrasHeader}</div>
+            <ul className='home-page__box-body'>
               <QuickStartItem icon='heart'>
                 <Link
                   to={this.getFavoriteBrowseRoute()}
@@ -148,7 +149,7 @@ export class HomePage extends React.Component<HomePageProps> {
               <QuickStartItem icon='tag'>
                 {strings.filterByPlatform}:
               </QuickStartItem>
-              <QuickStartItem>
+              <QuickStartItem className='home-page__box-item--platforms'>
                 { formatPlatforms }
               </QuickStartItem>
               <br />
@@ -163,8 +164,8 @@ export class HomePage extends React.Component<HomePageProps> {
           </div>
           {/* Notes */}
           <div className='home-page__box'>
-            <div className='home-page__box__head'>{strings.notesHeader}</div>
-            <ul className='home-page__box__body'>
+            <div className='home-page__box-head'>{strings.notesHeader}</div>
+            <ul className='home-page__box-body'>
               <QuickStartItem>
                 {strings.notes}
               </QuickStartItem>
@@ -196,7 +197,7 @@ export class HomePage extends React.Component<HomePageProps> {
     );
   }
 
-  renderStageSection(strings: HomeLang, stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
+  renderStageSection(strings: LangContainer['home'], stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
     return (
       <>
         <QuickStartItem><b>{stageData && stageData.title || '...'}</b></QuickStartItem>
@@ -206,7 +207,7 @@ export class HomePage extends React.Component<HomePageProps> {
     );
   }
 
-  renderStageButton(strings: HomeLang, stageState: UpgradeStageState, onClick: () => void) {
+  renderStageButton(strings: LangContainer['home'], stageState: UpgradeStageState, onClick: () => void) {
     return (
       stageState.checksDone ? (
         stageState.alreadyInstalled ? (
@@ -272,7 +273,7 @@ export class HomePage extends React.Component<HomePageProps> {
   /** Gets the platform as a string and performs a search dynamically for each platform generated. */
   onPlatformClick = (platform: string) => (event: any) => {
     // Search to filter out all other platforms
-    this.props.onSearch('!' + platform);
+    this.props.onSearch('!' + wrapSearchTerm(platform));
     // Deselect the curret playlist
     this.props.onSelectPlaylist(undefined, 'arcade');
   }
@@ -298,9 +299,9 @@ export class HomePage extends React.Component<HomePageProps> {
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {
   return (
-    <li className={'home-page__box__item simple-center ' + (props.className||'')}>
+    <li className={'home-page__box-item simple-center ' + (props.className||'')}>
       { props.icon ? (
-         <div className='home-page__box__item__icon simple-center__vertical-inner'>
+         <div className='home-page__box-item-icon simple-center__vertical-inner'>
           <OpenIcon icon={props.icon} />
         </div>
       ) : undefined }

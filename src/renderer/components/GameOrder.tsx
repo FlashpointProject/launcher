@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FilterLang, LangContainer } from '../../shared/lang/types';
+import { LangContainer } from '../../shared/lang';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { LangContext } from '../util/lang';
 
@@ -12,6 +12,7 @@ export type GameOrderProps = {
   orderReverse: GameOrderReverse;
 };
 
+/** Object emitted when the game order changes. */
 export type GameOrderChangeEvent = {
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
@@ -40,6 +41,8 @@ export class GameOrder extends React.Component<GameOrderProps> {
           <option value='platform'>{strings.platform}</option>
           <option value='series'>{strings.series}</option>
           <option value='title'>{strings.title}</option>
+          <option value='developer'>{strings.developer}</option>
+          <option value='publisher'>{strings.publisher}</option>
         </select>
         {/* Order Reverse */}
         <select
@@ -89,6 +92,8 @@ function validateOrderBy(value: string): GameOrderBy {
     case 'platform':  return 'platform';
     case 'series':    return 'series';
     case 'title':     return 'title';
+    case 'developer': return 'developer';
+    case 'publisher': return 'publisher';
     default: throw new Error(`"${value}" is not a valid GameOrderBy`);
   }
 }

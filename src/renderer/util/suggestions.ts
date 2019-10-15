@@ -1,4 +1,6 @@
-import { GameCollection } from '../../shared/game/GameCollection';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { findLibraryByPlatformName } from '../../shared/library/util';
+import GameManagerPlatform from '../game/GameManagerPlatform';
 
 /** Game properties that will have suggestions gathered and displayed. */
 type SuggestionProps = (
@@ -7,6 +9,7 @@ type SuggestionProps = (
   | 'playMode'
   | 'status'
   | 'applicationPath'
+  | 'library'
 );
 
 /** Temporarily used to store the suggestions for performance reasons. */
@@ -25,25 +28,33 @@ export type GamePropSuggestions = {
 
 /**
  * Get some of the game property values from a game collection.
- * @param collection Game Collection to read Game property values from.
+ * @param platforms Game Collection to read Game property values from.
+ * @param libraries Libraries to include in the suggestions.
  * @returns The game property values in the collection (that were extracted).
  */
-export function getSuggestions(collection: GameCollection): Partial<GamePropSuggestions> {
-  // Get the values from the game collection
+export function getSuggestions(platforms: GameManagerPlatform[] = [], libraries: IGameLibraryFileItem[] = []): Partial<GamePropSuggestions> {
+  // Get the values from the game collection & libraries
   const map: GamePropSuggestionsMap = {
     genre: {},
     platform: {},
     playMode: {},
     status: {},
     applicationPath: {},
+    library: {},
   };
-  for (let key in collection.games) {
-    const game = collection.games[key];
-    addGamePropValues(map.genre,           game.genre);
-    addGamePropValues(map.platform,        game.platform);
-    addGamePropValues(map.playMode,        game.playMode);
-    addGamePropValues(map.status,          game.status);
-    addGamePropValues(map.applicationPath, game.applicationPath);
+  for (let platform of platforms) {
+    if (platform.collection) {
+      for (let game of platform.collection.games) {
+        addGamePropValues(map.genre,           game.genre);
+        addGamePropValues(map.platform,        game.platform);
+        addGamePropValues(map.playMode,        game.playMode);
+        addGamePropValues(map.status,          game.status);
+        addGamePropValues(map.applicationPath, game.applicationPath);
+      }
+    }
+  }
+  for (let library of libraries) {
+    map.library[library.title] = true;
   }
   // Create a more usable object to store the values in
   const sugs: Partial<GamePropSuggestions> = {};

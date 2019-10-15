@@ -6,12 +6,14 @@ import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
-import { LangContainer, LangFile } from '../shared/lang/types';
+import { LangContainer, LangFile } from '../shared/lang';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { versionNumberToText } from '../shared/Util';
+import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
+import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
@@ -136,7 +138,7 @@ export class App extends React.Component<AppProps, AppState> {
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
     (() => {
       let askBeforeClosing = true;
-      window.onbeforeunload = event => {
+      window.onbeforeunload = (event: BeforeUnloadEvent) => {
         const { central } = this.state;
         if (askBeforeClosing && (central.upgrade.screenshotsState.isInstalling || central.upgrade.techState.isInstalling)) {
           event.returnValue = 1; // (Prevent closing the window)
@@ -212,31 +214,38 @@ export class App extends React.Component<AppProps, AppState> {
       // Prepare images
       const platforms: string[] = filenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
       this.state.gameImages.addImageFolders(platforms);
-      // Load and parse platform XMLs
-      this.state.central.games.loadPlatforms()
-      .then(() => {
-        this.setState({
-          central: Object.assign({}, this.state.central, {
-            gamesDoneLoading: true,
-          })
+    })
+    .then(async () => {
+      // Load platform data
+      try {
+        await this.state.central.games.loadPlatforms();
+      } catch (errors) {
+        // @TODO Make this errors passing a bit safer? Expecting specially formatted errors seems dangerous.
+        errors.forEach((error: Error) => log(error.toString()));
+        // Show a popup about the errors
+        remote.dialog.showMessageBox({
+          type: 'error',
+          title: strings.dialog.errorParsingPlatforms,
+          message: formatString(strings.dialog.errorParsingPlatformsMessage, String(errors.length)),
+          buttons: ['Ok']
         });
-      })
-      .catch((error) => {
-        console.error(error);
-        this.setState({
-          central: Object.assign({}, this.state.central, {
-            gamesDoneLoading: true,
-            gamesFailedLoading: true,
-          })
-        });
+        // Throw errors (since this catch was only for logging)
+        throw errors;
+      }
+    })
+    .catch(() => {
+      // Flag loading as failed
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          gamesFailedLoading: true,
+        })
       });
     })
-    .catch((error) => {
-      log(error+'');
+    .finally(() => {
+      // Flag loading as done
       this.setState({
         central: Object.assign({}, this.state.central, {
           gamesDoneLoading: true,
-          gamesFailedLoading: true,
         })
       });
     });
@@ -292,7 +301,7 @@ export class App extends React.Component<AppProps, AppState> {
     if (process.platform != 'win32') {
       which('php', function(err: Error | null) {
         if (err) {
-          log('Warning : PHP not found in path, may cause unexpected behaviour.');
+          log('Warning: PHP not found in path, may cause unexpected behaviour.');
           remote.dialog.showMessageBox({
             type: 'error',
             title: strings.dialog.programNotFound,
@@ -339,16 +348,15 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   render() {
+    const loaded = this.state.central.gamesDoneLoading &&
+                   this.state.central.playlistsDoneLoading &&
+                   this.state.central.upgrade.doneLoading &&
+                   this.state.creditsDoneLoading;
     const games = this.state.central.games.collection.games;
     const libraries = this.props.libraryData.libraries;
     const platforms = this.state.central.games.listPlatforms();
     const route = getBrowseSubPath(this.props.location.pathname);
     const library = findLibraryByRoute(libraries, route);
-    // Get game count (or undefined if no games are yet found)
-    let gameCount: number|undefined;
-    if (this.state.central.gamesDoneLoading) {
-      gameCount = games.length;
-    }
     // Props to set to the router
     const routerProps: AppRouterProps = {
       central: this.state.central,
@@ -375,34 +383,45 @@ export class App extends React.Component<AppProps, AppState> {
     // Render
     return (
       <LangContext.Provider value={this.state.lang}>
-        {/* "TitleBar" stuff */}
+        {/* Splash screen */}
+        <SplashScreen
+          gamesLoaded={this.state.central.gamesDoneLoading}
+          playlistsLoaded={this.state.central.playlistsDoneLoading}
+          upgradesLoaded={this.state.central.upgrade.doneLoading}
+          creditsLoaded={this.state.creditsDoneLoading} />
+        {/* Title-bar (if enabled) */}
         { window.External.config.data.useCustomTitlebar ? (
           <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
         ) : undefined }
-        {/* "Header" stuff */}
-        <HeaderContainer
-          onOrderChange={this.onOrderChange}
-          onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-          onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-          order={this.state.order} />
-        {/* "Main" / "Content" stuff */}
-        <div className='main'>
-          <AppRouter { ...routerProps } />
-          <noscript className='nojs'>
-            <div style={{textAlign:'center'}}>
-              This website requires JavaScript to be enabled.
+        {/* "Content" */}
+        {loaded ? (
+          <>
+            {/* Header */}
+            <HeaderContainer
+              onOrderChange={this.onOrderChange}
+              onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+              onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+              order={this.state.order} />
+            {/* Main */}
+            <div className='main'>
+              <AppRouter { ...routerProps } />
+              <noscript className='nojs'>
+                <div style={{textAlign:'center'}}>
+                  This website requires JavaScript to be enabled.
+                </div>
+              </noscript>
             </div>
-          </noscript>
-        </div>
-        {/* "Footer" stuff */}
-        <ConnectedFooter
-          showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-          totalCount={gameCount}
-          currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-          currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
-          onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-          onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-          onNewGameClick={this.onNewGameClick} />
+            {/* Footer */}
+            <ConnectedFooter
+              showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+              totalCount={games.length}
+              currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
+              currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+              onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+              onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+              onNewGameClick={this.onNewGameClick} />
+          </>
+        ) : undefined}
       </LangContext.Provider>
     );
   }

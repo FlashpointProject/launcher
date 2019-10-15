@@ -2,7 +2,7 @@ import { ChildProcess, exec, ExecOptions } from 'child_process';
 import { remote } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import { DialogLang } from 'src/shared/lang/types';
+import { LangContainer } from 'src/shared/lang';
 import * as which from 'which';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { padStart, stringifyArray } from '../shared/Util';
@@ -135,6 +135,7 @@ export class GameLauncher {
       case 'html5':
       case 'popcap plugin':
       case 'silverlight':
+      default:
         return GameLauncher.getPathOfHtdocsUrl(game.launchCommand, ffpPath);
     }
   }
@@ -204,7 +205,7 @@ export class GameLauncher {
    * @param addApps Additional applications to launch first
    * @param lang String to use for Wine warning. Static functions don't have a context to use.
    */
-  public static launchGame(game: IGameInfo, lang: DialogLang, addApps?: IAdditionalApplicationInfo[]): void {
+  public static launchGame(game: IGameInfo, lang: LangContainer['dialog'], addApps?: IAdditionalApplicationInfo[]): void {
     // Abort if placeholder (placeholders are not "actual" games)
     if (game.placeholder) { return; }
     const native = this.isPlatformNativeLocked(game.platform);
