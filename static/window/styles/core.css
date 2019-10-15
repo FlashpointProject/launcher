@@ -1807,3 +1807,45 @@ body {
 .setting__row__content--input-field .input-dropdown__content {
   border: 1px solid;
 }
+
+/** ----- Progress Components ------ **/
+/* Wrapper (all components) */
+.progress-component__wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  /* Font Size acts to scale child component */
+  font-size: 1rem;
+}
+/* Status Bar */
+.status-bar__top-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 3em;
+}
+.status-bar__bottom-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 2em;
+}
+/* Progress Bar */
+.progress-bar__top-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 2em;
+}
+.progress-bar__bottom-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+.progress-bar__bar {
+  align-self: center;
+  height: 5rem;
+  padding: 0.5rem;
+}
+.progress-bar__bar__inner {
+  height: 100%;
+}

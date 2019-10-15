@@ -4,13 +4,14 @@ import { add } from 'node-7z';
 import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LangContainer } from 'src/shared/lang';
+import { LangContainer } from '../../shared/lang';
 import { IGameLibraryFile, IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { findLibraryByRoute } from '../../shared/library/util';
+import { ProgressData } from '../containers/withProgress';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { stringifyCurationFormat } from '../curate/format/stringifier';
-import { launchCuration, stringToBool } from '../curate/importCuration';
-import { CurationIndexContent, indexContentFolder } from '../curate/indexCuration';
+import { launchCuration, stringToBool } from '../curate/importGame';
+import { indexContentFolder, IndexedContent } from '../curate/importCuration';
 import { convertEditToCurationMeta } from '../curate/metaToMeta';
 import { curationLog, getContentFolderByKey, getCurationFolder } from '../curate/util';
 import { GameLauncher } from '../GameLauncher';
@@ -28,19 +29,21 @@ import { GameImageSplit } from './GameImageSplit';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 
-export type CurateBoxProps = {
+type CurateBoxProps = {
   /** Meta data of the curation to display. */
   curation?: EditCuration;
   /** Dispatcher for the curate page state reducer. */
   dispatch: React.Dispatch<CurationAction>;
   /** Import a curation. */
-  importCuration: (curation: EditCuration, log?: boolean) => Promise<void>;
+  importCuration: (curation: EditCuration, log?: boolean, progress?: ProgressData) => Promise<void>;
   /** Suggestions for the drop-down input fields. */
   suggestions?: Partial<GamePropSuggestions> | undefined;
   /** Libraries to pick in the drop-down input field. */
   libraryOptions: JSX.Element[];
   /** Full library data (for importing) */
   libraryData: IGameLibraryFile;
+  /** List of games, used for warnings */
+
 };
 
 /** A box that displays and lets the user edit a curation. */
@@ -120,7 +123,7 @@ export function CurateBox(props: CurateBoxProps) {
           payload: { key: curation.key }
         });
       })
-      .catch((error) => {
+      .catch(async (error) => {
         // Log error
         curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
         console.error(error);
@@ -131,6 +134,15 @@ export function CurateBox(props: CurateBoxProps) {
             key: curation.key,
             lock: false,
           },
+        });
+        // Failed or cancelled, reindex content
+        const content = await indexContentFolder(getContentFolderByKey(curation.key));
+        props.dispatch({
+          type: 'set-curation-content',
+          payload: {
+            key: curation.key,
+            content: content
+          }
         });
       });
     }
@@ -178,6 +190,7 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
+
   // Callback for when the export button is clicked
   const onExportClick = useCallback(() => {
     if (props.curation) {
@@ -206,6 +219,7 @@ export function CurateBox(props: CurateBoxProps) {
       }
     }
   }, [props.curation]);
+
   // Image buttons
   const onImageAddClick = useCallback((type: string) => {
     const filePaths = window.External.showOpenDialogSync({
@@ -224,6 +238,7 @@ export function CurateBox(props: CurateBoxProps) {
       }
     }
   }, []);
+
   const onImageRemoveClick = useCallback(async (type: string) => {
     if (props.curation) {
       let filePath: string | undefined = undefined;
@@ -246,6 +261,7 @@ export function CurateBox(props: CurateBoxProps) {
       }
     }
   }, [props.curation && props.curation.key]);
+
   // Set image
   const onDrop = useCallback((event: React.DragEvent<Element>, type: string) => {
     const files = copyArrayLike(event.dataTransfer.files);
@@ -262,9 +278,11 @@ export function CurateBox(props: CurateBoxProps) {
       }
     }
   }, [props.curation && props.curation.key]);
+
   // Input props
   const editable = true;
   const disabled = props.curation ? props.curation.locked : false;
+
   // Render additional application elements
   const addApps = useMemo(() => (
     <>
@@ -289,23 +307,25 @@ export function CurateBox(props: CurateBoxProps) {
     props.dispatch,
     disabled
   ]);
+
   // Count the number of collisions
   const collisionCount: number | undefined = useMemo(() => {
     return contentCollisions && contentCollisions.reduce((v, c) => v + (c.fileExists ? 1 : 0), 0);
   }, [contentCollisions]);
+
   // Render content (files and folders inside the "content" folder)
   const contentFilenames = useMemo(() => {
     return props.curation && props.curation.content.map((content, index) => {
       const collision = contentCollisions && contentCollisions[index];
       // Folders file names ends with '/' and have a file size of 0
       const isFolder = (
-        content.fileName[content.fileName.length - 1] === '/' &&
+        content.filePath[content.filePath.length - 1] === '/' &&
         content.fileSize === 0
       );
       // Render content element
       const contentElement = (
         <span className='curate-box-files__entry'>
-          {content.fileName + (isFolder ? '' : ` (${sizeToString(content.fileSize)})`)}
+          {content.filePath + (isFolder ? '' : ` (${sizeToString(content.fileSize)})`)}
         </span>
       );
       // Render collision element
@@ -324,6 +344,7 @@ export function CurateBox(props: CurateBoxProps) {
       );
     });
   }, [props.curation && props.curation.content, contentCollisions]);
+
   // Generate Warnings
   const warnings = useMemo(() => {
     const warns: CurationWarnings = {};
@@ -343,12 +364,14 @@ export function CurateBox(props: CurateBoxProps) {
       );
       // Check if there is no content
       warns.noContent = props.curation.content.length === 0;
-      // Check if library is set 
+      // Check if library is set
       const curLibrary = props.curation.meta.library;
       warns.nonExistingLibrary = props.libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
     }
     return warns;
   }, [props.curation && props.curation.meta, props.curation && props.curation.content]);
+
+  // Render images (logo + ss)
   const imageSplit = useMemo(() => {
     if (props.curation) {
       const thumbnailPath = props.curation.thumbnail.exists ? `${props.curation.thumbnail.filePath}?v=${props.curation.thumbnail.version}` : undefined;
@@ -377,6 +400,7 @@ export function CurateBox(props: CurateBoxProps) {
       );
     }
   }, [props.curation && props.curation.thumbnail, props.curation && props.curation.screenshot, disabled]);
+
   // Own Lirary Options
   const ownLibraryOptions = useMemo(() => {
     // Add meta's library if invalid (special option)
@@ -384,7 +408,7 @@ export function CurateBox(props: CurateBoxProps) {
       const nonExistingLibrary = (
         <option
           className='curate-box-select__invalid-option'
-          key={props.libraryOptions.length} 
+          key={props.libraryOptions.length}
           value={props.curation.meta.library}>
           {props.curation.meta.library}
         </option>
@@ -393,6 +417,7 @@ export function CurateBox(props: CurateBoxProps) {
     }
     return props.libraryOptions;
   }, [props.curation && props.curation.meta.library, props.libraryOptions, warnings]);
+
   // Meta
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
   // Misc
@@ -401,6 +426,7 @@ export function CurateBox(props: CurateBoxProps) {
     disabled: disabled,
     onKeyDown: onInputKeyDown,
   };
+
   // Render
   return (
     <div className='curate-box'>
@@ -726,11 +752,11 @@ type ContentCollision = {
 }
 
 /** Check all the "collisions" (the files that will be overwritten if the curation is imported) */
-async function checkCollisions(content: CurationIndexContent[]) {
+async function checkCollisions(content: IndexedContent[]) {
   const collisions: ContentCollision[] = [];
   for (let i = 0; i < content.length; i++) {
     const collision: ContentCollision = {
-      fileName: GameLauncher.getPathOfHtdocsUrl(content[i].fileName) || '',
+      fileName: GameLauncher.getPathOfHtdocsUrl(content[i].filePath) || '',
       fileSize: 0,
       fileExists: false,
       isFolder: false,

@@ -3,15 +3,13 @@
 // Type definitions for node-7z v0.4.1
 // Project: https://github.com/quentinrossetti/node-7z
 // Definitions by: Erik Rothoff Andersson <https://github.com/erkie>
+//                 Colin Berry <https://github.com/colin969>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped/
 
-// node-7z uses `when` promises which have a progress method, however they are deprecated
-// internally node-7z uses the progress events to emit files that are extracted,
-// (also the progress event emits an array of strings, which doesn't correlate with any promise<T>)
-// so instead of patching `when` promises I'm extending the generic Promise for use internally
 declare module "node-7z" {
     import Readable = require('stream');
 
+    // @TODO Verify interfaces are correct
     interface Data {
       file: string;
       status: string;
@@ -24,7 +22,7 @@ declare module "node-7z" {
     interface Progress {
       percent: number;
       fileCount: number;
-      file?: string;
+      file: string;
     }
 
     import * as events from "events";
@@ -52,37 +50,39 @@ declare module "node-7z" {
       _destroy(error: Error | null, callback: (error?: Error | null) => void): void;
       destroy(error?: Error): void;
 
-      addListener(event: "end", listener: (info: Map<string, string>) => void): this;
+      info: Map<string, string>;
+
+      addListener(event: "end", listener: () => void): this;
       addListener(event: "data", listener: (data: Data) => void): this;
       addListener(event: "progress", listener: (progress: Progress) => void): this;
       addListener(event: "error", listener: (err: Error) => void): this;
 
-      emit(event: "end", info: Map<string, string>): boolean;
+      emit(event: "end"): boolean;
       emit(event: "data", data: Data): boolean;
       emit(event: "progress", progress: Progress): boolean;
       emit(event: "error", listener: (err: Error) => void): this;
 
-      on(event: "end", listener: (info: Map<string, string>) => void): this;
+      on(event: "end", listener: () => void): this;
       on(event: "data", listener: (data: Data) => void): this;
       on(event: "progress", listener: (progress: Progress) => void): this;
       on(event: "error", listener: (err: Error) => void): this;
 
-      once(event: "end", listener: (info: Map<string, string>) => void): this;
+      once(event: "end", listener: () => void): this;
       once(event: "data", listener: (data: Data) => void): this;
       once(event: "progress", listener: (progress: Progress) => void): this;
       once(event: "error", listener: (err: Error) => void): this;
 
-      prependListener(event: "end", listener: (info: Map<string, string>) => void): this;
+      prependListener(event: "end", listener: () => void): this;
       prependListener(event: "data", listener: (data: Data) => void): this;
       prependListener(event: "progress", listener: (progress: Progress) => void): this;
       prependListener(event: "error", listener: (err: Error) => void): this;
 
-      prependOnceListener(event: "end", listener: (info: Map<string, string>) => void): this;
+      prependOnceListener(event: "end", listener: () => void): this;
       prependOnceListener(event: "data", listener: (data: Data) => void): this;
       prependOnceListener(event: "progress", listener: (progress: Progress) => void): this;
       prependOnceListener(event: "error", listener: (err: Error) => void): this;
 
-      removeListener(event: "end", listener: (info: Map<string, string>) => void): this;
+      removeListener(event: "end", listener: () => void): this;
       removeListener(event: "data", listener: (data: Data) => void): this;
       removeListener(event: "progress", listener: (data: Data) => void): this;
       removeListener(event: "error", listener: (error: Error) => void): this;
@@ -95,10 +95,9 @@ declare module "node-7z" {
       raw?: Array<string>;
       [key: string]: any
     }
-
-
   
     function add(archive: string, files: string | Array<string>, options?: CommandLineSwitches): ZipReadable;
+    // @TODO Figure out how to get delete and test working as function names
     // function _delete(archive: string, files: string | Array<string>, options: CommandLineSwitches): PromiseWithProgress<{}>;
     function extract(archive: string, dest: string, options?: CommandLineSwitches): ZipReadable;
     function extractFull(archive: string, dest: string, options?: CommandLineSwitches): ZipReadable;

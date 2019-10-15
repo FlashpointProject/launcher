@@ -1,7 +1,7 @@
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
 import { GameMetaDefaults } from '../curate/defaultValues';
-import { createCurationIndexImage, CurationIndexContent, CurationIndexImage } from '../curate/indexCuration';
+import { createCurationIndexImage, CurationIndexImage, IndexedContent } from '../curate/importCuration';
 import { ParsedCurationMeta } from '../curate/parse';
 import { uuid } from '../uuid';
 
@@ -191,7 +191,11 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
   }
 }
 
-/** Ensure a curation exists, returning its index */
+/** Ensure a curation exists in the state
+ * @param curations Mutable CurationState
+ * @param key Unique curation key to find
+ * @returns Index of the curation inside the CurationState
+ */
 function ensureCurationIndex(curations: EditCuration[], key: string): number {
   const index = curations.findIndex(c => c.key === key);
   if (index === -1) {
@@ -241,7 +245,7 @@ export type CurationAction = (
   /** Index a curations content folder */
   ReducerAction<'set-curation-content', {
     key: string;
-    content: CurationIndexContent[];
+    content: IndexedContent[];
   }> |
   /** Add an empty additional application to curation */
   ReducerAction<'new-addapp', {
@@ -295,7 +299,7 @@ export type EditCuration = {
   /** Keys of additional applications that belong to this game. */
   addApps: EditAddAppCuration[];
   /** Data of each file in the content folder (and sub-folders). */
-  content: CurationIndexContent[];
+  content: IndexedContent[];
   /** Screenshot. */
   screenshot: CurationIndexImage;
   /** Thumbnail. */

@@ -770,3 +770,25 @@ body {
   /* Change the color of the "No Theme" suggestion in the drop-down list. */
   color: var(--layout__no-theme-suggestion-color);
 }
+
+/** ------ Progress Components ------ **/
+/* Status Bar */
+.status-bar__top-text {
+  color: var(--layout__primary-text-color);
+}
+.status-bar__bottom-text {
+  color: var(--layout__primary-text-color);
+}
+/* Progress Bar */
+.progress-bar__top-text {
+  color: var(--layout__primary-text-color);
+}
+.progress-bar__bottom-text {
+  color: var(--layout__primary-text-color);
+}
+.progress-bar__bar {
+  background-color: var(--layout__secondary-background);
+}
+.progress-bar__bar__inner {
+  background-color: var(--layout__confirm-color);
+}

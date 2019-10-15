@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCallback } from 'react';
 import { CurationAction, EditAddAppCuration, EditAddAppCurationMeta } from '../context/CurationContext';
-import { launchAddAppCuration } from '../curate/importCuration';
+import { launchAddAppCuration } from '../curate/importGame';
 import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';

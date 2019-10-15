@@ -3,16 +3,17 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
-import { IGameLibraryFileItem } from 'src/shared/library/interfaces';
 import { LangContainer } from '../../../shared/lang';
+import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { findLibraryByRoute } from '../../../shared/library/util';
 import { memoizeOne } from '../../../shared/memoize';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { CurationContext, EditCuration, EditCurationMeta } from '../../context/CurationContext';
+import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { stringifyCurationFormat } from '../../curate/format/stringifier';
-import { importCuration } from '../../curate/importCuration';
-import { createCurationIndexImage, importCurationArchive, importCurationFolder, importCurationMeta, indexContentFolder } from '../../curate/indexCuration';
+import { importCuration } from '../../curate/importGame';
+import { createCurationIndexImage, importCurationArchive, importCurationFolder, importCurationMeta, indexContentFolder } from '../../curate/importCuration';
 import { convertEditToCurationMeta } from '../../curate/metaToMeta';
 import { createCurationImage, curationLog, getContentFolderByKey, getCurationFolder, readCurationMeta } from '../../curate/util';
 import GameManager from '../../game/GameManager';
@@ -22,6 +23,7 @@ import { getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CurateBox } from '../CurateBox';
+import { AutoProgressComponent } from '../ProgressComponents';
 import { SimpleButton } from '../SimpleButton';
 
 type OwnProps = {
@@ -33,10 +35,13 @@ type OwnProps = {
 
 export type CuratePageProps = OwnProps & WithLibraryProps;
 
+const progressKey = 'curate-page';
+
 /** Page that is used for importing curations. */
 export function CuratePage(props: CuratePageProps) {
   const strings = React.useContext(LangContext);
   const [state, dispatch] = useContext(CurationContext.context);
+  const [progressState, progressDispatch] = useContext(ProgressContext.context);
   const [indexedCurations, setIndexedCurations] = React.useState<string[]>([]);
   const localState = useMemo(() => { return { state: state }; }, []);
   // Get default curation game meta values
@@ -223,7 +228,7 @@ export function CuratePage(props: CuratePageProps) {
               const fullPath = path.join(curationsPath, file);
               const stats = await fs.lstat(fullPath);
               // Remove directories without an attached curations
-              if (stats.isDirectory() && state.curations.findIndex((item) => item.key === file) === -1) {
+              if (stats.isDirectory() && state.curations.findIndex(item => item.key === file) === -1) {
                 await fs.remove(fullPath);
               }
             } catch (error) {
@@ -235,9 +240,7 @@ export function CuratePage(props: CuratePageProps) {
       .catch((error) => {
         curationLog('Error reading curations folder - ' + error.message);
         console.error(error);
-      })
-      
-
+      });
     };
   }, []);
 
@@ -245,7 +248,8 @@ export function CuratePage(props: CuratePageProps) {
   const importCurationCallback = useCallback((curation: EditCuration, log?: boolean) => {
     if (!props.games)      { throw new Error('Failed to import curation. "games" is undefined.'); }
     if (!props.gameImages) { throw new Error('Failed to import curation. "gameImages" is undefined.'); }
-    return importCuration(curation, props.games, props.gameImages, props.libraryData.libraries, log);
+    return importCuration(curation, props.games, props.gameImages,
+                          props.libraryData.libraries, log);
   }, [props.games, props.gameImages, props.libraryData.libraries]);
   // Import All Curations Callback
   const onImportAllClick = useCallback(async () => {
@@ -270,7 +274,20 @@ export function CuratePage(props: CuratePageProps) {
               library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
             }
             // Import curation (and wait for it to complete)
-            await importCurationCallback(curation, true);
+            await importCurationCallback(curation, true)
+              // Import failed, could be error or user cancelled
+              .catch(async (error) => {
+                curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
+                console.error(error);
+                const content = await indexContentFolder(getContentFolderByKey(curation.key));
+                dispatch({
+                  type: 'set-curation-content',
+                  payload: {
+                    key: curation.key,
+                    content: content
+                  }
+                });
+              });
             // Increment success counter
             success += 1;
             // Log status
@@ -328,15 +345,20 @@ export function CuratePage(props: CuratePageProps) {
       properties: ['openFile', 'multiSelections'],
       filters: [{ extensions: ['zip', '7z', 'rar'], name: 'Curation archive' }],
     });
+    // Create Status Progress for counting extracting archives
+    const statusProgress = newProgress(progressKey, progressDispatch);
+    let filesCounted = 1;
     if (filePaths) {
-      for (let i = 0; i < filePaths.length; i++) {
-        const archivePath = filePaths[i];
+      ProgressDispatch.setText(statusProgress, `Importing Curation ${filesCounted} of ${filePaths.length}`);
+      // Don't use percentDone
+      ProgressDispatch.setUsePercentDone(statusProgress, false);
+      for (let archivePath of filePaths) {
         // Mark as indexed so can index ourselves after extraction
         const key = uuid();
         indexedCurations.push(key);
         setIndexedCurations(indexedCurations);
         // Extract files to curation folder
-        importCurationArchive(archivePath, key)
+        await importCurationArchive(archivePath, key, newProgress(progressKey, progressDispatch))
         .then(async key => {
           const content = await indexContentFolder(getContentFolderByKey(key));
           dispatch({
@@ -346,9 +368,15 @@ export function CuratePage(props: CuratePageProps) {
               content: content
             }
           });
+        })
+        // Update Status Progress with new number of counted files
+        .finally(() => {
+          filesCounted++;
+          ProgressDispatch.setText(statusProgress, `Importing Curation ${filesCounted} of ${filePaths.length}`);
         });
       }
     }
+    ProgressDispatch.finished(statusProgress);
   }, [dispatch, indexedCurations, setIndexedCurations]);
 
   // Load Curation Folder Callback
@@ -359,14 +387,15 @@ export function CuratePage(props: CuratePageProps) {
       properties: ['openDirectory', 'multiSelections'],
     });
     if (filePaths) {
+      // Process in series - IO bound anyway, and serves progress better
       Promise.all(
-        filePaths.map(dirPath => {
+        filePaths.map((dirPath) => {
           // Mark as indexed so can index ourselves after copying
           const key = uuid();
           indexedCurations.push(key);
           setIndexedCurations(indexedCurations);
           // Copy files to curation folder
-          importCurationFolder(dirPath, key)
+          return importCurationFolder(dirPath, key, newProgress(progressKey, progressDispatch))
           .then(async key => {
             const content = await indexContentFolder(getContentFolderByKey(key));
             dispatch({
@@ -420,11 +449,26 @@ export function CuratePage(props: CuratePageProps) {
         <option key={0}>
           {strings.curate.default}
         </option>
-      )
+      );
       options.push(defaultLibrary);
     }
     return options;
   });
+
+  // Render all owned ProgressData as components
+  const progressComponent = useMemo(() => {
+    const progressArray = progressState[progressKey];
+    if (progressArray) {
+      return progressArray.map((data, index) => {
+        return (
+          <AutoProgressComponent
+            key={index}
+            progressData={data}
+            wrapperClass='curate-box' />
+        );
+      });
+    }
+  }, [progressState[progressKey]]);
 
   // Render CurateBox
   const curateBoxes = React.useMemo(() => {
@@ -472,11 +516,12 @@ export function CuratePage(props: CuratePageProps) {
               onClick={onLoadCurationFolderClick} />
           </div>
         </div>
+        { progressComponent }
         {/* Curation(s) */}
         { curateBoxes }
       </div>
     </div>
-  ), [curateBoxes, onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick]);
+  ), [curateBoxes, progressComponent, onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick]);
 }
 
 function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {

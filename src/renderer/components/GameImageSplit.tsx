@@ -73,7 +73,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             <SimpleButton
               value={formatString(strings.addBlank, text)}
               onClick={this.onAddClick}
-              disabled={disabled}/>
+              disabled={disabled} />
           </div>
         ) : (
           <div className='game-image-split__buttons'>
@@ -81,7 +81,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             <ConfirmElement
               onConfirm={this.onRemoveClick}
               children={renderDeleteImageButton}
-              extra={[strings, text, !!disabled]}/>
+              extra={[strings, text, !!disabled]} />
             { showPreview ?
               <ImagePreview
                 src={this.props.imgSrc}

@@ -63,27 +63,33 @@ export function convertToCurationMeta(game: IGameInfo, addApps?: IAdditionalAppl
   // Return
   return parsed;
 }
-export function convertEditToCurationMeta(game: EditCurationMeta, addApps?: EditAddAppCuration[]): CurationFormatMeta {
+
+/**
+ * Convert curation and its additional applications into a raw object representation in the curation meta format. (for saving)
+ * @param curation Curation to convert.
+ * @param addApps Additional applications of the curation.
+ */
+export function convertEditToCurationMeta(curation: EditCurationMeta, addApps?: EditAddAppCuration[]): CurationFormatMeta {
   const parsed: CurationFormatMeta = {};
   // Edit curation meta
-  parsed['Title']                = game.title;
-  parsed['Library']              = game.library;
-  parsed['Series']               = game.series;
-  parsed['Developer']            = game.developer;
-  parsed['Publisher']            = game.publisher;
-  parsed['Play Mode']            = game.playMode;
-  parsed['Release Date']         = game.releaseDate;
-  parsed['Version']              = game.version;
-  parsed['Languages']            = game.language;
-  parsed['Extreme']              = game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = game.genre;
-  parsed['Source']               = game.source;
-  parsed['Platform']             = game.platform;
-  parsed['Status']               = game.status;
-  parsed['Application Path']     = game.applicationPath;
-  parsed['Launch Command']       = game.launchCommand;
-  parsed['Game Notes']           = game.notes;
-  parsed['Original Description'] = game.originalDescription;
+  parsed['Title']                = curation.title;
+  parsed['Library']              = curation.library;
+  parsed['Series']               = curation.series;
+  parsed['Developer']            = curation.developer;
+  parsed['Publisher']            = curation.publisher;
+  parsed['Play Mode']            = curation.playMode;
+  parsed['Release Date']         = curation.releaseDate;
+  parsed['Version']              = curation.version;
+  parsed['Languages']            = curation.language;
+  parsed['Extreme']              = curation.extreme ? 'Yes' : 'No';
+  parsed['Tags']                 = curation.genre;
+  parsed['Source']               = curation.source;
+  parsed['Platform']             = curation.platform;
+  parsed['Status']               = curation.status;
+  parsed['Application Path']     = curation.applicationPath;
+  parsed['Launch Command']       = curation.launchCommand;
+  parsed['Game Notes']           = curation.notes;
+  parsed['Original Description'] = curation.originalDescription;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
   if (addApps) {
