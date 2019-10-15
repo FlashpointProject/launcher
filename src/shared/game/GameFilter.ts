@@ -1,4 +1,4 @@
-import { IGamePlaylist } from '../../renderer/playlist/interfaces';
+import { GamePlaylist } from '../../renderer/playlist/types';
 import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
 import { GameInfo } from './GameInfo';
 import { IGameInfo } from './interfaces';
@@ -123,7 +123,7 @@ export function filterExtreme(showExtreme: boolean, games: IGameInfo[]): IGameIn
  * (This will add new games for the games in the playlist that are missing,
  *  this will also reorder the games to match the order of the playlist)
  */
-function filterPlaylist(playlist: IGamePlaylist | undefined, games: IGameInfo[]): IGameInfo[] {
+function filterPlaylist(playlist: GamePlaylist | undefined, games: IGameInfo[]): IGameInfo[] {
   if (!playlist) { return games; }
   const filteredGames: IGameInfo[] = [];
   for (let gameEntry of playlist.games) {
@@ -335,7 +335,7 @@ export type FilterAndOrderGamesOpts = {
   /** If broken games should be included in the result. */
   broken: boolean;
   /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
-  playlist?: IGamePlaylist;
+  playlist?: GamePlaylist;
   /** Platforms to limit the results to (games from all platforms will be filtered if undefined). */
   platforms?: string[];
   /** The field to order the games by. */

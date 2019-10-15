@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
-import { ICreditsDataProfile } from '../credits/interfaces';
+import { CreditsDataProfile } from '../credits/types';
 
 export type CreditsTooltipProps = {
   /** Credits profile to show in the tooltip. If undefined, the tooltip will be hidden. */
-  profile?: ICreditsDataProfile;
+  profile?: CreditsDataProfile;
 };
 
 /** Tooltip that follows the cursor and displays information about a credits profile. */

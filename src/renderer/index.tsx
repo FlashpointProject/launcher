@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { readGameLibraryFile } from '../shared/library/GameLibrary';
+import { LibraryFile } from '../shared/library/LibraryFile';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
@@ -45,7 +45,7 @@ import { ThemeManager } from './theme/ThemeManager';
   // Create Redux store
   const store = configureStore(history, { preferences: { data: preferencesData } });
   // Load Game Library file
-  let library = await readGameLibraryFile(window.External.config.fullJsonFolderPath, log).catch(e => log(e+''));
+  let library = await LibraryFile.readFile(window.External.config.fullJsonFolderPath, log).catch(e => log(e+''));
   if (library) { store.dispatch(updateLibrary(library)); }
   // Render the application
   ReactDOM.render((

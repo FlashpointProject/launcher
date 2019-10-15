@@ -14,7 +14,7 @@ import { ImageFolderCache } from '../../image/ImageFolderCache';
 import { formatImageFilename, organizeImageFilepaths } from '../../image/util';
 import { CentralState } from '../../interfaces';
 import { LaunchboxData } from '../../LaunchboxData';
-import { IGamePlaylist, IGamePlaylistEntry } from '../../playlist/interfaces';
+import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
 import { getFileExtension } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../uuid';
@@ -336,15 +336,15 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
 }
 
 type PlaylistReport = {
-  playlist: IGamePlaylist;
+  playlist: GamePlaylist;
   missingGameIDs: string[];
-  duplicateGames: { [key: string]: IGamePlaylistEntry[] };
-  invalidGameIDs: IGamePlaylistEntry[];
+  duplicateGames: { [key: string]: GamePlaylistEntry[] };
+  invalidGameIDs: GamePlaylistEntry[];
 };
-function checkPlaylists(playlists: IGamePlaylist[], games: IGameInfo[]): string {
+function checkPlaylists(playlists: GamePlaylist[], games: IGameInfo[]): string {
   const timeStart = Date.now(); // Start timing
   const dupes = checkDupes(playlists, playlist => playlist.id); // Find all playlists with duplicate IDs
-  const invalidIDs: IGamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.id, 4)); // Find all playlists with invalid IDs
+  const invalidIDs: GamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.id, 4)); // Find all playlists with invalid IDs
   // Check the games of all playlists (if they are missing or if their IDs are invalid or duplicates)
   const reports: PlaylistReport[] = [];
   for (let i = 0; i < playlists.length - 1; i++) {

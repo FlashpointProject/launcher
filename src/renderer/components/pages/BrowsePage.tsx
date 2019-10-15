@@ -4,7 +4,6 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
-import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/interfaces';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
 import { GameCollection } from '../../../shared/game/GameCollection';
@@ -12,7 +11,7 @@ import { filterAndOrderGames, FilterAndOrderGamesOpts } from '../../../shared/ga
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
-import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../../shared/library/types';
 import { memoizeOne } from '../../../shared/memoize';
 import { formatDate } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
@@ -27,6 +26,7 @@ import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getImageFolderName } from '../../image/util';
 import { CentralState } from '../../interfaces';
+import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
 import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getFileExtension } from '../../Util';
 import { copyGameImageFile } from '../../util/game';
@@ -60,11 +60,11 @@ type OwnProps = {
   /** Currently selected game (if any). */
   selectedGame?: IGameInfo;
   /** Currently selected playlist (if any). */
-  selectedPlaylist?: IGamePlaylist;
+  selectedPlaylist?: GamePlaylist;
   /** Called when a game is selected. */
   onSelectGame?: (game?: IGameInfo) => void;
   /** Called when a playlist is selected. */
-  onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
+  onSelectPlaylist?: (playlist?: GamePlaylist) => void;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
@@ -196,7 +196,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const showSidebars: boolean = this.props.central.gamesDoneLoading;
     const orderedGames = this.orderGames();
     // Find the selected game in the selected playlist (if both are selected)
-    let gamePlaylistEntry: IGamePlaylistEntry | undefined;
+    let gamePlaylistEntry: GamePlaylistEntry | undefined;
     if (selectedPlaylist && selectedGame) {
       for (let gameEntry of selectedPlaylist.games) {
         if (gameEntry.id === selectedGame.id) {
@@ -369,7 +369,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     };
   });
 
-  onLeftSidebarSelectPlaylist = (playlist: IGamePlaylist): void => {
+  onLeftSidebarSelectPlaylist = (playlist: GamePlaylist): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
     if (clearSearch)      { clearSearch();              }
     if (onSelectPlaylist) { onSelectPlaylist(playlist); }
@@ -755,7 +755,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   /** Get the current library (or undefined if there is none). */
-  getCurrentLibrary(): IGameLibraryFileItem | undefined {
+  getCurrentLibrary(): GameLibraryFileItem | undefined {
     if (this.props.libraryData) {
       const route = this.props.gameLibraryRoute;
       return this.props.libraryData.libraries.find(item => item.route === route);
@@ -871,11 +871,11 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
 
 type GetLibraryGamesArgs = {
   /** Library that the games belong to (if undefined, all games should be shown). */
-  library?: IGameLibraryFileItem;
+  library?: GameLibraryFileItem;
   /** All platforms (to get the games from). */
   platforms: GameManagerPlatform[];
   /** All libraries. */
-  libraries: IGameLibraryFileItem[];
+  libraries: GameLibraryFileItem[];
 };
 
 /** Find all the games for the current library - undefined if no library is selected */

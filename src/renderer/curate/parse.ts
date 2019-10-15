@@ -1,7 +1,10 @@
+import { Coerce } from '../../shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
 import { EditAddAppCurationMeta, EditCurationMeta } from '../context/CurationContext';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
+
+const { str } = Coerce;
 
 /** Return value type of the parseCurationMeta function. */
 export type ParsedCurationMeta = {
@@ -48,7 +51,7 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
   };
   const parser = new ObjectParser({
     input: data,
-    onError: onError && (error => onError(`Error while converting Curation Meta: ${error.toString()}`))
+    onError: onError && (e => onError(`Error while converting Curation Meta: ${e.toString()}`))
   });
   // -- Old curation format --
   parser.prop('Author Notes',         v => parsed.game.authorNotes         = str(v));
@@ -113,16 +116,4 @@ function convertAddApp(item: IObjectParserProp<any>, label: string | number | sy
       break;
   }
   return addApp;
-}
-
-/**
- * Convert any value to a string.
- * @param value Value to convert.
- */
-function str(value: any): string {
-  if (value === undefined || value === null) {
-    return '';
-  } else {
-    return value + '';
-  }
 }

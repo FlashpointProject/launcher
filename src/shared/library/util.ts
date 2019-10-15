@@ -1,14 +1,21 @@
 import GameManagerPlatform from '../../renderer/game/GameManagerPlatform';
-import { IGameLibraryFileItem } from './interfaces';
 import { LangContainer } from '../lang';
+import { GameLibraryFile, GameLibraryFileItem } from './types';
+
+/** Create the default library data */
+export function createDefaultGameLibrary(): GameLibraryFile {
+  return {
+    libraries: [],
+  };
+}
 
 /** Find the first library flagged as default (undefined if none was found) */
-export function findDefaultLibrary(libraries: IGameLibraryFileItem[]): IGameLibraryFileItem|undefined {
+export function findDefaultLibrary(libraries: GameLibraryFileItem[]): GameLibraryFileItem|undefined {
   return libraries.find(library => !!library.default);
 }
 
 /** Find the first library with a given route (undefined if none was found) */
-export function findLibraryByRoute(libraries: IGameLibraryFileItem[], route: string): IGameLibraryFileItem|undefined {
+export function findLibraryByRoute(libraries: GameLibraryFileItem[], route: string): GameLibraryFileItem|undefined {
   return libraries.find(library => library.route === route);
 }
 
@@ -17,11 +24,11 @@ export function findLibraryByRoute(libraries: IGameLibraryFileItem[], route: str
  * @param libraries All libraries that are possible matches
  * @param platformName Name (or filename) of the platform file
  */
-export function findLibraryByPlatformName(libraries: IGameLibraryFileItem[], platformName: string): IGameLibraryFileItem|undefined {
+export function findLibraryByPlatformName(libraries: GameLibraryFileItem[], platformName: string): GameLibraryFileItem|undefined {
   return libraries.find(library => !!library.prefix && platformName.startsWith(library.prefix));
 }
 
-export function getLibraryPlatforms(libraries: IGameLibraryFileItem[], platforms: GameManagerPlatform[], targetLibrary: IGameLibraryFileItem): GameManagerPlatform[] {
+export function getLibraryPlatforms(libraries: GameLibraryFileItem[], platforms: GameManagerPlatform[], targetLibrary: GameLibraryFileItem): GameManagerPlatform[] {
   if (targetLibrary.default) {
     // Find all platforms "used" by other libraries
     const usedPlatforms: GameManagerPlatform[] = [];
@@ -46,6 +53,6 @@ export function getLibraryPlatforms(libraries: IGameLibraryFileItem[], platforms
  * @param item Item to get title of.
  * @param lang Language sub-container to look for title in.
  */
-export function getLibraryItemTitle(item: IGameLibraryFileItem, lang?: LangContainer['libraries']): string {
+export function getLibraryItemTitle(item: GameLibraryFileItem, lang?: LangContainer['libraries']): string {
   return lang && lang[item.route] || item.route;
 }

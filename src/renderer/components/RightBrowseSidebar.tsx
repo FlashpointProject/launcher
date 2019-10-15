@@ -5,7 +5,7 @@ import { wrapSearchTerm } from '../../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { PickType } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../shared/library/types';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import GameManager from '../game/GameManager';
@@ -13,7 +13,7 @@ import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
-import { IGamePlaylistEntry } from '../playlist/interfaces';
+import { GamePlaylistEntry } from '../playlist/types';
 import { copyGameImageFile, deleteGameImageFiles } from '../util/game';
 import { LangContext } from '../util/lang';
 import { GamePropSuggestions } from '../util/suggestions';
@@ -35,9 +35,9 @@ type OwnProps = {
   /** Additional Applications of the currently selected game (if any) */
   currentAddApps?: IAdditionalApplicationInfo[];
   /* */
-  currentLibrary?: IGameLibraryFileItem;
+  currentLibrary?: GameLibraryFileItem;
   /** Currently selected game entry (if any) */
-  gamePlaylistEntry?: IGamePlaylistEntry;
+  gamePlaylistEntry?: GamePlaylistEntry;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame?: () => void;
   /** Called when the selected game is removed from the selected by this */
