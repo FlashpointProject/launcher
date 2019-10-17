@@ -640,9 +640,15 @@ body {
   margin: 0 auto;
 }
 .home-page__random-games__title {
+  display: inline-block;
   margin: 0.2em 0;
   font-size: 1.2em;
   font-weight: bold;
+}
+.home-page__random-games__button {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding-top: 0.2rem;
 }
 .home-page__random-games__loading {
   display: block;

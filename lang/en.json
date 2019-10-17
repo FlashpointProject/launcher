@@ -59,7 +59,8 @@
     "notes": "Don't forget to read the readme if you're having issues.",
     "linuxSupport": "Issues on Linux? {0}",
     "linuxSupportLinkText": "Open FAQ",
-    "randomPicks": "Random Picks"
+    "randomPicks": "Random Picks",
+    "reroll": "Re-roll"
   },
   "logs": {
     "filters": "Filters",
