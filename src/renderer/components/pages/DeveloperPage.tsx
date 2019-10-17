@@ -1,5 +1,5 @@
 import { remote } from 'electron';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
@@ -164,7 +164,9 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onCheckApplicationPaths = (): void => {
     const games = this.props.central.games.collection.games;
     const fullFlashpointPath = window.External.config.fullFlashpointPath;
-    this.setState({ text: checkApplicationPaths(games, fullFlashpointPath) });
+    setTimeout(async () => {
+      this.setState({ text: await checkApplicationPaths(games, fullFlashpointPath) });
+    });
   }
 
   onCheckLaunchCommands = (): void => {
@@ -211,9 +213,58 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onRemoveUnusedImagesClick = (): void => {
     this.setState({ text: 'Please be patient. This may take a few minutes... (Progress is in the console)\n\n' });
     setTimeout(async () => {
+      let text = '';
+      let totalUnusedFiles = 0;
+      let totalUnusedBytes = 0;
       const games = this.props.central.games.collection.games;
       const imagesPath = path.join(window.External.config.fullFlashpointPath, window.External.config.data.imageFolderPath);
-      this.setState({ text: await removeUnusedImages(games, imagesPath) });
+      // Gather image directories
+      const imageDirs = await getImageDirs(imagesPath);
+      text += `Processing ${imageDirs.length} image directories...\n\n`
+      this.setState({ text: text});
+      // Find unused files in all image directories
+      let nextDirNumber = 1;
+      await Promise.all(
+        imageDirs.map(async (imageDir, index) => {
+          await processImageDirectory(imageDir, games);
+          text += `${nextDirNumber.toString().padEnd(imageDirs.length/10)} ` + 
+               imageDir.path.padEnd(75,' ') +
+               ` - File Count : ${imageDir.files.toString().padEnd(8, ' ')}` +
+               ` - Files Unused : ${imageDir.filesUnused.length.toString().padEnd(8, ' ')}` +
+               ` - Total Unused Size : ${sizeToString(imageDir.totalBytesUnused)}\n`;
+          totalUnusedFiles += imageDir.filesUnused.length;
+          totalUnusedBytes += imageDir.totalBytesUnused;
+          nextDirNumber++;
+          this.setState({text: text});
+        })
+      );
+      // Print cumulative files and size
+      text += `\nAll directories processed - ${totalUnusedFiles} images unused totalling ${sizeToString(totalUnusedBytes)}\n`;
+      this.setState({ text: text });
+      // Make sure they want to delete the files
+      const button = await remote.dialog.showMessageBox({
+        type: 'warning',
+        title: 'Delete unused images?',
+        message: totalUnusedFiles + `${totalUnusedFiles} Images found unused totaling ${sizeToString(totalUnusedBytes)} \n` + 
+                'Delete unused images? They cannot be recovered.',
+        buttons: ['Yes', 'No'],
+      });
+      // Button Index 0 - Yes
+      if (button.response === 0) {
+        // Clear out all unused files
+        await Promise.all(
+          imageDirs.map((imageDir) => {
+            imageDir.filesUnused.forEach(async (file) => {
+              text += 'Deleted - ' + file + '\n';
+              await fs.unlink(file);
+            })
+          })
+        )
+        text += `\nDeleted ${totalUnusedFiles} unused images totalling ${sizeToString(totalUnusedBytes)}`;
+      } else {
+        text += 'No images deleted.';
+      }
+      this.setState({text: text});
     }, 0);
   }
 
@@ -514,52 +565,60 @@ function checkFileLocation(games: IGameInfo[]): string {
   return text;
 }
 
-function checkApplicationPaths(games: IGameInfo[], fullFlashpointPath: string): string {
+/** Find application paths which don't point to a valid executable */
+async function checkApplicationPaths(games: IGameInfo[], fullFlashpointPath: string): Promise<string> {
   let invalidGames : IGameInfo[] = [];
   const startTime = Date.now();
-  games.forEach((game) => {
-    path.join(fullFlashpointPath, game.applicationPath);
-    if (!fs.existsSync(path.join(fullFlashpointPath, game.applicationPath))){
-      invalidGames.push(game);
-    }
-  });
+  await Promise.all(
+    games.map(async (game) => {
+      path.join(fullFlashpointPath, game.applicationPath);
+      await fs.access(path.join(fullFlashpointPath, game.applicationPath), fs.constants.F_OK)
+        .catch((error) => { invalidGames.push(game); })
+    })
+  );
   let text = `Checked all Application Paths (in ${Date.now() - startTime}ms)\n\n`;
   invalidGames.sort(orderByTitle);
   invalidGames.forEach((game) => {
+    console.log('yes');
     text += `${('"' + game.title + '"').padEnd(50, ' ')} (ID: ${game.id}) - Application Path - "${game.applicationPath}"\n`
   });
   return text;
 }
 
+/** Check for all missing launch command files and HTTPS launch commands (Only checks URLs) */
 async function checkLaunchCommands(games: IGameInfo[], fullFlashpointPath: string, checkMissing: boolean): Promise<string> {
   let httpsGames : string[]  = [];
   let missingGames : string[] = [];
   const startTime = Date.now();
-  games.forEach((game) => {
-    // Extract first string (Usually URL, Inside quotes will keep spaces)
-    let match = game.launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
-    if (match) {
-      // Match 1 - Inside quotes, Match 0 - No Quotes Found
-      let launchCommand = match[1] || match[0];
-      // Only check URLS (ignore bash/shell script non-URL commands) )
-      if (launchCommand.toLowerCase().startsWith('http')) {
-        if (launchCommand.toLowerCase().startsWith('https')) {
-          httpsGames.push(`${('"' + game.title + '"').padEnd(50, ' ')} (ID: ${game.id})  - Launch Command "${launchCommand}"\n`);
-        }
-        const ending = launchCommand.split('/').pop();
-        // If the string doesn't end in a file, assume the spaced URL was not inside quotes, use full launch command
-        if (ending && !ending.includes('.')){
-          launchCommand = game.launchCommand.split('?')[0];
-        }
-        if (checkMissing) {
-          const filePath = path.join(fullFlashpointPath, 'Server/htdocs', launchCommand.replace(/(^\w+:|^)\/\//, ''));
-          if (!fs.existsSync(filePath)) {
-            missingGames.push(`${('"' + game.title + '"').padEnd(50, ' ')} (ID: ${game.id})  - Launch Command "${launchCommand}"\n`);
+  await Promise.all(
+    games.map(async (game) => {
+      // Extract first string (Usually URL, Inside quotes will keep spaces)
+      let match = game.launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+      if (match) {
+        // Match 1 - Inside quotes, Match 0 - No Quotes Found
+        let launchCommand = match[1] || match[0];
+        // Only check URLS (ignore bash/shell script non-URL commands)
+        if (launchCommand.toLowerCase().startsWith('http')) {
+          if (launchCommand.toLowerCase().startsWith('https')) {
+            httpsGames.push(`${('"' + game.title + '"').padEnd(50, ' ')} (ID: ${game.id})  - Launch Command "${launchCommand}"\n`);
+          }
+          const ending = launchCommand.split('/').pop();
+          // If the string doesn't end in a file, assume the spaced URL was not inside quotes, use full launch command
+          if (ending && !ending.includes('.')){
+            launchCommand = game.launchCommand.split('?')[0];
+          }
+          if (checkMissing) {
+            const filePath = path.join(fullFlashpointPath, 'Server/htdocs', launchCommand.replace(/(^\w+:|^)\/\//, ''));
+            // Push a game to the list if its launch command file is missing
+            await fs.access(filePath, fs.constants.F_OK)
+              .catch((error) => {
+                missingGames.push(`${('"' + game.title + '"').padEnd(50, ' ')} (ID: ${game.id})  - Launch Command "${launchCommand}"\n`);
+              });
           }
         }
       }
-    }
-  });
+    })
+  );
 
   // Sort lists then print everything out
   let text = `Checked all Launch Commands (in ${Date.now() - startTime}ms)\n\n` +
@@ -824,97 +883,47 @@ type ImageDirectory = {
   totalBytesUnused: number;
 }
 
-async function removeUnusedImages(games: IGameInfo[], imagesPath: string): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    const startTime = Date.now();
-    getImageDirs(imagesPath)
-    .then((folders) => {
-      let promises: Promise<ImageDirectory>[] = [];
-      folders.forEach((dir, index) => {
-        console.log('Processing - ' + (index+1) + ' of ' + folders.length + ' - ' + dir.path);
-        promises.push(new Promise<ImageDirectory>((resolve) => {
-          // Find all files
-          const files = fs.readdirSync(dir.path);
-          for (let i = 0; i < files.length; i++) {
-            const fullPath = path.join(dir.path, files[i]);
-            if (!fs.lstatSync(fullPath).isDirectory()) {
-              dir.files++;
-              let j = 0;
-              for (; j < games.length; j++) {
-                if (fullPath.includes(games[j].id)) {
-                  break;
-                }
-              }
-              // No match found from any game, must be unused
-              if (j === games.length) {
-                dir.totalBytesUnused += fs.statSync(fullPath).size;
-                dir.filesUnused.push(fullPath);
-               }
-            }
-          }
-          resolve(dir);
-        }));
-      });
-      return Promise.all(promises);
-    })
-    .then((folders) => {
-      console.log('Processing Finished.');
-      let text = `Processed all image folders (in ${Date.now() - startTime}ms)`;
-      let totalUnusedFiles = 0;
-      let totalSize = 0;
-      folders.forEach((dir) => {
-        totalUnusedFiles += dir.filesUnused.length;
-        totalSize += dir.totalBytesUnused;
-        text += dir.path.padEnd(75,' ') +
-               ` - File Count : ${dir.files.toString().padEnd(8,' ')}` +
-               ` - Files Unused : ${dir.filesUnused.length.toString().padEnd(8, ' ')}` +
-               ` - Total Unused Size : ${sizeToString(dir.totalBytesUnused)}\n`;
-      });
-      const button = remote.dialog.showMessageBoxSync({
-        type: 'warning',
-        title: 'Delete unused images?',
-        message: totalUnusedFiles + `${totalUnusedFiles} Images found unused totaling + ${sizeToString(totalSize)} + \n` + 
-                'Delete unused images? They cannot be recovered.',
-        buttons: ['Yes', 'No'],
-      });
-      // Button Index 0 - Yes
-      if (button === 0) {
-        folders.forEach((dir) => {
-          dir.filesUnused.forEach((file) => {
-            text += 'Deleted - ' + file + '\n';
-            fs.unlinkSync(file);
-          })
-        });
-        text += `\nDeleted ${totalUnusedFiles} unused images totalling ${sizeToString(totalSize)}`;
-      } else {
-        text += 'No images deleted.';
+/** Populate an ImageDirectory object with unused and total files data */
+async function processImageDirectory(imageDir: ImageDirectory, games: IGameInfo[]): Promise<void> {
+  const files = await fs.readdir(imageDir.path);
+  for (let i = 0; i < files.length; i++) {
+    const fullPath = path.join(imageDir.path, files[i]);
+    const stats = await fs.lstat(fullPath);
+    if (stats.isFile()) {
+      imageDir.files++;
+      let j = 0;
+      for (; j < games.length; j++) {
+        if (fullPath.includes(games[j].id)) {
+          break;
+        }
       }
-      resolve(text);
-    })
-    .catch((error) => {
-      console.error(error);
-      reject(error);
-    });
-  });
+      // No match found from any game, must be unused
+      if (j === games.length) {
+        imageDir.totalBytesUnused += stats.size;
+        imageDir.filesUnused.push(fullPath);
+      }
+    }
+  }
 }
 
+/** Gather a list of ImageDirectory objects for each deepest directory in the path */
 async function getImageDirs(fullImagesPath: string): Promise<ImageDirectory[]> {
-  return new Promise<ImageDirectory[]>((resolve) => {
-    let dirs: ImageDirectory[] = [];
-    recursiveImageDirs(fullImagesPath).forEach((dir) => {
-      dirs.push({path: dir, files: 0, filesUnused: [], totalBytesUnused: 0});
-    });
-    resolve(dirs);
+  let imageDirs: ImageDirectory[] = [];
+  const dirs = await recursiveImageDirs(fullImagesPath)
+  dirs.forEach((dir) => {
+    imageDirs.push({path: dir, files: 0, filesUnused: [], totalBytesUnused: 0});
   });
+  return imageDirs;
 }
 
-function recursiveImageDirs(dir: string): string[] {
+async function recursiveImageDirs(dir: string): Promise<string[]> {
   let list: string[] = [];
-  const files = fs.readdirSync(dir);
+  const files = await fs.readdir(dir);
   for (let i = 0; i < files.length; i++) {
     const fullPath = path.join(dir, files[i]);
-    if (fs.lstatSync(fullPath).isDirectory()) {
-      list = list.concat(recursiveImageDirs(fullPath));
+    const stats = await fs.lstat(fullPath);
+    if (stats.isDirectory()) {
+      list = list.concat(await recursiveImageDirs(fullPath));
     }
   }
   if (list.length === 0) { list.push(dir); }
