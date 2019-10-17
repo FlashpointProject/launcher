@@ -1,5 +1,4 @@
 import { ConnectedRouter } from 'connected-react-router';
-import { remote } from 'electron';
 import { createMemoryHistory } from 'history';
 import * as path from 'path';
 import * as React from 'react';
@@ -27,6 +26,7 @@ import { ThemeManager } from './theme/ThemeManager';
   await Promise.all([
     window.External.config.waitUtilInitialized(),
     window.External.preferences.waitUtilInitialized(),
+    window.External.services.waitUtilInitialized(),
   ]);
   // Get preferences data
   const preferencesData = window.External.preferences.getData();

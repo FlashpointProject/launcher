@@ -24,13 +24,15 @@ export type InputFieldProps = {
   reference?: React.RefObject<any>;
   /** Called when the text has been changed (while "editable"). */
   onChange?: (event: React.ChangeEvent<InputElement>) => void;
+  /** Called when the text has been clicked. */
+  onClick?: (event: React.MouseEvent<InputElement | HTMLParagraphElement>) => void;
   /** Called when a key is pressed (while "editable" and focused). */
   onKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
 };
 
 /** A generic input field. */
 export function InputField(props: InputFieldProps) {
-  const { className, disabled, editable, multiline, onChange, onKeyDown, placeholder, reference, text } = props;
+  const { className, disabled, editable, multiline, onChange, onClick, onKeyDown, placeholder, reference, text } = props;
   let cleanClassName = (className ? ' '+className : '');
   if (disabled) { cleanClassName += ' simple-input--disabled'; }
   if (editable) {
@@ -42,6 +44,7 @@ export function InputField(props: InputFieldProps) {
           disabled={disabled}
           ref={reference}
           onChange={onChange}
+          onClick={onClick}
           onKeyDown={onKeyDown}
           className={'input-field input-field--multiline input-field--edit simple-input simple-scroll' + cleanClassName} />
       );
@@ -53,6 +56,7 @@ export function InputField(props: InputFieldProps) {
           disabled={disabled}
           ref={reference}
           onChange={onChange}
+          onClick={onClick}
           onKeyDown={onKeyDown}
           className={'input-field input-field--edit simple-input' + cleanClassName} />
       );
@@ -66,6 +70,7 @@ export function InputField(props: InputFieldProps) {
       <p
         title={props.text}
         className={cn}
+        onClick={onClick}
         ref={reference}>
         {props.text || props.placeholder}
       </p>

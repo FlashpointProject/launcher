@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { promisify } from 'util';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { formatDate, removeFileExtension } from '../../shared/Util';
@@ -27,10 +28,11 @@ const copyFile = promisify(fs.copyFile);
  * @returns A promise that resolves when the import is complete.
  */
 export async function importCuration(
-  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, log: boolean = false
+  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, libraries: IGameLibraryFileItem[], log: boolean = false
 ): Promise<void> {
-  // @TODO Add support for selecting what library to save the game to
-  const libraryPrefix = '';
+  // Find the library and get its prefix
+  const library = libraries.find(lib => lib.title === curation.meta.library);
+  const libraryPrefix = library && library.prefix || '';
   // Create and add game and additional applications
   const game = createGameFromCurationMeta(curation);
   const addApps = createAddAppsFromCurationMeta(curation);
@@ -41,7 +43,7 @@ export async function importCuration(
   );
   // Copy/extract content and image files
   await Promise.all([
-    games.addOrUpdateGame({ game, addApps, saveToFile: true })
+    games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
     .then(() => { if (log) { logMsg('Meta Added', curation); } }),
     // Copy Thumbnail
     (async () => {

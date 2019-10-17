@@ -1,6 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { ILogPreEntry } from '../shared/Log/interface';
+import { ProcessState } from '../shared/service/interfaces';
 
 export declare interface ManagedChildProcess {
   /**
@@ -10,21 +11,32 @@ export declare interface ManagedChildProcess {
    */
   on(event: 'output', handler: (output: ILogPreEntry) => void): this;
   emit(event: 'output', output: ILogPreEntry): boolean;
-  /** Fires when the this has executed all processes inside .start() */
-  on(event: 'start-done'): this;
-  emit(event: 'start-done'): boolean;
+  /** Fires whenever the status of a process changes. */
+  on(event: 'change', listener: () => void): this;
+  emit(event: 'change'): boolean;
 }
 
-/**
- * A Child Process which automatically logs all output to the console
- */
+/** Manages a single process. Wrapper around node's ChildProcess. */
 export class ManagedChildProcess extends EventEmitter {
+  // @TODO Add timeouts for restarting and killing the process (it should give up after some time, like 10 seconds) maybe?
+  /** Process that this is wrapping/managing. */
   private process?: ChildProcess;
+  /** If the process is currently being restarted. */
+  private _isRestarting: boolean = false;
+  /** Display name of the service. */
   public readonly name: string;
+  /** Command of the process (usually a filename of a program). */
   private command: string;
+  /** Arguments passed to the process. */
   private args: string[];
+  /** The current working directory of the process. */
   private cwd: string;
+  /** If the process is detached (it is not spawned as a child process of this program). */
   private detached: boolean;
+  /** A timestamp of when the process was started. */
+  private startTime: number = 0;
+  /** State of the process. */
+  private state: ProcessState = ProcessState.STOPPED;
 
   constructor(name: string, command: string, args: string[], cwd: string, detached: boolean) {
     super();
@@ -35,38 +47,100 @@ export class ManagedChildProcess extends EventEmitter {
     this.detached = detached;
   }
 
-  /** Spawn process and keep track of its output */
-  public spawn(): void {
-    if (this.process) { throw Error('You must not spawn the same ManagedChildProcess multiple times.'); }
-    this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
-    this.logContent('has been started');
-    // Add event listeners to process
-    if (this.process.stdout) {
-      this.process.stdout.on('data', (data: Buffer) => {
-        // @BUG: This is only shows after the user presses CTRL+C.
-        //       It does not show it any other circumstances.
-        this.logContent(data.toString('utf8'));
-      });
-    }
-    if (this.process.stderr) {
-      this.process.stderr.on('data', (data: Buffer) => {
-        this.logContent(data.toString('utf8'));
-      });
-    }
-    this.process.on('exit', (code, signal) => {
-      if (code) { this.logContent(`exited with code ${code}`);     }
-      else      { this.logContent(`exited with signal ${signal}`); }
-      this.process = undefined;
-    });
+  /** Get the process ID (or -1 if the process is not running). */
+  public getPid(): number {
+    return this.process ? this.process.pid : -1;
   }
 
-  /** Politely ask the child process to exit */
+  /** Get the state of the process. */
+  public getState(): ProcessState {
+    return this.state;
+  }
+
+  /** Get the time timestamp of when the process was started. */
+  public getStartTime(): number {
+    return this.startTime;
+  }
+
+  /** Spawn process and keep track on it. */
+  public spawn(): void {
+    if (!this.process && !this._isRestarting) {
+      // Spawn process
+      this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
+      // Set start timestamp
+      this.startTime = Date.now();
+      // Log
+      this.logContent(this.name + ' has been started');
+      // Setup listeners
+      if (this.process.stdout) {
+        this.process.stdout.on('data', this.logContent);
+      }
+      if (this.process.stderr) {
+        this.process.stderr.on('data', (data: Buffer) => {
+          this.logContent(data.toString('utf8'));
+        });
+      }
+      // Update state
+      this.setState(ProcessState.RUNNING);
+      // Register child process listeners
+      this.process.on('exit', (code, signal) => {
+        if (code) { this.logContent(`${this.name} exited with code ${code}`);     }
+        else      { this.logContent(`${this.name} exited with signal ${signal}`); }
+        this.process = undefined;
+        this.setState(ProcessState.STOPPED);
+      })
+      .on('error', error => {
+        this.logContent(`${this.name} failed to start - ${error.message}`);
+        this.setState(ProcessState.STOPPED);
+        this.process = undefined;
+      });
+    }
+  }
+
+  /** Politely ask the child process to exit (if it is running). */
   public kill(): void {
     if (this.process) {
+      this.setState(ProcessState.KILLING);
       this.process.kill();
     }
   }
 
+  /** Restart the managed child process (by killing the current, and spawning a new). */
+  public restart(): void {
+    if (this.process && !this._isRestarting) {
+      this._isRestarting = true;
+      this.logContent(`Restarting ${this.name} process`);
+      // Replace all listeners with a single listener waiting for the process to exit
+      this.process.removeAllListeners();
+      this.process.once('exit', (code, signal) => {
+        if (code) { this.logContent(`Old ${this.name} exited with code ${code}`);     }
+        else      { this.logContent(`Old ${this.name} exited with signal ${signal}`); }
+        this._isRestarting = false;
+        this.spawn();
+      });
+      // Kill process
+      this.kill();
+      this.process = undefined;
+    } else {
+      this.spawn();
+    }
+  }
+
+  /**
+    * Set the state of the process.
+   * @param state State to set.
+   */
+  private setState(state: ProcessState): void {
+    if (this.state != state) {
+      this.state = state;
+      this.emit('change');
+    }
+  }
+
+  /**
+   * Add an entry in the log.
+   * @param content Content of the entry.
+   */
   private logContent(content: string): void {
     this.emit('output', {
       source: this.name,

@@ -19,6 +19,8 @@ export type CurationWarnings = {
   unusedGenre?: boolean;
   /** If the platform value isn't used by any other game. */
   unusedPlatform?: boolean;
+  /** If the library value does not point to an existing library. */
+  nonExistingLibrary?: boolean;
   /** If there are no content files or folders. */
   noContent?: boolean;
 };
@@ -71,16 +73,3 @@ function createCountTrueReducer<T extends object>(obj: T) {
     previousValue + (obj[currentValue as keyof T] ? 1 : 0)
   );
 }
-
-type WarningDescriptionContainer = {
-  [key in keyof CurationWarnings]: string;
-};
-
-const warningDescriptions: WarningDescriptionContainer = {
-  isNotHttp: '"Launch Command" is not a URL using the HTTP protocol.',
-  releaseDateInvalid: '"Release Date" must follow YYYY-MM-DD (month and day are optional).',
-  unusedApplicationPath: '"Application Path" has an unused value. Make sure it\'s spelled correctly!',
-  unusedGenre: '"Genre" has an unused value. Make sure it\'s spelled correctly!',
-  unusedPlatform: '"Platform" has an unused value. Make sure it\'s spelled correctly!',
-  noContent: 'No content found! Make sure the folder is named and placed correctly!',
-};

@@ -57,6 +57,7 @@
   /* Right Browse Sidebar */
   --layout__browse-right-sidebar-screenshot-placeholder-background: #1b1b1b;
   --layout__browse-right-sidebar-screenshot-placeholder-border:     #818181;
+  --layout__browse-right-sidebar-searchable-hover:                  #857df3;
   /* Playlist List */
   --layout__playlist-list-item-even-background:                #1e1e1f;
   --layout__playlist-list-fake-even-background:                #19191b;
@@ -101,6 +102,8 @@
   /* Header Menu Item */
   --layout__header-menu-item-hover-background: #3c2d4b;
   --layout__header-menu-item-hover-border: #d33682;
+  /* Splash Screen */
+  --layout__splash-screen_loading:                 #eb4b4b;
   /* Misc */
   --layout__title-bar-cross-color:                 #eb4b4b;
   --layout__no-theme-suggestion-color:             #bfbfbf;
@@ -377,38 +380,17 @@ body {
 
 
 /* ------ Home ------ */
-/* Logo */
-.home-page__logo__image {
-  /* Mask the background color with the FP logo */
-  -webkit-mask: url('../images/logo-solid.svg');
-  -webkit-mask-size: var(--size);
-  -webkit-mask-repeat: no-repeat;
-  /* Cool colors yall */
-  background:
-    linear-gradient(rgba(0, 0, 0, 0), var(--layout__primary-background)),
-    linear-gradient(90deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400);
-  background-size: var(--zoom) 100%;
-  -webkit-animation: home-page__logo__slide 1200s linear infinite;
-}
-@-webkit-keyframes home-page__logo__slide {
-     0% { background-position-x:          0%; }
-   100% { background-position-x: var(--zoom); }
-}
 /* HomePage Box */
 .home-page__box {
   border-color: var(--layout__home-page-box-border);
   background-color: var(--layout__home-page-box-background);
 }
-.home-page__box__head {
+.home-page__box-head {
   border-bottom-color: var(--layout__home-page-box-border);
 }
 /* HomePage Box - Upgrades */
 .home-page__box--upgrades .home-page__grayed-out {
   color: var(--layout__disabled-text-color);
-}
-/* HomePage Box - Extras */
-.home-page__box--extras span a {
-  text-decoration: none;
 }
 
 
@@ -491,6 +473,9 @@ body {
 }
 .game-browser__sidebar__divider {
   background-color: var(--layout__browse-sidebar-divider-background);
+}
+.browse-right-sidebar--edit-disabled .browse-right-sidebar__searchable:hover {
+  color: var(--layout__browse-right-sidebar-searchable-hover);
 }
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application:nth-child(2n) {
@@ -700,7 +685,15 @@ body {
   background-color: var(--layout__developer-page-log-background);
   border-color: var(--layout__developer-page-log-border);
 }
-
+/* Service Box */
+.service-box {
+  background-color: var(--layout__quaternary-background);
+  border-color: var(--layout__tertiary-background);
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
+.service-box__log {
+  background-color: var(--layout__primary-background);
+}
 
 /** ------ Config ------ */
 /* Setting */
@@ -738,4 +731,37 @@ body {
 .setting__row__content--theme-input-field label:last-child {
   /* Change the color of the "No Theme" suggestion in the drop-down list. */
   color: var(--layout__no-theme-suggestion-color);
+}
+
+/* ------ FP Logo ------ */
+.fp-logo {
+  /* --size: 1rem; */
+  /* --zoom: 100%; */
+  /* Mask the background color with the FP logo */
+  -webkit-mask: url('../images/logo-solid.svg');
+  -webkit-mask-size: var(--size);
+  -webkit-mask-repeat: no-repeat;
+  /* Cool colors yall */
+  background:
+    linear-gradient(rgba(0, 0, 0, 0), var(--layout__primary-background)),
+    linear-gradient(90deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400);
+  background-size: var(--zoom) 100%;
+}
+.fp-logo--animated {
+  -webkit-animation: fp-logo__slide 1200s linear infinite;
+}
+@-webkit-keyframes fp-logo__slide {
+    0% { background-position-x:          0%; }
+  100% { background-position-x: var(--zoom); }
+}
+
+/* ------ Splash Screen ------ */
+.splash-screen {
+  background: var(--layout__primary-background);
+}
+.splash-screen--fade-out {
+  transition: opacity 0.8s;
+}
+.splash-screen__status {
+  color: var(--layout__primary-text-color);
 }

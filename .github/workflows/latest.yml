@@ -1,0 +1,76 @@
+name: Build and Release Latest
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        arch: [win32, linux, darwin]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: npm install
+      run: npm install
+      env:
+        CI: true
+    - name: npm build
+      run: npm run build:${{ matrix.arch }} --if-present
+      env:
+        CI: true
+        
+  generate-latest:
+    name: Update Latest Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps: 
+    - name: Checkout repository
+      uses: actions/checkout@master
+    - name: Create new latest
+      uses: EndBug/latest-tag@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Leave this line unchanged
+      
+        
+  release:
+    name: Release
+    needs: generate-latest
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        arch: [win32, linux, darwin]
+        
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: npm install
+      run: npm install
+      env:
+        CI: true
+    - name: npm release
+      run: npm run release:${{ matrix.arch }}
+    - name: Package releases
+      run: |
+        7z a dist/flashpoint-launcher-${{ matrix.arch }}.zip ./dist/*/*
+    - name: Upload binaries to latest release
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/flashpoint-launcher-${{ matrix.arch }}.zip
+        asset_name: flashpoint-launcher-${{ matrix.arch }}.zip
+        tag: latest
+        overwrite: true

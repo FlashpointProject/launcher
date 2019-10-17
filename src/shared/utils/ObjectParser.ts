@@ -216,6 +216,11 @@ class ObjectParserPropNone<P> implements IObjectParserProp<P> {
   }
 }
 
+/**
+ * This class makes it safe and easy to traverse an object of unknown "shape".
+ * It is useful when parsing data that is potentially incorrectly formatted,
+ * like the contents of JSON or XML file.
+ */
 export class ObjectParser<T> extends ObjectParserProp<T> {
   constructor(options: ObjectParserOptions<T>) {
     const context: Context = {

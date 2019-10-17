@@ -1,10 +1,13 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as React from 'react';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
+import { wrapSearchTerm } from '../../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { BrowseLang, DialogLang, LangContainer, MenuLang } from '../../shared/lang/types';
+import { PickType } from '../../shared/interfaces';
+import { LangContainer } from '../../shared/lang';
 import { IGameLibraryFileItem } from '../../shared/library/interfaces';
 import { WithPreferencesProps } from '../containers/withPreferences';
+import { WithSearchProps } from '../containers/withSearch';
 import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
@@ -53,7 +56,7 @@ type OwnProps = {
   onSaveGame?: () => void;
 };
 
-export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps;
+export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps;
 
 type RightBrowseSidebarState = {
   /** If a preview of the current game's screenshot should be shown. */
@@ -66,7 +69,7 @@ export interface RightBrowseSidebar {
 
 /** Sidebar on the right side of BrowsePage. */
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
-  // Bound "on done" handlers for various input elements
+  // Bound "on change" callbacks for game fields
   onTitleChange               = this.wrapOnTextChange((game, text) => { game.title               = text; });
   onDeveloperChange           = this.wrapOnTextChange((game, text) => { game.developer           = text; });
   onGenreChange               = this.wrapOnTextChange((game, text) => { game.genre               = text; });
@@ -85,6 +88,19 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onOriginalDescriptionChange = this.wrapOnTextChange((game, text) => { game.originalDescription = text; });
   onBrokenChange              = this.wrapOnCheckBoxChange(game => { game.broken  = !game.broken;  });
   onExtremeChange             = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
+  // Bound "on click" callbacks for game fields
+  onTitleClick                = this.wrapOnTextClick('title');
+  onDeveloperClick            = this.wrapOnTextClick('developer');
+  onGenreClick                = this.wrapOnTextClick('genre');
+  onSeriesClick               = this.wrapOnTextClick('series');
+  onSourceClick               = this.wrapOnTextClick('source');
+  onPublisherClick            = this.wrapOnTextClick('publisher');
+  onPlatformClick             = this.wrapOnTextClick('platform');
+  onPlayModeClick             = this.wrapOnTextClick('playMode');
+  onStatusClick               = this.wrapOnTextClick('status');
+  onVersionClick              = this.wrapOnTextClick('version');
+  onReleaseDateClick          = this.wrapOnTextClick('releaseDate');
+  onLanguageClick             = this.wrapOnTextClick('language');
 
   launchCommandRef: React.RefObject<HTMLInputElement> = React.createRef();
 
@@ -127,8 +143,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <InputField
                     text={game.title}
                     placeholder={strings.noTitle}
+                    className='browse-right-sidebar__searchable'
+                    editable={editable}
                     onChange={this.onTitleChange}
-                    editable={editable} />
+                    onClick={this.onTitleClick}
+                    onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
                   { editDisabled ? undefined : (
@@ -188,8 +207,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                 <InputField
                   text={game.developer}
                   placeholder={strings.noDeveloper}
-                  onChange={this.onDeveloperChange}
+                  className='browse-right-sidebar__searchable'
                   editable={editable}
+                  onChange={this.onDeveloperChange}
+                  onClick={this.onDeveloperClick}
                   onKeyDown={this.onInputKeyDown} />
               </div>
             ) }
@@ -203,10 +224,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <DropdownInputField
                     text={game.genre}
                     placeholder={strings.noGenre}
+                    className='browse-right-sidebar__searchable'
                     onChange={this.onGenreChange}
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.genre) || []}
                     onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
+                    onClick={this.onGenreClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -214,8 +237,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <InputField
                     text={game.series}
                     placeholder={strings.noSeries}
+                    className='browse-right-sidebar__searchable'
                     onChange={this.onSeriesChange}
                     editable={editable}
+                    onClick={this.onSeriesClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -223,8 +248,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <InputField
                     text={game.publisher}
                     placeholder={strings.noPublisher}
+                    className='browse-right-sidebar__searchable'
                     onChange={this.onPublisherChange}
                     editable={editable}
+                    onClick={this.onPublisherClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -233,7 +260,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.source}
                     placeholder={strings.noSource}
                     onChange={this.onSourceChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
+                    onClick={this.onSourceClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -242,9 +271,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.platform}
                     placeholder={strings.noPlatform}
                     onChange={this.onPlatformChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.platform) || []}
                     onItemSelect={text => { game.platform = text; this.forceUpdate(); }}
+                    onClick={this.onPlatformClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -253,9 +284,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.playMode}
                     placeholder={strings.noPlayMode}
                     onChange={this.onPlayModeChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.playMode) || []}
                     onItemSelect={text => { game.playMode = text; this.forceUpdate(); }}
+                    onClick={this.onPlayModeClick}
                     onKeyDown={this.onInputKeyDown} />
 
                 </div>
@@ -265,9 +298,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.status}
                     placeholder={strings.noStatus}
                     onChange={this.onStatusChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
                     items={suggestions && filterSuggestions(suggestions.status) || []}
                     onItemSelect={text => { game.status = text; this.forceUpdate(); }}
+                    onClick={this.onStatusClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -275,8 +310,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <InputField
                     text={game.version}
                     placeholder={strings.noVersion}
+                    className='browse-right-sidebar__searchable'
                     onChange={this.onVersionChange}
                     editable={editable}
+                    onClick={this.onVersionClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -285,7 +322,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.releaseDate}
                     placeholder={strings.noReleaseDate}
                     onChange={this.onReleaseDateChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
+                    onClick={this.onReleaseDateClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -294,14 +333,18 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     text={game.language}
                     placeholder={strings.noLanguage}
                     onChange={this.onLanguageChange}
+                    className='browse-right-sidebar__searchable'
                     editable={editable}
+                    onClick={this.onLanguageClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.dateAdded}: </p>
                   <p
                     className='browse-right-sidebar__row__date-added'
-                    title={dateAdded}>{dateAdded}</p>
+                    title={dateAdded}>
+                    {dateAdded}
+                  </p>
                 </div>
                 <div className='browse-right-sidebar__row'>
                   <div
@@ -428,10 +471,11 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           ) : undefined }
           {/* -- Screenshot -- */}
           <div className='browse-right-sidebar__section browse-right-sidebar__section--below-gap'>
-            <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer'/>
+            <div className='browse-right-sidebar__row browse-right-sidebar__row__spacer' />
             <div className='browse-right-sidebar__row'>
-              <div className='browse-right-sidebar__row__screenshot'
-                   onContextMenu={this.onScreenshotContextMenu}>
+              <div
+                className='browse-right-sidebar__row__screenshot'
+                onContextMenu={this.onScreenshotContextMenu}>
                 { isEditing ? (
                   <div className='browse-right-sidebar__row__screenshot__placeholder'>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
@@ -482,7 +526,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  renderDeleteGameButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
+  renderDeleteGameButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
         className={
@@ -497,7 +541,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     );
   }
 
-  renderRemoveFromPlaylistButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<BrowseLang>): JSX.Element {
+  renderRemoveFromPlaylistButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['browse']>): JSX.Element {
     return (
       <div
         className={
@@ -572,7 +616,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   addScreenshotDialog = async () => {
     const { currentGame, gameImages } = this.props;
-      if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
+    if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialogSync({
       title: this.context.dialog.selectScreenshot,
@@ -587,7 +631,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   addThumbnailDialog = async () => {
     const { currentGame, gameImages } = this.props;
-      if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
+    if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
     const filePaths = window.External.showOpenDialogSync({
       title: this.context.dialog.selectThumbnail,
@@ -694,7 +738,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.setState({ showPreview: false });
   }
 
-  onEditPlaylistNotes = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
+  onEditPlaylistNotes = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     if (this.props.onEditPlaylistNotes) {
       this.props.onEditPlaylistNotes(event.currentTarget.value);
       this.forceUpdate();
@@ -708,8 +752,22 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
+  /** Create a callback for when a game field is clicked. */
+  wrapOnTextClick<T extends PickType<IGameInfo, string>>(field: T): () => void {
+    return () => {
+      const { currentGame, isEditing } = this.props;
+      if (!isEditing && currentGame) {
+        const value = currentGame[field];
+        const search = (value)
+          ? `${field}:${wrapSearchTerm(value)}`
+          : `missing:${field}`;
+        this.props.onSearch(search);
+      }
+    };
+  }
+
   /** Create a wrapper for a EditableTextWrap's onChange callback (this is to reduce redundancy). */
-  wrapOnTextChange(func: (game: IGameInfo, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
+  wrapOnTextChange(func: (game: IGameInfo, text: string) => void): (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
     return (event) => {
       const game = this.props.currentGame;
       if (game) {
