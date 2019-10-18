@@ -285,6 +285,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             games={this.props.central.games}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+            onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
             onEditPlaylistNotes={this.onEditPlaylistNotes}
             gamePlaylistEntry={gamePlaylistEntry}
             isEditing={this.state.isEditing}
@@ -378,6 +379,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onLeftSidebarDeselectPlaylist = (): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
     if (clearSearch)      { clearSearch();               }
+    if (onSelectPlaylist) { onSelectPlaylist(undefined); }
+  }
+
+  /** Deselect without clearing search (Right sidebar will search itself) */
+  onRightSidebarDeselectPlaylist = (): void => {
+    const { onSelectPlaylist } = this.props;
     if (onSelectPlaylist) { onSelectPlaylist(undefined); }
   }
 
