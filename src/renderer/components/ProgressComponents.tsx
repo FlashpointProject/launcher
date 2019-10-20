@@ -2,13 +2,13 @@ import * as React from 'react';
 import { ProgressData } from '../context/ProgressContext';
 
 export type ProgressComponentProps = {
-  /* Data to read from */
+  /** Data to read from. */
   progressData: ProgressData;
-  /* Class name to append to the wrapper */
+  /** Class name to append to the wrapper. */
   wrapperClass?: string;
 }
 
-/** Choose a StatusBar or ProgressBar, letting the Progress handler decide */
+/** Choose a StatusBar or ProgressBar, letting the Progress handler decide. */
 export function AutoProgressComponent(props: ProgressComponentProps) {
   if (!props.progressData.isDone) {
     if (props.progressData.usePercentDone) {
@@ -29,10 +29,10 @@ export function AutoProgressComponent(props: ProgressComponentProps) {
   }
 }
 
-/* Large centered primar text, smaller underneath secondary text */
+/** Large centered primar text, smaller underneath secondary text. */
 export function StatusBar(props: ProgressComponentProps) {
   return (
-    <div className={`progress-component__wrapper ${props.wrapperClass}`}>
+    <div className={'progress-component__wrapper' + (props.wrapperClass ? ' ' + props.wrapperClass : '')}>
       <div className='status-bar__top-text'>{props.progressData.text}</div>
       { props.progressData.secondaryText ?
         <div className='status-bar__bottom-text'>
@@ -43,21 +43,21 @@ export function StatusBar(props: ProgressComponentProps) {
   );
 }
 
-/* Large top text `Percent% Complete`, medium progress bar, small underneath primary text */
+/** Large top text `Percent% Complete`, medium progress bar, small underneath primary text. */
 export function ProgressBar(props: ProgressComponentProps) {
   const barCssProps: React.CSSProperties = React.useMemo(() => ({
     width: `${props.progressData.percentDone}%`
   }), [props.progressData.percentDone]);
 
   return (
-    <div className={`progress-component__wrapper ${props.wrapperClass}`}>
+    <div className={'progress-component__wrapper' + (props.wrapperClass ? ' ' + props.wrapperClass : '')}>
       <div className='progress-bar__top-text'>{`${Math.round(props.progressData.percentDone)}% Complete`}</div>
       <div className='progress-bar__bar'>
         <div className='progress-bar__bar__inner' style={barCssProps} />
       </div>
       { props.progressData.text ?
         <div className='progress-bar__bottom-text'>
-          { props.progressData.text }
+          {props.progressData.text}
         </div>
       : undefined }
     </div>

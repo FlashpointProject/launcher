@@ -32,7 +32,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   const disabled = props.disabled;
   // Localized strings
   const strings = React.useContext(LangContext);
-  // Callback for remove additional application button
+  // Callback for the "remove" button
   const onRemove = useCallback(() => {
     props.dispatch({
       type: 'remove-addapp',
@@ -42,6 +42,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
       }
     });
   }, [props.curationKey, props.curation.key, props.dispatch]);
+  // Callback for the "run" button
   const onRun = useCallback(() => {
     launchAddAppCuration(props.curationKey, props.curation);
   }, [props.curation && props.curation.meta && props.curationKey]);

@@ -8,18 +8,16 @@ import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
 type GameImageSplitProps = {
-  /** The internal name of the image */
-  type: string;
-  /** Localized name of image (for button) */
+  /** Localized name of image (for button). */
   text: string;
   /** Source of the image (undefined if there is no image). */
   imgSrc?: string;
   /** Called when the "add" button is clicked. This button is only shown while there is no image. */
-  onAddClick: (type: string) => void;
+  onAddClick: () => void;
   /** Called when the "remove" button is clicked. This button is only shown while there is an image. */
-  onRemoveClick: (type: string) => void;
+  onRemoveClick: () => void;
   /** Called when something is dropped on this component. */
-  onDrop: (event: React.DragEvent, type: string) => void;
+  onDrop: (event: React.DragEvent) => void;
   /** If the user should not be able to add a new image. */
   disabled?: boolean;
 };
@@ -27,7 +25,7 @@ type GameImageSplitProps = {
 type GameImageSplitState = {
   /** If the cursor is dragging something over this element. */
   hover: boolean;
-  /** If the preview should be shown */
+  /** If the preview should be shown. */
   showPreview: boolean;
 };
 
@@ -89,17 +87,17 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
                 />
             : undefined }
           </div>
-        )}
+        ) }
       </div>
     );
   }
 
-  onAddClick = (event: React.MouseEvent) => {
-    this.props.onAddClick(this.props.type);
+  onAddClick = () => {
+    this.props.onAddClick();
   }
 
   onRemoveClick = () => {
-    this.props.onRemoveClick(this.props.type);
+    this.props.onRemoveClick();
   }
 
   onDragOver = (event: React.DragEvent): void => {
@@ -115,7 +113,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
 
   onDrop = (event: React.DragEvent): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
-    if (this.props.imgSrc === undefined) { this.props.onDrop(event, this.props.type); }
+    if (this.props.imgSrc === undefined) { this.props.onDrop(event); }
   }
 
   onDragLeave = (event: React.DragEvent): void => {
@@ -124,12 +122,12 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
 
   onPreview = (event: React.MouseEvent) => {
     if (event.target === event.currentTarget && this.props.imgSrc) {
-      this.setState({showPreview : true});
+      this.setState({ showPreview: true });
     }
   }
 
   onPreviewCancel = () => {
-    this.setState({showPreview: false});
+    this.setState({ showPreview: false });
   }
 
   static contextType = LangContext;

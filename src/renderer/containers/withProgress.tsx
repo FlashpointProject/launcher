@@ -3,29 +3,29 @@ import { useCallback, useMemo } from 'react';
 import { Subtract } from '../../shared/interfaces';
 
 export type ProgressData = {
-  /* Percent done */
+  /** Percent done. */
   percentDone: number;
-  /* Whether to use percentDone (info for progress components) */
+  /** Whether to use percentDone (info for progress components). */
   usePercentDone: boolean;
-  /* If bar is finished (now invisible) */
+  /** If bar is finished (now invisible). */
   isDone: boolean;
-  /* Text to display (primary) */
+  /** Text to display (primary). */
   text?: string;
-  /* Text to display (secondary) */
+  /** Text to display (secondary). */
   secondaryText?: string;
-  /* Callback to increment num of items */
+  /** Callback to increment num of items. */
   incItems(): void;
-  /* Callback to increment num of items */
+  /** Callback to increment num of items. */
   setTotalItems(total: number): void;
-  /* Callback to reset the progress state */
+  /** Callback to reset the progress state. */
   newProgress(usingPercent: boolean): void;
-  /* Callback to set percent filled */
+  /** Callback to set percent filled. */
   setPercentDone(percent: number): void;
-  /* Callback to set done (now invisible) */
+  /** Callback to set done (now invisible). */
   setIsDone(): void;
-  /* Callback to set the primary text */
+  /** Callback to set the primary text. */
   setText(text: string): void;
-  /* Callback to set the secondary text */
+  /** Callback to set the secondary text. */
   setSecondaryText(text: string): void;
 }
 
@@ -36,28 +36,28 @@ export type WithProgressProps = {
 type ItemsCountAction = 'increment' | 'clear';
 const initialItemsCount = 0;
 
-export const withProgress = <T extends WithProgressProps>(Component: React.ComponentType<T>) => {
+export function withProgress<T extends WithProgressProps>(Component: React.ComponentType<T>) {
   return function WithProgress(props: Subtract<T, WithProgressProps>) {
-    /* Holds state used internally */
+    // Holds state used internally
     const [itemCount, setItemCount] = React.useReducer(itemCountReducer, initialItemsCount);
     const [totalItems, setTotalItems] = React.useState(0);
     const [percentDone, setPercentDone] = React.useState(0);
     const [usePercentDone, setUsePercentDone] = React.useState(true);
     const [isDone, setIsDone] = React.useState(true);
-    const [text, setText] = React.useState<string|undefined>();
-    const [secondaryText, setSecondaryText] = React.useState<string|undefined>();
+    const [text, setText] = React.useState<string | undefined>();
+    const [secondaryText, setSecondaryText] = React.useState<string | undefined>();
 
-    /* Increment items, produce new percentDone and state */
+    // Increment items, produce new percentDone and state
     const incItems = useCallback(() => {
       setItemCount('increment');
     }, [setItemCount]);
 
-    /* Set progress as done, unless specified as false */
+    // Set progress as done, unless specified as false
     const setIsDoneCallback = useCallback((isDone: boolean = true) => {
       setIsDone(isDone);
     }, [setIsDone]);
 
-    /* Reset the progress */
+    // Reset the progress
     const newProgress = useCallback((usePercentDone: boolean) => {
       console.log('NEW');
       setItemCount('clear');
@@ -75,7 +75,7 @@ export const withProgress = <T extends WithProgressProps>(Component: React.Compo
       }
     }, [itemCount, totalItems]);
 
-    /* Prop for child component */
+    // Prop for child component
     const progressData: ProgressData = useMemo(() => {
       return {
         percentDone: percentDone,
@@ -98,9 +98,9 @@ export const withProgress = <T extends WithProgressProps>(Component: React.Compo
         progressData={progressData} />
     );
   };
-};
+}
 
-function itemCountReducer(prevState: number, action: ItemsCountAction) {
+function itemCountReducer(prevState: number, action: ItemsCountAction): number {
   switch (action) {
     case 'increment':
       return prevState + 1;

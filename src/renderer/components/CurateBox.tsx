@@ -5,17 +5,16 @@ import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LangContainer } from '../../shared/lang';
-import { IGameLibraryFile, IGameLibraryFileItem } from '../../shared/library/interfaces';
-import { findLibraryByRoute } from '../../shared/library/util';
+import { IGameLibraryFile } from '../../shared/library/interfaces';
 import { ProgressData } from '../containers/withProgress';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { stringifyCurationFormat } from '../curate/format/stringifier';
-import { launchCuration, stringToBool } from '../curate/importGame';
 import { indexContentFolder, IndexedContent } from '../curate/importCuration';
+import { launchCuration, stringToBool } from '../curate/importGame';
 import { convertEditToCurationMeta } from '../curate/metaToMeta';
 import { curationLog, getContentFolderByKey, getCurationFolder } from '../curate/util';
 import { GameLauncher } from '../GameLauncher';
-import { copyArrayLike, sizeToString } from '../Util';
+import { sizeToString } from '../Util';
 import { LangContext } from '../util/lang';
 import { pathTo7z } from '../util/SevenZip';
 import { GamePropSuggestions } from '../util/suggestions';
@@ -42,8 +41,6 @@ type CurateBoxProps = {
   libraryOptions: JSX.Element[];
   /** Full library data (for importing) */
   libraryData: IGameLibraryFile;
-  /** List of games, used for warnings */
-
 };
 
 /** A box that displays and lets the user edit a curation. */
@@ -108,11 +105,6 @@ export function CurateBox(props: CurateBoxProps) {
           lock: true,
         },
       });
-      // Find the library prefix from the entered title
-      let library: IGameLibraryFileItem | undefined = undefined;
-      if (curation.meta.library) {
-        library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
-      }
       // Import the curation
       props.importCuration(curation)
       .then(() => {
@@ -165,7 +157,7 @@ export function CurateBox(props: CurateBoxProps) {
         }
       });
     }
-  }, [ props.dispatch, props.curation && props.curation.key ]);
+  }, [props.dispatch, props.curation && props.curation.key]);
   // Callback for when the open folder button is clicked
   const onOpenFolder = useCallback(() => {
     if (props.curation) {
@@ -190,7 +182,6 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
-
   // Callback for when the export button is clicked
   const onExportClick = useCallback(() => {
     if (props.curation) {
@@ -220,64 +211,13 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation]);
 
-  // Image buttons
-  const onImageAddClick = useCallback((type: string) => {
-    const filePaths = window.External.showOpenDialogSync({
-      title: strings.dialog.selectScreenshot,
-      properties: ['openFile'],
-      filters: [{ extensions: ['png', 'PNG'], name: 'Image File' }]
-    });
-    if (props.curation && filePaths && filePaths[0].toLowerCase().endsWith('.png')) {
-      switch (type) {
-        case 'thumbnail':
-          fs.copyFile(filePaths[0], path.join(getCurationFolder(props.curation), 'logo.png'));
-          break;
-        case 'screenshot':
-          fs.copyFile(filePaths[0], path.join(getCurationFolder(props.curation), 'ss.png'));
-          break;
-      }
-    }
-  }, []);
-
-  const onImageRemoveClick = useCallback(async (type: string) => {
-    if (props.curation) {
-      let filePath: string | undefined = undefined;
-      switch (type) {
-        case 'thumbnail':
-          filePath = path.join(getCurationFolder(props.curation), 'logo.png');
-          break;
-        case 'screenshot':
-          filePath = path.join(getCurationFolder(props.curation), 'ss.png');
-          break;
-      }
-      if (filePath) {
-        try {
-          await fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK );
-          await fs.unlink(filePath);
-        } catch (error) {
-          curationLog('Error replacing image - ' + error.message);
-          console.log(error);
-        }
-      }
-    }
-  }, [props.curation && props.curation.key]);
-
-  // Set image
-  const onDrop = useCallback((event: React.DragEvent<Element>, type: string) => {
-    const files = copyArrayLike(event.dataTransfer.files);
-    if (props.curation && files && files[0].name.toLowerCase().endsWith('.png')) {
-      switch (type) {
-        // Logo
-        case 'thumbnail':
-          fs.copyFile(files[0].path, path.join(getCurationFolder(props.curation), 'logo.png'));
-          break;
-        // Screenshot
-        case 'screenshot':
-          fs.copyFile(files[0].path, path.join(getCurationFolder(props.curation), 'ss.png'));
-          break;
-      }
-    }
-  }, [props.curation && props.curation.key]);
+  // Image callbacks
+  const onAddThumbnailClick  = useAddImageCallback('logo.png', strings, props.curation);
+  const onAddScreenshotClick = useAddImageCallback('ss.png', strings, props.curation);
+  const onRemoveThumbnailClick  = useRemoveImageCallback('logo.png', props.curation);
+  const onRemoveScreenshotClick = useRemoveImageCallback('ss.png', props.curation);
+  const onDropThumbnail  = useDropImageCallback('logo.png', props.curation);
+  const onDropScreenshot = useDropImageCallback('ss.png', props.curation);
 
   // Input props
   const editable = true;
@@ -379,22 +319,20 @@ export function CurateBox(props: CurateBoxProps) {
       return (
         <>
           <GameImageSplit
-            type='thumbnail'
             text={strings.browse.thumbnail}
             imgSrc={thumbnailPath}
-            onAddClick={onImageAddClick}
-            onRemoveClick={onImageRemoveClick}
+            onAddClick={onAddThumbnailClick}
+            onRemoveClick={onRemoveThumbnailClick}
             disabled={disabled}
-            onDrop={onDrop}
+            onDrop={onDropThumbnail}
             />
           <GameImageSplit
-            type='screenshot'
             text={strings.browse.screenshot}
             imgSrc={screenshotPath}
-            onAddClick={onImageAddClick}
-            onRemoveClick={onImageRemoveClick}
+            onAddClick={onAddScreenshotClick}
+            onRemoveClick={onRemoveScreenshotClick}
             disabled={disabled}
-            onDrop={onDrop}
+            onDrop={onDropScreenshot}
             />
         </>
       );
@@ -727,6 +665,48 @@ function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | und
       });
     }
   }, [dispatch, key]);
+}
+
+function useAddImageCallback(filename: string, strings: LangContainer, curation: EditCuration | undefined): () => void {
+  return useCallback(() => {
+    const filePaths = window.External.showOpenDialogSync({
+      title: strings.dialog.selectScreenshot,
+      properties: ['openFile'],
+      filters: [{ extensions: ['png', 'PNG'], name: 'Image File' }]
+    });
+    if (curation && filePaths && filePaths[0].toLowerCase().endsWith('.png')) {
+      fs.copyFile(filePaths[0], path.join(getCurationFolder(curation), filename));
+    }
+  }, [curation && curation.key]);
+}
+
+/**
+ * Delete an image file inside the curation's folder.
+ * @param filename Name of the image file.
+ * @param curation Curation to delete it from.
+ */
+function useRemoveImageCallback(filename: string, curation: EditCuration | undefined): () => Promise<void> {
+  return useCallback(async () => {
+    if (curation) {
+      const filePath = path.join(getCurationFolder(curation), filename);
+      try {
+        await fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK);
+        await fs.unlink(filePath);
+      } catch (error) {
+        curationLog('Error replacing image - ' + error.message);
+        console.log(error);
+      }
+    }
+  }, [curation && curation.key]);
+}
+
+function useDropImageCallback(filename: string, curation: EditCuration | undefined) {
+  return useCallback((event: React.DragEvent<Element>) => {
+    const files = event.dataTransfer.files;
+    if (curation && files && files[0].name.toLowerCase().endsWith('.png')) {
+      fs.copyFile(files[0].path, path.join(getCurationFolder(curation), filename));
+    }
+  }, [curation && curation.key]);
 }
 
 /**

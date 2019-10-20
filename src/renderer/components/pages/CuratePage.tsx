@@ -42,23 +42,13 @@ export function CuratePage(props: CuratePageProps) {
   const strings = React.useContext(LangContext);
   const [state, dispatch] = useContext(CurationContext.context);
   const [progressState, progressDispatch] = useContext(ProgressContext.context);
-  const [indexedCurations, setIndexedCurations] = React.useState<string[]>([]);
+  const [indexedCurations, setIndexedCurations] = React.useState<string[]>(initialIndexedCurations(state.curations));
   const localState = useMemo(() => { return { state: state }; }, []);
   // Get default curation game meta values
   const defaultGameMetaValues = useMemo(() => {
     return props.games ? getDefaultMetaValues(props.games.collection.games) : undefined;
-  }, [props.games]);
+  }, [props.games]); // (@NOTE The dependency value is never changed in the launcher, so this will never refresh)
 
-  // Fires on mount
-  React.useEffect(() => {
-    // indexedCurations is wiped on unmount - Mark any curations with content as indexed already
-    for (let curation of state.curations) {
-      if (curation.content.length > 0) {
-        indexedCurations.push(curation.key);
-      }
-    }
-    setIndexedCurations(indexedCurations);
-  }, []);
 
   // Callback for removed dir (watcher)
   const removeCurationDir = useCallback(async (fullPath) => {
@@ -554,4 +544,17 @@ export function setGameMetaDefaults(meta: EditCurationMeta, defaults?: GameMetaD
       meta.applicationPath = defaults.addPaths[meta.platform || ''] || '';
     }
   }
+}
+
+function initialIndexedCurations(curations: EditCuration[]) {
+  return () => {
+    // indexedCurations is wiped on unmount - Mark any curations with content as indexed already
+    const indexedCurations: string[] = [];
+    for (let curation of curations) {
+      if (curation.content.length > 0) {
+        indexedCurations.push(curation.key);
+      }
+    }
+    return indexedCurations;
+  };
 }

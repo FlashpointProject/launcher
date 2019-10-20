@@ -14,7 +14,6 @@ import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
 import { IGamePlaylistEntry } from '../playlist/interfaces';
-import { copyArrayLike } from '../Util';
 import { copyGameImageFile, deleteGameImageFiles } from '../util/game';
 import { LangContext } from '../util/lang';
 import { GamePropSuggestions } from '../util/suggestions';
@@ -481,20 +480,18 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <div className='browse-right-sidebar__row__screenshot__placeholder'>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
                       <GameImageSplit
-                        type='thumbnail'
                         text={strings.thumbnail}
                         imgSrc={thumbnailSrc}
-                        onAddClick={this.addImageDialog}
-                        onRemoveClick={this.onRemoveImageClick}
-                        onDrop={this.onImageDrop}
+                        onAddClick={this.onAddThumbnailClick}
+                        onRemoveClick={this.onRemoveThumbnailClick}
+                        onDrop={this.onDropThumbnail}
                         disabled={!imageFolderName} />
                       <GameImageSplit
-                        type='screenshot'
                         text={strings.screenshot}
                         imgSrc={screenshotSrc}
-                        onAddClick={this.addImageDialog}
-                        onRemoveClick={this.onRemoveImageClick}
-                        onDrop={this.onImageDrop}
+                        onAddClick={this.onAddScreenshotClick}
+                        onRemoveClick={this.onRemoveScreenshotClick}
+                        onDrop={this.onDropScreenshot}
                         disabled={!imageFolderName} />
                     </div>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
@@ -615,7 +612,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     deleteGameImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
   }
 
-  addImageDialog = async (type: string) => {
+  addImageDialog = async (type: 'thumbnail' | 'screenshot') => {
     const { currentGame, gameImages } = this.props;
     if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
@@ -638,7 +635,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  onRemoveImageClick = (type: string): void => {
+  onRemoveImageClick = (type: 'thumbnail' | 'screenshot'): void => {
     switch (type) {
       case 'thumbnail':
         this.deleteImage(this.props.gameImages.getThumbnailCache(this.getImageFolderName()));
@@ -649,33 +646,44 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  onImageDrop = (event: React.DragEvent, type: string): void => {
-    event.preventDefault();
-    const files = copyArrayLike(event.dataTransfer.files);
-    const game = this.props.currentGame;
-    const imageFolderName = this.getImageFolderName();
-    if (!game) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
-    const thumbnailCache = this.props.gameImages.getThumbnailCache(imageFolderName);
-    if (!thumbnailCache) { throw new Error('Can not add a new image, the thumbnail cache is missing.'); }
-    const screenshotCache = this.props.gameImages.getScreenshotCache(imageFolderName);
-    if (!screenshotCache) { throw new Error('Can not add a new image, the screenshot cache is missing.'); }
-    if (files.length > 1) { // (Multiple files)
-      copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
-      copyGameImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
-    } else { // (Single file)
-      switch (type) {
-        case 'thumbnail':
-          copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
-          break;
-        case 'screenshot':
-          copyGameImageFile(files[0].path, game, screenshotCache).then(() => { this.forceUpdate(); });
-          break;
-        default:
-          console.warn('No "add-single-file" case for the "text" of the GameImageSplit the file was dropped on.');
-          break;
+  wrapOnImageDrop = (type: string) => {
+    return (event: React.DragEvent) => {
+      event.preventDefault();
+      const files = event.dataTransfer.files;
+      const game = this.props.currentGame;
+      const imageFolderName = this.getImageFolderName();
+      if (!game) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
+      const thumbnailCache = this.props.gameImages.getThumbnailCache(imageFolderName);
+      if (!thumbnailCache) { throw new Error('Can not add a new image, the thumbnail cache is missing.'); }
+      const screenshotCache = this.props.gameImages.getScreenshotCache(imageFolderName);
+      if (!screenshotCache) { throw new Error('Can not add a new image, the screenshot cache is missing.'); }
+      if (files.length > 1) { // (Multiple files)
+        copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+        copyGameImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
+      } else { // (Single file)
+        switch (type) {
+          case 'thumbnail':
+            copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+            break;
+          case 'screenshot':
+            copyGameImageFile(files[0].path, game, screenshotCache).then(() => { this.forceUpdate(); });
+            break;
+          default:
+            console.warn('No "add-single-file" case for the "text" of the GameImageSplit the file was dropped on.');
+            break;
+        }
       }
-    }
+    };
   }
+
+  onAddThumbnailClick = () => this.addImageDialog('thumbnail');
+  onAddScreenshotClick = () => this.addImageDialog('screenshot');
+
+  onRemoveThumbnailClick  = () => this.onRemoveImageClick('thumbnail');
+  onRemoveScreenshotClick = () => this.onRemoveImageClick('screenshot');
+
+  onDropThumbnail = () => this.wrapOnImageDrop('thumbnail');
+  onDropScreenshot = () => this.wrapOnImageDrop('screenshot');
 
   onDeleteGameClick = (): void => {
     console.time('delete');
