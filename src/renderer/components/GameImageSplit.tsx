@@ -143,7 +143,7 @@ function renderDeleteImageButton({ activate, activationCounter, reset, extra }: 
         (disabled ? ' game-image-split__buttons__remove-image--disabled' : '')
       }
       title={formatString(strings.deleteAllBlankImages, text)}
-      onClick={disabled ? activate : undefined}
+      onClick={!disabled ? activate : undefined}
       onMouseLeave={reset}>
       <OpenIcon icon='trash' />
     </div>
