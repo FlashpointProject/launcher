@@ -259,7 +259,7 @@ function parseSearchText(text: string): ParsedSearch {
    * Group 4 - Title phrase
    * Group 5 - Title phrase (was wrapped in "")
    */
-  const regex = /(?:(\b\w+)?:(?:"(.+?)"|([^\s]+))?(?=\s?)|([^\s\-"!@#]+)|"([^"]+)")/gu;
+  const regex = /(?:(\b\w+)?:(?:"(.+?)"|([^\s]+))?(?=\s?)|([^\s\-"!@#][^\s"]+)(?:$|\s)|"([^"]+)")/gu;
   // Parse search string
   let match;
   while (match = regex.exec(text)) { // eslint-disable-line no-cond-assign
@@ -275,23 +275,25 @@ function parseSearchText(text: string): ParsedSearch {
       }
       // Title filter matches
     } else {
-      const phrase = match[4] || match[5];
-      if (phrase && preIndex >= 0) {
-        // Create temp phrase including preceding specials (e.g --!"sonic" -> --!sonic)
-        let i = preIndex;
-        let tempPhrase = phrase;
-        while (i >= 0) {
-          if (text.charAt(i).trim() === '') { break; }
-          tempPhrase = text.charAt(i) + tempPhrase;
-          i--;
+      const phrase = match[4] || match[5]; // Group 3 can appear, ignore, more confusing when search is wrong than invalid
+      if (phrase) {
+        if (preIndex >= 0) {
+          // Create temp phrase including preceding specials (e.g --!"sonic" -> --!sonic)
+          let i = preIndex;
+          let tempPhrase = phrase;
+          while (i >= 0) {
+            if (text.charAt(i).trim() === '') { break; }
+            tempPhrase = text.charAt(i) + tempPhrase;
+            i--;
+          }
+          // Get quick search from created temp phrase (If undefined, there is no quick search)
+          const filter = parseQuickSearch(tempPhrase);
+          if (filter) { parsed.fieldFilters.push(filter); }
+          else { parsed.titleFilters.push({ phrase, inverse: text.charAt(preIndex) === '-' }); }
+          continue;
+        } else {
+          parsed.titleFilters.push({ phrase, inverse: false });
         }
-        // Get quick search from created temp phrase (If undefined, there is no quick search)
-        const filter = parseQuickSearch(tempPhrase);
-        if (filter) { parsed.fieldFilters.push(filter); }
-        else { parsed.titleFilters.push({ phrase, inverse: text.charAt(preIndex) === '-' }); }
-        continue;
-      } else {
-        parsed.titleFilters.push({ phrase, inverse: false });
       }
     }
   }

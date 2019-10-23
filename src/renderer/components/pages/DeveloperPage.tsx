@@ -124,11 +124,14 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
-          {services.map((item, index) => (
-            <ServiceBox
-              key={index}
-              service={item} />
-          ))}
+          {(services.length > 0) ? (
+            services.map((item, index) => (
+              <ServiceBox
+                key={index}
+                service={item} />
+          ))) : (
+            <p>{strings.servicesMissing}</p>
+          )}
         </div>
       </div>
     );

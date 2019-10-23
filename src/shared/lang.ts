@@ -122,6 +122,7 @@ const langTemplate = {
     'createMissingFolders',
     'createMissingFoldersDesc',
     'servicesHeader',
+    'servicesMissing',
     'running',
     'stopped',
     'killing',
