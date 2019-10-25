@@ -549,11 +549,8 @@ export class App extends React.Component<AppProps, AppState> {
   private unmountBeforeClose = (): void => {
     const { central } = this.state;
     central.stopRender = true;
-    this.setState({ central: central });
-
-    setTimeout(() => {
-      remote.getCurrentWindow().close();
-    }, 100);
+    this.setState({ central });
+    setTimeout(() => { window.close(); }, 100);
   }
 }
 
