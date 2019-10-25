@@ -16,6 +16,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageShowRightSidebar: true,
   browsePageLeftSidebarWidth: 320,
   browsePageRightSidebarWidth: 320,
+  curatePageLeftSidebarWidth: 320,
   showDeveloperTab: false,
   useWine: false,
   currentTheme: undefined,
@@ -60,6 +61,7 @@ export function overwritePreferenceData(
   parser.prop('browsePageShowRightSidebar',  v => source.browsePageShowRightSidebar  = !!v);
   parser.prop('browsePageLeftSidebarWidth',  v => source.browsePageLeftSidebarWidth  = num(v));
   parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
+  parser.prop('curatePageLeftSidebarWidth',  v => source.curatePageLeftSidebarWidth = num(v));
   parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
   parser.prop('useWine',                     v => source.useWine                     = !!v);
   parser.prop('currentTheme',                v => source.currentTheme                = str(v), true);

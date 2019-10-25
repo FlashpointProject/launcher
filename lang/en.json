@@ -221,6 +221,8 @@
   "curate": {
     "importAll": "Import All",
     "importAllDesc": "Import all curations that are currently loaded",
+    "removeAll": "Remove All",
+    "removeAllDesc": "Remove all curations that are currently loaded",
     "newCuration": "New Curation",
     "newCurationDesc": "Creates a new curation with a unique folder",
     "loadMeta": "Load Meta",
@@ -229,6 +231,7 @@
     "loadArchiveDesc": "Load one or more Curation archives",
     "loadFolder": "Load Folder",
     "loadFolderDesc": "Load one or more Curation folders",
+    "noCurations": "No Curations",
     "heading": "Heading",
     "noHeading": "No Heading",
     "curationNotes": "Curation Notes",

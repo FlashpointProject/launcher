@@ -373,7 +373,7 @@ export function CurateBox(props: CurateBoxProps) {
 
   // Render
   return (
-    <div className='curate-box'>
+    <div id={props.curation && props.curation.key} className='curate-box'>
       {/* Images */}
       <div className='curate-box-images'>
         {imageSplit}

@@ -8,22 +8,25 @@ import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { findLibraryByRoute } from '../../../shared/library/util';
 import { memoizeOne } from '../../../shared/memoize';
 import { WithLibraryProps } from '../../containers/withLibrary';
+import { WithPreferencesProps } from '../../containers/withPreferences';
 import { CurationContext, EditCuration, EditCurationMeta } from '../../context/CurationContext';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
 import { stringifyCurationFormat } from '../../curate/format/stringifier';
-import { importCuration } from '../../curate/importGame';
 import { createCurationIndexImage, importCurationArchive, importCurationFolder, importCurationMeta, indexContentFolder } from '../../curate/importCuration';
+import { importCuration } from '../../curate/importGame';
 import { convertEditToCurationMeta } from '../../curate/metaToMeta';
 import { createCurationImage, curationLog, getContentFolderByKey, getCurationFolder, readCurationMeta } from '../../curate/util';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
+import { getPlatformIconPath } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
 import { CurateBox } from '../CurateBox';
 import { AutoProgressComponent } from '../ProgressComponents';
+import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
 
 type OwnProps = {
@@ -33,7 +36,7 @@ type OwnProps = {
   gameImages?: GameImageCollection;
 };
 
-export type CuratePageProps = OwnProps & WithLibraryProps;
+export type CuratePageProps = OwnProps & WithLibraryProps & WithPreferencesProps;
 
 const progressKey = 'curate-page';
 
@@ -43,6 +46,7 @@ export function CuratePage(props: CuratePageProps) {
   const [state, dispatch] = useContext(CurationContext.context);
   const [progressState, progressDispatch] = useContext(ProgressContext.context);
   const [indexedCurations, setIndexedCurations] = React.useState<string[]>(initialIndexedCurations(state.curations));
+  const pageRef = React.useRef<HTMLDivElement>(null);
   const localState = useMemo(() => { return { state: state }; }, []);
   // Get default curation game meta values
   const defaultGameMetaValues = useMemo(() => {
@@ -313,6 +317,16 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [dispatch, state.curations, props.games, props.gameImages]);
 
+  // Remove all curations
+  const onRemoveAllClick = useCallback(() => {
+    for (let curation of state.curations) {
+      dispatch({
+        type: 'remove-curation',
+        payload: { key: curation.key }
+      });
+    }
+  }, [state.curations]);
+
   // Make a new curation (folder watcher does most of the work)
   const onNewCurationClick = useCallback(async () => {
     const newCurationFolder = path.join(window.External.config.fullFlashpointPath, 'Curations', uuid());
@@ -418,6 +432,17 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [dispatch]);
 
+  // On Left Sidebar Size change
+  const onLeftSidebarResize = useCallback((event) => {
+    console.log('resize');
+    console.log(event);
+    const maxWidth = getDivWidth(pageRef);
+    const targetWidth = event.startWidth + event.event.clientX - event.startX;
+    props.updatePreferences({
+      curatePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
+    });
+  }, [props.updatePreferences, props.preferencesData, pageRef]);
+
   // Game property suggestions
   const suggestions = useMemo(() => {
     return props.games && getSuggestions(props.games.listPlatforms(), props.libraryData.libraries);
@@ -460,33 +485,73 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [progressState[progressKey]]);
 
-  // Render CurateBox
+  // Render Curation Boxes (if none, No Curations placeholder)
   const curateBoxes = React.useMemo(() => {
-    return state.curations.map((curation, index) => (
-      <CurateBox
-        key={index}
-        importCuration={importCurationCallback}
-        curation={curation}
-        dispatch={dispatch}
-        suggestions={suggestions}
-        libraryOptions={libraryOptions()}
-        libraryData={props.libraryData} />
-    ));
-  }, [state.curations, props.games, suggestions]);
+    if (state.curations.length > 0) {
+      return state.curations.map((curation, index) => (
+        <CurateBox
+          key={index}
+          importCuration={importCurationCallback}
+          curation={curation}
+          dispatch={dispatch}
+          suggestions={suggestions}
+          libraryOptions={libraryOptions()}
+          libraryData={props.libraryData} />
+      ));
+    } else {
+      return (
+        <div className='curate-box curate-box__placeholder'>
+          {strings.curate.noCurations}
+        </div>
+      );
+    }
+  }, [state.curations, props.games, suggestions, strings]);
+
+  // Render Curation Index (left sidebar)
+  const curateIndex = React.useMemo(() => {
+    return state.curations.map((curation, index) => {
+      const platformIconPath = curation.meta.platform ? getPlatformIconPath(curation.meta.platform) : '';
+      return (
+        <div 
+          key={index}
+          className='curate-page__left-sidebar-item'
+          onClick={() => { scrollToDiv(curation.key); }}>
+            <div 
+              className='curate-page__left-sidebar-item__icon'
+              style={{backgroundImage: `url(${platformIconPath})`}}/>
+            {curation.meta.title ? curation.meta.title : 'No Title'}
+        </div>
+      );
+    });
+  }, [state.curations])
 
   // Render
   return React.useMemo(() => (
-    <div className='curate-page simple-scroll'>
-      <div className='curate-page__inner'>
-        {/* Load buttons */}
-        <div className='curate-page-top'>
-          <div className='curate-page-top__left'>
+    <div ref={pageRef} className='curate-page'>
+      {/* Left Sidebar */}
+      <ResizableSidebar
+        hide={props.preferencesData.browsePageShowLeftSidebar && state.curations.length > 0}
+        divider='after'
+        width={props.preferencesData.curatePageLeftSidebarWidth}
+        onResize={onLeftSidebarResize}>
+          {curateIndex}
+      </ResizableSidebar>
+      <div className='curate-page__inner simple-scroll'>
+        <div className='curate-page__left'>
+        </div>
+        {/* Curation(s) and Progress */}
+        <div className='curate-page__center'>
+          { progressComponent }
+          { curateBoxes }
+        </div>
+        {/* Menu buttons */}
+        <div className='curate-page__right'>
+          <div className='curate-page__floating-box'>
             <ConfirmElement
               onConfirm={onImportAllClick}
               children={renderImportAllButton}
               extra={strings.curate} />
-          </div>
-          <div className='curate-page-top__right'>
+            <div className='curate-page__floating-box__divider'/>
             <SimpleButton
               value={strings.curate.newCuration}
               title={strings.curate.newCurationDesc}
@@ -504,14 +569,18 @@ export function CuratePage(props: CuratePageProps) {
               value={strings.curate.loadFolder}
               title={strings.curate.loadFolderDesc}
               onClick={onLoadCurationFolderClick} />
+            <div className='curate-page__floating-box__divider'/>
+            <ConfirmElement
+              onConfirm={onRemoveAllClick}
+              children={renderRemoveAllButton}
+              extra={strings.curate} />
           </div>
         </div>
-        { progressComponent }
-        {/* Curation(s) */}
-        { curateBoxes }
       </div>
     </div>
-  ), [curateBoxes, progressComponent, onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick]);
+  ), [curateBoxes, progressComponent, state.curations.length, strings,
+     onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
+     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar]);
 }
 
 function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
@@ -520,6 +589,17 @@ function renderImportAllButton({ activate, activationCounter, reset, extra }: Co
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
       value={extra.importAll}
       title={extra.importAllDesc}
+      onClick={activate}
+      onMouseLeave={reset} />
+  );
+}
+
+function renderRemoveAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
+  return (
+    <SimpleButton
+      className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
+      value={extra.removeAll}
+      title={extra.removeAllDesc}
       onClick={activate}
       onMouseLeave={reset} />
   );
@@ -557,4 +637,19 @@ function initialIndexedCurations(curations: EditCuration[]) {
     }
     return indexedCurations;
   };
+}
+
+/* Scroll the page down to a given div by id */
+function scrollToDiv(id: string) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView();
+  }
+}
+
+/* Returns the width of a div ref, minumum 10 */
+function getDivWidth(ref: React.RefObject<HTMLDivElement>) {
+  if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
+  if (!ref.current) { throw new Error('div is missing.'); }
+  return parseInt(document.defaultView.getComputedStyle(ref.current).width || '', 10);
 }

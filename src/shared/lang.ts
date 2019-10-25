@@ -229,6 +229,8 @@ const langTemplate = {
   curate: [
     'importAll',
     'importAllDesc',
+    'removeAll',
+    'removeAllDesc',
     'newCuration',
     'newCurationDesc',
     'loadMeta',
@@ -237,6 +239,7 @@ const langTemplate = {
     'loadArchiveDesc',
     'loadFolder',
     'loadFolderDesc',
+    'noCurations',
     'heading',
     'noHeading',
     'curationNotes',

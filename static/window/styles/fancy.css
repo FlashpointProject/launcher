@@ -418,9 +418,17 @@ body {
 
 /* ------ Curate ------ */
 /* Curate Page Top */
-.curate-page-top {
+.curate-page__floating-box {
   border-color: var(--layout__tertiary-background);
   background-color: var(--layout__quaternary-background);
+}
+/* Curate Page Left Sidebar Items */
+.curate-page__left-sidebar-item {
+  background-color: var(--layout__primary-background);
+  color: var(--layout__secondary-text-color);
+}
+.curate-page__left-sidebar-item:nth-child(2n) {
+  background-color: var(--layout__playlist-list-item-even-background);
 }
 /* Curate Box */
 .curate-box {

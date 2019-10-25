@@ -778,11 +778,16 @@ body {
 .curate-page {
   width: 100%;
   height: 100%;
-  overflow: auto;
+  display: flex;
 }
 .curate-page__inner {
-  width: 40rem;
+  width: 100%;
+  display: flex;
   margin: 0 auto;
+  overflow: auto;
+}
+.curate-page__center {
+  width: 40em;
 }
 /* (Edit how other classes appear in this page) */
 .curate-page .input-dropdown__content {
@@ -791,25 +796,46 @@ body {
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;
 }
-/* Curate Page Top */
-.curate-page-top {
+/* Curate Page Floating Box */
+.curate-page__floating-box {
+  position: fixed;
   display: flex;
-  margin-top: 0.5rem;
-  padding: 0.25rem;
+  flex-direction: column;
+  margin: 1.5rem;
+  padding: 0.5rem;
   /* Border */
   border-radius: 0.2em;
   border: 1px solid;
 }
-.curate-page-top__left {
-  flex: 1 0;
-  white-space: nowrap;
+.curate-page__floating-box > * {
+  margin: 0.1rem 0;
 }
-.curate-page-top__right {
-  flex: 0 0;
-  white-space: nowrap;
+.curate-page__floating-box__divider {
+  height: 1rem;
 }
-.curate-page-top__right > * {
-  margin-left: 0.5rem;
+/* Curate Page Left Sidebar */
+.curate-page__left-sidebar-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.2rem 0.2rem;
+  font-weight: bold;
+  --image-size: 1.45rem;
+}
+.curate-page__left-sidebar-item__icon {
+  width: var(--image-size);
+  height: var(--image-size);
+  margin: 0 0.2rem;
+  flex: none;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.curate-page__left {
+  flex: auto;
+}
+.curate-page__right {
+  flex: auto;
 }
 /* Curate Box */
 .curate-box {
@@ -817,6 +843,11 @@ body {
   padding: 0.5rem;
   border: 1px solid;
   border-radius: 0.4rem;
+}
+.curate-box__placeholder {
+  text-align: center;
+  font-weight: bold;
+  font-size: 3em;
 }
 .curate-box__image {
   width: 100px;
