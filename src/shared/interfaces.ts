@@ -1,7 +1,7 @@
 import { OpenDialogOptions } from 'electron';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
-import { PreferencesFrontAPIData } from './preferences/PreferencesFrontApi';
+import { IAppPreferencesData } from './preferences/interfaces';
 import { ServicesApi } from './service/ServicesApi';
 
 /** Recursively set all properties as optional. */
@@ -37,7 +37,12 @@ export interface IMainWindowExternal {
   /** Open/Close the DevTools for this window */
   toggleDevtools(): void;
 
-  preferences: PreferencesFrontAPIData;
+  preferences: {
+    /** Current preferences. */
+    data: IAppPreferencesData;
+    /** Emitter for preference related events. */
+    onUpdate?: () => void;
+  };
 
   /** Renderers interface for the Config data */
   config: AppConfigApi;

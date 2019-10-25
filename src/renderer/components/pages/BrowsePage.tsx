@@ -14,7 +14,7 @@ import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/inte
 import { LangContainer } from '../../../shared/lang';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { memoizeOne } from '../../../shared/memoize';
-import { PreferencesFrontAPI } from '../../../shared/preferences/PreferencesFrontApi';
+import { updatePreferencesData } from '../../../shared/preferences/util';
 import { formatDate } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
@@ -401,7 +401,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
-    PreferencesFrontAPI.updateData({
+    updatePreferencesData({
       browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
     });
   }
@@ -409,7 +409,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onRightSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth;
     const targetWidth = event.startWidth + event.startX - event.event.clientX;
-    PreferencesFrontAPI.updateData({
+    updatePreferencesData({
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
     });
   }

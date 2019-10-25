@@ -14,6 +14,7 @@ export enum BackOut {
 }
 
 export type BackInitArgs = {
+  /** Port that the back server should listen on. */
   port: number;
   /** Path to the preferences file. */
   preferencesPath: string;

@@ -10,7 +10,7 @@ import { LangContainer, LangFile } from '../shared/lang';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
-import { PreferencesFrontAPI } from '../shared/preferences/PreferencesFrontApi';
+import { updatePreferencesData } from '../shared/preferences/util';
 import { versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -161,16 +161,16 @@ export class App extends React.Component<AppProps, AppState> {
     // Listen for the window to move or resize (and update the preferences when it does)
     ipcRenderer.on(WindowIPC.WINDOW_MOVE, (sender, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
-        PreferencesFrontAPI.updateData({ mainWindow: { x: x|0, y: y|0 } });
+        updatePreferencesData({ mainWindow: { x: x|0, y: y|0 } });
       }
     });
     ipcRenderer.on(WindowIPC.WINDOW_RESIZE, (sender, width: number, height: number, isMaximized: boolean) => {
       if (!isMaximized) {
-        PreferencesFrontAPI.updateData({ mainWindow: { width: width|0, height: height|0 } });
+        updatePreferencesData({ mainWindow: { width: width|0, height: height|0 } });
       }
     });
     ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
-      PreferencesFrontAPI.updateData({ mainWindow: { maximized: isMaximized } });
+      updatePreferencesData({ mainWindow: { maximized: isMaximized } });
     });
     // Listen for changes to the theme files
     this.props.themes.on('change', item => {
@@ -324,7 +324,7 @@ export class App extends React.Component<AppProps, AppState> {
     const gameLibraryRoute = getBrowseSubPath(location.pathname);
     if (location.pathname.startsWith(Paths.BROWSE) &&
         preferencesData.lastSelectedLibrary !== gameLibraryRoute) {
-      PreferencesFrontAPI.updateData({ lastSelectedLibrary: gameLibraryRoute });
+      updatePreferencesData({ lastSelectedLibrary: gameLibraryRoute });
     }
     // Create a new game
     if (this.state.wasNewGameClicked) {
@@ -428,7 +428,7 @@ export class App extends React.Component<AppProps, AppState> {
   private onOrderChange = (event: GameOrderChangeEvent): void => {
     this.setState({ order: event });
     // Update Preferences Data (this is to make it get saved on disk)
-    PreferencesFrontAPI.updateData({
+    updatePreferencesData({
       gamesOrderBy: event.orderBy,
       gamesOrder: event.orderReverse
     });
@@ -437,13 +437,13 @@ export class App extends React.Component<AppProps, AppState> {
   private onScaleSliderChange = (value: number): void => {
     this.setState({ gameScale: value });
     // Update Preferences Data (this is to make it get saved on disk)
-    PreferencesFrontAPI.updateData({ browsePageGameScale: value });
+    updatePreferencesData({ browsePageGameScale: value });
   }
 
   private onLayoutSelectorChange = (value: BrowsePageLayout): void => {
     this.setState({ gameLayout: value });
     // Update Preferences Data (this is to make it get saved on disk)
-    PreferencesFrontAPI.updateData({ browsePageLayout: value });
+    updatePreferencesData({ browsePageLayout: value });
   }
 
   private onNewGameClick = (): void => {
@@ -451,12 +451,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private onToggleLeftSidebarClick = (): void => {
-    PreferencesFrontAPI.updateData({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
+    updatePreferencesData({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
     this.forceUpdate();
   }
 
   private onToggleRightSidebarClick = (): void => {
-    PreferencesFrontAPI.updateData({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
+    updatePreferencesData({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
     this.forceUpdate();
   }
 

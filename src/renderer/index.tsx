@@ -44,7 +44,7 @@ import { ThemeManager } from './theme/ThemeManager';
   // Create history
   const history = createMemoryHistory();
   // Create Redux store
-  const store = configureStore(history, { preferences: { data: preferences } });
+  const store = configureStore(history);
   // Load Game Library file
   let library = await readGameLibraryFile(window.External.config.fullJsonFolderPath, log).catch(e => log(e+''));
   if (library) { store.dispatch(updateLibrary(library)); }
