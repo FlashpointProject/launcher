@@ -229,7 +229,8 @@ async function linkContentFolder(curationKey: string) {
   const htdocsContentPath = path.join(GameLauncher.getHtdocsPath(), 'content');
   // Clear out old folder if exists
   await fs.access(htdocsContentPath, fs.constants.F_OK)
-    .then(() => fs.remove(htdocsContentPath));
+    .then(() => fs.remove(htdocsContentPath))
+    .catch((error) => { /* No file is okay, ignore error */ });
   const contentPath = path.join(curationPath, 'content');
   if (fs.existsSync(contentPath)) {
     if (process.platform === 'win32') {

@@ -81,7 +81,7 @@ export function convertEditToCurationMeta(curation: EditCurationMeta, addApps?: 
   parsed['Release Date']         = curation.releaseDate;
   parsed['Version']              = curation.version;
   parsed['Languages']            = curation.language;
-  parsed['Extreme']              = curation.extreme ? 'Yes' : 'No';
+  parsed['Extreme']              = curation.extreme;
   parsed['Tags']                 = curation.genre;
   parsed['Source']               = curation.source;
   parsed['Platform']             = curation.platform;

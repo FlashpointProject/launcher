@@ -201,12 +201,18 @@ export function CurateBox(props: CurateBoxProps) {
         defaultPath: path.join(window.External.config.fullFlashpointPath, 'Curations'),
         filters: [{
           name: 'Curation archive',
-          extensions: ['zip'],
+          extensions: ['7z'],
         }]
       });
       if (filePath) {
         fs.ensureDir(path.dirname(filePath))
         .then(async () => {
+          // Remove old zip (if overwriting)
+          await fs.access(filePath, fs.constants.F_OK)
+            .then(() => {
+              return fs.unlink(filePath);
+            })
+            .catch((error) => { /* No file is okay, ignore error */ });
           // Save working meta
           const metaPath = path.join(getCurationFolder(curation), 'meta.txt');
           const meta = stringifyCurationFormat(convertEditToCurationMeta(curation.meta, curation.addApps));

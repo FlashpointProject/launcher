@@ -58,7 +58,7 @@ export async function importCurationMeta(filePath: string, key: string = uuid())
   const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
   const metaPath = path.join(curationPath, 'meta.txt');
   try {
-    await fs.ensureDir(metaPath);
+    await fs.ensureDir(curationPath);
     await fs.copyFile(filePath, metaPath);
   } catch (error) {
     curationLog('Error importing curation meta - ' + error.message);
