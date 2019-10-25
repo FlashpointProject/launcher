@@ -4,8 +4,9 @@ import * as React from 'react';
 import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
-import { LangFile, LangContainer, autoCode } from '../../../shared/lang';
+import { autoCode, LangContainer, LangFile } from '../../../shared/lang';
 import { memoizeOne } from '../../../shared/memoize';
+import { PreferencesFrontAPI } from '../../../shared/preferences/PreferencesFrontApi';
 import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { IThemeListItem } from '../../theme/ThemeManager';
@@ -337,24 +338,24 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   );
 
   onShowExtremeChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ browsePageShowExtreme: isChecked });
+    PreferencesFrontAPI.updateData({ browsePageShowExtreme: isChecked });
     this.forceUpdate();
   }
 
   onEnableEditingChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ enableEditing: isChecked });
+    PreferencesFrontAPI.updateData({ enableEditing: isChecked });
     this.forceUpdate();
   }
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const code = event.target.value;
-    this.props.updatePreferences({ currentLanguage: code });
+    PreferencesFrontAPI.updateData({ currentLanguage: code });
     this.props.updateLocalization();
   }
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const code = event.target.value;
-    this.props.updatePreferences({ fallbackLanguage: code });
+    PreferencesFrontAPI.updateData({ fallbackLanguage: code });
     this.props.updateLocalization();
   }
 
@@ -374,7 +375,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   useWineChange = (isChecked: boolean): void => {
-    this.props.updatePreferences({ useWine: isChecked });
+    PreferencesFrontAPI.updateData({ useWine: isChecked });
     this.forceUpdate();
 
     if (isChecked && process.platform === 'linux') {
@@ -397,12 +398,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onShowDeveloperTab = (isChecked: boolean): void => {
-    this.props.updatePreferences({ showDeveloperTab: isChecked });
+    PreferencesFrontAPI.updateData({ showDeveloperTab: isChecked });
     this.forceUpdate();
   }
 
   onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
-    this.props.updatePreferences({ currentTheme: event.currentTarget.value });
+    PreferencesFrontAPI.updateData({ currentTheme: event.currentTarget.value });
   }
 
   onCurrentThemeKeyDown = (event: React.KeyboardEvent): void => {
@@ -419,7 +420,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (index < this.props.themeItems.length) { // (Select a Theme)
       theme = this.props.themeItems[index].entryPath;
     } else { theme = undefined; } // (Deselect the current theme)
-    this.props.updatePreferences({ currentTheme: theme });
+    PreferencesFrontAPI.updateData({ currentTheme: theme });
     this.props.reloadTheme(theme);
     // Select the input field
     if (this.currentThemeInputRef) {
@@ -442,7 +443,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       );
       const relativePath = path.relative(themeFolderPath, filePath);
       // Update current theme
-      this.props.updatePreferences({ currentTheme: relativePath });
+      PreferencesFrontAPI.updateData({ currentTheme: relativePath });
       // Reload theme
       this.props.reloadTheme(relativePath);
     }

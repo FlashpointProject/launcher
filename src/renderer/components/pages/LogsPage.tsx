@@ -4,6 +4,7 @@ import { LangContainer } from '../../../shared/lang';
 import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
 import { LogRendererApi } from '../../../shared/Log/LogRendererApi';
 import { memoizeOne } from '../../../shared/memoize';
+import { PreferencesFrontAPI } from '../../../shared/preferences/PreferencesFrontApi';
 import { shallowStrictEquals } from '../../../shared/Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';
@@ -126,7 +127,7 @@ export class LogsPage extends React.Component<LogsPageProps> {
   onCheckboxClick = (index: number): void => {
     const label = labels[index];
     const { showLogSource } = this.props.preferencesData;
-    this.props.updatePreferences({
+    PreferencesFrontAPI.updateData({
       showLogSource: Object.assign(
         {},
         showLogSource,

@@ -46,6 +46,15 @@ export function getInstalledConfigsPath() {
   return path.join(app.getPath('appData'), 'flashpoint-launcher');
 }
 
+const filename: string = 'preferences.json';
+export function getPreferencesFilePath(installed: boolean): string {
+  return (
+    installed
+      ? path.join(getInstalledConfigsPath(), filename)
+      : path.resolve(filename)
+  );
+}
+
 /**
  * Parse a variable string using a generic get variable value function.
  * @param str String to parse.

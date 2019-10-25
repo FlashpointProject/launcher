@@ -1,4 +1,5 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
+import { DeepPartial } from '../interfaces';
 import { autoCode } from '../lang';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
@@ -42,7 +43,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
  */
 export function overwritePreferenceData(
   source: IAppPreferencesData,
-  data: Partial<IAppPreferencesData>,
+  data: DeepPartial<IAppPreferencesData>,
   onError?: (error: string) => void
 ): IAppPreferencesData {
   const parser = new ObjectParser({

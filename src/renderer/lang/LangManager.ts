@@ -2,8 +2,7 @@ import { remote } from 'electron';
 import { readFile } from 'fs-extra';
 import * as path from 'path';
 import { RecursivePartial } from '../../shared/interfaces';
-import { autoCode } from '../../shared/lang';
-import { LangContainer, LangFile, LangFileContent } from '../../shared/lang';
+import { autoCode, LangContainer, LangFile, LangFileContent } from '../../shared/lang';
 import { deepCopy, recursiveReplace, tryParseJSON } from '../../shared/Util';
 import { EventQueue } from '../util/EventQueue';
 import { FolderWatcher } from '../util/FolderWatcher';
@@ -184,9 +183,9 @@ export class LangManager extends WrappedEventEmitter {
 
   /** Update the combined content container (by recreating it). */
   public updateContainer() {
-    const preferencesData = window.External.preferences.getData();
-    const currentCode = preferencesData.currentLanguage;
-    const fallbackCode = preferencesData.fallbackLanguage;
+    const preferences = window.External.preferences.data;
+    const currentCode = preferences.currentLanguage;
+    const fallbackCode = preferences.fallbackLanguage;
     // Update container
     this._container = this.createContainer(currentCode, fallbackCode);
     // Log
