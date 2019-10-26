@@ -164,7 +164,7 @@ export class GameLauncher {
       default:
         const appPath: string = fixSlashes(relativeToFlashpoint(addApp.applicationPath));
         const appArgs: string = addApp.commandLine;
-        const useWine = window.External.preferences.getData().useWine;
+        const useWine = window.External.preferences.data.useWine;
         const proc = GameLauncher.launch(
           GameLauncher.createCommand(appPath, appArgs, useWine),
           { env: GameLauncher.getEnvironment(useWine) }
@@ -190,7 +190,7 @@ export class GameLauncher {
     // Launch game
     const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game)));
     const gameArgs: string = game.launchCommand;
-    const useWine: boolean = window.External.preferences.getData().useWine;
+    const useWine: boolean = window.External.preferences.data.useWine;
     const command: string = GameLauncher.createCommand(gamePath, gameArgs, useWine);
     const proc = GameLauncher.launch(command, { env: GameLauncher.getEnvironment(useWine) });
     log(`Launch Game "${game.title}" (PID: ${proc.pid}) [\n`+

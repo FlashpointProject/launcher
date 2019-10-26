@@ -1,11 +1,16 @@
 import { OpenDialogOptions } from 'electron';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
-import { AppPreferencesApi } from './preferences/AppPreferencesApi';
+import { IAppPreferencesData } from './preferences/interfaces';
 import { ServicesApi } from './service/ServicesApi';
 
+/** Recursively set all properties as optional. */
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+}
+
 /** Subtract the properties of U from T. */
-export type Subtract<T extends U, U extends object> = Pick<T, Exclude<keyof T, keyof U>>;
+export type Subtract<T, U extends object> = Pick<T, Exclude<keyof T, keyof U>>;
 
 export interface IMainWindowExternal {
   /** Miscellaneous data. */
@@ -32,8 +37,12 @@ export interface IMainWindowExternal {
   /** Open/Close the DevTools for this window */
   toggleDevtools(): void;
 
-  /** Renderers interface for the Preferences data */
-  preferences: AppPreferencesApi;
+  preferences: {
+    /** Current preferences. */
+    data: IAppPreferencesData;
+    /** Emitter for preference related events. */
+    onUpdate?: () => void;
+  };
 
   /** Renderers interface for the Config data */
   config: AppConfigApi;
@@ -46,6 +55,15 @@ export interface IMainWindowExternal {
 
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;
+
+  /** Socket to the back API. */
+  backSocket: WebSocket;
+
+  /**
+   * Wait for the preload to initialize.
+   * @returns A promise that resolves when initialization is complete, or nothing if already initialized.
+   */
+  waitUntilInitialized(): Promise<void> | void;
 }
 
 /** Callback for Electron.dialog.showOpenDialog */

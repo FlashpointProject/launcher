@@ -15,6 +15,9 @@ const config = {
   },
   main: {
     src: './src/main',
+  },
+  back: {
+    src: './src/back',
   }
 };
 
@@ -22,6 +25,10 @@ const config = {
 
 gulp.task('watch-main', (done) => {
   execute(`npx tsc --project "${config.main.src}" --pretty --watch`, done);
+});
+
+gulp.task('watch-back', (done) => {
+  execute(`npx tsc --project "${config.back.src}" --pretty --watch`, done);
 });
 
 gulp.task('watch-renderer', (done) => {
@@ -38,6 +45,10 @@ gulp.task('watch-static', () => {
 
 gulp.task('build-main', (done) => {
   execute(`npx tsc --project "${config.main.src}" --pretty`, done);
+});
+
+gulp.task('build-back', (done) => {
+  execute(`npx tsc --project "${config.back.src}" --pretty`, done);
 });
 
 gulp.task('build-renderer', (done) => {
@@ -82,21 +93,29 @@ gulp.task('pack', (done) => {
     // "An array of functions to be called after your app directory has been copied to a temporary directory."
     afterCopy: [serialHooks([
       function(buildPath, electronVersion, platform, arch) {
-        // Read the package.json file (it is required to run the electron app)
-        const package = require('./package.json');
-        // Copy only some fields
-        // (I'm not really sure which are required or serves any purpose - but these have been enough thus far)
-        const data = JSON.stringify({
-          name: package.name,
-          version: package.version,
-          description: package.description,
-          main: package.main,
-          author: package.author,
-          license: package.license,
-          dependencies: package.dependencies
-        });
         // Save file to the temporary folder (that gets moved or packed into the release)
-        fs.writeFileSync(path.join(buildPath, 'package.json'), data, 'utf8');
+        fs.writeFileSync(path.join(buildPath, 'package.json'), minifyPackage(fs.readFileSync('package.json')));
+        // Copy dependencies of the Node processes
+        const deps = ['ws', 'async-limiter'];
+        for (let dep of deps) {
+          const depPath = 'node_modules/'+dep;
+          const packagePath = path.join(buildPath, depPath, 'package.json');
+          fs.copySync(depPath, path.join(buildPath, depPath));
+          fs.writeFileSync(packagePath, minifyPackage(fs.readFileSync(packagePath)));
+        }
+        /** Copy only some fields (I'm not really sure which are required or serves any purpose - but these have been enough so far) */
+        function minifyPackage(package) {
+          const p = JSON.parse(package);
+          return JSON.stringify({
+            name: p.name,
+            version: p.version,
+            description: p.description,
+            main: p.main,
+            author: p.author,
+            license: p.license,
+            dependencies: p.dependencies
+          }, undefined, 2);
+        }
       },
     ])],
     // "afterExtract" in the docs:
@@ -126,9 +145,9 @@ gulp.task('pack', (done) => {
 
 /* ------ Meta Tasks ------*/
 
-gulp.task('watch', gulp.parallel('watch-main', 'watch-renderer', 'watch-static', 'copy-static'));
+gulp.task('watch', gulp.parallel('watch-main', 'watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
 
-gulp.task('build', gulp.parallel('build-main', 'build-renderer', 'copy-static', 'config-install', 'config-version'));
+gulp.task('build', gulp.parallel('build-main', 'build-back', 'build-renderer', 'copy-static', 'config-install', 'config-version'));
 
 /* ------ Misc ------*/
 

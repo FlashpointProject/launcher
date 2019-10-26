@@ -1,8 +1,23 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
+import { DeepPartial } from '../interfaces';
 import { autoCode } from '../lang';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
+import { BackIn } from '../back/types';
+
+export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send: boolean = true) {
+  const preferences = window.External.preferences;
+  // @TODO Figure out the delta change of the object tree, and only send the changes
+  overwritePreferenceData(preferences.data, data);
+  if (preferences.onUpdate) { preferences.onUpdate(); }
+  if (send) {
+    window.External.backSocket.send(JSON.stringify([
+      BackIn.UPDATE_PREFERENCES,
+      preferences.data
+    ]));
+  }
+}
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze<IAppPreferencesData>({
@@ -42,7 +57,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
  */
 export function overwritePreferenceData(
   source: IAppPreferencesData,
-  data: Partial<IAppPreferencesData>,
+  data: DeepPartial<IAppPreferencesData>,
   onError?: (error: string) => void
 ): IAppPreferencesData {
   const parser = new ObjectParser({
@@ -96,5 +111,3 @@ function strOpt<T extends string>(text: any, options: T[], defaultOption: T): T 
   }
   return defaultOption;
 }
-
-function noop() {}

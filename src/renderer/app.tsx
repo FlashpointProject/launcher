@@ -10,6 +10,7 @@ import { LangContainer, LangFile } from '../shared/lang';
 import { IGameLibraryFileItem } from '../shared/library/interfaces';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
+import { updatePreferencesData } from '../shared/preferences/util';
 import { versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -160,20 +161,16 @@ export class App extends React.Component<AppProps, AppState> {
     // Listen for the window to move or resize (and update the preferences when it does)
     ipcRenderer.on(WindowIPC.WINDOW_MOVE, (sender, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
-        const mw = this.props.preferencesData.mainWindow;
-        mw.x = x | 0;
-        mw.y = y | 0;
+        updatePreferencesData({ mainWindow: { x: x|0, y: y|0 } });
       }
     });
     ipcRenderer.on(WindowIPC.WINDOW_RESIZE, (sender, width: number, height: number, isMaximized: boolean) => {
       if (!isMaximized) {
-        const mw = this.props.preferencesData.mainWindow;
-        mw.width  = width  | 0;
-        mw.height = height | 0;
+        updatePreferencesData({ mainWindow: { width: width|0, height: height|0 } });
       }
     });
     ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
-      this.props.preferencesData.mainWindow.maximized = isMaximized;
+      updatePreferencesData({ mainWindow: { maximized: isMaximized } });
     });
     // Listen for changes to the theme files
     this.props.themes.on('change', item => {
@@ -302,7 +299,7 @@ export class App extends React.Component<AppProps, AppState> {
 
       which('wine', function(err: Error | null) {
         if (err) {
-          if (window.External.preferences.getData().useWine) {
+          if (window.External.preferences.data.useWine) {
             log('Warning: Wine is enabled but it was not found on the path.');
             remote.dialog.showMessageBox({
               type: 'error',
@@ -322,12 +319,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {
-    const { history, libraryData, location, preferencesData, updatePreferences } = this.props;
+    const { history, libraryData, location, preferencesData } = this.props;
     // Update preference "lastSelectedLibrary"
     const gameLibraryRoute = getBrowseSubPath(location.pathname);
     if (location.pathname.startsWith(Paths.BROWSE) &&
         preferencesData.lastSelectedLibrary !== gameLibraryRoute) {
-      updatePreferences({ lastSelectedLibrary: gameLibraryRoute });
+      updatePreferencesData({ lastSelectedLibrary: gameLibraryRoute });
     }
     // Create a new game
     if (this.state.wasNewGameClicked) {
@@ -431,7 +428,7 @@ export class App extends React.Component<AppProps, AppState> {
   private onOrderChange = (event: GameOrderChangeEvent): void => {
     this.setState({ order: event });
     // Update Preferences Data (this is to make it get saved on disk)
-    this.props.updatePreferences({
+    updatePreferencesData({
       gamesOrderBy: event.orderBy,
       gamesOrder: event.orderReverse
     });
@@ -440,13 +437,13 @@ export class App extends React.Component<AppProps, AppState> {
   private onScaleSliderChange = (value: number): void => {
     this.setState({ gameScale: value });
     // Update Preferences Data (this is to make it get saved on disk)
-    this.props.updatePreferences({ browsePageGameScale: value });
+    updatePreferencesData({ browsePageGameScale: value });
   }
 
   private onLayoutSelectorChange = (value: BrowsePageLayout): void => {
     this.setState({ gameLayout: value });
     // Update Preferences Data (this is to make it get saved on disk)
-    this.props.updatePreferences({ browsePageLayout: value });
+    updatePreferencesData({ browsePageLayout: value });
   }
 
   private onNewGameClick = (): void => {
@@ -454,12 +451,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private onToggleLeftSidebarClick = (): void => {
-    this.props.updatePreferences({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
+    updatePreferencesData({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
     this.forceUpdate();
   }
 
   private onToggleRightSidebarClick = (): void => {
-    this.props.updatePreferences({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
+    updatePreferencesData({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
     this.forceUpdate();
   }
 
