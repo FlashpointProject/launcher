@@ -42,6 +42,8 @@ type OwnProps = {
   onDeleteSelectedGame?: () => void;
   /** Called when the selected game is removed from the selected by this */
   onRemoveSelectedGameFromPlaylist?: () => void;
+  /** Called when a playlist is deselected (searching game fields) */
+  onDeselectPlaylist: () => void;
   /** Called when the playlist notes for the selected game has been changed */
   onEditPlaylistNotes?: (text: string) => void;
   /** If the "edit mode" is currently enabled */
@@ -757,6 +759,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     return () => {
       const { currentGame, isEditing } = this.props;
       if (!isEditing && currentGame) {
+        this.props.onDeselectPlaylist();
         const value = currentGame[field];
         const search = (value)
           ? `${field}:${wrapSearchTerm(value)}`
