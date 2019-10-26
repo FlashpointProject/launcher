@@ -231,6 +231,8 @@ const langTemplate = {
     'importAllDesc',
     'removeAll',
     'removeAllDesc',
+    'openCurationsFolder',
+    'openCurationsFolderDesc',
     'newCuration',
     'newCurationDesc',
     'loadMeta',

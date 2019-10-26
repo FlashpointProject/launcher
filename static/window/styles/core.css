@@ -774,6 +774,7 @@ body {
   display: inline;
 }
 
+
 /* ------ Curate ------ */
 .curate-page {
   width: 100%;
@@ -878,6 +879,9 @@ body {
   height: 10rem;
   margin: 0.35rem 0;
 }
+.curate-box-images__placeholder {
+  display: flex;
+}
 .curate-box-images__image {
   flex: 1 1 auto;
   background-size: contain;
@@ -932,19 +936,18 @@ body {
 }
 /* Curate Box Buttons */
 .curate-box-buttons {
-  text-align: right;
+  justify-content: space-between;
   display: flex;
 }
 .curate-box-buttons__button {
   margin: 0 0.2rem;
 }
 .curate-box-buttons__left {
-  flex: 1 0;
   text-align: left;
 }
 .curate-box-buttons__right {
-  flex: 1 0;
-  text-align:right;
+
+  text-align: right;
 }
 .curate-box-buttons__button:last-child {
   margin-right: 0;

@@ -430,6 +430,9 @@ body {
 .curate-page__left-sidebar-item:nth-child(2n) {
   background-color: var(--layout__playlist-list-item-even-background);
 }
+.curate-page__left-sidebar-item:hover {
+  background-color: var(--layout__playlist-list-item-drag-over-background);
+}
 /* Curate Box */
 .curate-box {
   background-color: var(--layout__tertiary-background);
@@ -456,7 +459,6 @@ body {
   cursor: zoom-in;
 }
 .curate-box-images__image--placeholder {
-  display: flex;
   background-color: var(--layout__browse-right-sidebar-screenshot-placeholder-background);
   border-color: var(--layout__browse-right-sidebar-screenshot-placeholder-border);
 }

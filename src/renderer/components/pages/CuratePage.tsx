@@ -1,8 +1,10 @@
 import * as chokidar from 'chokidar';
+import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
+import * as YAML from 'yaml';
 import { LangContainer } from '../../../shared/lang';
 import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
 import { findLibraryByRoute } from '../../../shared/library/util';
@@ -12,11 +14,10 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { CurationContext, EditCuration, EditCurationMeta } from '../../context/CurationContext';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValues';
-import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { createCurationIndexImage, importCurationArchive, importCurationFolder, importCurationMeta, indexContentFolder } from '../../curate/importCuration';
 import { importCuration } from '../../curate/importGame';
-import { convertEditToCurationMeta } from '../../curate/metaToMeta';
-import { createCurationImage, curationLog, getContentFolderByKey, getCurationFolder, readCurationMeta } from '../../curate/util';
+import { convertEditToCurationMeta, convertParsedToCurationMeta } from '../../curate/metaToMeta';
+import { createCurationImage, curationLog, getContentFolderByKey, getCurationFolder, readCurationMeta, showWarningBox } from '../../curate/util';
 import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getPlatformIconPath } from '../../Util';
@@ -112,18 +113,47 @@ export function CuratePage(props: CuratePageProps) {
       const filePath = path.join(splitPath.join(path.sep));
       if (key) {
         // Send update based on filename
-        switch (filePath) {
-          case 'meta.txt':
-            const parsedMeta = await readCurationMeta(fullPath, defaultGameMetaValues);
-            dispatch({
-              type: 'set-curation-meta',
-              payload: {
-                key: key,
-                parsedMeta: parsedMeta
-              }
-            });
+        switch (filePath.toLowerCase()) {
+          case 'meta.yaml':
+          case 'meta.yml': {
+            await readCurationMeta(fullPath, defaultGameMetaValues)
+              .then(async (parsedMeta) => {
+                dispatch({
+                  type: 'set-curation-meta',
+                  payload: {
+                    key: key,
+                    parsedMeta: parsedMeta
+                  }
+                });
+              })
+              .catch((error) => {
+                const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}`;
+                console.error(error);
+                curationLog(formedMessage);
+                showWarningBox(formedMessage);
+              });
             break;
-          case 'logo.PNG':
+          }
+          case 'meta.txt': {
+            // Immediately save an old style file as new
+            // Parse file then save back as a new style (YAML) file
+            await readCurationMeta(fullPath, defaultGameMetaValues)
+              .then(async (parsedMeta) => {
+                console.log(parsedMeta);
+                const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
+                const newMetaData = YAML.stringify(convertParsedToCurationMeta(parsedMeta));
+                await fs.writeFile(newMetaPath, newMetaData);
+                // Remove old style meta file
+                await fs.unlink(fullPath);
+              })
+              .catch((error) => {
+                const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}`;
+                console.error(error);
+                curationLog(formedMessage);
+                showWarningBox(formedMessage);
+              });
+            break;
+          }
           case 'logo.png':
             dispatch({
               type: 'set-curation-logo',
@@ -133,7 +163,6 @@ export function CuratePage(props: CuratePageProps) {
               }
             });
             break;
-          case 'ss.PNG':
           case 'ss.png':
             dispatch({
               type: 'set-curation-screenshot',
@@ -205,8 +234,8 @@ export function CuratePage(props: CuratePageProps) {
       watcher.close();
       const state = localState.state;
       for (let curation of state.curations) {
-        const metaPath = path.join(getCurationFolder(curation), 'meta.txt');
-        const meta = stringifyCurationFormat(convertEditToCurationMeta(curation.meta, curation.addApps));
+        const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
         fs.writeFile(metaPath, meta)
         .catch((error) => {
           curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
@@ -331,10 +360,10 @@ export function CuratePage(props: CuratePageProps) {
   const onNewCurationClick = useCallback(async () => {
     const newCurationFolder = path.join(window.External.config.fullFlashpointPath, 'Curations', uuid());
     try {
-      // Create content folder and empty meta.txt
+      // Create content folder and empty meta.yaml
       await fs.mkdir(newCurationFolder);
       await fs.mkdir(path.join(newCurationFolder, 'content'));
-      await fs.close(await fs.open(path.join(newCurationFolder, 'meta.txt'), 'w'));
+      await fs.close(await fs.open(path.join(newCurationFolder, 'meta.yaml'), 'w'));
     } catch (error) {
       curationLog('Error creating new curation - ' + error.message);
       console.error(error);
@@ -347,7 +376,7 @@ export function CuratePage(props: CuratePageProps) {
     const filePaths = window.External.showOpenDialogSync({
       title: strings.dialog.selectCurationArchive,
       properties: ['openFile', 'multiSelections'],
-      filters: [{ extensions: ['zip', '7z', 'rar'], name: 'Curation archive' }],
+      filters: [{ extensions: ['zip', '7z'], name: 'Curation archive' }],
     });
     // Create Status Progress for counting extracting archives
     const statusProgress = newProgress(progressKey, progressDispatch);
@@ -421,7 +450,7 @@ export function CuratePage(props: CuratePageProps) {
     const filePaths = window.External.showOpenDialogSync({
       title: strings.dialog.selectCurationMeta,
       properties: ['openFile', 'multiSelections'],
-      filters: [{ extensions: ['txt'], name: 'Curation meta file' }],
+      filters: [{ extensions: ['txt', 'yaml', 'yml'], name: 'Curation meta file' }],
     });
     if (filePaths) {
       // Import all selected meta files
@@ -431,6 +460,13 @@ export function CuratePage(props: CuratePageProps) {
       }
     }
   }, [dispatch]);
+
+  // Open Curations Folder
+  const onOpenCurationsFolder = useCallback(async () => {
+    const curationsFolderPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
+    await fs.ensureDir(curationsFolderPath);
+    remote.shell.openItem(curationsFolderPath);
+  }, []);
 
   // On Left Sidebar Size change
   const onLeftSidebarResize = useCallback((event) => {
@@ -512,18 +548,18 @@ export function CuratePage(props: CuratePageProps) {
     return state.curations.map((curation, index) => {
       const platformIconPath = curation.meta.platform ? getPlatformIconPath(curation.meta.platform) : '';
       return (
-        <div 
+        <div
           key={index}
           className='curate-page__left-sidebar-item'
           onClick={() => { scrollToDiv(curation.key); }}>
-            <div 
+            <div
               className='curate-page__left-sidebar-item__icon'
               style={{backgroundImage: `url(${platformIconPath})`}}/>
             {curation.meta.title ? curation.meta.title : 'No Title'}
         </div>
       );
     });
-  }, [state.curations])
+  }, [state.curations]);
 
   // Render
   return React.useMemo(() => (
@@ -547,11 +583,6 @@ export function CuratePage(props: CuratePageProps) {
         {/* Menu buttons */}
         <div className='curate-page__right'>
           <div className='curate-page__floating-box'>
-            <ConfirmElement
-              onConfirm={onImportAllClick}
-              children={renderImportAllButton}
-              extra={strings.curate} />
-            <div className='curate-page__floating-box__divider'/>
             <SimpleButton
               value={strings.curate.newCuration}
               title={strings.curate.newCurationDesc}
@@ -570,6 +601,16 @@ export function CuratePage(props: CuratePageProps) {
               title={strings.curate.loadFolderDesc}
               onClick={onLoadCurationFolderClick} />
             <div className='curate-page__floating-box__divider'/>
+            <SimpleButton
+              value={strings.curate.openCurationsFolder}
+              title={strings.curate.openCurationsFolderDesc}
+              onClick={onOpenCurationsFolder} />
+            <div className='curate-page__floating-box__divider'/>
+            <ConfirmElement
+              onConfirm={onImportAllClick}
+              children={renderImportAllButton}
+              extra={strings.curate} />
+            <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
               onConfirm={onRemoveAllClick}
               children={renderRemoveAllButton}
@@ -578,7 +619,7 @@ export function CuratePage(props: CuratePageProps) {
         </div>
       </div>
     </div>
-  ), [curateBoxes, progressComponent, state.curations.length, strings,
+  ), [curateBoxes, progressComponent, strings, state.curations.length,
      onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
      props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar]);
 }

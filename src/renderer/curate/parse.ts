@@ -1,3 +1,4 @@
+import * as YAML from 'yaml';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
 import { EditAddAppCurationMeta, EditCurationMeta } from '../context/CurationContext';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
@@ -12,27 +13,27 @@ export type ParsedCurationMeta = {
 };
 
 /**
- * Parse a string containing meta for a curation (using either the new or old Curation Format).
+ * Parse a string containing meta for an old style curation
  * @param text A string of curation meta.
  */
-export function parseCurationMeta(text: string): ParsedCurationMeta {
+export function parseCurationMetaOld(text: string): ParsedCurationMeta {
   // Try parsing the meta text
   let tokens: CFTokenizer.AnyToken[] | undefined = undefined;
   let rawMeta: CurationFormatObject | undefined = undefined;
-  try {
-    tokens = tokenizeCurationFormat(text);
-    rawMeta = parseCurationFormat(tokens);
-  }
-  catch (error) {
-    console.error(
-      'Failed to parse curation meta.\n\n',
-      'Tokens:', tokens,
-      '\n\n',
-      error,
-    );
-    rawMeta = {};
-  }
+  tokens = tokenizeCurationFormat(text);
+  rawMeta = parseCurationFormat(tokens);
   // Convert the raw meta to a programmer friendly object
+  return convertMeta(rawMeta);
+}
+
+/**
+ * Parse a string containing meta for an new style (YAML) curation
+ * @param text A string of curation meta.
+ */
+export function parseCurationMetaNew(text: string): ParsedCurationMeta {
+  // Try parsing yaml file
+  const rawMeta = YAML.parse(text);
+  // Convert raw meta into a ParsedCurationMeta object
   return convertMeta(rawMeta);
 }
 
@@ -41,7 +42,7 @@ export function parseCurationMeta(text: string): ParsedCurationMeta {
  * @param data "Raw" meta object to convert.
  * @param onError Called whenever an error occurs.
  */
-function convertMeta(data: any, onError?: (error: string) => void): ParsedCurationMeta {
+export function convertMeta(data: any, onError?: (error: string) => void): ParsedCurationMeta {
   const parsed: ParsedCurationMeta = {
     game: {},
     addApps: [],
@@ -76,7 +77,6 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
   parser.prop('Title',                v => parsed.game.title               = str(v));
   parser.prop('Library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
   parser.prop('Version',              v => parsed.game.version             = str(v));
-  parser.prop('Library',              v => parsed.game.library             = str(v));
   // property aliases
   parser.prop('Animation Notes',      v => parsed.game.notes               = str(v));
   // Add-apps

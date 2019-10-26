@@ -4,11 +4,11 @@ import { add } from 'node-7z';
 import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import * as YAML from 'yaml';
 import { LangContainer } from '../../shared/lang';
 import { IGameLibraryFile } from '../../shared/library/interfaces';
 import { ProgressData } from '../containers/withProgress';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
-import { stringifyCurationFormat } from '../curate/format/stringifier';
 import { indexContentFolder, IndexedContent } from '../curate/importCuration';
 import { launchCuration, stringToBool } from '../curate/importGame';
 import { convertEditToCurationMeta } from '../curate/metaToMeta';
@@ -205,8 +205,8 @@ export function CurateBox(props: CurateBoxProps) {
             })
             .catch((error) => { /* No file is okay, ignore error */ });
           // Save working meta
-          const metaPath = path.join(getCurationFolder(curation), 'meta.txt');
-          const meta = stringifyCurationFormat(convertEditToCurationMeta(curation.meta, curation.addApps));
+          const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+          const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
           return fs.writeFile(metaPath, meta)
           .then(() => {
             // Zip it all up
@@ -304,14 +304,12 @@ export function CurateBox(props: CurateBoxProps) {
       warns.unusedGenre = !isValueSuggested(props, 'genre');
       warns.unusedPlatform = !isValueSuggested(props, 'platform');
       warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
-      warns.nonExistingLibrary = !!(
-        (props.curation && props.curation.meta['library']) && // "Library" field is not empty
-        !isValueSuggested(props, 'library')
-      );
       // Check if there is no content
       warns.noContent = props.curation.content.length === 0;
       // Check if library is set
       const curLibrary = props.curation.meta.library;
+      console.log(curLibrary);
+      console.log(props.libraryData.libraries);
       warns.nonExistingLibrary = props.libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
     }
     return warns;

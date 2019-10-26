@@ -223,6 +223,8 @@
     "importAllDesc": "Import all curations that are currently loaded",
     "removeAll": "Remove All",
     "removeAllDesc": "Remove all curations that are currently loaded",
+    "openCurationsFolder": "Open Folder",
+    "openCurationsFolderDesc": "Open the Curations folder in explorer",
     "newCuration": "New Curation",
     "newCurationDesc": "Creates a new curation with a unique folder",
     "loadMeta": "Load Meta",

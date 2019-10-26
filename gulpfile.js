@@ -16,7 +16,7 @@ const config = {
   main: {
     src: './src/main',
   },
-  sevenZip: 'extern/7zip-bin'
+  sevenZip: './extern/7zip-bin'
 };
 
 /* ------ Watch ------ */
@@ -113,17 +113,17 @@ gulp.task('pack', (done) => {
         switch (platform) {
           case 'darwin':
             fs.copyFileSync(
-              path.resolve(config.sevenZip, '/mac/7za'),
+              path.join(path.resolve(config.sevenZip), '/mac/7za'),
               path.join(buildPath, config.sevenZip, '/7za'));
             break;
           case 'win32':
             fs.copyFileSync(
-              path.resolve(config.sevenZip, '/win', arch, '7za.exe'),
+              path.join(path.resolve(config.sevenZip), '/win', arch, '7za.exe'),
               path.join(buildPath, config.sevenZip, '/7za.exe'));
             break;
           case 'linux':
             fs.copyFileSync(
-              path.resolve(config.sevenZip, '/linux', arch, '7za'),
+              path.join(path.resolve(config.sevenZip), '/linux', arch, '7za'),
               path.join(buildPath, config.sevenZip, '/7za'));
             break;
         }

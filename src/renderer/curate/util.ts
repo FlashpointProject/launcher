@@ -1,3 +1,4 @@
+import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { stripBOM } from '../../shared/Util';
@@ -5,7 +6,7 @@ import { setGameMetaDefaults } from '../components/pages/CuratePage';
 import { EditCuration } from '../context/CurationContext';
 import { GameMetaDefaults } from './defaultValues';
 import { createCurationIndexImage, CurationIndex, CurationIndexImage, fixSlashes } from './importCuration';
-import { parseCurationMeta, ParsedCurationMeta } from './parse';
+import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from './parse';
 
 /** Full path to a Curation's folder
  * @param curation: Curation to fetch folder from
@@ -38,9 +39,26 @@ export async function createCurationImage(filePath: string): Promise<CurationInd
 /** Returns the parsed meta given the path to a meta file */
 export async function readCurationMeta(filePath: string, defaultMetaData?: GameMetaDefaults): Promise<ParsedCurationMeta> {
   const metaFileData = await fs.readFile(filePath);
-  const parsedMeta = parseCurationMeta(stripBOM(metaFileData.toString()));
-  setGameMetaDefaults(parsedMeta.game, defaultMetaData);
-  return parsedMeta;
+  if (filePath.toLowerCase().endsWith('.txt')) {
+    const parsedMeta = parseCurationMetaOld(stripBOM(metaFileData.toString()));
+    setGameMetaDefaults(parsedMeta.game, defaultMetaData);
+    return parsedMeta;
+  } else if (filePath.toLowerCase().endsWith('.yaml') || filePath.toLowerCase().endsWith('.yml')) {
+    const parsedMeta = parseCurationMetaNew(stripBOM(metaFileData.toString()));
+    setGameMetaDefaults(parsedMeta.game, defaultMetaData);
+    return parsedMeta;
+  } else {
+    throw new Error('Unsupported Meta File Format. Must be .txt (old style) or .yaml/.yml (new style)');
+  }
+}
+
+/** Warning box with given message*/
+export function showWarningBox(str: string): void {
+  remote.dialog.showMessageBox({
+    type: 'warning',
+    message: str,
+    buttons: ['OK']
+  });
 }
 
 /** Log function for the 'Curation' heading */

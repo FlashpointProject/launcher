@@ -4,6 +4,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
+import * as YAML from 'yaml';
 import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/interfaces';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
@@ -20,7 +21,6 @@ import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowse
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { convertToCurationMeta } from '../../curate/metaToMeta';
 import GameManagerPlatform from '../../game/GameManagerPlatform';
 import { GameLauncher } from '../../GameLauncher';
@@ -519,13 +519,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         defaultPath: 'meta',
         filters: [{
           name: 'Meta file',
-          extensions: ['txt'],
+          extensions: ['yaml'],
         }]
       });
       if (filePath) {
         fs.ensureDir(path.dirname(filePath))
         .then(() => {
-          const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
+          const meta = YAML.stringify(convertToCurationMeta(game, addApps));
           writeFile(filePath, meta);
         });
       }
@@ -548,7 +548,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         const screenPath = this.props.gameImages.getScreenshotPath(game);
         const thumbPath = this.props.gameImages.getThumbnailPath(game);
         // Create dest paths
-        const metaPath = path.join(filePath,'meta.txt');
+        const metaPath = path.join(filePath,'meta.yaml');
         const ssPath   = path.join(filePath,'ss'   + getFileExtension(screenPath || ''));
         const logoPath = path.join(filePath,'logo' + getFileExtension(thumbPath  || ''));
         // Check if files already exists
@@ -572,7 +572,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         .then(() => {
           Promise.all([
             (async () => {
-              const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
+              const meta = YAML.stringify(convertToCurationMeta(game, addApps));
               await writeFile(metaPath, meta);
             })(),
             screenPath ? fs.copyFile(screenPath, ssPath)   : undefined,

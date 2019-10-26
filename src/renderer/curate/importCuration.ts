@@ -50,13 +50,13 @@ export type CurationIndexImage = {
 };
 
 /**
- * Import a curation meta file (Copy meta.txt to unique folder)
+ * Import a curation meta file (Copy meta to unique folder)
  * @param filePath Path of the meta file to import
  * @return Curation key
  */
 export async function importCurationMeta(filePath: string, key: string = uuid()): Promise<string> {
   const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
-  const metaPath = path.join(curationPath, 'meta.txt');
+  const metaPath = path.join(curationPath, 'meta' + path.extname(filePath));
   try {
     await fs.ensureDir(curationPath);
     await fs.copyFile(filePath, metaPath);
@@ -111,7 +111,7 @@ export async function importCurationArchive(filePath: string, key: string = uuid
     // Extract curation to .temp folder inside curation folder
     await fs.ensureDir(extractPath);
     await extractFullPromise([filePath, extractPath, { $bin: pathTo7z, $progress: true }], progress);
-    // Find the absolute path to the folder containing meta.txt
+    // Find the absolute path to the folder containing meta.yaml
     const rootPath = await getRootPath(extractPath);
     if (rootPath) {
       // Move all files out of the root folder and into the curation folder
@@ -123,7 +123,7 @@ export async function importCurationArchive(filePath: string, key: string = uuid
       // Clean up .temp
       await fs.remove(extractPath);
     } else {
-      throw new Error('Meta.txt not found in extracted archive');
+      throw new Error('Meta.yaml/yml/txt not found in extracted archive');
     }
   } catch (error) {
     curationLog('Error extracting archive - ' + error.message);
@@ -159,8 +159,10 @@ function extractFullPromise(args: Parameters<typeof extractFull>, progress?: Pro
   });
 }
 
+// Names valid as meta files
+const validMetaNames = ['meta.txt', 'meta.yaml', 'meta.yml'];
 /**
- * Return the first path containing meta.txt (undefined if none found)
+ * Return the first path containing any valid meta name (undefined if none found)
  * @param dir Path to search
  */
 async function getRootPath(dir: string): Promise<string | undefined> {
@@ -170,7 +172,7 @@ async function getRootPath(dir: string): Promise<string | undefined> {
     const fullPath = path.join(dir, file);
     const stats = await fs.lstat(fullPath);
     // Found root, pass back
-    if (stats.isFile() && file === 'meta.txt') {
+    if (stats.isFile() && endsWithList(file.toLowerCase(), validMetaNames)) {
       return dir;
     } else if (stats.isDirectory()) {
       const foundRoot = await getRootPath(fullPath);
@@ -179,6 +181,15 @@ async function getRootPath(dir: string): Promise<string | undefined> {
       }
     }
   }
+}
+
+function endsWithList(str: string, list: string[]): boolean {
+  for (let s of list) {
+    if (str.endsWith(s)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** Create an "empty" curation index image. */
