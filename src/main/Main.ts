@@ -15,13 +15,13 @@ import MainWindow from './MainWindow';
 import { ServicesMainApi } from './service/ServicesMainApi';
 import * as Util from './Util';
 
-const port = 12234; // @TODO Make the port customizable or automatically selected or something
-
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
   private _services?: ServicesMainApi;
   private _config: AppConfigMain = new AppConfigMain();
   private _installed: boolean = fs.existsSync('./.installed');
+  /** The port that the back is listening on. */
+  private _backPort: number = -1;
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   private _version: number = -2;
   private _log: LogMainApi = new LogMainApi(this.sendToMainWindowRenderer.bind(this));
@@ -61,10 +61,18 @@ export class Main {
         detached: false,
       });
       // Wait for process to initialize
-      this.backProc.once('message', () => { resolve(); });
+      this.backProc.once('message', (port) => {
+        if (port >= 0) {
+          this._backPort = port;
+          resolve();
+        } else {
+          reject(new Error(`Failed to start server in back process. Perhaps because it could not find an available port (range: [${msg.portMin}, ${msg.portMax}]).`));
+        }
+      });
       // Send initialize message
       const msg: BackInitArgs = {
-        port,
+        portMin: this._config.data.backPortMin,
+        portMax: this._config.data.backPortMax,
         preferencesPath: Util.getPreferencesFilePath(this.installed),
       };
       this.backProc.send(JSON.stringify(msg));
@@ -72,7 +80,7 @@ export class Main {
     .then(() => new Promise((resolve, reject) => {
       const url = new URL('ws://localhost');
       url.host = 'localhost';
-      url.port = port+'';
+      url.port = this._backPort+'';
       this.socket = new WebSocket(url.href);
       this.socket.onopen = () => { resolve(); };
     }))
@@ -109,7 +117,10 @@ export class Main {
         this._mainWindow.createWindow(this.preferences.mainWindow);
       });
     })
-    .catch(console.error);
+    .catch((error) => {
+      console.log(error);
+      app.quit();
+    });
   }
 
   private onAppReady(): void {
@@ -198,7 +209,7 @@ export class Main {
 
   private onInit(event: IpcMainEvent) {
     const data: InitRendererData = {
-      port,
+      port: this._backPort,
     };
     event.returnValue = data;
   }

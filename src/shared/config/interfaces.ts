@@ -30,6 +30,10 @@ export type IAppConfigData = {
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
+  /** Lower limit of the range of ports that the back should listen on. */
+  backPortMin: number;
+  /** Upper limit of the range of ports that the back should listen on. */
+  backPortMax: number;
 };
 
 /** Data fetched from the Main by the Renderer */

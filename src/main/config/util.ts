@@ -4,7 +4,7 @@ import { Coerce } from '../../shared/utils/Coerce';
 import { ObjectParser } from '../../shared/utils/ObjectParser';
 import { parseVarStr } from '../Util';
 
-const { str } = Coerce;
+const { num, str } = Coerce;
 
 type IConfigDataDefaults = {
   [key: string]: Readonly<IAppConfigData>;
@@ -24,6 +24,8 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   useFiddler: false,
   disableExtremeGames: false,
   showBrokenGames: false,
+  backPortMin: 12234,
+  backPortMax: 12334,
 });
 
 /**
@@ -78,6 +80,8 @@ export function overwriteConfigData(
   parser.prop('useFiddler',          v => source.useFiddler          = !!v);
   parser.prop('disableExtremeGames', v => source.disableExtremeGames = !!v);
   parser.prop('showBrokenGames',     v => source.showBrokenGames     = !!v);
+  parser.prop('backPortMin',         v => source.backPortMin         = num(v));
+  parser.prop('backPortMax',         v => source.backPortMax         = num(v));
   // Do some alterations
   source.flashpointPath = source.flashpointPath.replace(/\\/g, '/'); // (Clean path)
   // Return

@@ -24,11 +24,19 @@ process.on('message', onProcessMessage);
 
 function onProcessMessage(message: any, sendHandle: any): void {
   if (!isInit) {
-    const content: BackInitArgs = JSON.parse(message);
     isInit = true;
-    server = new Server({ port: content.port });
-    server.on('connection', onConnect);
-    send(JSON.stringify(['init', { port: content.port }]));
+    // Find the first available port in the range
+    const content: BackInitArgs = JSON.parse(message);
+    let serverPort: number = -1;
+    for (let port = content.portMin; port <= content.portMax; port++) {
+      try {
+        server = new Server({ port });
+        serverPort = port;
+        break;
+      } catch (error) { /* Do nothing. */ }
+    }
+    if (server) { server.on('connection', onConnect); }
+    send(serverPort);
   }
 }
 

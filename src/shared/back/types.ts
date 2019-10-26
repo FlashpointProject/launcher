@@ -14,8 +14,10 @@ export enum BackOut {
 }
 
 export type BackInitArgs = {
-  /** Port that the back server should listen on. */
-  port: number;
+  /** Lower limit of the range of ports that the back should listen on. */
+  portMin: number;
+  /** Upper limit of the range of ports that the back should listen on. */
+  portMax: number;
   /** Path to the preferences file. */
   preferencesPath: string;
 }
