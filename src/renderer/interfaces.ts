@@ -1,6 +1,6 @@
 import GameManager from './game/GameManager';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
-import { IUpgradeData } from './upgrade/upgrade';
+import { UpgradeData } from './upgrade/types';
 
 /**
  * An object created and managed by the "root" component (App) and is passed down deep into many different components.
@@ -26,7 +26,7 @@ export type CentralState = {
 /** Data and state used for the upgrade system. */
 export type UpgradeState = {
   /** Data from the upgrade file (or the defaults if it failed to load or parse). */
-  data?: IUpgradeData;
+  data?: UpgradeData;
   /** State of the tech stage. */
   techState: UpgradeStageState;
   /** State of the screenshots stage. */

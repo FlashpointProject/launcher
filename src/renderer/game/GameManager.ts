@@ -3,7 +3,7 @@ import * as path from 'path';
 import { GameCollection } from '../../shared/game/GameCollection';
 import { GameParser, generateGameOrderTitle } from '../../shared/game/GameParser';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../shared/library/types';
 import { clearArray, removeFileExtension } from '../../shared/Util';
 import { LaunchboxData } from '../LaunchboxData';
 import GameManagerPlatform from './GameManagerPlatform';
@@ -298,7 +298,7 @@ type AddOrUpdateGameOpts = {
   /** All additional applications of the game (if undefined, the add-apps will not be added or updated). */
   addApps?: IAdditionalApplicationInfo[];
   /** Library the game belongs to. */
-  library?: IGameLibraryFileItem;
+  library?: GameLibraryFileItem;
   /** If the changes should be saved to file immediately. Defaults to false. */
   saveToFile?: boolean;
 };

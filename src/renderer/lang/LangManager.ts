@@ -12,10 +12,13 @@ import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
 export interface LangManager {
   /** Emitted when the language list has been changed (added / removed / renamed). */
   on(event: 'list-change', listener: (list: LangFile[]) => void): this;
+  off(event: 'list-change', listener: (list: LangFile[]) => void): this;
   /** Emitted when the combined language container has been changed. */
   on(event: 'update', listener: (item: LangContainer) => void): this;
+  off(event: 'update', listener: (item: LangContainer) => void): this;
   /** Emitted when the language manager is done initializing. */
   on(event: 'init', listener: () => void): this;
+  off(event: 'init', listener: () => void): this;
 }
 
 export class LangManager extends WrappedEventEmitter {

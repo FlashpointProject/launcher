@@ -1,10 +1,10 @@
 import { EventEmitter } from 'events';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import { IncomingMessage } from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
-import { IUpgradeStage } from '../upgrade/upgrade';
+import { UpgradeStage } from '../upgrade/types';
 import { unzipAll } from '../util/unzip';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
@@ -16,7 +16,7 @@ interface IGetUpgradeOpts {
   downloadFilename: string;
 }
 
-export declare interface UpgradeStatus {
+export interface UpgradeStatus {
   /** Fired whenever progress is made in the process */
   on(event: 'progress', handler: () => void): this;
   emit(event: 'progress'): boolean;
@@ -31,7 +31,7 @@ export declare interface UpgradeStatus {
   emit(event: 'done'): boolean;
 }
 
-export type UpgradeStatusTask = 'downloading'|'extracting'|'none';
+export type UpgradeStatusTask = 'downloading' | 'extracting' | 'none';
 
 export class UpgradeStatus extends EventEmitter {
   public currentTask: UpgradeStatusTask = 'none';
@@ -44,7 +44,7 @@ export class UpgradeStatus extends EventEmitter {
   }
 }
 
-declare interface UpgradeDownloadStatus {
+interface UpgradeDownloadStatus {
   /** Fired when an error occurs, this also means that the process has ended */
   once(event: 'error', handler: (error: any) => void): this;
   emit(event: 'error', error: any): boolean;
@@ -62,7 +62,7 @@ class UpgradeDownloadStatus extends EventEmitter {
   contentLength: number = 0;
 }
 
-export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgradeOpts): UpgradeStatus {
+export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgradeOpts): UpgradeStatus {
   const status = new UpgradeStatus();
   status.currentTask = 'downloading';
   log(`Download of upgrade "${upgrade.title}" started.`);
@@ -109,7 +109,7 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
  * @param upgrade Upgrade to download
  * @returns Path of the local zip file, ready for extraction/installation
  */
-function downloadUpgrade(upgrade: IUpgradeStage, filename: string, onData: (offset: number) => void): UpgradeDownloadStatus {
+function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offset: number) => void): UpgradeDownloadStatus {
   const status = new UpgradeDownloadStatus();
   tryDownload(0);
   return status;
@@ -143,6 +143,20 @@ function downloadUpgrade(upgrade: IUpgradeStage, filename: string, onData: (offs
       catch (error) { status.emit('error', new Error(`File download failed. ${error}`)); }
     }
   }
+}
+
+/**
+ * Check if all files in the stage's "checks" array exists.
+ * This aborts as soon as it encounters a "check" that does not exist.
+ * @param stage Stage to check the "checks" of.
+ * @param flashpointFolder Path of the Flashpoint folder root.
+ */
+export async function performUpgradeStageChecks(stage: UpgradeStage, flashpointFolder: string): Promise<boolean[]> {
+  const success: boolean[] = [];
+  await Promise.all(stage.checks.map(check => (
+    fs.pathExists(path.join(flashpointFolder, check))
+  )));
+  return success;
 }
 
 function log(content: string): void {

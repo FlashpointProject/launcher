@@ -7,7 +7,7 @@ import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
-import { IGameLibraryFileItem } from '../shared/library/interfaces';
+import { GameLibraryFileItem } from '../shared/library/types';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { updatePreferencesData } from '../shared/preferences/util';
@@ -20,8 +20,8 @@ import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithLibraryProps } from './containers/withLibrary';
 import { WithPreferencesProps } from './containers/withPreferences';
-import { readCreditsFile } from './credits/Credits';
-import { ICreditsData } from './credits/interfaces';
+import { CreditsFile } from './credits/CreditsFile';
+import { CreditsData } from './credits/types';
 import GameManager from './game/GameManager';
 import GameManagerPlatform from './game/GameManagerPlatform';
 import { GameImageCollection } from './image/GameImageCollection';
@@ -29,15 +29,16 @@ import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
 import { LangManager } from './lang/LangManager';
 import { Paths } from './Paths';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
-import { IGamePlaylist } from './playlist/interfaces';
+import { GamePlaylist } from './playlist/types';
 import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
-import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
+import { UpgradeStage } from './upgrade/types';
+import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
-import { downloadAndInstallUpgrade } from './util/upgrade';
+import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -54,7 +55,7 @@ export type AppState = {
   /** Semi-global prop. */
   central: CentralState;
   /** Credits data (if any). */
-  creditsData?: ICreditsData;
+  creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   /** Current parameters for ordering games. */
   order: GameOrderChangeEvent;
@@ -67,7 +68,7 @@ export type AppState = {
   /** Currently selected game (for each browse tab / library). */
   selectedGames: IObjectMap<IGameInfo>;
   /** Currently selected playlists (for each browse tab / library). */
-  selectedPlaylists: IObjectMap<IGamePlaylist>;
+  selectedPlaylists: IObjectMap<GamePlaylist>;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
   /** Current language container. */
@@ -244,7 +245,7 @@ export class App extends React.Component<AppProps, AppState> {
       });
     });
     //
-    readUpgradeFile(fullJsonFolderPath)
+    UpgradeFile.readFile(fullJsonFolderPath, log)
     .then((data) => {
       this.setUpgradeState({
         data: data,
@@ -270,7 +271,7 @@ export class App extends React.Component<AppProps, AppState> {
       this.setUpgradeState({ doneLoading: true });
     });
     // Load Credits
-    readCreditsFile(fullJsonFolderPath, log)
+    CreditsFile.readFile(fullJsonFolderPath, log)
     .then((data) => {
       this.setState({
         creditsData: data,
@@ -466,7 +467,7 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   /** Set the selected playlist for a single "browse route" */
-  private onSelectPlaylist = (playlist?: IGamePlaylist, route?: string): void => {
+  private onSelectPlaylist = (playlist?: GamePlaylist, route?: string): void => {
     const { selectedGames, selectedPlaylists } = this.state;
     if (route === undefined) { route = getBrowseSubPath(this.props.location.pathname); }
     this.setState({
@@ -536,7 +537,7 @@ export class App extends React.Component<AppProps, AppState> {
   }
 }
 
-function downloadAndInstallStage(stage: IUpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
+function downloadAndInstallStage(stage: UpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
   // Flag as installing
   setStageState({
     isInstalling: true,
@@ -594,7 +595,7 @@ function log(content: string): void {
 }
 
 /** Count the number of games in all platforms that "belongs" to the given library */
-function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], libraries: IGameLibraryFileItem[], library?: IGameLibraryFileItem): number {
+function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], libraries: GameLibraryFileItem[], library?: GameLibraryFileItem): number {
   const currentLibraries = library ? getLibraryPlatforms(libraries, platforms, library) : platforms;
   return currentLibraries.reduce(
     (acc, platform) => acc + (platform.collection ? platform.collection.games.length : 0),

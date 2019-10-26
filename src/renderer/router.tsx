@@ -12,27 +12,27 @@ import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/Conn
 import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
-import { ICreditsData } from './credits/interfaces';
+import { CreditsData } from './credits/types';
 import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState } from './interfaces';
 import { Paths } from './Paths';
-import { IGamePlaylist } from './playlist/interfaces';
+import { GamePlaylist } from './playlist/types';
 import { IThemeListItem } from './theme/ThemeManager';
 
 export type AppRouterProps = {
   /** Semi-global prop. */
   central: CentralState;
   /** Credits data (if any). */
-  creditsData?: ICreditsData;
+  creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   order?: GameOrderChangeEvent;
   gameScale: number;
   gameLayout: BrowsePageLayout;
   gameImages: GameImageCollection;
   selectedGame?: IGameInfo;
-  selectedPlaylist?: IGamePlaylist;
+  selectedPlaylist?: GamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
-  onSelectPlaylist: (playlist?: IGamePlaylist, route?: string) => void;
+  onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
   wasNewGameClicked: boolean;
   onDownloadTechUpgradeClick: () => void;
   onDownloadScreenshotsUpgradeClick: () => void;

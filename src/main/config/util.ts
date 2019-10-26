@@ -1,7 +1,10 @@
 import { IAppConfigData } from '../../shared/config/interfaces';
 import { deepCopy } from '../../shared/Util';
+import { Coerce } from '../../shared/utils/Coerce';
 import { ObjectParser } from '../../shared/utils/ObjectParser';
 import { parseVarStr } from '../Util';
+
+const { str } = Coerce;
 
 type IConfigDataDefaults = {
   [key: string]: Readonly<IAppConfigData>;
@@ -62,7 +65,7 @@ export function overwriteConfigData(
 ): IAppConfigData {
   const parser = new ObjectParser({
     input: data,
-    onError: onError && (error => onError(`Error while parsing Config: ${error.toString()}`)),
+    onError: onError && (e => onError(`Error while parsing Config: ${e.toString()}`)),
   });
   parser.prop('flashpointPath',      v => source.flashpointPath      = parseVarStr(str(v)));
   parser.prop('imageFolderPath',     v => source.imageFolderPath     = parseVarStr(str(v)));
@@ -79,9 +82,4 @@ export function overwriteConfigData(
   source.flashpointPath = source.flashpointPath.replace(/\\/g, '/'); // (Clean path)
   // Return
   return source;
-}
-
-/** Coerce anything to a string. */
-function str(str: any): string {
-  return (str || '') + '';
 }

@@ -1,5 +1,4 @@
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
-import { findLibraryByPlatformName } from '../../shared/library/util';
+import { GameLibraryFileItem } from '../../shared/library/types';
 import GameManagerPlatform from '../game/GameManagerPlatform';
 
 /** Game properties that will have suggestions gathered and displayed. */
@@ -32,7 +31,7 @@ export type GamePropSuggestions = {
  * @param libraries Libraries to include in the suggestions.
  * @returns The game property values in the collection (that were extracted).
  */
-export function getSuggestions(platforms: GameManagerPlatform[] = [], libraries: IGameLibraryFileItem[] = []): Partial<GamePropSuggestions> {
+export function getSuggestions(platforms: GameManagerPlatform[] = [], libraries: GameLibraryFileItem[] = []): Partial<GamePropSuggestions> {
   // Get the values from the game collection & libraries
   const map: GamePropSuggestionsMap = {
     genre: {},

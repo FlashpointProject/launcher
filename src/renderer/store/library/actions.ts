@@ -1,7 +1,7 @@
 import { createAction } from 'typesafe-actions';
-import { IGameLibraryFile } from '../../../shared/library/interfaces';
+import { GameLibraryFile } from '../../../shared/library/types';
 import { LibraryActionTypes } from './types';
 
 export const updateLibrary = createAction(LibraryActionTypes.UPDATE_LIBRARY, resolve => {
-  return (data: Partial<IGameLibraryFile>) => resolve(data);
+  return (data: Partial<GameLibraryFile>) => resolve(data);
 });

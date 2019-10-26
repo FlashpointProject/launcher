@@ -3,8 +3,9 @@ import * as path from 'path';
 import { promisify } from 'util';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
 import { recursiveDirectory } from '../../shared/Util';
-import { createGamePlaylist, getPlaylistFolder, loadGamePlaylist, LoadGamePlaylistError, saveGamePlaylist } from './GamePlaylist';
-import { IGamePlaylist } from './interfaces';
+import { LoadGamePlaylistError, PlaylistFile } from './PlaylistFile';
+import { GamePlaylist } from './types';
+import { createGamePlaylist, getPlaylistFolder } from './util';
 
 const unlink = promisify(fs.unlink);
 const stat = promisify(fs.stat);
@@ -17,7 +18,7 @@ interface IPlaylistIdToFilenameMap {
 /** Is in charge of creating, loading, saving and storing the game playlists. */
 export class GamePlaylistManager {
   /** All playlists */
-  public playlists: IGamePlaylist[] = [];
+  public playlists: GamePlaylist[] = [];
   /** Map of playlist IDs to the file they were loaded from */
   private fileMap: IPlaylistIdToFilenameMap = {};
   private hasStartedLoading: boolean = false;
@@ -49,7 +50,7 @@ export class GamePlaylistManager {
       }
       // Load and parse all playlist files
       const values: Array<{
-        playlist: IGamePlaylist;
+        playlist: GamePlaylist;
         filename: string;
       }> = [];
       try {
@@ -57,7 +58,7 @@ export class GamePlaylistManager {
           directoryPath: playlistFolderPath,
           fileCallback: async (obj) => {
             const fullPath = path.join(obj.shared.options.directoryPath, obj.relativePath, obj.filename);
-            const result = await loadGamePlaylist(fullPath, error => logError(`Error while parsing playlist "${path.join(obj.relativePath, obj.filename)}". ${error}`));
+            const result = await PlaylistFile.readFile(fullPath, error => logError(`Error while parsing playlist "${path.join(obj.relativePath, obj.filename)}". ${error}`));
             if (result !== LoadGamePlaylistError.FileNotFound &&
                 result !== LoadGamePlaylistError.JSONError) {
               values.push({
@@ -85,7 +86,7 @@ export class GamePlaylistManager {
    * Save a playlist to a file
    * @param playlistId ID of playlist to save
    */
-  public async save(playlist: IGamePlaylist): Promise<void> {
+  public async save(playlist: GamePlaylist): Promise<void> {
     // Check if the file the playlist was loaded from still exists and has the same id
     // (This is only to save performance by not having to recurse through the entire folder)
     let fullPath = this.fileMap[playlist.id];
@@ -93,7 +94,7 @@ export class GamePlaylistManager {
       switch (await checkIfSame(fullPath, playlist.id)) {
         case CheckIfSameResult.FileNotFound:
         case CheckIfSameResult.SameID:
-          saveGamePlaylist(fullPath, playlist);
+          PlaylistFile.saveFile(fullPath, playlist);
           return;
       }
     }
@@ -106,7 +107,7 @@ export class GamePlaylistManager {
         const fullPath = path.join(obj.shared.options.directoryPath, obj.relativePath, obj.filename);
         const result = await checkIfSame(fullPath, playlist.id);
         if (result === CheckIfSameResult.SameID) {
-          await saveGamePlaylist(fullPath, playlist);
+          await PlaylistFile.saveFile(fullPath, playlist);
           obj.shared.abort = true;
           wasFound = true;
         }
@@ -114,7 +115,7 @@ export class GamePlaylistManager {
     });
     if (wasFound) { return; }
     // Create a new file
-    await saveGamePlaylist(path.join(getPlaylistFolder(), playlist.id+'.json'), playlist);
+    await PlaylistFile.saveFile(path.join(getPlaylistFolder(), playlist.id+'.json'), playlist);
   }
 
   /**
@@ -180,7 +181,7 @@ export class GamePlaylistManager {
    * Create a new playlist and add it to this manager then return it
    * @returns Newly created playlist
    */
-  public create(): IGamePlaylist {
+  public create(): GamePlaylist {
     const playlist = createGamePlaylist();
     this.playlists.push(playlist);
     return playlist;
@@ -214,18 +215,16 @@ enum CheckFolderResult {
  * @param id ID to check if playlist has
  */
 async function checkIfSame(filename: string, id: string): Promise<CheckIfSameResult> {
-  let loaded: IGamePlaylist|LoadGamePlaylistError|undefined;
+  let loaded: GamePlaylist | LoadGamePlaylistError | undefined;
   try {
-    loaded = await loadGamePlaylist(filename);
+    loaded = await PlaylistFile.readFile(filename);
   } catch (error) {
     console.log(error);
     return CheckIfSameResult.FileOtherError;
   }
   switch (loaded) {
-    case LoadGamePlaylistError.FileNotFound:
-      return CheckIfSameResult.FileNotFound;
-    case LoadGamePlaylistError.JSONError:
-      return CheckIfSameResult.FileInvalid;
+    case LoadGamePlaylistError.FileNotFound: return CheckIfSameResult.FileNotFound;
+    case LoadGamePlaylistError.JSONError:    return CheckIfSameResult.FileInvalid;
   }
   if (loaded.id === id) { return CheckIfSameResult.SameID; }
   return CheckIfSameResult.DifferentID;

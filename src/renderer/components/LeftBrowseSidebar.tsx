@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { LangContainer } from '../../shared/lang';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../shared/library/types';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { CentralState } from '../interfaces';
-import { IGamePlaylist } from '../playlist/interfaces';
+import { GamePlaylist } from '../playlist/types';
 import { gameIdDataType } from '../Util';
 import { LangContext } from '../util/lang';
 import { OpenIcon } from './OpenIcon';
@@ -13,15 +13,15 @@ type OwnProps = {
   /** Semi-global prop. */
   central: CentralState;
   /** The current library. */
-  currentLibrary?: IGameLibraryFileItem;
+  currentLibrary?: GameLibraryFileItem;
   /** ID of the playlist that is selected (empty string if none). */
   selectedPlaylistID: string;
   /** Called when a playlist is selected. */
-  onSelectPlaylist?: (playlist: IGamePlaylist) => void;
+  onSelectPlaylist?: (playlist: GamePlaylist) => void;
   /** Called when a the current playlist is deselected (and no playlist is selected in its place). */
   onDeselectPlaylist?: () => void;
   /** Called when a displayed playlist has been changed (by means that doesn't already re-render). */
-  onPlaylistChanged?: (playlist: IGamePlaylist) => void;
+  onPlaylistChanged?: (playlist: GamePlaylist) => void;
   /** Called when the "Show All" button is clicked. */
   onShowAllClick?: () => void;
 };
@@ -46,7 +46,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     };
   }
 
-  private filterAndSortPlaylists(): IGamePlaylist[] {
+  private filterAndSortPlaylists(): GamePlaylist[] {
     const { central, currentLibrary } = this.props;
     let playlists = central.playlists.playlists.slice();
     if (currentLibrary) { // (Filter out all playlists that "belong" to other libraries than the current one)
@@ -131,7 +131,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     );
   }
 
-  private onPlaylistItemHeadClick = (playlist: IGamePlaylist): void => {
+  private onPlaylistItemHeadClick = (playlist: GamePlaylist): void => {
     if (this.props.selectedPlaylistID === playlist.id) {
       this.props.onDeselectPlaylist && this.props.onDeselectPlaylist();
     } else {
@@ -140,13 +140,13 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     this.setState({ isEditing: false });
   }
 
-  private onPlaylistItemEditClick = (playlist: IGamePlaylist): void => {
+  private onPlaylistItemEditClick = (playlist: GamePlaylist): void => {
     if (this.props.selectedPlaylistID === playlist.id) {
       this.setState({ isEditing: !this.state.isEditing });
     }
   }
 
-  private onPlaylistItemDeleteClick = (playlist: IGamePlaylist): void => {
+  private onPlaylistItemDeleteClick = (playlist: GamePlaylist): void => {
     if (this.props.central.playlistsDoneLoading) {
       // Delete playlist
       this.props.central.playlists.delete(playlist.id);
@@ -156,7 +156,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     }
   }
 
-  private onPlaylistItemSaveClick = (playlist: IGamePlaylist, edit: IGamePlaylist): void => {
+  private onPlaylistItemSaveClick = (playlist: GamePlaylist, edit: GamePlaylist): void => {
     // Overwrite the playlist with the new one
     const arr = this.props.central.playlists.playlists;
     arr.splice(arr.indexOf(playlist), 1, edit);
@@ -166,13 +166,13 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     this.setState({ isEditing: false });
   }
 
-  private onPlaylistItemDrop = (event: React.DragEvent, playlist: IGamePlaylist): void => {
+  private onPlaylistItemDrop = (event: React.DragEvent, playlist: GamePlaylist): void => {
     if (this.props.onPlaylistChanged) {
       this.props.onPlaylistChanged(playlist);
     }
   }
 
-  private onPlaylistItemDragOver = (event: React.DragEvent, playlist: IGamePlaylist): void => {
+  private onPlaylistItemDragOver = (event: React.DragEvent, playlist: GamePlaylist): void => {
     if (this.props.preferencesData.enableEditing) {
       const types = event.dataTransfer.types;
       if (types.length === 1 && types[0] === gameIdDataType) {
