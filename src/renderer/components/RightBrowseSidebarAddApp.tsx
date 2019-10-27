@@ -26,11 +26,11 @@ export interface RightBrowseSidebarAddApp {
 
 /** Displays an additional application for a game in the right sidebar of BrowsePage. */
 export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps> {
-  onNameEditDone              = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
-  onApplicationPathEditDone   = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
-  onLaunchCommandEditDone     = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
-  onAutoRunBeforeChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.autoRunBefore = !addApp.autoRunBefore; });
-  onWaitForExitChange         = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
+  onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
+  onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
+  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
+  onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp) => { addApp.autoRunBefore = !addApp.autoRunBefore; });
+  onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
 
   render() {
     const strings = this.context.browse;

@@ -178,8 +178,6 @@
     "additionalApplications": "Additional Application",
     "noName": "No Name",
     "launch": "Launch",
-    "commandLine": "Command Line",
-    "noCommandLine": "No Command Line",
     "autoRunBefore": "Auto Run Before",
     "waitForExit": "Wait for Exit",
     "applicationPath": "Application Path",
