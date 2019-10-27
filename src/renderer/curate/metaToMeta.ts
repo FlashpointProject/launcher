@@ -1,4 +1,4 @@
-import { IGameInfo, IAdditionalApplicationInfo } from '../../shared/game/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 
 /**
  * Convert game and its additional applications into a raw object representation in the curation format.
@@ -31,9 +31,9 @@ export function convertToCurationMeta(game: IGameInfo, addApps?: IAdditionalAppl
     for (let i = 0; i < addApps.length; i++) {
       const addApp = addApps[i];
       if (addApp.applicationPath === ':extras:') {
-        parsedAddApps['Extras'] = addApp.commandLine;
+        parsedAddApps['Extras'] = addApp.launchCommand;
       } else if (addApp.applicationPath === ':message:') {
-        parsedAddApps['Message'] = addApp.commandLine;
+        parsedAddApps['Message'] = addApp.launchCommand;
       } else {
         let heading = addApp.name;
         // Check if the property name is already in use
@@ -53,7 +53,7 @@ export function convertToCurationMeta(game: IGameInfo, addApps?: IAdditionalAppl
         parsedAddApps[heading] = {
           'Heading': addApp.name,
           'Application Path': addApp.applicationPath,
-          'Launch Command': addApp.commandLine,
+          'Launch Command': addApp.launchCommand,
         };
       }
     }

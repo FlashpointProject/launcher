@@ -17,6 +17,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   logoFolderPath: 'Data/Logos',
   playlistFolderPath: 'Data/Playlists',
   jsonFolderPath: 'Data',
+  platformFolderPath: 'Data/Platforms',
   themeFolderPath: 'Data/Themes',
   useCustomTitlebar: false,
   startServer: true,
@@ -74,6 +75,7 @@ export function overwriteConfigData(
   parser.prop('logoFolderPath',      v => source.logoFolderPath      = parseVarStr(str(v)));
   parser.prop('playlistFolderPath',  v => source.playlistFolderPath  = parseVarStr(str(v)));
   parser.prop('jsonFolderPath',      v => source.jsonFolderPath      = parseVarStr(str(v)));
+  parser.prop('platformFolderPath',  v => source.platformFolderPath  = parseVarStr(str(v)));
   parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
   parser.prop('startServer',         v => source.startServer         = !!v);
   parser.prop('startRedirector',     v => source.startRedirector     = !!v);

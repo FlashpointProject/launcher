@@ -4,8 +4,8 @@ import { GameCollection } from '../../shared/game/GameCollection';
 import { GameParser, generateGameOrderTitle } from '../../shared/game/GameParser';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { GameLibraryFileItem } from '../../shared/library/types';
+import { PlatformParser } from '../../shared/platform/PlatformParser';
 import { clearArray, removeFileExtension } from '../../shared/Util';
-import { LaunchboxData } from '../LaunchboxData';
 import GameManagerPlatform from './GameManagerPlatform';
 import { formatUnknownPlatformName } from './util';
 
@@ -22,8 +22,8 @@ class GameManager extends EventEmitter {
 
   /** Fetch file filenames of all platform XMLs in the platforms folder */
   public async findPlatforms(): Promise<string[]> {
-    const flashpointPath = window.External.config.fullFlashpointPath;
-    const filenames = await LaunchboxData.fetchPlatformFilenames(flashpointPath);
+    const platformsPath = path.join(window.External.config.fullFlashpointPath, window.External.config.data.platformFolderPath);
+    const filenames = await PlatformParser.fetchPlatformFilenames(platformsPath);
     for (let i = 0; i < filenames.length; i++) {
       this.addPlatform(new GameManagerPlatform(filenames[i]));
     }
@@ -32,7 +32,7 @@ class GameManager extends EventEmitter {
 
   /** Fetch and parse all platform XMLs and put them into this manager */
   public async loadPlatforms(): Promise<void> {
-    const flashpointPath = window.External.config.fullFlashpointPath;
+    const platformPath = path.join(window.External.config.fullFlashpointPath, window.External.config.data.platformFolderPath);
     if (this.platforms.length > 0) {
       // Attempt to load and parse all platform files
       // (It will store all errors in an array instead of giving up after the first one)
@@ -40,7 +40,8 @@ class GameManager extends EventEmitter {
       const map = await Promise.all(this.platforms.map(platform => {
         return (async () => {
           try {
-            const data = await LaunchboxData.loadPlatform(path.join(flashpointPath, LaunchboxData.platformsPath, platform.filename));
+            const filePath = path.join(platformPath, platform.filename);
+            const data = await PlatformParser.loadPlatform(filePath);
             return { platform, data };
           } catch (error) {
             errors.push(new LoadPlatformError(error, platform));
@@ -88,7 +89,7 @@ class GameManager extends EventEmitter {
     platform.addOrUpdateGame(game);
     // Override the additional applications
     if (addApps) {
-      const currentAddApps = GameCollection.findAdditionalApplicationsByGameId(this.collection, game.id);
+      const currentAddApps = this.collection.findAdditionalApplicationsByGameId(game.id);
       this.updateAddApps(addApps, currentAddApps, platform);
     }
     // Refresh games collection
