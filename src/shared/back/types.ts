@@ -20,4 +20,6 @@ export type BackInitArgs = {
   portMax: number;
   /** Path to the preferences file. */
   preferencesPath: string;
+  /** Secret string used for authentication. */
+  secret: string;
 }

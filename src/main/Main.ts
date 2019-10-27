@@ -1,4 +1,5 @@
 import { ChildProcess, fork } from 'child_process';
+import { randomBytes } from 'crypto';
 import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -22,6 +23,7 @@ export class Main {
   private _installed: boolean = fs.existsSync('./.installed');
   /** The port that the back is listening on. */
   private _backPort: number = -1;
+  private _secret: string = randomBytes(2048).toString('hex');
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   private _version: number = -2;
   private _log: LogMainApi = new LogMainApi(this.sendToMainWindowRenderer.bind(this));
@@ -74,6 +76,7 @@ export class Main {
         portMin: this._config.data.backPortMin,
         portMax: this._config.data.backPortMax,
         preferencesPath: Util.getPreferencesFilePath(this.installed),
+        secret: this._secret,
       };
       this.backProc.send(JSON.stringify(msg));
     }))
@@ -81,8 +84,19 @@ export class Main {
       const url = new URL('ws://localhost');
       url.host = 'localhost';
       url.port = this._backPort+'';
-      this.socket = new WebSocket(url.href);
-      this.socket.onopen = () => { resolve(); };
+      // Connect and authenticate
+      const ws = new WebSocket(url.href);
+      this.socket = ws;
+      ws.onclose = () => { reject(new Error('Failed to authenticate to the back.')); };
+      ws.onerror = (event) => { reject(event.error); };
+      ws.onopen  = (event) => {
+        ws.onmessage = () => {
+          ws.onclose = (event) => { console.log('socket closed', event.code, event.reason); };
+          ws.onerror = (event) => { console.log('socket error', event.error); };
+          resolve();
+        };
+        ws.send(this._secret);
+      };
     }))
     .then(() => new Promise((resolve, reject) => {
       if (!this.socket) { throw new Error('socket is undefined'); }
@@ -93,7 +107,7 @@ export class Main {
           this.preferences = msg[1];
           socket.onmessage = this.onMessage;
           resolve();
-        } else { reject(new Error(`Failed to initialize. Did not expect messge type "${BackOut[msg[0]]}".`)); }
+        } else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[msg[0]]}".`)); }
       };
       socket.send(JSON.stringify([
         BackIn.LOAD_PREFERENCES,
@@ -210,6 +224,7 @@ export class Main {
   private onInit(event: IpcMainEvent) {
     const data: InitRendererData = {
       port: this._backPort,
+      secret: this._secret,
     };
     event.returnValue = data;
   }

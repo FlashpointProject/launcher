@@ -15,6 +15,7 @@ const send: Required<typeof process.send> = process.send
 
 let isInit: boolean = false;
 let server: Server;
+let secret: string;
 let preferences: IAppPreferencesData;
 let preferencesPath: string;
 const messageQueue: WebSocket.MessageEvent[] = [];
@@ -25,8 +26,9 @@ process.on('message', onProcessMessage);
 function onProcessMessage(message: any, sendHandle: any): void {
   if (!isInit) {
     isInit = true;
-    // Find the first available port in the range
     const content: BackInitArgs = JSON.parse(message);
+    secret = content.secret;
+    // Find the first available port in the range
     let serverPort: number = -1;
     for (let port = content.portMin; port <= content.portMax; port++) {
       try {
@@ -41,13 +43,19 @@ function onProcessMessage(message: any, sendHandle: any): void {
 }
 
 function onConnect(this: WebSocket, socket: WebSocket, request: http.IncomingMessage): void {
-  socket.onmessage = function onMessageWrap(event) {
-    messageQueue.push(event);
-    handleMessages();
+  socket.onmessage = function onAuthMessage(event) {
+    if (event.data === secret) {
+      socket.onmessage = onMessageWrap;
+      socket.send('auth successful'); // (reply with some garbage data)
+    } else {
+      socket.close();
+    }
   };
 }
 
-async function handleMessages() {
+async function onMessageWrap(event: WebSocket.MessageEvent) {
+  messageQueue.push(event);
+
   if (!isHandling) {
     isHandling = true;
     while (messageQueue.length > 0) {

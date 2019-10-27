@@ -96,11 +96,13 @@ const onInit = new Promise<WebSocket>((resolve, reject) => {
   const ws = new WebSocket(url.href);
   window.External.backSocket = ws;
   ws.onopen = (event) => {
-    window.External.backSocket = ws;
-    resolve(ws);
+    ws.onmessage = () => { resolve(ws); };
+    ws.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
+    ws.send(data.secret);
   };
 })
-.then((ws) => new Promise((resolve, reject) =>{
+.then((ws) => new Promise((resolve, reject) => {
+  window.External.backSocket = ws;
   // Fetch the preferences
   ws.onmessage = (event) => {
     const msg = JSON.parse(event.data.toString());
