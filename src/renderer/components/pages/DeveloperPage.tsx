@@ -6,6 +6,7 @@ import * as uuidValidate from 'uuid-validate';
 import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
+import { PlatformParser } from '../../../shared/platform/PlatformParser';
 import { removeFileExtension } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameLauncher } from '../../GameLauncher';
@@ -13,7 +14,6 @@ import { GameImageCollection } from '../../image/GameImageCollection';
 import { ImageFolderCache } from '../../image/ImageFolderCache';
 import { formatImageFilename, organizeImageFilepaths } from '../../image/util';
 import { CentralState } from '../../interfaces';
-import { LaunchboxData } from '../../LaunchboxData';
 import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
 import { getFileExtension } from '../../Util';
 import { LangContext } from '../../util/lang';
@@ -711,11 +711,12 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
       return false;
     }
   }
-  /** Find the image folder names of all the current platforms platforms. */
+  /** Find the image folder names of all the current platforms. */
   async function findPlatformFolderImageNames() {
     // Get the platform filenames
     let platformFilenames: string[];
-    try { platformFilenames = await LaunchboxData.fetchPlatformFilenames(fullFlashpointPath); }
+    const platformsPath = path.join(fullFlashpointPath, window.External.config.data.platformFolderPath);
+    try { platformFilenames = await PlatformParser.fetchPlatformFilenames(platformsPath); }
     catch (error) { return []; }
     // Convert to image folder names
     return (

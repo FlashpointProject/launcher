@@ -160,7 +160,7 @@ function createAddAppsFromCurationMeta(curation: EditCuration): IAdditionalAppli
       id: addApp.key,
       gameId: curation.key,
       applicationPath: meta.applicationPath || '',
-      commandLine: meta.launchCommand || '',
+      launchCommand: meta.launchCommand || '',
       name: meta.heading || '',
       autoRunBefore: false,
       waitForExit: false,

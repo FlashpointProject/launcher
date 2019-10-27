@@ -7,8 +7,7 @@ import { GameCollection } from '../../shared/game/GameCollection';
 import { GameInfo } from '../../shared/game/GameInfo';
 import { GameParser } from '../../shared/game/GameParser';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { IRawLaunchBoxAdditionalApplication, IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from '../../shared/launchbox/interfaces';
-import { LaunchboxData } from '../LaunchboxData';
+import { IRawAdditionalApplicationInfo, IRawGameInfo, IRawPlatformFile } from '../../shared/platform/interfaces';
 import { EventQueue } from '../util/EventQueue';
 import { formatUnknownPlatformName } from './util';
 
@@ -23,7 +22,7 @@ class GameManagerPlatform extends EventEmitter {
   /** Filename of the platform XML file */
   public filename: string;
   /** Raw data object (object tree representation of the xml document) */
-  public data?: IRawLaunchBoxPlatformRoot;
+  public data?: IRawPlatformFile;
   /** Parsed object of the data */
   public collection?: GameCollection;
   /** Event queue for saving to file (used to avoid collisions with saving to file). */
@@ -37,7 +36,7 @@ class GameManagerPlatform extends EventEmitter {
   public async saveToFile(): Promise<void> {
     // Get the platform file's path
     const flashpointPath = window.External.config.fullFlashpointPath;
-    const filePath = path.join(flashpointPath, LaunchboxData.platformsPath, this.filename);
+    const filePath = path.join(flashpointPath, window.External.config.data.platformFolderPath, this.filename);
     // Parse data into XML
     const parser = new fastXmlParser.j2xParser({
       ignoreAttributes: true, // Attributes are never used, this might increase performance?
@@ -82,7 +81,7 @@ class GameManagerPlatform extends EventEmitter {
    * Add a raw additional application
    * @param rawAddApp Raw Additional Application to add
    */
-  public addRawAdditionalApplication(rawAddApp: IRawLaunchBoxAdditionalApplication): void {
+  public addRawAdditionalApplication(rawAddApp: IRawAdditionalApplicationInfo): void {
     if (!this.data) {
       const error = new Error('Cant add raw additional application because raw launchbox data structure is missing or broken.');
       console.error(error, this.data);
@@ -103,7 +102,7 @@ class GameManagerPlatform extends EventEmitter {
    * Add a raw game
    * @param rawGame Raw game to add
    */
-  public addRawGame(rawGame: IRawLaunchBoxGame): void {
+  public addRawGame(rawGame: IRawGameInfo): void {
     if (!this.data) {
       const error = new Error('Cant add raw game because raw launchbox data structure is missing or broken.');
       console.error(error, this.data);
@@ -194,7 +193,7 @@ class GameManagerPlatform extends EventEmitter {
    * Find the first raw game with a given id (if any)
    * @param gameId ID of game
    */
-  public findRawGame(gameId: string): IRawLaunchBoxGame|undefined {
+  public findRawGame(gameId: string): IRawGameInfo|undefined {
     if (this.data && this.data.LaunchBox.Game) {
       let games = this.data.LaunchBox.Game;
       if (!Array.isArray(games)) { games = [ games ]; }
@@ -210,7 +209,7 @@ class GameManagerPlatform extends EventEmitter {
    * Find the first raw additional application with a given id (if any)
    * @param addAppId ID of raw additional application
    */
-  public findRawAdditionalApplication(addAppId: string): IRawLaunchBoxAdditionalApplication|undefined {
+  public findRawAdditionalApplication(addAppId: string): IRawAdditionalApplicationInfo|undefined {
     if (this.data && this.data.LaunchBox.AdditionalApplication) {
       let addApps = this.data.LaunchBox.AdditionalApplication;
       if (!Array.isArray(addApps)) { addApps = [ addApps ]; }

@@ -6,7 +6,6 @@ import * as React from 'react';
 import { promisify } from 'util';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
-import { GameCollection } from '../../../shared/game/GameCollection';
 import { filterAndOrderGames, FilterAndOrderGamesOpts } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
@@ -434,7 +433,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onGameLaunch = (game: IGameInfo): void => {
-    const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+    const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
     GameLauncher.launchGame(game, addApps);
   }
 
@@ -480,7 +479,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
    */
   duplicateCallback(game: IGameInfo, copyImages: boolean = false) {
     return () => {
-      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
       const library = this.getCurrentLibrary();
       // Duplicate game and add-apps
       const newGame = GameInfo.duplicate(game);
@@ -520,7 +519,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   /** Create a callback for exporting the meta of a game (as a curation format meta file). */
   exportMetaCallback(game: IGameInfo) {
     return () => {
-      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
       // Choose where to save the file
       const filePath = electron.remote.dialog.showSaveDialogSync({
         title: this.context.dialog.selectFileToExportMeta,
@@ -544,7 +543,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   exportMetaAndImagesCallback(game: IGameInfo) {
     const strings = this.context.dialog;
     return () => {
-      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
       // Choose where to save the file
       const filePaths = window.External.showOpenDialogSync({
         title: strings.selectFolderToExportMetaAndImages,
@@ -698,7 +697,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const { central, selectedGame } = this.props;
     if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
       // Find additional applications for the selected game (if any)
-      let addApps = GameCollection.findAdditionalApplicationsByGameId(central.games.collection, selectedGame.id);
+      let addApps = central.games.collection.findAdditionalApplicationsByGameId(selectedGame.id);
       // Update State
       cb({
         currentGame: selectedGame && GameInfo.duplicate(selectedGame),

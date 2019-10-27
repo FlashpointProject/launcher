@@ -10,6 +10,8 @@ export type IAppConfigData = {
   playlistFolderPath: string;
   /** Path to the json folder (relative to the flashpoint path) */
   jsonFolderPath: string;
+  /** Path to the platform folder (relative to the flashpoint path) */
+  platformFolderPath: string;
   /** Path to the theme folder (relative to the flashpoint path) */
   themeFolderPath: string;
   /** If the custom title bar should be used in MainWindow */
