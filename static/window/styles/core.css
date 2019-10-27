@@ -348,14 +348,15 @@ body {
 
 /* ------ TitleBar ------ */
 .title-bar {
-  display: flex;
-  flex: 0 0 auto;
-  width: calc(100% - 4px);
-  height: 18px;
-  margin: 4px 0 0 4px;
-  -webkit-app-region: drag; /* Dragging this moves the window */
+  padding: 4px 0 0 4px;
   -webkit-user-select: none; /* Disable text selection */
   z-index: 1; /* Hacky way of displaying it in from of the splash screen. */
+}
+.title-bar__inner {
+  display: flex;
+  flex: 0 0 auto;
+  height: 18px;
+  -webkit-app-region: drag; /* Dragging this moves the window */
 }
 /* Title */
 .title-bar__title {
