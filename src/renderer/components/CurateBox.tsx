@@ -370,7 +370,7 @@ export function CurateBox(props: CurateBoxProps) {
   };
 
   // Render
-  return (
+  return React.useMemo(() => (
     <div id={props.curation && props.curation.key} className='curate-box'>
       {/* Images */}
       <div className='curate-box-images'>
@@ -598,7 +598,7 @@ export function CurateBox(props: CurateBoxProps) {
         </div>
       </div>
     </div>
-  );
+  ), [props.curation, strings, disabled, warnings]);
 }
 
 function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
