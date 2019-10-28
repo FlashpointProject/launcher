@@ -45,44 +45,50 @@ export function parseCurationMeta(text: string): ParsedCurationMeta {
  * @param onError Called whenever an error occurs.
  */
 function convertMeta(data: any, onError?: (error: string) => void): ParsedCurationMeta {
+  // Treat field names case-insensitively
+  const lowerCaseData: any = {};
+  for (let key of Object.keys(data)) {
+    lowerCaseData[key.toLowerCase()] = data[key];
+  }
+
   const parsed: ParsedCurationMeta = {
     game: {},
     addApps: [],
   };
   const parser = new ObjectParser({
-    input: data,
+    input: lowerCaseData,
     onError: onError && (e => onError(`Error while converting Curation Meta: ${e.toString()}`))
   });
   // -- Old curation format --
-  parser.prop('Author Notes',         v => parsed.game.authorNotes         = str(v));
-  parser.prop('Genre',                v => parsed.game.genre               = str(v));
-  parser.prop('Notes',                v => parsed.game.notes               = str(v));
+  parser.prop('author notes',         v => parsed.game.authorNotes         = str(v));
+  parser.prop('genre',                v => parsed.game.genre               = str(v));
+  parser.prop('notes',                v => parsed.game.notes               = str(v));
   // -- New curation format --
   // Single value properties
-  parser.prop('Application Path',     v => parsed.game.applicationPath     = str(v));
-  parser.prop('Curation Notes',       v => parsed.game.authorNotes         = str(v));
-  parser.prop('Developer',            v => parsed.game.developer           = str(v));
-  parser.prop('Extreme',              v => parsed.game.extreme             = str(v));
-  parser.prop('Game Notes',           v => parsed.game.notes               = str(v));
-  parser.prop('Genres',               v => parsed.game.genre               = str(v));
-  parser.prop('Languages',            v => parsed.game.language            = str(v));
-  parser.prop('Launch Command',       v => parsed.game.launchCommand       = str(v));
-  parser.prop('Original Description', v => parsed.game.originalDescription = str(v));
-  parser.prop('Play Mode',            v => parsed.game.playMode            = str(v));
-  parser.prop('Platform',             v => parsed.game.platform            = str(v));
-  parser.prop('Publisher',            v => parsed.game.publisher           = str(v));
-  parser.prop('Release Date',         v => parsed.game.releaseDate         = str(v));
-  parser.prop('Series',               v => parsed.game.series              = str(v));
-  parser.prop('Source',               v => parsed.game.source              = str(v));
-  parser.prop('Status',               v => parsed.game.status              = str(v));
-  parser.prop('Tags',                 v => parsed.game.genre               = str(v));
-  parser.prop('Title',                v => parsed.game.title               = str(v));
-  parser.prop('Version',              v => parsed.game.version             = str(v));
-  parser.prop('Library',              v => parsed.game.library             = str(v));
+  parser.prop('application path',     v => parsed.game.applicationPath     = str(v));
+  parser.prop('curation notes',       v => parsed.game.authorNotes         = str(v));
+  parser.prop('developer',            v => parsed.game.developer           = str(v));
+  parser.prop('extreme',              v => parsed.game.extreme             = str(v));
+  parser.prop('game notes',           v => parsed.game.notes               = str(v));
+  parser.prop('genres',               v => parsed.game.genre               = str(v));
+  parser.prop('languages',            v => parsed.game.language            = str(v));
+  parser.prop('launch command',       v => parsed.game.launchCommand       = str(v));
+  parser.prop('original description', v => parsed.game.originalDescription = str(v));
+  parser.prop('play mode',            v => parsed.game.playMode            = str(v));
+  parser.prop('platform',             v => parsed.game.platform            = str(v));
+  parser.prop('publisher',            v => parsed.game.publisher           = str(v));
+  parser.prop('release date',         v => parsed.game.releaseDate         = str(v));
+  parser.prop('series',               v => parsed.game.series              = str(v));
+  parser.prop('source',               v => parsed.game.source              = str(v));
+  parser.prop('status',               v => parsed.game.status              = str(v));
+  parser.prop('tags',                 v => parsed.game.genre               = str(v));
+  parser.prop('title',                v => parsed.game.title               = str(v));
+  parser.prop('version',              v => parsed.game.version             = str(v));
+  parser.prop('library',              v => parsed.game.library             = str(v));
   // property aliases
-  parser.prop('Animation Notes',      v => parsed.game.notes               = str(v));
+  parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps
-  parser.prop('Additional Applications').map((item, label, map) => {
+  parser.prop('additional applications').map((item, label, map) => {
     parsed.addApps.push(convertAddApp(item, label, map[label]));
   });
   // Return
