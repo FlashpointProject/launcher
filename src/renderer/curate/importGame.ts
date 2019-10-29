@@ -132,7 +132,7 @@ function createGameFromCurationMeta(gameId: string, curation: EditCuration): IGa
     playMode:            meta.playMode            || '',
     status:              meta.status              || '',
     notes:               meta.notes               || '',
-    genre:               meta.genre               || '',
+    tags:                meta.tags                || '',
     source:              meta.source              || '',
     applicationPath:     meta.applicationPath     || '',
     launchCommand:       meta.launchCommand       || '',

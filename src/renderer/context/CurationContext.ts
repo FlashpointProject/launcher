@@ -317,7 +317,7 @@ export type EditCurationMeta = {
   publisher?: string;
   status?: string;
   extreme?: string;
-  genre?: string;
+  tags?: string;
   source?: string;
   launchCommand?: string;
   library?: string;

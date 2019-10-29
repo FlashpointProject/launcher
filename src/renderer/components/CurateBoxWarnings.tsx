@@ -15,8 +15,8 @@ export type CurationWarnings = {
   releaseDateInvalid?: boolean;
   /** If the application path value isn't used by any other game. */
   unusedApplicationPath?: boolean;
-  /** If the genre value isn't used by any other game. */
-  unusedGenre?: boolean;
+  /** If the tags value contains values not used by any other game. */
+  unusedTags?: boolean;
   /** If the platform value isn't used by any other game. */
   unusedPlatform?: boolean;
   /** If the library value does not point to an existing library. */

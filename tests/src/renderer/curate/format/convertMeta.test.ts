@@ -54,7 +54,7 @@ const exampleMeta: ParsedCurationMeta = {
     version: '1.0.0',
     language: 'en',
     extreme: 'Yes',
-    genre: 'List; Of; Genres',
+    tags: 'List; Of; Tags',
     source: 'http://example.com/',
     platform: 'HTML5',
     status: 'Playable',

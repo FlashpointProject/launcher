@@ -896,17 +896,23 @@ body {
   margin: 0.4rem 0;
   border-width: 1px;
 }
+/* Curate Box Table */
+.curate-box-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.2rem;
+}
 /* Curate Box Row */
 .curate-box-row {
-  display: flex;
-  margin-bottom: 0.2rem;
+
 }
 .curate-box-row__title {
   padding-right: 0.4em;
   user-select: none;
+  white-space: nowrap;
 }
 .curate-box-row__content {
-  flex: 1 1;
+  width: 100%
 }
 /* Curate Box Add-App */
 .curate-box-add-app {
@@ -1370,8 +1376,8 @@ body {
 .game-list-item__field--title {
   max-width: 40%;
 }
-.game-list-header-column--genre,
-.game-list-item__field--genre {
+.game-list-header-column--tags,
+.game-list-item__field--tags {
   max-width: 15%;
 }
 .game-list-header-column--developer,

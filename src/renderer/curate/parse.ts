@@ -53,7 +53,7 @@ export function convertMeta(data: any, onError?: (error: string) => void): Parse
   });
   // -- Old curation format --
   parser.prop('Author Notes',         v => parsed.game.authorNotes         = str(v));
-  parser.prop('Genre',                v => parsed.game.genre               = str(v));
+  parser.prop('Genre',                v => parsed.game.tags                = str(v));
   parser.prop('Notes',                v => parsed.game.notes               = str(v));
   // -- New curation format --
   // Single value properties
@@ -62,7 +62,7 @@ export function convertMeta(data: any, onError?: (error: string) => void): Parse
   parser.prop('Developer',            v => parsed.game.developer           = str(v));
   parser.prop('Extreme',              v => parsed.game.extreme             = str(v));
   parser.prop('Game Notes',           v => parsed.game.notes               = str(v));
-  parser.prop('Genres',               v => parsed.game.genre               = str(v));
+  parser.prop('Genres',               v => parsed.game.tags                = str(v));
   parser.prop('Languages',            v => parsed.game.language            = str(v));
   parser.prop('Launch Command',       v => parsed.game.launchCommand       = str(v));
   parser.prop('Original Description', v => parsed.game.originalDescription = str(v));
@@ -73,9 +73,9 @@ export function convertMeta(data: any, onError?: (error: string) => void): Parse
   parser.prop('Series',               v => parsed.game.series              = str(v));
   parser.prop('Source',               v => parsed.game.source              = str(v));
   parser.prop('Status',               v => parsed.game.status              = str(v));
-  parser.prop('Tags',                 v => parsed.game.genre               = str(v));
+  parser.prop('Tags',                 v => parsed.game.tags                = str(v));
   parser.prop('Title',                v => parsed.game.title               = str(v));
-  parser.prop('Library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
+  parser.prop('Library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case 
   parser.prop('Version',              v => parsed.game.version             = str(v));
   // property aliases
   parser.prop('Animation Notes',      v => parsed.game.notes               = str(v));

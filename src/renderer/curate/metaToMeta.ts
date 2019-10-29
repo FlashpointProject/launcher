@@ -19,7 +19,7 @@ export function convertToCurationMeta(game: IGameInfo, addApps?: IAdditionalAppl
   parsed['Version']              = game.version;
   parsed['Languages']            = game.language;
   parsed['Extreme']              = game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = game.genre;
+  parsed['Tags']                 = game.tags;
   parsed['Source']               = game.source;
   parsed['Platform']             = game.platform;
   parsed['Status']               = game.status;
@@ -83,7 +83,7 @@ export function convertEditToCurationMeta(curation: EditCurationMeta, addApps?: 
   parsed['Version']              = curation.version;
   parsed['Languages']            = curation.language;
   parsed['Extreme']              = curation.extreme;
-  parsed['Tags']                 = curation.genre;
+  parsed['Tags']                 = curation.tags;
   parsed['Source']               = curation.source;
   parsed['Platform']             = curation.platform;
   parsed['Status']               = curation.status;
@@ -149,7 +149,7 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta): Curat
   parsed['Version']              = curation.game.version;
   parsed['Languages']            = curation.game.language;
   parsed['Extreme']              = curation.game.extreme;
-  parsed['Tags']                 = curation.game.genre;
+  parsed['Tags']                 = curation.game.tags;
   parsed['Source']               = curation.game.source;
   parsed['Platform']             = curation.game.platform;
   parsed['Status']               = curation.game.status;

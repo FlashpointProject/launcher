@@ -288,7 +288,7 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
     const game = games[i];
     // Check if any game field (that should not be empty) is empty
     checkField(game, empty, 'developer');
-    checkField(game, empty, 'genre');
+    checkField(game, empty, 'tags');
     checkField(game, empty, 'source');
     checkField(game, empty, 'platform');
     checkField(game, empty, 'playMode');

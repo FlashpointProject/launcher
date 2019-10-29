@@ -72,7 +72,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   // Bound "on change" callbacks for game fields
   onTitleChange               = this.wrapOnTextChange((game, text) => { game.title               = text; });
   onDeveloperChange           = this.wrapOnTextChange((game, text) => { game.developer           = text; });
-  onGenreChange               = this.wrapOnTextChange((game, text) => { game.genre               = text; });
+  onTagsChange                = this.wrapOnTextChange((game, text) => { game.tags                = text; });
   onSeriesChange              = this.wrapOnTextChange((game, text) => { game.series              = text; });
   onSourceChange              = this.wrapOnTextChange((game, text) => { game.source              = text; });
   onPublisherChange           = this.wrapOnTextChange((game, text) => { game.publisher           = text; });
@@ -91,7 +91,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   // Bound "on click" callbacks for game fields
   onTitleClick                = this.wrapOnTextClick('title');
   onDeveloperClick            = this.wrapOnTextClick('developer');
-  onGenreClick                = this.wrapOnTextClick('genre');
+  onTagsClick                 = this.wrapOnTextClick('tags');
   onSeriesClick               = this.wrapOnTextClick('series');
   onSourceClick               = this.wrapOnTextClick('source');
   onPublisherClick            = this.wrapOnTextClick('publisher');
@@ -220,16 +220,16 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             <>
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.genre}: </p>
+                  <p>{strings.tags}: </p>
                   <DropdownInputField
-                    text={game.genre}
-                    placeholder={strings.noGenre}
+                    text={game.tags}
+                    placeholder={strings.noTags}
                     className='browse-right-sidebar__searchable'
-                    onChange={this.onGenreChange}
+                    onChange={this.onTagsChange}
                     editable={editable}
-                    items={suggestions && filterSuggestions(suggestions.genre) || []}
-                    onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
-                    onClick={this.onGenreClick}
+                    items={suggestions && filterSuggestions(suggestions.tags) || []}
+                    onItemSelect={text => { game.tags = text; this.forceUpdate(); }}
+                    onClick={this.onTagsClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
