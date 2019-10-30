@@ -20,7 +20,7 @@ describe('GameManager Fetching', () => {
     expect(res.success).toBeTruthy();
     const data: FetchGameResponse = res.result;
     // ID 7 is Game "Test Game 7"
-    expect(data.game.title).toEqual('Test Game 3');
+    expect(data.game.title).toEqual('Test Game 7');
     // Game 7 has an add app with its game id, verify it is given
     expect(data.addApps.length).toEqual(1);
     expect(data.addApps[0].id).toEqual('App_7')
@@ -36,8 +36,8 @@ describe('GameManager Fetching', () => {
     const res = manager.searchGames(req);
     expect(res.success).toBeTruthy();
     const data: SearchResults = res.result;
-    // 8 games contain Test in their title, 2 do not.
-    expect(data.total).toEqual(8);
+    // 7 games contain 'Test Game' in their title, 3 do not.
+    expect(data.total).toEqual(7);
   });
 
   test('Search Game Limit', () => {
@@ -86,7 +86,7 @@ describe('GameManager Fetching', () => {
   test('Delete AddApp', () => {
     // Delete game
     const req: GameAppDeleteRequest = {
-      id: 'App_01'
+      id: 'App_1'
     }
     const res = manager.deleteGameOrApp(req);
     expect(res.success).toBeTruthy();
