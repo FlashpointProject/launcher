@@ -1,3 +1,5 @@
+import { GameOrderBy } from "../order/interfaces"
+
 /** Represents a collection of games */
 export interface IGameCollection {
   games: IGameInfo[];
@@ -83,14 +85,74 @@ export interface IAdditionalApplicationInfo {
   waitForExit: boolean;
 }
 
-/** A game search query, contains the information needed to make a search */
-export interface IGameSearchQuery {
-  /** Text to filter game titles with */
-  text: string;
-  /** Allowed platforms (if empty show all, otherwise show only the ones in the array) */
-  platforms?: string[];
-  /** Allowed developers (if empty show all, otherwise show only the ones in the array) */
-  developers?: string[];
-  /** Allowed genres (if empty show all, otherwise show only the ones in the array) */
-  genres?: string[];
+/** Server Response - Template for all responses */
+export type ServerResponse = {
+  /** Success of the request */
+  success: boolean;
+  /** Error message if unsuccessful */
+  error?: string;
+  /** Response (if any) empty if unsuccessful */
+  result: any;
+}
+
+/** Client Request - Fetch a game */
+export type FetchGameRequest = {
+  /* Id of the game */
+  id: string
+}
+
+/** Server Response - Return a requested game with its addApps */
+export type FetchGameResponse = {
+  /* Game info found */ 
+  game: IGameInfo
+  /* Additional applications of the game found */
+  addApps: IAdditionalApplicationInfo[]
+}
+
+/** Client Request - Remove a game or additional application */
+export type GameAppDeleteRequest = {
+  /** ID of the game or addapp to remove */
+  id: string;
+}
+
+/** Client Request - Add a game */
+export type GameAddRequest = {
+  /** Metadata of the game to add */
+  meta: IPureGameInfo;
+}
+
+/** Client Request - Add an additional application */
+export type AppAddRequest = {
+  /** Metadata of the additional application to add */
+  meta: IAdditionalApplicationInfo;
+}
+
+/** Client Request - Information needed to make a search */
+export type SearchQuery = {
+  /** String to use as a search query */
+  query: string;
+  /** Offset to begin in a search result */
+  offset: number;
+  /** Max number of results to return */
+  limit: number;
+  /** Order in which to return results */
+  orderBy: GameOrderBy;
+}
+
+/** Server Response - List of games from a search */
+export type SearchResults = SearchQuery & {
+  /* Total number of results found */
+  total: number;
+  /* Games returned from a search query */
+  results: IGameInfo[]
+}
+
+/** Client Request - Metadata updates */
+export type MetaUpdate = {
+  /** Any game entries to update */
+  games: Partial<IPureGameInfo>[];
+  /** Any add app entries to update */
+  addApps: Partial<IAdditionalApplicationInfo>[];
+  /** Save to disk immediately after updating the entries */
+  saveToDisk: Boolean
 }
