@@ -1,9 +1,9 @@
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { GameManager } from '../../../../src/back/game/GameManager';
-import { FetchGameRequest, FetchGameResponse, GameAppDeleteRequest, IAdditionalApplicationInfo, IGameInfo, MetaUpdate, SearchResults, SearchRequest } from '../../../../src/shared/game/interfaces';
-import { defaultPreferencesData } from '../../../../src/shared/preferences/util';
+import { FetchGameRequest, FetchGameResponse, GameAppDeleteRequest, IAdditionalApplicationInfo, IGameInfo, MetaUpdate, SearchRequest, SearchResults } from '../../../../src/shared/game/interfaces';
 import { PlatformInfo } from '../../../../src/shared/platform/interfaces';
-import * as fs from 'fs-extra';
+import { defaultPreferencesData } from '../../../../src/shared/preferences/util';
 
 const STATIC_PATH = './tests/static/back/game/'
 
@@ -18,6 +18,10 @@ describe('GameManager Fetching', () => {
     await manager.loadPlatforms(path.join(STATIC_PATH, 'platforms'));
   });
 
+  afterAll(async () => {
+    await manager.saveAllPlatforms();
+  })
+
   test('Get Platforms', () => {
     const res = manager.fetchPlatformInfo();
     expect(res.success).toBeTruthy();
@@ -30,7 +34,7 @@ describe('GameManager Fetching', () => {
 
   test('Find Game', () => {
     const req: FetchGameRequest = {
-      id: '7'
+      id: 'Game_7'
     };
     const res = manager.findGame(req);
     expect(res.success).toBeTruthy();
@@ -97,13 +101,13 @@ describe('GameManager Fetching', () => {
   test('Delete Game', () => {
     // Delete game
     const req: GameAppDeleteRequest = {
-      id: '1'
+      id: 'Game_3'
     }
     const res = manager.deleteGameOrApp(req);
     expect(res.success).toBeTruthy();
     // Verify game is gone
     const req2: FetchGameRequest = {
-      id: '1'
+      id: 'Game_3'
     }
     const res2 = manager.findGame(req2);
     expect(res2.success).toBeFalsy();
@@ -112,13 +116,13 @@ describe('GameManager Fetching', () => {
   test('Delete AddApp', () => {
     // Delete game
     const req: GameAppDeleteRequest = {
-      id: 'App_3'
+      id: 'App_4'
     }
     const res = manager.deleteGameOrApp(req);
     expect(res.success).toBeTruthy();
     // Verify add app is gone by finding attached game
     const req2: FetchGameRequest = {
-      id: '3'
+      id: 'Game_4'
     }
     const res2 = manager.findGame(req2);
     expect(res2.success).toBeTruthy();
@@ -132,7 +136,7 @@ describe('GameManager Fetching', () => {
       games: [
         {
           ...createGame(),
-          id: '123',
+          id: 'Game_123',
           platform: 'test_platform',
           library: 'test_library',
           title: 'New Game'
@@ -142,7 +146,7 @@ describe('GameManager Fetching', () => {
         {
           ...createAddApp(),
           id: 'App_123',
-          gameId: '123',
+          gameId: 'Game_123',
           applicationPath: 'New Path'
         }
       ],
@@ -151,7 +155,7 @@ describe('GameManager Fetching', () => {
     const res = manager.updateMetas(req);
     expect(res.success).toBeTruthy();
     const req2: FetchGameRequest = {
-      id: '123'
+      id: 'Game_123'
     }
     const res2 = manager.findGame(req2);
     expect(res2.success).toBeTruthy();
@@ -169,7 +173,7 @@ describe('GameManager Fetching', () => {
       games: [
         {
           ...createGame(),
-          id: '7',
+          id: 'Game_7',
           platform: 'new_platform',
           library: 'new_library'
         }
@@ -196,7 +200,7 @@ describe('GameManager Fetching', () => {
       games: [
         {
           ...createGame(),
-          id: '100',
+          id: 'Game_100',
           title: 'new game'
         }
       ],
@@ -207,7 +211,7 @@ describe('GameManager Fetching', () => {
           gameId: '100'
         }
       ],
-      saveToDisk: true
+      saveToDisk: false
     };
     // Submit request
     const res = manager.updateMetas(req);
@@ -228,7 +232,7 @@ describe('GameManager Fetching', () => {
       games: [
         {
           ...createGame(),
-          id: '7',
+          id: 'Game_1',
           platform: 'test_platform',
           library: 'test_library',
           title: 'New Title',
@@ -239,8 +243,8 @@ describe('GameManager Fetching', () => {
       addApps: [
         {
           ...createAddApp(),
-          id: 'App_7',
-          gameId: '7',
+          id: 'App_1',
+          gameId: 'Game_1',
           applicationPath: 'New Path'
         }
       ],
@@ -250,7 +254,7 @@ describe('GameManager Fetching', () => {
     expect(res.success).toBeTruthy();
     // Find changed game
     const req2: FetchGameRequest = {
-      id: '7'
+      id: 'Game_1'
     };
     const res2 = manager.findGame(req2);
     expect(res2.success).toBeTruthy();

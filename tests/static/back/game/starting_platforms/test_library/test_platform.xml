@@ -1,11 +1,11 @@
 <LaunchBox>
   <Game>
-    <ID>1</ID>
+    <ID>Game_1</ID>
     <Title>Test Game 1</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -22,12 +22,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>2</ID>
+    <ID>Game_2</ID>
     <Title>Test Game 2</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -44,12 +44,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>3</ID>
+    <ID>Game_3</ID>
     <Title>Test Game 3</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -66,12 +66,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>4</ID>
+    <ID>Game_4</ID>
     <Title>Test Game 4</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -88,12 +88,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>5</ID>
+    <ID>Game_5</ID>
     <Title>Test Game 5</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -110,12 +110,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>6</ID>
+    <ID>Game_6</ID>
     <Title>Test Game 6</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -132,12 +132,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>7</ID>
+    <ID>Game_7</ID>
     <Title>Test Game 7</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -154,12 +154,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>8</ID>
+    <ID>Game_8</ID>
     <Title>Z Test 8</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -176,12 +176,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>9</ID>
+    <ID>Game_9</ID>
     <Title>Z Game 9</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -198,12 +198,12 @@
     <Language>en</Language>
   </Game>
   <Game>
-    <ID>10</ID>
+    <ID>Game_10</ID>
     <Title>Z Game 10</Title>
     <Series>Series</Series>
     <Developer>Developer</Developer>
     <Publisher>Publisher</Publisher>
-    <Platform>fake</Platform>
+    <Platform>test_platform</Platform>
     <DateAdded>2019-10-30T20:42:18.930-00:00</DateAdded>
     <Broken>false</Broken>
     <Hide>false</Hide>
@@ -225,7 +225,7 @@
     <AutoRunBefore>false</AutoRunBefore>
     <CommandLine>http://lbgdev.biz/Games/GTBlaster_13.dcr</CommandLine>
     <Developer/>
-    <GameID>1</GameID>
+    <GameID>Game_1</GameID>
     <Id>App_1</Id>
     <Name>Prototype 13</Name>
     <PlayCount>0</PlayCount>
@@ -245,7 +245,7 @@
     <AutoRunBefore>false</AutoRunBefore>
     <CommandLine>http://lbgdev.biz/Games/GTBlaster_13.dcr</CommandLine>
     <Developer/>
-    <GameID>3</GameID>
+    <GameID>Game_3</GameID>
     <Id>App_3</Id>
     <Name>Prototype 13</Name>
     <PlayCount>0</PlayCount>
@@ -265,7 +265,27 @@
     <AutoRunBefore>false</AutoRunBefore>
     <CommandLine>http://lbgdev.biz/Games/GTBlaster_13.dcr</CommandLine>
     <Developer/>
-    <GameID>7</GameID>
+    <GameID>Game_4</GameID>
+    <Id>App_4</Id>
+    <Name>Prototype 13</Name>
+    <PlayCount>0</PlayCount>
+    <Priority>0</Priority>
+    <Region/>
+    <SideA>false</SideA>
+    <SideB>false</SideB>
+    <Status>false</Status>
+    <UseDosBox>false</UseDosBox>
+    <UseEmulator>false</UseEmulator>
+    <Version/>
+    <WaitForExit>false</WaitForExit>
+  </AdditionalApplication>
+  <AdditionalApplication>
+    <ApplicationPath>FPSoftware\Shockwave\PJ101\SPR.exe</ApplicationPath>
+    <AutoRunAfter>false</AutoRunAfter>
+    <AutoRunBefore>false</AutoRunBefore>
+    <CommandLine>http://lbgdev.biz/Games/GTBlaster_13.dcr</CommandLine>
+    <Developer/>
+    <GameID>Game_7</GameID>
     <Id>App_7</Id>
     <Name>Prototype 13</Name>
     <PlayCount>0</PlayCount>

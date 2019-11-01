@@ -57,6 +57,9 @@ export class GameManager {
         library: p.library
       }
     });
+    for (let platform of res) {
+      console.log(platform);
+    }
     // Return successfully
     return {
       success: true,
@@ -178,6 +181,7 @@ export class GameManager {
       if (gamePlatform) {
         // Attempt to update game in existing platform
         if (this.updateGame(game, gamePlatform)) {
+          console.log('updated ' + game.id);
           if (request.saveToDisk) { this.savePlatformToFile(gamePlatform); }
           continue gameUpdateLoop;
         }
@@ -191,7 +195,9 @@ export class GameManager {
           let addAppIndex = -1;
           while((addAppIndex = platform.collection.additionalApplications.findIndex(a => a.gameId === game.id)) != -1) {
             // Remove from platform and push to list to add later
-            oldAddApps.push(platform.collection.additionalApplications.splice(addAppIndex, 1)[0]);
+            const oldAddApp = platform.collection.additionalApplications[addAppIndex];
+            this.removeAddApp(oldAddApp.id, platform);
+            oldAddApps.push(oldAddApp);
           }
         }
       }
@@ -252,6 +258,7 @@ export class GameManager {
 
   /** Update a game in a platform */
   private updateGame(game: IGameInfo, platform: GamePlatform): boolean {
+    // Find game in platform
     const gameIndex = platform.collection.games.findIndex(g => g.id === game.id);
     if (gameIndex != -1) {
       // Game found, update collection
@@ -259,14 +266,15 @@ export class GameManager {
       // Update raw
       let games = platform.data.LaunchBox.Game;
       if (games) {
-        // Convert to array if single game present. This shouldn't ever be true but better safe than sorry
+        // Convert to array if single game present.
         if (!Array.isArray(games)) { games = [ games ]}
         const rawIndex = games.findIndex(g => g.ID === game.id);
         if (rawIndex != 1) {
           games[rawIndex] = GameParser.reverseParseGame(game);
+          platform.data.LaunchBox.Game = games;
         }
       } else {
-        // Games not defined. This shouldn't ever be reachable either.
+        // Games not defined. This shouldn't ever be reachable.
         platform.data.LaunchBox.Game = GameParser.reverseParseGame(game);
       }
       return true;
@@ -289,6 +297,7 @@ export class GameManager {
         const rawIndex = addApps.findIndex(a => a.Id === addApp.id);
         if (rawIndex != 1) {
           addApps[rawIndex] = GameParser.reverseParseAdditionalApplication(addApp);
+          platform.data.LaunchBox.AdditionalApplication = addApps;
         }
       } else {
         // Add apps not defined. This shouldn't ever be reachable either.
@@ -311,6 +320,7 @@ export class GameManager {
         if (!Array.isArray(games)) { games = [ games ]}
         // Add game to array
         games.push(GameParser.reverseParseGame(game));
+        platform.data.LaunchBox.Game = games;
       } else {
         // Games not defined, add on its own
         platform.data.LaunchBox.Game = GameParser.reverseParseGame(game);
@@ -328,6 +338,7 @@ export class GameManager {
         if (!Array.isArray(addApps)) { addApps = [ addApps ]}
         // Add game to array
         addApps.push(GameParser.reverseParseAdditionalApplication(addApp));
+        platform.data.LaunchBox.AdditionalApplication = addApps;
       } else {
         // AddApps not defined, add on its own
         platform.data.LaunchBox.AdditionalApplication = GameParser.reverseParseAdditionalApplication(addApp);
@@ -337,22 +348,34 @@ export class GameManager {
   /** Remove a game in a platform */
   private removeGame(id: string, platform: GamePlatform): IGameInfo|undefined {
     // Find and remove from platform games if exists
+    console.log('finding ' + id +  ' ' + id.length);
     const gameIndex = platform.collection.games.findIndex(g => g.id === id);
-    if (gameIndex >= 0) { 
+    if (gameIndex != -1) { 
       // Found game in platform, store return and remove
       const returnGame = platform.collection.games.splice(gameIndex, 1)[0];
       // Find and remove from raw platform if exists
       let games = platform.data.LaunchBox.Game;
       if (games) {
-        // Convert to array if single game in platform
-        if (!Array.isArray(games)) { games = [ games ]}
-        // Remove from raw games array if exists
-        const rawIndex = games.findIndex(g => g.ID === id);
-        if (rawIndex >= 0) {
-          games.splice(rawIndex, 1);
-
+        // Array of raw games, find game
+        if (Array.isArray(games)) { 
+          for (let game of games) {
+            console.log('ID ' + game.ID + ' ' + game.ID.length);
+          }
+          const rawIndex = games.findIndex(g => g.ID === id);
+          console.log(rawIndex);
+          if (rawIndex != -1) {
+            console.log('found ' + id + ' at ' + rawIndex);
+            games.splice(rawIndex, 1);
+          }
+        } else {
+          // Single game, check if matches and remove if does
+          if (games.ID === id) { platform.data.LaunchBox.Game = undefined; }
         }
+        // Remove from raw games array if exists
+        
+        
       }
+      console.log(`deleted ${id} from ${platform.name}`);
       return returnGame;
     }
   }
@@ -361,7 +384,7 @@ export class GameManager {
   private removeAddApp(id: string, platform: GamePlatform): boolean {
     // Find and remove from platform addApps if exists
     const appIndex = platform.collection.additionalApplications.findIndex(a => a.id === id);
-    if (appIndex >= 0) { 
+    if (appIndex != -1) { 
       // Found Add App in platform, remove
       platform.collection.additionalApplications.splice(appIndex, 1);
       // Find and remove from raw platform if exists
@@ -393,6 +416,12 @@ export class GameManager {
     return [];
   }
 
+  public async saveAllPlatforms(): Promise<void> {
+    for (let platform of this.platforms) {
+      await this.savePlatformToFile(platform);
+    }
+  }
+
   private async savePlatformToFile(platform: GamePlatform): Promise<void> {
     // Parse data into XML
     const parser = new fastXmlParser.j2xParser({
@@ -400,7 +429,6 @@ export class GameManager {
       supressEmptyNode: true, // Empty tags are self closed ("<Tag />" instead of "<Tag></Tag>")
       format: true,           // Breaks XML into multiple lines and indents it
     });
-    console.log(platform.data);
     const parsedData = parser.parse(platform.data);
     // Add save to the queue
     return this.saveQueue.push(async () => {
