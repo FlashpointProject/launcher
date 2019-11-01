@@ -82,18 +82,6 @@ function getOrderFunction(orderBy: GameOrderBy, orderReverse: GameOrderReverse):
   return orderFn;
 }
 
-function filterPlatforms(platforms: string[] | undefined, games: IGameInfo[]): IGameInfo[] {
-  if (!platforms) { return games; }
-  if (platforms.length === 0) { return []; }
-  const filteredGames: IGameInfo[] = [];
-  for (let game of games) {
-    if (platforms.indexOf(game.platform) !== -1) {
-      filteredGames.push(game);
-    }
-  }
-  return filteredGames;
-}
-
 /** Return a new array with all broken games removed (if showBroken is false) */
 export function filterBroken(showBroken: boolean, games: IGameInfo[]): IGameInfo[] {
   if (showBroken) { return games; }
@@ -327,8 +315,8 @@ type FieldFilter = {
 };
 
 /** Options for ordering games. */
-export type FilterAndOrderGamesOpts = {
-  /** Search query to filter games by. */
+export type FilterGameOpts = {
+  /** Search query to filter by */
   search: string;
   /** If extreme games should be included in the result. */
   extreme: boolean;
@@ -336,36 +324,41 @@ export type FilterAndOrderGamesOpts = {
   broken: boolean;
   /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
   playlist?: GamePlaylist;
-  /** Platforms to limit the results to (games from all platforms will be filtered if undefined). */
-  platforms?: string[];
+};
+
+export type OrderGamesOpts = {
   /** The field to order the games by. */
   orderBy: GameOrderBy;
   /** The way to order the games. */
   orderReverse: GameOrderReverse;
-};
+}
 
 /**
- * Filter and order an array of games.
- * @param games Games to filter and order (this array will NOT be manipulated).
+ * Filter an array of games.
+ * @param games Games to filter (this array will NOT be manipulated).
  * @param opts Options to filter and order by.
+ * @returns Filtered array of games
  */
-export function filterAndOrderGames(games: IGameInfo[], opts: FilterAndOrderGamesOpts): IGameInfo[] {
+export function filterGames(games: IGameInfo[], opts: FilterGameOpts): IGameInfo[] {
   // @TODO Perhaps the new search system (filterSearch) could be used exclusively, so all the other
   //       filter functions could be removed?
   // Filter games
-  const filteredGames = (
+  return (
     filterSearch(opts.search,
       filterBroken(opts.broken,
         filterExtreme(opts.extreme,
-          filterPlatforms(opts.platforms,
             filterPlaylist(opts.playlist, games)
-          )))));
-  // Order games
-  let orderedGames = filteredGames;
-  if (!opts.playlist) { // (Don't order if a playlist is selected - kind of a hack to preserve the playlist's order)
-    orderedGames = filteredGames.sort(getOrderFunction(opts.orderBy, opts.orderReverse));
-  }
-  return orderedGames;
+          ))));
+}
+
+/**
+ * Order an array of games.
+ * @param games Games to order (this array WILL be manipulated)
+ * @param opts Options to order by
+ */
+
+export function orderGames(games: IGameInfo[], opts: OrderGamesOpts) {
+  games.sort(getOrderFunction(opts.orderBy, opts.orderReverse));
 }
 
 /**

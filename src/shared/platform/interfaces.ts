@@ -1,3 +1,18 @@
+import { IGameCollection } from "../game/interfaces"
+
+export type PlatformInfo = {
+  name: string;
+  library: string;
+}
+
+export type GamePlatform = {
+  filePath: string;
+  name: string;
+  library: string;
+  data: IRawPlatformFile;
+  collection: IGameCollection;
+}
+
 export type IRawPlatformFile = {
   LaunchBox: IRawPlatform
 }

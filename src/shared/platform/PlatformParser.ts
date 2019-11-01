@@ -1,32 +1,49 @@
 import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { clearArray } from '../Util';
-import { IRawPlatformFile } from './interfaces';
+import { GameParser } from '../game/GameParser';
+import { GamePlatform, IRawPlatformFile } from './interfaces';
 
 export class PlatformParser {
   /**
    * Fetch the filenames of all platform XML files.
    * @param folderPath Path to the Platform folder
    */
-  public static async fetchPlatformFilenames(folderPath: string): Promise<string[]> {
-    const fileNames = await fs.readdir(folderPath);
-    if (fileNames.length > 0) {
-      // Validate the filenames
-      const validNames = await Promise.all(fileNames.map(async fileName => {
-        const stats = await fs.lstat(path.posix.join(folderPath, fileName));
-        // Check if it is an XML file
-        return (stats.isFile() && fileName.endsWith('.xml'))
-          ? fileName : undefined;
-      }));
-      // Clear and return validated filenames
-      return clearArray(validNames);
-    } else { return []; }
+  public static async fetchPlatforms(folderPath: string): Promise<GamePlatform[]> {
+    const platforms: GamePlatform[] = [];
+    const libraryFiles = await fs.readdir(folderPath);
+    for (let libraryFile of libraryFiles) {
+      // Check each library for platforms
+      const library = libraryFile;
+      const libraryPath = path.join(folderPath, libraryFile);
+      const libraryStats = await fs.stat(libraryPath);
+      if (libraryStats.isDirectory()) {
+        // Library file was a directory, read files inside
+        const platformFiles = await fs.readdir(libraryPath);
+        for (let platformFile of platformFiles) {
+          // Find each platform file
+          const platformPath = path.join(libraryPath, platformFile);
+          const platformStats = await fs.stat(platformPath);
+          const platformFileExt = path.extname(platformFile);
+          if (platformStats.isFile() && platformFileExt.toLowerCase().endsWith('.xml')) {
+            // Valid platform file, store
+            platforms.push({
+              name: path.basename(platformFile, platformFileExt),
+              filePath: platformPath,
+              library: library,
+              data: { LaunchBox: {} },
+              collection: { games: [], additionalApplications: [] }
+            })
+          }
+        }
+      }
+    }
+    return platforms;
   }
 
-  public static loadPlatform(source: string): Promise<IRawPlatformFile> {
+  public static loadPlatformFile(platform: GamePlatform): Promise<void> {
     return new Promise((resolve, reject) => {
-      fs.readFile(source)
+      fs.readFile(platform.filePath)
       .then((data) => {
         const platformData: IRawPlatformFile|undefined = fastXmlParser.parse(data.toString(), {
           ignoreAttributes: true,
@@ -37,13 +54,15 @@ export class PlatformParser {
           // @TODO Look into which settings are most appropriate
         });
         if (!platformData) {
-          reject(new Error(`Failed to parse XML file: ${source}`));
+          reject(new Error(`Failed to parse XML file: ${platform.filePath}`));
           return;
         }
         // Make sure the sub-object exists
         if (!platformData.LaunchBox) { platformData.LaunchBox = { }; }
-        // Done
-        resolve(platformData);
+        // Populate platform
+        platform.data = platformData;
+        platform.collection = GameParser.parse(platformData, platform.library);
+        resolve();
       })
       .catch((error) => {
         reject(error);

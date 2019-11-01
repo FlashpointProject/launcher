@@ -1,4 +1,6 @@
-import { GameOrderBy } from "../order/interfaces"
+import { GamePlaylist } from 'src/renderer/playlist/types';
+import { PlatformInfo } from '../platform/interfaces';
+import { OrderGamesOpts } from './GameFilter';
 
 /** Represents a collection of games */
 export interface IGameCollection {
@@ -10,7 +12,7 @@ export interface IGameCollection {
  * Represents the meta data for a single Game (that gets saved)
  * (This will replace "IRawLaunchBoxGame" once a JSON format is used instead of XML)
  */
-interface IPureGameInfo {
+export interface IPureGameInfo {
   /** ID of the game (unique identifier) */
   id: string;
   /** Full title of the game */
@@ -55,8 +57,8 @@ interface IPureGameInfo {
 
 /** Represents the meta data for a single Game (including temporary data) */
 export interface IGameInfo extends IPureGameInfo {
-  /** The filename of the file this was loaded from / saved to (empty string if not loaded or saved yet) */
-  filename: string;
+  /** Library this game belongs to */
+  library: string;
   /** The title but reconstructed to be suitable for sorting and ordering (and not be shown visually) */
   orderTitle: string;
   /** If the game is a placeholder (and can therefore not be saved) */
@@ -90,22 +92,28 @@ export type ServerResponse = {
   /** Success of the request */
   success: boolean;
   /** Error message if unsuccessful */
-  error?: string;
+  error?: Error;
   /** Response (if any) empty if unsuccessful */
-  result: any;
+  result?: any;
+}
+
+/** Server Response - Return all platforms info */
+export type FetchPlatformInfoResponse = {
+  /** Info for all platforms */
+  platforms: PlatformInfo[];
 }
 
 /** Client Request - Fetch a game */
 export type FetchGameRequest = {
-  /* Id of the game */
+  /** Id of the game */
   id: string
 }
 
 /** Server Response - Return a requested game with its addApps */
 export type FetchGameResponse = {
-  /* Game info found */ 
+  /** Game info found */
   game: IGameInfo
-  /* Additional applications of the game found */
+  /** Additional applications of the game found */
   addApps: IAdditionalApplicationInfo[]
 }
 
@@ -128,31 +136,37 @@ export type AppAddRequest = {
 }
 
 /** Client Request - Information needed to make a search */
-export type SearchQuery = {
+export type SearchRequest = {
   /** String to use as a search query */
   query: string;
   /** Offset to begin in a search result */
   offset: number;
   /** Max number of results to return */
   limit: number;
-  /** Order in which to return results */
-  orderBy: GameOrderBy;
+  /** Opts to search by */
+  orderOpts: OrderGamesOpts;
+  /** Library to search (all if none) */
+  library?: string;
+  /** Playlist to filter by (if any) */
+  playlist?: GamePlaylist;
 }
 
 /** Server Response - List of games from a search */
-export type SearchResults = SearchQuery & {
-  /* Total number of results found */
+export type SearchResults = SearchRequest & {
+  /** Total number of results found */
   total: number;
-  /* Games returned from a search query */
+  /** Games returned from a search query */
   results: IGameInfo[]
 }
 
 /** Client Request - Metadata updates */
 export type MetaUpdate = {
   /** Any game entries to update */
-  games: Partial<IPureGameInfo>[];
+  games: IGameInfo[];
   /** Any add app entries to update */
-  addApps: Partial<IAdditionalApplicationInfo>[];
+  addApps: IAdditionalApplicationInfo[];
+  /** Library to move games and add apps to */
+  library? : string;
   /** Save to disk immediately after updating the entries */
   saveToDisk: Boolean
 }
