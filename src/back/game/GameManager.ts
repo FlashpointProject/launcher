@@ -8,7 +8,7 @@ import { FilterGameOpts, filterGames, orderGames } from '../../shared/game/GameF
 import { GameParser } from '../../shared/game/GameParser';
 import { FetchGameRequest, FetchGameResponse, GameAppDeleteRequest, IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate, SearchRequest, SearchResults, ServerResponse } from '../../shared/game/interfaces';
 import { PlatformParser } from '../../shared/platform/PlatformParser';
-import { LoadPlatformError } from './interfaces';
+import { LoadPlatformError, SearchCache, SearchCacheQuery } from './interfaces';
 
 const UNIMPLEMENTED_RESPONSE: ServerResponse = {
   success: false,
@@ -23,6 +23,8 @@ export class GameManager {
   private platforms: GamePlatform[] = [];
   /** Platforms path, used to build new platforms later */
   private platformsPath: string = 'Data/Platforms';
+  /** Cached previous searches */
+  private searchCaches: SearchCache[] = [];
   /** Event queue for saving to file (used to avoid collisions with saving to file). */
   private saveQueue: EventQueue = new EventQueue();
 
@@ -95,51 +97,71 @@ export class GameManager {
   }
 
   public searchGames(request: SearchRequest, preferences: IAppPreferencesData): ServerResponse {
-    // @TODO Cache past search queries for quicker searching
-    // Build opts from preferences and query
-    const filterOpts: FilterGameOpts = {
-      search: request.query,
-      extreme: preferences.browsePageShowExtreme,
-      broken: false,
-      playlist: request.playlist
-    }
-
-    // Filter games
-    let foundGames: IGameInfo[] = [];
-    for (let i = 0; i < this.platforms.length; i++) {
-      // If library matches filter, or no library filter given, filter this platforms games
-      if (!request.library || this.platforms[i].library === request.library) {
-        foundGames = foundGames.concat(filterGames(this.platforms[i].collection.games, filterOpts));
+    // Find matching cached search if exists
+    let searchCache: SearchCache|undefined = undefined;
+    const query: SearchCacheQuery = {...request};
+    for (let cache of this.searchCaches) {
+      if (cache.query === query) {
+        searchCache = cache;
       }
     }
 
-    // Order games
-    orderGames(foundGames, request.orderOpts);
-    const totalResults = foundGames.length;
+    // Skip to limiting if search cache was found
+    if (!searchCache) {
+      // Build opts from preferences and query
+      const filterOpts: FilterGameOpts = {
+        search: request.query,
+        extreme: preferences.browsePageShowExtreme,
+        broken: false,
+        playlist: request.playlist
+      }
+
+      // Filter games
+      let foundGames: IGameInfo[] = [];
+      for (let i = 0; i < this.platforms.length; i++) {
+        // If library matches filter, or no library filter given, filter this platforms games
+        if (!request.library || this.platforms[i].library === request.library) {
+          foundGames = foundGames.concat(filterGames(this.platforms[i].collection.games, filterOpts));
+        }
+      }
+
+      // Order games
+      orderGames(foundGames, request.orderOpts);
+      // Build cache
+      searchCache = {
+        query: query,
+        total: foundGames.length,
+        results: foundGames
+      }
+      // Add to cache array, remove oldest if max length
+      if (this.searchCaches.length >= 10) { this.searchCaches.splice(0,1); }
+      this.searchCaches.push(searchCache);
+    }
 
     // Apply limit and offset
-    if (request.offset < foundGames.length) {
+    if (request.offset < searchCache.total) {
       // Don't go past end of array
-      const maxLimit = Math.min(request.limit, foundGames.length - request.offset);
-      foundGames = foundGames.splice(request.offset, maxLimit); 
+      const maxLimit = Math.min(request.offset + request.limit, searchCache.total);
+      const resGames = searchCache.results.slice(request.offset, maxLimit);
+      // Return results
+      const res: SearchResults = {
+        ...request,
+        total: searchCache.total,
+        results: resGames
+      }
+      return {
+        success: true,
+        result: res
+      }
     } else {
       // Offset out of bounds, return failure
       return createFailureResponse(new Error(`Offset out of bounds => ${request.offset}`));
     }
-
-    // Return results
-    const res: SearchResults = {
-      ...request,
-      total: totalResults,
-      results: foundGames
-    }
-    return {
-      success: true,
-      result: res
-    }
   }
 
   public deleteGameOrApp(request: GameAppDeleteRequest): ServerResponse {
+    // Meta will change, clear cache
+    this.searchCaches = [];
     // Search games
     for (let i = 0; i < this.platforms.length; i++) {
       if (this.removeGame(request.id, this.platforms[i])) {
@@ -171,6 +193,8 @@ export class GameManager {
   }
 
   public updateMetas(request: MetaUpdate): ServerResponse {
+    // Meta will change, clear cache
+    this.searchCaches = [];
     gameUpdateLoop:
     for (let game of request.games) {
       // Make sure the library and platform exist, replacing with unknown defaults if not
