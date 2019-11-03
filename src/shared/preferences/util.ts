@@ -40,6 +40,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   lastSelectedLibrary: '',
   gamesOrderBy: 'title',
   gamesOrder: 'ascending',
+  defaultLibrary: 'arcade',
   mainWindow: Object.freeze({
     x: undefined,
     y: undefined,
@@ -84,6 +85,7 @@ export function overwritePreferenceData(
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
   parser.prop('gamesOrderBy',                v => source.gamesOrderBy                = strOpt(v, gameOrderByOptions,      'title'    ));
   parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ascending'));
+  parser.prop('defaultLibrary',              v => source.defaultLibrary              = str(v));
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);

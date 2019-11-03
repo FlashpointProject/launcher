@@ -2,6 +2,8 @@ import { GamePlaylist } from '../../renderer/playlist/types';
 import { PlatformInfo } from '../platform/interfaces';
 import { OrderGamesOpts } from './GameFilter';
 
+export const UNKNOWN_LIBRARY = 'unknown';
+
 /** Represents a collection of games */
 export interface IGameCollection {
   games: IGameInfo[];

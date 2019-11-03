@@ -4,10 +4,9 @@ import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { IGameInfo } from '../shared/game/interfaces';
+import { IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
-import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
@@ -18,7 +17,6 @@ import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
-import { WithLibraryProps } from './containers/withLibrary';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
@@ -38,6 +36,7 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
+import { getLibraryItemTitle } from 'src/shared/library/util';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -48,7 +47,7 @@ type AppOwnProps = {
   langManager: LangManager;
 };
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps;
 
 export type AppState = {
   /** Semi-global prop. */
@@ -87,6 +86,7 @@ export class App extends React.Component<AppProps, AppState> {
     const config = window.External.config;
     this.state = {
       central: {
+        libraries: [],
         platforms: [],
         playlists: new GamePlaylistManager(),
         upgrade: {
@@ -323,7 +323,7 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {
-    const { history, libraryData, location, preferencesData } = this.props;
+    const { history, location, preferencesData } = this.props;
     // Update preference "lastSelectedLibrary"
     const gameLibraryRoute = getBrowseSubPath(location.pathname);
     if (location.pathname.startsWith(Paths.BROWSE) &&
@@ -336,8 +336,9 @@ export class App extends React.Component<AppProps, AppState> {
       if (preferencesData.lastSelectedLibrary) {
         route = preferencesData.lastSelectedLibrary;
       } else {
-        const defaultLibrary = findDefaultLibrary(libraryData.libraries);
-        if (defaultLibrary) { route = defaultLibrary.route; }
+        const defaultLibrary = preferencesData.defaultLibrary;
+        if (defaultLibrary) { route = defaultLibrary; }
+        else                { route = UNKNOWN_LIBRARY; }
       }
       if (!location.pathname.startsWith(Paths.BROWSE)) {
         history.push(joinLibraryRoute(route));
@@ -352,14 +353,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   render() {
-    const { platforms } = this.state.central;
+    const { platforms, libraries } = this.state.central;
     const loaded = this.state.central.gamesDoneLoading &&
                    this.state.central.playlistsDoneLoading &&
                    this.state.central.upgrade.doneLoading &&
                    this.state.creditsDoneLoading;
-    const libraries = this.props.libraryData.libraries;
-    const route = getBrowseSubPath(this.props.location.pathname);
-    const library = findLibraryByRoute(libraries, route);
+    const library = getBrowseSubPath(this.props.location.pathname);
     // Props to set to the router
     const routerProps: AppRouterProps = {
       central: this.state.central,
@@ -369,14 +368,14 @@ export class App extends React.Component<AppProps, AppState> {
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
       gameImages: this.state.gameImages,
-      selectedGame: this.state.selectedGames[route],
-      selectedPlaylist: this.state.selectedPlaylists[route],
+      selectedGame: this.state.selectedGames[library],
+      selectedPlaylist: this.state.selectedPlaylists[library],
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.state.wasNewGameClicked,
       onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
-      gameLibraryRoute: route,
+      gameLibrary: library,
       themeItems: this.props.themes.items,
       reloadTheme: this.reloadTheme,
       languages: this.state.langList,
@@ -400,6 +399,7 @@ export class App extends React.Component<AppProps, AppState> {
           <>
             {/* Header */}
             <HeaderContainer
+              libraries={libraries}
               onOrderChange={this.onOrderChange}
               onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
               onToggleRightSidebarClick={this.onToggleRightSidebarClick}
@@ -418,7 +418,7 @@ export class App extends React.Component<AppProps, AppState> {
               showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
               totalCount={this.countGamesOfPlatforms(platforms)}
               currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-              currentCount={this.countGamesOfCurrentLibrary(platforms, route)}
+              currentCount={this.countGamesOfCurrentLibrary(platforms, library)}
               onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
               onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
               onNewGameClick={this.onNewGameClick} />
@@ -597,10 +597,10 @@ function log(content: string): void {
 }
 
 /** Count the number of games in all platforms that "belong" to the given library */
-function countGamesOfLibrarysPlatforms(platforms: PlatformInfo[], libraryRoute?: string): number {
+function countGamesOfLibrarysPlatforms(platforms: PlatformInfo[], library?: string): number {
   let count = 0;
   for (let platform of platforms) {
-    if (platform.library === libraryRoute) {
+    if (platform.library === library) {
       count += platform.size;
     }
   }

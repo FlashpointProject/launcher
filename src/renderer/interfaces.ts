@@ -7,6 +7,8 @@ import { UpgradeData } from './upgrade/types';
  * This is sort of a hacky and temporary solution. It should be phased out.
  */
 export type CentralState = {
+  /** List of library routes */
+  libraries: string[];
   /** Info for all platforms */
   platforms: PlatformInfo[];
   /** Manager of all playlists. */

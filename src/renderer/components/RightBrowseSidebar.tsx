@@ -5,7 +5,6 @@ import { wrapSearchTerm } from '../../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { PickType } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
-import { GameLibraryFileItem } from '../../shared/library/types';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import { GameLauncher } from '../GameLauncher';
@@ -28,13 +27,12 @@ import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 
 type OwnProps = {
   gameImages: GameImageCollection;
-  games: GameManager;
   /** Currently selected game (if any) */
   currentGame?: IGameInfo;
   /** Additional Applications of the currently selected game (if any) */
   currentAddApps?: IAdditionalApplicationInfo[];
-  /* */
-  currentLibrary?: GameLibraryFileItem;
+  /* Current Library */
+  currentLibrary?: string;
   /** Currently selected game entry (if any) */
   gamePlaylistEntry?: GamePlaylistEntry;
   /** Called when the selected game is deleted by this */

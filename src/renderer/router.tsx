@@ -36,7 +36,7 @@ export type AppRouterProps = {
   wasNewGameClicked: boolean;
   onDownloadTechUpgradeClick: () => void;
   onDownloadScreenshotsUpgradeClick: () => void;
-  gameLibraryRoute: string;
+  gameLibrary: string;
   themeItems: IThemeListItem[];
   reloadTheme: (themePath: string | undefined) => void;
   languages: LangFile[];
@@ -63,7 +63,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSelectGame: this.props.onSelectGame,
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
-      gameLibraryRoute: this.props.gameLibraryRoute,
+      gameLibrary: this.props.gameLibrary,
     };
     const configProps: ConnectedConfigPageProps = {
       themeItems: this.props.themeItems,

@@ -7,7 +7,6 @@ import { IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { PlatformInfo } from '../../../shared/platform/interfaces';
 import { removeFileExtension } from '../../../shared/Util';
-import { WithLibraryProps } from '../../containers/withLibrary';
 import { GameManager } from '../../game/GameManager';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
@@ -35,7 +34,7 @@ type OwnProps = {
   gameImages: GameImageCollection;
 };
 
-type DeveloperPageProps = OwnProps & WithLibraryProps;
+type DeveloperPageProps = OwnProps;
 
 type DeveloperPageState = {
   /** Text of the log. */

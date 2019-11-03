@@ -9,14 +9,12 @@ import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplic
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
-import { GameLibraryFileItem } from '../../../shared/library/types';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
 import { formatDate } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
-import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { convertToCurationMeta } from '../../curate/metaToMeta';
@@ -70,7 +68,7 @@ type OwnProps = {
   gameLibraryRoute: string;
 };
 
-export type BrowsePageProps = OwnProps & WithPreferencesProps & WithLibraryProps;
+export type BrowsePageProps = OwnProps & WithPreferencesProps;
 
 export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
@@ -132,7 +130,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
-    const { central, gameLibraryRoute, libraryData, onSelectGame, selectedGame, selectedPlaylist } = this.props;
+    const { central, gameLibraryRoute, onSelectGame, selectedGame, selectedPlaylist } = this.props;
     const { isEditing, quickSearch } = this.state;
     // Check if it ended editing
     if (!isEditing && prevState.isEditing) {
