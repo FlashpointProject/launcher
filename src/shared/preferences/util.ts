@@ -1,3 +1,4 @@
+import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { DeepPartial } from '../interfaces';
 import { autoCode } from '../lang';
@@ -5,7 +6,6 @@ import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
-import { BackIn } from '../back/types';
 
 export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send: boolean = true) {
   const preferences = window.External.preferences;
@@ -13,10 +13,10 @@ export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, se
   overwritePreferenceData(preferences.data, data);
   if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
-    window.External.backSocket.send(JSON.stringify([
+    window.External.backSocket.send(
       BackIn.UPDATE_PREFERENCES,
       preferences.data
-    ]));
+    );
   }
 }
 

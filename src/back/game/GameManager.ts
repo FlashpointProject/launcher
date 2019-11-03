@@ -1,13 +1,13 @@
 import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { GamePlatform, IRawPlatformFile, PlatformInfo } from 'src/shared/platform/interfaces';
-import { IAppPreferencesData } from 'src/shared/preferences/interfaces';
 import { EventQueue } from '../../renderer/util/EventQueue';
 import { FilterGameOpts, filterGames, orderGames } from '../../shared/game/GameFilter';
 import { GameParser } from '../../shared/game/GameParser';
 import { FetchGameRequest, FetchGameResponse, GameAppDeleteRequest, IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate, SearchRequest, SearchResults, ServerResponse } from '../../shared/game/interfaces';
+import { GamePlatform, IRawPlatformFile, PlatformInfo } from '../../shared/platform/interfaces';
 import { PlatformParser } from '../../shared/platform/PlatformParser';
+import { IAppPreferencesData } from '../../shared/preferences/interfaces';
 import { LoadPlatformError, SearchCache, SearchCacheQuery } from './interfaces';
 
 const UNIMPLEMENTED_RESPONSE: ServerResponse = {
@@ -19,6 +19,8 @@ const UNKNOWN_LIBRARY = 'unknown';
 const UNKNOWN_PLATFORM = 'unknown';
 
 export class GameManager {
+  /** Whether the manager has loaded platforms yet */
+  private loaded: boolean = false;
   /** All working platforms */
   private platforms: GamePlatform[] = [];
   /** Platforms path, used to build new platforms later */
@@ -29,6 +31,8 @@ export class GameManager {
   private saveQueue: EventQueue = new EventQueue();
 
   public async loadPlatforms(platformsPath: string): Promise<void> {
+    // Already loaded, don't do it again
+    if (this.loaded) { return; }
     // Update own platforms path to match given one
     this.platformsPath = platformsPath;
     this.platforms = await PlatformParser.fetchPlatforms(platformsPath);
@@ -45,6 +49,8 @@ export class GameManager {
         }
       })();
     }));
+    // Finished loading, mark as such
+    this.loaded = true;
     // Throw platform loading errors (if there were any)
     if (errors.length > 0) {
       throw errors;
@@ -56,8 +62,9 @@ export class GameManager {
     const res: PlatformInfo[] = this.platforms.map(p => {
       return {
         name: p.name,
-        library: p.library
-      }
+        library: p.library,
+        size: p.collection.games.length
+      };
     });
     for (let platform of res) {
       console.log(platform);
@@ -66,7 +73,7 @@ export class GameManager {
     return {
       success: true,
       result: res
-    }
+    };
   }
 
   /**
@@ -114,7 +121,7 @@ export class GameManager {
         extreme: preferences.browsePageShowExtreme,
         broken: false,
         playlist: request.playlist
-      }
+      };
 
       // Filter games
       let foundGames: IGameInfo[] = [];
@@ -132,7 +139,7 @@ export class GameManager {
         query: query,
         total: foundGames.length,
         results: foundGames
-      }
+      };
       // Add to cache array, remove oldest if max length
       if (this.searchCaches.length >= 10) { this.searchCaches.splice(0,1); }
       this.searchCaches.push(searchCache);
@@ -148,11 +155,11 @@ export class GameManager {
         ...request,
         total: searchCache.total,
         results: resGames
-      }
+      };
       return {
         success: true,
         result: res
-      }
+      };
     } else {
       // Offset out of bounds, return failure
       return createFailureResponse(new Error(`Offset out of bounds => ${request.offset}`));
@@ -176,7 +183,7 @@ export class GameManager {
           }
           return {
             success: true
-          }
+          };
         }
       }
     }
@@ -186,7 +193,7 @@ export class GameManager {
         // Add App was found and removed
         return {
           success: true
-        }
+        };
       }
     }
     return createFailureResponse(new Error('Requested ID did not match any games or additional applications'));
@@ -217,7 +224,7 @@ export class GameManager {
         if (this.removeGame(game.id, platform)) {
           // Game removed from platform, store add apps to move later
           let addAppIndex = -1;
-          while((addAppIndex = platform.collection.additionalApplications.findIndex(a => a.gameId === game.id)) != -1) {
+          while ((addAppIndex = platform.collection.additionalApplications.findIndex(a => a.gameId === game.id)) != -1) {
             // Remove from platform and push to list to add later
             const oldAddApp = platform.collection.additionalApplications[addAppIndex];
             this.removeAddApp(oldAddApp.id, platform);
@@ -239,14 +246,14 @@ export class GameManager {
         const newCollection: IGameCollection = {
           games: [game],
           additionalApplications: oldAddApps
-        }
+        };
         const platform: GamePlatform = {
           filePath: path.join(this.platformsPath, newLibrary, newPlatform + '.xml'),
           name: newPlatform,
           library: newLibrary,
           collection: newCollection,
           data: createRawFromCollection(newCollection)
-        }
+        };
         // Add to working array
         this.platforms.push(platform);
         if (request.saveToDisk) { this.savePlatformToFile(platform); }
@@ -277,7 +284,7 @@ export class GameManager {
     }
     return {
       success: true
-    }
+    };
   }
 
   /** Update a game in a platform */
@@ -291,7 +298,7 @@ export class GameManager {
       let games = platform.data.LaunchBox.Game;
       if (games) {
         // Convert to array if single game present.
-        if (!Array.isArray(games)) { games = [ games ]}
+        if (!Array.isArray(games)) { games = [ games ]; }
         const rawIndex = games.findIndex(g => g.ID === game.id);
         if (rawIndex != 1) {
           games[rawIndex] = GameParser.reverseParseGame(game);
@@ -317,7 +324,7 @@ export class GameManager {
       let addApps = platform.data.LaunchBox.AdditionalApplication;
       if (addApps) {
         // Convert to array if single game present. This shouldn't ever be true but better safe than sorry
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]}
+        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
         const rawIndex = addApps.findIndex(a => a.Id === addApp.id);
         if (rawIndex != 1) {
           addApps[rawIndex] = GameParser.reverseParseAdditionalApplication(addApp);
@@ -341,7 +348,7 @@ export class GameManager {
     let games = platform.data.LaunchBox.Game;
       if (games) {
         // Convert to array if single game in platform
-        if (!Array.isArray(games)) { games = [ games ]}
+        if (!Array.isArray(games)) { games = [ games ]; }
         // Add game to array
         games.push(GameParser.reverseParseGame(game));
         platform.data.LaunchBox.Game = games;
@@ -359,7 +366,7 @@ export class GameManager {
     let addApps = platform.data.LaunchBox.AdditionalApplication;
       if (addApps) {
         // Convert to array if single game in platform
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]}
+        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
         // Add game to array
         addApps.push(GameParser.reverseParseAdditionalApplication(addApp));
         platform.data.LaunchBox.AdditionalApplication = addApps;
@@ -374,14 +381,14 @@ export class GameManager {
     // Find and remove from platform games if exists
     console.log('finding ' + id +  ' ' + id.length);
     const gameIndex = platform.collection.games.findIndex(g => g.id === id);
-    if (gameIndex != -1) { 
+    if (gameIndex != -1) {
       // Found game in platform, store return and remove
       const returnGame = platform.collection.games.splice(gameIndex, 1)[0];
       // Find and remove from raw platform if exists
       let games = platform.data.LaunchBox.Game;
       if (games) {
         // Array of raw games, find game
-        if (Array.isArray(games)) { 
+        if (Array.isArray(games)) {
           for (let game of games) {
             console.log('ID ' + game.ID + ' ' + game.ID.length);
           }
@@ -395,9 +402,6 @@ export class GameManager {
           // Single game, check if matches and remove if does
           if (games.ID === id) { platform.data.LaunchBox.Game = undefined; }
         }
-        // Remove from raw games array if exists
-        
-        
       }
       console.log(`deleted ${id} from ${platform.name}`);
       return returnGame;
@@ -408,14 +412,14 @@ export class GameManager {
   private removeAddApp(id: string, platform: GamePlatform): boolean {
     // Find and remove from platform addApps if exists
     const appIndex = platform.collection.additionalApplications.findIndex(a => a.id === id);
-    if (appIndex != -1) { 
+    if (appIndex != -1) {
       // Found Add App in platform, remove
       platform.collection.additionalApplications.splice(appIndex, 1);
       // Find and remove from raw platform if exists
       let addApps = platform.data.LaunchBox.AdditionalApplication;
       if (addApps) {
         // Convert to array if single Add App in platform
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]}
+        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
         // Remove from raw Add App array if exists
         const rawIndex = addApps.findIndex(a => a.Id === id);
         if (rawIndex >= 0) {
@@ -470,7 +474,7 @@ function createRawFromCollection(collection: IGameCollection) : IRawPlatformFile
       Game: collection.games.map(game => GameParser.reverseParseGame(game)),
       AdditionalApplication: collection.additionalApplications.map(addApp => GameParser.reverseParseAdditionalApplication(addApp))
     }
-  }
+  };
 }
 
 function createFailureResponse(error: Error): ServerResponse {

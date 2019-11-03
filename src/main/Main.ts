@@ -4,7 +4,7 @@ import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
-import { BackIn, BackInitArgs, BackOut } from '../shared/back/types';
+import { BackIn, BackInitArgs, BackOut, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import checkSanity from '../shared/checkSanity';
 import { IMiscData, MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
@@ -102,17 +102,19 @@ export class Main {
       if (!this.socket) { throw new Error('socket is undefined'); }
       const socket = this.socket;
       socket.onmessage = (event) => {
-        const msg = JSON.parse(event.data.toString());
-        if (msg[0] === BackOut.LOAD_PREFERENCES_RESPONSE) {
-          this.preferences = msg[1];
+        const res: WrappedResponse = JSON.parse(event.data.toString());
+        if (res.responseType === BackOut.LOAD_PREFERENCES_RESPONSE) {
+          this.preferences = res.data;
           socket.onmessage = this.onMessage;
           resolve();
-        } else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[msg[0]]}".`)); }
+        } else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[res.responseType]}".`)); }
       };
-      socket.send(JSON.stringify([
-        BackIn.LOAD_PREFERENCES,
-        Util.getPreferencesFilePath(this._installed)
-      ]));
+      const req: WrappedRequest = {
+        id: 'startup',
+        requestType: BackIn.LOAD_PREFERENCES,
+        data: Util.getPreferencesFilePath(this._installed)
+      };
+      socket.send(JSON.stringify(req));
     }))
     .then(() => {
       // Check if we are ready to launch or not.

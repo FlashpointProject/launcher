@@ -7,9 +7,9 @@ import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
-import { GameLibraryFileItem } from '../shared/library/types';
-import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
+import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
+import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
 import { versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
@@ -22,8 +22,7 @@ import { WithLibraryProps } from './containers/withLibrary';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
-import GameManager from './game/GameManager';
-import GameManagerPlatform from './game/GameManagerPlatform';
+import { GameManager } from './game/GameManager';
 import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
 import { LangManager } from './lang/LangManager';
@@ -79,6 +78,7 @@ export type AppState = {
 
 export class App extends React.Component<AppProps, AppState> {
   private countGamesOfCurrentLibrary = memoizeOne(countGamesOfLibrarysPlatforms);
+  private countGamesOfPlatforms = memoizeOne(countGamesOfPlatforms);
 
   constructor(props: AppProps) {
     super(props);
@@ -87,7 +87,7 @@ export class App extends React.Component<AppProps, AppState> {
     const config = window.External.config;
     this.state = {
       central: {
-        games: new GameManager(),
+        platforms: [],
         playlists: new GamePlaylistManager(),
         upgrade: {
           doneLoading: false,
@@ -203,32 +203,35 @@ export class App extends React.Component<AppProps, AppState> {
         })
       });
     });
-    // Fetch LaunchBox game data from the xml
-    this.state.central.games.findPlatforms()
-    .then((filenames) => {
-      // Prepare images
-      const platforms: string[] = filenames.map((platform) => platform.split('.')[0]); // ('Flash.xml' => 'Flash')
-      this.state.gameImages.addImageFolders(platforms);
-    })
+    // Initalize the Game Manager
+    GameManager.loadManager()
     .then(async () => {
-      // Load platform data
-      try {
-        await this.state.central.games.loadPlatforms();
-      } catch (errors) {
-        // @TODO Make this errors passing a bit safer? Expecting specially formatted errors seems dangerous.
-        errors.forEach((error: Error) => log(error.toString()));
-        // Show a popup about the errors
-        remote.dialog.showMessageBox({
-          type: 'error',
-          title: strings.dialog.errorParsingPlatforms,
-          message: formatString(strings.dialog.errorParsingPlatformsMessage, String(errors.length)),
-          buttons: ['Ok']
+      // Initalize image folders
+      await GameManager.fetchPlatforms()
+      .then(platforms => {
+        const names = platforms.map(p => p.name);
+        this.state.gameImages.addImageFolders(names);
+        // Update stored platform info
+        this.setState({
+          central: Object.assign({}, this.state.central, {
+            platforms: platforms
+          })
         });
-        // Throw errors (since this catch was only for logging)
-        throw errors;
-      }
+      })
+      .catch(error => {
+        log(`Error fetching platforms - ${error.message}`);
+      });
     })
-    .catch(() => {
+    .catch((errors) => {
+      // @TODO Make this errors passing a bit safer? Expecting specially formatted errors seems dangerous.
+      errors.forEach((error: Error) => log(error.toString()));
+      // Show a popup about the errors
+      remote.dialog.showMessageBox({
+        type: 'error',
+        title: strings.dialog.errorParsingPlatforms,
+        message: formatString(strings.dialog.errorParsingPlatformsMessage, String(errors.length)),
+        buttons: ['Ok']
+      });
       // Flag loading as failed
       this.setState({
         central: Object.assign({}, this.state.central, {
@@ -349,13 +352,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   render() {
+    const { platforms } = this.state.central;
     const loaded = this.state.central.gamesDoneLoading &&
                    this.state.central.playlistsDoneLoading &&
                    this.state.central.upgrade.doneLoading &&
                    this.state.creditsDoneLoading;
-    const games = this.state.central.games.collection.games;
     const libraries = this.props.libraryData.libraries;
-    const platforms = this.state.central.games.listPlatforms();
     const route = getBrowseSubPath(this.props.location.pathname);
     const library = findLibraryByRoute(libraries, route);
     // Props to set to the router
@@ -414,9 +416,9 @@ export class App extends React.Component<AppProps, AppState> {
             {/* Footer */}
             <ConnectedFooter
               showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-              totalCount={games.length}
+              totalCount={this.countGamesOfPlatforms(platforms)}
               currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-              currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+              currentCount={this.countGamesOfCurrentLibrary(platforms, route)}
               onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
               onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
               onNewGameClick={this.onNewGameClick} />
@@ -594,13 +596,24 @@ function log(content: string): void {
   });
 }
 
-/** Count the number of games in all platforms that "belongs" to the given library */
-function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], libraries: GameLibraryFileItem[], library?: GameLibraryFileItem): number {
-  const currentLibraries = library ? getLibraryPlatforms(libraries, platforms, library) : platforms;
-  return currentLibraries.reduce(
-    (acc, platform) => acc + (platform.collection ? platform.collection.games.length : 0),
-    0
-  );
+/** Count the number of games in all platforms that "belong" to the given library */
+function countGamesOfLibrarysPlatforms(platforms: PlatformInfo[], libraryRoute?: string): number {
+  let count = 0;
+  for (let platform of platforms) {
+    if (platform.library === libraryRoute) {
+      count += platform.size;
+    }
+  }
+  return count;
+}
+
+/** Count the number of games in all platforms */
+function countGamesOfPlatforms(platforms: PlatformInfo[]) {
+  let count = 0;
+  for (let platform of platforms) {
+    count +=  platform.size;
+  }
+  return count;
 }
 
 function copyMap<T>(map: IObjectMap<T>): IObjectMap<T> {

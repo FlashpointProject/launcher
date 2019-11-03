@@ -1,4 +1,4 @@
-import GameManager from './game/GameManager';
+import { PlatformInfo } from '../shared/platform/interfaces';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { UpgradeData } from './upgrade/types';
 
@@ -7,8 +7,8 @@ import { UpgradeData } from './upgrade/types';
  * This is sort of a hacky and temporary solution. It should be phased out.
  */
 export type CentralState = {
-  /** Manager of all the games, and container of the loaded and parsed game data. */
-  games: GameManager;
+  /** Info for all platforms */
+  platforms: PlatformInfo[];
   /** Manager of all playlists. */
   playlists: GamePlaylistManager;
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */

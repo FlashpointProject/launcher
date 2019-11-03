@@ -1,4 +1,5 @@
 import { OpenDialogOptions } from 'electron';
+import { SharedSocket } from './back/SharedSocket';
 import { AppConfigApi } from './config/AppConfigApi';
 import { LogRendererApi } from './Log/LogRendererApi';
 import { IAppPreferencesData } from './preferences/interfaces';
@@ -57,7 +58,7 @@ export interface IMainWindowExternal {
   isDev: boolean;
 
   /** Socket to the back API. */
-  backSocket: WebSocket;
+  backSocket: SharedSocket;
 
   /**
    * Wait for the preload to initialize.
@@ -101,6 +102,8 @@ export enum WindowIPC {
   /** Sent whenever the windows size changes. (main -> renderer). */
   WINDOW_RESIZE   = 'window-resize',
 }
+
+/** IPC channels used to relay game manager events from  */
 
 /** Object of miscellaneous data to send from main to renderer on startup. */
 export type IMiscData = {

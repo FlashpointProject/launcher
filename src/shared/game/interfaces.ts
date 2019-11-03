@@ -1,4 +1,4 @@
-import { GamePlaylist } from 'src/renderer/playlist/types';
+import { GamePlaylist } from '../../renderer/playlist/types';
 import { PlatformInfo } from '../platform/interfaces';
 import { OrderGamesOpts } from './GameFilter';
 

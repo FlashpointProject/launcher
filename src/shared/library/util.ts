@@ -1,4 +1,3 @@
-import GameManagerPlatform from '../../renderer/game/GameManagerPlatform';
 import { LangContainer } from '../lang';
 import { GameLibraryFile, GameLibraryFileItem } from './types';
 

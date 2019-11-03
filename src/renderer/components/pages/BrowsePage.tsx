@@ -3,10 +3,9 @@ import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
-import { promisify } from 'util';
+import { BackOut, WrappedResponse } from '../../../shared/back/types';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
-import { filterAndOrderGames, FilterAndOrderGamesOpts } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
@@ -21,7 +20,7 @@ import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { convertToCurationMeta } from '../../curate/metaToMeta';
-import GameManagerPlatform from '../../game/GameManagerPlatform';
+import { GameManager } from '../../game/GameManager';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getImageFolderName } from '../../image/util';
@@ -37,8 +36,6 @@ import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
-
-const writeFile = promisify(fs.writeFile);
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isEditing'|'isNewGame'>;
@@ -121,18 +118,17 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewGame: false
     };
     const assignToState = <T extends keyof BrowsePageState>(state: Pick<BrowsePageState, T>) => { Object.assign(initialState, state); };
-    this.orderGames(true);
     this.updateCurrentGameAndAddApps(assignToState);
     this.createNewGameIfClicked(false, assignToState);
     this.state = initialState;
   }
 
   componentDidMount() {
-    this.props.central.games.on('change', this.onGamesCollectionChange);
+    window.External.backSocket.on('response', this.onMessage);
   }
 
   componentWillUnmount() {
-    this.props.central.games.removeListener('change', this.onGamesCollectionChange);
+    window.External.backSocket.removeListener('response', this.onMessage);
   }
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
@@ -478,9 +474,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
    * @param copyImages If the games images should also be copied.
    */
   duplicateCallback(game: IGameInfo, copyImages: boolean = false) {
-    return () => {
-      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
-      const library = this.getCurrentLibrary();
+    return async () => {
+      const res = await GameManager.fetchGame(game.id);
+      const addApps = res.addApps;
       // Duplicate game and add-apps
       const newGame = GameInfo.duplicate(game);
       const newAddApps = addApps.map(addApp => AdditionalApplicationInfo.duplicate(addApp));
@@ -492,7 +488,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       }
       // Copy images
       if (copyImages) {
-        const imageFolder = getImageFolderName(game, library && library.prefix || '', true);
+        const imageFolder = getImageFolderName(game, game.library || '', true);
         // Copy screenshot
         const screenshotPath = this.props.gameImages.getScreenshotPath(game);
         if (screenshotPath) {
@@ -507,19 +503,19 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       }
       // Add game and add-apps
-      this.props.central.games.addOrUpdateGame({
-        game: newGame,
+      GameManager.updateMeta({
+        games: [newGame],
         addApps: newAddApps,
-        library: library,
-        saveToFile: true,
+        saveToDisk: true,
       });
     };
   }
 
   /** Create a callback for exporting the meta of a game (as a curation format meta file). */
   exportMetaCallback(game: IGameInfo) {
-    return () => {
-      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
+    return async () => {
+      const res = await GameManager.fetchGame(game.id);
+      const addApps = res.addApps;
       // Choose where to save the file
       const filePath = electron.remote.dialog.showSaveDialogSync({
         title: this.context.dialog.selectFileToExportMeta,
@@ -533,7 +529,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         fs.ensureDir(path.dirname(filePath))
         .then(() => {
           const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
-          writeFile(filePath, meta);
+          fs.writeFile(filePath, meta);
         });
       }
     };
@@ -542,8 +538,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   /** Create a callback for exporting the meta and images of a game (as a curation format meta file and image files). */
   exportMetaAndImagesCallback(game: IGameInfo) {
     const strings = this.context.dialog;
-    return () => {
-      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
+    return async () => {
+      const res = await GameManager.fetchGame(game.id);
+      const addApps = res.addApps;
       // Choose where to save the file
       const filePaths = window.External.showOpenDialogSync({
         title: strings.selectFolderToExportMetaAndImages,
@@ -580,7 +577,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           Promise.all([
             (async () => {
               const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
-              await writeFile(metaPath, meta);
+              await fs.writeFile(metaPath, meta);
             })(),
             screenPath ? fs.copyFile(screenPath, ssPath)   : undefined,
             thumbPath  ? fs.copyFile(thumbPath,  logoPath) : undefined,
@@ -657,8 +654,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Remove the game from the playlist and save the change
     playlist.games.splice(index, 1); // Remove game entry
     this.props.central.playlists.save(playlist);
-    // Re-order games (to include the new game)
-    this.orderGames(true);
     // Deselect the game
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
     // Reset the state related to the selected game
@@ -693,11 +688,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances) */
-  updateCurrentGameAndAddApps(cb: (state: StateCallback2) => void = this.boundSetState): void {
+  async updateCurrentGameAndAddApps(cb: (state: StateCallback2) => void = this.boundSetState): Promise<void> {
     const { central, selectedGame } = this.props;
     if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
       // Find additional applications for the selected game (if any)
-      let addApps = central.games.collection.findAdditionalApplicationsByGameId(selectedGame.id);
+      const res = await GameManager.fetchGame(selectedGame.id);
+      const addApps = res.addApps;
       // Update State
       cb({
         currentGame: selectedGame && GameInfo.duplicate(selectedGame),
@@ -792,41 +788,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   );
 
-  /** Memoized wrapper around the order games function. */
-  orderGamesMemo = memoizeOne((games: IGameInfo[], opts: FilterAndOrderGamesOpts, force?: boolean): IGameInfo[] => {
-    return filterAndOrderGames(games, opts);
-  }, checkOrderGamesArgsEqual);
-
-  /**
-   * Order and filter the games according to the current settings.
-   * @param force If the game should be re-ordered even if they seem to not have changed.
-   */
-  orderGames(force: boolean = false): IGameInfo[] {
-    // Get the games to display for the current library
-    const games = this.getCurrentLibraryGames({
-      library: this.getCurrentLibrary(),
-      platforms: this.props.central.games.listPlatforms(),
-      libraries: this.props.libraryData.libraries
-    }, force) || this.props.central.games.collection.games;
-    // Get the order
-    const order = this.props.order || BrowsePage.defaultOrder;
-    // Order (and filter) the games according to the current settings
-    return this.orderGamesMemo(games, {
-      search: this.props.search ? this.props.search.text : '',
-      extreme: !window.External.config.data.disableExtremeGames &&
-               this.props.preferencesData.browsePageShowExtreme,
-      broken: window.External.config.data.showBrokenGames,
-      playlist: this.props.selectedPlaylist,
-      platforms: undefined,
-      orderBy: order.orderBy,
-      orderReverse: order.orderReverse,
-    }, force);
-  }
-
-  onGamesCollectionChange = (): void => {
-    // Re-order games if a game was changed
-    this.orderGames(true);
-    this.forceUpdate();
+  onMessage = async (res: WrappedResponse): Promise<void> => {
+    if (res.responseType in [BackOut.REMOVE_GAMEAPP_RESPONSE, BackOut.UPDATE_META_RESPONSE, BackOut.UPDATE_PREFERENCES_RESPONSE]) {
+      // @TODO Re-search games
+      this.forceUpdate();
+    }
   }
 
   /** Create a new game if the "New Game" button was clicked */
@@ -924,32 +890,6 @@ function getLibraryGames({ library, platforms, libraries }: GetLibraryGamesArgs)
   }
 }
 
-/**
- * Check if two sets of arguments for the function that orders games are equal (it is
- * guaranteed that they will return the games in the same order).
- * @param args1 New arguments.
- *              If the "force" value of this is true, the check will fail no matter what.
- * @param args2 Old arguments.
- */
-function checkOrderGamesArgsEqual(args1: OrderGamesForceArgs, args2: OrderGamesForceArgs): boolean {
-  const [gamesA, optsA, force] = args1;
-  const [gamesB, optsB]        = args2 || [undefined, undefined];
-  // Check if this is "forced" to be updated
-  if (force) { return false; }
-  // Check if the second argument array is missing
-  if (!optsB) { return false; }
-  // Compare each value
-  if (optsA.search        !== optsB.search)                     { return false; }
-  if (optsA.extreme       !== optsB.extreme)                    { return false; }
-  if (optsA.broken        !== optsB.broken)                     { return false; }
-  if (optsA.playlist      !== optsB.playlist)                   { return false; }
-  if (optsA.orderBy       !== optsB.orderBy)                    { return false; }
-  if (optsA.orderReverse  !== optsB.orderReverse)               { return false; }
-  if (!checkIfArraysAreEqual(optsA.platforms, optsB.platforms)) { return false; }
-  if (!checkIfArraysAreEqual(gamesA, gamesB))                   { return false; }
-  return true;
-}
-
 /* Check if two arrays are have strictly equal items (or if both are undefined). */
 function checkIfArraysAreEqual(a: any[] | undefined, b: any[] | undefined): boolean {
   // Check if both arguments point to the same array (or if both are undefined)
@@ -965,12 +905,3 @@ function checkIfArraysAreEqual(a: any[] | undefined, b: any[] | undefined): bool
   // The arrays are equal
   return true;
 }
-
-/** Arguments used by the filter & order games function wrapper. */
-type OrderGamesForceArgs = [
-  // Arguments passed to the order function
-  IGameInfo[],
-  FilterAndOrderGamesOpts,
-  // If it should force it to filter and order (even if the arguments are identical)
-  boolean?
-];

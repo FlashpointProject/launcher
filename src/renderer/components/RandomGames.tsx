@@ -27,8 +27,7 @@ const numberOfGames = 6;
 export function RandomGames(props: RandomGamesProps) {
   // Select random games to display
   const randomGames = useMemo(() => {
-    const filteredGames = filterBroken(props.showBroken, filterExtreme(props.showExtreme, props.games));
-    const shuffledGames = shuffle(filteredGames);
+    const shuffledGames = shuffle(props.games);
     const randomGames = shuffledGames.slice(0, Math.min(numberOfGames, props.games.length));
     return randomGames;
   }, [/* Only pick games on the first render. */]);

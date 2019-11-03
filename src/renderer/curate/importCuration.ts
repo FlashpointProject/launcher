@@ -5,7 +5,6 @@ import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfa
 import { GameLibraryFileItem } from '../../shared/library/types';
 import { formatDate, removeFileExtension } from '../../shared/Util';
 import { CurationSource, EditCuration } from '../context/CurationContext';
-import GameManager from '../game/GameManager';
 import { formatUnknownPlatformName } from '../game/util';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
@@ -28,7 +27,7 @@ const copyFile = promisify(fs.copyFile);
  * @returns A promise that resolves when the import is complete.
  */
 export async function importCuration(
-  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, libraries: GameLibraryFileItem[], log: boolean = false
+  curation: EditCuration, gameImages: GameImageCollection, libraries: GameLibraryFileItem[], log: boolean = false
 ): Promise<void> {
   // Find the library and get its prefix
   const library = libraries.find(lib => lib.title === curation.meta.library);

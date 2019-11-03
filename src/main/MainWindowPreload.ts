@@ -1,6 +1,7 @@
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
-import { BackIn, BackOut } from '../shared/back/types';
+import { SharedSocket } from '../shared/back/SharedSocket';
+import { BackIn, BackOut, WrappedResponse } from '../shared/back/types';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
 import { MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
@@ -94,25 +95,21 @@ const onInit = new Promise<WebSocket>((resolve, reject) => {
   url.port = data.port+'';
 
   const ws = new WebSocket(url.href);
-  window.External.backSocket = ws;
   ws.onopen = (event) => {
     ws.onmessage = () => { resolve(ws); };
     ws.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
     ws.send(data.secret);
   };
+  window.External.backSocket = new SharedSocket(ws);
+  // Register preferences update listener
+  window.External.backSocket.on('response', onMessage);
 })
-.then((ws) => new Promise((resolve, reject) => {
-  window.External.backSocket = ws;
+.then(() => new Promise((resolve) => {
   // Fetch the preferences
-  ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data.toString());
-    if (msg[0] === BackOut.GET_PREFERENCES_RESPONSE) {
-      window.External.preferences.data = msg[1];
-      ws.onmessage = onMessage;
-      resolve();
-    } else { reject(new Error(`Failed to initialize. Did not expect messge type "${BackOut[msg[0]]}".`)); }
-  };
-  window.External.backSocket.send(JSON.stringify([BackIn.GET_PREFERENCES]));
+  window.External.backSocket.send(BackIn.GET_PREFERENCES, undefined, (response) => {
+    window.External.preferences.data = response.data;
+    resolve();
+  });
 }))
 .then(() => { isInitDone = true; });
 
@@ -127,11 +124,10 @@ function createErrorProxy(title: string): any {
   });
 }
 
-function onMessage(this: WebSocket, event: MessageEvent): void {
-  const msg: ParsedMessage = JSON.parse(event.data);
-  switch (msg[0]) {
+function onMessage(this: WebSocket, res: WrappedResponse): void {
+  switch (res.responseType) {
     case BackOut.UPDATE_PREFERENCES_RESPONSE:
-      window.External.preferences.data = msg[1];
+      window.External.preferences.data = res.data;
       break;
   }
 }

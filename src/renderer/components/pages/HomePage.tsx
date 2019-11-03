@@ -19,7 +19,6 @@ import { GamePlaylist } from '../../playlist/types';
 import { UpgradeStage } from '../../upgrade/types';
 import { joinLibraryRoute } from '../../Util';
 import { LangContext } from '../../util/lang';
-import { getPlatforms } from '../../util/platform';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
@@ -56,8 +55,8 @@ export class HomePage extends React.Component<HomePageProps> {
       onDownloadScreenshotsUpgradeClick,
       gameImages,
       central: {
+        platforms,
         gamesDoneLoading,
-        games,
         upgrade: {
           techState,
           screenshotsState
@@ -71,15 +70,15 @@ export class HomePage extends React.Component<HomePageProps> {
     const { showBrokenGames } = window.External.config.data;
     const { disableExtremeGames } = window.External.config.data;
     // Grabs a dynamic list of supported platforms and pre-formats them as Links
-    const platformList = getPlatforms(this.props.central.games.collection);
-    const formatPlatforms = platformList.map((platform, index) =>
+    const numOfPlatforms = this.props.central.platforms.length;
+    const formatPlatforms = this.props.central.platforms.map((platform, index) =>
       <span key={index}>
         <Link
           to={joinLibraryRoute('arcade')}
-          onClick={this.onPlatformClick(platform)}>
+          onClick={this.onPlatformClick(platform.name)}>
           {platform}
         </Link>
-        { (index < platformList.length -1) ? ', ' : undefined }
+        { (index < numOfPlatforms - 1) ? ', ' : undefined }
       </span>
     );
     // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)

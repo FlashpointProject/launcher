@@ -7,7 +7,6 @@ import { GameMetaDefaults, getDefaultMetaValues } from '../../curate/defaultValu
 import { importCuration } from '../../curate/importCuration';
 import { CurationIndex, indexCurationArchive, indexCurationFolder } from '../../curate/indexCuration';
 import { parseCurationMeta } from '../../curate/parse';
-import GameManager from '../../game/GameManager';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { LangContext } from '../../util/lang';
 import { getSuggestions } from '../../util/suggestions';
@@ -17,8 +16,6 @@ import { CurateBox } from '../CurateBox';
 import { SimpleButton } from '../SimpleButton';
 
 type OwnProps = {
-  /** Game manager to add imported curations to. */
-  games?: GameManager;
   /** Game images collection to add imported images to. */
   gameImages?: GameImageCollection;
 };

@@ -33,7 +33,7 @@ export class PlatformParser {
               library: library,
               data: { LaunchBox: {} },
               collection: { games: [], additionalApplications: [] }
-            })
+            });
           }
         }
       }

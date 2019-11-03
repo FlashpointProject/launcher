@@ -3,12 +3,12 @@ import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
-import { GameCollection } from '../../../shared/game/GameCollection';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
-import { PlatformParser } from '../../../shared/platform/PlatformParser';
+import { PlatformInfo } from '../../../shared/platform/interfaces';
 import { removeFileExtension } from '../../../shared/Util';
 import { WithLibraryProps } from '../../containers/withLibrary';
+import { GameManager } from '../../game/GameManager';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { ImageFolderCache } from '../../image/ImageFolderCache';
@@ -137,60 +137,60 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     );
   }
 
-  onCheckMissingImagesClick = (): void => {
-    const games = this.props.central.games.collection.games;
+  onCheckMissingImagesClick = async (): Promise<void> => {
+    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
     const gameImages = this.props.gameImages;
-    this.setState({ text: checkMissingGameImages(games, gameImages) });
+    this.setState({ text: checkMissingGameImages(res.results, gameImages) });
   }
 
-  onCheckGameIDsClick = (): void => {
-    const games = this.props.central.games.collection.games;
-    this.setState({ text: checkGameIDs(games) });
+  onCheckGameIDsClick = async (): Promise<void> => {
+    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    this.setState({ text: checkGameIDs(res.results) });
   }
 
-  onCheckGameNamesClick = (): void => {
-    const games = this.props.central.games.collection.games;
-    this.setState({ text: checkGameTitles(games) });
+  onCheckGameNamesClick = async (): Promise<void> => {
+    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    this.setState({ text: checkGameTitles(res.results) });
   }
 
-  onCheckGameFieldsClick = (): void => {
-    const games = this.props.central.games.collection.games;
-    this.setState({ text: checkGameEmptyFields(games) });
+  onCheckGameFieldsClick = async (): Promise<void> => {
+    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    this.setState({ text: checkGameEmptyFields(res.results) });
   }
 
-  onCheckPlaylistsClick = (): void => {
+  onCheckPlaylistsClick = async (): Promise<void> => {
     const playlists = this.props.central.playlists.playlists;
-    const games = this.props.central.games.collection.games;
-    this.setState({ text: checkPlaylists(playlists, games) });
+    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    this.setState({ text: checkPlaylists(playlists, res.results) });
   }
 
-  onCheckFileLocation = (): void => {
-    const games = this.props.central.games.collection.games;
-    this.setState({ text: checkFileLocation(games) });
+  onCheckFileLocation = async (): Promise<void> => {
+    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    this.setState({ text: checkFileLocation(res.results) });
   }
 
   onRenameImagesTitleToIDClick = (): void => {
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
-      const games = this.props.central.games.collection.games;
+      const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
       const gameImages = this.props.gameImages;
-      this.setState({ text: await renameImagesToIDs(games, gameImages) });
+      this.setState({ text: await renameImagesToIDs(res.results, gameImages) });
     }, 0);
   }
 
   onRenameImagesIDToTitleClick = (): void => {
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
-      const games = this.props.central.games.collection.games;
+      const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
       const gameImages = this.props.gameImages;
-      this.setState({ text: await renameImagesToTitles(games, gameImages) });
+      this.setState({ text: await renameImagesToTitles(res.results, gameImages) });
     }, 0);
   }
 
   onCreateMissingFoldersClick = (): void => {
     setTimeout(async () => {
-      const collection = this.props.central.games.collection;
-      this.setState({ text: await createMissingFolders(collection) });
+      const platforms = this.props.central.platforms;
+      this.setState({ text: await createMissingFolders(platforms) });
     }, 0);
   }
 
@@ -541,7 +541,7 @@ async function renameImagesToIDsSub(games: IGameInfo[], getCache: GetImageCacheF
     errors: [],
   };
   for (let game of games) {
-    const cache = getCache(removeFileExtension(game.filename));
+    const cache = getCache(removeFileExtension(game.platform));
     if (cache && cache.getFolderPath() !== undefined) {
       const filenames = organizeImageFilepaths(cache.getFilePaths(game.title));
       if (Object.keys(filenames).length > 0) {
@@ -556,7 +556,7 @@ async function renameImagesToIDsSub(games: IGameInfo[], getCache: GetImageCacheF
           .then(() => { stats.renamedFiles += 1; });
         }
       } else { stats.skippedFiles += 1; }
-    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.filename}")`) }); }
+    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.platform}")`) }); }
     // Count number of loops
     stats.totalLooped += 1;
   }
@@ -595,7 +595,7 @@ async function renameImagesToTitlesSub(games: IGameInfo[], getCache: GetImageCac
     errors: [],
   };
   for (let game of games) {
-    const cache = getCache(removeFileExtension(game.filename));
+    const cache = getCache(removeFileExtension(game.platform));
     if (cache && cache.getFolderPath() !== undefined) {
       const filenames = organizeImageFilepaths(cache.getFilePaths(game.id));
       if (Object.keys(filenames).length > 0) {
@@ -610,7 +610,7 @@ async function renameImagesToTitlesSub(games: IGameInfo[], getCache: GetImageCac
           .then(() => { stats.renamedFiles += 1; });
         }
       } else { stats.skippedFiles += 1; }
-    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.filename}")`) }); }
+    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.platform}")`) }); }
     // Count number of loops
     stats.totalLooped += 1;
   }
@@ -634,7 +634,7 @@ function stringifyRenameImageStats(stats: RenameImagesStats): string {
 }
 
 type FolderStructure = { [key: string]: FolderStructure | string[] } | string[];
-async function createMissingFolders(collection: GameCollection): Promise<string> {
+async function createMissingFolders(platforms: PlatformInfo[]): Promise<string> {
   let str = '';
   const log = (text?: string) => { str += (typeof text === 'string') ? text+'\n' : '\n'; };
   const fullFlashpointPath = window.External.config.fullFlashpointPath;
@@ -661,7 +661,7 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
   // Create image folders
   log('Creating image folders:\n');
   log(path.join(fullFlashpointPath, 'Data/Images'));
-  const imageFolders = await findPlatformFolderImageNames();
+  const imageFolders = platforms.map(p => p.name);
   if (imageFolders.length > 0) {
     const imageFolderStructure: FolderStructure = {};
     imageFolders.forEach(folderName => { imageFolderStructure[folderName] = ['Box - Front', 'Screenshot - Gameplay']; });
@@ -711,19 +711,7 @@ async function createMissingFolders(collection: GameCollection): Promise<string>
       return false;
     }
   }
-  /** Find the image folder names of all the current platforms. */
-  async function findPlatformFolderImageNames() {
-    // Get the platform filenames
-    let platformFilenames: string[];
-    const platformsPath = path.join(fullFlashpointPath, window.External.config.data.platformFolderPath);
-    try { platformFilenames = await PlatformParser.fetchPlatformFilenames(platformsPath); }
-    catch (error) { return []; }
-    // Convert to image folder names
-    return (
-      platformFilenames // [ "Flash.xml", "HTML5.xml" etc. ]
-      .map(filename => filename.split('.')[0]) // "Flash.xml" => "Flash"
-    );
-  }
+
   /** Log error (if there is any). */
   function logError(error: any): void {
     if (error) { console.warn(error); }

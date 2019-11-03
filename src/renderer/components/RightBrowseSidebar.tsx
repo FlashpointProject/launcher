@@ -8,7 +8,6 @@ import { LangContainer } from '../../shared/lang';
 import { GameLibraryFileItem } from '../../shared/library/types';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
-import GameManager from '../game/GameManager';
 import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';

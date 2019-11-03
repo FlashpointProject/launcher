@@ -1,8 +1,9 @@
-import { IGameCollection } from "../game/interfaces"
+import { IGameCollection } from '../game/interfaces';
 
 export type PlatformInfo = {
   name: string;
   library: string;
+  size: number;
 }
 
 export type GamePlatform = {

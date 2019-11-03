@@ -1,11 +1,12 @@
 import * as http from 'http';
 import * as WebSocket from 'ws';
 import { Server } from 'ws';
-import { BackIn, BackInitArgs, BackOut } from '../shared/back/types';
+import { BackIn, BackInitArgs, BackOut, WrappedRequest } from '../shared/back/types';
 import { DeepPartial } from '../shared/interfaces';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
+import { GameManager } from './game/GameManager';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -18,6 +19,7 @@ let server: Server;
 let secret: string;
 let preferences: IAppPreferencesData;
 let preferencesPath: string;
+const gameManager: GameManager = new GameManager();
 const messageQueue: WebSocket.MessageEvent[] = [];
 let isHandling = false;
 
@@ -67,10 +69,10 @@ async function onMessageWrap(event: WebSocket.MessageEvent) {
 }
 
 async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
-  const msg = JSON.parse(event.data.toString());
-  switch (msg[0]) {
+  const req: WrappedRequest = JSON.parse(event.data.toString());
+  switch (req.requestType) {
     case BackIn.LOAD_PREFERENCES:
-      preferencesPath = msg[1];
+      preferencesPath = req.data;
       preferences = await PreferencesFile.readOrCreateFile(preferencesPath);
       event.target.send(JSON.stringify([BackOut.LOAD_PREFERENCES_RESPONSE, preferences]));
       break;
@@ -78,15 +80,21 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       event.target.send(JSON.stringify([BackOut.GET_PREFERENCES_RESPONSE, preferences]));
       break;
     case BackIn.UPDATE_PREFERENCES:
-      const dif = difObjects(defaultPreferencesData, preferences, msg[1]);
+      const dif = difObjects(defaultPreferencesData, preferences, req.data);
       if (dif) {
         overwritePreferenceData(preferences, dif);
         await PreferencesFile.saveFile(preferencesPath, preferences);
       }
       event.target.send(JSON.stringify([BackOut.UPDATE_PREFERENCES_RESPONSE, preferences]));
       break;
+    case BackIn.LOAD_GAMEMANAGER:
+      const platformsPath: string = req.data;
+      await gameManager.loadPlatforms(platformsPath);
+      event.target.send(JSON.stringify([BackOut.LOAD_GAMEMANAGER_RESPONSE]));
   }
 }
+
+/** Build a response */
 
 /**
  * Recursively iterate over all properties of the template object and compare the values of the same
