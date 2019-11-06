@@ -1,9 +1,8 @@
 import * as path from 'path';
 import { IBackProcessInfo } from '../../shared/service/interfaces';
-import { readJsonFile } from '../../shared/Util';
+import { parseVarStr, readJsonFile } from '../../shared/Util';
 import { Coerce } from '../../shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
-import { parseVarStr } from '../Util';
 import { ServiceFileData } from './interfaces';
 
 const { str } = Coerce;

@@ -1,8 +1,12 @@
+import { IAppConfigData } from '../config/interfaces';
+import { IAppPreferencesData } from '../preferences/interfaces';
+
 export enum BackIn {
-  /** Load the preferences from the file. */
-  LOAD_PREFERENCES,
-  /** Get the full preferences object. */
-  GET_PREFERENCES,
+  GET_BORING_STUFF,
+  /** Get the full config and preferences objects. */
+  GET_CONFIG_AND_PREFERENCES,
+  /** Update any number of configs. */
+  UPDATE_CONFIG,
   /** Update any number of preferences. */
   UPDATE_PREFERENCES,
   /** Load the backend game manager */
@@ -20,8 +24,9 @@ export enum BackIn {
 }
 
 export enum BackOut {
-  LOAD_PREFERENCES_RESPONSE,
-  GET_PREFERENCES_RESPONSE,
+  GET_BORING_STUFF_RESPONSE,
+  GET_CONFIG_AND_PREFERENCES_RESPONSE,
+  UPDATE_CONFIG_RESPONSE,
   UPDATE_PREFERENCES_RESPONSE,
   LOAD_GAMEMANAGER_RESPONSE,
   GET_PLATFORMS_RESPONSE,
@@ -35,27 +40,33 @@ export type WrappedRequest = {
   /** Identifier of the response */
   id: string;
   /** Type of the request */
-  requestType: BackIn;
+  type: BackIn;
   /** Data contained in the response (if any) */
   data?: any;
 }
 
-export type WrappedResponse = {
+export type WrappedResponse<T = any> = {
   /** Identifier of the response */
   id: string;
-  /** Type of the message */
-  responseType: BackOut;
+  /** Type of the response */
+  type: BackOut;
   /** Data contained in the response (if any) */
-  data?: any;
+  data?: T;
 }
 
 export type BackInitArgs = {
-  /** Lower limit of the range of ports that the back should listen on. */
-  portMin: number;
-  /** Upper limit of the range of ports that the back should listen on. */
-  portMax: number;
-  /** Path to the preferences file. */
-  preferencesPath: string;
+  /** Path to the folder containing the preferences and config files. */
+  configFolder: string;
   /** Secret string used for authentication. */
   secret: string;
 }
+
+export type GetBoringStuffData = {
+  totalGames: number;
+}
+
+export type GetConfigAndPrefsResponse = {
+  config: IAppConfigData;
+  preferences: IAppPreferencesData;
+}
+

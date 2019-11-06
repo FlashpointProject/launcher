@@ -4,14 +4,13 @@ import * as path from 'path';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { LibraryFile } from '../shared/library/LibraryFile';
+import { BackIn, GetBoringStuffData } from '../shared/back/types';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { CurationContext } from './context/CurationContext';
 import { PreferencesContextProvider } from './context/PreferencesContext';
 import { LangManager } from './lang/LangManager';
-import { updateLibrary } from './store/library';
 import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
 
@@ -25,10 +24,13 @@ import { ThemeManager } from './theme/ThemeManager';
   });
   // Wait for the preferences and config to initialize
   await Promise.all([
-    window.External.config.waitUtilInitialized(),
     window.External.services.waitUtilInitialized(),
     window.External.waitUntilInitialized(),
   ]);
+  //
+  const boring = await window.External.back.sendAwait<GetBoringStuffData>(BackIn.GET_BORING_STUFF, undefined);
+  if (!boring.data) { throw new Error('no boring data wtf'); }
+  
   // Get preferences data
   const preferences = window.External.preferences.data;
   // Watch language folder & Load current/fallback language files
@@ -45,9 +47,6 @@ import { ThemeManager } from './theme/ThemeManager';
   const history = createMemoryHistory();
   // Create Redux store
   const store = configureStore(history);
-  // Load Game Library file
-  let library = await LibraryFile.readFile(window.External.config.fullJsonFolderPath, log).catch(e => log(e+''));
-  if (library) { store.dispatch(updateLibrary(library)); }
   // Render the application
   ReactDOM.render((
       <Provider store={store}>
@@ -55,6 +54,7 @@ import { ThemeManager } from './theme/ThemeManager';
           <ContextReducerProvider context={CurationContext}>
             <ConnectedRouter history={history}>
               <ConnectedApp
+                allGamesTotal={boring.data.totalGames}
                 themes={themes}
                 langManager={lang} />
             </ConnectedRouter>

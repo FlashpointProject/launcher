@@ -1,25 +1,34 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { IGameInfo } from '../shared/game/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { LangFile } from '../shared/lang';
+import { PlatformInfo } from '../shared/platform/interfaces';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
+import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
+import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
-import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
-import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { CreditsData } from './credits/types';
 import { GameImageCollection } from './image/GameImageCollection';
-import { CentralState } from './interfaces';
+import { CentralState, GAMES, SUGGESTIONS } from './interfaces';
 import { Paths } from './Paths';
 import { GamePlaylist } from './playlist/types';
 import { IThemeListItem } from './theme/ThemeManager';
 
 export type AppRouterProps = {
+  games: GAMES;
+  gamesTotal: number;
+  playlists: GamePlaylist[];
+  suggestions: SUGGESTIONS;
+  platforms: PlatformInfo[];
+  save: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean) => void;
+  launchGame: (gameId: string) => void;
+  deleteGame: (gameId: string) => void;
   /** Semi-global prop. */
   central: CentralState;
   /** Credits data (if any). */
@@ -46,6 +55,8 @@ export type AppRouterProps = {
 export class AppRouter extends React.Component<AppRouterProps> {
   render() {
     const homeProps: ConnectedHomePageProps = {
+      platforms: this.props.platforms,
+      launchGame: this.props.launchGame,
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
       gameImages: this.props.gameImages,
@@ -53,6 +64,14 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onDownloadScreenshotsUpgradeClick: this.props.onDownloadScreenshotsUpgradeClick,
     };
     const browseProps: ConnectedBrowsePageProps = {
+      games: this.props.games,
+      gamesTotal: this.props.gamesTotal,
+      playlists: this.props.playlists,
+      suggestions: this.props.suggestions,
+      save: this.props.save,
+      launchGame: this.props.launchGame,
+      deleteGame: this.props.deleteGame,
+
       central: this.props.central,
       order: this.props.order,
       gameScale: this.props.gameScale,
@@ -75,9 +94,14 @@ export class AppRouter extends React.Component<AppRouterProps> {
       creditsData: this.props.creditsData,
       creditsDoneLoading: this.props.creditsDoneLoading
     };
-    const curateProps: ConnectedCuratePageProps = {
-      games: this.props.central.games,
+    const curateProps: CuratePageProps = {
+      games: this.props.games,
       gameImages: this.props.gameImages
+    };
+    const developerProps: DeveloperPageProps = {
+      platforms: this.props.platforms,
+      central: this.props.central,
+      gameImages: this.props.gameImages,
     };
     return (
       <Switch>
@@ -103,13 +127,12 @@ export class AppRouter extends React.Component<AppRouterProps> {
           { ...aboutProps } />
         <PropsRoute
           path={Paths.CURATE}
-          component={ConnectedCuratePage}
+          component={CuratePage}
           { ...curateProps } />
         <PropsRoute
           path={Paths.DEVELOPER}
-          component={ConnectedDeveloperPage}
-          central={this.props.central}
-          gameImages={this.props.gameImages} />
+          component={DeveloperPage}
+          { ...developerProps } />
         <Route component={NotFoundPage} />
       </Switch>
     );

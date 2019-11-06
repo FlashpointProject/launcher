@@ -3,12 +3,11 @@ import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { wrapSearchTerm } from '../../../shared/game/GameFilter';
-import { IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
+import { PlatformInfo } from '../../../shared/platform/interfaces';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
-import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { CentralState, UpgradeStageState } from '../../interfaces';
 import { Paths } from '../../Paths';
@@ -21,6 +20,8 @@ import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
+  platforms: PlatformInfo[];
+  launchGame: (gameId: string) => void;
   /** Semi-global prop. */
   central: CentralState;
   onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
@@ -52,8 +53,6 @@ export class HomePage extends React.Component<HomePageProps> {
       onDownloadScreenshotsUpgradeClick,
       gameImages,
       central: {
-        platforms,
-        gamesDoneLoading,
         upgrade: {
           techState,
           screenshotsState
@@ -67,8 +66,8 @@ export class HomePage extends React.Component<HomePageProps> {
     const { showBrokenGames } = window.External.config.data;
     const { disableExtremeGames } = window.External.config.data;
     // Grabs a dynamic list of supported platforms and pre-formats them as Links
-    const numOfPlatforms = this.props.central.platforms.length;
-    const formatPlatforms = this.props.central.platforms.map((platform, index) =>
+    const numOfPlatforms = this.props.platforms.length;
+    const formatPlatforms = this.props.platforms.map((platform, index) =>
       <span key={index}>
         <Link
           to={joinLibraryRoute('arcade')}
@@ -172,19 +171,11 @@ export class HomePage extends React.Component<HomePageProps> {
             <div className='home-page__random-games'>
               <div className='home-page__random-games__inner'>
                 <p className='home-page__random-games__title'>{strings.randomPicks}</p>
-                { gamesDoneLoading ? (
-                  <RandomGames
-                    games={games.collection.games}
-                    gameImages={gameImages}
-                    onLaunchGame={this.onLaunchGame}
-                    showExtreme={!disableExtremeGames && browsePageShowExtreme}
-                    showBroken={showBrokenGames}
-                  />
-                ) : (
-                  <p className='home-page__random-games__loading'>
-                    { this.props.central.gamesFailedLoading ? ('No games found.') : ('Loading...') }
-                  </p>
-                ) }
+                <RandomGames
+                  gameImages={gameImages}
+                  onLaunchGame={this.onLaunchGame}
+                  showExtreme={!disableExtremeGames && browsePageShowExtreme}
+                  showBroken={showBrokenGames} />
               </div>
             </div>
           </SizeProvider>
@@ -227,8 +218,8 @@ export class HomePage extends React.Component<HomePageProps> {
     );
   }
 
-  onLaunchGame(game: IGameInfo): void {
-    GameLauncher.launchGame(game);
+  onLaunchGame = (gameId: string): void => {
+    this.props.launchGame(gameId);
   }
 
   onHelpClick = () => {

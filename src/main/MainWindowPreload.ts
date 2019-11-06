@@ -1,18 +1,15 @@
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
+import * as path from 'path';
 import { SharedSocket } from '../shared/back/SharedSocket';
-import { BackIn, BackOut, WrappedResponse } from '../shared/back/types';
-import { AppConfigApi } from '../shared/config/AppConfigApi';
+import { BackIn, BackOut, GetConfigAndPrefsResponse, WrappedResponse } from '../shared/back/types';
 import { MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
 import { LogRendererApi } from '../shared/Log/LogRendererApi';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { ServicesApi } from '../shared/service/ServicesApi';
+import { createErrorProxy } from '../shared/Util';
 import { isDev } from './Util';
-
-// Set up Config API
-const config = new AppConfigApi();
-config.initialize();
 
 // Set up Services API
 const services = new ServicesApi();
@@ -70,7 +67,7 @@ window.External = {
     onUpdate: undefined,
   },
 
-  config,
+  config: createErrorProxy('config'),
 
   services,
 
@@ -78,7 +75,7 @@ window.External = {
 
   isDev,
 
-  backSocket: createErrorProxy('backSocket'),
+  back: createErrorProxy('backSocket'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -100,32 +97,28 @@ const onInit = new Promise<WebSocket>((resolve, reject) => {
     ws.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
     ws.send(data.secret);
   };
-  window.External.backSocket = new SharedSocket(ws);
-  // Register preferences update listener
-  window.External.backSocket.on('response', onMessage);
 })
-.then(() => new Promise((resolve) => {
-  // Fetch the preferences
-  window.External.backSocket.send(BackIn.GET_PREFERENCES, undefined, (response) => {
-    window.External.preferences.data = response.data;
+.then((ws) => new Promise((resolve) => {
+  window.External.back = new SharedSocket(ws);
+  window.External.back.on('response', onMessage);
+  // Fetch the config and preferences
+  window.External.back.send<GetConfigAndPrefsResponse>(BackIn.GET_CONFIG_AND_PREFERENCES, undefined, (response) => {
+    if (response.data) {
+      window.External.preferences.data = response.data.preferences;
+      window.External.config = {
+        data: response.data.config,
+        // @FIXTHIS This should take if this is installed into account
+        fullFlashpointPath: path.resolve(response.data.config.flashpointPath),
+        fullJsonFolderPath: path.resolve(response.data.config.flashpointPath, response.data.config.jsonFolderPath),
+      };
+    }
     resolve();
   });
 }))
 .then(() => { isInitDone = true; });
 
-function createErrorProxy(title: string): any {
-  return new Proxy({}, {
-    get: (target, p, receiver) => {
-      throw new Error(`You must not get a value from ${title} before it is initialzed (property: "${p.toString()}").`);
-    },
-    set: (target, p, value, receiver) => {
-      throw new Error(`You must not set a value from ${title} before it is initialzed (property: "${p.toString()}").`);
-    },
-  });
-}
-
 function onMessage(this: WebSocket, res: WrappedResponse): void {
-  switch (res.responseType) {
+  switch (res.type) {
     case BackOut.UPDATE_PREFERENCES_RESPONSE:
       window.External.preferences.data = res.data;
       break;

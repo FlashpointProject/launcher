@@ -1,6 +1,6 @@
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
-import { AppConfigApi } from './config/AppConfigApi';
+import { IAppConfigData } from './config/interfaces';
 import { LogRendererApi } from './Log/LogRendererApi';
 import { IAppPreferencesData } from './preferences/interfaces';
 import { ServicesApi } from './service/ServicesApi';
@@ -46,7 +46,13 @@ export interface IMainWindowExternal {
   };
 
   /** Renderers interface for the Config data */
-  config: AppConfigApi;
+  config: {
+    data: IAppConfigData;
+    /** Full path of the Flashpoint folder. */
+    fullFlashpointPath: string;
+    /** Full path of the JSON folder. */
+    fullJsonFolderPath: string;
+  };
 
   /** Renderers interface for Service data */
   services: ServicesApi;
@@ -58,7 +64,7 @@ export interface IMainWindowExternal {
   isDev: boolean;
 
   /** Socket to the back API. */
-  backSocket: SharedSocket;
+  back: SharedSocket;
 
   /**
    * Wait for the preload to initialize.

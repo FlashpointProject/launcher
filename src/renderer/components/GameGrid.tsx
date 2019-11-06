@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
-import { Grid, GridCellProps } from 'react-virtualized/dist/es/Grid';
+import { Grid, GridCellProps, ScrollParams } from 'react-virtualized/dist/es/Grid';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { GameImageCollection } from '../image/GameImageCollection';
+import { GAMES } from '../interfaces';
 import { findElementAncestor } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
@@ -11,10 +12,17 @@ import { GameItemContainer } from './GameItemContainer';
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
+type ColumnsRows = {
+  columns: number;
+  rows: number;
+};
+
 export type GameGridProps = {
   gameImages?: GameImageCollection;
   /** All games that will be shown in the grid (filter it before passing it here). */
-  games?: IGameInfo[];
+  games?: GAMES;
+  /** Total number of games there are. */
+  gamesTotal: number;
   /** Currently selected game (if any). */
   selectedGame?: IGameInfo;
   /** Currently dragged game (if any). */
@@ -41,6 +49,8 @@ export type GameGridProps = {
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   gridRef?: RefFunc<HTMLDivElement>;
 };
+
+const overscan = 5;
 
 /** A grid of cells, where each cell displays a game. */
 export class GameGrid extends React.Component<GameGridProps> {
@@ -86,15 +96,8 @@ export class GameGrid extends React.Component<GameGridProps> {
         onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => {
-            // Calculate and set column/row count
-            // (16 is the width of a scroll-bar in pixels - at least on windows)
-            let columnCount: number = 0;
-            let rowCount: number = 0;
-            if (games.length > 0) {
-              columnCount = Math.max(1, ((width - 16) / this.props.cellWidth) | 0); // ("x|0" is the same as Math.floor(x))
-              rowCount = Math.ceil(games.length / columnCount);
-            }
-            this.columns = columnCount;
+            const { columns, rows } = this.calculateSize(games, width);
+            this.columns = columns;
             // Calculate column and row of selected item
             let scrollToColumn: number = -1;
             let scrollToRow: number = -1;
@@ -111,8 +114,8 @@ export class GameGrid extends React.Component<GameGridProps> {
                 onScrollToChange={this.onScrollToChange}
                 mode='cells'
                 isControlled={true}
-                columnCount={columnCount}
-                rowCount={rowCount}
+                columnCount={columns}
+                rowCount={rows}
                 scrollToColumn={scrollToColumn}
                 scrollToRow={scrollToRow}>
                 {({ onSectionRendered, scrollToColumn, scrollToRow }) => {
@@ -124,12 +127,13 @@ export class GameGrid extends React.Component<GameGridProps> {
                       height={height}
                       columnWidth={this.props.cellWidth}
                       rowHeight={this.props.cellHeight}
-                      columnCount={columnCount}
-                      rowCount={rowCount}
+                      columnCount={columns}
+                      rowCount={rows}
                       overscanColumnCount={0}
-                      overscanRowCount={5}
+                      overscanRowCount={overscan}
                       cellRenderer={this.cellRenderer}
                       noContentRenderer={this.props.noRowsRenderer}
+                      onScroll={this.onScroll}
                       // ArrowKeyStepper props
                       scrollToColumn={scrollToColumn}
                       scrollToRow={scrollToRow}
@@ -169,6 +173,16 @@ export class GameGrid extends React.Component<GameGridProps> {
         isSelected={game === selectedGame}
         isDragged={game === draggedGame} />
     );
+  }
+
+  onScroll = (params: ScrollParams) => {
+    if (!this.props.games) { return; }
+    const { rows } = this.calculateSize(this.props.games, params.clientWidth);
+
+    const top = Math.max(0, Math.floor(params.scrollTop / this.props.cellHeight) - overscan);
+    const bot = Math.min(Math.ceil((params.scrollTop + params.clientHeight) / this.props.cellHeight) + overscan, rows);
+
+    // @TODO Use the top and bot numbers to figure out what games to request from the back
   }
 
   /** When a key is pressed (while the grid, or one of its children, is selected). */
@@ -282,5 +296,19 @@ export class GameGrid extends React.Component<GameGridProps> {
         this.props.gridRef(ref);
       }
     }
+  }
+
+  calculateSize(games: IGameInfo[], width: number): ColumnsRows {
+    // Calculate and set column/row count
+    // (16 is the width of a scroll-bar in pixels - at least on windows)
+    const cells: ColumnsRows = {
+      columns: 0,
+      rows: 0,
+    };
+    if (games.length > 0) {
+      cells.columns = Math.max(1, ((width - 16) / this.props.cellWidth) | 0); // ("x|0" is the same as Math.floor(x))
+      cells.rows = Math.ceil(games.length / cells.columns);
+    }
+    return cells;
   }
 }

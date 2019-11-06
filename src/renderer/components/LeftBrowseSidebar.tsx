@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { LangContainer } from '../../shared/lang';
-import { GameLibraryFileItem } from '../../shared/library/types';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { CentralState } from '../interfaces';
 import { GamePlaylist } from '../playlist/types';
@@ -10,10 +9,10 @@ import { OpenIcon } from './OpenIcon';
 import { PlaylistItem } from './PlaylistItem';
 
 type OwnProps = {
+  playlists: GamePlaylist[];
+  currentLibrary: string;
   /** Semi-global prop. */
   central: CentralState;
-  /** The current library. */
-  currentLibrary?: GameLibraryFileItem;
   /** ID of the playlist that is selected (empty string if none). */
   selectedPlaylistID: string;
   /** Called when a playlist is selected. */
@@ -46,27 +45,11 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     };
   }
 
-  private filterAndSortPlaylists(): GamePlaylist[] {
-    const { central, currentLibrary } = this.props;
-    let playlists = central.playlists.playlists.slice();
-    if (currentLibrary) { // (Filter out all playlists that "belong" to other libraries than the current one)
-      const route = currentLibrary.route;
-      if (currentLibrary.default) {
-        playlists = playlists.filter(playlist => !playlist.library || playlist.library === route);
-      } else if (route) {
-        playlists = playlists.filter(playlist => playlist.library === route);
-      }
-    }
-    playlists.sort((a, b) => a.title.localeCompare(b.title));
-    return playlists;
-  }
-
   render() {
     const strings = this.context.browse;
-    const { central, onShowAllClick, preferencesData, selectedPlaylistID } = this.props;
+    const { central, onShowAllClick, playlists, preferencesData, selectedPlaylistID } = this.props;
     const { isEditing } = this.state;
     const editingDisabled = !preferencesData.enableEditing;
-    const playlists = this.filterAndSortPlaylists();
     return (
       <div className='browse-left-sidebar'>
           {central.playlistsDoneLoading ? (
@@ -188,7 +171,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     if (central.playlistsDoneLoading) {
       // Create and save a new playlist
       const playlist = central.playlists.create();
-      if (currentLibrary) { playlist.library = currentLibrary.route; }
+      if (currentLibrary) { playlist.library = currentLibrary; }
       central.playlists.save(playlist);
       // Select the new playlist
       this.forceUpdate();

@@ -1,8 +1,7 @@
 import { IAppConfigData } from '../../shared/config/interfaces';
-import { deepCopy } from '../../shared/Util';
+import { deepCopy, parseVarStr } from '../../shared/Util';
 import { Coerce } from '../../shared/utils/Coerce';
 import { ObjectParser } from '../../shared/utils/ObjectParser';
-import { parseVarStr } from '../Util';
 
 const { num, str } = Coerce;
 

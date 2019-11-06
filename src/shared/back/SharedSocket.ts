@@ -8,39 +8,37 @@ export interface SharedSocket {
 }
 
 export class SharedSocket extends EventEmitter {
-  private backSocket: WebSocket;
+  socket: WebSocket;
 
-  constructor(backSocket: WebSocket) {
+  constructor(socket: WebSocket) {
     super();
-    this.backSocket = backSocket;
-    this.backSocket.onmessage = this.onMessage;
+    this.socket = socket;
+    this.socket.onmessage = this.onMessage;
   }
 
-  private onMessage(event: MessageEvent) {
+  private onMessage = (event: MessageEvent): void => {
     // Fit response into wrapped type
-    const response = JSON.parse(event.data.toString());
-    const parsedResponse: WrappedResponse = { ...response };
+    const response: WrappedResponse = JSON.parse(event.data.toString());
     // Emit response to whoever sent it
-    this.emit(parsedResponse.id, parsedResponse);
+    this.emit(response.id, response);
     // Emit to any message watchers
-    this.emit('response', parsedResponse);
+    this.emit('response', response);
   }
 
-  public send(requestType: BackIn, data: any, callback?: (res: WrappedResponse) => void) {
+  public send<T>(type: BackIn, data: any, callback?: (res: WrappedResponse<T>) => void): void {
     // Create request
-    const id = uuid();
-    const message: WrappedRequest = {
-      id: id,
-      requestType: requestType,
+    const request: WrappedRequest = {
+      id: uuid(),
+      type: type,
       data: data
     };
-    this.send(requestType, callback);
-    const formedMessage = JSON.stringify(message);
     // Register callback
-    if (callback) {
-      this.once(id, callback);
-    }
+    if (callback) { this.once(request.id, callback); }
     // Send message
-    this.backSocket.send(formedMessage);
+    this.socket.send(JSON.stringify(request));
+  }
+
+  public sendAwait<T>(type: BackIn, data: any): Promise<WrappedResponse<T>> {
+    return new Promise(resolve => this.send<T>(type, data, resolve));
   }
 }

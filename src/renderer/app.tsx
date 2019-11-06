@@ -3,10 +3,13 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
+import { BackIn } from '../shared/back/types';
+import { sendRequest } from '../shared/back/util';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
+import { getLibraryItemTitle } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
@@ -20,9 +23,8 @@ import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
-import { GameManager } from './game/GameManager';
 import { GameImageCollection } from './image/GameImageCollection';
-import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
+import { CentralState, GAMES, SUGGESTIONS, UpgradeStageState, UpgradeState } from './interfaces';
 import { LangManager } from './lang/LangManager';
 import { Paths } from './Paths';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
@@ -36,9 +38,9 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
-import { getLibraryItemTitle } from 'src/shared/library/util';
 
 type AppOwnProps = {
+  allGamesTotal: number;
   /** Most recent search query. */
   search: SearchQuery;
   /** Theme manager. */
@@ -50,6 +52,13 @@ type AppOwnProps = {
 export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps;
 
 export type AppState = {
+  games: GAMES;
+  gamesTotal: number;
+  playlists: GamePlaylist[];
+  suggestions: SUGGESTIONS;
+  platforms: PlatformInfo[];
+  allGamesTotal: number;
+
   /** Semi-global prop. */
   central: CentralState;
   /** Credits data (if any). */
@@ -77,7 +86,6 @@ export type AppState = {
 
 export class App extends React.Component<AppProps, AppState> {
   private countGamesOfCurrentLibrary = memoizeOne(countGamesOfLibrarysPlatforms);
-  private countGamesOfPlatforms = memoizeOne(countGamesOfPlatforms);
 
   constructor(props: AppProps) {
     super(props);
@@ -85,9 +93,15 @@ export class App extends React.Component<AppProps, AppState> {
     const preferencesData = this.props.preferencesData;
     const config = window.External.config;
     this.state = {
+      games: [],
+      gamesTotal: 0,
+      playlists: [],
+      suggestions: {},
+      platforms: [],
+      allGamesTotal: this.props.allGamesTotal,
+
       central: {
         libraries: [],
-        platforms: [],
         playlists: new GamePlaylistManager(),
         upgrade: {
           doneLoading: false,
@@ -106,8 +120,6 @@ export class App extends React.Component<AppProps, AppState> {
             installProgressNote: '',
           },
         },
-        gamesDoneLoading: false,
-        gamesFailedLoading: false,
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
@@ -204,23 +216,12 @@ export class App extends React.Component<AppProps, AppState> {
       });
     });
     // Initalize the Game Manager
-    GameManager.loadManager()
-    .then(async () => {
-      // Initalize image folders
-      await GameManager.fetchPlatforms()
-      .then(platforms => {
-        const names = platforms.map(p => p.name);
-        this.state.gameImages.addImageFolders(names);
-        // Update stored platform info
-        this.setState({
-          central: Object.assign({}, this.state.central, {
-            platforms: platforms
-          })
-        });
-      })
-      .catch(error => {
-        log(`Error fetching platforms - ${error.message}`);
-      });
+    sendRequest<PlatformInfo[]>(BackIn.GET_PLATFORMS)
+    .then(platforms => {
+      const names = platforms.map(p => p.name);
+      this.state.gameImages.addImageFolders(names);
+      // Update stored platform info
+      this.setState({ platforms });
     })
     .catch((errors) => {
       // @TODO Make this errors passing a bit safer? Expecting specially formatted errors seems dangerous.
@@ -353,14 +354,22 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   render() {
-    const { platforms, libraries } = this.state.central;
-    const loaded = this.state.central.gamesDoneLoading &&
-                   this.state.central.playlistsDoneLoading &&
+    const { libraries } = this.state.central;
+    const loaded = this.state.central.playlistsDoneLoading &&
                    this.state.central.upgrade.doneLoading &&
                    this.state.creditsDoneLoading;
     const library = getBrowseSubPath(this.props.location.pathname);
     // Props to set to the router
     const routerProps: AppRouterProps = {
+      games: this.state.games,
+      gamesTotal: this.state.gamesTotal,
+      playlists: this.state.playlists,
+      suggestions: this.state.suggestions,
+      platforms: this.state.platforms,
+      save: this.save,
+      launchGame: this.launchGame,
+      deleteGame: this.deleteGame,
+
       central: this.state.central,
       creditsData: this.state.creditsData,
       creditsDoneLoading: this.state.creditsDoneLoading,
@@ -386,7 +395,6 @@ export class App extends React.Component<AppProps, AppState> {
       <LangContext.Provider value={this.state.lang}>
         {/* Splash screen */}
         <SplashScreen
-          gamesLoaded={this.state.central.gamesDoneLoading}
           playlistsLoaded={this.state.central.playlistsDoneLoading}
           upgradesLoaded={this.state.central.upgrade.doneLoading}
           creditsLoaded={this.state.creditsDoneLoading} />
@@ -415,10 +423,10 @@ export class App extends React.Component<AppProps, AppState> {
             </div>
             {/* Footer */}
             <ConnectedFooter
-              showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-              totalCount={this.countGamesOfPlatforms(platforms)}
+              showCount={true}
+              totalCount={this.state.allGamesTotal}
               currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-              currentCount={this.countGamesOfCurrentLibrary(platforms, library)}
+              currentCount={this.countGamesOfCurrentLibrary(this.state.platforms, library)}
               onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
               onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
               onNewGameClick={this.onNewGameClick} />
@@ -537,6 +545,18 @@ export class App extends React.Component<AppProps, AppState> {
   private updateLanguage = (): void => {
     this.props.langManager.updateContainer();
   }
+
+  save(game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean): void {
+    // @TODO
+  }
+
+  launchGame(gameId: string): void {
+    // @TODO
+  }
+
+  deleteGame(gameId: string): void {
+    // @TODO
+  }
 }
 
 function downloadAndInstallStage(stage: UpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
@@ -603,15 +623,6 @@ function countGamesOfLibrarysPlatforms(platforms: PlatformInfo[], library?: stri
     if (platform.library === library) {
       count += platform.size;
     }
-  }
-  return count;
-}
-
-/** Count the number of games in all platforms */
-function countGamesOfPlatforms(platforms: PlatformInfo[]) {
-  let count = 0;
-  for (let platform of platforms) {
-    count +=  platform.size;
   }
   return count;
 }

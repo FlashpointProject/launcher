@@ -2,7 +2,6 @@ import * as child_process from 'child_process';
 import { app } from 'electron';
 import * as path from 'path';
 import * as util from 'util';
-import { parseVariableString } from '../shared/utils/VariableString';
 
 const execFile = util.promisify(child_process.execFile);
 
@@ -46,24 +45,8 @@ export function getInstalledConfigsPath() {
   return path.join(app.getPath('appData'), 'flashpoint-launcher');
 }
 
-const filename: string = 'preferences.json';
-export function getPreferencesFilePath(installed: boolean): string {
-  return (
-    installed
-      ? path.join(getInstalledConfigsPath(), filename)
-      : path.resolve(filename)
-  );
-}
-
-/**
- * Parse a variable string using a generic get variable value function.
- * @param str String to parse.
- */
-export function parseVarStr(str: string) {
-  return parseVariableString(str, (name) => {
-    switch (name) {
-      default: return '';
-      case 'cwd': return process.cwd().replace(/\\/g, '/');
-    }
-  });
+export function getConfigFolderPath(installed: boolean): string {
+  return (installed)
+    ? path.join(getInstalledConfigsPath())
+    : process.cwd();
 }

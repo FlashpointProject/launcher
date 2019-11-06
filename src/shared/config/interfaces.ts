@@ -37,11 +37,3 @@ export type IAppConfigData = {
   /** Upper limit of the range of ports that the back should listen on. */
   backPortMax: number;
 };
-
-/** Data fetched from the Main by the Renderer */
-export type IAppConfigApiFetchData = {
-  /** Raw config data from the config file. */
-  data: IAppConfigData;
-  /** Full path to the flashpoint folder. */
-  fullFlashpointPath: string;
-};

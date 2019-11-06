@@ -22,13 +22,12 @@ import { GameManager } from '../../game/GameManager';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getImageFolderName } from '../../image/util';
-import { CentralState } from '../../interfaces';
+import { CentralState, GAMES, SUGGESTIONS } from '../../interfaces';
 import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
 import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getFileExtension } from '../../Util';
 import { copyGameImageFile } from '../../util/game';
 import { LangContext } from '../../util/lang';
-import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
@@ -40,6 +39,13 @@ type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isEd
 type StateCallback2 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isNewGame'>;
 
 type OwnProps = {
+  games: GAMES;
+  gamesTotal: number;
+  playlists: GamePlaylist[];
+  suggestions: SUGGESTIONS;
+  save: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean) => void;
+  launchGame: (gameId: string) => void;
+  deleteGame: (gameId: string) => void;
   /** Semi-global prop. */
   central: CentralState;
   /** Most recent search query. */
@@ -65,7 +71,7 @@ type OwnProps = {
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
   /** "Route" of the currently selected library (empty string means no library). */
-  gameLibraryRoute: string;
+  gameLibrary: string;
 };
 
 export type BrowsePageProps = OwnProps & WithPreferencesProps;
@@ -83,11 +89,6 @@ export type BrowsePageState = {
   isEditing: boolean;
   /** If the selected game is a new game being created. */
   isNewGame: boolean;
-  /**
-   * Suggestions for the different properties of a game (displayed while editing).
-   * @TODO This should probably be memoized instead of being state.
-   */
-  suggestions?: Partial<GamePropSuggestions>;
 };
 
 export interface BrowsePage {
@@ -122,25 +123,25 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   componentDidMount() {
-    window.External.backSocket.on('response', this.onMessage);
+    window.External.back.on('response', this.onMessage);
   }
 
   componentWillUnmount() {
-    window.External.backSocket.removeListener('response', this.onMessage);
+    window.External.back.removeListener('response', this.onMessage);
   }
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
-    const { central, gameLibraryRoute, onSelectGame, selectedGame, selectedPlaylist } = this.props;
+    const { central, gameLibrary: gameLibraryRoute, onSelectGame, selectedGame, selectedPlaylist } = this.props;
     const { isEditing, quickSearch } = this.state;
     // Check if it ended editing
     if (!isEditing && prevState.isEditing) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ suggestions: undefined });
+      // this.setState({ suggestions: undefined });
     }
     // Check if it started editing
     if (isEditing && !prevState.isEditing) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) });
+      // this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) }); @FIXTHIS
     }
     // Update current game and add-apps if the selected game changes
     if (selectedGame && selectedGame !== prevProps.selectedGame) {
@@ -148,7 +149,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       this.setState({ isEditing: false });
     }
     // Update current game and add-apps if the selected game changes
-    if (gameLibraryRoute === prevProps.gameLibraryRoute &&
+    if (gameLibraryRoute === prevProps.gameLibrary &&
         selectedPlaylist !== prevProps.selectedPlaylist) {
       this.setState({
         currentGame: undefined,
@@ -159,9 +160,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
     // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== quickSearch && quickSearch !== '') {
-      const games: IGameInfo[] = this.orderGames();
-      for (let index = 0; index < games.length; index++) {
-        const game: IGameInfo = games[index];
+      // @FIXTHIS Quick search will require its own API perhaps
+      for (let index = 0; index < this.props.games.length; index++) {
+        const game: IGameInfo = this.props.games[index];
         if (game.title.toLowerCase().startsWith(quickSearch)) {
           if (onSelectGame) { onSelectGame(game); }
           break;
@@ -171,7 +172,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Create a new game if the "New Game" button is pushed
     this.createNewGameIfClicked(prevProps.wasNewGameClicked);
     // Check the library selection changed (and no game is selected)
-    if (!selectedGame && gameLibraryRoute !== prevProps.gameLibraryRoute) {
+    if (!selectedGame && gameLibraryRoute !== prevProps.gameLibrary) {
       this.setState({
         currentGame: undefined,
         currentAddApps: undefined,
@@ -183,12 +184,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   render() {
     const strings = this.context;
-    const { selectedGame, selectedPlaylist } = this.props;
+    const { games, gamesTotal, selectedGame, selectedPlaylist } = this.props;
     const { draggedGame } = this.state;
-    const currentLibrary = this.getCurrentLibrary();
     const order = this.props.order || BrowsePage.defaultOrder;
-    const showSidebars: boolean = this.props.central.gamesDoneLoading;
-    const orderedGames = this.orderGames();
     // Find the selected game in the selected playlist (if both are selected)
     let gamePlaylistEntry: GamePlaylistEntry | undefined;
     if (selectedPlaylist && selectedGame) {
@@ -205,13 +203,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         className='game-browser'
         ref={this.gameBrowserRef}>
         <ResizableSidebar
-          hide={this.props.preferencesData.browsePageShowLeftSidebar && showSidebars}
+          hide={this.props.preferencesData.browsePageShowLeftSidebar}
           divider='after'
           width={this.props.preferencesData.browsePageLeftSidebarWidth}
           onResize={this.onLeftSidebarResize}>
           <ConnectedLeftBrowseSidebar
             central={this.props.central}
-            currentLibrary={currentLibrary}
+            currentLibrary={this.props.gameLibrary}
+            playlists={this.props.playlists}
             selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
             onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
             onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
@@ -228,7 +227,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid
-                  games={orderedGames}
+                  games={games}
+                  gamesTotal={gamesTotal}
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
                   gameImages={this.props.gameImages}
@@ -248,7 +248,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               const height: number = calcScale(30, this.props.gameScale);
               return (
                 <GameList
-                  games={orderedGames}
+                  games={games}
+                  gamesTotal={gamesTotal}
                   selectedGame={selectedGame}
                   draggedGame={draggedGame}
                   gameImages={this.props.gameImages}
@@ -267,16 +268,15 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           })()}
         </div>
         <ResizableSidebar
-          hide={this.props.preferencesData.browsePageShowRightSidebar && showSidebars}
+          hide={this.props.preferencesData.browsePageShowRightSidebar}
           divider='before'
           width={this.props.preferencesData.browsePageRightSidebarWidth}
           onResize={this.onRightSidebarResize}>
           <ConnectedRightBrowseSidebar
             currentGame={this.state.currentGame}
             currentAddApps={this.state.currentAddApps}
-            currentLibrary={currentLibrary}
+            currentLibrary={this.props.gameLibrary}
             gameImages={this.props.gameImages}
-            games={this.props.central.games}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
             onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
@@ -287,7 +287,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onEditClick={this.onStartEditClick}
             onDiscardClick={this.onDiscardEditClick}
             onSaveGame={this.onSaveEditClick}
-            suggestions={this.state.suggestions} />
+            suggestions={this.props.suggestions} />
         </ResizableSidebar>
       </div>
     );
@@ -296,8 +296,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   private noRowsRendererMemo = memoizeOne((strings: LangContainer['browse']) => {
     return () => (
       <div className='game-list__no-games'>
-      { this.props.central.gamesDoneLoading ? (
-        this.props.selectedPlaylist ? (
+        { this.props.selectedPlaylist ? (
           /* Empty Playlist */
           <>
             <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
@@ -309,28 +308,17 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           <>
             <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
             <br/>
-            {(this.props.central.gamesFailedLoading) ? (
+            { (this.props.gamesTotal > 0) ? (
               <>
-                {formatString(strings.setFlashpointPathQuestion, <b>{strings.flashpointPath}</b>, <i>{strings.config}</i>)}
+                {strings.noGameMatchedDesc}
                 <br/>
-                {formatString(strings.noteSaveAndRestart, <b>'{strings.saveAndRestart}'</b>)}
+                {strings.noGameMatchedSearch}
               </>
             ) : (
-              (this.props.central.games.collection.games.length > 0) ? (
-                <>
-                  {strings.noGameMatchedDesc}
-                  <br/>
-                  {strings.noGameMatchedSearch}
-                </>
-              ) : (
-                <>{strings.thereAreNoGames}</>
-              )
-            )}
+              <>{strings.thereAreNoGames}</>
+            ) }
           </>
-        )
-      ) : (
-        <p>{strings.loadingGames}</p>
-      ) }
+        ) }
       </div>
     );
   });
@@ -427,8 +415,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onGameLaunch = (game: IGameInfo): void => {
-    const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
-    GameLauncher.launchGame(game, addApps);
+    this.props.launchGame(game.id);
   }
 
   /** Create a callback for opening the file location of a game. */
@@ -486,7 +473,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       }
       // Copy images
       if (copyImages) {
-        const imageFolder = getImageFolderName(game, game.library || '', true);
+        const imageFolder = getImageFolderName(game);
         // Copy screenshot
         const screenshotPath = this.props.gameImages.getScreenshotPath(game);
         if (screenshotPath) {
@@ -620,6 +607,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onDeleteSelectedGame = (): void => {
+    // Delete the game
+    if (this.props.selectedGame) { this.props.deleteGame(this.props.selectedGame.id); }
     // Deselect the game
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
     // Reset the state related to the selected game
@@ -687,7 +676,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances) */
   async updateCurrentGameAndAddApps(cb: (state: StateCallback2) => void = this.boundSetState): Promise<void> {
-    const { central, selectedGame } = this.props;
+    const { selectedGame } = this.props;
     if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
       // Find additional applications for the selected game (if any)
       const res = await GameManager.fetchGame(selectedGame.id);
@@ -717,7 +706,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onSaveEditClick = (): void => {
-    this.saveGameAndAddApps();
+    const { currentGame, currentAddApps } = this.state;
+    if (!currentGame) {
+      console.error('Can\'t save game. "currentGame" is missing.');
+      return;
+    }
+    this.props.save(currentGame, currentAddApps, true);
     this.setState({
       isEditing: false,
       isNewGame: false
@@ -725,69 +719,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.focusGameGridOrList();
   }
 
-  saveGameAndAddApps(): void {
-    const { selectedGame, central: { games } } = this.props;
-    const { currentGame, currentAddApps } = this.state;
-    if (!currentGame) {
-      console.error('Can\'t save game. "currentGame" is missing.');
-      return;
-    }
-    // Get the current library
-    const library = this.getCurrentLibrary();
-    // Add or update game
-    console.time('save');
-    games.addOrUpdateGame({
-      game: currentGame,
-      addApps: currentAddApps,
-      library: library,
-      saveToFile: true,
-    })
-    .then(() => { console.timeEnd('save'); });
-    // If a new game was created, select the new game
-    if ((selectedGame && selectedGame.id) !== currentGame.id) {
-      // Get the platform the game is added to or updated
-      const libraryPrefix = (library && library.prefix) ? library.prefix : '';
-      const platform = games.getPlatformOfGame(currentGame, libraryPrefix) ||
-                       games.createOrGetUnknownPlatform(libraryPrefix);
-      // Try selecting the new game
-      if (!platform.collection) { throw new Error('Platform collection is missing.'); }
-      if (this.props.onSelectGame) { this.props.onSelectGame(platform.collection.findGame(currentGame.id)); }
-    }
-  }
-
-  /** Get the current library (or undefined if there is none). */
-  getCurrentLibrary(): GameLibraryFileItem | undefined {
-    if (this.props.libraryData) {
-      const route = this.props.gameLibraryRoute;
-      return this.props.libraryData.libraries.find(item => item.route === route);
-    }
-    return undefined;
-  }
-
-  /**
-   * Memoized wrapper around the "getLibraryGames" function, with an additional argument
-   * that decides if the memoized value should be refreshed (even if the arguments are "equal").
-   */
-  getCurrentLibraryGames = memoizeOne(
-    (args: GetLibraryGamesArgs, force?: boolean) => {
-      return getLibraryGames(args);
-    },
-    (args1, args2) => {
-      const [a, force] = args1;
-      const [b]        = args2;
-      // Check if this is "forced" to be updated
-      if (force) { return false; }
-      // Check if the argument objects are equal
-      return (
-        a.library === b.library &&
-        checkIfArraysAreEqual(a.platforms, b.platforms) &&
-        checkIfArraysAreEqual(a.libraries, b.libraries)
-      );
-    }
-  );
-
   onMessage = async (res: WrappedResponse): Promise<void> => {
-    if (res.responseType in [BackOut.REMOVE_GAMEAPP_RESPONSE, BackOut.UPDATE_META_RESPONSE, BackOut.UPDATE_PREFERENCES_RESPONSE]) {
+    if (res.type in [BackOut.REMOVE_GAMEAPP_RESPONSE, BackOut.UPDATE_META_RESPONSE, BackOut.UPDATE_PREFERENCES_RESPONSE]) {
       // @TODO Re-search games
       this.forceUpdate();
     }
@@ -838,54 +771,6 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   const menu = remote.Menu.buildFromTemplate(template);
   menu.popup({ window: remote.getCurrentWindow() });
   return menu;
-}
-
-type GetLibraryGamesArgs = {
-  /** Library that the games belong to (if undefined, all games should be shown). */
-  library?: GameLibraryFileItem;
-  /** All platforms (to get the games from). */
-  platforms: GameManagerPlatform[];
-  /** All libraries. */
-  libraries: GameLibraryFileItem[];
-};
-
-/** Find all the games for the current library - undefined if no library is selected */
-function getLibraryGames({ library, platforms, libraries }: GetLibraryGamesArgs): IGameInfo[] | undefined {
-  // Check if there is a library to filter the games from
-  if (library) {
-    let games: IGameInfo[] = [];
-    if (library.default) { // (Default library)
-      // Find all platforms "used" by other libraries
-      const usedPlatforms: GameManagerPlatform[] = [];
-      libraries.forEach(lib => {
-        if (lib === library) { return; }
-        if (lib.prefix) {
-          const prefix = lib.prefix;
-          platforms.forEach(platform => {
-            if (platform.filename.startsWith(prefix)) { usedPlatforms.push(platform); }
-          });
-        }
-      });
-      // Get all games from all platforms that are not "used" by other libraries
-      const unusedPlatforms = platforms.filter(platform => usedPlatforms.indexOf(platform) === -1);
-      unusedPlatforms.forEach(platform => {
-        if (platform.collection) {
-          Array.prototype.push.apply(games, platform.collection.games);
-        }
-      });
-    } else if (library.prefix) { // (Normal library)
-      // Find all platforms with this platform's prefix, and add all their games
-      const prefix = library.prefix;
-      platforms
-        .filter(platform => platform.filename.startsWith(prefix))
-        .forEach(platform => {
-          if (platform.collection) {
-            Array.prototype.push.apply(games, platform.collection.games);
-          }
-        });
-    }
-    return games;
-  }
 }
 
 /* Check if two arrays are have strictly equal items (or if both are undefined). */

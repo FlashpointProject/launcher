@@ -1,12 +1,16 @@
 import * as http from 'http';
+import * as path from 'path';
 import * as WebSocket from 'ws';
 import { Server } from 'ws';
-import { BackIn, BackInitArgs, BackOut, WrappedRequest } from '../shared/back/types';
+import { BackIn, BackInitArgs, BackOut, GetBoringStuffData, GetConfigAndPrefsResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { ConfigFile } from '../shared/config/ConfigFile';
+import { overwriteConfigData } from '../shared/config/util';
 import { DeepPartial } from '../shared/interfaces';
-import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
+import { createErrorProxy, deepCopy } from '../shared/Util';
 import { GameManager } from './game/GameManager';
+import { BackState } from './types';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -14,39 +18,55 @@ const send: Required<typeof process.send> = process.send
   ? process.send.bind(process)
   : (() => { throw new Error('process.send is undefined.'); });
 
-let isInit: boolean = false;
-let server: Server;
-let secret: string;
-let preferences: IAppPreferencesData;
-let preferencesPath: string;
-const gameManager: GameManager = new GameManager();
-const messageQueue: WebSocket.MessageEvent[] = [];
-let isHandling = false;
+const state: BackState = {
+  isInit: false,
+  server: createErrorProxy('server'),
+  secret: createErrorProxy('secret'),
+  preferences: createErrorProxy('preferences'),
+  config: createErrorProxy('config'),
+  configFolder: createErrorProxy('configFolder'),
+  gameManager: new GameManager(),
+  messageQueue: [],
+  isHandling: false,
+};
+
+const preferencesFilename = 'preferences.json';
+const configFilename = 'config.json';
 
 process.on('message', onProcessMessage);
 
-function onProcessMessage(message: any, sendHandle: any): void {
-  if (!isInit) {
-    isInit = true;
+async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
+  if (!state.isInit) {
+    state.isInit = true;
     const content: BackInitArgs = JSON.parse(message);
-    secret = content.secret;
+    state.secret = content.secret;
+    state.configFolder = content.configFolder;
+    // Read configs & preferences
+    const [pref, conf] = await (Promise.all([
+      PreferencesFile.readOrCreateFile(path.join(state.configFolder, preferencesFilename)),
+      ConfigFile.readOrCreateFile(path.join(state.configFolder, configFilename))
+    ]));
+    state.preferences = pref;
+    state.config = conf;
+    // Init Game manager
+    state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath));
     // Find the first available port in the range
     let serverPort: number = -1;
-    for (let port = content.portMin; port <= content.portMax; port++) {
+    for (let port = state.config.backPortMin; port <= state.config.backPortMax; port++) {
       try {
-        server = new Server({ port });
+        state.server = new Server({ port });
         serverPort = port;
         break;
       } catch (error) { /* Do nothing. */ }
     }
-    if (server) { server.on('connection', onConnect); }
+    if (state.server) { state.server.on('connection', onConnect); }
     send(serverPort);
   }
 }
 
 function onConnect(this: WebSocket, socket: WebSocket, request: http.IncomingMessage): void {
   socket.onmessage = function onAuthMessage(event) {
-    if (event.data === secret) {
+    if (event.data === state.secret) {
       socket.onmessage = onMessageWrap;
       socket.send('auth successful'); // (reply with some garbage data)
     } else {
@@ -56,45 +76,72 @@ function onConnect(this: WebSocket, socket: WebSocket, request: http.IncomingMes
 }
 
 async function onMessageWrap(event: WebSocket.MessageEvent) {
-  messageQueue.push(event);
+  state.messageQueue.push(event);
 
-  if (!isHandling) {
-    isHandling = true;
-    while (messageQueue.length > 0) {
-      const message = messageQueue.shift();
+  if (!state.isHandling) {
+    state.isHandling = true;
+    while (state.messageQueue.length > 0) {
+      const message = state.messageQueue.shift();
       if (message) { await onMessage(message); }
     }
-    isHandling = false;
+    state.isHandling = false;
   }
 }
 
 async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
   const req: WrappedRequest = JSON.parse(event.data.toString());
-  switch (req.requestType) {
-    case BackIn.LOAD_PREFERENCES:
-      preferencesPath = req.data;
-      preferences = await PreferencesFile.readOrCreateFile(preferencesPath);
-      event.target.send(JSON.stringify([BackOut.LOAD_PREFERENCES_RESPONSE, preferences]));
+  switch (req.type) {
+    case BackIn.GET_CONFIG_AND_PREFERENCES:
+      const data: GetConfigAndPrefsResponse = {
+        preferences: state.preferences,
+        config: state.config,
+      };
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GET_CONFIG_AND_PREFERENCES_RESPONSE,
+        data,
+      });
       break;
-    case BackIn.GET_PREFERENCES:
-      event.target.send(JSON.stringify([BackOut.GET_PREFERENCES_RESPONSE, preferences]));
+
+    case BackIn.GET_BORING_STUFF:
+      const boring: GetBoringStuffData = {
+        totalGames: state.gameManager.platforms.reduce((r, p) => r + p.collection.games.length, 0),
+      };
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GET_BORING_STUFF_RESPONSE,
+        data: boring,
+      });
       break;
+
+    case BackIn.UPDATE_CONFIG:
+      const newConfig = deepCopy(state.config);
+      overwriteConfigData(newConfig, req.data);
+      await ConfigFile.saveFile(path.join(state.configFolder, configFilename), newConfig);
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.UPDATE_CONFIG_RESPONSE,
+      });
+      break;
+
     case BackIn.UPDATE_PREFERENCES:
-      const dif = difObjects(defaultPreferencesData, preferences, req.data);
+      const dif = difObjects(defaultPreferencesData, state.preferences, req.data);
       if (dif) {
-        overwritePreferenceData(preferences, dif);
-        await PreferencesFile.saveFile(preferencesPath, preferences);
+        overwritePreferenceData(state.preferences, dif);
+        await PreferencesFile.saveFile(path.join(state.configFolder, preferencesFilename), state.preferences);
       }
-      event.target.send(JSON.stringify([BackOut.UPDATE_PREFERENCES_RESPONSE, preferences]));
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.UPDATE_PREFERENCES_RESPONSE,
+        data: state.preferences,
+      });
       break;
-    case BackIn.LOAD_GAMEMANAGER:
-      const platformsPath: string = req.data;
-      await gameManager.loadPlatforms(platformsPath);
-      event.target.send(JSON.stringify([BackOut.LOAD_GAMEMANAGER_RESPONSE]));
   }
 }
 
-/** Build a response */
+function respond(target: WebSocket, response: WrappedResponse): void {
+  target.send(JSON.stringify(response));
+}
 
 /**
  * Recursively iterate over all properties of the template object and compare the values of the same

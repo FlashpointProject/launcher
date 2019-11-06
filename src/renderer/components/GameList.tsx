@@ -3,6 +3,7 @@ import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'r
 import { IGameInfo } from '../../shared/game/interfaces';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { GameImageCollection } from '../image/GameImageCollection';
+import { GAMES } from '../interfaces';
 import { findElementAncestor } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
@@ -13,7 +14,9 @@ type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 export type GameListProps = {
   gameImages: GameImageCollection;
   /** All games that will be shown in the list. */
-  games?: IGameInfo[];
+  games?: GAMES;
+  /** Total number of games there are. */
+  gamesTotal: number;
   /** Currently selected game (if any). */
   selectedGame?: IGameInfo;
   /** Currently dragged game (if any). */

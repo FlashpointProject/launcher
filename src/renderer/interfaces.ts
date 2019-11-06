@@ -1,6 +1,10 @@
+import { IGameInfo } from '../shared/game/interfaces';
 import { PlatformInfo } from '../shared/platform/interfaces';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { UpgradeData } from './upgrade/types';
+
+export type GAMES = IGameInfo[];
+export type SUGGESTIONS = Partial<any>;
 
 /**
  * An object created and managed by the "root" component (App) and is passed down deep into many different components.
@@ -9,16 +13,10 @@ import { UpgradeData } from './upgrade/types';
 export type CentralState = {
   /** List of library routes */
   libraries: string[];
-  /** Info for all platforms */
-  platforms: PlatformInfo[];
   /** Manager of all playlists. */
   playlists: GamePlaylistManager;
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrade: UpgradeState;
-  /** If all the games are done loading (even if it was unsuccessful). */
-  gamesDoneLoading: boolean;
-  /** If the games failed to load (this value is only meaningful after the games are done loading). */
-  gamesFailedLoading: boolean;
   /** If all the playlists are done loading (even if it was unsuccessful). */
   playlistsDoneLoading: boolean;
   /** If the playlists failed to load (this value is only meaningful after the playlists are done loading). */

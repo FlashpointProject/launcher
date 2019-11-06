@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
-import { filterBroken, filterExtreme } from '../../shared/game/GameFilter';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { findElementAncestor, shuffle } from '../Util';
@@ -8,12 +7,10 @@ import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
 type RandomGamesProps = {
-  /** Games to randomly pick from. */
-  games: IGameInfo[];
   /** Game image collection to get the images from. */
   gameImages: GameImageCollection;
   /** Called when the user attempts to launch a game. */
-  onLaunchGame: (game: IGameInfo) => void;
+  onLaunchGame: (gameId: string) => void;
   /** If extreme games could be picked and displayed. */
   showExtreme: boolean;
   /** If broken games could be picked and displayed. */
@@ -26,15 +23,13 @@ const numberOfGames = 6;
 /** A small "grid" of randomly selected games. */
 export function RandomGames(props: RandomGamesProps) {
   // Select random games to display
-  const randomGames = useMemo(() => {
-    const shuffledGames = shuffle(props.games);
-    const randomGames = shuffledGames.slice(0, Math.min(numberOfGames, props.games.length));
-    return randomGames;
+  const randomGames = useMemo((): IGameInfo[] => {
+    // @FIXTHIS Select random games
+    return [];
   }, [/* Only pick games on the first render. */]);
   // Launch Callback
   const onGameLaunch = useCallback((event: React.MouseEvent, gameId: string) => {
-    const game = randomGames.find(game => game.id === gameId);
-    if (game) { props.onLaunchGame(game); }
+    props.onLaunchGame(gameId);
   }, []);
   // Render games
   const gameItems = React.useMemo(() => (

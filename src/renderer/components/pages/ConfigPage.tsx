@@ -3,11 +3,11 @@ import * as path from 'path';
 import * as React from 'react';
 import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
+import { BackIn } from '../../../shared/back/types';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { autoCode, LangContainer, LangFile } from '../../../shared/lang';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
-import { deepCopy, recursiveReplace } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { IThemeListItem } from '../../theme/ThemeManager';
 import { LangContext } from '../../util/lang';
@@ -455,16 +455,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
-    // Create new config
-    let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
+    // Save new config to file, then restart the app
+    window.External.back.send(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
       useFiddler: this.state.useFiddler,
-    });
-    // Save new config to file, then restart the app
-    window.External.config.save(newConfig)
-    .then(() => { window.External.restart(); })
-    .catch((error: Error) => { console.log(error); });
+    }, () => { window.External.restart(); });
   }
 
   static contextType = LangContext;

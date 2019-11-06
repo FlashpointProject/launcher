@@ -11,10 +11,10 @@ import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
+import { SUGGESTIONS } from '../interfaces';
 import { GamePlaylistEntry } from '../playlist/types';
 import { copyGameImageFile, deleteGameImageFiles } from '../util/game';
 import { LangContext } from '../util/lang';
-import { GamePropSuggestions } from '../util/suggestions';
 import { uuid } from '../uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -32,11 +32,11 @@ type OwnProps = {
   /** Additional Applications of the currently selected game (if any) */
   currentAddApps?: IAdditionalApplicationInfo[];
   /* Current Library */
-  currentLibrary?: string;
+  currentLibrary: string;
   /** Currently selected game entry (if any) */
   gamePlaylistEntry?: GamePlaylistEntry;
   /** Called when the selected game is deleted by this */
-  onDeleteSelectedGame?: () => void;
+  onDeleteSelectedGame: () => void;
   /** Called when the selected game is removed from the selected by this */
   onRemoveSelectedGameFromPlaylist?: () => void;
   /** Called when a playlist is deselected (searching game fields) */
@@ -48,7 +48,7 @@ type OwnProps = {
   /** If the selected game is a new game being created */
   isNewGame: boolean;
   /** ... */
-  suggestions?: Partial<GamePropSuggestions>;
+  suggestions?: SUGGESTIONS;
 
   onEditClick?: () => void;
   onDiscardClick?: () => void;
@@ -680,23 +680,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onDeleteGameClick = (): void => {
-    console.time('delete');
-    const game = this.props.currentGame;
-    if (!game) { throw new Error('Can not delete a game when no game is selected.'); }
-    const platform = this.props.games.getPlatformOfGameId(game.id);
-    if (!platform) { throw new Error('Can not delete a game when it does not belong to a platform.'); }
-    platform.removeGame(game.id);
-    platform.findAdditionalApplicationsOfGame(game.id).forEach(
-      (addApp) => { platform.removeAdditionalApplication(addApp.id); }
-    );
-    // Refresh games collection
-    this.props.games.refreshCollection();
-    // Save changes to file
-    platform.saveToFile().then(() => { console.timeEnd('delete'); });
-    // Callback
-    if (this.props.onDeleteSelectedGame) {
-      this.props.onDeleteSelectedGame();
-    }
+    this.props.onDeleteSelectedGame();
   }
 
   onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
@@ -791,11 +775,9 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   /** Get the name of the image folder for the current game. */
   getImageFolderName(): string {
-    const { currentGame, currentLibrary, isNewGame } = this.props;
-    if (currentGame) {
-      const prefix = currentLibrary && currentLibrary.prefix || '';
-      return getImageFolderName(currentGame, prefix, isNewGame);
-    } else { return ''; }
+    return this.props.currentGame
+      ? getImageFolderName(this.props.currentGame)
+      : '';
   }
 
   static contextType = LangContext;

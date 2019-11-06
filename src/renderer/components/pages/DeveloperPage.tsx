@@ -27,14 +27,13 @@ const mkdir  = promisify(fs.mkdir);
 
 type Map<K extends string, V> = { [key in K]: V };
 
-type OwnProps = {
+export type DeveloperPageProps = {
+  platforms: PlatformInfo[];
   /** Semi-global prop. */
   central: CentralState;
   /** Collection to get game images from. */
   gameImages: GameImageCollection;
 };
-
-type DeveloperPageProps = OwnProps;
 
 type DeveloperPageState = {
   /** Text of the log. */
@@ -139,33 +138,33 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onCheckMissingImagesClick = async (): Promise<void> => {
     const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
     const gameImages = this.props.gameImages;
-    this.setState({ text: checkMissingGameImages(res.results, gameImages) });
+    this.setState({ text: checkMissingGameImages(res, gameImages) });
   }
 
   onCheckGameIDsClick = async (): Promise<void> => {
     const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
-    this.setState({ text: checkGameIDs(res.results) });
+    this.setState({ text: checkGameIDs(res) });
   }
 
   onCheckGameNamesClick = async (): Promise<void> => {
     const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
-    this.setState({ text: checkGameTitles(res.results) });
+    this.setState({ text: checkGameTitles(res) });
   }
 
   onCheckGameFieldsClick = async (): Promise<void> => {
     const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
-    this.setState({ text: checkGameEmptyFields(res.results) });
+    this.setState({ text: checkGameEmptyFields(res) });
   }
 
   onCheckPlaylistsClick = async (): Promise<void> => {
     const playlists = this.props.central.playlists.playlists;
     const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
-    this.setState({ text: checkPlaylists(playlists, res.results) });
+    this.setState({ text: checkPlaylists(playlists, res) });
   }
 
   onCheckFileLocation = async (): Promise<void> => {
     const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
-    this.setState({ text: checkFileLocation(res.results) });
+    this.setState({ text: checkFileLocation(res) });
   }
 
   onRenameImagesTitleToIDClick = (): void => {
@@ -173,7 +172,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     setTimeout(async () => {
       const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
       const gameImages = this.props.gameImages;
-      this.setState({ text: await renameImagesToIDs(res.results, gameImages) });
+      this.setState({ text: await renameImagesToIDs(res, gameImages) });
     }, 0);
   }
 
@@ -182,13 +181,13 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     setTimeout(async () => {
       const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
       const gameImages = this.props.gameImages;
-      this.setState({ text: await renameImagesToTitles(res.results, gameImages) });
+      this.setState({ text: await renameImagesToTitles(res, gameImages) });
     }, 0);
   }
 
   onCreateMissingFoldersClick = (): void => {
     setTimeout(async () => {
-      const platforms = this.props.central.platforms;
+      const platforms = this.props.platforms;
       this.setState({ text: await createMissingFolders(platforms) });
     }, 0);
   }

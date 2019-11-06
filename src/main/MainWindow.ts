@@ -23,13 +23,12 @@ export default class MainWindow {
 
   /** Create the window */
   public createWindow(mw: IAppPreferencesDataMainWindow): void {
-    if (this._window) {
-      throw new Error('Window already created!');
-    }
+    if (this._window) { throw new Error('Window already created!'); }
+    if (!this._main.config) { throw new Error('config is undefined'); }
     // Create the browser window.
     let width:  number = mw.width  ? mw.width  : 1000;
     let height: number = mw.height ? mw.height :  650;
-    if (mw.width && mw.height && !this._main.config.data.useCustomTitlebar) {
+    if (mw.width && mw.height && !this._main.config.useCustomTitlebar) {
       width  += 8; // Add the width of the window-grab-things,
       height += 8; // they are 4 pixels wide each (at least for me @TBubba)
     }
@@ -39,7 +38,7 @@ export default class MainWindow {
       y: mw.y,
       width: width,
       height: height,
-      frame: !this._main.config.data.useCustomTitlebar,
+      frame: !this._main.config.useCustomTitlebar,
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
         nodeIntegration: true,

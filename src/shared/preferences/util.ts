@@ -13,7 +13,7 @@ export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, se
   overwritePreferenceData(preferences.data, data);
   if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
-    window.External.backSocket.send(
+    window.External.back.send(
       BackIn.UPDATE_PREFERENCES,
       preferences.data
     );

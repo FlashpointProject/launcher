@@ -22,7 +22,7 @@ export class GameManager {
   /** Whether the manager has loaded platforms yet */
   private loaded: boolean = false;
   /** All working platforms */
-  private platforms: GamePlatform[] = [];
+  platforms: GamePlatform[] = [];
   /** Platforms path, used to build new platforms later */
   private platformsPath: string = 'Data/Platforms';
   /** Cached previous searches */
@@ -43,7 +43,6 @@ export class GameManager {
       return (async () => {
         try {
           await PlatformParser.loadPlatformFile(platform);
-          this.platforms.push();
         } catch (error) {
           errors.push({ ...error, filePath: platform.filePath });
         }

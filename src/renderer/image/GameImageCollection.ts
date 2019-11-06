@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { removeFileExtension } from '../../shared/Util';
 import { ImageFolderCache } from './ImageFolderCache';
-import { getScreenshotFolderPath, getThumbnailFolderPath } from './util';
+import { getScreenshotFolderPath, getThumbnailFolderPath, getImageFolderName } from './util';
 
 const ensureDir = promisify(fs.ensureDir);
 
@@ -155,7 +155,7 @@ export class GameImageCollection {
 
   /** Internal shared implementation of the "get*PathOfGame" functions. */
   getImage(dict: PartialDict<ImageFolderCache>, game: IGameInfo): string|undefined {
-    const cache = dict[removeFileExtension(game.filename).toLowerCase()];
+    const cache = dict[getImageFolderName(game).toLowerCase()];
     if (cache) {
       let filepath = cache.getFilePath(game.id);
       if (filepath) { return filepath; }

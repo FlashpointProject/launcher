@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { parseVariableString } from './utils/VariableString';
 
 type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | undefined | null;
 
@@ -205,7 +206,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
  * @param source Object to copy from
  * @returns New copy of source
  */
-export function deepCopy<T = any>(source: T): T {
+export function deepCopy<T>(source: T): T {
   const copy: any = Array.isArray(source) ? [] : {};
   for (let key in source) {
     let val = source[key];
@@ -348,4 +349,30 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
     if (val !== undefined) { clear.push(val); }
   }
   return clear;
+}
+
+/**
+ * Parse a variable string using a generic get variable value function.
+ * @param str String to parse.
+ */
+export function parseVarStr(str: string) {
+  return parseVariableString(str, (name) => {
+    switch (name) {
+      default: return '';
+      case 'cwd': return process.cwd().replace(/\\/g, '/');
+    }
+  });
+}
+
+/** Create a proxy that throws an error when you try to use it. */
+export function createErrorProxy(title: string): any {
+  return new Proxy({}, {
+    // @TODO Make it throw errors for all(?) cases (delete, construct etc.)
+    get: (target, p, receiver) => {
+      throw new Error(`You must not get a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+    },
+    set: (target, p, value, receiver) => {
+      throw new Error(`You must not set a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+    },
+  });
 }

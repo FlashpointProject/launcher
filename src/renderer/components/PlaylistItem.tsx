@@ -362,34 +362,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
       this.setState({ dragOver: false });
     }
     if (!this.props.editingDisabled) {
-      // Find game
-      const gameId: string = event.dataTransfer.getData(gameIdDataType);
-      if (gameId) {
-        const platform = this.props.central.games.getPlatformOfGameId(gameId);
-        if (!platform || !platform.collection) { throw new Error('No game with that ID was found.'); }
-        const game = platform.collection.findGame(gameId);
-        if (!game) { throw new Error('Game was found but then it wasn\'t found. What?'); }
-        // Check if game is already in the playlist
-        if (this.props.playlist.games.every(g => g.id !== gameId)) {
-          // Add game to playlist(s) (both the edited and unedited, if editing)
-          const gameEntry: GamePlaylistEntry = {
-            id: gameId,
-            notes: '',
-          };
-          this.props.playlist.games.push(deepCopy(gameEntry));
-          if (this.state.editPlaylist) {
-            this.state.editPlaylist.games.push(deepCopy(gameEntry));
-          }
-          // Save playlist (the un-edited version, even if editing)
-          this.props.central.playlists.save(this.props.playlist);
-          // Callback
-          if (this.props.onDrop) {
-            this.props.onDrop(event, this.props.playlist);
-          }
-        }
-      } else {
-        console.log('Item dropped on this playlist is not a game id, disregarding it.');
-      }
+      // @FIXTHIS Add dropped game to playlist
     }
   }
 
