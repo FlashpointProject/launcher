@@ -75,7 +75,7 @@ export function convertMeta(data: any, onError?: (error: string) => void): Parse
   parser.prop('Status',               v => parsed.game.status              = str(v));
   parser.prop('Tags',                 v => parsed.game.tags                = str(v));
   parser.prop('Title',                v => parsed.game.title               = str(v));
-  parser.prop('Library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case 
+  parser.prop('Library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
   parser.prop('Version',              v => parsed.game.version             = str(v));
   // property aliases
   parser.prop('Animation Notes',      v => parsed.game.notes               = str(v));

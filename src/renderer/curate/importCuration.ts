@@ -206,13 +206,19 @@ export function createCurationIndexImage(): CurationIndexImage {
  */
 export async function indexContentFolder(contentPath: string) : Promise<IndexedContent[]> {
   const content: IndexedContent[] = [];
-  try {
-    await fs.access(contentPath, fs.constants.F_OK);
-    await recursiveFolderIndex(contentPath, contentPath, content);
-  } catch (error) {
-    curationLog('Error indexing folder - ' + error.message);
-    console.error(error);
-  }
+  await fs.access(contentPath, fs.constants.F_OK)
+    .then(() => {
+      return recursiveFolderIndex(contentPath, contentPath, content)
+        .catch((error) => {
+          curationLog('Error indexing folder - ' + error.message);
+          console.error(error);
+        });
+    })
+    .catch((error) => {
+      const msg = `Content folder given doesn't exist, skipping... (${contentPath})`;
+      curationLog(msg);
+      console.log(msg);
+    });
   return content;
 }
 

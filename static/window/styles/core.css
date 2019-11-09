@@ -909,6 +909,7 @@ body {
 .curate-box-row__title {
   padding-right: 0.4em;
   user-select: none;
+  text-align: right;
   white-space: nowrap;
 }
 .curate-box-row__content {

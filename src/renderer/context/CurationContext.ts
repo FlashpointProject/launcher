@@ -31,9 +31,12 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       // Find the curation
       const nextCurations = [ ...prevState.curations ];
       const index = nextCurations.findIndex(c => c.key === action.payload.key);
-      if (index >= 0) {
-        // Remove it from the (copied) array
-        nextCurations.splice(index, 1);
+      if (index != -1) {
+        const prevCuration = nextCurations[index];
+        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+        // Mark curation for deletion
+        nextCuration.delete = true;
+        nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
     }
@@ -214,6 +217,7 @@ export function createEditCuration(key: string): EditCuration {
     thumbnail: createCurationIndexImage(),
     screenshot: createCurationIndexImage(),
     locked: false,
+    delete: false
   };
 }
 
@@ -306,6 +310,8 @@ export type EditCuration = {
   thumbnail: CurationIndexImage;
   /** If the curation and its additional applications are locked (and can not be edited). */
   locked: boolean;
+  /** Whether a curation is marked for deletion */
+  delete: boolean;
 };
 
 /** Meta data of a curation. */

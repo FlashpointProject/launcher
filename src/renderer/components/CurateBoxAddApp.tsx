@@ -48,7 +48,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   }, [props.curation && props.curation.meta && props.curationKey]);
   // Render
   return (
-    <div className='curate-box-add-app'>
+    <tr className='curate-box-add-app'>
       <CurateBoxRow title={strings.curate.heading + ':'}>
         <InputField
           text={props.curation && props.curation.meta.heading || ''}
@@ -86,7 +86,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
         value={strings.curate.run}
         disabled={disabled}
         onClick={onRun} />
-    </div>
+    </tr>
   );
 }
 

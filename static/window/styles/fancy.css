@@ -438,6 +438,10 @@ body {
   background-color: var(--layout__tertiary-background);
   border-color: var(--layout__primary-outline-color);
 }
+.curate-box input[type="checkbox"] {
+  vertical-align: middle;
+  transform: scale(1rem);
+}
 /* Curate Box Divider */
 .curate-box-divider {
   border-color: var(--layout__primary-outline-color);

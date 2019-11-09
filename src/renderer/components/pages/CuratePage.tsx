@@ -29,6 +29,7 @@ import { CurateBox } from '../CurateBox';
 import { AutoProgressComponent } from '../ProgressComponents';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
+import { GameLauncher } from '../../GameLauncher';
 
 type OwnProps = {
   /** Game manager to add imported curations to. */
@@ -233,50 +234,38 @@ export function CuratePage(props: CuratePageProps) {
       // Stop watcher to release locks
       watcher.close();
       const state = localState.state;
+      // Save all working curation metas
       for (let curation of state.curations) {
-        const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
-        fs.writeFile(metaPath, meta)
-        .catch((error) => {
-          curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
-          console.error(error);
-        });
-      }
-      // Cleanup unused curation folders
-      const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
-      fs.readdir(curationsPath)
-      .then((files) => {
-          files.map(async (file) => {
-            try {
-              const fullPath = path.join(curationsPath, file);
-              const stats = await fs.lstat(fullPath);
-              // Remove directories without an attached curations
-              if (stats.isDirectory() && state.curations.findIndex(item => item.key === file) === -1) {
-                await fs.remove(fullPath);
-              }
-            } catch (error) {
-              curationLog(`Error deleting curation folder "${file}" - ` + error.message);
-              console.error(error);
-            }
+        // Delete if marked
+        if (curation.delete) {
+          const curationPath = getCurationFolder(curation);
+          fs.remove(curationPath);
+        // Save if not marked
+        } else {
+          const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+          const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+          fs.writeFile(metaPath, meta)
+          .catch((error) => {
+            curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
+            console.error(error);
           });
-      })
-      .catch((error) => {
-        curationLog('Error reading curations folder - ' + error.message);
-        console.error(error);
-      });
+        }
+      }
     };
   }, []);
 
   // Import a curation callback
-  const importCurationCallback = useCallback((curation: EditCuration, log?: boolean) => {
+  const importCurationCallback = useCallback((curation: EditCuration, log?: boolean, date?: Date) => {
     if (!props.games)      { throw new Error('Failed to import curation. "games" is undefined.'); }
     if (!props.gameImages) { throw new Error('Failed to import curation. "gameImages" is undefined.'); }
     return importCuration(curation, props.games, props.gameImages,
-                          props.libraryData.libraries, log);
+                          props.libraryData.libraries, log, date);
   }, [props.games, props.gameImages, props.libraryData.libraries]);
   // Import All Curations Callback
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
+    // Keep same date for all imports
+    const now = new Date();
     if (games && gameImages && state.curations.length > 0) {
       console.log(`Starting "Import All"... (${state.curations.length} curations)`);
       // Lock all curations
@@ -297,7 +286,7 @@ export function CuratePage(props: CuratePageProps) {
               library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
             }
             // Import curation (and wait for it to complete)
-            await importCurationCallback(curation, true)
+            await importCurationCallback(curation, true, now)
               // Import failed, could be error or user cancelled
               .catch(async (error) => {
                 curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
@@ -346,8 +335,8 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [dispatch, state.curations, props.games, props.gameImages]);
 
-  // Remove all curations
-  const onRemoveAllClick = useCallback(() => {
+  // Delete all curations
+  const onDeleteAllClick = useCallback(() => {
     for (let curation of state.curations) {
       dispatch({
         type: 'remove-curation',
@@ -525,6 +514,7 @@ export function CuratePage(props: CuratePageProps) {
   const curateBoxes = React.useMemo(() => {
     if (state.curations.length > 0) {
       return state.curations.map((curation, index) => (
+        curation.delete ? undefined :
         <CurateBox
           key={index}
           importCuration={importCurationCallback}
@@ -548,6 +538,7 @@ export function CuratePage(props: CuratePageProps) {
     return state.curations.map((curation, index) => {
       const platformIconPath = curation.meta.platform ? getPlatformIconPath(curation.meta.platform) : '';
       return (
+        curation.delete ? undefined :
         <div
           key={index}
           className='curate-page__left-sidebar-item'
@@ -612,8 +603,8 @@ export function CuratePage(props: CuratePageProps) {
               extra={strings.curate} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
-              onConfirm={onRemoveAllClick}
-              children={renderRemoveAllButton}
+              onConfirm={onDeleteAllClick}
+              children={renderDeleteAllButton}
               extra={strings.curate} />
           </div>
         </div>
@@ -635,12 +626,12 @@ function renderImportAllButton({ activate, activationCounter, reset, extra }: Co
   );
 }
 
-function renderRemoveAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
+function renderDeleteAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra.removeAll}
-      title={extra.removeAllDesc}
+      value={extra.deleteAll}
+      title={extra.deleteAllDesc}
       onClick={activate}
       onMouseLeave={reset} />
   );
