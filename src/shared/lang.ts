@@ -184,8 +184,6 @@ const langTemplate = {
     'noName',
     'launch',
     'new',
-    'commandLine',
-    'noCommandLine',
     'autoRunBefore',
     'waitForExit',
     'applicationPath',

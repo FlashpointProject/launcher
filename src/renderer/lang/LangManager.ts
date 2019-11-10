@@ -2,8 +2,7 @@ import { remote } from 'electron';
 import { readFile } from 'fs-extra';
 import * as path from 'path';
 import { RecursivePartial } from '../../shared/interfaces';
-import { autoCode } from '../../shared/lang';
-import { LangContainer, LangFile, LangFileContent } from '../../shared/lang';
+import { autoCode, LangContainer, LangFile, LangFileContent } from '../../shared/lang';
 import { deepCopy, recursiveReplace, tryParseJSON } from '../../shared/Util';
 import { EventQueue } from '../util/EventQueue';
 import { FolderWatcher } from '../util/FolderWatcher';
@@ -13,10 +12,13 @@ import { WrappedEventEmitter } from '../util/WrappedEventEmitter';
 export interface LangManager {
   /** Emitted when the language list has been changed (added / removed / renamed). */
   on(event: 'list-change', listener: (list: LangFile[]) => void): this;
+  off(event: 'list-change', listener: (list: LangFile[]) => void): this;
   /** Emitted when the combined language container has been changed. */
   on(event: 'update', listener: (item: LangContainer) => void): this;
+  off(event: 'update', listener: (item: LangContainer) => void): this;
   /** Emitted when the language manager is done initializing. */
   on(event: 'init', listener: () => void): this;
+  off(event: 'init', listener: () => void): this;
 }
 
 export class LangManager extends WrappedEventEmitter {
@@ -184,9 +186,9 @@ export class LangManager extends WrappedEventEmitter {
 
   /** Update the combined content container (by recreating it). */
   public updateContainer() {
-    const preferencesData = window.External.preferences.getData();
-    const currentCode = preferencesData.currentLanguage;
-    const fallbackCode = preferencesData.fallbackLanguage;
+    const preferences = window.External.preferences.data;
+    const currentCode = preferences.currentLanguage;
+    const fallbackCode = preferences.fallbackLanguage;
     // Update container
     this._container = this.createContainer(currentCode, fallbackCode);
     // Log

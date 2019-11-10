@@ -1,6 +1,6 @@
 import { Reducer } from 'redux';
 import { ActionType, getType } from 'typesafe-actions';
-import { createDefaultGameLibrary } from '../../../shared/library/GameLibrary';
+import { createDefaultGameLibrary } from '../../../shared/library/util';
 import { deepCopy } from '../../../shared/Util';
 import * as actions from './actions';
 import { ILibraryState } from './types';

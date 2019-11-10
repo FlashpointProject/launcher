@@ -3,7 +3,7 @@ import { LangContainer } from '../../shared/lang';
 import { memoizeOne } from '../../shared/memoize';
 import { deepCopy } from '../../shared/Util';
 import { CentralState } from '../interfaces';
-import { IGamePlaylist, IGamePlaylistEntry } from '../playlist/interfaces';
+import { GamePlaylist, GamePlaylistEntry } from '../playlist/types';
 import { gameIdDataType } from '../Util';
 import { LangContext } from '../util/lang';
 import { ConfirmButton } from './ConfirmButton';
@@ -12,7 +12,7 @@ import { OpenIcon } from './OpenIcon';
 
 export type PlaylistItemProps = {
   /** Playlist to display. */
-  playlist: IGamePlaylist;
+  playlist: GamePlaylist;
   /** If the element is expanded (revealing the content sub-element). */
   expanded?: boolean;
   /** If this is in "edit mode". */
@@ -22,24 +22,24 @@ export type PlaylistItemProps = {
   /** Semi-global prop. */
   central: CentralState;
   /** Called when the head element is clicked (the part that is always visible). */
-  onHeadClick?: (playlist: IGamePlaylist) => void;
+  onHeadClick?: (playlist: GamePlaylist) => void;
   /** Called when the "edit" button is clicked. */
-  onEditClick?: (playlist: IGamePlaylist) => void;
+  onEditClick?: (playlist: GamePlaylist) => void;
   /** Called when the "delete" button is clicked. */
-  onDeleteClick?: (playlist: IGamePlaylist) => void;
+  onDeleteClick?: (playlist: GamePlaylist) => void;
   /** Called when the "save" button is clicked. */
-  onSaveClick?: (playlist: IGamePlaylist, edit: IGamePlaylist) => void;
+  onSaveClick?: (playlist: GamePlaylist, edit: GamePlaylist) => void;
   /** Called when a game is dropped on, and successfully added to, this playlist. */
-  onDrop?: (event: React.DragEvent, playlist: IGamePlaylist) => void;
+  onDrop?: (event: React.DragEvent, playlist: GamePlaylist) => void;
   /** Called when anything is dragged over this element. */
-  onDragOver?: (event: React.DragEvent, playlist: IGamePlaylist) => void;
+  onDragOver?: (event: React.DragEvent, playlist: GamePlaylist) => void;
 };
 
 type PlaylistItemState = {
   /** If any unsaved changes has been made to the playlist (buffer). */
   hasChanged: boolean;
   /** Buffer for the playlist (stores all changes are made to it, until the edit is saved). */
-  editPlaylist?: IGamePlaylist;
+  editPlaylist?: GamePlaylist;
   /** If something is being dragged over this element. */
   dragOver: boolean;
 };
@@ -372,7 +372,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
         // Check if game is already in the playlist
         if (this.props.playlist.games.every(g => g.id !== gameId)) {
           // Add game to playlist(s) (both the edited and unedited, if editing)
-          const gameEntry: IGamePlaylistEntry = {
+          const gameEntry: GamePlaylistEntry = {
             id: gameId,
             notes: '',
           };
@@ -418,7 +418,7 @@ export class PlaylistItem extends React.Component<PlaylistItemProps, PlaylistIte
   }
 
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy). */
-  wrapOnEditDone(func: (edit: IGamePlaylist, text: string) => void): (text: string) => void {
+  wrapOnEditDone(func: (edit: GamePlaylist, text: string) => void): (text: string) => void {
     return (text: string) => {
       const edit = this.state.editPlaylist;
       if (edit) {

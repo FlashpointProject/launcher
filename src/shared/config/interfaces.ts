@@ -10,6 +10,8 @@ export type IAppConfigData = {
   playlistFolderPath: string;
   /** Path to the json folder (relative to the flashpoint path) */
   jsonFolderPath: string;
+  /** Path to the platform folder (relative to the flashpoint path) */
+  platformFolderPath: string;
   /** Path to the theme folder (relative to the flashpoint path) */
   themeFolderPath: string;
   /** If the custom title bar should be used in MainWindow */
@@ -30,6 +32,10 @@ export type IAppConfigData = {
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
+  /** Lower limit of the range of ports that the back should listen on. */
+  backPortMin: number;
+  /** Upper limit of the range of ports that the back should listen on. */
+  backPortMax: number;
 };
 
 /** Data fetched from the Main by the Renderer */

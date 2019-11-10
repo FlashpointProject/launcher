@@ -6,9 +6,10 @@ import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import * as YAML from 'yaml';
 import { LangContainer } from '../../../shared/lang';
-import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../../shared/library/types';
 import { findLibraryByRoute } from '../../../shared/library/util';
 import { memoizeOne } from '../../../shared/memoize';
+import { updatePreferencesData } from '../../../shared/preferences/util';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { CurationContext, EditCuration, EditCurationMeta } from '../../context/CurationContext';
@@ -29,7 +30,6 @@ import { CurateBox } from '../CurateBox';
 import { AutoProgressComponent } from '../ProgressComponents';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
-import { GameLauncher } from '../../GameLauncher';
 
 type OwnProps = {
   /** Game manager to add imported curations to. */
@@ -281,7 +281,7 @@ export function CuratePage(props: CuratePageProps) {
           console.log(`Importing... (id: ${curation.key})`);
           // Try importing curation
           try {
-            let library: IGameLibraryFileItem | undefined = undefined;
+            let library: GameLibraryFileItem | undefined = undefined;
             if (curation.meta.library) {
               library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
             }
@@ -463,10 +463,10 @@ export function CuratePage(props: CuratePageProps) {
     console.log(event);
     const maxWidth = getDivWidth(pageRef);
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
-    props.updatePreferences({
+    updatePreferencesData({
       curatePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
     });
-  }, [props.updatePreferences, props.preferencesData, pageRef]);
+  }, [props.preferencesData, pageRef]);
 
   // Game property suggestions
   const suggestions = useMemo(() => {

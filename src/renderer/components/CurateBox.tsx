@@ -6,7 +6,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as YAML from 'yaml';
 import { LangContainer } from '../../shared/lang';
-import { IGameLibraryFile } from '../../shared/library/interfaces';
+import { GameLibraryFile } from '../../shared/library/types';
 import { ProgressData } from '../containers/withProgress';
 import { CurationAction, EditCuration, EditCurationMeta } from '../context/CurationContext';
 import { indexContentFolder, IndexedContent } from '../curate/importCuration';
@@ -40,7 +40,7 @@ type CurateBoxProps = {
   /** Libraries to pick in the drop-down input field. */
   libraryOptions: JSX.Element[];
   /** Full library data (for importing) */
-  libraryData: IGameLibraryFile;
+  libraryData: GameLibraryFile;
 };
 
 /** A box that displays and lets the user edit a curation. */

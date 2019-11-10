@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { wrapSearchTerm } from '../../../shared/game/GameFilter';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
-import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../../shared/library/types';
 import { findDefaultLibrary } from '../../../shared/library/util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { WithLibraryProps } from '../../containers/withLibrary';
@@ -15,8 +15,8 @@ import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { CentralState, UpgradeStageState } from '../../interfaces';
 import { Paths } from '../../Paths';
-import { IGamePlaylist } from '../../playlist/interfaces';
-import { IUpgradeStage } from '../../upgrade/upgrade';
+import { GamePlaylist } from '../../playlist/types';
+import { UpgradeStage } from '../../upgrade/types';
 import { joinLibraryRoute } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { getPlatforms } from '../../util/platform';
@@ -27,7 +27,7 @@ import { SizeProvider } from '../SizeProvider';
 type OwnProps = {
   /** Semi-global prop. */
   central: CentralState;
-  onSelectPlaylist: (playlist?: IGamePlaylist, route?: string) => void;
+  onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
   /** Collection to get game images from. */
   gameImages: GameImageCollection;
   /** Clear the current search query (resets the current search filters). */
@@ -197,7 +197,7 @@ export class HomePage extends React.Component<HomePageProps> {
     );
   }
 
-  renderStageSection(strings: LangContainer['home'], stageData: IUpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
+  renderStageSection(strings: LangContainer['home'], stageData: UpgradeStage | undefined, stageState: UpgradeStageState, onClick: () => void) {
     return (
       <>
         <QuickStartItem><b>{stageData && stageData.title || '...'}</b></QuickStartItem>
@@ -312,11 +312,11 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   );
 }
 
-function findHallOfFamePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | undefined {
+function findHallOfFamePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
   return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
 }
 
-function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | undefined {
+function findFavoritePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
   return playlists.find(playlist => playlist.title === '*Favorites*');
 }
 
@@ -329,7 +329,7 @@ function findFavoritePlaylist(playlists: IGamePlaylist[]): IGamePlaylist | undef
  *          If not, the default library's route is returned instead (if it is found).
  *          If the default library is not found, return undefined.
  */
-function getPlaylistLibraryRoute(playlist: IGamePlaylist, libraries: IGameLibraryFileItem[]): string | undefined {
+function getPlaylistLibraryRoute(playlist: GamePlaylist, libraries: GameLibraryFileItem[]): string | undefined {
   if (playlist.library) {
     return playlist.library;
   } else {

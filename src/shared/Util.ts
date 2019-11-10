@@ -15,7 +15,7 @@ export function readJsonFile(path: string, options: ReadFileOptions): Promise<an
       // Check if reading file failed
       if (error) { return reject(error); }
       // Try to parse json (and callback error if it fails)
-      const jsonOrError: string|Error = tryParseJSON(data as string);
+      const jsonOrError: string | Error = tryParseJSON(data as string);
       if (jsonOrError instanceof Error) {
         return reject(jsonOrError);
       }

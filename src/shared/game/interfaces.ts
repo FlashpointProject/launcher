@@ -75,8 +75,8 @@ export interface IAdditionalApplicationInfo {
    * (If false, this will only run when specifically launched)
    */
   autoRunBefore: boolean;
-  /** Command line argument(s) used when launching the additional application */
-  commandLine: string;
+  /** Command line argument(s) passed to the application to launch the game */
+  launchCommand: string;
   /** Name of the additional application */
   name: string;
   /** @TODO Write this comment */

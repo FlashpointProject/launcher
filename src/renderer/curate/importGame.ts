@@ -1,9 +1,9 @@
 import { exec } from 'child_process';
+import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as crypto from 'crypto';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../shared/library/types';
 import { formatDate, removeFileExtension } from '../../shared/Util';
 import { EditAddAppCuration, EditCuration } from '../context/CurationContext';
 import GameManager from '../game/GameManager';
@@ -16,8 +16,7 @@ import { getFileExtension, sizeToString } from '../Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { uuid } from '../uuid';
 import { CurationIndexImage, indexContentFolder } from './importCuration';
-import { getContentFolderByKey, getCurationFolder, curationLog } from './util';
-import { remote } from 'electron';
+import { curationLog, getContentFolderByKey, getCurationFolder } from './util';
 
 
 /**
@@ -30,7 +29,7 @@ import { remote } from 'electron';
  */
 export async function importCuration(
   curation: EditCuration, games: GameManager, gameImages: GameImageCollection,
-  libraries: IGameLibraryFileItem[], log: boolean = false, date: Date = new Date()
+  libraries: GameLibraryFileItem[], log: boolean = false, date: Date = new Date()
 ): Promise<void> {
   const contentToMove = [
     [getContentFolderByKey(curation.key),                   GameLauncher.getHtdocsPath()],
@@ -132,7 +131,7 @@ function createAddAppsFromCurationMeta(key: string, addApps: EditAddAppCuration[
       id: uuid(),
       gameId: key,
       applicationPath: meta.applicationPath || '',
-      commandLine: meta.launchCommand || '',
+      launchCommand: meta.launchCommand || '',
       name: meta.heading || '',
       autoRunBefore: false,
       waitForExit: false,

@@ -8,7 +8,7 @@ export class AdditionalApplicationInfo {
       gameId: '',
       applicationPath: '',
       autoRunBefore: false,
-      commandLine: '',
+      launchCommand: '',
       name: '',
       waitForExit: false,
     };
