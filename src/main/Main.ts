@@ -181,6 +181,9 @@ export class Main {
   private onAppWillQuit(): void {
     if (this._services) {
       this._services.stopAll();
+      if (this.backProc) {
+        this.backProc.kill();
+      }
     }
   }
 
