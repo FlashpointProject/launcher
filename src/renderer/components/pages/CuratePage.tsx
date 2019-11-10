@@ -213,16 +213,19 @@ export function CuratePage(props: CuratePageProps) {
     for (let curation of state.curations) {
       if (indexedCurations.findIndex(i => i === curation.key) === -1) {
         indexedCurations.push(curation.key);
-        indexContentFolder(getContentFolderByKey(curation.key))
-        .then((content) => {
-          dispatch({
-            type: 'set-curation-content',
-            payload: {
-              key: curation.key,
-              content: content
-            }
+        // Don't attempt to index a deleted curation
+        if (!curation.delete) {
+          indexContentFolder(getContentFolderByKey(curation.key))
+          .then((content) => {
+            dispatch({
+              type: 'set-curation-content',
+              payload: {
+                key: curation.key,
+                content: content
+              }
+            });
           });
-        });
+        }
       }
     }
     setIndexedCurations(indexedCurations);
