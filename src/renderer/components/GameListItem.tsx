@@ -50,9 +50,9 @@ export function GameListItem(props: GameListItemProps) {
             {game.title}
           </div>
           <div
-            className='game-list-item__field game-list-item__field--genre'
-            title={game.genre}>
-            {game.genre}
+            className='game-list-item__field game-list-item__field--tags'
+            title={game.tags}>
+            {game.tags}
           </div>
           <div
             className='game-list-item__field game-list-item__field--developer'
@@ -67,7 +67,7 @@ export function GameListItem(props: GameListItemProps) {
         </div>
       </li>
     );
-  }, [style, className, isDraggable, game.id, game.genre, game.title, platformIcon]);
+  }, [style, className, isDraggable, game.id, game.tags, game.title, platformIcon]);
 }
 
 export namespace GameListItem { // eslint-disable-line no-redeclare

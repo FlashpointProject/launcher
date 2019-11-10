@@ -3,7 +3,7 @@ import GameManagerPlatform from '../game/GameManagerPlatform';
 
 /** Game properties that will have suggestions gathered and displayed. */
 type SuggestionProps = (
-    'genre'
+    'tags'
   | 'platform'
   | 'playMode'
   | 'status'
@@ -34,7 +34,7 @@ export type GamePropSuggestions = {
 export function getSuggestions(platforms: GameManagerPlatform[] = [], libraries: GameLibraryFileItem[] = []): Partial<GamePropSuggestions> {
   // Get the values from the game collection & libraries
   const map: GamePropSuggestionsMap = {
-    genre: {},
+    tags: {},
     platform: {},
     playMode: {},
     status: {},
@@ -44,7 +44,7 @@ export function getSuggestions(platforms: GameManagerPlatform[] = [], libraries:
   for (let platform of platforms) {
     if (platform.collection) {
       for (let game of platform.collection.games) {
-        addGamePropValues(map.genre,           game.genre);
+        addGamePropValues(map.tags,            game.tags);
         addGamePropValues(map.platform,        game.platform);
         addGamePropValues(map.playMode,        game.playMode);
         addGamePropValues(map.status,          game.status);

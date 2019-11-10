@@ -60,8 +60,6 @@ export function HomePage(props: HomePageProps) {
   const { showBrokenGames } = window.External.config.data;
   const { disableExtremeGames } = window.External.config.data;
 
-  /** Required Functions */
-
   const onPlatformClick = React.useCallback((platform: string) => (event: any) => {
     // Search to filter out all other platforms
     props.onSearch('!' + wrapSearchTerm(platform));
@@ -182,7 +180,7 @@ export function HomePage(props: HomePageProps) {
           <a
             href='http://bluemaxima.org/flashpoint/datahub/Genres'
             target='_top'>
-            {strings.genreList}
+            {strings.tagList}
           </a>
         </QuickStartItem>
         <br />
@@ -206,13 +204,19 @@ export function HomePage(props: HomePageProps) {
 
   const renderUpgrades = React.useMemo(() => {
     if (upgradeStages.length > 0) {
-      const renderedStages = upgradeStages.map((stage, index) => {
-        return (
-          <div key={index}>
-            {renderStageSection(strings, stage, onDownloadUpgradeClick)}
+      const renderedStages: JSX.Element[] = [];
+      for (let i = 0; i < upgradeStages.length; i++) {
+        renderedStages.push(
+          <div key={i*2}>
+            {renderStageSection(strings, upgradeStages[i], onDownloadUpgradeClick)}
           </div>
         );
-      });
+        renderedStages.push(
+          <br key={(i*2)+1}/>
+        );
+      }
+      // Remove trailing <br/>
+      if (renderedStages.length > 0) { renderedStages.pop(); }
       return (
         <div className='home-page__box home-page__box--upgrades'>
           <div className='home-page__box-head'>{strings.upgradesHeader}</div>

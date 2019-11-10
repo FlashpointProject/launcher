@@ -3,13 +3,12 @@ import { LangContainer } from '../../shared/lang';
 import { formatString } from '../../shared/utils/StringFormatter';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
+import { ImagePreview } from './ImagePreview';
 import { OpenIcon } from './OpenIcon';
 import { SimpleButton } from './SimpleButton';
 
 type GameImageSplitProps = {
-  /** The internal name of the image */
-  type: string;
-  /** Localized name of image (for button) */
+  /** Localized name of image (for button). */
   text: string;
   /** Source of the image (undefined if there is no image). */
   imgSrc?: string;
@@ -18,7 +17,7 @@ type GameImageSplitProps = {
   /** Called when the "remove" button is clicked. This button is only shown while there is an image. */
   onRemoveClick: () => void;
   /** Called when something is dropped on this component. */
-  onDrop: (event: React.DragEvent, type: string) => void;
+  onDrop: (event: React.DragEvent) => void;
   /** If the user should not be able to add a new image. */
   disabled?: boolean;
 };
@@ -26,6 +25,8 @@ type GameImageSplitProps = {
 type GameImageSplitState = {
   /** If the cursor is dragging something over this element. */
   hover: boolean;
+  /** If the preview should be shown. */
+  showPreview: boolean;
 };
 
 export interface GameImageSplit {
@@ -42,13 +43,14 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     super(props);
     this.state = {
       hover: false,
+      showPreview: false
     };
   }
 
   render() {
     const strings = this.context.misc;
-    const { disabled, imgSrc, onAddClick, onRemoveClick, text } = this.props;
-    const { hover } = this.state;
+    const { disabled, imgSrc, text } = this.props;
+    const { hover, showPreview } = this.state;
     // Class name
     let className = 'game-image-split';
     if (imgSrc === undefined) { className += ' simple-center'; }
@@ -58,29 +60,44 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
     return (
       <div
         className={className}
-        style={{ backgroundImage: `url("${imgSrc}")` }}
+        style={{ backgroundImage: imgSrc ? `url("${imgSrc}")` : undefined }}
         onDragOver={this.onDragOver}
         onDragLeave={this.onDragLeave}
+        onClick={this.onPreview}
         onDrop={this.onDrop}>
         { (imgSrc === undefined) ? (
           <div className='game-image-split__not-found'>
             <h1>{formatString(strings.noBlankFound, text)}</h1>
             <SimpleButton
               value={formatString(strings.addBlank, text)}
-              onClick={onAddClick}
-              disabled={disabled}/>
+              onClick={this.onAddClick}
+              disabled={disabled} />
           </div>
         ) : (
           <div className='game-image-split__buttons'>
             <p>{text}</p>
             <ConfirmElement
-              onConfirm={onRemoveClick}
+              onConfirm={this.onRemoveClick}
               children={renderDeleteImageButton}
-              extra={[strings, text]}/>
+              extra={[strings, text, !!disabled]} />
+            { showPreview ?
+              <ImagePreview
+                src={this.props.imgSrc}
+                onCancel={this.onPreviewCancel}
+                />
+            : undefined }
           </div>
         ) }
       </div>
     );
+  }
+
+  onAddClick = () => {
+    this.props.onAddClick();
+  }
+
+  onRemoveClick = () => {
+    this.props.onRemoveClick();
   }
 
   onDragOver = (event: React.DragEvent): void => {
@@ -96,26 +113,37 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
 
   onDrop = (event: React.DragEvent): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
-    if (this.props.imgSrc === undefined) { this.props.onDrop(event, this.props.type); }
+    if (this.props.imgSrc === undefined) { this.props.onDrop(event); }
   }
 
   onDragLeave = (event: React.DragEvent): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
   }
 
+  onPreview = (event: React.MouseEvent) => {
+    if (event.target === event.currentTarget && this.props.imgSrc) {
+      this.setState({ showPreview: true });
+    }
+  }
+
+  onPreviewCancel = () => {
+    this.setState({ showPreview: false });
+  }
+
   static contextType = LangContext;
 }
 
-function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['misc'], string]>): JSX.Element {
-  const [ strings, text ] = extra;
+function renderDeleteImageButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['misc'], string, boolean]>): JSX.Element {
+  const [ strings, text, disabled ] = extra;
   return (
     <div
       className={
         'game-image-split__buttons__remove-image' +
-        ((activationCounter > 0) ? ' game-image-split__buttons__remove-image--active simple-vertical-shake' : '')
+        ((activationCounter > 0) ? ' game-image-split__buttons__remove-image--active simple-vertical-shake' : '') +
+        (disabled ? ' game-image-split__buttons__remove-image--disabled' : '')
       }
       title={formatString(strings.deleteAllBlankImages, text)}
-      onClick={activate}
+      onClick={!disabled ? activate : undefined}
       onMouseLeave={reset}>
       <OpenIcon icon='trash' />
     </div>

@@ -16,6 +16,7 @@ const config = {
   main: {
     src: './src/main',
   },
+  sevenZip: './extern/7zip-bin',
   back: {
     src: './src/back',
   }
@@ -125,6 +126,25 @@ gulp.task('pack', (done) => {
         // Create "installed" file (this tells the launcher that it is installed, and not portable)
         if (config.isStaticInstall) {
           fs.createFileSync(path.join(buildPath, '.installed'));
+        }
+        // Copy relevant 7za binary
+        fs.ensureDirSync(path.join(buildPath, config.sevenZip));
+        switch (platform) {
+          case 'darwin':
+            fs.copyFileSync(
+              path.join(path.resolve(config.sevenZip), '/mac/7za'),
+              path.join(buildPath, config.sevenZip, '/7za'));
+            break;
+          case 'win32':
+            fs.copyFileSync(
+              path.join(path.resolve(config.sevenZip), '/win', arch, '7za.exe'),
+              path.join(buildPath, config.sevenZip, '/7za.exe'));
+            break;
+          case 'linux':
+            fs.copyFileSync(
+              path.join(path.resolve(config.sevenZip), '/linux', arch, '7za'),
+              path.join(buildPath, config.sevenZip, '/7za'));
+            break;
         }
         // Copy Language folder
         fs.copySync('./lang', path.join(buildPath, 'lang/'));

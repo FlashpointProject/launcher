@@ -23,6 +23,8 @@ export type CentralState = {
   playlistsDoneLoading: boolean;
   /** If the playlists failed to load (this value is only meaningful after the playlists are done loading). */
   playlistsFailedLoading: boolean;
+  /** Stop rendering to force component unmounts */
+  stopRender: boolean;
 };
 
 /** State of a single "stage" in the upgrade system (each individual downloadable upgrade is called a "stage"). */

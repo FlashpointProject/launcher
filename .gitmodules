@@ -1,0 +1,3 @@
+[submodule "extern/7zip-bin"]
+	path = extern/7zip-bin
+	url = https://github.com/develar/7zip-bin.git

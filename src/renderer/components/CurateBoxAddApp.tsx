@@ -1,9 +1,11 @@
 import * as React from 'react';
 import { useCallback } from 'react';
 import { CurationAction, EditAddAppCuration, EditAddAppCurationMeta } from '../context/CurationContext';
+import { launchAddAppCuration } from '../curate/importGame';
 import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
+import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxAddAppProps = {
   /** Key of the curation the displayed additional application belongs to. */
@@ -30,37 +32,63 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   const disabled = props.disabled;
   // Localized strings
   const strings = React.useContext(LangContext);
+  // Callback for the "remove" button
+  const onRemove = useCallback(() => {
+    props.dispatch({
+      type: 'remove-addapp',
+      payload: {
+        curationKey: props.curationKey,
+        key: props.curation.key
+      }
+    });
+  }, [props.curationKey, props.curation.key, props.dispatch]);
+  // Callback for the "run" button
+  const onRun = useCallback(() => {
+    launchAddAppCuration(props.curationKey, props.curation);
+  }, [props.curation && props.curation.meta && props.curationKey]);
   // Render
   return (
-    <div className='curate-box-add-app'>
-      <CurateBoxRow title={strings.curate.heading + ':'}>
-        <InputField
-          text={props.curation && props.curation.meta.heading || ''}
-          placeholder={strings.curate.noHeading}
-          onChange={onHeadingChange}
-          editable={editable}
-          disabled={disabled}
-          onKeyDown={props.onInputKeyDown} />
-      </CurateBoxRow>
-      <CurateBoxRow title={strings.browse.applicationPath + ':'}>
-        <InputField
-          text={props.curation && props.curation.meta.applicationPath || ''}
-          placeholder={strings.browse.noApplicationPath}
-          onChange={onApplicationPathChange}
-          editable={editable}
-          disabled={disabled}
-          onKeyDown={props.onInputKeyDown} />
-      </CurateBoxRow>
-      <CurateBoxRow title={strings.browse.launchCommand + ':'}>
-        <InputField
-          text={props.curation && props.curation.meta.launchCommand || ''}
-          placeholder={strings.browse.noLaunchCommand}
-          onChange={onLaunchCommandChange}
-          editable={editable}
-          disabled={disabled}
-          onKeyDown={props.onInputKeyDown} />
-      </CurateBoxRow>
-    </div>
+    <tr className='curate-box-add-app'>
+        <CurateBoxRow title={strings.curate.heading + ':'}>
+          <InputField
+            text={props.curation && props.curation.meta.heading || ''}
+            placeholder={strings.curate.noHeading}
+            onChange={onHeadingChange}
+            editable={editable}
+            disabled={disabled}
+            onKeyDown={props.onInputKeyDown} />
+        </CurateBoxRow>
+        <CurateBoxRow title={strings.browse.applicationPath + ':'}>
+          <InputField
+            text={props.curation && props.curation.meta.applicationPath || ''}
+            placeholder={strings.browse.noApplicationPath}
+            onChange={onApplicationPathChange}
+            editable={editable}
+            disabled={disabled}
+            onKeyDown={props.onInputKeyDown} />
+        </CurateBoxRow>
+        <CurateBoxRow title={strings.browse.launchCommand + ':'}>
+          <InputField
+            text={props.curation && props.curation.meta.launchCommand || ''}
+            placeholder={strings.browse.noLaunchCommand}
+            onChange={onLaunchCommandChange}
+            editable={editable}
+            disabled={disabled}
+            onKeyDown={props.onInputKeyDown} />
+        </CurateBoxRow>
+        <td>
+          <SimpleButton
+            className='curate-box-buttons__button'
+            value={strings.curate.removeAddApp}
+            disabled={disabled}
+            onClick={onRemove} />
+          <SimpleButton
+            className='curate-box-buttons__button'
+            value={strings.curate.run}
+            disabled={disabled}
+            onClick={onRun} />
+        </td>
+    </tr>
   );
 }
 

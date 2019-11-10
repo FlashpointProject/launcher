@@ -12,10 +12,10 @@ function orderByTitle(a: IGameInfo, b: IGameInfo): number {
   return 0;
 }
 
-/** Order games by their genre alphabetically (ascending) */
-function orderByGenre(a: IGameInfo, b: IGameInfo): number {
-  if (a.genre < b.genre) { return -1; }
-  if (a.genre > b.genre) { return  1; }
+/** Order games by their first tag alphabetically (ascending) */
+function orderByTags(a: IGameInfo, b: IGameInfo): number {
+  if (a.tags < b.tags) { return -1; }
+  if (a.tags > b.tags) { return  1; }
   return orderByTitle(a, b);
 }
 
@@ -23,7 +23,7 @@ function orderByGenre(a: IGameInfo, b: IGameInfo): number {
 function orderByDateAdded(a: IGameInfo, b: IGameInfo): number {
   if (a.dateAdded < b.dateAdded) { return -1; }
   if (a.dateAdded > b.dateAdded) { return  1; }
-  return 0;
+  return orderByTitle(a, b);
 }
 
 /** Order games by their series alphabetically (ascending) */
@@ -69,7 +69,7 @@ function getOrderFunction(orderBy: GameOrderBy, orderReverse: GameOrderReverse):
   let orderFn: OrderFn;
   switch (orderBy) {
     case 'dateAdded': orderFn = orderByDateAdded; break;
-    case 'genre':     orderFn = orderByGenre;     break;
+    case 'tags':      orderFn = orderByTags;      break;
     case 'platform':  orderFn = orderByPlatform;  break;
     case 'series':    orderFn = orderBySeries;    break;
     case 'developer': orderFn = orderByDeveloper; break;
@@ -158,7 +158,7 @@ function parseQuickSearch(text: string): FieldFilter | undefined {
     case '@':
       return { field: 'developer', phrase: text.substring(1), inverse: false };
     case '#':
-      return { field: 'genre', phrase: text.substring(1), inverse: false };
+      return { field: 'tags', phrase: text.substring(1), inverse: false };
     case '!':
       return { field: 'platform', phrase: text.substring(1), inverse: false };
   }

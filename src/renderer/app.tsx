@@ -6,6 +6,7 @@ import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
+import { isFlashpointValidCheck } from '../shared/checkSanity';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
@@ -97,6 +98,7 @@ export class App extends React.Component<AppProps, AppState> {
         gamesFailedLoading: false,
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
+        stopRender: false,
       },
       gameImages: new GameImageCollection(config.fullFlashpointPath),
       creditsData: undefined,
@@ -147,9 +149,11 @@ export class App extends React.Component<AppProps, AppState> {
           .then(({ response }) => {
             if (response === 0) {
               askBeforeClosing = false;
-              remote.getCurrentWindow().close();
+              this.unmountBeforeClose();
             }
           });
+        } else {
+          this.unmountBeforeClose();
         }
       };
     })();
@@ -249,7 +253,11 @@ export class App extends React.Component<AppProps, AppState> {
     .then(async (fileData) => {
       // Combine all file data
       let allData: UpgradeStage[] = [];
-      fileData.reduce(data => { if (data) { allData = allData.concat(data); } });
+      for (let data of fileData) {
+        if (data) {
+          allData = allData.concat(data);
+        }
+      }
       this.setState({
         central: Object.assign({}, this.state.central, {
           upgrades: allData,
@@ -377,46 +385,51 @@ export class App extends React.Component<AppProps, AppState> {
     // Render
     return (
       <LangContext.Provider value={this.state.lang}>
-        {/* Splash screen */}
-        <SplashScreen
-          gamesLoaded={this.state.central.gamesDoneLoading}
-          playlistsLoaded={this.state.central.playlistsDoneLoading}
-          upgradesLoaded={this.state.central.upgradesDoneLoading}
-          creditsLoaded={this.state.creditsDoneLoading} />
-        {/* Title-bar (if enabled) */}
-        { window.External.config.data.useCustomTitlebar ? (
-          <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
-        ) : undefined }
-        {/* "Content" */}
-        {loaded ? (
+        { !this.state.central.stopRender ? (
           <>
-            {/* Header */}
-            <HeaderContainer
-              onOrderChange={this.onOrderChange}
-              onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-              onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-              order={this.state.order} />
-            {/* Main */}
-            <div className='main'>
-              <AppRouter { ...routerProps } />
-              <noscript className='nojs'>
-                <div style={{textAlign:'center'}}>
-                  This website requires JavaScript to be enabled.
-                </div>
-              </noscript>
-            </div>
-            {/* Footer */}
-            <ConnectedFooter
-              showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-              totalCount={games.length}
-              currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-              currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
-              onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-              onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-              onNewGameClick={this.onNewGameClick} />
+          {/* Splash screen */}
+          <SplashScreen
+            gamesLoaded={this.state.central.gamesDoneLoading}
+            playlistsLoaded={this.state.central.playlistsDoneLoading}
+            upgradesLoaded={this.state.central.upgradesDoneLoading}
+            creditsLoaded={this.state.creditsDoneLoading} />
+          {/* Title-bar (if enabled) */}
+          { window.External.config.data.useCustomTitlebar ? (
+            <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
+          ) : undefined }
+          {/* "Content" */}
+          {loaded ? (
+            <>
+              {/* Header */}
+              <HeaderContainer
+                onOrderChange={this.onOrderChange}
+                onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+                onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+                order={this.state.order} />
+              {/* Main */}
+              <div className='main'>
+                <AppRouter { ...routerProps } />
+                <noscript className='nojs'>
+                  <div style={{textAlign:'center'}}>
+                    This website requires JavaScript to be enabled.
+                  </div>
+                </noscript>
+              </div>
+              {/* Footer */}
+              <ConnectedFooter
+                showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+                totalCount={games.length}
+                currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
+                currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+                onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+                onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+                onNewGameClick={this.onNewGameClick} />
+            </>
+          ) : undefined}
           </>
-        ) : undefined}
+        ) : undefined }
       </LangContext.Provider>
+
     );
   }
 
@@ -514,15 +527,23 @@ export class App extends React.Component<AppProps, AppState> {
   private updateLanguage = (): void => {
     this.props.langManager.updateContainer();
   }
+
+  private unmountBeforeClose = (): void => {
+    const { central } = this.state;
+    central.stopRender = true;
+    this.setState({ central });
+    setTimeout(() => { window.close(); }, 100);
+  }
 }
 
-function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void) {
+async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void) {
   // Check data folder is set
   let flashpointPath = window.External.config.data.flashpointPath;
+  const isValid = await isFlashpointValidCheck(flashpointPath);
   let promptRestartWhenFinished = false;
-  if (flashpointPath === '') {
+  if (!isValid) {
     // If folder isn't set, ask to set now
-    const res = openConfirmDialog('No Folder Found', 'The Flashpoint folder is not set. Do you want to choose a folder to install to now?');
+    const res = openConfirmDialog('No Folder Found', 'The Flashpoint folder is not set or invalid. Do you want to choose a folder to install to now?');
     if (!res) { return; }
     // Set folder now
     const picks = window.External.showOpenDialogSync({

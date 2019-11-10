@@ -10,6 +10,7 @@ import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { CurationContext } from './context/CurationContext';
 import { PreferencesContextProvider } from './context/PreferencesContext';
+import { ProgressContext } from './context/ProgressContext';
 import { LangManager } from './lang/LangManager';
 import { updateLibrary } from './store/library';
 import { Theme } from './theme/Theme';
@@ -53,11 +54,13 @@ import { ThemeManager } from './theme/ThemeManager';
       <Provider store={store}>
         <PreferencesContextProvider>
           <ContextReducerProvider context={CurationContext}>
-            <ConnectedRouter history={history}>
-              <ConnectedApp
-                themes={themes}
-                langManager={lang} />
-            </ConnectedRouter>
+            <ContextReducerProvider context={ProgressContext}>
+              <ConnectedRouter history={history}>
+                <ConnectedApp
+                  themes={themes}
+                  langManager={lang} />
+              </ConnectedRouter>
+            </ContextReducerProvider>
           </ContextReducerProvider>
         </PreferencesContextProvider>
       </Provider>
