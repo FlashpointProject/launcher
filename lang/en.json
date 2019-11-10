@@ -295,5 +295,11 @@
   "libraries": {
     "arcade": "Games",
     "theatre": "Animations"
+  },
+  "upgrades": {
+    "tech": "Other Technologies",
+    "techDesc": "SOmething Something",
+    "screenshots": "Screenshots and Logos",
+    "screenshotsDesc": "YES"
   }
 }

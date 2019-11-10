@@ -18,6 +18,7 @@ import { CentralState } from './interfaces';
 import { Paths } from './Paths';
 import { GamePlaylist } from './playlist/types';
 import { IThemeListItem } from './theme/ThemeManager';
+import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
   /** Semi-global prop. */
@@ -34,8 +35,7 @@ export type AppRouterProps = {
   onSelectGame?: (game?: IGameInfo) => void;
   onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
   wasNewGameClicked: boolean;
-  onDownloadTechUpgradeClick: () => void;
-  onDownloadScreenshotsUpgradeClick: () => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage) => void;
   gameLibraryRoute: string;
   themeItems: IThemeListItem[];
   reloadTheme: (themePath: string | undefined) => void;
@@ -49,8 +49,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
       gameImages: this.props.gameImages,
-      onDownloadTechUpgradeClick: this.props.onDownloadTechUpgradeClick,
-      onDownloadScreenshotsUpgradeClick: this.props.onDownloadScreenshotsUpgradeClick,
+      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick
     };
     const browseProps: ConnectedBrowsePageProps = {
       central: this.props.central,

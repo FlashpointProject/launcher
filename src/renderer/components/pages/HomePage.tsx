@@ -13,7 +13,7 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
-import { CentralState, UpgradeStageState } from '../../interfaces';
+import { CentralState } from '../../interfaces';
 import { Paths } from '../../Paths';
 import { GamePlaylist } from '../../playlist/types';
 import { UpgradeStage } from '../../upgrade/types';
@@ -33,9 +33,7 @@ type OwnProps = {
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
-  onDownloadTechUpgradeClick: () => void;
-  /** Called when the "download screenshots" button is clicked. */
-  onDownloadScreenshotsUpgradeClick: () => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage) => void;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps & WithSearchProps;
@@ -49,21 +47,16 @@ export function HomePage(props: HomePageProps) {
   const logoDelay = React.useMemo(() => (Date.now() * -0.001) + 's', []);
   const strings = React.useContext(LangContext).home;
   const {
-    onDownloadTechUpgradeClick,
-    onDownloadScreenshotsUpgradeClick,
+    onDownloadUpgradeClick,
     gameImages,
     central: {
       games,
-      upgrade: {
-        techState,
-        screenshotsState
-      }
     },
     preferencesData: {
       browsePageShowExtreme
     }
   } = props;
-  const upgradeData = props.central.upgrade.data;
+  const upgradeStages = props.central.upgrades;
   const { showBrokenGames } = window.External.config.data;
   const { disableExtremeGames } = window.External.config.data;
 
@@ -212,20 +205,24 @@ export function HomePage(props: HomePageProps) {
   , [strings, favouriteBrowseRoute, onFavoriteClick, platformList]);
 
   const renderUpgrades = React.useMemo(() => {
-    if (upgradeData) {
+    if (upgradeStages.length > 0) {
+      const renderedStages = upgradeStages.map((stage, index) => {
+        return (
+          <div key={index}>
+            {renderStageSection(strings, stage, onDownloadUpgradeClick)}
+          </div>
+        );
+      });
       return (
         <div className='home-page__box home-page__box--upgrades'>
           <div className='home-page__box-head'>{strings.upgradesHeader}</div>
           <ul className='home-page__box-body'>
-            { renderStageSection(strings, upgradeData.tech, techState, onDownloadTechUpgradeClick) }
-            <br/>
-            { renderStageSection(strings, upgradeData.screenshots, screenshotsState, onDownloadScreenshotsUpgradeClick) }
+            { renderedStages }
           </ul>
         </div>
       );
     }
-  }, [strings, upgradeData, techState, screenshotsState,
-      onDownloadTechUpgradeClick, onDownloadScreenshotsUpgradeClick]);
+  }, [strings, upgradeStages, onDownloadUpgradeClick]);
 
   const renderNotes = React.useMemo(() =>
     <div className='home-page__box'>
@@ -299,17 +296,18 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   );
 }
 
-function renderStageSection(strings: LangContainer['home'], stageData: UpgradeStage|undefined, stageState: UpgradeStageState, onClick: () => void) {
+function renderStageSection(strings: LangContainer['home'], stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
   return (
     <>
-      <QuickStartItem><b>{stageData && stageData.title || '...'}</b></QuickStartItem>
-      <QuickStartItem><i>{stageData && stageData.description || '...'}</i></QuickStartItem>
-      <QuickStartItem>{ renderStageButton(strings, stageState, onClick) }</QuickStartItem>
+      <QuickStartItem><b>{stage && stage.title || '...'}</b></QuickStartItem>
+      <QuickStartItem><i>{stage && stage.description || '...'}</i></QuickStartItem>
+      <QuickStartItem>{ renderStageButton(strings, stage, onDownload) }</QuickStartItem>
     </>
   );
 }
 
-function renderStageButton(strings: LangContainer['home'], stageState: UpgradeStageState, onClick: () => void) {
+function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
+  const stageState = stage.state;
   return (
     stageState.checksDone ? (
       stageState.alreadyInstalled ? (
@@ -323,7 +321,7 @@ function renderStageButton(strings: LangContainer['home'], stageState: UpgradeSt
           ) : (
             <a
               className='simple-button'
-              onClick={onClick}>
+              onClick={() => { onDownload(stage); }}>
               {strings.download}
             </a>
           )

@@ -1,6 +1,6 @@
 import GameManager from './game/GameManager';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
-import { UpgradeData } from './upgrade/types';
+import { UpgradeStage } from './upgrade/types';
 
 /**
  * An object created and managed by the "root" component (App) and is passed down deep into many different components.
@@ -12,7 +12,9 @@ export type CentralState = {
   /** Manager of all playlists. */
   playlists: GamePlaylistManager;
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
-  upgrade: UpgradeState;
+  upgrades: UpgradeStage[];
+  /** If upgrades files have loaded */
+  upgradesDoneLoading: boolean;
   /** If all the games are done loading (even if it was unsuccessful). */
   gamesDoneLoading: boolean;
   /** If the games failed to load (this value is only meaningful after the games are done loading). */
@@ -21,18 +23,6 @@ export type CentralState = {
   playlistsDoneLoading: boolean;
   /** If the playlists failed to load (this value is only meaningful after the playlists are done loading). */
   playlistsFailedLoading: boolean;
-};
-
-/** Data and state used for the upgrade system. */
-export type UpgradeState = {
-  /** Data from the upgrade file (or the defaults if it failed to load or parse). */
-  data?: UpgradeData;
-  /** State of the tech stage. */
-  techState: UpgradeStageState;
-  /** State of the screenshots stage. */
-  screenshotsState: UpgradeStageState;
-  /** If the upgrade JSON is done loading (even if it was unsuccessful). */
-  doneLoading: boolean;
 };
 
 /** State of a single "stage" in the upgrade system (each individual downloadable upgrade is called a "stage"). */

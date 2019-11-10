@@ -1,4 +1,6 @@
 import { ipcRenderer, remote } from 'electron';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
@@ -11,7 +13,7 @@ import { GameLibraryFileItem } from '../shared/library/types';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { updatePreferencesData } from '../shared/preferences/util';
-import { versionNumberToText } from '../shared/Util';
+import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -25,7 +27,7 @@ import { CreditsData } from './credits/types';
 import GameManager from './game/GameManager';
 import GameManagerPlatform from './game/GameManagerPlatform';
 import { GameImageCollection } from './image/GameImageCollection';
-import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
+import { CentralState, UpgradeStageState } from './interfaces';
 import { LangManager } from './lang/LangManager';
 import { Paths } from './Paths';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
@@ -36,7 +38,7 @@ import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
 import { UpgradeStage } from './upgrade/types';
 import { UpgradeFile } from './upgrade/UpgradeFile';
-import { joinLibraryRoute } from './Util';
+import { joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
 
@@ -89,23 +91,8 @@ export class App extends React.Component<AppProps, AppState> {
       central: {
         games: new GameManager(),
         playlists: new GamePlaylistManager(),
-        upgrade: {
-          doneLoading: false,
-          techState: {
-            alreadyInstalled: false,
-            checksDone: false,
-            isInstalling: false,
-            isInstallationComplete: false,
-            installProgressNote: '',
-          },
-          screenshotsState: {
-            alreadyInstalled: false,
-            checksDone: false,
-            isInstalling: false,
-            isInstallationComplete: false,
-            installProgressNote: '',
-          },
-        },
+        upgrades: [],
+        upgradesDoneLoading: false,
         gamesDoneLoading: false,
         gamesFailedLoading: false,
         playlistsDoneLoading: false,
@@ -139,7 +126,14 @@ export class App extends React.Component<AppProps, AppState> {
       let askBeforeClosing = true;
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
         const { central } = this.state;
-        if (askBeforeClosing && (central.upgrade.screenshotsState.isInstalling || central.upgrade.techState.isInstalling)) {
+        let stillDownloading = false;
+        for (let stage of central.upgrades) {
+          if (stage.state.isInstalling) {
+            stillDownloading = true;
+            break;
+          }
+        }
+        if (askBeforeClosing && stillDownloading) {
           event.returnValue = 1; // (Prevent closing the window)
           remote.dialog.showMessageBox({
             type: 'warning',
@@ -244,31 +238,32 @@ export class App extends React.Component<AppProps, AppState> {
         })
       });
     });
-    //
-    UpgradeFile.readFile(fullJsonFolderPath, log)
-    .then((data) => {
-      this.setUpgradeState({
-        data: data,
-        doneLoading: true,
+    // Load Upgrades
+    const folderPath = window.External.isDev
+        ? process.cwd()
+        : path.dirname(remote.app.getPath('exe'));
+    const upgradeCatch = (error: Error) => {
+      console.warn(error);
+    };
+    Promise.all([UpgradeFile.readFile(folderPath, log), UpgradeFile.readFile(fullJsonFolderPath, log)].map(p => p.catch(upgradeCatch)))
+    .then(async (fileData) => {
+      // Combine all file data
+      let allData: UpgradeStage[] = [];
+      fileData.reduce(data => { if (data) { allData = allData.concat(data); } });
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          upgrades: allData,
+          upgradesDoneLoading: true,
+        })
       });
-      performUpgradeStageChecks(data.screenshots, fullFlashpointPath)
-      .then(results => {
-        this.setScreenshotsUpgradeState({
+      // Do existance checks on all upgrades
+      await Promise.all(allData.map(async upgrade => {
+        const results = await performUpgradeStageChecks(upgrade, fullFlashpointPath);
+        this.setUpgradeStageState(upgrade.id, {
           alreadyInstalled: results.indexOf(false) === -1,
-          checksDone: true,
+          checksDone: true
         });
-      });
-      performUpgradeStageChecks(data.tech, fullFlashpointPath)
-      .then(results => {
-        this.setTechUpgradeState({
-          alreadyInstalled: results.indexOf(false) === -1,
-          checksDone: true,
-        });
-      });
-    })
-    .catch((error) => {
-      console.error(error);
-      this.setUpgradeState({ doneLoading: true });
+      }));
     });
     // Load Credits
     CreditsFile.readFile(fullJsonFolderPath, log)
@@ -351,7 +346,7 @@ export class App extends React.Component<AppProps, AppState> {
   render() {
     const loaded = this.state.central.gamesDoneLoading &&
                    this.state.central.playlistsDoneLoading &&
-                   this.state.central.upgrade.doneLoading &&
+                   this.state.central.upgradesDoneLoading &&
                    this.state.creditsDoneLoading;
     const games = this.state.central.games.collection.games;
     const libraries = this.props.libraryData.libraries;
@@ -372,8 +367,7 @@ export class App extends React.Component<AppProps, AppState> {
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.state.wasNewGameClicked,
-      onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
-      onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
+      onDownloadUpgradeClick: this.onDownloadUpgradeClick,
       gameLibraryRoute: route,
       themeItems: this.props.themes.items,
       reloadTheme: this.reloadTheme,
@@ -387,7 +381,7 @@ export class App extends React.Component<AppProps, AppState> {
         <SplashScreen
           gamesLoaded={this.state.central.gamesDoneLoading}
           playlistsLoaded={this.state.central.playlistsDoneLoading}
-          upgradesLoaded={this.state.central.upgrade.doneLoading}
+          upgradesLoaded={this.state.central.upgradesDoneLoading}
           creditsLoaded={this.state.creditsDoneLoading} />
         {/* Title-bar (if enabled) */}
         { window.External.config.data.useCustomTitlebar ? (
@@ -476,38 +470,23 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  private onDownloadTechUpgradeClick = () => {
-    const upgradeData = this.state.central.upgrade.data;
-    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.tech, 'flashpoint_stage_tech.zip', this.setTechUpgradeState);
+  private onDownloadUpgradeClick = (stage: UpgradeStage) => {
+    downloadAndInstallStage(stage, this.setUpgradeStageState);
   }
 
-  private onDownloadScreenshotsUpgradeClick = () => {
-    const upgradeData = this.state.central.upgrade.data;
-    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.screenshots, 'flashpoint_stage_screenshots.zip', this.setScreenshotsUpgradeState);
-  }
-
-  private setUpgradeState(state: Partial<UpgradeState>) {
-    this.setState({
-      central: Object.assign({}, this.state.central, {
-        upgrade: Object.assign({}, this.state.central.upgrade, state),
-      })
-    });
-  }
-
-  private setTechUpgradeState = (state: Partial<UpgradeStageState>): void => {
-    const { central: { upgrade: { techState } } } = this.state;
-    this.setUpgradeState({
-      techState: Object.assign({}, techState, state),
-    });
-  }
-
-  private setScreenshotsUpgradeState = (state: Partial<UpgradeStageState>):void => {
-    const { central: { upgrade: { screenshotsState } } } = this.state;
-    this.setUpgradeState({
-      screenshotsState: Object.assign({}, screenshotsState, state),
-    });
+  private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
+    const { upgrades } = this.state.central;
+    const index = upgrades.findIndex(u => u.id === id);
+    if (index != -1) {
+      const newUpgrades = deepCopy(upgrades);
+      const newStageState = Object.assign({}, upgrades[index].state, data);
+      newUpgrades[index].state = newStageState;
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          upgrades: newUpgrades,
+        })
+      });
+    }
   }
 
   /**
@@ -537,17 +516,44 @@ export class App extends React.Component<AppProps, AppState> {
   }
 }
 
-function downloadAndInstallStage(stage: UpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
+function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void) {
+  // Check data folder is set
+  let flashpointPath = window.External.config.data.flashpointPath;
+  let promptRestartWhenFinished = false;
+  if (flashpointPath === '') {
+    // If folder isn't set, ask to set now
+    const res = openConfirmDialog('No Folder Found', 'The Flashpoint folder is not set. Do you want to choose a folder to install to now?');
+    if (!res) { return; }
+    // Set folder now
+    const picks = window.External.showOpenDialogSync({
+      title: 'Pick Flashpoint Folder',
+      properties: ['openDirectory', 'promptToCreate', 'createDirectory']
+    });
+    // Make sure folder given exists
+    if (picks && picks.length > 0) {
+      flashpointPath = picks[0];
+      fs.ensureDirSync(flashpointPath);
+      // Save picked folder to config
+      let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
+        flashpointPath: flashpointPath
+      });
+      window.External.config.save(newConfig);
+      promptRestartWhenFinished = true;
+    }
+  }
   // Flag as installing
-  setStageState({
+  setStageState(stage.id, {
     isInstalling: true,
     installProgressNote: '...',
   });
-  // Start download and installation
-  let prevProgressUpdate = Date.now();
-  const state = (
-    downloadAndInstallUpgrade(stage, {
-      installPath: window.External.config.fullFlashpointPath,
+  // Grab filename from url
+
+  for (let source of stage.sources) {
+    const filename = stage.id + '__' + source.split('/').pop() || 'unknown';
+    // Start download and installation
+    let prevProgressUpdate = Date.now();
+    const state = downloadAndInstallUpgrade(stage, {
+      installPath: path.resolve(flashpointPath),
       downloadFilename: filename
     })
     .on('progress', () => {
@@ -555,26 +561,35 @@ function downloadAndInstallStage(stage: UpgradeStage, filename: string, setStage
       if (now - prevProgressUpdate > 100) {
         prevProgressUpdate = now;
         switch (state.currentTask) {
-          case 'downloading': setStageState({ installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
-          case 'extracting':  setStageState({ installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
-          default:            setStageState({ installProgressNote: '...' });                                                        break;
+          case 'downloading': setStageState(stage.id, { installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
+          case 'extracting':  setStageState(stage.id, { installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
+          default:            setStageState(stage.id, { installProgressNote: '...' });                                                        break;
         }
       }
     })
     .once('done', () => {
       // Flag as done installing
-      setStageState({
+      setStageState(stage.id, {
         isInstalling: false,
         isInstallationComplete: true,
       });
+      if (promptRestartWhenFinished) {
+        const res = openConfirmDialog('Restart Now?', 'This upgrade will not be applied until you restart.\nDo you wish to do this now?');
+        if (res) {
+          window.External.restart();
+        }
+      }
     })
     .once('error', (error) => {
       // Flag as not installing (so the user can retry if they want to)
-      setStageState({ isInstalling: false });
+      setStageState(stage.id, {
+        isInstalling: false,
+      });
+      log(`Error installing '${stage.title}' - ${error.message}`);
       console.error(error);
     })
-    .on('warn', console.warn)
-  );
+    .on('warn', console.warn);
+  }
 }
 
 /** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */

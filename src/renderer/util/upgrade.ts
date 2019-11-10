@@ -75,6 +75,7 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
       }
     })
     .once('done', (zipPath) => {
+      console.log(zipPath);
       status.currentTask = 'extracting';
       log(`Download of the "${upgrade.title}" upgrade complete!`);
       log(`Installation of the "${upgrade.title}" upgrade started.`);
@@ -152,8 +153,7 @@ function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offse
  * @param flashpointFolder Path of the Flashpoint folder root.
  */
 export async function performUpgradeStageChecks(stage: UpgradeStage, flashpointFolder: string): Promise<boolean[]> {
-  const success: boolean[] = [];
-  await Promise.all(stage.checks.map(check => (
+  const success = await Promise.all(stage.checks.map(check => (
     fs.pathExists(path.join(flashpointFolder, check))
   )));
   return success;
