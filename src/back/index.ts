@@ -1,16 +1,21 @@
+import { createHash } from 'crypto';
+import { EventEmitter } from 'events';
 import * as http from 'http';
 import * as path from 'path';
 import * as WebSocket from 'ws';
 import { Server } from 'ws';
-import { BackIn, BackInitArgs, BackOut, GetBoringStuffData, GetConfigAndPrefsResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetConfigAndPrefsResponse, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
+import { FilterGameOpts, filterGames, orderGames } from '../shared/game/GameFilter';
+import { IGameInfo } from '../shared/game/interfaces';
 import { DeepPartial } from '../shared/interfaces';
+import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
 import { createErrorProxy, deepCopy } from '../shared/Util';
 import { GameManager } from './game/GameManager';
-import { BackState } from './types';
+import { BackQuery, BackState } from './types';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -28,6 +33,11 @@ const state: BackState = {
   gameManager: new GameManager(),
   messageQueue: [],
   isHandling: false,
+  init: {
+    0: false,
+  },
+  initEmitter: new EventEmitter() as any,
+  queries: {},
 };
 
 const preferencesFilename = 'preferences.json';
@@ -49,7 +59,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.preferences = pref;
     state.config = conf;
     // Init Game manager
-    state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath));
+    state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
+    .then(() => {
+      state.init[BackInit.GAMES] = true;
+      state.initEmitter.emit(BackInit.GAMES);
+    });
     // Find the first available port in the range
     let serverPort: number = -1;
     for (let port = state.config.backPortMin; port <= state.config.backPortMax; port++) {
@@ -91,7 +105,7 @@ async function onMessageWrap(event: WebSocket.MessageEvent) {
 async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
   const req: WrappedRequest = JSON.parse(event.data.toString());
   switch (req.type) {
-    case BackIn.GET_CONFIG_AND_PREFERENCES:
+    case BackIn.GET_CONFIG_AND_PREFERENCES: {
       const data: GetConfigAndPrefsResponse = {
         preferences: state.preferences,
         config: state.config,
@@ -101,20 +115,106 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.GET_CONFIG_AND_PREFERENCES_RESPONSE,
         data,
       });
-      break;
+    } break;
 
-    case BackIn.GET_BORING_STUFF:
-      const boring: GetBoringStuffData = {
-        totalGames: state.gameManager.platforms.reduce((r, p) => r + p.collection.games.length, 0),
-      };
+    case BackIn.INIT_LISTEN: {
+      const done: BackInit[] = [];
+      for (let key in state.init) {
+        const init: BackInit = key as any;
+        if (state.init[init]) {
+          done.push(init);
+        } else {
+          state.initEmitter.once(init, () => {
+            respond(event.target, {
+              id: '',
+              type: BackOut.INIT_EVENT,
+              data: { done: [ init ] },
+            });
+          });
+        }
+      }
       respond(event.target, {
         id: req.id,
-        type: BackOut.GET_BORING_STUFF_RESPONSE,
-        data: boring,
+        type: BackOut.INIT_EVENT,
+        data: { done },
       });
-      break;
+    } break;
 
-    case BackIn.UPDATE_CONFIG:
+    case BackIn.GET_LIBRARIES: {
+      const platforms = state.gameManager.platforms;
+      const libraries: string[] = [];
+      for (let i = 0; i < platforms.length; i++) {
+        const library = platforms[i].library;
+        if (libraries.indexOf(library) === -1) { libraries.push(library); }
+      }
+
+      respond<BrowseViewAllData>(event.target, {
+        id: req.id,
+        type: BackOut.GET_LIBRARIES_RESPONSE,
+        data: { libraries: libraries, },
+      });
+    } break;
+
+    case BackIn.BROWSE_VIEW_PAGE: {
+      const reqData: BrowseViewPageData = req.data;
+
+      const query: BackQuery = {
+        extreme: false,
+        broken: false,
+        library: reqData.query.library,
+        search: reqData.query.search,
+        orderBy: reqData.query.orderBy as GameOrderBy,
+        orderReverse: reqData.query.orderReverse as GameOrderReverse,
+      };
+
+      const hash = hashQuery(query);
+      let cache = state.queries[hash];
+      if (!cache) {
+        // @TODO Start clearing the cache if it gets too full
+
+        const results = searchGames({
+          extreme: query.extreme,
+          broken: query.broken,
+          query: query.search,
+          offset: reqData.offset,
+          orderBy: query.orderBy,
+          orderReverse: query.orderReverse,
+          library: query.library,
+        });
+
+        const viewGames: ViewGame[] = [];
+        for (let i = 0; i < results.length; i++) {
+          const g = results[i];
+          viewGames[i] = {
+            id: g.id,
+            title: g.title,
+            thumbnail: '@TODO',
+            platform: g.platform,
+            genre: g.genre,
+            developer: g.developer,
+            publisher: g.publisher,
+          };
+        }
+
+        state.queries[hash] = cache = {
+          query: query,
+          games: results,
+          viewGames: viewGames,
+        };
+      }
+
+      respond<BrowseViewPageResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.BROWSE_VIEW_PAGE_RESPONSE,
+        data: {
+          games: cache.viewGames.slice(reqData.offset, reqData.offset + reqData.limit),
+          offset: reqData.offset,
+          total: cache.games.length,
+        },
+      });
+    } break;
+
+    case BackIn.UPDATE_CONFIG: {
       const newConfig = deepCopy(state.config);
       overwriteConfigData(newConfig, req.data);
       await ConfigFile.saveFile(path.join(state.configFolder, configFilename), newConfig);
@@ -122,9 +222,9 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         id: req.id,
         type: BackOut.UPDATE_CONFIG_RESPONSE,
       });
-      break;
+    } break;
 
-    case BackIn.UPDATE_PREFERENCES:
+    case BackIn.UPDATE_PREFERENCES: {
       const dif = difObjects(defaultPreferencesData, state.preferences, req.data);
       if (dif) {
         overwritePreferenceData(state.preferences, dif);
@@ -135,11 +235,11 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.UPDATE_PREFERENCES_RESPONSE,
         data: state.preferences,
       });
-      break;
+    } break;
   }
 }
 
-function respond(target: WebSocket, response: WrappedResponse): void {
+function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
   target.send(JSON.stringify(response));
 }
 
@@ -170,4 +270,49 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
     }
   }
   return dif;
+}
+
+type SearchGamesOpts = {
+  extreme: boolean;
+  broken: boolean;
+  /** String to use as a search query */
+  query: string;
+  /** Offset to begin in a search result */
+  offset: number;
+  /** Max number of results to return */
+  //limit: number;
+  /** The field to order the games by. */
+  orderBy: GameOrderBy;
+  /** The way to order the games. */
+  orderReverse: GameOrderReverse;
+  /** Library to search (all if none) */
+  library?: string;
+}
+
+function searchGames(opts: SearchGamesOpts): IGameInfo[] {
+  // Build opts from preferences and query
+  const filterOpts: FilterGameOpts = {
+    search: opts.query,
+    extreme: opts.extreme,
+    broken: opts.broken,
+  };
+
+  // Filter games
+  const platforms = state.gameManager.platforms;
+  let foundGames: IGameInfo[] = [];
+  for (let i = 0; i < platforms.length; i++) {
+    // If library matches filter, or no library filter given, filter this platforms games
+    if (!opts.library || platforms[i].library === opts.library) {
+      foundGames = foundGames.concat(filterGames(platforms[i].collection.games, filterOpts));
+    }
+  }
+
+  // Order games
+  orderGames(foundGames, { orderBy: opts.orderBy, orderReverse: opts.orderReverse });
+
+  return foundGames;
+}
+
+function hashQuery(query: BackQuery): string {
+  return createHash('sha256').update(JSON.stringify(query)).digest('base64');
 }

@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { BackIn, GetBoringStuffData } from '../shared/back/types';
+import { BackIn, BrowseViewAllData } from '../shared/back/types';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
@@ -27,10 +27,6 @@ import { ThemeManager } from './theme/ThemeManager';
     window.External.services.waitUtilInitialized(),
     window.External.waitUntilInitialized(),
   ]);
-  //
-  const boring = await window.External.back.sendAwait<GetBoringStuffData>(BackIn.GET_BORING_STUFF, undefined);
-  if (!boring.data) { throw new Error('no boring data wtf'); }
-  
   // Get preferences data
   const preferences = window.External.preferences.data;
   // Watch language folder & Load current/fallback language files
@@ -54,7 +50,6 @@ import { ThemeManager } from './theme/ThemeManager';
           <ContextReducerProvider context={CurationContext}>
             <ConnectedRouter history={history}>
               <ConnectedApp
-                allGamesTotal={boring.data.totalGames}
                 themes={themes}
                 langManager={lang} />
             </ConnectedRouter>

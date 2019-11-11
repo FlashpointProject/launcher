@@ -25,7 +25,7 @@ export class SharedSocket extends EventEmitter {
     this.emit('response', response);
   }
 
-  public send<T>(type: BackIn, data: any, callback?: (res: WrappedResponse<T>) => void): void {
+  public send<T, U = any>(type: BackIn, data: U, callback?: (res: WrappedResponse<T>) => void): void {
     // Create request
     const request: WrappedRequest = {
       id: uuid(),
@@ -38,7 +38,11 @@ export class SharedSocket extends EventEmitter {
     this.socket.send(JSON.stringify(request));
   }
 
-  public sendAwait<T>(type: BackIn, data: any): Promise<WrappedResponse<T>> {
-    return new Promise(resolve => this.send<T>(type, data, resolve));
+  public sendReq<T, U = any>(request: WrappedRequest<U>, callback?: (res: WrappedResponse<T>) => void): void {
+    console.log(request)
+    // Register callback
+    if (callback) { this.once(request.id, callback); }
+    // Send message
+    this.socket.send(JSON.stringify(request));
   }
 }

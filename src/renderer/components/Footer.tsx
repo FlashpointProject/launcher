@@ -6,8 +6,6 @@ import { gameScaleSpan } from '../Util';
 import { LangContext } from '../util/lang';
 
 type OwnProps = {
-  /** If the "total" and "current label" counts should be shown. */
-  showCount: boolean;
   /** Total number of games. */
   totalCount?: number;
   /** Label of the current browse library (if any). */
@@ -48,7 +46,7 @@ export class Footer extends React.Component<FooterProps> {
 
   render() {
     const strings = this.context.app;
-    const { currentCount, currentLabel, layout, onNewGameClick, preferencesData, scaleSliderValue, showCount, totalCount } = this.props;
+    const { currentCount, currentLabel, layout, onNewGameClick, preferencesData, scaleSliderValue, totalCount } = this.props;
     const scale = Math.min(Math.max(0, scaleSliderValue), 1);
     return (
       <div className='footer'>
@@ -56,16 +54,10 @@ export class Footer extends React.Component<FooterProps> {
         <div className='footer__wrap'>
           {/* Game Count */}
           <div className='footer__game-count'>
-            {showCount ? (
-              <>
-                <p>{`${strings.total}: ${totalCount}`}</p>
-                { currentLabel !== undefined ? (
-                  <p>{`${currentLabel}: ${currentCount}`}</p>
-                ) : undefined }
-              </>
-            ) : (
-              <>...</>
-            )}
+            <p>{`${strings.total}: ${totalCount}`}</p>
+            { currentLabel ? (
+              <p>{`${currentLabel}: ${currentCount}`}</p>
+            ) : undefined }
           </div>
         </div>
         {/* Right Side */}

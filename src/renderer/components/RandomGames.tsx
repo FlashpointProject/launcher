@@ -1,14 +1,11 @@
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
-import { IGameInfo } from '../../shared/game/interfaces';
-import { GameImageCollection } from '../image/GameImageCollection';
-import { findElementAncestor, shuffle } from '../Util';
+import { ViewGame } from '../../shared/back/types';
+import { findElementAncestor } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
 type RandomGamesProps = {
-  /** Game image collection to get the images from. */
-  gameImages: GameImageCollection;
   /** Called when the user attempts to launch a game. */
   onLaunchGame: (gameId: string) => void;
   /** If extreme games could be picked and displayed. */
@@ -23,7 +20,7 @@ const numberOfGames = 6;
 /** A small "grid" of randomly selected games. */
 export function RandomGames(props: RandomGamesProps) {
   // Select random games to display
-  const randomGames = useMemo((): IGameInfo[] => {
+  const randomGames = useMemo((): ViewGame[] => {
     // @FIXTHIS Select random games
     return [];
   }, [/* Only pick games on the first render. */]);
@@ -36,12 +33,14 @@ export function RandomGames(props: RandomGamesProps) {
     randomGames.map(game => (
       <GameGridItem
         key={game.id}
-        game={game}
-        thumbnail={props.gameImages.getThumbnailPath(game) || ''}
+        id={game.id}
+        title={game.title}
+        platform={game.platform}
+        thumbnail={game.thumbnail}
         isSelected={false}
         isDragged={false} />
     ))
-  ), [randomGames, props.gameImages]);
+  ), [randomGames]);
   // Render
   return (
     <GameItemContainer

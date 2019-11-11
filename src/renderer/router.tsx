@@ -21,7 +21,7 @@ import { GamePlaylist } from './playlist/types';
 import { IThemeListItem } from './theme/ThemeManager';
 
 export type AppRouterProps = {
-  games: GAMES;
+  games: GAMES | undefined;
   gamesTotal: number;
   playlists: GamePlaylist[];
   suggestions: SUGGESTIONS;
@@ -29,6 +29,7 @@ export type AppRouterProps = {
   save: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean) => void;
   launchGame: (gameId: string) => void;
   deleteGame: (gameId: string) => void;
+  onRequestGames: (start: number, end: number) => void;
   /** Semi-global prop. */
   central: CentralState;
   /** Credits data (if any). */
@@ -38,9 +39,9 @@ export type AppRouterProps = {
   gameScale: number;
   gameLayout: BrowsePageLayout;
   gameImages: GameImageCollection;
-  selectedGame?: IGameInfo;
-  selectedPlaylist?: GamePlaylist;
-  onSelectGame?: (game?: IGameInfo) => void;
+  selectedGameId?: string;
+  selectedPlaylistId?: string;
+  onSelectGame: (gameId?: string) => void;
   onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
   wasNewGameClicked: boolean;
   onDownloadTechUpgradeClick: () => void;
@@ -71,14 +72,15 @@ export class AppRouter extends React.Component<AppRouterProps> {
       save: this.props.save,
       launchGame: this.props.launchGame,
       deleteGame: this.props.deleteGame,
+      onRequestGames: this.props.onRequestGames,
 
       central: this.props.central,
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
       gameImages: this.props.gameImages,
-      selectedGame: this.props.selectedGame,
-      selectedPlaylist: this.props.selectedPlaylist,
+      selectedGameId: this.props.selectedGameId,
+      selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,

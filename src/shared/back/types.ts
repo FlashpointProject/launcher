@@ -2,7 +2,13 @@ import { IAppConfigData } from '../config/interfaces';
 import { IAppPreferencesData } from '../preferences/interfaces';
 
 export enum BackIn {
-  GET_BORING_STUFF,
+  INIT_LISTEN,
+  /** Get all library names. */
+  GET_LIBRARIES,
+  /** Update a browse view. */
+  BROWSE_VIEW_UPDATE,
+  /** Get a page of a browse view. */
+  BROWSE_VIEW_PAGE,
   /** Get the full config and preferences objects. */
   GET_CONFIG_AND_PREFERENCES,
   /** Update any number of configs. */
@@ -24,7 +30,10 @@ export enum BackIn {
 }
 
 export enum BackOut {
-  GET_BORING_STUFF_RESPONSE,
+  INIT_EVENT,
+  GET_LIBRARIES_RESPONSE,
+  BROWSE_VIEW_UPDATE_RESPONSE,
+  BROWSE_VIEW_PAGE_RESPONSE,
   GET_CONFIG_AND_PREFERENCES_RESPONSE,
   UPDATE_CONFIG_RESPONSE,
   UPDATE_PREFERENCES_RESPONSE,
@@ -36,13 +45,13 @@ export enum BackOut {
   UPDATE_META_RESPONSE,
 }
 
-export type WrappedRequest = {
+export type WrappedRequest<T = any> = {
   /** Identifier of the response */
   id: string;
   /** Type of the request */
   type: BackIn;
   /** Data contained in the response (if any) */
-  data?: any;
+  data?: T;
 }
 
 export type WrappedResponse<T = any> = {
@@ -61,8 +70,12 @@ export type BackInitArgs = {
   secret: string;
 }
 
-export type GetBoringStuffData = {
-  totalGames: number;
+export enum BackInit {
+  GAMES,
+}
+
+export type InitEventData = {
+  done: BackInit[];
 }
 
 export type GetConfigAndPrefsResponse = {
@@ -70,3 +83,46 @@ export type GetConfigAndPrefsResponse = {
   preferences: IAppPreferencesData;
 }
 
+export type BrowseViewAllData = {
+  libraries: string[];
+}
+
+export type BrowseViewUpdateData = {
+  viewId?: string;
+  query: unknown;
+}
+
+export type BrowseViewResponseData = {
+  viewId: string;
+  total: number;
+}
+
+export type BrowseViewPageData = {
+  offset: number;
+  limit: number;
+  query: {
+    extreme: boolean;
+    broken: boolean;
+    library: string;
+    search: string;
+    orderBy: string;
+    orderReverse: string;
+  }
+}
+
+export type BrowseViewPageResponseData = {
+  games: ViewGame[];
+  offset: number;
+  total?: number;
+}
+
+export type ViewGame = {
+  id: string;
+  title: string;
+  thumbnail: string;
+  platform: string;
+  // List view only
+  genre: string;
+  developer: string;
+  publisher: string;
+}

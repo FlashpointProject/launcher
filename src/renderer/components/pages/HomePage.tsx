@@ -172,7 +172,6 @@ export class HomePage extends React.Component<HomePageProps> {
               <div className='home-page__random-games__inner'>
                 <p className='home-page__random-games__title'>{strings.randomPicks}</p>
                 <RandomGames
-                  gameImages={gameImages}
                   onLaunchGame={this.onLaunchGame}
                   showExtreme={!disableExtremeGames && browsePageShowExtreme}
                   showBroken={showBrokenGames} />

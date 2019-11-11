@@ -1,9 +1,8 @@
-import { IGameInfo } from '../shared/game/interfaces';
-import { PlatformInfo } from '../shared/platform/interfaces';
+import { ViewGame } from '../shared/back/types';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { UpgradeData } from './upgrade/types';
 
-export type GAMES = IGameInfo[];
+export type GAMES = Record<number, ViewGame | undefined>;
 export type SUGGESTIONS = Partial<any>;
 
 /**
@@ -11,8 +10,6 @@ export type SUGGESTIONS = Partial<any>;
  * This is sort of a hacky and temporary solution. It should be phased out.
  */
 export type CentralState = {
-  /** List of library routes */
-  libraries: string[];
   /** Manager of all playlists. */
   playlists: GamePlaylistManager;
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */

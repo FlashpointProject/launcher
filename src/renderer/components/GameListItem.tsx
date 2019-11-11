@@ -1,11 +1,14 @@
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
-import { IGameInfo } from '../../shared/game/interfaces';
 import { getPlatformIconPath } from '../Util';
 
 export type GameListItemProps = ListRowProps & {
-  /** Game to display. */
-  game: IGameInfo;
+  id: string;
+  title: string;
+  platform: string;
+  genre: string;
+  developer: string;
+  publisher: string;
   /** If the row can be dragged (defaults to false). */
   isDraggable?: boolean;
   /** If the row is selected. */
@@ -15,11 +18,11 @@ export type GameListItemProps = ListRowProps & {
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { game, isDraggable, isSelected, isDragged, index, style } = props;
+  const { id, title, platform, genre, developer, publisher, isDraggable, isSelected, isDragged, index, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
-    getPlatformIconPath(game.platform)
-  ), [game.platform]);
+    getPlatformIconPath(platform)
+  ), [platform]);
   // Pick class names
   const className = React.useMemo(() => {
     let className: string = 'game-list-item';
@@ -32,7 +35,7 @@ export function GameListItem(props: GameListItemProps) {
   return React.useMemo(() => {
     // Set element attributes
     const attributes: any = {};
-    attributes[GameListItem.idAttribute] = game.id;
+    attributes[GameListItem.idAttribute] = id;
     // Render
     return (
       <li
@@ -46,28 +49,28 @@ export function GameListItem(props: GameListItemProps) {
         <div className='game-list-item__right'>
           <div
             className='game-list-item__field game-list-item__field--title'
-            title={game.title}>
-            {game.title}
+            title={title}>
+            {title}
           </div>
           <div
             className='game-list-item__field game-list-item__field--genre'
-            title={game.genre}>
-            {game.genre}
+            title={genre}>
+            {genre}
           </div>
           <div
             className='game-list-item__field game-list-item__field--developer'
-            title={game.developer}>
-            {game.developer}
+            title={developer}>
+            {developer}
           </div>
           <div
             className='game-list-item__field game-list-item__field--publisher'
-            title={game.publisher}>
-            {game.publisher}
+            title={publisher}>
+            {publisher}
           </div>
         </div>
       </li>
     );
-  }, [style, className, isDraggable, game.id, game.genre, game.title, platformIcon]);
+  }, [style, className, isDraggable, id, genre, title, platformIcon]);
 }
 
 export namespace GameListItem { // eslint-disable-line no-redeclare

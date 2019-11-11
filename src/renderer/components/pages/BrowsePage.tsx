@@ -1,11 +1,7 @@
-import * as electron from 'electron';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import * as React from 'react';
 import { BackOut, WrappedResponse } from '../../../shared/back/types';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
-import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
@@ -16,17 +12,11 @@ import { formatString } from '../../../shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { stringifyCurationFormat } from '../../curate/format/stringifier';
-import { convertToCurationMeta } from '../../curate/metaToMeta';
-import { GameManager } from '../../game/GameManager';
-import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
-import { getImageFolderName } from '../../image/util';
 import { CentralState, GAMES, SUGGESTIONS } from '../../interfaces';
 import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
 import { SearchQuery } from '../../store/search';
-import { gameIdDataType, gameScaleSpan, getFileExtension } from '../../Util';
-import { copyGameImageFile } from '../../util/game';
+import { gameIdDataType, gameScaleSpan } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { uuid } from '../../uuid';
 import { GameGrid } from '../GameGrid';
@@ -39,13 +29,14 @@ type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isEd
 type StateCallback2 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isNewGame'>;
 
 type OwnProps = {
-  games: GAMES;
+  games: GAMES | undefined;
   gamesTotal: number;
   playlists: GamePlaylist[];
   suggestions: SUGGESTIONS;
   save: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean) => void;
   launchGame: (gameId: string) => void;
   deleteGame: (gameId: string) => void;
+  onRequestGames: (start: number, end: number) => void;
   /** Semi-global prop. */
   central: CentralState;
   /** Most recent search query. */
@@ -59,11 +50,11 @@ type OwnProps = {
   /** Collection to get game images from, and save game images to. */
   gameImages: GameImageCollection;
   /** Currently selected game (if any). */
-  selectedGame?: IGameInfo;
+  selectedGameId?: string;
   /** Currently selected playlist (if any). */
-  selectedPlaylist?: GamePlaylist;
+  selectedPlaylistId?: string;
   /** Called when a game is selected. */
-  onSelectGame?: (game?: IGameInfo) => void;
+  onSelectGame: (gameId?: string) => void;
   /** Called when a playlist is selected. */
   onSelectPlaylist?: (playlist?: GamePlaylist) => void;
   /** Clear the current search query (resets the current search filters). */
@@ -80,7 +71,7 @@ export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
   quickSearch: string;
   /** Currently dragged game (if any). */
-  draggedGame?: IGameInfo;
+  draggedGameId?: string;
   /** Buffer for the selected game (all changes are made to the game until saved). */
   currentGame?: IGameInfo;
   /** Buffer for the selected games additional applications (all changes are made to this until saved). */
@@ -131,7 +122,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
-    const { central, gameLibrary: gameLibraryRoute, onSelectGame, selectedGame, selectedPlaylist } = this.props;
+    const { gameLibrary: gameLibraryRoute, onSelectGame, selectedGameId: selectedGame, selectedPlaylistId: selectedPlaylist } = this.props;
     const { isEditing, quickSearch } = this.state;
     // Check if it ended editing
     if (!isEditing && prevState.isEditing) {
@@ -144,13 +135,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       // this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) }); @FIXTHIS
     }
     // Update current game and add-apps if the selected game changes
-    if (selectedGame && selectedGame !== prevProps.selectedGame) {
+    if (selectedGame && selectedGame !== prevProps.selectedGameId) {
       this.updateCurrentGameAndAddApps();
       this.setState({ isEditing: false });
     }
     // Update current game and add-apps if the selected game changes
     if (gameLibraryRoute === prevProps.gameLibrary &&
-        selectedPlaylist !== prevProps.selectedPlaylist) {
+        selectedPlaylist !== prevProps.selectedPlaylistId) {
       this.setState({
         currentGame: undefined,
         currentAddApps: undefined,
@@ -161,6 +152,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== quickSearch && quickSearch !== '') {
       // @FIXTHIS Quick search will require its own API perhaps
+      /*
       for (let index = 0; index < this.props.games.length; index++) {
         const game: IGameInfo = this.props.games[index];
         if (game.title.toLowerCase().startsWith(quickSearch)) {
@@ -168,6 +160,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           break;
         }
       }
+      */
     }
     // Create a new game if the "New Game" button is pushed
     this.createNewGameIfClicked(prevProps.wasNewGameClicked);
@@ -184,11 +177,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   render() {
     const strings = this.context;
-    const { games, gamesTotal, selectedGame, selectedPlaylist } = this.props;
-    const { draggedGame } = this.state;
+    const { games, selectedGameId: selectedGame, selectedPlaylistId } = this.props;
+    const { draggedGameId } = this.state;
     const order = this.props.order || BrowsePage.defaultOrder;
     // Find the selected game in the selected playlist (if both are selected)
     let gamePlaylistEntry: GamePlaylistEntry | undefined;
+    /*
     if (selectedPlaylist && selectedGame) {
       for (let gameEntry of selectedPlaylist.games) {
         if (gameEntry.id === selectedGame.id) {
@@ -197,6 +191,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }
       }
     }
+    */
     // Render
     return (
       <div
@@ -211,7 +206,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             central={this.props.central}
             currentLibrary={this.props.gameLibrary}
             playlists={this.props.playlists}
-            selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
+            selectedPlaylistID={selectedPlaylistId || ''}
             onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
             onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
             onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
@@ -228,9 +223,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               return (
                 <GameGrid
                   games={games}
-                  gamesTotal={gamesTotal}
-                  selectedGame={selectedGame}
-                  draggedGame={draggedGame}
+                  gamesTotal={this.props.gamesTotal}
+                  selectedGameId={selectedGame}
+                  draggedGameId={draggedGameId}
                   gameImages={this.props.gameImages}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
@@ -238,6 +233,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onContextMenu={this.onGameContextMenuMemo(strings.menu)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
+                  onRequestGames={this.props.onRequestGames}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   cellWidth={width}
@@ -249,9 +245,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               return (
                 <GameList
                   games={games}
-                  gamesTotal={gamesTotal}
-                  selectedGame={selectedGame}
-                  draggedGame={draggedGame}
+                  gamesTotal={this.props.gamesTotal}
+                  selectedGameId={selectedGame}
+                  draggedGameId={draggedGameId}
                   gameImages={this.props.gameImages}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
@@ -259,6 +255,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onContextMenu={this.onGameContextMenuMemo(strings.menu)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
+                  onRequestGames={this.props.onRequestGames}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   rowHeight={height}
@@ -296,7 +293,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   private noRowsRendererMemo = memoizeOne((strings: LangContainer['browse']) => {
     return () => (
       <div className='game-list__no-games'>
-        { this.props.selectedPlaylist ? (
+        { this.props.selectedPlaylistId ? (
           /* Empty Playlist */
           <>
             <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
@@ -324,29 +321,29 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   });
 
   private onGameContextMenuMemo = memoizeOne((strings: LangContainer['menu']) => {
-    return (game: IGameInfo) => {
+    return (gameId: string) => {
       return (
         openContextMenu([{
           label: strings.openFileLocation,
-          click: this.openFileLocationCallback(game)
+          // @TODO Open the file location
         }, {
           type: 'separator'
         }, {
           label: strings.duplicateMetaOnly,
-          click: this.duplicateCallback(game, false),
+          // @TODO Duplicate the game
           enabled: this.props.preferencesData.enableEditing,
         }, {
           label: strings.duplicateMetaAndImages, // ("&&" will be shown as "&")
-          click: this.duplicateCallback(game, true),
+          // @TODO Duplicate the game and images
           enabled: this.props.preferencesData.enableEditing,
         }, {
           type: 'separator'
         }, {
           label: strings.exportMetaOnly,
-          click: this.exportMetaCallback(game)
+          // @TODO Export meta
         }, {
           label: strings.exportMetaAndImages, // ("&&" will be shown as "&")
-          click: this.exportMetaAndImagesCallback(game)
+          // @TODO Export meta and images
         }])
       );
     };
@@ -408,168 +405,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     return parseInt(document.defaultView.getComputedStyle(this.gameBrowserRef.current).width || '', 10);
   }
 
-  onGameSelect = (game?: IGameInfo): void => {
-    if (this.props.selectedGame !== game) {
-      if (this.props.onSelectGame) { this.props.onSelectGame(game); }
+  onGameSelect = (gameId?: string): void => {
+    if (this.props.selectedGameId !== gameId) {
+      this.props.onSelectGame(gameId);
     }
   }
 
-  onGameLaunch = (game: IGameInfo): void => {
-    this.props.launchGame(game.id);
-  }
-
-  /** Create a callback for opening the file location of a game. */
-  openFileLocationCallback(game: IGameInfo) {
-    return () => {
-      // Extract the game's "entry"/"main" file path
-      const gamePath = GameLauncher.getGamePath(game);
-      if (gamePath !== undefined) {
-        // Check if the file exists
-        fs.exists(gamePath, exists => {
-          if (exists) { remote.shell.showItemInFolder(gamePath); }
-          else {
-            remote.dialog.showMessageBox({
-              type: 'warning',
-              title: this.context.dialog.fileNotFound,
-              message: 'Failed to find the game file.\n'+
-                        'If you are using Flashpoint Infinity, make sure you download the game first.\n'+
-                        '\n'+
-                        `Path: "${gamePath}"\n`+
-                        '\n'+
-                        'Note: If the path is too long, some portion will be replaced with three dots ("...").',
-              buttons: ['Ok'],
-            });
-          }
-        });
-      } else {
-        remote.dialog.showMessageBox({
-          type: 'warning',
-          title: this.context.dialog.pathNotFound,
-          message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
-                    `Game: "${game.title}"`,
-          buttons: ['Ok'],
-        });
-      }
-    };
-  }
-
-  /**
-   * Create a callback for duplicating a game and its additional applications.
-   * @param game Game to duplicate.
-   * @param copyImages If the games images should also be copied.
-   */
-  duplicateCallback(game: IGameInfo, copyImages: boolean = false) {
-    return async () => {
-      const res = await GameManager.fetchGame(game.id);
-      const addApps = res.addApps;
-      // Duplicate game and add-apps
-      const newGame = GameInfo.duplicate(game);
-      const newAddApps = addApps.map(addApp => AdditionalApplicationInfo.duplicate(addApp));
-      // Generate new IDs for the game and add-apps
-      newGame.id = uuid();
-      for (let addApp of newAddApps) {
-        addApp.id = uuid();
-        addApp.gameId = newGame.id;
-      }
-      // Copy images
-      if (copyImages) {
-        const imageFolder = getImageFolderName(game);
-        // Copy screenshot
-        const screenshotPath = this.props.gameImages.getScreenshotPath(game);
-        if (screenshotPath) {
-          const cache = this.props.gameImages.getScreenshotCache(imageFolder);
-          if (cache) { copyGameImageFile(screenshotPath, newGame, cache); }
-        }
-        // Copy thumbnail
-        const thumbnailPath = this.props.gameImages.getThumbnailPath(game);
-        if (thumbnailPath) {
-          const cache = this.props.gameImages.getThumbnailCache(imageFolder);
-          if (cache) { copyGameImageFile(thumbnailPath, newGame, cache); }
-        }
-      }
-      // Add game and add-apps
-      GameManager.updateMeta({
-        games: [newGame],
-        addApps: newAddApps,
-        saveToDisk: true,
-      });
-    };
-  }
-
-  /** Create a callback for exporting the meta of a game (as a curation format meta file). */
-  exportMetaCallback(game: IGameInfo) {
-    return async () => {
-      const res = await GameManager.fetchGame(game.id);
-      const addApps = res.addApps;
-      // Choose where to save the file
-      const filePath = electron.remote.dialog.showSaveDialogSync({
-        title: this.context.dialog.selectFileToExportMeta,
-        defaultPath: 'meta',
-        filters: [{
-          name: 'Meta file',
-          extensions: ['txt'],
-        }]
-      });
-      if (filePath) {
-        fs.ensureDir(path.dirname(filePath))
-        .then(() => {
-          const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
-          fs.writeFile(filePath, meta);
-        });
-      }
-    };
-  }
-
-  /** Create a callback for exporting the meta and images of a game (as a curation format meta file and image files). */
-  exportMetaAndImagesCallback(game: IGameInfo) {
-    const strings = this.context.dialog;
-    return async () => {
-      const res = await GameManager.fetchGame(game.id);
-      const addApps = res.addApps;
-      // Choose where to save the file
-      const filePaths = window.External.showOpenDialogSync({
-        title: strings.selectFolderToExportMetaAndImages,
-        properties: ['promptToCreate', 'openDirectory']
-      });
-      if (filePaths && filePaths.length > 0) {
-        const filePath = filePaths[0];
-        // Get image paths
-        const screenPath = this.props.gameImages.getScreenshotPath(game);
-        const thumbPath = this.props.gameImages.getThumbnailPath(game);
-        // Create dest paths
-        const metaPath = path.join(filePath,'meta.txt');
-        const ssPath   = path.join(filePath,'ss'   + getFileExtension(screenPath || ''));
-        const logoPath = path.join(filePath,'logo' + getFileExtension(thumbPath  || ''));
-        // Check if files already exists
-        const exists = [
-          fs.pathExistsSync(metaPath),
-          screenPath ? fs.pathExistsSync(ssPath)   : false,
-          thumbPath  ? fs.pathExistsSync(logoPath) : false,
-        ];
-        if (exists.some(val => val)) { // (One or more of the files already exists)
-          const result = electron.remote.dialog.showMessageBoxSync({
-            type: 'warning',
-            title: strings.replaceFilesQuestion,
-            message: strings.exportedAlreadyExistsYesNo,
-            buttons: ['Yes', 'No'],
-            defaultId: 0,
-          });
-          if (result !== 0) { return; } // (Abort)
-        }
-        // Export files
-        fs.ensureDir(filePath)
-        .then(() => {
-          Promise.all([
-            (async () => {
-              const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
-              await fs.writeFile(metaPath, meta);
-            })(),
-            screenPath ? fs.copyFile(screenPath, ssPath)   : undefined,
-            thumbPath  ? fs.copyFile(thumbPath,  logoPath) : undefined,
-          ]);
-        });
-      }
-    };
+  onGameLaunch = (gameId: string): void => {
+    this.props.launchGame(gameId);
   }
 
   onCenterKeyDown = (event: React.KeyboardEvent): void => {
@@ -596,19 +439,19 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
-  onGameDragStart = (event: React.DragEvent, game: IGameInfo): void => {
-    this.setState({ draggedGame: game });
-    event.dataTransfer.setData(gameIdDataType, game.id);
+  onGameDragStart = (event: React.DragEvent, gameId: string): void => {
+    this.setState({ draggedGameId: gameId });
+    event.dataTransfer.setData(gameIdDataType, gameId);
   }
 
-  onGameDragEnd = (event: React.DragEvent, game: IGameInfo): void => {
-    this.setState({ draggedGame: undefined });
+  onGameDragEnd = (event: React.DragEvent, gameId: string): void => {
+    this.setState({ draggedGameId: undefined });
     event.dataTransfer.clearData(gameIdDataType);
   }
 
   onDeleteSelectedGame = (): void => {
     // Delete the game
-    if (this.props.selectedGame) { this.props.deleteGame(this.props.selectedGame.id); }
+    if (this.props.selectedGameId) { this.props.deleteGame(this.props.selectedGameId); }
     // Deselect the game
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
     // Reset the state related to the selected game
@@ -623,12 +466,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onRemoveSelectedGameFromPlaylist = (): void => {
-    const playlist = this.props.selectedPlaylist;
-    const game = this.props.selectedGame;
+    const playlist = this.props.selectedPlaylistId;
+    const gameId = this.props.selectedGameId;
     if (!playlist) { throw new Error('Unable to remove game from selected playlist - No playlist is selected'); }
-    if (!game)     { throw new Error('Unable to remove game from selected playlist - No game is selected'); }
+    if (!gameId)   { throw new Error('Unable to remove game from selected playlist - No game is selected'); }
     // Find the game entry (of the selected game) in the playlist
-    const gameId = game.id;
+    /*
     let index: number = -1;
     playlist.games.every((gameEntry, i) => {
       if (gameEntry.id === gameId) {
@@ -641,6 +484,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Remove the game from the playlist and save the change
     playlist.games.splice(index, 1); // Remove game entry
     this.props.central.playlists.save(playlist);
+    */
     // Deselect the game
     if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
     // Reset the state related to the selected game
@@ -653,12 +497,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onEditPlaylistNotes = (text: string): void => {
-    const playlist = this.props.selectedPlaylist;
-    const game = this.props.selectedGame;
+    /*
+    const playlist = this.props.selectedPlaylistId;
+    const game = this.props.selectedGameId;
     if (!playlist) { throw new Error('Unable to remove game from selected playlist - No playlist is selected'); }
     if (!game)     { throw new Error('Unable to remove game from selected playlist - No game is selected'); }
     // Find the game entry (of the selected game) in the playlist
-    const gameId = game.id;
     let index: number = -1;
     playlist.games.every((gameEntry, i) => {
       if (gameEntry.id === gameId) {
@@ -672,22 +516,25 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     playlist.games[index].notes = text;
     this.props.central.playlists.save(playlist);
     this.forceUpdate();
+    */
   }
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances) */
   async updateCurrentGameAndAddApps(cb: (state: StateCallback2) => void = this.boundSetState): Promise<void> {
-    const { selectedGame } = this.props;
+    /*
+    const { selectedGameId } = this.props;
     if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
       // Find additional applications for the selected game (if any)
       const res = await GameManager.fetchGame(selectedGame.id);
       const addApps = res.addApps;
       // Update State
       cb({
-        currentGame: selectedGame && GameInfo.duplicate(selectedGame),
+        currentGame: selectedGameId && GameInfo.duplicate(selectedGameId),
         currentAddApps: addApps && addApps.map(AdditionalApplicationInfo.duplicate),
         isNewGame: false,
       });
     }
+    */
   }
 
   onStartEditClick = (): void => {

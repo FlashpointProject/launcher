@@ -3,14 +3,14 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { BackIn } from '../shared/back/types';
+import { BackIn, BackInit, BackOut, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, InitEventData } from '../shared/back/types';
 import { sendRequest } from '../shared/back/util';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
-import { IObjectMap, WindowIPC } from '../shared/interfaces';
+import { WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
 import { getLibraryItemTitle } from '../shared/library/util';
-import { memoizeOne } from '../shared/memoize';
+import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
 import { versionNumberToText } from '../shared/Util';
@@ -39,8 +39,24 @@ import { joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
 
+type Views = Record<string, View | undefined>; // views[id] = view
+type View = {
+  games: GAMES;
+  pages: Record<number, ViewPage | undefined>;
+  total: number;
+  selectedPlaylistId?: string;
+  selectedGameId?: string;
+  /** The most recent query used for this view. */
+  query: {
+    search: string;
+    orderBy: GameOrderBy;
+    orderReverse: GameOrderReverse;
+  };
+}
+type ViewPage = {
+}
+
 type AppOwnProps = {
-  allGamesTotal: number;
   /** Most recent search query. */
   search: SearchQuery;
   /** Theme manager. */
@@ -52,12 +68,12 @@ type AppOwnProps = {
 export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps;
 
 export type AppState = {
-  games: GAMES;
-  gamesTotal: number;
+  views: Views;
+  libraries: string[];
   playlists: GamePlaylist[];
   suggestions: SUGGESTIONS;
   platforms: PlatformInfo[];
-  allGamesTotal: number;
+  loaded: { [key in BackInit]: boolean; };
 
   /** Semi-global prop. */
   central: CentralState;
@@ -72,10 +88,6 @@ export type AppState = {
   gameLayout: BrowsePageLayout;
   /** Manager of all the game image folders, and container of their data. */
   gameImages: GameImageCollection;
-  /** Currently selected game (for each browse tab / library). */
-  selectedGames: IObjectMap<IGameInfo>;
-  /** Currently selected playlists (for each browse tab / library). */
-  selectedPlaylists: IObjectMap<GamePlaylist>;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
   /** Current language container. */
@@ -85,23 +97,22 @@ export type AppState = {
 };
 
 export class App extends React.Component<AppProps, AppState> {
-  private countGamesOfCurrentLibrary = memoizeOne(countGamesOfLibrarysPlatforms);
-
   constructor(props: AppProps) {
     super(props);
     // Normal constructor stuff
     const preferencesData = this.props.preferencesData;
     const config = window.External.config;
     this.state = {
-      games: [],
-      gamesTotal: 0,
+      views: {},
+      libraries: [],
       playlists: [],
       suggestions: {},
       platforms: [],
-      allGamesTotal: this.props.allGamesTotal,
+      loaded: {
+        0: false,
+      },
 
       central: {
-        libraries: [],
         playlists: new GamePlaylistManager(),
         upgrade: {
           doneLoading: false,
@@ -130,8 +141,6 @@ export class App extends React.Component<AppProps, AppState> {
       gameLayout: preferencesData.browsePageLayout,
       lang: this.props.langManager.container,
       langList: this.props.langManager.items,
-      selectedGames: {},
-      selectedPlaylists: {},
       wasNewGameClicked: false,
       order: {
         orderBy: preferencesData.gamesOrderBy,
@@ -185,6 +194,63 @@ export class App extends React.Component<AppProps, AppState> {
     ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
       updatePreferencesData({ mainWindow: { maximized: isMaximized } });
     });
+
+    window.External.back.send<InitEventData>(BackIn.INIT_LISTEN, undefined, res => {
+      if (!res.data) { throw new Error('INIT_LISTEN response is missing data.'); }
+      const nextLoaded = { ...this.state.loaded };
+      for (let key of res.data.done) {
+        nextLoaded[key] = true;
+      }
+      this.setState({ loaded: nextLoaded });
+    });
+
+    window.External.back.send<BrowseViewAllData>(BackIn.GET_LIBRARIES, undefined, res => {
+      if (!res.data) { throw new Error('no boring data wtf'); }
+      const libraries = res.data.libraries;
+
+      const views: Record<string, View> = {};
+      for (let library of libraries) {
+        views[library] = {
+          games: {},
+          pages: {},
+          total: 0,
+          query: {
+            search: this.props.search.text,
+            orderBy: this.state.order.orderBy,
+            orderReverse: this.state.order.orderReverse,
+          }
+        };
+      }
+
+      this.setState({
+        libraries,
+        views,
+      });
+    });
+
+    window.External.back.on('response', res => {
+      console.log('INCOMING', res);
+      switch (res.type) {
+        case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
+          const resData: BrowseViewPageResponseData = res.data;
+
+          let view: View | undefined = this.state.views[res.id];
+
+          if (view) {
+            const views = { ...this.state.views };
+            const newView = views[res.id] = { ...view, games: { ...view.games } };
+            for (let i = 0; i < resData.games.length; i++) {
+              newView.games[resData.offset + i] = resData.games[i];
+            }
+            if (resData.total !== undefined) { newView.total = resData.total; }
+            this.setState({ views });
+          }
+        } break;
+      }
+    });
+
+    // -- Stuff that should probably be moved to the back --
+
     // Listen for changes to the theme files
     this.props.themes.on('change', item => {
       if (item.entryPath === this.props.preferencesData.currentTheme) {
@@ -300,8 +366,6 @@ export class App extends React.Component<AppProps, AppState> {
           } );
         }
       });
-
-
       which('wine', function(err: Error | null) {
         if (err) {
           if (window.External.preferences.data.useWine) {
@@ -325,6 +389,64 @@ export class App extends React.Component<AppProps, AppState> {
 
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {
     const { history, location, preferencesData } = this.props;
+    const library = getBrowseSubPath(this.props.location.pathname);
+    const view = this.state.views[library];
+    // Check if the library changes
+    const prevLibrary = getBrowseSubPath(prevProps.location.pathname);
+    if (library && prevLibrary && library !== prevLibrary) {
+      // Fetch first games when switching browse page view
+      this.onRequestGames(0, 1);
+      // Update search options (if they have changed)
+      if (view) {
+        if (view.query.search       !== this.props.search.text ||
+            view.query.orderBy      !== this.state.order.orderBy ||
+            view.query.orderReverse !== this.state.order.orderReverse) {
+          this.setState({
+            views: {
+              ...this.state.views,
+              [library]: {
+                ...view,
+                query: {
+                  ...view.query,
+                  search: this.props.search.text,
+                  orderBy: this.state.order.orderBy,
+                  orderReverse: this.state.order.orderReverse,
+                },
+                // Clear cache
+                games: {},
+                pages: {},
+              }
+            }
+          }, () => { this.onRequestGames(0, 1); });
+        }
+      }
+    }
+    // Update search text of current library
+    if (this.props.search.text !== prevProps.search.text) {
+      if (view) {
+        if (view.query.search !== this.props.search.text) {
+          this.setState({
+            views: {
+              ...this.state.views,
+              [library]: {
+                ...view,
+                query: {
+                  ...view.query,
+                  search: this.props.search.text,
+                },
+                // Clear cache
+                games: {},
+                pages: {},
+              }
+            }
+          }, () => {
+            // @TODO This requets some games just to update the state with some fresh values
+            //       from the back. It's kinda cheesy and probably adds an unnecessary delay.
+            this.onRequestGames(0, 1);
+          });
+        }
+      }
+    }
     // Update preference "lastSelectedLibrary"
     const gameLibraryRoute = getBrowseSubPath(location.pathname);
     if (location.pathname.startsWith(Paths.BROWSE) &&
@@ -345,30 +467,39 @@ export class App extends React.Component<AppProps, AppState> {
         history.push(joinLibraryRoute(route));
       }
       if (location.pathname.startsWith(Paths.BROWSE)) {
-        this.setState({
-          wasNewGameClicked: false,
-          selectedGames: deleteMapProp(copyMap(this.state.selectedGames), route) // (Deselect the game of the current library)
-        });
+        this.setState({ wasNewGameClicked: false });
+        // Deselect the current game
+        const view = this.state.views[route];
+        if (view && view.selectedGameId !== undefined) {
+          const views = { ...this.state.views };
+          views[route] = {
+            ...view,
+            selectedGameId: undefined,
+          };
+          this.setState({ views });
+        }
       }
     }
   }
 
   render() {
-    const { libraries } = this.state.central;
-    const loaded = this.state.central.playlistsDoneLoading &&
+    const loaded = this.state.loaded[BackInit.GAMES] &&
+                   this.state.central.playlistsDoneLoading &&
                    this.state.central.upgrade.doneLoading &&
                    this.state.creditsDoneLoading;
-    const library = getBrowseSubPath(this.props.location.pathname);
+    const libraryPath = getBrowseSubPath(this.props.location.pathname);
+    const view = this.state.views[libraryPath];
     // Props to set to the router
     const routerProps: AppRouterProps = {
-      games: this.state.games,
-      gamesTotal: this.state.gamesTotal,
+      games: view && view.games,
+      gamesTotal: view ? view.total : 0,
       playlists: this.state.playlists,
       suggestions: this.state.suggestions,
       platforms: this.state.platforms,
       save: this.save,
       launchGame: this.launchGame,
       deleteGame: this.deleteGame,
+      onRequestGames: this.onRequestGames,
 
       central: this.state.central,
       creditsData: this.state.creditsData,
@@ -377,14 +508,14 @@ export class App extends React.Component<AppProps, AppState> {
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
       gameImages: this.state.gameImages,
-      selectedGame: this.state.selectedGames[library],
-      selectedPlaylist: this.state.selectedPlaylists[library],
+      selectedGameId: view && view.selectedGameId,
+      selectedPlaylistId: view && view.selectedPlaylistId,
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.state.wasNewGameClicked,
       onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
-      gameLibrary: library,
+      gameLibrary: libraryPath,
       themeItems: this.props.themes.items,
       reloadTheme: this.reloadTheme,
       languages: this.state.langList,
@@ -395,6 +526,7 @@ export class App extends React.Component<AppProps, AppState> {
       <LangContext.Provider value={this.state.lang}>
         {/* Splash screen */}
         <SplashScreen
+          gamesLoaded={this.state.loaded[BackInit.GAMES]}
           playlistsLoaded={this.state.central.playlistsDoneLoading}
           upgradesLoaded={this.state.central.upgrade.doneLoading}
           creditsLoaded={this.state.creditsDoneLoading} />
@@ -407,7 +539,7 @@ export class App extends React.Component<AppProps, AppState> {
           <>
             {/* Header */}
             <HeaderContainer
-              libraries={libraries}
+              libraries={this.state.libraries}
               onOrderChange={this.onOrderChange}
               onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
               onToggleRightSidebarClick={this.onToggleRightSidebarClick}
@@ -423,10 +555,9 @@ export class App extends React.Component<AppProps, AppState> {
             </div>
             {/* Footer */}
             <ConnectedFooter
-              showCount={true}
-              totalCount={this.state.allGamesTotal}
-              currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-              currentCount={this.countGamesOfCurrentLibrary(this.state.platforms, library)}
+              totalCount={-1}
+              currentLabel={libraryPath && getLibraryItemTitle(libraryPath, this.state.lang.libraries)}
+              currentCount={view ? view.total : 0}
               onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
               onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
               onNewGameClick={this.onNewGameClick} />
@@ -437,7 +568,29 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private onOrderChange = (event: GameOrderChangeEvent): void => {
-    this.setState({ order: event });
+    const library = getBrowseSubPath(this.props.location.pathname);
+    const view = this.state.views[library];
+    if (view) {
+      // @TODO I'm thinking about moving the order options to be specific to each view,
+      //       instead of global. But maybe that is unnecessary and just adds complexity.
+      this.setState({
+        order: event,
+        views: {
+          ...this.state.views,
+          [library]: {
+            ...view,
+            query: {
+              ...view.query,
+              orderBy: event.orderBy,
+              orderReverse: event.orderReverse,
+            },
+            // Clear cache
+            games: {},
+            pages: {},
+          }
+        }
+      }, () => { this.onRequestGames(0, 1); });
+    }
     // Update Preferences Data (this is to make it get saved on disk)
     updatePreferencesData({
       gamesOrderBy: event.orderBy,
@@ -471,19 +624,29 @@ export class App extends React.Component<AppProps, AppState> {
     this.forceUpdate();
   }
 
-  private onSelectGame = (game?: IGameInfo): void => {
+  private onSelectGame = (gameId?: string): void => {
     const route = getBrowseSubPath(this.props.location.pathname);
-    this.setState({ selectedGames: setMapProp(copyMap(this.state.selectedGames), route, game) });
+    const view = this.state.views[route];
+    if (view && view.selectedGameId !== undefined) {
+      const views = { ...this.state.views };
+      views[route] = {
+        ...view,
+        selectedGameId: gameId,
+      };
+      this.setState({ views });
+    }
   }
 
   /** Set the selected playlist for a single "browse route" */
   private onSelectPlaylist = (playlist?: GamePlaylist, route?: string): void => {
+    /*
     const { selectedGames, selectedPlaylists } = this.state;
     if (route === undefined) { route = getBrowseSubPath(this.props.location.pathname); }
     this.setState({
       selectedPlaylists: setMapProp(copyMap(selectedPlaylists), route, playlist),
       selectedGames: deleteMapProp(copyMap(selectedGames), route),
     });
+    */
   }
 
   private onDownloadTechUpgradeClick = () => {
@@ -557,6 +720,64 @@ export class App extends React.Component<AppProps, AppState> {
   deleteGame(gameId: string): void {
     // @TODO
   }
+
+  onRequestGames = (offset: number, limit: number): void => {
+    const VIEW_PAGE_SIZE = 250;
+    const libraryPath = getBrowseSubPath(this.props.location.pathname);
+    const view = this.state.views[libraryPath];
+
+    if (!view) { throw new Error(`Failed to request games. Current view is missing (Library: "${libraryPath}", View: "${view}").`); }
+
+    const pageMin = Math.floor(offset / VIEW_PAGE_SIZE);
+    const pageMax = Math.ceil((offset + limit) / VIEW_PAGE_SIZE);
+
+    const pageIndices: number[] = [];
+    const pages: ViewPage[] = [];
+    for (let page = pageMin; page <= pageMax; page++) {
+      if (!view.pages[page]) {
+        pageIndices.push(page);
+        pages.push({});
+      }
+    }
+
+    if (pages.length > 0) {
+      console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
+      const library = getBrowseSubPath(this.props.location.pathname);
+      window.External.back.sendReq<any, BrowseViewPageData>({
+        id: library,
+        type: BackIn.BROWSE_VIEW_PAGE,
+        data: {
+          offset: pageMin * VIEW_PAGE_SIZE,
+          limit: (pageMax - pageMin + 1) * VIEW_PAGE_SIZE,
+          query: {
+            extreme: this.props.preferencesData.browsePageShowExtreme,
+            broken: false, // @TODO Add an option for this or something
+            library: library,
+            search: this.props.search.text, //view.query.search,
+            orderBy: this.state.order.orderBy, //view.query.orderBy,
+            orderReverse: this.state.order.orderReverse, //view.query.orderReverse,
+          },
+        }
+      });
+
+      const newPages: Record<number, ViewPage | undefined> = {};
+      for (let i = 0; i < pages.length; i++) {
+        newPages[pageIndices[i]] = pages[i];
+      }
+      this.setState({
+        views: {
+          ...this.state.views,
+          [libraryPath]: {
+            ...view,
+            pages: {
+              ...view.pages,
+              ...newPages
+            }
+          },
+        }
+      });
+    }
+  }
 }
 
 function downloadAndInstallStage(stage: UpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
@@ -614,29 +835,4 @@ function log(content: string): void {
     source: 'Launcher',
     content: content
   });
-}
-
-/** Count the number of games in all platforms that "belong" to the given library */
-function countGamesOfLibrarysPlatforms(platforms: PlatformInfo[], library?: string): number {
-  let count = 0;
-  for (let platform of platforms) {
-    if (platform.library === library) {
-      count += platform.size;
-    }
-  }
-  return count;
-}
-
-function copyMap<T>(map: IObjectMap<T>): IObjectMap<T> {
-  return Object.assign({}, map);
-}
-
-function setMapProp<T>(map: IObjectMap<T>, prop: string, value: T|undefined): IObjectMap<T> {
-  map[prop] = value;
-  return map;
-}
-
-function deleteMapProp<T>(map: IObjectMap<T>, prop: string): IObjectMap<T> {
-  if (Object.prototype.hasOwnProperty.call(map, prop)) { delete map[prop]; }
-  return map;
 }
