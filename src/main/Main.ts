@@ -1,7 +1,7 @@
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as WebSocket from 'ws';
 import { BackIn, BackInitArgs, BackOut } from '../shared/back/types';
@@ -181,6 +181,9 @@ export class Main {
   private onAppWillQuit(): void {
     if (this._services) {
       this._services.stopAll();
+      // Remove lingering update data
+      fs.remove(path.join(this._config.data.flashpointPath, 'Upgrade Data'));
+      // Cleanup back proc
       if (this.backProc) {
         this.backProc.kill();
       }

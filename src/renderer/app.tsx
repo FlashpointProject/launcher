@@ -42,6 +42,7 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
+import { indexContentFolder } from './curate/importCuration';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -571,19 +572,22 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
 
   for (let source of stage.sources) {
     const filename = stage.id + '__' + source.split('/').pop() || 'unknown';
+    let lastUpdateType = '';
     // Start download and installation
     let prevProgressUpdate = Date.now();
     const state = downloadAndInstallUpgrade(stage, {
-      installPath: path.resolve(flashpointPath),
+      installPath: path.join(flashpointPath),
       downloadFilename: filename
     })
     .on('progress', () => {
       const now = Date.now();
-      if (now - prevProgressUpdate > 100) {
+      if (now - prevProgressUpdate > 100 || lastUpdateType != state.currentTask) {
         prevProgressUpdate = now;
+        lastUpdateType = state.currentTask;
         switch (state.currentTask) {
           case 'downloading': setStageState(stage.id, { installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
           case 'extracting':  setStageState(stage.id, { installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
+          case 'installing':  setStageState(stage.id, { installProgressNote: 'Installing Files...'});                                         break;
           default:            setStageState(stage.id, { installProgressNote: '...' });                                                        break;
         }
       }

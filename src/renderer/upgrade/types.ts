@@ -8,6 +8,10 @@ export type UpgradeStage = {
   checks: string[];
   /** URLs from where the stage can be downloaded (only one will be downloaded, the other are "backups") */
   sources: string[];
+  /** Paths to delete from Install Path before installation / extraction */
+  deletePaths: string[];
+  /** Paths to ignore from the Install Path when installing / extracting */
+  keepPaths: string[];
   /** State of this upgrade stage */
   state: UpgradeStageState;
 };

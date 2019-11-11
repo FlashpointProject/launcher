@@ -44,12 +44,16 @@ export namespace UpgradeFile {
       description: '',
       checks: [],
       sources: [],
+      deletePaths: [],
+      keepPaths: [],
       state: newUpgradeStageState()
     };
     parser.prop('title',       v => parsed.title       = str(v));
     parser.prop('description', v => parsed.description = str(v));
     parser.prop('checks',      v => parsed.checks      = strArr(v));
     parser.prop('sources',     v => parsed.sources     = strArr(v));
+    parser.prop('deletePaths', v => parsed.deletePaths = strArr(v));
+    parser.prop('keepPaths',   v => parsed.keepPaths   = strArr(v));
     return parsed;
   }
 }

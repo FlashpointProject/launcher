@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as stream from 'stream';
 import { UpgradeStage } from '../upgrade/types';
 import { pathTo7z } from './SevenZip';
+import { indexContentFolder } from '../curate/importCuration';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -32,7 +33,7 @@ export interface UpgradeStatus {
   emit(event: 'done'): boolean;
 }
 
-export type UpgradeStatusTask = 'downloading' | 'extracting' | 'none';
+export type UpgradeStatusTask = 'downloading' | 'extracting' | 'installing' | 'none';
 
 export class UpgradeStatus extends EventEmitter {
   public currentTask: UpgradeStatusTask = 'none';
@@ -75,17 +76,49 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
         status.emit('progress');
       }
     })
-    .once('done', (zipPath) => {
-      console.log(zipPath);
+    .once('done', async (zipPath) => {
+      // Start extraction
+      const extractionPath = path.join(opts.installPath, 'Upgrade Data', upgrade.id);
+      await fs.ensureDir(extractionPath);
       status.currentTask = 'extracting';
       log(`Download of the "${upgrade.title}" upgrade complete!`);
       log(`Installation of the "${upgrade.title}" upgrade started.`);
-      extractFull(zipPath, opts.installPath, { $bin: pathTo7z, $progress: true })
+      extractFull(zipPath, extractionPath, { $bin: pathTo7z, $progress: true })
       .on('progress', (progress) => {
         status.extractProgress = progress.percent / 100;
         status.emit('progress');
       })
-      .once('end', () => {
+      .once('end', async () => {
+        status.currentTask = 'installing';
+        status.emit('progress');
+        // Delete paths if required by Upgrade
+        for (let p of upgrade.deletePaths) {
+          try {
+            const realPath = path.join(opts.installPath, p);
+            await fs.remove(realPath);
+          } catch (error) { /* Path not present */ }
+        }
+        // Move extracted files to the install location, with filter
+        const allFiles = await indexContentFolder(extractionPath);
+        // Move all folders into install path
+        await Promise.all(allFiles.map(async file => {
+          const source = path.join(extractionPath, file.filePath);
+          const dest = path.join(opts.installPath, file.filePath);
+          console.log(path.normalize(file.filePath));
+          if (upgrade.keepPaths.findIndex(s => path.normalize(s).startsWith(path.normalize(file.filePath))) === -1) {
+            // Only passes paths not in keepPaths.
+            await fs.ensureDir(path.dirname(dest));
+            await fs.move(source, dest);
+          } else {
+            // Requested to keep, copy if not present
+            await fs.access(dest, fs.constants.F_OK)
+            .then(() => { /* File found, don't copy */ })
+            .catch(async (error) => { await fs.move(source, dest); });
+          }
+        }));
+        // Clean up extraction folder
+        await fs.remove(extractionPath);
+        // Install complete
         log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
             'Restart the launcher for the upgrade to take effect.');
         status.emit('done');
