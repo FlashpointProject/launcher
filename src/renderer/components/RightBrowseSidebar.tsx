@@ -73,6 +73,7 @@ export interface RightBrowseSidebar {
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
   // Bound "on change" callbacks for game fields
   onTitleChange               = this.wrapOnTextChange((game, text) => { game.title               = text; });
+  onAlternateTitlesChange     = this.wrapOnTextChange((game, text) => { game.alternateTitles     = text; });
   onDeveloperChange           = this.wrapOnTextChange((game, text) => { game.developer           = text; });
   onTagsChange                = this.wrapOnTextChange((game, text) => { game.tags                = text; });
   onSeriesChange              = this.wrapOnTextChange((game, text) => { game.series              = text; });
@@ -221,6 +222,16 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           { isPlaceholder ? undefined : (
             <>
               <div className='browse-right-sidebar__section'>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.alternateTitles}: </p>
+                  <InputField
+                    text={game.alternateTitles}
+                    placeholder={strings.noAlternateTitles}
+                    className='browse-right-sidebar__searchable'
+                    onChange={this.onAlternateTitlesChange}
+                    editable={editable}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.tags}: </p>
                   <DropdownInputField
@@ -484,6 +495,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       <GameImageSplit
                         text={strings.thumbnail}
                         imgSrc={thumbnailSrc}
+                        showHeaders={true}
                         onAddClick={this.onAddThumbnailClick}
                         onRemoveClick={this.onRemoveThumbnailClick}
                         onDrop={this.onDropThumbnail}
@@ -491,6 +503,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       <GameImageSplit
                         text={strings.screenshot}
                         imgSrc={screenshotSrc}
+                        showHeaders={true}
                         onAddClick={this.onAddScreenshotClick}
                         onRemoveClick={this.onRemoveScreenshotClick}
                         onDrop={this.onDropScreenshot}

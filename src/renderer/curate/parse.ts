@@ -4,6 +4,7 @@ import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser
 import { EditAddAppCurationMeta, EditCurationMeta } from '../context/CurationContext';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
+import { generateExtrasAddApp, generateMessageAddApp } from './util';
 
 const { str } = Coerce;
 
@@ -60,6 +61,7 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
   const lowerCaseData: any = {};
   for (let key of Object.keys(data)) {
     if (data[key]) {
+      // Don't copy undefined data - will convert to string, bad!
       lowerCaseData[key.toLowerCase()] = data[key];
     }
   }
@@ -69,28 +71,29 @@ function convertMeta(data: any, onError?: (error: string) => void): ParsedCurati
   });
   // -- Old curation format --
   parser.prop('author notes',         v => parsed.game.authorNotes         = str(v));
-  parser.prop('genre',                v => parsed.game.tags               = str(v));
+  parser.prop('genre',                v => parsed.game.tags                = arrayStr(v));
   parser.prop('notes',                v => parsed.game.notes               = str(v));
   // -- New curation format --
   // Single value properties
   parser.prop('application path',     v => parsed.game.applicationPath     = str(v));
   parser.prop('curation notes',       v => parsed.game.authorNotes         = str(v));
-  parser.prop('developer',            v => parsed.game.developer           = str(v));
+  parser.prop('developer',            v => parsed.game.developer           = arrayStr(v));
   parser.prop('extreme',              v => parsed.game.extreme             = str(v));
   parser.prop('game notes',           v => parsed.game.notes               = str(v));
-  parser.prop('genres',               v => parsed.game.tags               = str(v));
+  parser.prop('genres',               v => parsed.game.tags                = arrayStr(v));
   parser.prop('languages',            v => parsed.game.language            = str(v));
   parser.prop('launch command',       v => parsed.game.launchCommand       = str(v));
   parser.prop('original description', v => parsed.game.originalDescription = str(v));
-  parser.prop('play mode',            v => parsed.game.playMode            = str(v));
+  parser.prop('play mode',            v => parsed.game.playMode            = arrayStr(v));
   parser.prop('platform',             v => parsed.game.platform            = str(v));
-  parser.prop('publisher',            v => parsed.game.publisher           = str(v));
+  parser.prop('publisher',            v => parsed.game.publisher           = arrayStr(v));
   parser.prop('release date',         v => parsed.game.releaseDate         = str(v));
   parser.prop('series',               v => parsed.game.series              = str(v));
   parser.prop('source',               v => parsed.game.source              = str(v));
   parser.prop('status',               v => parsed.game.status              = str(v));
-  parser.prop('tags',                 v => parsed.game.tags               = str(v));
+  parser.prop('tags',                 v => parsed.game.tags                = arrayStr(v));
   parser.prop('title',                v => parsed.game.title               = str(v));
+  parser.prop('alternate titles',     v => parsed.game.alternateTitles     = arrayStr(v));
   parser.prop('version',              v => parsed.game.version             = str(v));
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
   // property aliases
@@ -113,15 +116,9 @@ function convertAddApp(item: IObjectParserProp<any>, label: string | number | sy
   const labelStr = str(label);
   switch (labelStr.toLowerCase()) {
     case 'extras': // (Extras add-app)
-      addApp.heading = 'Extras';
-      addApp.applicationPath = ':extras:';
-      addApp.launchCommand = str(rawValue);
-      break;
+      return generateExtrasAddApp(str(rawValue));
     case 'message': // (Message add-app)
-      addApp.heading = 'Message';
-      addApp.applicationPath = ':message:';
-      addApp.launchCommand = str(rawValue);
-      break;
+      return generateMessageAddApp(str(rawValue));
     default: // (Normal add-app)
       addApp.heading = labelStr;
       item.prop('Heading',          v => addApp.heading         = str(v), true);
@@ -130,4 +127,13 @@ function convertAddApp(item: IObjectParserProp<any>, label: string | number | sy
       break;
   }
   return addApp;
+}
+
+// Coerce an object into a sensible string
+function arrayStr(rawStr: any): string {
+  if (Array.isArray(rawStr)) {
+    // Convert lists to ; seperated strings
+    return rawStr.join('; ');
+  }
+  return str(rawStr);
 }

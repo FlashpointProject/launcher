@@ -12,6 +12,8 @@ type GameImageSplitProps = {
   text: string;
   /** Source of the image (undefined if there is no image). */
   imgSrc?: string;
+  /** Whether to show the text above images */
+  showHeaders: boolean;
   /** Called when the "add" button is clicked. This button is only shown while there is no image. */
   onAddClick: () => void;
   /** Called when the "remove" button is clicked. This button is only shown while there is an image. */
@@ -49,7 +51,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
 
   render() {
     const strings = this.context.misc;
-    const { disabled, imgSrc, text } = this.props;
+    const { disabled, imgSrc, text, showHeaders } = this.props;
     const { hover, showPreview } = this.state;
     // Class name
     let className = 'game-image-split';
@@ -75,7 +77,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
           </div>
         ) : (
           <div className='game-image-split__buttons'>
-            <p>{text}</p>
+            {showHeaders ? <p>{text}</p> : undefined}
             <ConfirmElement
               onConfirm={this.onRemoveClick}
               children={renderDeleteImageButton}

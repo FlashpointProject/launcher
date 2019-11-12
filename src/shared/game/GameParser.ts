@@ -30,6 +30,7 @@ export class GameParser {
     return {
       id: unescapeHTML(data.ID),
       title: title,
+      alternateTitles: unescapeHTML(data.AlternateTitles),
       series: unescapeHTML(data.Series),
       developer: unescapeHTML(data.Developer),
       publisher: unescapeHTML(data.Publisher),
@@ -70,6 +71,7 @@ export class GameParser {
     return {
       ID: escapeHTML(game.id),
       Title: escapeHTML(game.title),
+      AlternateTitles: escapeHTML(game.alternateTitles),
       Series: escapeHTML(game.series),
       Developer: escapeHTML(game.developer),
       Publisher: escapeHTML(game.publisher),

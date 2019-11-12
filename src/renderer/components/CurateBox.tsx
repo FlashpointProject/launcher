@@ -22,7 +22,7 @@ import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxRow } from './CurateBoxRow';
-import { CurateBoxWarnings, CurationWarnings } from './CurateBoxWarnings';
+import { CurateBoxWarnings, CurationWarnings, getWarningCount } from './CurateBoxWarnings';
 import { DropdownInputField } from './DropdownInputField';
 import { GameImageSplit } from './GameImageSplit';
 import { InputField } from './InputField';
@@ -66,6 +66,7 @@ export function CurateBox(props: CurateBoxProps) {
   // Callbacks for the fields (onChange)
   const key                         = props.curation ? props.curation.key : undefined;
   const onTitleChange               = useOnInputChange('title',               key, props.dispatch);
+  const onAlternateTitlesChange     = useOnInputChange('alternateTitles',    key, props.dispatch);
   const onSeriesChange              = useOnInputChange('series',              key, props.dispatch);
   const onDeveloperChange           = useOnInputChange('developer',           key, props.dispatch);
   const onPublisherChange           = useOnInputChange('publisher',           key, props.dispatch);
@@ -105,6 +106,28 @@ export function CurateBox(props: CurateBoxProps) {
           lock: true,
         },
       });
+      // Check for warnings before importing
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraryData);
+      const warningCount = getWarningCount(warnings);
+      if (warningCount > 0) {
+        // Prompt user
+        const res = remote.dialog.showMessageBoxSync({
+          title: 'Import Warnings',
+          message: 'There are Warnings present on this Curation.\n\nDo you still wish to import?',
+          buttons: ['Yes', 'No']
+        });
+        if (res === 1) {
+          // No
+          props.dispatch({
+            type: 'change-curation-lock',
+            payload: {
+              key: curation.key,
+              lock: false,
+            },
+          });
+          return;
+        }
+      }
       // Import the curation
       props.importCuration(curation)
       .then(() => {
@@ -178,7 +201,34 @@ export function CurateBox(props: CurateBoxProps) {
     if (props.curation) {
       props.dispatch({
         type: 'new-addapp',
-        payload: { key: props.curation.key }
+        payload: {
+          key: props.curation.key,
+          type: 'normal'
+        }
+      });
+    }
+  }, [props.dispatch, props.curation && props.curation.key]);
+  // Callback for when adding an Extras add app
+  const onAddExtras = useCallback(() => {
+    if (props.curation) {
+      props.dispatch({
+        type: 'new-addapp',
+        payload: {
+          key: props.curation.key,
+          type: 'extras'
+        }
+      });
+    }
+  }, [props.dispatch, props.curation && props.curation.key]);
+  // Callback for when adding a Message add app
+  const onAddMessage = useCallback(() => {
+    if (props.curation) {
+      props.dispatch({
+        type: 'new-addapp',
+        payload: {
+          key: props.curation.key,
+          type: 'message'
+        }
       });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
@@ -186,6 +236,34 @@ export function CurateBox(props: CurateBoxProps) {
   const onExportClick = useCallback(async () => {
     if (props.curation) {
       const curation = props.curation;
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: curation.key,
+          lock: true,
+        },
+      });
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraryData);
+      const warningCount = getWarningCount(warnings);
+      if (warningCount > 0) {
+        // Prompt user
+        const res = remote.dialog.showMessageBoxSync({
+          title: 'Export Warnings',
+          message: 'There are Warnings present on this Curation.\n\nDo you still wish to export?',
+          buttons: ['Yes', 'No']
+        });
+        if (res === 1) {
+          // No
+          props.dispatch({
+            type: 'change-curation-lock',
+            payload: {
+              key: curation.key,
+              lock: false,
+            },
+          });
+          return;
+        }
+      }
       // Choose where to save the file
       const defaultPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Exports');
       await fs.ensureDir(defaultPath);
@@ -216,6 +294,16 @@ export function CurateBox(props: CurateBoxProps) {
           });
         });
       }
+      const msg = `Successfully Exported ${curation.meta.title} to ${filePath}`;
+      console.log(msg);
+      curationLog(msg);
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: curation.key,
+          lock: false,
+        },
+      });
     }
   }, [props.curation]);
 
@@ -297,27 +385,10 @@ export function CurateBox(props: CurateBoxProps) {
 
   // Generate Warnings
   const warnings = useMemo(() => {
-    const warns: CurationWarnings = {};
     if (props.curation) {
-      // Check launch command exists
-      const launchCommand = props.curation.meta.launchCommand || '';
-      warns.noLaunchCommand = launchCommand === '';
-      // Check launch command is valid (if exists)
-      warns.invalidLaunchCommand = !warns.noLaunchCommand && !validLaunchCommand(getContentFolderByKey(props.curation.key), launchCommand);
-      // Validate release date
-      const releaseDate = props.curation.meta.releaseDate;
-      if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
-      // Check for unused values (with suggestions)
-      warns.unusedTags = listValuesNotSuggested(props, 'tags', ';');
-      warns.unusedPlatform = !isValueSuggested(props, 'platform');
-      warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
-      // Check if there is no content
-      warns.noContent = props.curation.content.length === 0;
-      // Check if library is set
-      const curLibrary = props.curation.meta.library;
-      warns.nonExistingLibrary = props.libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
+      return getCurationWarnings(props.curation, props.suggestions, props.libraryData);
     }
-    return warns;
+    return {};
   }, [props.curation && props.curation.meta, props.curation && props.curation.content]);
 
   // Render images (logo + ss)
@@ -330,6 +401,7 @@ export function CurateBox(props: CurateBoxProps) {
           <GameImageSplit
             text={strings.browse.thumbnail}
             imgSrc={thumbnailPath}
+            showHeaders={false}
             onAddClick={onAddThumbnailClick}
             onRemoveClick={onRemoveThumbnailClick}
             disabled={disabled}
@@ -338,6 +410,7 @@ export function CurateBox(props: CurateBoxProps) {
           <GameImageSplit
             text={strings.browse.screenshot}
             imgSrc={screenshotPath}
+            showHeaders={false}
             onAddClick={onAddScreenshotClick}
             onRemoveClick={onRemoveScreenshotClick}
             disabled={disabled}
@@ -395,6 +468,13 @@ export function CurateBox(props: CurateBoxProps) {
               onChange={onTitleChange}
               { ...sharedInputProps } />
           </CurateBoxRow>
+          <CurateBoxRow title={strings.browse.alternateTitles + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.alternateTitles || ''}
+              placeholder={strings.browse.noAlternateTitles}
+              onChange={onAlternateTitlesChange}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
           <CurateBoxRow title={strings.browse.library + ':'}>
             {/* Look like a DropdownInputField */}
             <div className={warnings.nonExistingLibrary ? 'curate-box-select--warn' : ''}>
@@ -437,7 +517,7 @@ export function CurateBox(props: CurateBoxProps) {
               onChange={onTagsChange}
               items={props.suggestions && props.suggestions.tags || []}
               onItemSelect={onTagItemSelect}
-              className={warnings.unusedTags ? 'input-field--warn' : ''}
+              className={(warnings.unusedTags && warnings.unusedTags.length > 0) ? 'input-field--warn' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.playMode + ':'}>
@@ -552,6 +632,14 @@ export function CurateBox(props: CurateBoxProps) {
           className='curate-box-buttons__button'
           value={strings.curate.newAddApp}
           onClick={onNewAddApp} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.addExtras}
+          onClick={onAddExtras} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.addMessage}
+          onClick={onAddMessage} />
         <hr className='curate-box-divider' />
       </div>
       {/* Content */}
@@ -741,11 +829,11 @@ function useDropImageCallback(filename: string, curation: EditCuration | undefin
  * @param props Properties of the CurateBox.
  * @param key Key of the field to check.
  */
-function isValueSuggested<T extends keyof Partial<GamePropSuggestions>>(props: CurateBoxProps, key: T & string): boolean {
+function isValueSuggested<T extends keyof Partial<GamePropSuggestions>>(curation: EditCuration, _suggestions: Partial<GamePropSuggestions> | undefined, key: T & string): boolean {
   // Get the values used
   // (the dumb compiler doesn't understand that this is a string >:((( )
-  const value = (props.curation && props.curation.meta[key] || '') as string;
-  const suggestions = props.suggestions && props.suggestions[key];
+  const value = (curation.meta[key] || '') as string;
+  const suggestions = _suggestions && _suggestions[key];
   // Check if the value is suggested
   return suggestions ? (suggestions.indexOf(value) >= 0) : false;
 }
@@ -757,11 +845,11 @@ function isValueSuggested<T extends keyof Partial<GamePropSuggestions>>(props: C
  * @param delimiter String delimiter between values
  * @returns List of values not found in suggestions
  */
-function listValuesNotSuggested<T extends keyof Partial<GamePropSuggestions>>(props: CurateBoxProps, key: T & string, delimiter: string): string[] {
+function listValuesNotSuggested<T extends keyof Partial<GamePropSuggestions>>(curation: EditCuration, _suggestions: Partial<GamePropSuggestions> | undefined, key: T & string, delimiter: string): string[] {
   // Get the values used
   // (the dumb compiler doesn't understand that this is a string >:((( )
-  const value = (props.curation && props.curation.meta[key] || '') as string;
-  const suggestions = props.suggestions && props.suggestions[key];
+  const value = (curation.meta[key] || '') as string;
+  const suggestions = _suggestions && _suggestions[key];
   const unusedValues: string[] = [];
   // Delimiter given, split string
   if (suggestions && value.length > 0) {
@@ -876,4 +964,46 @@ function validLaunchCommand(folderPath: string, launchCommand: string): boolean 
  */
 function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
+}
+
+export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraryData: GameLibraryFile) {
+  const warns: CurationWarnings = {};
+  // Check launch command exists
+  const launchCommand = curation.meta.launchCommand || '';
+  warns.noLaunchCommand = launchCommand === '';
+  // Check launch command is valid (if exists)
+  warns.invalidLaunchCommand = !warns.noLaunchCommand && !validLaunchCommand(getContentFolderByKey(curation.key), launchCommand);
+  // Validate release date
+  const releaseDate = curation.meta.releaseDate;
+  if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
+  // Check for unused values (with suggestions)
+  warns.unusedTags = listValuesNotSuggested(curation, suggestions, 'tags', ';');
+  warns.unusedPlatform = !isValueSuggested(curation, suggestions, 'platform');
+  warns.unusedApplicationPath = !isValueSuggested(curation, suggestions, 'applicationPath');
+  warns.nonContentFolders = findNonContentFolders(curation);
+  // Check if there is no content
+  warns.noContent = curation.content.length === 0;
+  // Check if library is set
+  const curLibrary = curation.meta.library;
+  warns.nonExistingLibrary = libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
+  return warns;
+}
+
+function findNonContentFolders(curation: EditCuration): string[] {
+  const curationPath = getCurationFolder(curation);
+  const nonContentFolders: string[] = [];
+  for (let file of fs.readdirSync(curationPath)) {
+    const stats = fs.lstatSync(path.join(curationPath, file));
+    if (stats.isDirectory()) {
+      switch (file) {
+        case 'content':
+        case 'Extras':
+          break;
+        default:
+          nonContentFolders.push(file);
+          break;
+      }
+    }
+  }
+  return nonContentFolders;
 }

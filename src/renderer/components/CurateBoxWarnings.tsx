@@ -26,6 +26,8 @@ export type CurationWarnings = {
   nonExistingLibrary?: boolean;
   /** If there are no content files or folders. */
   noContent?: boolean;
+  /** If there are non-content folders present in the curation folder (Crendor would be proud) */
+  nonContentFolders?: string[];
 };
 
 /** The part of a Curation Box that displays all the warnings (if any). */
@@ -33,9 +35,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
   const strings = React.useContext(LangContext).curate;
   const { warnings } = props;
   // Count the number of warnings
-  const warningCount = useMemo(() =>
-    Object.keys(warnings).reduce<number>(createCountTrueReducer(warnings), 0),
-  [warnings]);
+  const warningCount = useMemo(() => getWarningCount(props.warnings), [props.warnings]);
   // Converts warnings into a single string
   const warningsStrings = useMemo(() => {
     return Object.keys(warnings).map((key) => {
@@ -87,4 +87,12 @@ function createCountTrueReducer<T extends object>(obj: T) {
   return (previousValue: number, currentValue: string): number => (
     previousValue + (obj[currentValue as keyof T] ? 1 : 0)
   );
+}
+
+export function getWarningCount(warnings: CurationWarnings): number {
+  let warningCount = Object.keys(warnings).reduce<number>(createCountTrueReducer(warnings), 0);
+  // Remove 1 from counter if lists are empty
+  if (warnings.unusedTags && warnings.unusedTags.length === 0) { warningCount--; }
+  if (warnings.nonContentFolders && warnings.nonContentFolders.length === 0) { warningCount--; }
+  return warningCount;
 }

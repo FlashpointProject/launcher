@@ -6,8 +6,6 @@ import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import * as YAML from 'yaml';
 import { LangContainer } from '../../../shared/lang';
-import { GameLibraryFileItem } from '../../../shared/library/types';
-import { findLibraryByRoute } from '../../../shared/library/util';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
 import { WithLibraryProps } from '../../containers/withLibrary';
@@ -26,10 +24,12 @@ import { LangContext } from '../../util/lang';
 import { getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
-import { CurateBox } from '../CurateBox';
+import { CurateBox, getCurationWarnings } from '../CurateBox';
+import { getWarningCount } from '../CurateBoxWarnings';
 import { AutoProgressComponent } from '../ProgressComponents';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
+import { IGameInfo } from 'src/shared/game/interfaces';
 
 type OwnProps = {
   /** Game manager to add imported curations to. */
@@ -282,12 +282,23 @@ export function CuratePage(props: CuratePageProps) {
         for (let curation of state.curations) {
           // Log status
           console.log(`Importing... (id: ${curation.key})`);
+          // Check for warnings
+          const warnings = getCurationWarnings(curation, suggestions, props.libraryData);
+          const warningCount = getWarningCount(warnings);
+          if (warningCount > 0) {
+            // Prompt user
+            const res = remote.dialog.showMessageBoxSync({
+              title: 'Import Warnings',
+              message: `There are Warnings present on this Curation.\n${curation.meta.title}\n\nDo you still wish to import?`,
+              buttons: ['Yes', 'No']
+            });
+            if (res === 1) {
+              // No - Skip to next curation
+              continue;
+            }
+          }
           // Try importing curation
           try {
-            let library: GameLibraryFileItem | undefined = undefined;
-            if (curation.meta.library) {
-              library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
-            }
             // Import curation (and wait for it to complete)
             await importCurationCallback(curation, true, now)
               // Import failed, could be error or user cancelled
@@ -334,6 +345,10 @@ export function CuratePage(props: CuratePageProps) {
           `  Success: ${success} (${100 * (success / total)}%)\n`+
           `  Failed:  ${total - success}`
         );
+        dispatch({
+          type: 'change-curation-lock-all',
+          payload: { lock: false },
+        });
       })();
     }
   }, [dispatch, state.curations, props.games, props.gameImages]);

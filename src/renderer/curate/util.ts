@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { stripBOM } from '../../shared/Util';
 import { setGameMetaDefaults } from '../components/pages/CuratePage';
-import { EditCuration } from '../context/CurationContext';
+import { EditCuration, EditAddAppCurationMeta } from '../context/CurationContext';
 import { GameMetaDefaults } from './defaultValues';
 import { createCurationIndexImage, CurationIndex, CurationIndexImage, fixSlashes } from './importCuration';
 import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from './parse';
@@ -67,4 +67,20 @@ export function curationLog(content: string): void {
     source: 'Curation',
     content: content
   });
+}
+
+export function generateExtrasAddApp(folderName: string) : EditAddAppCurationMeta {
+  return {
+    heading: 'Extras',
+    applicationPath: ':extras:',
+    launchCommand: folderName
+  };
+}
+
+export function generateMessageAddApp(message: string) : EditAddAppCurationMeta {
+  return {
+    heading: 'Message',
+    applicationPath: ':message:',
+    launchCommand: message
+  };
 }

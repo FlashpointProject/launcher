@@ -31,12 +31,15 @@ export async function importCuration(
   curation: EditCuration, games: GameManager, gameImages: GameImageCollection,
   libraries: GameLibraryFileItem[], log: boolean = false, date: Date = new Date()
 ): Promise<void> {
+  // Build content list
   const contentToMove = [
-    [getContentFolderByKey(curation.key),                   GameLauncher.getHtdocsPath()],
-    [path.join(getCurationFolder(curation), 'Extras'),      path.join(window.External.config.fullFlashpointPath, 'Extras')],
-    [path.join(getCurationFolder(curation), 'ActiveX'),     path.join(window.External.config.fullFlashpointPath, 'FPSoftware', 'ActiveX')],
-    [path.join(getCurationFolder(curation), '3DGrooveGX'),  path.join(window.External.config.fullFlashpointPath, 'FPSoftware', '3DGrooveGX')]
+    [getContentFolderByKey(curation.key),                   GameLauncher.getHtdocsPath()]
   ];
+  const extrasAddApp = curation.addApps.find(a => a.meta.applicationPath === ':extras:');
+  if (extrasAddApp && extrasAddApp.meta.launchCommand && extrasAddApp.meta.launchCommand.length > 0) {
+    // Add extras folder if meta has an entry
+    contentToMove.push([path.join(getCurationFolder(curation), 'Extras'), path.join(window.External.config.fullFlashpointPath, 'Extras', extrasAddApp.meta.launchCommand)]);
+  }
   // Find the library and get its prefix
   const library = libraries.find(lib => lib.route === curation.meta.library);
   const libraryPrefix = library && library.prefix || '';
@@ -96,6 +99,7 @@ function createGameFromCurationMeta(gameId: string, curation: EditCuration, date
   return {
     id:                  gameId, // (Re-use the id of the curation)
     title:               meta.title               || '',
+    alternateTitles:     meta.alternateTitles     || '',
     series:              meta.series              || '',
     developer:           meta.developer           || '',
     publisher:           meta.publisher           || '',
@@ -228,42 +232,59 @@ async function linkContentFolder(curationKey: string) {
  */
 async function copyFolder(inFolder: string, outFolder: string) {
   const contentIndex = await indexContentFolder(inFolder);
+  let yesToAll = false;
   return Promise.all(
     contentIndex.map(async (content) => {
-        // For checking cancel at end
-        let cancel = false;
-        const source = path.join(inFolder, content.filePath);
-        const dest = path.join(outFolder, content.filePath);
-        // Ensure that the folders leading up to the file exists
-        await fs.ensureDir(path.dirname(dest));
+      // For checking cancel at end
+      let cancel = false;
+      const source = path.join(inFolder, content.filePath);
+      const dest = path.join(outFolder, content.filePath);
+      // Ensure that the folders leading up to the file exists
+      await fs.ensureDir(path.dirname(dest));
+      await fs.access(dest, fs.constants.F_OK)
+      .then(async () => {
         // Ask to overwrite if file already exists
-        await fs.access(dest, fs.constants.F_OK)
-          .then(async () => {
-            const filesDifferent = !(await equalFileHashes(source, dest));
-            // Only ask when files don't match
-            if (filesDifferent) {
-              const newStats = await fs.lstat(source);
-              const currentStats = await fs.lstat(dest);
-              const response = remote.dialog.showMessageBoxSync({
-                type: 'warning',
-                title: 'Import Warning',
-                message: 'Overwrite File?\n' +
-                        `${content.filePath}\n` +
-                        `Current File: ${sizeToString(currentStats.size)} (${currentStats.size} Bytes)\n`+
-                        `New File: ${sizeToString(newStats.size)} (${newStats.size} Bytes)`,
-                buttons: ['Yes', 'No', 'Cancel']
-              });
-              if (response === 0) {
-                await fs.move(source, dest, { overwrite: true });
-              }
-              if (response === 2) { cancel = true; }
-            }
-          })
-          // Dest file doesn't exist, just move
-          .catch(async () => {
-            await fs.move(source, dest);
+        const filesDifferent = !(await equalFileHashes(source, dest));
+        // Only ask when files don't match
+        if (filesDifferent) {
+          if (!yesToAll) {
+            await fs.move(source, dest, { overwrite: true });
+            return;
+          }
+          const newStats = await fs.lstat(source);
+          const currentStats = await fs.lstat(dest);
+          const response = remote.dialog.showMessageBoxSync({
+            type: 'warning',
+            title: 'Import Warning',
+            message: 'Overwrite File?\n' +
+                    `${content.filePath}\n` +
+                    `Current File: ${sizeToString(currentStats.size)} (${currentStats.size} Bytes)\n`+
+                    `New File: ${sizeToString(newStats.size)} (${newStats.size} Bytes)`,
+            buttons: ['Yes', 'No', 'Yes to All', 'Cancel']
           });
-        if (cancel) { throw Error('Import cancelled by user.'); }
+          switch (response) {
+            case 0:
+              await fs.move(source, dest, { overwrite: true });
+              break;
+            case 2:
+              yesToAll = true;
+              await fs.move(source, dest, { overwrite: true });
+              break;
+            case 3:
+              cancel = true;
+              break;
+          }
+          if (response === 0) {
+            await fs.move(source, dest, { overwrite: true });
+          }
+          if (response === 2) { cancel = true; }
+        }
+      })
+      .catch(async () => {
+        // Dest file doesn't exist, just move
+        await fs.move(source, dest);
+      });
+      if (cancel) { throw Error('Import cancelled by user.'); }
     })
   )
   .catch((error) => {

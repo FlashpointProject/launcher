@@ -4,6 +4,7 @@ import { GameMetaDefaults } from '../curate/defaultValues';
 import { createCurationIndexImage, CurationIndexImage, IndexedContent } from '../curate/importCuration';
 import { ParsedCurationMeta } from '../curate/parse';
 import { uuid } from '../uuid';
+import { generateExtrasAddApp, generateMessageAddApp } from '../curate/util';
 
 const curationDefaultState: CurationsState = {
   defaultMetaData: undefined,
@@ -99,10 +100,26 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         // Copy the previous curation (and the nested addApps array)
         const prevCuration = nextCurations[index];
         const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
-        nextCuration.addApps.push({
-          key: uuid(),
-          meta: {}
-        });
+        switch (action.payload.type) {
+          case 'normal':
+            nextCuration.addApps.push({
+              key: uuid(),
+              meta: {}
+            });
+            break;
+          case 'extras':
+            nextCuration.addApps.push({
+              key: uuid(),
+              meta: generateExtrasAddApp('')
+            });
+            break;
+          case 'message':
+            nextCuration.addApps.push({
+              key: uuid(),
+              meta: generateMessageAddApp('')
+            });
+            break;
+        }
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
@@ -254,6 +271,7 @@ export type CurationAction = (
   /** Add an empty additional application to curation */
   ReducerAction<'new-addapp', {
     key: string;
+    type: 'normal' | 'extras' | 'message';
   }> |
   /** Remove an additional application (by key) from a curation */
   ReducerAction<'remove-addapp', {
@@ -318,6 +336,7 @@ export type EditCuration = {
 export type EditCurationMeta = {
   // Game fields
   title?: string;
+  alternateTitles?: string;
   series?: string;
   developer?: string;
   publisher?: string;
