@@ -29,7 +29,6 @@ import { getWarningCount } from '../CurateBoxWarnings';
 import { AutoProgressComponent } from '../ProgressComponents';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
-import { IGameInfo } from 'src/shared/game/interfaces';
 
 type OwnProps = {
   /** Game manager to add imported curations to. */
@@ -103,7 +102,7 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [dispatch]);
 
-  // Callback for added/changed file/dir (watcher)
+  // Callback for added/changed file (watcher)
   const updateCurationFile = useCallback(async (fullPath) => {
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
     const relativePath = path.relative(curationsPath, fullPath);
@@ -195,6 +194,9 @@ export function CuratePage(props: CuratePageProps) {
     .on('add', (fullPath) => {
       updateCurationFile(fullPath);
     })
+    .on('addDir', (fullPath) => {
+      
+    })
     .on('unlink', (fullPath) => {
       removeCurationFile(fullPath);
     })
@@ -242,16 +244,18 @@ export function CuratePage(props: CuratePageProps) {
         // Delete if marked
         if (curation.delete) {
           const curationPath = getCurationFolder(curation);
-          fs.remove(curationPath);
+          // Use sync methods to block tab switching before done
+          fs.removeSync(curationPath);
         // Save if not marked
         } else {
           const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
           const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
-          fs.writeFile(metaPath, meta)
-          .catch((error) => {
+          try {
+            fs.writeFileSync(metaPath, meta)
+          } catch (error) {
             curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
             console.error(error);
-          });
+          };
         }
       }
     };
@@ -294,6 +298,14 @@ export function CuratePage(props: CuratePageProps) {
             });
             if (res === 1) {
               // No - Skip to next curation
+              // Unlock the curation
+              dispatch({
+                type: 'change-curation-lock',
+                payload: {
+                  key: curation.key,
+                  lock: false,
+                },
+              });
               continue;
             }
           }
@@ -368,9 +380,8 @@ export function CuratePage(props: CuratePageProps) {
     const newCurationFolder = path.join(window.External.config.fullFlashpointPath, 'Curations', uuid());
     try {
       // Create content folder and empty meta.yaml
-      await fs.mkdir(newCurationFolder);
-      await fs.mkdir(path.join(newCurationFolder, 'content'));
-      await fs.close(await fs.open(path.join(newCurationFolder, 'meta.yaml'), 'w'));
+      await fs.ensureDir(path.join(newCurationFolder, 'content'));
+      await fs.createFile(path.join(newCurationFolder, 'meta.yaml'));
     } catch (error) {
       curationLog('Error creating new curation - ' + error.message);
       console.error(error);
@@ -473,6 +484,13 @@ export function CuratePage(props: CuratePageProps) {
     const curationsFolderPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
     await fs.ensureDir(curationsFolderPath);
     remote.shell.openItem(curationsFolderPath);
+  }, []);
+
+  // Open Curations Folder
+  const onOpenExportsFolder = useCallback(async () => {
+    const exportsFolderPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Exports');
+    await fs.ensureDir(exportsFolderPath);
+    remote.shell.openItem(exportsFolderPath);
   }, []);
 
   // On Left Sidebar Size change
@@ -614,6 +632,10 @@ export function CuratePage(props: CuratePageProps) {
               value={strings.curate.openCurationsFolder}
               title={strings.curate.openCurationsFolderDesc}
               onClick={onOpenCurationsFolder} />
+            <SimpleButton
+              value={strings.curate.openExportsFolder}
+              title={strings.curate.openExportsFolderDesc}
+              onClick={onOpenExportsFolder} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
               onConfirm={onImportAllClick}

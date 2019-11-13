@@ -225,6 +225,8 @@
     "deleteAllDesc": "Delete all curations that are currently loaded",
     "openCurationsFolder": "Curation Folders",
     "openCurationsFolderDesc": "Open the Curations folder in explorer",
+    "openExportsFolder": "Exports Folder",
+    "openExportsFolderDesc": "Open the default Exports folder containing your exported curations.",
     "newCuration": "New Curation",
     "newCurationDesc": "Creates a new curation with a unique folder",
     "loadMeta": "Load Meta",

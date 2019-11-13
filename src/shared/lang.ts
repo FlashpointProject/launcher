@@ -233,6 +233,8 @@ const langTemplate = {
     'deleteAllDesc',
     'openCurationsFolder',
     'openCurationsFolderDesc',
+    'openExportsFolder',
+    'openExportsFolderDesc',
     'newCuration',
     'newCurationDesc',
     'loadMeta',

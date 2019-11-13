@@ -1856,7 +1856,6 @@ body {
 .progress-component__wrapper {
   position: relative;
   width: 100%;
-  height: 100%;
   top: 0;
   left: 0;
   /* Font Size acts to scale child component */
