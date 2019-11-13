@@ -84,7 +84,7 @@ gulp.task('pack', (done) => {
     packageManager: 'npm',
     tmpdir: './temp/',
     overwrite: true,
-    icon: './icons/icon.ico',
+    icon: './icons/icon', // Builder will pick the correct extension for the platform
     // Build settings
     executableName: 'FlashpointLauncher',
     platform: process.env.PACK_PLATFORM,

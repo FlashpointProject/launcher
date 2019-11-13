@@ -39,6 +39,7 @@ export default class MainWindow {
       y: mw.y,
       width: width,
       height: height,
+      icon: path.join(__dirname, '../window/images/icon.png'),
       frame: !this._main.config.data.useCustomTitlebar,
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
