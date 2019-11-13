@@ -108,15 +108,15 @@ export type FetchPlatformInfoResponse = {
 /** Client Request - Fetch a game */
 export type FetchGameRequest = {
   /** Id of the game */
-  id: string
+  id: string;
 }
 
 /** Server Response - Return a requested game with its addApps */
 export type FetchGameResponse = {
   /** Game info found */
-  game: IGameInfo
+  game: IGameInfo;
   /** Additional applications of the game found */
-  addApps: IAdditionalApplicationInfo[]
+  addApps: IAdditionalApplicationInfo[];
 }
 
 /** Client Request - Remove a game or additional application */
@@ -158,7 +158,7 @@ export type SearchResults = SearchRequest & {
   /** Total number of results found */
   total: number;
   /** Games returned from a search query */
-  results: IGameInfo[]
+  results: IGameInfo[];
 }
 
 /** Client Request - Metadata updates */
@@ -170,5 +170,5 @@ export type MetaUpdate = {
   /** Library to move games and add apps to */
   library? : string;
   /** Save to disk immediately after updating the entries */
-  saveToDisk: Boolean
+  saveToDisk: boolean;
 }

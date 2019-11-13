@@ -1,6 +1,6 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as React from 'react';
-import { BackOut, WrappedResponse } from '../../../shared/back/types';
+import { BackIn, BackOut, GetGameData, WrappedResponse, GetGameResponseData } from '../../../shared/back/types';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
@@ -37,8 +37,11 @@ type OwnProps = {
   launchGame: (gameId: string) => void;
   deleteGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
-  /** Semi-global prop. */
-  central: CentralState;
+
+  onDeletePlaylist: (playlistId: string) => void;
+  onSavePlaylist: (playlistId: string, edit: GamePlaylist) => void;
+  onCreatePlaylist: () => void;
+
   /** Most recent search query. */
   search: SearchQuery;
   /** Current parameters for ordering games. */
@@ -113,16 +116,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.state = initialState;
   }
 
-  componentDidMount() {
-    window.External.back.on('response', this.onMessage);
-  }
-
-  componentWillUnmount() {
-    window.External.back.removeListener('response', this.onMessage);
-  }
-
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
-    const { gameLibrary: gameLibraryRoute, onSelectGame, selectedGameId: selectedGame, selectedPlaylistId: selectedPlaylist } = this.props;
+    const { gameLibrary, onSelectGame, selectedGameId, selectedPlaylistId } = this.props;
     const { isEditing, quickSearch } = this.state;
     // Check if it ended editing
     if (!isEditing && prevState.isEditing) {
@@ -135,13 +130,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       // this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) }); @FIXTHIS
     }
     // Update current game and add-apps if the selected game changes
-    if (selectedGame && selectedGame !== prevProps.selectedGameId) {
+    if (selectedGameId && selectedGameId !== prevProps.selectedGameId) {
       this.updateCurrentGameAndAddApps();
       this.setState({ isEditing: false });
     }
     // Update current game and add-apps if the selected game changes
-    if (gameLibraryRoute === prevProps.gameLibrary &&
-        selectedPlaylist !== prevProps.selectedPlaylistId) {
+    if (gameLibrary === prevProps.gameLibrary &&
+        selectedPlaylistId !== prevProps.selectedPlaylistId) {
       this.setState({
         currentGame: undefined,
         currentAddApps: undefined,
@@ -165,7 +160,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Create a new game if the "New Game" button is pushed
     this.createNewGameIfClicked(prevProps.wasNewGameClicked);
     // Check the library selection changed (and no game is selected)
-    if (!selectedGame && gameLibraryRoute !== prevProps.gameLibrary) {
+    if (!selectedGameId && gameLibrary !== prevProps.gameLibrary) {
       this.setState({
         currentGame: undefined,
         currentAddApps: undefined,
@@ -203,7 +198,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           width={this.props.preferencesData.browsePageLeftSidebarWidth}
           onResize={this.onLeftSidebarResize}>
           <ConnectedLeftBrowseSidebar
-            central={this.props.central}
+            onDelete={this.props.onDeletePlaylist}
+            onSave={this.props.onSavePlaylist}
+            onCreate={this.props.onCreatePlaylist}
             currentLibrary={this.props.gameLibrary}
             playlists={this.props.playlists}
             selectedPlaylistID={selectedPlaylistId || ''}
@@ -521,20 +518,20 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances) */
   async updateCurrentGameAndAddApps(cb: (state: StateCallback2) => void = this.boundSetState): Promise<void> {
-    /*
-    const { selectedGameId } = this.props;
-    if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
-      // Find additional applications for the selected game (if any)
-      const res = await GameManager.fetchGame(selectedGame.id);
-      const addApps = res.addApps;
-      // Update State
-      cb({
-        currentGame: selectedGameId && GameInfo.duplicate(selectedGameId),
-        currentAddApps: addApps && addApps.map(AdditionalApplicationInfo.duplicate),
-        isNewGame: false,
+    const gameId = this.props.selectedGameId;
+    if (gameId !== undefined) {
+      window.External.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
+        if (res.data) {
+          if (res.data.game) {
+            cb({
+              currentGame: res.data.game,
+              currentAddApps: res.data.addApps,
+              isNewGame: false,
+            });
+          } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }
+        } else { console.log(`Failed to get game. Empty data in response (GameID: "${gameId}").`); }
       });
     }
-    */
   }
 
   onStartEditClick = (): void => {
@@ -564,13 +561,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewGame: false
     });
     this.focusGameGridOrList();
-  }
-
-  onMessage = async (res: WrappedResponse): Promise<void> => {
-    if (res.type in [BackOut.REMOVE_GAMEAPP_RESPONSE, BackOut.UPDATE_META_RESPONSE, BackOut.UPDATE_PREFERENCES_RESPONSE]) {
-      // @TODO Re-search games
-      this.forceUpdate();
-    }
   }
 
   /** Create a new game if the "New Game" button was clicked */

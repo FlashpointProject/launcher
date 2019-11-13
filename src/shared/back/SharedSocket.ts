@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
-import { BackIn, WrappedRequest, WrappedResponse } from './types';
 import * as uuid from 'uuid';
+import { BackIn, WrappedRequest, WrappedResponse } from './types';
 
 export interface SharedSocket {
   /** Listen for all responses */
@@ -26,20 +26,15 @@ export class SharedSocket extends EventEmitter {
   }
 
   public send<T, U = any>(type: BackIn, data: U, callback?: (res: WrappedResponse<T>) => void): void {
-    // Create request
-    const request: WrappedRequest = {
+    this.sendReq({
       id: uuid(),
       type: type,
       data: data
-    };
-    // Register callback
-    if (callback) { this.once(request.id, callback); }
-    // Send message
-    this.socket.send(JSON.stringify(request));
+    }, callback);
   }
 
   public sendReq<T, U = any>(request: WrappedRequest<U>, callback?: (res: WrappedResponse<T>) => void): void {
-    console.log(request)
+    console.log('OUT', request)
     // Register callback
     if (callback) { this.once(request.id, callback); }
     // Send message

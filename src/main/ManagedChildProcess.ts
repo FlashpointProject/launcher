@@ -131,7 +131,7 @@ export class ManagedChildProcess extends EventEmitter {
    * @param state State to set.
    */
   private setState(state: ProcessState): void {
-    if (this.state != state) {
+    if (this.state !== state) {
       this.state = state;
       this.emit('change');
     }

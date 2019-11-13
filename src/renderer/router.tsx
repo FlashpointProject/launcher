@@ -30,6 +30,11 @@ export type AppRouterProps = {
   launchGame: (gameId: string) => void;
   deleteGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
+
+  onDeletePlaylist: (playlistId: string) => void;
+  onSavePlaylist: (playlistId: string, edit: GamePlaylist) => void;
+  onCreatePlaylist: () => void;
+
   /** Semi-global prop. */
   central: CentralState;
   /** Credits data (if any). */
@@ -74,7 +79,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
       deleteGame: this.props.deleteGame,
       onRequestGames: this.props.onRequestGames,
 
-      central: this.props.central,
+      onDeletePlaylist: this.props.onDeletePlaylist,
+      onSavePlaylist: this.props.onSavePlaylist,
+      onCreatePlaylist: this.props.onCreatePlaylist,
+
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,

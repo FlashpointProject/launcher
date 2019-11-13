@@ -4,17 +4,18 @@ import * as http from 'http';
 import * as path from 'path';
 import * as WebSocket from 'ws';
 import { Server } from 'ws';
-import { BackIn, BackInit, BackInitArgs, BackOut, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetConfigAndPrefsResponse, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetConfigAndPrefsResponse, GetGameData, GetGameResponseData, LaunchGameData, SaveGameData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { FilterGameOpts, filterGames, orderGames } from '../shared/game/GameFilter';
-import { IGameInfo } from '../shared/game/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { DeepPartial } from '../shared/interfaces';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
 import { createErrorProxy, deepCopy } from '../shared/Util';
 import { GameManager } from './game/GameManager';
+import { GameLauncher } from './GameLauncher';
 import { BackQuery, BackState } from './types';
 
 // Make sure the process.send function is available
@@ -60,7 +61,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.config = conf;
     // Init Game manager
     state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
-    .then(() => {
+    .catch(error => { console.error(error); })
+    .finally(() => {
       state.init[BackInit.GAMES] = true;
       state.initEmitter.emit(BackInit.GAMES);
     });
@@ -68,7 +70,10 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     let serverPort: number = -1;
     for (let port = state.config.backPortMin; port <= state.config.backPortMax; port++) {
       try {
-        state.server = new Server({ port });
+        state.server = new Server({
+          host: 'localhost',
+          port,
+        });
         serverPort = port;
         break;
       } catch (error) { /* Do nothing. */ }
@@ -150,8 +155,139 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
       respond<BrowseViewAllData>(event.target, {
         id: req.id,
-        type: BackOut.GET_LIBRARIES_RESPONSE,
+        type: BackOut.GENERIC_RESPONSE,
         data: { libraries: libraries, },
+      });
+    } break;
+
+    case BackIn.LAUNCH_GAME: {
+      const reqData: LaunchGameData = req.data;
+
+      let addApps: IAdditionalApplicationInfo[] | undefined;
+      let game: IGameInfo | undefined;
+
+      const platforms = state.gameManager.platforms;
+      for (let i = 0; i < platforms.length; i++) {
+        const g = platforms[i].collection.games.find(game => game.id === reqData.id);
+        if (g) {
+          // Find add apps
+          for (let i = 0; i < platforms.length; i++) {
+            const aa = platforms[i].collection.additionalApplications.filter(addApp => addApp.gameId === reqData.id);
+            if (aa.length > 0) {
+              addApps = aa;
+              break;
+            }
+          }
+          game = g;
+          break;
+        }
+      }
+
+      if (game) {
+        GameLauncher.launchGame(game, addApps, path.resolve(state.config.flashpointPath), state.preferences.useWine);
+      }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: undefined
+      });
+    } break;
+
+    case BackIn.SAVE_GAME: {
+      const reqData: SaveGameData = req.data;
+
+      state.gameManager.updateMetas({
+        games: [reqData.game],
+        addApps: reqData.addApps || [],
+        library: reqData.library,
+        saveToDisk: reqData.saveToFile,
+      });
+
+      state.queries = {}; // Clear entire cache
+
+      respond<BrowseChangeData>(event.target, {
+        id: req.id,
+        type: BackOut.BROWSE_CHANGE,
+        data: { library: reqData.library }
+      });
+    } break;
+
+    case BackIn.DELETE_GAME: {
+      const reqData: DeleteGameData = req.data;
+
+      const platforms = state.gameManager.platforms;
+      for (let i = 0; i < platforms.length; i++) {
+        const platform = platforms[i];
+        if (GameManager.removeGame(reqData.id, platform)) {
+          // Game was found and removed, search for addApps
+          for (let j = 0; j < platforms.length; i++) {
+            const addApps = platforms[j].collection.additionalApplications.filter(addApp => addApp.gameId === reqData.id);
+            if (addApps.length > 0) {
+              // Add apps found, remove all
+              for (let addApp of addApps) {
+                GameManager.removeAddApp(addApp.id, platform);
+              }
+            }
+            // Save platform to disk
+            await state.gameManager.savePlatformToFile(platform);
+            break;
+          }
+        }
+      }
+
+      state.queries = {}; // Clear entire cache
+
+      respond<BrowseChangeData>(event.target, {
+        id: req.id,
+        type: BackOut.BROWSE_CHANGE,
+        data: { library: undefined }
+      });
+    } break;
+
+    case BackIn.GET_GAME: {
+      const reqData: GetGameData = req.data;
+
+      let addApps: IAdditionalApplicationInfo[] | undefined;
+      let game: IGameInfo | undefined;
+
+      if (reqData.id !== undefined) {
+        const platforms = state.gameManager.platforms;
+        for (let i = 0; i < platforms.length; i++) {
+          const g = platforms[i].collection.games.find(game => game.id === reqData.id);
+          if (g) {
+            // Find add apps
+            for (let i = 0; i < platforms.length; i++) {
+              const aa = platforms[i].collection.additionalApplications.filter(addApp => addApp.gameId === reqData.id);
+              if (aa.length > 0) {
+                addApps = aa;
+                break;
+              }
+            }
+            game = g;
+            break;
+          }
+        }
+      }
+
+      respond<GetGameResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: { game, addApps }
+      });
+    } break;
+
+    case BackIn.GET_ALL_GAMES: {
+      const games: IGameInfo[] = [];
+      for (let i = 0; i < state.gameManager.platforms.length; i++) {
+        const platform = state.gameManager.platforms[i];
+        games.splice(games.length, 0, ...platform.collection.games);
+      }
+
+      respond<GetAllGamesResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: { games }
       });
     } break;
 
@@ -220,7 +356,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       await ConfigFile.saveFile(path.join(state.configFolder, configFilename), newConfig);
       respond(event.target, {
         id: req.id,
-        type: BackOut.UPDATE_CONFIG_RESPONSE,
+        type: BackOut.GENERIC_RESPONSE,
       });
     } break;
 
@@ -240,6 +376,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 }
 
 function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
+  console.log('RESPOND', response);
   target.send(JSON.stringify(response));
 }
 

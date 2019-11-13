@@ -1,8 +1,14 @@
 import { IAppConfigData } from '../config/interfaces';
 import { IAppPreferencesData } from '../preferences/interfaces';
+import { IGameInfo, IAdditionalApplicationInfo } from '../game/interfaces';
 
 export enum BackIn {
   INIT_LISTEN,
+  SAVE_GAME,
+  GET_GAME,
+  GET_ALL_GAMES,
+  LAUNCH_GAME,
+  DELETE_GAME,
   /** Get all library names. */
   GET_LIBRARIES,
   /** Update a browse view. */
@@ -30,19 +36,12 @@ export enum BackIn {
 }
 
 export enum BackOut {
+  GENERIC_RESPONSE,
   INIT_EVENT,
-  GET_LIBRARIES_RESPONSE,
-  BROWSE_VIEW_UPDATE_RESPONSE,
   BROWSE_VIEW_PAGE_RESPONSE,
   GET_CONFIG_AND_PREFERENCES_RESPONSE,
-  UPDATE_CONFIG_RESPONSE,
   UPDATE_PREFERENCES_RESPONSE,
-  LOAD_GAMEMANAGER_RESPONSE,
-  GET_PLATFORMS_RESPONSE,
-  FIND_GAME_RESPONSE,
-  SEARCH_GAMES_RESPONSE,
-  REMOVE_GAMEAPP_RESPONSE,
-  UPDATE_META_RESPONSE,
+  BROWSE_CHANGE,
 }
 
 export type WrappedRequest<T = any> = {
@@ -81,6 +80,34 @@ export type InitEventData = {
 export type GetConfigAndPrefsResponse = {
   config: IAppConfigData;
   preferences: IAppPreferencesData;
+}
+
+export type LaunchGameData = {
+  id: string;
+}
+
+export type SaveGameData = {
+  game: IGameInfo;
+  addApps: IAdditionalApplicationInfo[];
+  library: string;
+  saveToFile: boolean;
+}
+
+export type DeleteGameData = {
+  id: string;
+};
+
+export type GetGameData = {
+  id?: string;
+}
+
+export type GetGameResponseData = {
+  game?: IGameInfo;
+  addApps?: IAdditionalApplicationInfo[];
+}
+
+export type GetAllGamesResponseData = {
+  games: IGameInfo[];
 }
 
 export type BrowseViewAllData = {
@@ -125,4 +152,8 @@ export type ViewGame = {
   genre: string;
   developer: string;
   publisher: string;
+}
+
+export type BrowseChangeData = {
+  library?: string;
 }

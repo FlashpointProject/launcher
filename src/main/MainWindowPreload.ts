@@ -124,7 +124,3 @@ function onMessage(this: WebSocket, res: WrappedResponse): void {
       break;
   }
 }
-
-type ParsedMessage = (
-  [BackOut.UPDATE_PREFERENCES_RESPONSE, IAppPreferencesData]
-);

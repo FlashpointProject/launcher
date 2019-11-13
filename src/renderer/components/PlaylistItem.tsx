@@ -2,9 +2,7 @@ import * as React from 'react';
 import { LangContainer } from '../../shared/lang';
 import { memoizeOne } from '../../shared/memoize';
 import { deepCopy } from '../../shared/Util';
-import { CentralState } from '../interfaces';
-import { GamePlaylist, GamePlaylistEntry } from '../playlist/types';
-import { gameIdDataType } from '../Util';
+import { GamePlaylist } from '../playlist/types';
 import { LangContext } from '../util/lang';
 import { ConfirmButton } from './ConfirmButton';
 import { EditableTextElement, EditableTextElementArgs } from './EditableTextElement';
@@ -19,8 +17,6 @@ export type PlaylistItemProps = {
   editing?: boolean;
   /** If entering "edit mode" should not be allowed (defaults to false). */
   editingDisabled?: boolean;
-  /** Semi-global prop. */
-  central: CentralState;
   /** Called when the head element is clicked (the part that is always visible). */
   onHeadClick?: (playlist: GamePlaylist) => void;
   /** Called when the "edit" button is clicked. */

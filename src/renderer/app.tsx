@@ -3,7 +3,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { BackIn, BackInit, BackOut, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, InitEventData } from '../shared/back/types';
+import { BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, InitEventData, LaunchGameData, SaveGameData, DeleteGameData } from '../shared/back/types';
 import { sendRequest } from '../shared/back/util';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
@@ -229,7 +229,7 @@ export class App extends React.Component<AppProps, AppState> {
     });
 
     window.External.back.on('response', res => {
-      console.log('INCOMING', res);
+      console.log('IN', res);
       switch (res.type) {
         case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
           const resData: BrowseViewPageResponseData = res.data;
@@ -244,6 +244,41 @@ export class App extends React.Component<AppProps, AppState> {
             }
             if (resData.total !== undefined) { newView.total = resData.total; }
             this.setState({ views });
+          }
+        } break;
+
+        case BackOut.BROWSE_CHANGE: {
+          const resData: BrowseChangeData = res.data;
+
+          if (resData.library) { // (Clear specific cache)
+            const view = this.state.views[resData.library];
+            if (view) {
+              this.setState({
+                views: {
+                  ...this.state.views,
+                  [resData.library]: {
+                    ...view,
+                    // Clear cache
+                    games: {},
+                    pages: {},
+                  }
+                }
+              }, () => { this.onRequestGames(0, 1); });
+            }
+          } else { // (Clear all caches)
+            const newViews = { ...this.state.views };
+            for (let library in newViews) {
+              const view = newViews[library];
+              if (view) {
+                newViews[library] = {
+                  ...view,
+                  // Clear cache
+                  games: {},
+                  pages: {},
+                };
+              }
+            }
+            this.setState({ views: newViews }, () => { this.onRequestGames(0, 1); });
           }
         } break;
       }
@@ -496,10 +531,14 @@ export class App extends React.Component<AppProps, AppState> {
       playlists: this.state.playlists,
       suggestions: this.state.suggestions,
       platforms: this.state.platforms,
-      save: this.save,
-      launchGame: this.launchGame,
-      deleteGame: this.deleteGame,
+      save: this.onSaveGame,
+      launchGame: this.onLaunchGame,
+      deleteGame: this.onDeleteGame,
       onRequestGames: this.onRequestGames,
+
+      onDeletePlaylist: this.onDeletePlaylist,
+      onSavePlaylist: this.onSavePlaylist,
+      onCreatePlaylist: this.onCreatePlaylist,
 
       central: this.state.central,
       creditsData: this.state.creditsData,
@@ -625,15 +664,18 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private onSelectGame = (gameId?: string): void => {
-    const route = getBrowseSubPath(this.props.location.pathname);
-    const view = this.state.views[route];
-    if (view && view.selectedGameId !== undefined) {
-      const views = { ...this.state.views };
-      views[route] = {
-        ...view,
-        selectedGameId: gameId,
-      };
-      this.setState({ views });
+    const library = getBrowseSubPath(this.props.location.pathname);
+    const view = this.state.views[library];
+    if (view) {
+      this.setState({
+        views: {
+          ...this.state.views,
+          [library]: {
+            ...view,
+            selectedGameId: gameId,
+          }
+        }
+      });
     }
   }
 
@@ -709,16 +751,17 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.langManager.updateContainer();
   }
 
-  save(game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean): void {
-    // @TODO
+  onSaveGame = (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean): void => {
+    const library = getBrowseSubPath(this.props.location.pathname);
+    window.External.back.send<any, SaveGameData>(BackIn.SAVE_GAME, { game, addApps: addApps || [], library, saveToFile });
   }
 
-  launchGame(gameId: string): void {
-    // @TODO
+  onLaunchGame(gameId: string): void {
+    window.External.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
   }
 
-  deleteGame(gameId: string): void {
-    // @TODO
+  onDeleteGame(gameId: string): void {
+    window.External.back.send<any, DeleteGameData>(BackIn.DELETE_GAME, { id: gameId });
   }
 
   onRequestGames = (offset: number, limit: number): void => {
@@ -741,7 +784,7 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     if (pages.length > 0) {
-      console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
+      //console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
       const library = getBrowseSubPath(this.props.location.pathname);
       window.External.back.sendReq<any, BrowseViewPageData>({
         id: library,
@@ -777,6 +820,18 @@ export class App extends React.Component<AppProps, AppState> {
         }
       });
     }
+  }
+
+  onDeletePlaylist(playlistId: string) {
+    // @TODO
+  }
+
+  onSavePlaylist(playlistId: string, edit: GamePlaylist) {
+    // @TODO
+  }
+
+  onCreatePlaylist() {
+    // @TODO
   }
 }
 

@@ -3,11 +3,11 @@ import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
+import { BackIn, GetAllGamesResponseData } from '../../../shared/back/types';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { PlatformInfo } from '../../../shared/platform/interfaces';
 import { removeFileExtension } from '../../../shared/Util';
-import { GameManager } from '../../game/GameManager';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { ImageFolderCache } from '../../image/ImageFolderCache';
@@ -136,41 +136,41 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   onCheckMissingImagesClick = async (): Promise<void> => {
-    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    const res = await fetchAllGames();
     const gameImages = this.props.gameImages;
     this.setState({ text: checkMissingGameImages(res, gameImages) });
   }
 
   onCheckGameIDsClick = async (): Promise<void> => {
-    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    const res = await fetchAllGames();
     this.setState({ text: checkGameIDs(res) });
   }
 
   onCheckGameNamesClick = async (): Promise<void> => {
-    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    const res = await fetchAllGames();
     this.setState({ text: checkGameTitles(res) });
   }
 
   onCheckGameFieldsClick = async (): Promise<void> => {
-    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    const res = await fetchAllGames();
     this.setState({ text: checkGameEmptyFields(res) });
   }
 
   onCheckPlaylistsClick = async (): Promise<void> => {
     const playlists = this.props.central.playlists.playlists;
-    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    const res = await fetchAllGames();
     this.setState({ text: checkPlaylists(playlists, res) });
   }
 
   onCheckFileLocation = async (): Promise<void> => {
-    const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+    const res = await fetchAllGames();
     this.setState({ text: checkFileLocation(res) });
   }
 
   onRenameImagesTitleToIDClick = (): void => {
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
-      const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+      const res = await fetchAllGames();
       const gameImages = this.props.gameImages;
       this.setState({ text: await renameImagesToIDs(res, gameImages) });
     }, 0);
@@ -179,7 +179,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onRenameImagesIDToTitleClick = (): void => {
     this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
     setTimeout(async () => {
-      const res = await GameManager.searchGames(GameManager.SEARCH_ALL_GAMES);
+      const res = await fetchAllGames();
       const gameImages = this.props.gameImages;
       this.setState({ text: await renameImagesToTitles(res, gameImages) });
     }, 0);
@@ -723,4 +723,13 @@ export function removeLastItemOfPath(filePath: string): string {
 
 function repeat(char: string, n: number): string {
   return char.repeat(Math.max(0, n));
+}
+
+function fetchAllGames(): Promise<IGameInfo[]> {
+  return new Promise((resolve, reject) => {
+    window.External.back.send<GetAllGamesResponseData>(BackIn.GET_ALL_GAMES, undefined, result => {
+      if (result.data) { resolve(result.data.games); }
+      else { reject(new Error('Failed to fetch all games. Data is undefined.')); }
+    });
+  });
 }

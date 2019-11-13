@@ -1,7 +1,7 @@
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
 import { BackIn, BackInitArgs, BackOut, GetConfigAndPrefsResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
@@ -155,7 +155,6 @@ export class Main {
     // (TypeScript type information is missing, check the link below for the type info)
     // https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-      // Parse URL
       let url: URL | undefined;
       try { url = new URL(details.url); }
       catch (e) { /* Do nothing. */ }
