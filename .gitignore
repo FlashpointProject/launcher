@@ -20,3 +20,4 @@ package-lock.json
 /preferences.json
 /.installed
 /.version
+/upgrade.json

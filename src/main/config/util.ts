@@ -1,7 +1,10 @@
 import { IAppConfigData } from '../../shared/config/interfaces';
 import { deepCopy } from '../../shared/Util';
+import { Coerce } from '../../shared/utils/Coerce';
 import { ObjectParser } from '../../shared/utils/ObjectParser';
 import { parseVarStr } from '../Util';
+
+const { num, str } = Coerce;
 
 type IConfigDataDefaults = {
   [key: string]: Readonly<IAppConfigData>;
@@ -14,6 +17,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   logoFolderPath: 'Data/Logos',
   playlistFolderPath: 'Data/Playlists',
   jsonFolderPath: 'Data',
+  platformFolderPath: 'Data/Platforms',
   themeFolderPath: 'Data/Themes',
   useCustomTitlebar: false,
   startServer: true,
@@ -21,7 +25,9 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   useFiddler: false,
   disableExtremeGames: false,
   showBrokenGames: false,
-  nativePlatforms: []
+  nativePlatforms: [],
+  backPortMin: 12234,
+  backPortMax: 12334,
 });
 
 /**
@@ -63,13 +69,14 @@ export function overwriteConfigData(
 ): IAppConfigData {
   const parser = new ObjectParser({
     input: data,
-    onError: onError && (error => onError(`Error while parsing Config: ${error.toString()}`)),
+    onError: onError && (e => onError(`Error while parsing Config: ${e.toString()}`)),
   });
   parser.prop('flashpointPath',      v => source.flashpointPath      = parseVarStr(str(v)));
   parser.prop('imageFolderPath',     v => source.imageFolderPath     = parseVarStr(str(v)));
   parser.prop('logoFolderPath',      v => source.logoFolderPath      = parseVarStr(str(v)));
   parser.prop('playlistFolderPath',  v => source.playlistFolderPath  = parseVarStr(str(v)));
   parser.prop('jsonFolderPath',      v => source.jsonFolderPath      = parseVarStr(str(v)));
+  parser.prop('platformFolderPath',  v => source.platformFolderPath  = parseVarStr(str(v)));
   parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
   parser.prop('startServer',         v => source.startServer         = !!v);
   parser.prop('startRedirector',     v => source.startRedirector     = !!v);
@@ -77,6 +84,8 @@ export function overwriteConfigData(
   parser.prop('disableExtremeGames', v => source.disableExtremeGames = !!v);
   parser.prop('showBrokenGames',     v => source.showBrokenGames     = !!v);
   parser.prop('nativePlatforms',     v => source.nativePlatforms     = strArray(v));
+  parser.prop('backPortMin',         v => source.backPortMin         = num(v));
+  parser.prop('backPortMax',         v => source.backPortMax         = num(v));
   // Do some alterations
   source.flashpointPath = source.flashpointPath.replace(/\\/g, '/'); // (Clean path)
   // Return
@@ -87,9 +96,4 @@ function strArray(array: any): string[] {
   return Array.isArray(array)
     ? Array.prototype.map.call(array, v => str(v)) as string[]
     : [];
-}
-
-/** Coerce anything to a string. */
-function str(str: any): string {
-  return (str || '') + '';
 }

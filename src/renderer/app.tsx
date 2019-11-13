@@ -1,16 +1,20 @@
 import { ipcRenderer, remote } from 'electron';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
+import { isFlashpointValidCheck } from '../shared/checkSanity';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IObjectMap, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
-import { IGameLibraryFileItem } from '../shared/library/interfaces';
+import { GameLibraryFileItem } from '../shared/library/types';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
-import { versionNumberToText } from '../shared/Util';
+import { updatePreferencesData } from '../shared/preferences/util';
+import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -19,27 +23,28 @@ import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithLibraryProps } from './containers/withLibrary';
 import { WithPreferencesProps } from './containers/withPreferences';
-import { readCreditsFile } from './credits/Credits';
-import { ICreditsData } from './credits/interfaces';
+import { CreditsFile } from './credits/CreditsFile';
+import { CreditsData } from './credits/types';
 import { loadExecMappingsFile } from './game/Execs';
 import GameManager from './game/GameManager';
 import GameManagerPlatform from './game/GameManagerPlatform';
 import { GameLauncher } from './GameLauncher';
 import { GameImageCollection } from './image/GameImageCollection';
-import { CentralState, UpgradeStageState, UpgradeState } from './interfaces';
+import { CentralState, UpgradeStageState } from './interfaces';
 import { LangManager } from './lang/LangManager';
 import { Paths } from './Paths';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
-import { IGamePlaylist } from './playlist/interfaces';
+import { GamePlaylist } from './playlist/types';
 import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { Theme } from './theme/Theme';
 import { ThemeManager } from './theme/ThemeManager';
-import { IUpgradeStage, performUpgradeStageChecks, readUpgradeFile } from './upgrade/upgrade';
-import { joinLibraryRoute } from './Util';
+import { UpgradeStage } from './upgrade/types';
+import { UpgradeFile } from './upgrade/UpgradeFile';
+import { joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { getPlatforms } from './util/platform';
-import { downloadAndInstallUpgrade } from './util/upgrade';
+import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -56,7 +61,7 @@ export type AppState = {
   /** Semi-global prop. */
   central: CentralState;
   /** Credits data (if any). */
-  creditsData?: ICreditsData;
+  creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   /** Current parameters for ordering games. */
   order: GameOrderChangeEvent;
@@ -69,7 +74,7 @@ export type AppState = {
   /** Currently selected game (for each browse tab / library). */
   selectedGames: IObjectMap<IGameInfo>;
   /** Currently selected playlists (for each browse tab / library). */
-  selectedPlaylists: IObjectMap<IGamePlaylist>;
+  selectedPlaylists: IObjectMap<GamePlaylist>;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
   /** Current language container. */
@@ -90,27 +95,13 @@ export class App extends React.Component<AppProps, AppState> {
       central: {
         games: new GameManager(),
         playlists: new GamePlaylistManager(),
-        upgrade: {
-          doneLoading: false,
-          techState: {
-            alreadyInstalled: false,
-            checksDone: false,
-            isInstalling: false,
-            isInstallationComplete: false,
-            installProgressNote: '',
-          },
-          screenshotsState: {
-            alreadyInstalled: false,
-            checksDone: false,
-            isInstalling: false,
-            isInstallationComplete: false,
-            installProgressNote: '',
-          },
-        },
+        upgrades: [],
+        upgradesDoneLoading: false,
         gamesDoneLoading: false,
         gamesFailedLoading: false,
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
+        stopRender: false,
       },
       gameImages: new GameImageCollection(config.fullFlashpointPath),
       creditsData: undefined,
@@ -140,7 +131,14 @@ export class App extends React.Component<AppProps, AppState> {
       let askBeforeClosing = true;
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
         const { central } = this.state;
-        if (askBeforeClosing && (central.upgrade.screenshotsState.isInstalling || central.upgrade.techState.isInstalling)) {
+        let stillDownloading = false;
+        for (let stage of central.upgrades) {
+          if (stage.state.isInstalling) {
+            stillDownloading = true;
+            break;
+          }
+        }
+        if (askBeforeClosing && stillDownloading) {
           event.returnValue = 1; // (Prevent closing the window)
           remote.dialog.showMessageBox({
             type: 'warning',
@@ -154,29 +152,27 @@ export class App extends React.Component<AppProps, AppState> {
           .then(({ response }) => {
             if (response === 0) {
               askBeforeClosing = false;
-              remote.getCurrentWindow().close();
+              this.unmountBeforeClose();
             }
           });
+        } else {
+          this.unmountBeforeClose();
         }
       };
     })();
     // Listen for the window to move or resize (and update the preferences when it does)
     ipcRenderer.on(WindowIPC.WINDOW_MOVE, (sender, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
-        const mw = this.props.preferencesData.mainWindow;
-        mw.x = x | 0;
-        mw.y = y | 0;
+        updatePreferencesData({ mainWindow: { x: x|0, y: y|0 } });
       }
     });
     ipcRenderer.on(WindowIPC.WINDOW_RESIZE, (sender, width: number, height: number, isMaximized: boolean) => {
       if (!isMaximized) {
-        const mw = this.props.preferencesData.mainWindow;
-        mw.width  = width  | 0;
-        mw.height = height | 0;
+        updatePreferencesData({ mainWindow: { width: width|0, height: height|0 } });
       }
     });
     ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
-      this.props.preferencesData.mainWindow.maximized = isMaximized;
+      updatePreferencesData({ mainWindow: { maximized: isMaximized } });
     });
     // Listen for changes to the theme files
     this.props.themes.on('change', item => {
@@ -249,34 +245,39 @@ export class App extends React.Component<AppProps, AppState> {
         })
       });
     });
-    //
-    readUpgradeFile(fullJsonFolderPath)
-    .then((data) => {
-      this.setUpgradeState({
-        data: data,
-        doneLoading: true,
+    // Load Upgrades
+    const folderPath = window.External.isDev
+        ? process.cwd()
+        : path.dirname(remote.app.getPath('exe'));
+    const upgradeCatch = (error: Error) => {
+      console.warn(error);
+    };
+    Promise.all([UpgradeFile.readFile(folderPath, log), UpgradeFile.readFile(fullJsonFolderPath, log)].map(p => p.catch(upgradeCatch)))
+    .then(async (fileData) => {
+      // Combine all file data
+      let allData: UpgradeStage[] = [];
+      for (let data of fileData) {
+        if (data) {
+          allData = allData.concat(data);
+        }
+      }
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          upgrades: allData,
+          upgradesDoneLoading: true,
+        })
       });
-      performUpgradeStageChecks(data.screenshots, fullFlashpointPath)
-      .then(results => {
-        this.setScreenshotsUpgradeState({
+      // Do existance checks on all upgrades
+      await Promise.all(allData.map(async upgrade => {
+        const results = await performUpgradeStageChecks(upgrade, fullFlashpointPath);
+        this.setUpgradeStageState(upgrade.id, {
           alreadyInstalled: results.indexOf(false) === -1,
-          checksDone: true,
+          checksDone: true
         });
-      });
-      performUpgradeStageChecks(data.tech, fullFlashpointPath)
-      .then(results => {
-        this.setTechUpgradeState({
-          alreadyInstalled: results.indexOf(false) === -1,
-          checksDone: true,
-        });
-      });
-    })
-    .catch((error) => {
-      console.error(error);
-      this.setUpgradeState({ doneLoading: true });
+      }));
     });
     // Load Credits
-    readCreditsFile(fullJsonFolderPath, log)
+    CreditsFile.readFile(fullJsonFolderPath, log)
     .then((data) => {
       this.setState({
         creditsData: data,
@@ -319,12 +320,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {
-    const { history, libraryData, location, preferencesData, updatePreferences } = this.props;
+    const { history, libraryData, location, preferencesData } = this.props;
     // Update preference "lastSelectedLibrary"
     const gameLibraryRoute = getBrowseSubPath(location.pathname);
     if (location.pathname.startsWith(Paths.BROWSE) &&
         preferencesData.lastSelectedLibrary !== gameLibraryRoute) {
-      updatePreferences({ lastSelectedLibrary: gameLibraryRoute });
+      updatePreferencesData({ lastSelectedLibrary: gameLibraryRoute });
     }
     // Create a new game
     if (this.state.wasNewGameClicked) {
@@ -350,7 +351,7 @@ export class App extends React.Component<AppProps, AppState> {
   render() {
     const loaded = this.state.central.gamesDoneLoading &&
                    this.state.central.playlistsDoneLoading &&
-                   this.state.central.upgrade.doneLoading &&
+                   this.state.central.upgradesDoneLoading &&
                    this.state.creditsDoneLoading;
     const games = this.state.central.games.collection.games;
     const libraries = this.props.libraryData.libraries;
@@ -371,8 +372,7 @@ export class App extends React.Component<AppProps, AppState> {
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.state.wasNewGameClicked,
-      onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
-      onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
+      onDownloadUpgradeClick: this.onDownloadUpgradeClick,
       gameLibraryRoute: route,
       themeItems: this.props.themes.items,
       reloadTheme: this.reloadTheme,
@@ -383,53 +383,58 @@ export class App extends React.Component<AppProps, AppState> {
     // Render
     return (
       <LangContext.Provider value={this.state.lang}>
-        {/* Splash screen */}
-        <SplashScreen
-          gamesLoaded={this.state.central.gamesDoneLoading}
-          playlistsLoaded={this.state.central.playlistsDoneLoading}
-          upgradesLoaded={this.state.central.upgrade.doneLoading}
-          creditsLoaded={this.state.creditsDoneLoading} />
-        {/* Title-bar (if enabled) */}
-        { window.External.config.data.useCustomTitlebar ? (
-          <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
-        ) : undefined }
-        {/* "Content" */}
-        {loaded ? (
+        { !this.state.central.stopRender ? (
           <>
-            {/* Header */}
-            <HeaderContainer
-              onOrderChange={this.onOrderChange}
-              onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-              onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-              order={this.state.order} />
-            {/* Main */}
-            <div className='main'>
-              <AppRouter { ...routerProps } />
-              <noscript className='nojs'>
-                <div style={{textAlign:'center'}}>
-                  This website requires JavaScript to be enabled.
-                </div>
-              </noscript>
-            </div>
-            {/* Footer */}
-            <ConnectedFooter
-              showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
-              totalCount={games.length}
-              currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
-              currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
-              onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-              onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-              onNewGameClick={this.onNewGameClick} />
+          {/* Splash screen */}
+          <SplashScreen
+            gamesLoaded={this.state.central.gamesDoneLoading}
+            playlistsLoaded={this.state.central.playlistsDoneLoading}
+            upgradesLoaded={this.state.central.upgradesDoneLoading}
+            creditsLoaded={this.state.creditsDoneLoading} />
+          {/* Title-bar (if enabled) */}
+          { window.External.config.data.useCustomTitlebar ? (
+            <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
+          ) : undefined }
+          {/* "Content" */}
+          {loaded ? (
+            <>
+              {/* Header */}
+              <HeaderContainer
+                onOrderChange={this.onOrderChange}
+                onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+                onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+                order={this.state.order} />
+              {/* Main */}
+              <div className='main'>
+                <AppRouter { ...routerProps } />
+                <noscript className='nojs'>
+                  <div style={{textAlign:'center'}}>
+                    This website requires JavaScript to be enabled.
+                  </div>
+                </noscript>
+              </div>
+              {/* Footer */}
+              <ConnectedFooter
+                showCount={this.state.central.gamesDoneLoading && !this.state.central.gamesFailedLoading}
+                totalCount={games.length}
+                currentLabel={library && getLibraryItemTitle(library, this.state.lang.libraries)}
+                currentCount={this.countGamesOfCurrentLibrary(platforms, libraries, findLibraryByRoute(libraries, route))}
+                onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+                onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+                onNewGameClick={this.onNewGameClick} />
+            </>
+          ) : undefined}
           </>
-        ) : undefined}
+        ) : undefined }
       </LangContext.Provider>
+
     );
   }
 
   private onOrderChange = (event: GameOrderChangeEvent): void => {
     this.setState({ order: event });
     // Update Preferences Data (this is to make it get saved on disk)
-    this.props.updatePreferences({
+    updatePreferencesData({
       gamesOrderBy: event.orderBy,
       gamesOrder: event.orderReverse
     });
@@ -438,13 +443,13 @@ export class App extends React.Component<AppProps, AppState> {
   private onScaleSliderChange = (value: number): void => {
     this.setState({ gameScale: value });
     // Update Preferences Data (this is to make it get saved on disk)
-    this.props.updatePreferences({ browsePageGameScale: value });
+    updatePreferencesData({ browsePageGameScale: value });
   }
 
   private onLayoutSelectorChange = (value: BrowsePageLayout): void => {
     this.setState({ gameLayout: value });
     // Update Preferences Data (this is to make it get saved on disk)
-    this.props.updatePreferences({ browsePageLayout: value });
+    updatePreferencesData({ browsePageLayout: value });
   }
 
   private onNewGameClick = (): void => {
@@ -452,12 +457,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private onToggleLeftSidebarClick = (): void => {
-    this.props.updatePreferences({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
+    updatePreferencesData({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
     this.forceUpdate();
   }
 
   private onToggleRightSidebarClick = (): void => {
-    this.props.updatePreferences({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
+    updatePreferencesData({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
     this.forceUpdate();
   }
 
@@ -467,7 +472,7 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   /** Set the selected playlist for a single "browse route" */
-  private onSelectPlaylist = (playlist?: IGamePlaylist, route?: string): void => {
+  private onSelectPlaylist = (playlist?: GamePlaylist, route?: string): void => {
     const { selectedGames, selectedPlaylists } = this.state;
     if (route === undefined) { route = getBrowseSubPath(this.props.location.pathname); }
     this.setState({
@@ -476,38 +481,23 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  private onDownloadTechUpgradeClick = () => {
-    const upgradeData = this.state.central.upgrade.data;
-    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.tech, 'flashpoint_stage_tech.zip', this.setTechUpgradeState);
+  private onDownloadUpgradeClick = (stage: UpgradeStage) => {
+    downloadAndInstallStage(stage, this.setUpgradeStageState);
   }
 
-  private onDownloadScreenshotsUpgradeClick = () => {
-    const upgradeData = this.state.central.upgrade.data;
-    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.screenshots, 'flashpoint_stage_screenshots.zip', this.setScreenshotsUpgradeState);
-  }
-
-  private setUpgradeState(state: Partial<UpgradeState>) {
-    this.setState({
-      central: Object.assign({}, this.state.central, {
-        upgrade: Object.assign({}, this.state.central.upgrade, state),
-      })
-    });
-  }
-
-  private setTechUpgradeState = (state: Partial<UpgradeStageState>): void => {
-    const { central: { upgrade: { techState } } } = this.state;
-    this.setUpgradeState({
-      techState: Object.assign({}, techState, state),
-    });
-  }
-
-  private setScreenshotsUpgradeState = (state: Partial<UpgradeStageState>):void => {
-    const { central: { upgrade: { screenshotsState } } } = this.state;
-    this.setUpgradeState({
-      screenshotsState: Object.assign({}, screenshotsState, state),
-    });
+  private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
+    const { upgrades } = this.state.central;
+    const index = upgrades.findIndex(u => u.id === id);
+    if (index != -1) {
+      const newUpgrades = deepCopy(upgrades);
+      const newStageState = Object.assign({}, upgrades[index].state, data);
+      newUpgrades[index].state = newStageState;
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          upgrades: newUpgrades,
+        })
+      });
+    }
   }
 
   /**
@@ -535,46 +525,93 @@ export class App extends React.Component<AppProps, AppState> {
   private updateLanguage = (): void => {
     this.props.langManager.updateContainer();
   }
+
+  private unmountBeforeClose = (): void => {
+    const { central } = this.state;
+    central.stopRender = true;
+    this.setState({ central });
+    setTimeout(() => { window.close(); }, 100);
+  }
 }
 
-function downloadAndInstallStage(stage: IUpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
+async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void) {
+  // Check data folder is set
+  let flashpointPath = window.External.config.data.flashpointPath;
+  const isValid = await isFlashpointValidCheck(flashpointPath);
+  let promptRestartWhenFinished = false;
+  if (!isValid) {
+    // If folder isn't set, ask to set now
+    const res = openConfirmDialog('No Folder Found', 'The Flashpoint folder is not set or invalid. Do you want to choose a folder to install to now?');
+    if (!res) { return; }
+    // Set folder now
+    const picks = window.External.showOpenDialogSync({
+      title: 'Pick Flashpoint Folder',
+      properties: ['openDirectory', 'promptToCreate', 'createDirectory']
+    });
+    // Make sure folder given exists
+    if (picks && picks.length > 0) {
+      flashpointPath = picks[0];
+      fs.ensureDirSync(flashpointPath);
+      // Save picked folder to config
+      let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
+        flashpointPath: flashpointPath
+      });
+      window.External.config.save(newConfig);
+      promptRestartWhenFinished = true;
+    }
+  }
   // Flag as installing
-  setStageState({
+  setStageState(stage.id, {
     isInstalling: true,
     installProgressNote: '...',
   });
-  // Start download and installation
-  let prevProgressUpdate = Date.now();
-  const state = (
-    downloadAndInstallUpgrade(stage, {
-      installPath: window.External.config.fullFlashpointPath,
+  // Grab filename from url
+
+  for (let source of stage.sources) {
+    const filename = stage.id + '__' + source.split('/').pop() || 'unknown';
+    let lastUpdateType = '';
+    // Start download and installation
+    let prevProgressUpdate = Date.now();
+    const state = downloadAndInstallUpgrade(stage, {
+      installPath: path.join(flashpointPath),
       downloadFilename: filename
     })
     .on('progress', () => {
       const now = Date.now();
-      if (now - prevProgressUpdate > 100) {
+      if (now - prevProgressUpdate > 100 || lastUpdateType != state.currentTask) {
         prevProgressUpdate = now;
+        lastUpdateType = state.currentTask;
         switch (state.currentTask) {
-          case 'downloading': setStageState({ installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
-          case 'extracting':  setStageState({ installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
-          default:            setStageState({ installProgressNote: '...' });                                                        break;
+          case 'downloading': setStageState(stage.id, { installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
+          case 'extracting':  setStageState(stage.id, { installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
+          case 'installing':  setStageState(stage.id, { installProgressNote: 'Installing Files...'});                                         break;
+          default:            setStageState(stage.id, { installProgressNote: '...' });                                                        break;
         }
       }
     })
     .once('done', () => {
       // Flag as done installing
-      setStageState({
+      setStageState(stage.id, {
         isInstalling: false,
         isInstallationComplete: true,
       });
+      if (promptRestartWhenFinished) {
+        const res = openConfirmDialog('Restart Now?', 'This upgrade will not be applied until you restart.\nDo you wish to do this now?');
+        if (res) {
+          window.External.restart();
+        }
+      }
     })
     .once('error', (error) => {
       // Flag as not installing (so the user can retry if they want to)
-      setStageState({ isInstalling: false });
+      setStageState(stage.id, {
+        isInstalling: false,
+      });
+      log(`Error installing '${stage.title}' - ${error.message}`);
       console.error(error);
     })
-    .on('warn', console.warn)
-  );
+    .on('warn', console.warn);
+  }
 }
 
 /** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
@@ -595,7 +632,7 @@ function log(content: string): void {
 }
 
 /** Count the number of games in all platforms that "belongs" to the given library */
-function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], libraries: IGameLibraryFileItem[], library?: IGameLibraryFileItem): number {
+function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], libraries: GameLibraryFileItem[], library?: GameLibraryFileItem): number {
   const currentLibraries = library ? getLibraryPlatforms(libraries, platforms, library) : platforms;
   return currentLibraries.reduce(
     (acc, platform) => acc + (platform.collection ? platform.collection.games.length : 0),

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useMemo } from 'react';
 import { LangContext } from '../util/lang';
+import { objectTypeSpreadProperty } from '@babel/types';
 
 export type CurateBoxWarningsProps = {
   /** Warnings to display. */
@@ -9,14 +10,16 @@ export type CurateBoxWarningsProps = {
 
 /** A set of warnings for things that should be fixed in a curation. */
 export type CurationWarnings = {
-  /** If the launch command is not a url with the "http" protocol. */
-  isNotHttp?: boolean;
+  /** If the launch command is missing */
+  noLaunchCommand?: boolean;
+  /** If the launch command is not a url with the "http" protocol and doesn't point to a file in 'content' */
+  invalidLaunchCommand?: boolean;
   /** If the release date is invalid (incorrectly formatted). */
   releaseDateInvalid?: boolean;
   /** If the application path value isn't used by any other game. */
   unusedApplicationPath?: boolean;
-  /** If the genre value isn't used by any other game. */
-  unusedGenre?: boolean;
+  /** If the tags value contains values not used by any other game. */
+  unusedTags?: string[];
   /** If the platform value isn't used by any other game. */
   unusedPlatform?: boolean;
   /** If the library value does not point to an existing library. */
@@ -33,17 +36,29 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
   const warningCount = useMemo(() =>
     Object.keys(warnings).reduce<number>(createCountTrueReducer(warnings), 0),
   [warnings]);
+  // Converts warnings into a single string
+  const warningsStrings = useMemo(() => {
+    return Object.keys(warnings).map((key) => {
+      const obj = warnings[key as keyof CurationWarnings];
+      // Reason obj to a string[] or boolean, format differently for each
+      const listObj = obj && obj != true ? obj : undefined;
+      if (listObj && listObj.length > 0) {
+        const suffix = '\t' + listObj.join('\n\t') + '\n';
+        return `- ${strings[key as keyof CurationWarnings]}\n${suffix}`;
+      } else if (!listObj && obj) {
+        return `- ${strings[key as keyof CurationWarnings]}\n`;
+      }
+    });
+  }, [warnings]);
   // Render warnings
   const warningElements = useMemo(() => (
-    Object.keys(warnings).map((key) =>
-      warnings[key as keyof CurationWarnings] ? (
-        <span
-          key={key}
-          className='curate-box-warnings__entry'>
-          {`- ${strings[key as keyof CurationWarnings]}\n`}
-        </span>
-      ) : undefined)
-  ), [warnings]);
+    warningsStrings.length > 0 ? (
+      <span
+        className='curate-box-warnings__entry'>
+        {`${warningsStrings.join('')}`}
+      </span>
+    ) : ( undefined )
+  ), [warningsStrings]);
   // Misc.
   const isEmpty = warningCount === 0;
   // Render

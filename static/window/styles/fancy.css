@@ -81,10 +81,11 @@
   --layout__log-time-stamp:                 #857df3;
   --layout__log-source:                     #d4d4d4;
   --layout__log-source-background-services: #8d8d8d;
-  --layout__log-source-game-launcher:       #ffd900;
+  --layout__log-source-game-launcher:       #e67e22;
   --layout__log-source-language:            #b157ec;
   --layout__log-source-redirector:          #00ffff;
   --layout__log-source-router:              #00ff00;
+  --layout__log-source-curation:            #efff00;
   /* Credits */
   --layout__credits-tooltip-border:           #000000;
   --layout__credits-tooltip-background:       #000000DD;
@@ -259,6 +260,9 @@ body {
 .log__source--router {
   color: var(--layout__log-source-router);
 }
+.log__source--curation {
+  color: var(--layout__log-source-curation);
+}
 
 
 /* ------ Image Preview ------ */
@@ -414,14 +418,29 @@ body {
 
 /* ------ Curate ------ */
 /* Curate Page Top */
-.curate-page-top {
+.curate-page__floating-box {
   border-color: var(--layout__tertiary-background);
   background-color: var(--layout__quaternary-background);
+}
+/* Curate Page Left Sidebar Items */
+.curate-page__left-sidebar-item {
+  background-color: var(--layout__primary-background);
+  color: var(--layout__secondary-text-color);
+}
+.curate-page__left-sidebar-item:nth-child(2n) {
+  background-color: var(--layout__playlist-list-item-even-background);
+}
+.curate-page__left-sidebar-item:hover {
+  background-color: var(--layout__playlist-list-item-drag-over-background);
 }
 /* Curate Box */
 .curate-box {
   background-color: var(--layout__tertiary-background);
   border-color: var(--layout__primary-outline-color);
+}
+.curate-box input[type="checkbox"] {
+  vertical-align: middle;
+  transform: scale(1rem);
 }
 /* Curate Box Divider */
 .curate-box-divider {
@@ -444,11 +463,22 @@ body {
   cursor: zoom-in;
 }
 .curate-box-images__image--placeholder {
-  cursor: default;
+  background-color: var(--layout__browse-right-sidebar-screenshot-placeholder-background);
+  border-color: var(--layout__browse-right-sidebar-screenshot-placeholder-border);
+}
+.curate-box-images__image--placeholder p {
+  color: var(--layout__disabled-text-color);
 }
 /* Curate Box Buttons */
 .curate-box-buttons__button--active:hover { /* ":hover" to get higher specificity */
   background-color: var(--layout__warning-medium-color);
+}
+/* Curate Box Select Dropdowns */
+.curate-box-select--warn select {
+  background-color: var(--layout__warning-medium-color);
+}
+.curate-box-select--warn select option:not(.curate-box-select__invalid-option) {
+  background-color: var(--layout__secondary-background);
 }
 
 
@@ -550,6 +580,9 @@ body {
 }
 .game-image-split__buttons__remove-image--active:hover .icon__use {
   fill: var(--layout__warning-medium-color);
+}
+.game-image-split__buttons__remove-image--disabled .icon__use {
+  fill: var(--layout__disabled-text-color);
 }
 
 
@@ -731,6 +764,28 @@ body {
 .setting__row__content--theme-input-field label:last-child {
   /* Change the color of the "No Theme" suggestion in the drop-down list. */
   color: var(--layout__no-theme-suggestion-color);
+}
+
+/** ------ Progress Components ------ **/
+/* Status Bar */
+.status-bar__top-text {
+  color: var(--layout__primary-text-color);
+}
+.status-bar__bottom-text {
+  color: var(--layout__primary-text-color);
+}
+/* Progress Bar */
+.progress-bar__top-text {
+  color: var(--layout__primary-text-color);
+}
+.progress-bar__bottom-text {
+  color: var(--layout__primary-text-color);
+}
+.progress-bar__bar {
+  background-color: var(--layout__secondary-background);
+}
+.progress-bar__bar__inner {
+  background-color: var(--layout__confirm-color);
 }
 
 /* ------ FP Logo ------ */

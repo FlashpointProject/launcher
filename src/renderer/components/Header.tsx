@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
-import { getLibraryItemTitle } from '../../shared/library/util';
 import { LangContainer } from '../../shared/lang';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../shared/library/types';
+import { getLibraryItemTitle } from '../../shared/library/util';
 import { WithLibraryProps } from '../containers/withLibrary';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
@@ -213,6 +213,6 @@ function MenuItem({ title, link }: { title: string, link: string }) {
   );
 }
 
-function getItemTitle(item: IGameLibraryFileItem, lang: LangContainer['libraries']): string {
+function getItemTitle(item: GameLibraryFileItem, lang: LangContainer['libraries']): string {
   return lang[item.route] || item.title;
 }

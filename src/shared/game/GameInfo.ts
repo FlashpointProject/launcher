@@ -16,7 +16,7 @@ export class GameInfo {
       playMode: '',
       status: '',
       notes: '',
-      genre: '',
+      tags: '',
       source: '',
       applicationPath: '',
       launchCommand: '',

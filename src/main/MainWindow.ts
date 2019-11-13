@@ -2,6 +2,7 @@ import { app, BrowserWindow, WebContents } from 'electron';
 import * as path from 'path';
 import * as AppConstants from '../shared/AppConstants';
 import { WindowIPC } from '../shared/interfaces';
+import { IAppPreferencesDataMainWindow } from '../shared/preferences/interfaces';
 import { Main } from './Main';
 import * as Util from './Util';
 
@@ -21,16 +22,14 @@ export default class MainWindow {
   }
 
   /** Create the window */
-  public createWindow(): void {
+  public createWindow(mw: IAppPreferencesDataMainWindow): void {
     if (this._window) {
       throw new Error('Window already created!');
     }
     // Create the browser window.
-    const mw = this._main.preferences.data.mainWindow;
-    let width:  number = (mw.width  !== undefined) ? mw.width  : 1000;
-    let height: number = (mw.height !== undefined) ? mw.height :  650;
-    if (mw.width === undefined && mw.height === undefined &&
-        !this._main.config.data.useCustomTitlebar) {
+    let width:  number = mw.width  ? mw.width  : 1000;
+    let height: number = mw.height ? mw.height :  650;
+    if (mw.width && mw.height && !this._main.config.data.useCustomTitlebar) {
       width  += 8; // Add the width of the window-grab-things,
       height += 8; // they are 4 pixels wide each (at least for me @TBubba)
     }
@@ -50,8 +49,8 @@ export default class MainWindow {
     this._window.setMenu(null);
     // and load the index.html of the app.
     this._window.loadFile(path.join(__dirname, '../window/index.html'));
-    // Open the DevTools.
-    if (Util.isDev) {
+    // Open the DevTools. Don't open if using a remote debugger (like vscode)
+    if (Util.isDev && !process.env.REMOTE_DEBUG) {
       this._window.webContents.openDevTools();
     }
     // Maximize window
@@ -89,7 +88,8 @@ export default class MainWindow {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (!this._window) {
-      this.createWindow();
+      if (!this._main.preferences) { throw new Error('preferences is undefined'); }
+      this.createWindow(this._main.preferences.mainWindow);
     }
   }
 }

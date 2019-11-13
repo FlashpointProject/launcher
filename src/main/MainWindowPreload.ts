@@ -1,15 +1,13 @@
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
+import { BackIn, BackOut } from '../shared/back/types';
 import { AppConfigApi } from '../shared/config/AppConfigApi';
 import { MiscIPC } from '../shared/interfaces';
+import { InitRendererChannel, InitRendererData } from '../shared/IPC';
 import { LogRendererApi } from '../shared/Log/LogRendererApi';
-import { AppPreferencesApi } from '../shared/preferences/AppPreferencesApi';
+import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { ServicesApi } from '../shared/service/ServicesApi';
 import { isDev } from './Util';
-
-// Set up Preferences API
-const preferences = new AppPreferencesApi();
-preferences.initialize();
 
 // Set up Config API
 const config = new AppConfigApi();
@@ -28,7 +26,7 @@ log.bindListeners();
  * (Note: This is mostly a left-over from when "node integration" was disabled.
  *        It might be a good idea to move this to the Renderer?)
  */
-window.External = Object.freeze({
+window.External = {
   misc: electron.ipcRenderer.sendSync(MiscIPC.REQUEST_MISC_SYNC),
 
   platform: electron.remote.process.platform+'' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
@@ -66,7 +64,10 @@ window.External = Object.freeze({
     electron.remote.getCurrentWindow().webContents.toggleDevTools();
   },
 
-  preferences,
+  preferences: {
+    data: createErrorProxy('preferences'),
+    onUpdate: undefined,
+  },
 
   config,
 
@@ -75,4 +76,66 @@ window.External = Object.freeze({
   log,
 
   isDev,
-});
+
+  backSocket: createErrorProxy('backSocket'),
+
+  waitUntilInitialized() {
+    if (!isInitDone) { return onInit; }
+  }
+};
+
+let isInitDone: boolean = false;
+const onInit = new Promise<WebSocket>((resolve, reject) => {
+  // Fetch data from main process
+  const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
+
+  // Connect to the back API
+  const url = new URL('ws://localhost');
+  url.port = data.port+'';
+
+  const ws = new WebSocket(url.href);
+  window.External.backSocket = ws;
+  ws.onopen = (event) => {
+    ws.onmessage = () => { resolve(ws); };
+    ws.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
+    ws.send(data.secret);
+  };
+})
+.then((ws) => new Promise((resolve, reject) => {
+  window.External.backSocket = ws;
+  // Fetch the preferences
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data.toString());
+    if (msg[0] === BackOut.GET_PREFERENCES_RESPONSE) {
+      window.External.preferences.data = msg[1];
+      ws.onmessage = onMessage;
+      resolve();
+    } else { reject(new Error(`Failed to initialize. Did not expect messge type "${BackOut[msg[0]]}".`)); }
+  };
+  window.External.backSocket.send(JSON.stringify([BackIn.GET_PREFERENCES]));
+}))
+.then(() => { isInitDone = true; });
+
+function createErrorProxy(title: string): any {
+  return new Proxy({}, {
+    get: (target, p, receiver) => {
+      throw new Error(`You must not get a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+    },
+    set: (target, p, value, receiver) => {
+      throw new Error(`You must not set a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+    },
+  });
+}
+
+function onMessage(this: WebSocket, event: MessageEvent): void {
+  const msg: ParsedMessage = JSON.parse(event.data);
+  switch (msg[0]) {
+    case BackOut.UPDATE_PREFERENCES_RESPONSE:
+      window.External.preferences.data = msg[1];
+      break;
+  }
+}
+
+type ParsedMessage = (
+  [BackOut.UPDATE_PREFERENCES_RESPONSE, IAppPreferencesData]
+);

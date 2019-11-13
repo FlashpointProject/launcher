@@ -12,30 +12,30 @@ import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/Conn
 import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
-import { ICreditsData } from './credits/interfaces';
+import { CreditsData } from './credits/types';
 import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState } from './interfaces';
 import { Paths } from './Paths';
-import { IGamePlaylist } from './playlist/interfaces';
+import { GamePlaylist } from './playlist/types';
 import { IThemeListItem } from './theme/ThemeManager';
+import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
   /** Semi-global prop. */
   central: CentralState;
   /** Credits data (if any). */
-  creditsData?: ICreditsData;
+  creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   order?: GameOrderChangeEvent;
   gameScale: number;
   gameLayout: BrowsePageLayout;
   gameImages: GameImageCollection;
   selectedGame?: IGameInfo;
-  selectedPlaylist?: IGamePlaylist;
+  selectedPlaylist?: GamePlaylist;
   onSelectGame?: (game?: IGameInfo) => void;
-  onSelectPlaylist: (playlist?: IGamePlaylist, route?: string) => void;
+  onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
   wasNewGameClicked: boolean;
-  onDownloadTechUpgradeClick: () => void;
-  onDownloadScreenshotsUpgradeClick: () => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage) => void;
   gameLibraryRoute: string;
   themeItems: IThemeListItem[];
   reloadTheme: (themePath: string | undefined) => void;
@@ -50,8 +50,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
       gameImages: this.props.gameImages,
-      onDownloadTechUpgradeClick: this.props.onDownloadTechUpgradeClick,
-      onDownloadScreenshotsUpgradeClick: this.props.onDownloadScreenshotsUpgradeClick,
+      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick
     };
     const browseProps: ConnectedBrowsePageProps = {
       central: this.props.central,

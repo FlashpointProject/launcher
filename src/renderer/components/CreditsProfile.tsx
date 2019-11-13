@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { useCallback, useEffect, useRef } from 'react';
-import { ICreditsDataProfile } from '../credits/interfaces';
+import { CreditsDataProfile } from '../credits/types';
 
 export type CreditsIconProps = {
   /** Credits profile of the person to display. */
-  profile: ICreditsDataProfile;
+  profile: CreditsDataProfile;
   /** Called when the mouse enters the element. */
-  onMouseEnter: (profile: ICreditsDataProfile) => void;
+  onMouseEnter: (profile: CreditsDataProfile) => void;
   /** Called when the mouse leaves the element. */
   onMouseLeave: () => void;
 };

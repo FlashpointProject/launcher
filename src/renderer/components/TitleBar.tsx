@@ -9,17 +9,19 @@ export type TitleBarProps = {
 export function TitleBar(props: TitleBarProps) {
   return (
     <div className='title-bar'>
-      <p className='title-bar__title'>{props.title || ''}</p>
-      <div className='title-bar__button-bar'>
-        <div
-          className='title-bar__button-bar__min'
-          onClick={window.External.minimize} />
-        <div
-          className='title-bar__button-bar__max'
-          onClick={window.External.maximize} />
-        <div
-          className='title-bar__button-bar__cross'
-          onClick={window.External.close} />
+      <div className='title-bar__inner'>
+        <p className='title-bar__title'>{props.title || ''}</p>
+        <div className='title-bar__button-bar'>
+          <div
+            className='title-bar__button-bar__min'
+            onClick={window.External.minimize} />
+          <div
+            className='title-bar__button-bar__max'
+            onClick={window.External.maximize} />
+          <div
+            className='title-bar__button-bar__cross'
+            onClick={window.External.close} />
+        </div>
       </div>
     </div>
   );

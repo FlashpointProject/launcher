@@ -1,213 +1,249 @@
 import * as fs from 'fs-extra';
+import { extractFull } from 'node-7z';
 import * as path from 'path';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
-import { promisify } from 'util';
-import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { formatDate, removeFileExtension } from '../../shared/Util';
-import { CurationSource, EditCuration } from '../context/CurationContext';
-import GameManager from '../game/GameManager';
-import { formatUnknownPlatformName } from '../game/util';
-import { GameLauncher } from '../GameLauncher';
-import { GameImageCollection } from '../image/GameImageCollection';
-import { ImageFolderCache } from '../image/ImageFolderCache';
-import { getImageFolderName } from '../image/util';
-import { getFileExtension } from '../Util';
-import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
-import { unzip } from '../util/unzip';
-import { CurationIndexImage, isInCurationFolder } from './indexCuration';
+import { ProgressDispatch, ProgressHandle } from '../context/ProgressContext';
+import { pathTo7z } from '../util/SevenZip';
+import { uuid } from '../uuid';
+import { ParsedCurationMeta } from './parse';
+import { curationLog } from './util';
 
-const ensureDir = promisify(fs.ensureDir);
-const copyFile = promisify(fs.copyFile);
+export type CurationIndex = {
+  /** UUID of the curation, used for storage */
+  key: string;
+  /** Data of each file in the content folder (and sub-folders). */
+  content: IndexedContent[];
+  /** Errors that occurred while indexing. */
+  errors: CurationIndexError[];
+  /** Meta data of the curation. */
+  meta: ParsedCurationMeta;
+  /** Screenshot. */
+  screenshot: CurationIndexImage;
+  /** Thumbnail. */
+  thumbnail: CurationIndexImage;
+};
+
+export type IndexedContent = {
+  /** Name and path of the file (relative to the content folder). */
+  filePath: string;
+  /** Size of the file (in bytes, uncompressed) */
+  fileSize: number;
+}
+
+export type CurationIndexError = {
+  /** Human readable error message. */
+  message: string;
+};
+
+export type CurationIndexImage = {
+  /** Base64 encoded data of the image file (in case it was extracted from an archive). */
+  data?: string;
+  /** Raw data of the image file (in case it was extracted from an archive). */
+  rawData?: Buffer;
+  /** If the images was found. */
+  exists: boolean;
+  /** Name and path of the file (relative to the curation folder). */
+  fileName?: string;
+  /** Full path of the image (in case it was loaded from a folder). */
+  filePath?: string;
+  /** Version to force CSS refresh later */
+  version: number;
+};
 
 /**
- * Import a curation.
- * @param curation Curation to import.
- * @param games Games manager to add the newly created game to.
- * @param gameImages Image collection to add the game images to.
- * @param log If the status should be logged to the console (for debugging purposes).
- * @returns A promise that resolves when the import is complete.
+ * Import a curation meta file (Copy meta to unique folder)
+ * @param filePath Path of the meta file to import
+ * @return Curation key
  */
-export async function importCuration(
-  curation: EditCuration, games: GameManager, gameImages: GameImageCollection, libraries: IGameLibraryFileItem[], log: boolean = false
-): Promise<void> {
-  // Find the library and get its prefix
-  const library = libraries.find(lib => lib.title === curation.meta.library);
-  const libraryPrefix = library && library.prefix || '';
-  // Create and add game and additional applications
-  const game = createGameFromCurationMeta(curation);
-  const addApps = createAddAppsFromCurationMeta(curation);
-  // Get the nome of the folder to put the images in
-  const imageFolderName = (
-    getImageFolderName(game, libraryPrefix, true) ||
-    removeFileExtension(formatUnknownPlatformName(libraryPrefix))
-  );
-  // Copy/extract content and image files
-  await Promise.all([
-    games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
-    .then(() => { if (log) { logMsg('Meta Added', curation); } }),
-    // Copy Thumbnail
-    (async () => {
-      const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
-      await importGameImage(curation.thumbnail, thumbnailCache, game)
-      .then(() => { thumbnailCache.refresh(); });
-    })()
-    .then(() => { if (log) { logMsg('Thumbnail Copied', curation); } }),
-    // Copy Screenshot
-    (async () => {
-      const screenshotCache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
-      await importGameImage(curation.screenshot, screenshotCache, game)
-      .then(() => { screenshotCache.refresh(); });
-    })()
-    .then(() => { if (log) { logMsg('Screenshot Copied', curation); } }),
-    // Copy content files
-    (async () => {
-      switch (curation.sourceType) {
-        case CurationSource.NONE:
-          // Do nothing (maybe it should show a warning or message or something?)
-          break;
-        case CurationSource.ARCHIVE:
-          // Copy all content files in the archive
-          await new Promise((resolve, reject) => {
-            unzip({
-              source: curation.source,
-              output: GameLauncher.getHtdocsPath(),
-              // Remove the path leading up to and including the content folder
-              generateOutputPath: (entry, opts) => removeFoldersStart(entry.fileName, 2),
-              // Only allow files/folders inside the curation folder
-              filter: (entry, opts) => isInCurationFolder(entry.fileName),
-            })
-            .once('done', () => { resolve(); });
-          });
-          break;
-        case CurationSource.FOLDER:
-          const contentPath = path.join(curation.source, 'content');
-          // Create promises that copies one content file/folder each
-          await Promise.all(
-            curation.content.map(content => {
-              // Check if the content is a folder (all folders end with "/")
-              if (content.fileName.endsWith('/')) { // (Folder)
-                return (async () => {
-                  // Create the folder if it is missing
-                  try { await ensureDir(path.join(GameLauncher.getHtdocsPath(), content.fileName), undefined); }
-                  catch (e) { /* Ignore error */ }
-                })();
-              } else { // (File)
-                return (async () => {
-                  // Copy file from the curation source folder
-                  const source = path.join(contentPath, content.fileName);
-                  const output = path.join(GameLauncher.getHtdocsPath(), content.fileName);
-                  // Ensure that the folders leading up to the file exists
-                  try { await ensureDir(path.dirname(output), undefined); }
-                  catch (e) { /* Ignore error */ }
-                  // Copy the file
-                  await copyFile(source, output);
-                })();
-              }
-            })
-          );
-          break;
+export async function importCurationMeta(filePath: string, key: string = uuid()): Promise<string> {
+  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  const metaPath = path.join(curationPath, 'meta' + path.extname(filePath));
+  try {
+    await fs.ensureDir(curationPath);
+    await fs.copyFile(filePath, metaPath);
+  } catch (error) {
+    curationLog('Error importing curation meta - ' + error.message);
+    console.error(error);
+  }
+  return key;
+}
+
+/**
+ * Import a curation folder (Copy all files to unique folder)
+ * @param filePath Path of the folder to import
+ * @return Curation key
+ */
+export async function importCurationFolder(filePath: string, key: string = uuid(), progress: ProgressHandle): Promise<string> {
+  ProgressDispatch.setText(progress, 'Importing Curation Folder');
+  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  try {
+    // Index the folder we're going to import
+    const index: IndexedContent[] = [];
+    await recursiveFolderIndex(filePath, filePath, index);
+    ProgressDispatch.setTotalItems(progress, index.length);
+    for (let file of index) {
+      // Copy file from import folder to curation folder, increment progress (if available)
+      const sourcePath = path.join(filePath, file.filePath);
+      const destPath = path.join(curationPath, file.filePath);
+      await fs.ensureDir(path.dirname(destPath));
+      await fs.copyFile(sourcePath, destPath);
+     ProgressDispatch.countItem(progress);
+    }
+  } catch (error) {
+    curationLog('Error importing curation folder - ' + error.message);
+    console.error(error);
+  } finally {
+    // Mark progress as finished
+    ProgressDispatch.finished(progress);
+  }
+  return key;
+}
+
+/**
+ * Import a curation archive (Extract all files to unique folder)
+ * @param filePath Path of the archive to import
+ * @return Curation key
+ */
+export async function importCurationArchive(filePath: string, key: string = uuid(), progress: ProgressHandle): Promise<string> {
+  ProgressDispatch.setText(progress, 'Extracting Curation Archive');
+  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  const extractPath = path.join(curationPath, '.temp');
+  try {
+    // Extract curation to .temp folder inside curation folder
+    await fs.ensureDir(extractPath);
+    await extractFullPromise([filePath, extractPath, { $bin: pathTo7z, $progress: true }], progress);
+    // Find the absolute path to the folder containing meta.yaml
+    const rootPath = await getRootPath(extractPath);
+    if (rootPath) {
+      // Move all files out of the root folder and into the curation folder
+      for (let file of await fs.readdir(rootPath)) {
+        const fileSource = path.join(rootPath, file);
+        const fileDest = path.join(curationPath, file);
+        await fs.move(fileSource, fileDest);
       }
-    })()
-    .then(() => { if (log) { logMsg('Content Copied', curation); } }),
-  ]);
-}
-
-function logMsg(text: string, curation: EditCuration): void {
-  console.log(`- ${text}\n  (id: ${curation.key})`);
-}
-
-/**
- * Create a game info from a curation.
- * @param curation Curation to get data from.
- */
-function createGameFromCurationMeta(curation: EditCuration): IGameInfo {
-  const meta = curation.meta;
-  return {
-    id:                  curation.key, // (Re-use the id of the curation)
-    title:               meta.title               || '',
-    series:              meta.series              || '',
-    developer:           meta.developer           || '',
-    publisher:           meta.publisher           || '',
-    platform:            meta.platform            || '',
-    playMode:            meta.playMode            || '',
-    status:              meta.status              || '',
-    notes:               meta.notes               || '',
-    genre:               meta.genre               || '',
-    source:              meta.source              || '',
-    applicationPath:     meta.applicationPath     || '',
-    launchCommand:       meta.launchCommand       || '',
-    releaseDate:         meta.releaseDate         || '',
-    version:             meta.version             || '',
-    originalDescription: meta.originalDescription || '',
-    language:            meta.language            || '',
-    dateAdded:           formatDate(new Date()),
-    broken:              false,
-    extreme:             !!stringToBool(meta.extreme || ''),
-    filename: '', // This will be set when saved
-    orderTitle: '', // This will be set when saved
-    placeholder: false,
-  };
+      // Clean up .temp
+      await fs.remove(extractPath);
+    } else {
+      throw new Error('Meta.yaml/yml/txt not found in extracted archive');
+    }
+  } catch (error) {
+    curationLog('Error extracting archive - ' + error.message);
+    console.error(error.message);
+  } finally {
+    // Mark progress as finished
+    ProgressDispatch.finished(progress);
+  }
+  return key;
 }
 
 /**
- * Create an array of additional application infos from a curation.
- * @param curation Curation to get data from.
+ * Fully extracts an archive with optional progress events (include '$progress: true' in your extractFull options)
+ * @param args Arguments to call extractFull
+ * @param progress Progress handle to update, if any
  */
-function createAddAppsFromCurationMeta(curation: EditCuration): IAdditionalApplicationInfo[] {
-  return curation.addApps.map<IAdditionalApplicationInfo>(addApp => {
-    const meta = addApp.meta;
-    return {
-      id: addApp.key,
-      gameId: curation.key,
-      applicationPath: meta.applicationPath || '',
-      commandLine: meta.launchCommand || '',
-      name: meta.heading || '',
-      autoRunBefore: false,
-      waitForExit: false,
-    };
+function extractFullPromise(args: Parameters<typeof extractFull>, progress?: ProgressHandle) : Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    extractFull(...args)
+    .on(('progress'), (event) => {
+      if (progress) {
+        // Update the text and percentage of a (possibly) given progress with 7z's progress
+        ProgressDispatch.setPercentDone(progress, event.percent);
+        ProgressDispatch.setText(progress, `Extracting Files - ${event.fileCount}`);
+      }
+    })
+    .once(('end'), () => {
+      resolve();
+    })
+    .once(('error'), (error) => {
+      reject(error);
+    });
   });
 }
 
+// Names valid as meta files
+const validMetaNames = ['meta.txt', 'meta.yaml', 'meta.yml'];
 /**
- * Import a game image (thumbnail or screenshot).
- * @param image Image to import.
- * @param game Game the image "belongs" to.
- * @param cache Cache to import the image to.
+ * Return the first path containing any valid meta name (undefined if none found)
+ * @param dir Path to search
  */
-async function importGameImage(image: CurationIndexImage, cache: ImageFolderCache, game: IGameInfo): Promise<void> {
-  if (image.exists) {
-    // Check if the image is its own file
-    if (image.filePath !== undefined) {
-      await copyGameImageFile(image.filePath, game, cache);
-    }
-    // Check if the image is extracted
-    else if (image.fileName !== undefined && image.rawData !== undefined) {
-      await createGameImageFileFromData(image.rawData, getFileExtension(image.fileName), game, cache);
+async function getRootPath(dir: string): Promise<string | undefined> {
+  const files = await fs.readdir(dir);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const fullPath = path.join(dir, file);
+    const stats = await fs.lstat(fullPath);
+    // Found root, pass back
+    if (stats.isFile() && endsWithList(file.toLowerCase(), validMetaNames)) {
+      return dir;
+    } else if (stats.isDirectory()) {
+      const foundRoot = await getRootPath(fullPath);
+      if (foundRoot) {
+        return foundRoot;
+      }
     }
   }
 }
 
-/**
- * Remove a number of folders from the start of a path.
- * Example: ("a/b/c/d.txt", 2) => "c/d.txt"
- * @param filePath Path to remove folders from.
- * @param count Number of folders to remove.
- * @param separator Separator between file and folder names.
- */
-function removeFoldersStart(filePath: string, count: number, separator: string = '/'): string {
-  const splits = filePath.split(separator);
-  splits.splice(0, count);
-  return splits.join(separator);
+function endsWithList(str: string, list: string[]): boolean {
+  for (let s of list) {
+    if (str.endsWith(s)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Create an "empty" curation index image. */
+export function createCurationIndexImage(): CurationIndexImage {
+  return {
+    exists: false,
+    version: 0,
+  };
 }
 
 /**
- * Convert a string to a boolean (case insensitive).
- * @param str String to convert ("Yes" is true, "No" is false).
- * @param defaultVal Value returned if the string is neither true nor false.
+ * Recursively index the content folder
+ * @param contentPath Folder to index
  */
-export function stringToBool(str: string, defaultVal: boolean = false): boolean {
-  const lowerStr = str.toLowerCase();
-  if (lowerStr === 'yes') { return true;  }
-  if (lowerStr === 'no' ) { return false; }
-  return defaultVal;
+export async function indexContentFolder(contentPath: string) : Promise<IndexedContent[]> {
+  const content: IndexedContent[] = [];
+  await fs.access(contentPath, fs.constants.F_OK)
+    .then(() => {
+      return recursiveFolderIndex(contentPath, contentPath, content)
+        .catch((error) => {
+          curationLog('Error indexing folder - ' + error.message);
+          console.error(error);
+        });
+    })
+    .catch((error) => {
+      const msg = `Content folder given doesn't exist, skipping... (${contentPath})`;
+      curationLog(msg);
+      console.log(msg);
+    });
+  return content;
+}
+
+async function recursiveFolderIndex(folderPath: string, basePath: string, content: IndexedContent[]): Promise<void> {
+  // List all sub-files (and folders)
+  const files = await fs.readdir(folderPath);
+  // Run a promise on each file (and wait for all to finish)
+  for (let fileName of files) {
+    const filePath = path.join(folderPath, fileName);
+    const stats = await fs.lstat(filePath);
+    const isDirectory = stats.isDirectory();
+    // Is a folder, go deeper
+    if (isDirectory) {
+      await recursiveFolderIndex(filePath, basePath, content);
+    // Is a file, add to index
+    } else {
+      content.push({
+        filePath: fixSlashes(path.relative(basePath, filePath)),
+        fileSize: stats.size,
+      });
+    }
+  }
+}
+
+/** Replace all back-slashes with forward slashes. */
+export function fixSlashes(str: string): string {
+  return str.replace(/\\/g, '/');
 }

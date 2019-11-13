@@ -3,30 +3,31 @@ import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
+import { GameCollection } from 'src/shared/game/GameCollection';
 import { promisify } from 'util';
-import { IGamePlaylist, IGamePlaylistEntry } from '../../../renderer/playlist/interfaces';
+import * as YAML from 'yaml';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
-import { GameCollection } from '../../../shared/game/GameCollection';
 import { filterAndOrderGames, FilterAndOrderGamesOpts } from '../../../shared/game/GameFilter';
 import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
-import { IGameLibraryFileItem } from '../../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../../shared/library/types';
 import { memoizeOne } from '../../../shared/memoize';
+import { updatePreferencesData } from '../../../shared/preferences/util';
 import { formatDate } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { stringifyCurationFormat } from '../../curate/format/stringifier';
 import { convertToCurationMeta } from '../../curate/metaToMeta';
 import GameManagerPlatform from '../../game/GameManagerPlatform';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { getImageFolderName } from '../../image/util';
 import { CentralState } from '../../interfaces';
+import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
 import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getFileExtension } from '../../Util';
 import { copyGameImageFile } from '../../util/game';
@@ -60,11 +61,11 @@ type OwnProps = {
   /** Currently selected game (if any). */
   selectedGame?: IGameInfo;
   /** Currently selected playlist (if any). */
-  selectedPlaylist?: IGamePlaylist;
+  selectedPlaylist?: GamePlaylist;
   /** Called when a game is selected. */
   onSelectGame?: (game?: IGameInfo) => void;
   /** Called when a playlist is selected. */
-  onSelectPlaylist?: (playlist?: IGamePlaylist) => void;
+  onSelectPlaylist?: (playlist?: GamePlaylist) => void;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
@@ -196,7 +197,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const showSidebars: boolean = this.props.central.gamesDoneLoading;
     const orderedGames = this.orderGames();
     // Find the selected game in the selected playlist (if both are selected)
-    let gamePlaylistEntry: IGamePlaylistEntry | undefined;
+    let gamePlaylistEntry: GamePlaylistEntry | undefined;
     if (selectedPlaylist && selectedGame) {
       for (let gameEntry of selectedPlaylist.games) {
         if (gameEntry.id === selectedGame.id) {
@@ -285,6 +286,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             games={this.props.central.games}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
+            onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
             onEditPlaylistNotes={this.onEditPlaylistNotes}
             gamePlaylistEntry={gamePlaylistEntry}
             isEditing={this.state.isEditing}
@@ -369,7 +371,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     };
   });
 
-  onLeftSidebarSelectPlaylist = (playlist: IGamePlaylist): void => {
+  onLeftSidebarSelectPlaylist = (playlist: GamePlaylist): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
     if (clearSearch)      { clearSearch();              }
     if (onSelectPlaylist) { onSelectPlaylist(playlist); }
@@ -378,6 +380,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onLeftSidebarDeselectPlaylist = (): void => {
     const { clearSearch, onSelectPlaylist } = this.props;
     if (clearSearch)      { clearSearch();               }
+    if (onSelectPlaylist) { onSelectPlaylist(undefined); }
+  }
+
+  /** Deselect without clearing search (Right sidebar will search itself) */
+  onRightSidebarDeselectPlaylist = (): void => {
+    const { onSelectPlaylist } = this.props;
     if (onSelectPlaylist) { onSelectPlaylist(undefined); }
   }
 
@@ -400,7 +408,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
-    this.props.updatePreferences({
+    updatePreferencesData({
       browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
     });
   }
@@ -408,7 +416,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onRightSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth;
     const targetWidth = event.startWidth + event.startX - event.event.clientX;
-    this.props.updatePreferences({
+    updatePreferencesData({
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
     });
   }
@@ -426,7 +434,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onGameLaunch = (game: IGameInfo): void => {
-    const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+    const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
     GameLauncher.launchGame(game, this.context.dialog, addApps);
   }
 
@@ -472,7 +480,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
    */
   duplicateCallback(game: IGameInfo, copyImages: boolean = false) {
     return () => {
-      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
       const library = this.getCurrentLibrary();
       // Duplicate game and add-apps
       const newGame = GameInfo.duplicate(game);
@@ -512,20 +520,20 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   /** Create a callback for exporting the meta of a game (as a curation format meta file). */
   exportMetaCallback(game: IGameInfo) {
     return () => {
-      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
       // Choose where to save the file
       const filePath = electron.remote.dialog.showSaveDialogSync({
         title: this.context.dialog.selectFileToExportMeta,
         defaultPath: 'meta',
         filters: [{
           name: 'Meta file',
-          extensions: ['txt'],
+          extensions: ['yaml'],
         }]
       });
       if (filePath) {
         fs.ensureDir(path.dirname(filePath))
         .then(() => {
-          const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
+          const meta = YAML.stringify(convertToCurationMeta(game, addApps));
           writeFile(filePath, meta);
         });
       }
@@ -536,7 +544,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   exportMetaAndImagesCallback(game: IGameInfo) {
     const strings = this.context.dialog;
     return () => {
-      const addApps = GameCollection.findAdditionalApplicationsByGameId(this.props.central.games.collection, game.id);
+      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
       // Choose where to save the file
       const filePaths = window.External.showOpenDialogSync({
         title: strings.selectFolderToExportMetaAndImages,
@@ -548,7 +556,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         const screenPath = this.props.gameImages.getScreenshotPath(game);
         const thumbPath = this.props.gameImages.getThumbnailPath(game);
         // Create dest paths
-        const metaPath = path.join(filePath,'meta.txt');
+        const metaPath = path.join(filePath,'meta.yaml');
         const ssPath   = path.join(filePath,'ss'   + getFileExtension(screenPath || ''));
         const logoPath = path.join(filePath,'logo' + getFileExtension(thumbPath  || ''));
         // Check if files already exists
@@ -572,7 +580,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         .then(() => {
           Promise.all([
             (async () => {
-              const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
+              const meta = YAML.stringify(convertToCurationMeta(game, addApps));
               await writeFile(metaPath, meta);
             })(),
             screenPath ? fs.copyFile(screenPath, ssPath)   : undefined,
@@ -690,7 +698,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const { central, selectedGame } = this.props;
     if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
       // Find additional applications for the selected game (if any)
-      let addApps = GameCollection.findAdditionalApplicationsByGameId(central.games.collection, selectedGame.id);
+      let addApps = central.games.collection.findAdditionalApplicationsByGameId(selectedGame.id);
       // Update State
       cb({
         currentGame: selectedGame && GameInfo.duplicate(selectedGame),
@@ -755,7 +763,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   /** Get the current library (or undefined if there is none). */
-  getCurrentLibrary(): IGameLibraryFileItem | undefined {
+  getCurrentLibrary(): GameLibraryFileItem | undefined {
     if (this.props.libraryData) {
       const route = this.props.gameLibraryRoute;
       return this.props.libraryData.libraries.find(item => item.route === route);
@@ -871,11 +879,11 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
 
 type GetLibraryGamesArgs = {
   /** Library that the games belong to (if undefined, all games should be shown). */
-  library?: IGameLibraryFileItem;
+  library?: GameLibraryFileItem;
   /** All platforms (to get the games from). */
   platforms: GameManagerPlatform[];
   /** All libraries. */
-  libraries: IGameLibraryFileItem[];
+  libraries: GameLibraryFileItem[];
 };
 
 /** Find all the games for the current library - undefined if no library is selected */

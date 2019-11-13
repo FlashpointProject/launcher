@@ -22,10 +22,12 @@ export type IAppPreferencesData = {
   browsePageShowLeftSidebar: boolean;
   /** If the right sidebar at the BrowsePage should be visible. */
   browsePageShowRightSidebar: boolean;
-  /** Width of the left sidebar. */
+  /** Width of the left sidebar. (Browse Page) */
   browsePageLeftSidebarWidth: number;
-  /** Width of the right sidebar. */
+  /** Width of the right sidebar. (Browse Page) */
   browsePageRightSidebarWidth: number;
+  /** Width of the left sidebar. (Curate Page) */
+  curatePageLeftSidebarWidth: number;
   /** If the "Developer" tab should be visible in the header. */
   showDeveloperTab: boolean;
   /** Filename of the current theme. */

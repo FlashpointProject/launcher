@@ -60,7 +60,7 @@ export function GameGridItem(props: GameGridItemProps) {
         </div>
       </li>
     );
-  }, [style, className, isDraggable, game.id, game.genre, game.title, platformIcon, thumbnail]);
+  }, [style, className, isDraggable, game.id, game.tags, game.title, platformIcon, thumbnail]);
 }
 
 export namespace GameGridItem { // eslint-disable-line no-redeclare

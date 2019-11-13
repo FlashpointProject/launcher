@@ -13,14 +13,6 @@ export default function configureStore(history: History, initialState?: Partial<
     composeEnhancers(
       applyMiddleware(
         routerMiddleware(history),
-        /* Update preferences api's data */
-        store => next => action => {
-          const result = next(action);
-          if ((action.type + '').startsWith('@@preferences/')) {
-            window.External.preferences.setData(store.getState().preferences.data);
-          }
-          return result;
-        }
       )
     )
   );

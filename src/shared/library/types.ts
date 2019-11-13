@@ -1,8 +1,8 @@
-export interface IGameLibraryFile {
-  libraries: IGameLibraryFileItem[];
-}
+export type GameLibraryFile = {
+  libraries: GameLibraryFileItem[];
+};
 
-export interface IGameLibraryFileItem {
+export type GameLibraryFileItem = {
   /** Title of the library */
   title: string;
   /** Used to create the URL to the library (this must be unique) */
@@ -17,4 +17,4 @@ export interface IGameLibraryFileItem {
    * (No more than one library should be default)
    */
   default?: boolean;
-}
+};

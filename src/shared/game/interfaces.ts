@@ -33,8 +33,8 @@ interface IPureGameInfo {
   status: string;
   /** Information that could be useful for the player (of varying importance) */
   notes: string;
-  /** Main genre of the game */
-  genre: string;
+  /** Tags of the game (seperated by semi-colon) */
+  tags: string;
   /** Source if the game files, either full URL or the name of the website */
   source: string;
   /** Path to the application that runs the game */
@@ -75,8 +75,8 @@ export interface IAdditionalApplicationInfo {
    * (If false, this will only run when specifically launched)
    */
   autoRunBefore: boolean;
-  /** Command line argument(s) used when launching the additional application */
-  commandLine: string;
+  /** Command line argument(s) passed to the application to launch the game */
+  launchCommand: string;
   /** Name of the additional application */
   name: string;
   /** @TODO Write this comment */
@@ -91,6 +91,6 @@ export interface IGameSearchQuery {
   platforms?: string[];
   /** Allowed developers (if empty show all, otherwise show only the ones in the array) */
   developers?: string[];
-  /** Allowed genres (if empty show all, otherwise show only the ones in the array) */
-  genres?: string[];
+  /** Allowed tags (if empty show all, otherwise show only the ones in the array) */
+  tags?: string[];
 }

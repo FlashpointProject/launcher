@@ -1,8 +1,26 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
+import { DeepPartial } from '../interfaces';
 import { autoCode } from '../lang';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
+import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
+import { BackIn } from '../back/types';
+
+export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send: boolean = true) {
+  const preferences = window.External.preferences;
+  // @TODO Figure out the delta change of the object tree, and only send the changes
+  overwritePreferenceData(preferences.data, data);
+  if (preferences.onUpdate) { preferences.onUpdate(); }
+  if (send) {
+    window.External.backSocket.send(JSON.stringify([
+      BackIn.UPDATE_PREFERENCES,
+      preferences.data
+    ]));
+  }
+}
+
+const { num, str } = Coerce;
 
 /** Default Preferences Data used for values that are not found in the file */
 export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze<IAppPreferencesData>({
@@ -16,6 +34,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageShowRightSidebar: true,
   browsePageLeftSidebarWidth: 320,
   browsePageRightSidebarWidth: 320,
+  curatePageLeftSidebarWidth: 320,
   showDeveloperTab: false,
   currentTheme: undefined,
   lastSelectedLibrary: '',
@@ -41,12 +60,12 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
  */
 export function overwritePreferenceData(
   source: IAppPreferencesData,
-  data: Partial<IAppPreferencesData>,
+  data: DeepPartial<IAppPreferencesData>,
   onError?: (error: string) => void
 ): IAppPreferencesData {
   const parser = new ObjectParser({
     input: data,
-    onError: onError && (error => onError(`Error while parsing Preferences: ${error.toString()}`)),
+    onError: onError && (e => onError(`Error while parsing Preferences: ${e.toString()}`)),
   });
   // Parse root object
   parser.prop('browsePageGameScale',         v => source.browsePageGameScale         = num(v));
@@ -59,6 +78,7 @@ export function overwritePreferenceData(
   parser.prop('browsePageShowRightSidebar',  v => source.browsePageShowRightSidebar  = !!v);
   parser.prop('browsePageLeftSidebarWidth',  v => source.browsePageLeftSidebarWidth  = num(v));
   parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
+  parser.prop('curatePageLeftSidebarWidth',  v => source.curatePageLeftSidebarWidth = num(v));
   parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
   parser.prop('currentTheme',                v => source.currentTheme                = str(v), true);
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
@@ -79,20 +99,17 @@ function parseMainWindow(parser: IObjectParserProp<any>, output: IAppPreferences
   parser.prop('maximized', v => output.maximized = !!v);
 }
 
-function num(n: any): number {
-  return parseFloat(n) || 0;
-}
-
-function str(str: any): string {
-  return (str || '') + '';
-}
-
-function strOpt<T extends string>(text: any, options: T[], defaultOption: T): T {
-  text = str(text);
+/**
+ * Coerce a value to a string, then return it if it matches at least on of the options.
+ * If it does not match any option, the default option is returned.
+ * @param value Value to coerce.
+ * @param options Options the value must match at least one of.
+ * @param defaultOption This is returned if the value doesn't match any of the options.
+ */
+function strOpt<T extends string>(value: any, options: T[], defaultOption: T): T {
+  value = str(value);
   for (let option of options) {
-    if (text === option) { return text; }
+    if (value === option) { return value; }
   }
   return defaultOption;
 }
-
-function noop() {}

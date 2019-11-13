@@ -167,12 +167,12 @@ export class GameLauncher {
         remote.dialog.showMessageBox({
           type: 'info',
           title: 'About This Game',
-          message: addApp.commandLine,
+          message: addApp.launchCommand,
           buttons: ['Ok'],
         });
         break;
       case ':extras:':
-        const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.commandLine)));
+        const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.launchCommand)));
         remote.shell.openExternal(folderPath, { activate: true })
         .catch(error => {
           if (error) {
@@ -187,14 +187,14 @@ export class GameLauncher {
         });
         break;
       default:
-        const appArgs: string = addApp.commandLine;
+        const appArgs: string = addApp.launchCommand;
         const appPath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(addApp.applicationPath, native)));
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
         const proc = GameLauncher.launch(
           GameLauncher.createCommand(appPath, appArgs, useWine),
           { env: GameLauncher.getEnvironment(useWine) }
         );
-        log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.commandLine}" ]`);
+        log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.launchCommand}" ]`);
         break;
     }
   }
@@ -318,7 +318,7 @@ export class GameLauncher {
       ...process.env,
     };
   }
-  
+
   private static createCommand(filename: string, args: string, useWine: boolean): string {
     // Escape filename and args
     let escFilename: string = filename;

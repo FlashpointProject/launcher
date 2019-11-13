@@ -1,11 +1,13 @@
 import { EventEmitter } from 'events';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import { IncomingMessage } from 'http';
+import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
-import { IUpgradeStage } from '../upgrade/upgrade';
-import { unzipAll } from '../util/unzip';
+import { UpgradeStage } from '../upgrade/types';
+import { pathTo7z } from './SevenZip';
+import { indexContentFolder } from '../curate/importCuration';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -16,7 +18,7 @@ interface IGetUpgradeOpts {
   downloadFilename: string;
 }
 
-export declare interface UpgradeStatus {
+export interface UpgradeStatus {
   /** Fired whenever progress is made in the process */
   on(event: 'progress', handler: () => void): this;
   emit(event: 'progress'): boolean;
@@ -31,7 +33,7 @@ export declare interface UpgradeStatus {
   emit(event: 'done'): boolean;
 }
 
-export type UpgradeStatusTask = 'downloading'|'extracting'|'none';
+export type UpgradeStatusTask = 'downloading' | 'extracting' | 'installing' | 'none';
 
 export class UpgradeStatus extends EventEmitter {
   public currentTask: UpgradeStatusTask = 'none';
@@ -44,7 +46,7 @@ export class UpgradeStatus extends EventEmitter {
   }
 }
 
-declare interface UpgradeDownloadStatus {
+interface UpgradeDownloadStatus {
   /** Fired when an error occurs, this also means that the process has ended */
   once(event: 'error', handler: (error: any) => void): this;
   emit(event: 'error', error: any): boolean;
@@ -62,7 +64,7 @@ class UpgradeDownloadStatus extends EventEmitter {
   contentLength: number = 0;
 }
 
-export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgradeOpts): UpgradeStatus {
+export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgradeOpts): UpgradeStatus {
   const status = new UpgradeStatus();
   status.currentTask = 'downloading';
   log(`Download of upgrade "${upgrade.title}" started.`);
@@ -74,27 +76,57 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
         status.emit('progress');
       }
     })
-    .once('done', (zipPath) => {
+    .once('done', async (zipPath) => {
+      // Start extraction
+      const extractionPath = path.join(opts.installPath, 'Upgrade Data', upgrade.id);
+      await fs.ensureDir(extractionPath);
       status.currentTask = 'extracting';
       log(`Download of the "${upgrade.title}" upgrade complete!`);
       log(`Installation of the "${upgrade.title}" upgrade started.`);
-      const unzipStatus = (
-        unzipAll(zipPath, opts.installPath)
-        .on('warn', warning => { log(warning); })
-        .on('progress', () => {
-          status.extractProgress =  unzipStatus.extractedSize / unzipStatus.totalSize;
-          status.emit('progress');
-        })
-        .once('done', () => {
-          log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
-              'Restart the launcher for the upgrade to take effect.');
-          status.emit('done');
-        })
-        .once('error', (error) => {
-          log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
-          status.emit('error', error);
-        })
-      );
+      extractFull(zipPath, extractionPath, { $bin: pathTo7z, $progress: true })
+      .on('progress', (progress) => {
+        status.extractProgress = progress.percent / 100;
+        status.emit('progress');
+      })
+      .once('end', async () => {
+        status.currentTask = 'installing';
+        status.emit('progress');
+        // Delete paths if required by Upgrade
+        for (let p of upgrade.deletePaths) {
+          try {
+            const realPath = path.join(opts.installPath, p);
+            await fs.remove(realPath);
+          } catch (error) { /* Path not present */ }
+        }
+        // Move extracted files to the install location, with filter
+        const allFiles = await indexContentFolder(extractionPath);
+        // Move all folders into install path
+        await Promise.all(allFiles.map(async file => {
+          const source = path.join(extractionPath, file.filePath);
+          const dest = path.join(opts.installPath, file.filePath);
+          console.log(path.normalize(file.filePath));
+          if (upgrade.keepPaths.findIndex(s => path.normalize(s).startsWith(path.normalize(file.filePath))) === -1) {
+            // Only passes paths not in keepPaths.
+            await fs.ensureDir(path.dirname(dest));
+            await fs.move(source, dest);
+          } else {
+            // Requested to keep, copy if not present
+            await fs.access(dest, fs.constants.F_OK)
+            .then(() => { /* File found, don't copy */ })
+            .catch(async (error) => { await fs.move(source, dest); });
+          }
+        }));
+        // Clean up extraction folder
+        await fs.remove(extractionPath);
+        // Install complete
+        log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
+            'Restart the launcher for the upgrade to take effect.');
+        status.emit('done');
+      })
+      .once('error', (error) => {
+        log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
+        status.emit('error', error);
+      });
     })
     .once('error', (error) => {
       log(`Download of the "${upgrade.title}" upgrade failed!\n${error}`);
@@ -109,7 +141,7 @@ export function downloadAndInstallUpgrade(upgrade: IUpgradeStage, opts: IGetUpgr
  * @param upgrade Upgrade to download
  * @returns Path of the local zip file, ready for extraction/installation
  */
-function downloadUpgrade(upgrade: IUpgradeStage, filename: string, onData: (offset: number) => void): UpgradeDownloadStatus {
+function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offset: number) => void): UpgradeDownloadStatus {
   const status = new UpgradeDownloadStatus();
   tryDownload(0);
   return status;
@@ -143,6 +175,19 @@ function downloadUpgrade(upgrade: IUpgradeStage, filename: string, onData: (offs
       catch (error) { status.emit('error', new Error(`File download failed. ${error}`)); }
     }
   }
+}
+
+/**
+ * Check if all files in the stage's "checks" array exists.
+ * This aborts as soon as it encounters a "check" that does not exist.
+ * @param stage Stage to check the "checks" of.
+ * @param flashpointFolder Path of the Flashpoint folder root.
+ */
+export async function performUpgradeStageChecks(stage: UpgradeStage, flashpointFolder: string): Promise<boolean[]> {
+  const success = await Promise.all(stage.checks.map(check => (
+    fs.pathExists(path.join(flashpointFolder, check))
+  )));
+  return success;
 }
 
 function log(content: string): void {

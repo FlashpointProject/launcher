@@ -1,21 +1,21 @@
 import * as React from 'react';
 import { LangContainer } from '../../../shared/lang';
 import { versionNumberToText } from '../../../shared/Util';
-import { ICreditsData, ICreditsDataProfile } from '../../credits/interfaces';
+import { CreditsData, CreditsDataProfile } from '../../credits/types';
 import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
 
 export type AboutPageProps = {
   /** Credits data (if any). */
-  creditsData?: ICreditsData;
+  creditsData?: CreditsData;
   /** If the credits data is done loading (even if it was unsuccessful). */
   creditsDoneLoading: boolean;
 };
 
 export type AboutPageState = {
   /** Currently "targeted" profile (the profile that the cursor is hovering over, if any). */
-  profile?: ICreditsDataProfile;
+  profile?: CreditsDataProfile;
 };
 
 export interface AboutPage {
@@ -102,7 +102,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     );
   }
 
-  onMouseEnterCreditsIcon = (profile: ICreditsDataProfile) => {
+  onMouseEnterCreditsIcon = (profile: CreditsDataProfile) => {
     if (this.state.profile !== profile) {
       this.setState({ profile });
     }

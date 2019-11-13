@@ -37,7 +37,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
           value={this.props.orderBy}
           onChange={this.onOrderByChange}>
           <option value='dateAdded'>{strings.dateAdded}</option>
-          <option value='genre'>{strings.genre}</option>
+          <option value='tags'>{strings.tags}</option>
           <option value='platform'>{strings.platform}</option>
           <option value='series'>{strings.series}</option>
           <option value='title'>{strings.title}</option>
@@ -88,7 +88,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
 function validateOrderBy(value: string): GameOrderBy {
   switch (value) {
     case 'dateAdded': return 'dateAdded';
-    case 'genre':     return 'genre';
+    case 'tags':      return 'tags';
     case 'platform':  return 'platform';
     case 'series':    return 'series';
     case 'title':     return 'title';

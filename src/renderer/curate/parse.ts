@@ -1,7 +1,11 @@
+import * as YAML from 'yaml';
+import { Coerce } from '../../shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
 import { EditAddAppCurationMeta, EditCurationMeta } from '../context/CurationContext';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
+
+const { str } = Coerce;
 
 /** Return value type of the parseCurationMeta function. */
 export type ParsedCurationMeta = {
@@ -12,27 +16,27 @@ export type ParsedCurationMeta = {
 };
 
 /**
- * Parse a string containing meta for a curation (using either the new or old Curation Format).
+ * Parse a string containing meta for an old style curation
  * @param text A string of curation meta.
  */
-export function parseCurationMeta(text: string): ParsedCurationMeta {
+export function parseCurationMetaOld(text: string): ParsedCurationMeta {
   // Try parsing the meta text
   let tokens: CFTokenizer.AnyToken[] | undefined = undefined;
   let rawMeta: CurationFormatObject | undefined = undefined;
-  try {
-    tokens = tokenizeCurationFormat(text);
-    rawMeta = parseCurationFormat(tokens);
-  }
-  catch (error) {
-    console.error(
-      'Failed to parse curation meta.\n\n',
-      'Tokens:', tokens,
-      '\n\n',
-      error,
-    );
-    rawMeta = {};
-  }
+  tokens = tokenizeCurationFormat(text);
+  rawMeta = parseCurationFormat(tokens);
   // Convert the raw meta to a programmer friendly object
+  return convertMeta(rawMeta);
+}
+
+/**
+ * Parse a string containing meta for an new style (YAML) curation
+ * @param text A string of curation meta.
+ */
+export function parseCurationMetaNew(text: string): ParsedCurationMeta {
+  // Try parsing yaml file
+  const rawMeta = YAML.parse(text);
+  // Convert raw meta into a ParsedCurationMeta object
   return convertMeta(rawMeta);
 }
 
@@ -42,44 +46,57 @@ export function parseCurationMeta(text: string): ParsedCurationMeta {
  * @param onError Called whenever an error occurs.
  */
 function convertMeta(data: any, onError?: (error: string) => void): ParsedCurationMeta {
+  // Default parsed data
   const parsed: ParsedCurationMeta = {
     game: {},
     addApps: [],
   };
+  // Make sure it exists before calling Object.keys
+  if (!data) {
+    console.log('Meta empty');
+    return parsed;
+  }
+  // Treat field names case-insensitively
+  const lowerCaseData: any = {};
+  for (let key of Object.keys(data)) {
+    if (data[key]) {
+      lowerCaseData[key.toLowerCase()] = data[key];
+    }
+  }
   const parser = new ObjectParser({
-    input: data,
-    onError: onError && (error => onError(`Error while converting Curation Meta: ${error.toString()}`))
+    input: lowerCaseData,
+    onError: onError && (e => onError(`Error while converting Curation Meta: ${e.toString()}`))
   });
   // -- Old curation format --
-  parser.prop('Author Notes',         v => parsed.game.authorNotes         = str(v));
-  parser.prop('Genre',                v => parsed.game.genre               = str(v));
-  parser.prop('Notes',                v => parsed.game.notes               = str(v));
+  parser.prop('author notes',         v => parsed.game.authorNotes         = str(v));
+  parser.prop('genre',                v => parsed.game.tags               = str(v));
+  parser.prop('notes',                v => parsed.game.notes               = str(v));
   // -- New curation format --
   // Single value properties
-  parser.prop('Application Path',     v => parsed.game.applicationPath     = str(v));
-  parser.prop('Curation Notes',       v => parsed.game.authorNotes         = str(v));
-  parser.prop('Developer',            v => parsed.game.developer           = str(v));
-  parser.prop('Extreme',              v => parsed.game.extreme             = str(v));
-  parser.prop('Game Notes',           v => parsed.game.notes               = str(v));
-  parser.prop('Genres',               v => parsed.game.genre               = str(v));
-  parser.prop('Languages',            v => parsed.game.language            = str(v));
-  parser.prop('Launch Command',       v => parsed.game.launchCommand       = str(v));
-  parser.prop('Original Description', v => parsed.game.originalDescription = str(v));
-  parser.prop('Play Mode',            v => parsed.game.playMode            = str(v));
-  parser.prop('Platform',             v => parsed.game.platform            = str(v));
-  parser.prop('Publisher',            v => parsed.game.publisher           = str(v));
-  parser.prop('Release Date',         v => parsed.game.releaseDate         = str(v));
-  parser.prop('Series',               v => parsed.game.series              = str(v));
-  parser.prop('Source',               v => parsed.game.source              = str(v));
-  parser.prop('Status',               v => parsed.game.status              = str(v));
-  parser.prop('Tags',                 v => parsed.game.genre               = str(v));
-  parser.prop('Title',                v => parsed.game.title               = str(v));
-  parser.prop('Version',              v => parsed.game.version             = str(v));
-  parser.prop('Library',              v => parsed.game.library             = str(v));
+  parser.prop('application path',     v => parsed.game.applicationPath     = str(v));
+  parser.prop('curation notes',       v => parsed.game.authorNotes         = str(v));
+  parser.prop('developer',            v => parsed.game.developer           = str(v));
+  parser.prop('extreme',              v => parsed.game.extreme             = str(v));
+  parser.prop('game notes',           v => parsed.game.notes               = str(v));
+  parser.prop('genres',               v => parsed.game.tags               = str(v));
+  parser.prop('languages',            v => parsed.game.language            = str(v));
+  parser.prop('launch command',       v => parsed.game.launchCommand       = str(v));
+  parser.prop('original description', v => parsed.game.originalDescription = str(v));
+  parser.prop('play mode',            v => parsed.game.playMode            = str(v));
+  parser.prop('platform',             v => parsed.game.platform            = str(v));
+  parser.prop('publisher',            v => parsed.game.publisher           = str(v));
+  parser.prop('release date',         v => parsed.game.releaseDate         = str(v));
+  parser.prop('series',               v => parsed.game.series              = str(v));
+  parser.prop('source',               v => parsed.game.source              = str(v));
+  parser.prop('status',               v => parsed.game.status              = str(v));
+  parser.prop('tags',                 v => parsed.game.tags               = str(v));
+  parser.prop('title',                v => parsed.game.title               = str(v));
+  parser.prop('version',              v => parsed.game.version             = str(v));
+  parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
   // property aliases
-  parser.prop('Animation Notes',      v => parsed.game.notes               = str(v));
+  parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps
-  parser.prop('Additional Applications').map((item, label, map) => {
+  parser.prop('additional applications').map((item, label, map) => {
     parsed.addApps.push(convertAddApp(item, label, map[label]));
   });
   // Return
@@ -113,16 +130,4 @@ function convertAddApp(item: IObjectParserProp<any>, label: string | number | sy
       break;
   }
   return addApp;
-}
-
-/**
- * Convert any value to a string.
- * @param value Value to convert.
- */
-function str(value: any): string {
-  if (value === undefined || value === null) {
-    return '';
-  } else {
-    return value + '';
-  }
 }

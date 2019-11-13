@@ -1,8 +1,8 @@
-import { IRawLaunchBoxAdditionalApplication, IRawLaunchBoxGame, IRawLaunchBoxPlatformRoot } from '../launchbox/interfaces';
+import { IRawAdditionalApplicationInfo, IRawGameInfo, IRawPlatformFile } from '../platform/interfaces';
 import { IAdditionalApplicationInfo, IGameCollection, IGameInfo } from './interfaces';
 
 export class GameParser {
-  public static parse(data: IRawLaunchBoxPlatformRoot, filename: string): IGameCollection {
+  public static parse(data: IRawPlatformFile, filename: string): IGameCollection {
     const collection: IGameCollection = {
       games: [],
       additionalApplications: [],
@@ -11,20 +11,21 @@ export class GameParser {
     if (games) {
       if (!Array.isArray(games)) { games = [ games ]; }
       for (let i = games.length - 1; i >= 0; i--) {
-        collection.games[i] = GameParser.parseGame(games[i], filename);
+        collection.games[i] = GameParser.parseRawGame(games[i], filename);
       }
     }
     let apps = data.LaunchBox.AdditionalApplication;
     if (apps) {
       if (!Array.isArray(apps)) { apps = [ apps ]; }
       for (let i = apps.length - 1; i >= 0; i--) {
-        collection.additionalApplications[i] = GameParser.parseAdditionalApplication(apps[i]);
+        collection.additionalApplications[i] = GameParser.parseRawAdditionalApplication(apps[i]);
       }
     }
     return collection;
   }
 
-  public static parseGame(data: Partial<IRawLaunchBoxGame>, filename: string): IGameInfo {
+
+  public static parseRawGame(data: Partial<IRawGameInfo>, filename: string): IGameInfo {
     const title: string = unescapeHTML(data.Title);
     return {
       id: unescapeHTML(data.ID),
@@ -39,7 +40,7 @@ export class GameParser {
       playMode: unescapeHTML(data.PlayMode),
       status: unescapeHTML(data.Status),
       notes: unescapeHTML(data.Notes),
-      genre: unescapeHTML(data.Genre),
+      tags: unescapeHTML(data.Genre),
       source: unescapeHTML(data.Source),
       applicationPath: unescapeHTML(data.ApplicationPath),
       launchCommand: unescapeHTML(data.CommandLine),
@@ -53,19 +54,19 @@ export class GameParser {
     };
   }
 
-  private static parseAdditionalApplication(data: IRawLaunchBoxAdditionalApplication): IAdditionalApplicationInfo {
+  private static parseRawAdditionalApplication(data: IRawAdditionalApplicationInfo): IAdditionalApplicationInfo {
     return {
       id: unescapeHTML(data.Id),
       gameId: unescapeHTML(data.GameID),
       applicationPath: unescapeHTML(data.ApplicationPath),
       autoRunBefore: !!data.AutoRunBefore,
-      commandLine: unescapeHTML(data.CommandLine),
+      launchCommand: unescapeHTML(data.CommandLine),
       name: unescapeHTML(data.Name),
       waitForExit: !!data.WaitForExit,
     };
   }
 
-  public static reverseParseGame(game: IGameInfo): IRawLaunchBoxGame {
+  public static reverseParseGame(game: IGameInfo): IRawGameInfo {
     return {
       ID: escapeHTML(game.id),
       Title: escapeHTML(game.title),
@@ -79,7 +80,7 @@ export class GameParser {
       PlayMode: escapeHTML(game.playMode),
       Status: escapeHTML(game.status),
       Notes: escapeHTML(game.notes),
-      Genre: escapeHTML(game.genre),
+      Genre: escapeHTML(game.tags),
       Source: escapeHTML(game.source),
       ApplicationPath: escapeHTML(game.applicationPath),
       CommandLine: escapeHTML(game.launchCommand),
@@ -90,36 +91,25 @@ export class GameParser {
     };
   }
 
-  public static reverseParseAdditionalApplication(addapp: IAdditionalApplicationInfo): Partial<IRawLaunchBoxAdditionalApplication> {
+  public static reverseParseAdditionalApplication(addapp: IAdditionalApplicationInfo): Partial<IRawAdditionalApplicationInfo> {
     return {
       Id: escapeHTML(addapp.id),
       GameID: escapeHTML(addapp.gameId),
       ApplicationPath: escapeHTML(addapp.applicationPath),
       AutoRunBefore: !!addapp.autoRunBefore,
-      CommandLine: escapeHTML(addapp.commandLine),
+      CommandLine: escapeHTML(addapp.launchCommand),
       Name: escapeHTML(addapp.name),
       WaitForExit: !!addapp.waitForExit,
     };
   }
 
-  public static readonly emptyRawAdditionalApplication: IRawLaunchBoxAdditionalApplication = {
+  public static readonly emptyRawAdditionalApplication: IRawAdditionalApplicationInfo = {
+    Id: '',
+    GameID: '',
     ApplicationPath: '',
-    AutoRunAfter: false,
     AutoRunBefore: false,
     CommandLine: '',
-    Developer: '',
-    GameID: '',
-    Id: '',
     Name: '',
-    PlayCount: 0,
-    Priority: 0,
-    Region: '',
-    SideA: false,
-    SideB: false,
-    Status: false,
-    UseDosBox: false,
-    UseEmulator: false,
-    Version: '',
     WaitForExit: false,
   };
 

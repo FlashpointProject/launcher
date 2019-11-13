@@ -5,7 +5,7 @@ import { wrapSearchTerm } from '../../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { PickType } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
-import { IGameLibraryFileItem } from '../../shared/library/interfaces';
+import { GameLibraryFileItem } from '../../shared/library/types';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import GameManager from '../game/GameManager';
@@ -13,7 +13,7 @@ import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
-import { IGamePlaylistEntry } from '../playlist/interfaces';
+import { GamePlaylistEntry } from '../playlist/types';
 import { copyGameImageFile, deleteGameImageFiles } from '../util/game';
 import { LangContext } from '../util/lang';
 import { GamePropSuggestions } from '../util/suggestions';
@@ -35,13 +35,15 @@ type OwnProps = {
   /** Additional Applications of the currently selected game (if any) */
   currentAddApps?: IAdditionalApplicationInfo[];
   /* */
-  currentLibrary?: IGameLibraryFileItem;
+  currentLibrary?: GameLibraryFileItem;
   /** Currently selected game entry (if any) */
-  gamePlaylistEntry?: IGamePlaylistEntry;
+  gamePlaylistEntry?: GamePlaylistEntry;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame?: () => void;
   /** Called when the selected game is removed from the selected by this */
   onRemoveSelectedGameFromPlaylist?: () => void;
+  /** Called when a playlist is deselected (searching game fields) */
+  onDeselectPlaylist: () => void;
   /** Called when the playlist notes for the selected game has been changed */
   onEditPlaylistNotes?: (text: string) => void;
   /** If the "edit mode" is currently enabled */
@@ -72,7 +74,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   // Bound "on change" callbacks for game fields
   onTitleChange               = this.wrapOnTextChange((game, text) => { game.title               = text; });
   onDeveloperChange           = this.wrapOnTextChange((game, text) => { game.developer           = text; });
-  onGenreChange               = this.wrapOnTextChange((game, text) => { game.genre               = text; });
+  onTagsChange                = this.wrapOnTextChange((game, text) => { game.tags                = text; });
   onSeriesChange              = this.wrapOnTextChange((game, text) => { game.series              = text; });
   onSourceChange              = this.wrapOnTextChange((game, text) => { game.source              = text; });
   onPublisherChange           = this.wrapOnTextChange((game, text) => { game.publisher           = text; });
@@ -91,7 +93,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   // Bound "on click" callbacks for game fields
   onTitleClick                = this.wrapOnTextClick('title');
   onDeveloperClick            = this.wrapOnTextClick('developer');
-  onGenreClick                = this.wrapOnTextClick('genre');
+  onTagsClick                 = this.wrapOnTextClick('tags');
   onSeriesClick               = this.wrapOnTextClick('series');
   onSourceClick               = this.wrapOnTextClick('source');
   onPublisherClick            = this.wrapOnTextClick('publisher');
@@ -220,16 +222,16 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             <>
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.genre}: </p>
+                  <p>{strings.tags}: </p>
                   <DropdownInputField
-                    text={game.genre}
-                    placeholder={strings.noGenre}
+                    text={game.tags}
+                    placeholder={strings.noTags}
                     className='browse-right-sidebar__searchable'
-                    onChange={this.onGenreChange}
+                    onChange={this.onTagsChange}
                     editable={editable}
-                    items={suggestions && filterSuggestions(suggestions.genre) || []}
-                    onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
-                    onClick={this.onGenreClick}
+                    items={suggestions && filterSuggestions(suggestions.tags) || []}
+                    onItemSelect={text => { game.tags = text; this.forceUpdate(); }}
+                    onClick={this.onTagsClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -481,20 +483,18 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <div className='browse-right-sidebar__row__screenshot__placeholder'>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
                       <GameImageSplit
-                        type='thumbnail'
                         text={strings.thumbnail}
                         imgSrc={thumbnailSrc}
-                        onAddClick={this.addThumbnailDialog}
+                        onAddClick={this.onAddThumbnailClick}
                         onRemoveClick={this.onRemoveThumbnailClick}
-                        onDrop={this.onImageDrop}
+                        onDrop={this.onDropThumbnail}
                         disabled={!imageFolderName} />
                       <GameImageSplit
-                        type='screenshot'
                         text={strings.screenshot}
                         imgSrc={screenshotSrc}
-                        onAddClick={this.addScreenshotDialog}
+                        onAddClick={this.onAddScreenshotClick}
                         onRemoveClick={this.onRemoveScreenshotClick}
-                        onDrop={this.onImageDrop}
+                        onDrop={this.onDropScreenshot}
                         disabled={!imageFolderName} />
                     </div>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
@@ -615,7 +615,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     deleteGameImageFiles(currentGame, cache).then(() => { this.forceUpdate(); });
   }
 
-  addScreenshotDialog = async () => {
+  addImageDialog = async (type: 'thumbnail' | 'screenshot') => {
     const { currentGame, gameImages } = this.props;
     if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
     // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
@@ -625,61 +625,68 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     });
     if (filePaths && filePaths[0]) {
       const imageFolderName = this.getImageFolderName();
-      const cache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
-      copyGameImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
-    }
-  }
-
-  addThumbnailDialog = async () => {
-    const { currentGame, gameImages } = this.props;
-    if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
-    // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-    const filePaths = window.External.showOpenDialogSync({
-      title: this.context.dialog.selectThumbnail,
-      properties: ['openFile']
-    });
-    if (filePaths && filePaths[0]) {
-      const imageFolderName = this.getImageFolderName();
-      const cache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
-      copyGameImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); });
-    }
-  }
-
-  onRemoveScreenshotClick = (): void => {
-    this.deleteImage(this.props.gameImages.getScreenshotCache(this.getImageFolderName()));
-  }
-
-  onRemoveThumbnailClick = (): void => {
-    this.deleteImage(this.props.gameImages.getThumbnailCache(this.getImageFolderName()));
-  }
-
-  onImageDrop = (event: React.DragEvent, type: string): void => {
-    event.preventDefault();
-    const files = copyArrayLike(event.dataTransfer.files);
-    const game = this.props.currentGame;
-    const imageFolderName = this.getImageFolderName();
-    if (!game) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
-    const thumbnailCache = this.props.gameImages.getThumbnailCache(imageFolderName);
-    if (!thumbnailCache) { throw new Error('Can not add a new image, the thumbnail cache is missing.'); }
-    const screenshotCache = this.props.gameImages.getScreenshotCache(imageFolderName);
-    if (!screenshotCache) { throw new Error('Can not add a new image, the screenshot cache is missing.'); }
-    if (files.length > 1) { // (Multiple files)
-      copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
-      copyGameImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
-    } else { // (Single file)
+      let cache = undefined;
       switch (type) {
         case 'thumbnail':
-          copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+          cache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
           break;
         case 'screenshot':
-          copyGameImageFile(files[0].path, game, screenshotCache).then(() => { this.forceUpdate(); });
-          break;
-        default:
-          console.warn('No "add-single-file" case for the "text" of the GameImageSplit the file was dropped on.');
+          cache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
           break;
       }
+      if (cache) { copyGameImageFile(filePaths[0], currentGame, cache).then(() => { this.forceUpdate(); }); }
     }
   }
+
+  onRemoveImageClick = (type: 'thumbnail' | 'screenshot'): void => {
+    switch (type) {
+      case 'thumbnail':
+        this.deleteImage(this.props.gameImages.getThumbnailCache(this.getImageFolderName()));
+        break;
+      case 'screenshot':
+        this.deleteImage(this.props.gameImages.getScreenshotCache(this.getImageFolderName()));
+        break;
+    }
+  }
+
+  wrapOnImageDrop = (type: string) => {
+    return (event: React.DragEvent) => {
+      event.preventDefault();
+      const files = event.dataTransfer.files;
+      const game = this.props.currentGame;
+      const imageFolderName = this.getImageFolderName();
+      if (!game) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
+      const thumbnailCache = this.props.gameImages.getThumbnailCache(imageFolderName);
+      if (!thumbnailCache) { throw new Error('Can not add a new image, the thumbnail cache is missing.'); }
+      const screenshotCache = this.props.gameImages.getScreenshotCache(imageFolderName);
+      if (!screenshotCache) { throw new Error('Can not add a new image, the screenshot cache is missing.'); }
+      if (files.length > 1) { // (Multiple files)
+        copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+        copyGameImageFile(files[1].path, game, screenshotCache).then(() => { this.forceUpdate(); });
+      } else { // (Single file)
+        switch (type) {
+          case 'thumbnail':
+            copyGameImageFile(files[0].path, game, thumbnailCache).then(() => { this.forceUpdate(); });
+            break;
+          case 'screenshot':
+            copyGameImageFile(files[0].path, game, screenshotCache).then(() => { this.forceUpdate(); });
+            break;
+          default:
+            console.warn('No "add-single-file" case for the "text" of the GameImageSplit the file was dropped on.');
+            break;
+        }
+      }
+    };
+  }
+
+  onAddThumbnailClick = () => this.addImageDialog('thumbnail');
+  onAddScreenshotClick = () => this.addImageDialog('screenshot');
+
+  onRemoveThumbnailClick  = () => this.onRemoveImageClick('thumbnail');
+  onRemoveScreenshotClick = () => this.onRemoveImageClick('screenshot');
+
+  onDropThumbnail = () => this.wrapOnImageDrop('thumbnail');
+  onDropScreenshot = () => this.wrapOnImageDrop('screenshot');
 
   onDeleteGameClick = (): void => {
     console.time('delete');
@@ -758,6 +765,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     return () => {
       const { currentGame, isEditing } = this.props;
       if (!isEditing && currentGame) {
+        this.props.onDeselectPlaylist();
         const value = currentGame[field];
         const search = (value)
           ? `${field}:${wrapSearchTerm(value)}`
@@ -813,17 +821,4 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   const menu = remote.Menu.buildFromTemplate(template);
   menu.popup({ window: remote.getCurrentWindow() });
   return menu;
-}
-
-/**
- * Create a new array and populate it with the properties and values from another array or array like object.
- * @param arrayLike Array or array like object to copy properties and values from.
- * @returns New array with the same properties and values as the argument.
- */
-function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
-  const array: T[] = [];
-  for (let key in arrayLike) {
-    array[key] = arrayLike[key];
-  }
-  return array;
 }

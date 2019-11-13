@@ -1,32 +1,21 @@
-import { connect } from 'react-redux';
-import { bindActionCreators, Dispatch } from 'redux';
+import * as React from 'react';
+import { useContext } from 'react';
+import { Subtract } from '../../shared/interfaces';
 import { IAppPreferencesData } from '../../shared/preferences/interfaces';
-import { ApplicationState } from '../store';
-import * as action from '../store/preferences/actions';
+import { PreferencesContext } from '../context/PreferencesContext';
 
-type StateToProps = {
+export type WithPreferencesProps = {
   /** Current preference data. */
-  readonly preferencesData: Readonly<IAppPreferencesData>;
+  preferencesData: Readonly<IAppPreferencesData>;
 };
 
-type DispatchToProps = {
-  /** Update the entire, or parts of the, preference data object. */
-  readonly updatePreferences: (data: Partial<IAppPreferencesData>) => void;
-};
-
-export type WithPreferencesProps = StateToProps & DispatchToProps;
-
-const mapStateToProps = ({ preferences }: ApplicationState): StateToProps => ({
-  preferencesData: preferences.data,
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
-  updatePreferences: (data: Partial<IAppPreferencesData>) => action.updatePreferences(data)
-}, dispatch);
-
-export const withPreferences = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  null,
-  { getDisplayName: name => 'withPreferences('+name+')' }
-);
+export function withPreferences<P>(Component: React.ComponentType<P>) {
+  return function WithPreferences(props: Subtract<P, WithPreferencesProps>) {
+    const preferences = useContext(PreferencesContext);
+    return (
+      <Component
+        {...props as P} // @HACK This is annoying to make typsafe
+        preferencesData={preferences} />
+    );
+  };
+}

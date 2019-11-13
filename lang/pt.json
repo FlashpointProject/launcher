@@ -173,8 +173,6 @@
     "additionalApplications": "Aplicação Adicional",
     "noName": "Sem Nome",
     "launch": "Iniciar",
-    "commandLine": "Linha de Comando",
-    "noCommandLine": "Sem Linha de Comando",
     "autoRunBefore": "Início Automático Antes de",
     "waitForExit": "Esperar pela Saída",
     "applicationPath": "Caminho da Aplicação",

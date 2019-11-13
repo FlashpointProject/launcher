@@ -30,7 +30,7 @@ export interface RightBrowseSidebarAddApp {
 export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebarAddAppProps> {
   onNameEditDone            = this.wrapOnTextChange((addApp, text) => { addApp.name = text; });
   onApplicationPathEditDone = this.wrapOnTextChange((addApp, text) => { addApp.applicationPath = text; });
-  onCommandLineEditDone     = this.wrapOnTextChange((addApp, text) => { addApp.commandLine = text; });
+  onLaunchCommandEditDone   = this.wrapOnTextChange((addApp, text) => { addApp.launchCommand = text; });
   onAutoRunBeforeChange     = this.wrapOnCheckBoxChange((addApp) => { addApp.autoRunBefore = !addApp.autoRunBefore; });
   onWaitForExitChange       = this.wrapOnCheckBoxChange((addApp) => { addApp.waitForExit = !addApp.waitForExit; });
 
@@ -63,13 +63,13 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
                 onChange={this.onApplicationPathEditDone}
                 editable={!editDisabled} />
             </div>
-            {/* Command Line */}
+            {/* Launch Command */}
             <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-              <p>{strings.commandLine}: </p>
+              <p>{strings.launchCommand}: </p>
               <InputField
-                text={addApp.commandLine}
-                placeholder={strings.noCommandLine}
-                onChange={this.onCommandLineEditDone}
+                text={addApp.launchCommand}
+                placeholder={strings.noLaunchCommand}
+                onChange={this.onLaunchCommandEditDone}
                 editable={!editDisabled} />
             </div>
             {/* Auto Run Before */}
