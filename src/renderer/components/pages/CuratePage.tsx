@@ -60,6 +60,23 @@ export function CuratePage(props: CuratePageProps) {
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
     const relativePath = path.relative(curationsPath, fullPath);
     const splitPath = relativePath.split(path.sep);
+    const dirName = path.basename(fullPath);
+    console.log(dirName);
+    // Inside curation dir and is unused
+    if (splitPath.length > 1 && dirName != 'content' && dirName != 'Extras') {
+      const key = splitPath.shift();
+      console.log(key);
+      // Forcefully re-render a curate box (Non-Content folder warnings)
+      if (key) {
+        dispatch({
+          type: 'remove-unused-dir',
+          payload: {
+            key: key,
+            dir: dirName
+          }
+        });
+      }
+    }
     // Only 1 dir in relative path, must be curation dir
     if (splitPath.length === 1) {
       dispatch({
@@ -177,6 +194,33 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [dispatch, localState, defaultGameMetaValues]);
 
+  const updateCurationDir = useCallback(async (fullPath) => {
+    const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
+    const relativePath = path.relative(curationsPath, fullPath);
+    const splitPath = relativePath.split(path.sep);
+    const dirName = path.basename(fullPath);
+    console.log(dirName);
+    // Dir inside curation folders and unused
+    if (splitPath.length > 1 && dirName != 'content' && dirName != 'Extras') {
+      const key = splitPath.shift();
+      console.log(key);
+      // Forcefully re-render a curate box (Non-Content folder warnings)
+      if (key) {
+        // Verify it is actually a curation folder by searching for meta file
+        const curationFiles = await fs.readdir(path.join(curationsPath, key));
+        if (curationFiles.findIndex(f => f.startsWith('meta.')) != -1) {
+          dispatch({
+            type: 'add-unused-dir',
+            payload: {
+              key: key,
+              dir: dirName
+            }
+          });
+        }
+      }
+    }
+  }, [dispatch]);
+
   // Start a watcher for the 'Curations' folder to montior curations (meta + images)
   const watcher = useMemo(() => {
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
@@ -195,7 +239,7 @@ export function CuratePage(props: CuratePageProps) {
       updateCurationFile(fullPath);
     })
     .on('addDir', (fullPath) => {
-      
+      updateCurationDir(fullPath);
     })
     .on('unlink', (fullPath) => {
       removeCurationFile(fullPath);
@@ -206,7 +250,7 @@ export function CuratePage(props: CuratePageProps) {
     .on('error', (error) => {
       // Discard watcher errors - Throws useless lstat errors when watching already unlinked files?
     });
-  }, [dispatch]);
+  }, []);
 
   // Called whenever the state changes
   React.useEffect(() => {
@@ -251,11 +295,11 @@ export function CuratePage(props: CuratePageProps) {
           const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
           const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
           try {
-            fs.writeFileSync(metaPath, meta)
+            fs.writeFileSync(metaPath, meta);
           } catch (error) {
             curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
             console.error(error);
-          };
+          }
         }
       }
     };
@@ -313,27 +357,38 @@ export function CuratePage(props: CuratePageProps) {
           try {
             // Import curation (and wait for it to complete)
             await importCurationCallback(curation, true, now)
-              // Import failed, could be error or user cancelled
-              .catch(async (error) => {
-                curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
-                console.error(error);
-                const content = await indexContentFolder(getContentFolderByKey(curation.key));
-                dispatch({
-                  type: 'set-curation-content',
-                  payload: {
-                    key: curation.key,
-                    content: content
-                  }
-                });
+            .then(() => {
+              // Increment success counter
+              success += 1;
+              // Log status
+              curationLog(`Curation successfully imported! (title: ${curation.meta.title} id: ${curation.key})`);
+              // Remove the curation
+              dispatch({
+                type: 'remove-curation',
+                payload: { key: curation.key }
               });
-            // Increment success counter
-            success += 1;
-            // Log status
-            curationLog(`Curation successfully imported! (title: ${curation.meta.title} id: ${curation.key})`);
-            // Remove the curation
-            dispatch({
-              type: 'remove-curation',
-              payload: { key: curation.key }
+            })
+            // Import failed, could be error or user cancelled
+            .catch(async (error) => {
+              curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
+              console.error(error);
+              const content = await indexContentFolder(getContentFolderByKey(curation.key));
+              // Update curation content. It may have been changed before error thrown.
+              dispatch({
+                type: 'set-curation-content',
+                payload: {
+                  key: curation.key,
+                  content: content
+                }
+              });
+              // Unlock the curation
+              dispatch({
+                type: 'change-curation-lock',
+                payload: {
+                  key: curation.key,
+                  lock: false,
+                },
+              });
             });
           } catch (error) {
             // Log error

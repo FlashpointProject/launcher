@@ -31,6 +31,22 @@ export async function importCuration(
   curation: EditCuration, games: GameManager, gameImages: GameImageCollection,
   libraries: GameLibraryFileItem[], log: boolean = false, date: Date = new Date()
 ): Promise<void> {
+  // TODO: Consider moving this check outside importCuration
+  // Warn if launch command is already present on another game
+  const existingGame = games.collection.games.find(g => g.launchCommand === curation.meta.launchCommand);
+  if (existingGame) {
+    // Warn user of possible duplicate
+    const res = remote.dialog.showMessageBoxSync({
+      title: 'Possible Duplicate',
+      message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
+               + `Curation:\n\tTitle: ${curation.meta.title}\n\tPlatform: ${curation.meta.platform}\n\n`
+               + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
+      buttons: ['Yes', 'No']
+    });
+    if (res === 1) {
+      throw 'User Cancelled Import';
+    }
+  }
   // Build content list
   const contentToMove = [
     [getContentFolderByKey(curation.key),                   GameLauncher.getHtdocsPath()]

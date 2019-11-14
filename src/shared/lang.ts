@@ -274,7 +274,6 @@ const langTemplate = {
     'unusedTags',
     'unusedPlatform',
     'nonExistingLibrary',
-    'noContent',
     'nonContentFolders',
   ] as const,
   playlist: [

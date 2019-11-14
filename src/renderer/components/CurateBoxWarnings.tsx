@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useMemo } from 'react';
 import { LangContext } from '../util/lang';
-import { objectTypeSpreadProperty } from '@babel/types';
 
 export type CurateBoxWarningsProps = {
   /** Warnings to display. */
@@ -24,8 +23,6 @@ export type CurationWarnings = {
   unusedPlatform?: boolean;
   /** If the library value does not point to an existing library. */
   nonExistingLibrary?: boolean;
-  /** If there are no content files or folders. */
-  noContent?: boolean;
   /** If there are non-content folders present in the curation folder (Crendor would be proud) */
   nonContentFolders?: string[];
 };

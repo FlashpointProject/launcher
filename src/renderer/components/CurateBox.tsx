@@ -389,7 +389,7 @@ export function CurateBox(props: CurateBoxProps) {
       return getCurationWarnings(props.curation, props.suggestions, props.libraryData);
     }
     return {};
-  }, [props.curation && props.curation.meta, props.curation && props.curation.content]);
+  }, [props.curation]);
 
   // Render images (logo + ss)
   const imageSplit = useMemo(() => {
@@ -980,30 +980,9 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   warns.unusedTags = listValuesNotSuggested(curation, suggestions, 'tags', ';');
   warns.unusedPlatform = !isValueSuggested(curation, suggestions, 'platform');
   warns.unusedApplicationPath = !isValueSuggested(curation, suggestions, 'applicationPath');
-  warns.nonContentFolders = findNonContentFolders(curation);
-  // Check if there is no content
-  warns.noContent = curation.content.length === 0;
+  warns.nonContentFolders = curation.unusedDirs;
   // Check if library is set
   const curLibrary = curation.meta.library;
   warns.nonExistingLibrary = libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
   return warns;
-}
-
-function findNonContentFolders(curation: EditCuration): string[] {
-  const curationPath = getCurationFolder(curation);
-  const nonContentFolders: string[] = [];
-  for (let file of fs.readdirSync(curationPath)) {
-    const stats = fs.lstatSync(path.join(curationPath, file));
-    if (stats.isDirectory()) {
-      switch (file) {
-        case 'content':
-        case 'Extras':
-          break;
-        default:
-          nonContentFolders.push(file);
-          break;
-      }
-    }
-  }
-  return nonContentFolders;
 }
