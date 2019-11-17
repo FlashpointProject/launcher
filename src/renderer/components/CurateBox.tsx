@@ -107,7 +107,7 @@ export function CurateBox(props: CurateBoxProps) {
         },
       });
       // Check for warnings before importing
-      const warnings = getCurationWarnings(curation, props.suggestions, props.libraryData);
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraryData, strings.curate);
       const warningCount = getWarningCount(warnings);
       if (warningCount > 0) {
         // Prompt user
@@ -243,7 +243,7 @@ export function CurateBox(props: CurateBoxProps) {
           lock: true,
         },
       });
-      const warnings = getCurationWarnings(curation, props.suggestions, props.libraryData);
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraryData, strings.curate);
       const warningCount = getWarningCount(warnings);
       if (warningCount > 0) {
         // Prompt user
@@ -386,10 +386,10 @@ export function CurateBox(props: CurateBoxProps) {
   // Generate Warnings
   const warnings = useMemo(() => {
     if (props.curation) {
-      return getCurationWarnings(props.curation, props.suggestions, props.libraryData);
+      return getCurationWarnings(props.curation, props.suggestions, props.libraryData, strings.curate);
     }
     return {};
-  }, [props.curation]);
+  }, [props.curation, strings]);
 
   // Render images (logo + ss)
   const imageSplit = useMemo(() => {
@@ -588,7 +588,7 @@ export function CurateBox(props: CurateBoxProps) {
               text={props.curation && props.curation.meta.launchCommand || ''}
               placeholder={strings.browse.noLaunchCommand}
               onChange={onLaunchCommandChange}
-              className={(warnings.invalidLaunchCommand || warnings.noLaunchCommand) ? 'input-field--warn' : ''}
+              className={(!warnings.invalidLaunchCommand || warnings.invalidLaunchCommand.length === 0) ? '' : 'input-field--warn'}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.notes + ':'}>
@@ -925,17 +925,23 @@ function isHttpUrl(str: string): boolean {
   catch (e) { return false; }
 }
 
-function validLaunchCommand(folderPath: string, launchCommand: string): boolean {
+function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string, strings: LangContainer['curate']): string[] {
+  // Keep list of warns for end
+  const warns: string[] = [];
   // Extract first string from launch command via regex
   let match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
   if (match) {
     // Match 1 - Inside quotes, Match 0 - No Quotes Found
     let lc = match[1] || match[0];
-    // Only check URLS (ignore bash/shell script non-URL commands)
-    if (lc.toLowerCase().startsWith('http')) {
-      if (lc.toLowerCase().startsWith('https')) {
-        // Using HTTPS, warn
-        return false;
+    // Extract protocol from potential URL
+    console.log(lc);
+    let protocol = lc.match(/(.+):\/\//);
+    console.log(protocol);
+    if (protocol) {
+      // Protocol found, must be URL
+      if (protocol[1] != 'http') {
+        // Not using HTTP
+        warns.push(strings.ilc_notHttp);
       }
       const ending = lc.split('/').pop();
       // If the string ends in file, cut off parameters
@@ -944,13 +950,12 @@ function validLaunchCommand(folderPath: string, launchCommand: string): boolean 
       }
       const filePath = path.join(folderPath, unescape(lc).replace(/(^\w+:|^)\/\//, ''));
       // Push a game to the list if its launch command file is missing
-      return fs.existsSync(filePath);
-    } else {
-      // Isn't a URL, ignore
-      return true;
+      if (!fs.existsSync(filePath)) {
+        warns.push(strings.ilc_nonExistant);
+      }
     }
   }
-  return false;
+  return warns;
 }
 
 /**
@@ -966,13 +971,15 @@ function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
 }
 
-export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraryData: GameLibraryFile) {
+export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraryData: GameLibraryFile, strings: LangContainer['curate']) {
   const warns: CurationWarnings = {};
   // Check launch command exists
   const launchCommand = curation.meta.launchCommand || '';
   warns.noLaunchCommand = launchCommand === '';
   // Check launch command is valid (if exists)
-  warns.invalidLaunchCommand = !warns.noLaunchCommand && !validLaunchCommand(getContentFolderByKey(curation.key), launchCommand);
+  if (!warns.noLaunchCommand) {
+    warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey(curation.key), launchCommand, strings);
+  }
   // Validate release date
   const releaseDate = curation.meta.releaseDate;
   if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }

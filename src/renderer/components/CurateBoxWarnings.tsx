@@ -12,7 +12,7 @@ export type CurationWarnings = {
   /** If the launch command is missing */
   noLaunchCommand?: boolean;
   /** If the launch command is not a url with the "http" protocol and doesn't point to a file in 'content' */
-  invalidLaunchCommand?: boolean;
+  invalidLaunchCommand?: string[];
   /** If the release date is invalid (incorrectly formatted). */
   releaseDateInvalid?: boolean;
   /** If the application path value isn't used by any other game. */
@@ -91,5 +91,6 @@ export function getWarningCount(warnings: CurationWarnings): number {
   // Remove 1 from counter if lists are empty
   if (warnings.unusedTags && warnings.unusedTags.length === 0) { warningCount--; }
   if (warnings.nonContentFolders && warnings.nonContentFolders.length === 0) { warningCount--; }
+  if (warnings.invalidLaunchCommand && warnings.invalidLaunchCommand.length === 0) { warningCount--; }
   return warningCount;
 }

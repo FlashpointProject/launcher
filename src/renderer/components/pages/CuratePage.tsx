@@ -331,7 +331,7 @@ export function CuratePage(props: CuratePageProps) {
           // Log status
           console.log(`Importing... (id: ${curation.key})`);
           // Check for warnings
-          const warnings = getCurationWarnings(curation, suggestions, props.libraryData);
+          const warnings = getCurationWarnings(curation, suggestions, props.libraryData, strings.curate);
           const warningCount = getWarningCount(warnings);
           if (warningCount > 0) {
             // Prompt user
@@ -574,7 +574,7 @@ export function CuratePage(props: CuratePageProps) {
         {library.title}
       </option>
     ));
-    // Add default entry if no libraries available
+    // Add default enonRuntry if no libraries available
     if (props.libraryData.libraries.length === 0) {
       const defaultLibrary = (
         <option key={0}>

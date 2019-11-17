@@ -259,13 +259,15 @@
     "contentFiles": "Content Files",
     "warnings": "Warnings",
     "noLaunchCommand": "'Launch Command' is a required field. Please fill it in before importing.",
-    "invalidLaunchCommand": "'Launch Command' must fit these requirements:\n\tBe a valid URL.\n\tUse HTTP. Never use HTTPS.\n\tResolve to a file inside this curation's 'content' folder",
+    "invalidLaunchCommand": "'Launch Command' does not fit these URL requirements:",
     "releaseDateInvalid": "'Release Date' must follow YYYY-MM-DD (month and day are optional).",
     "unusedApplicationPath": "'Application Path' has an unused value. Make sure it's spelled correctly!",
     "unusedTags": "The following tags are not present on any other game. Are they correct?",
     "unusedPlatform": "'Platform' has an unused value. Make sure it's spelled correctly!",
     "nonExistingLibrary": "'Library' is not the name of an existing library! (Default will be used)",
-    "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?"
+    "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?",
+    "ilc_notHttp": "Use HTTP.",
+    "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder."
   },
   "playlist": {
     "enterDescriptionHere": "Enter a description here...",

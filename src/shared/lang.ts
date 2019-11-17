@@ -275,6 +275,8 @@ const langTemplate = {
     'unusedPlatform',
     'nonExistingLibrary',
     'nonContentFolders',
+    'ilc_notHttp',
+    'ilc_nonExistant'
   ] as const,
   playlist: [
     'enterDescriptionHere',
