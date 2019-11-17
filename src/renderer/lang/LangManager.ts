@@ -1,6 +1,7 @@
 import { remote } from 'electron';
 import { readFile } from 'fs-extra';
 import * as path from 'path';
+import { AddLogData, BackIn } from '../../shared/back/types';
 import { RecursivePartial } from '../../shared/interfaces';
 import { autoCode, LangContainer, LangFile, LangFileContent } from '../../shared/lang';
 import { deepCopy, recursiveReplace, tryParseJSON } from '../../shared/Util';
@@ -264,8 +265,8 @@ export enum LoadError {
 }
 
 function log(content: string): void {
-  window.External.log.addEntry({
+  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Language',
-    content: content
+    content: content,
   });
 }

@@ -37,6 +37,7 @@ type OwnProps = {
   launchGame: (gameId: string) => void;
   deleteGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
+  onLaunchAddApp: (addAppId: string) => void;
 
   onDeletePlaylist: (playlistId: string) => void;
   onSavePlaylist: (playlistId: string, edit: GamePlaylist) => void;
@@ -275,6 +276,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
             onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
             onEditPlaylistNotes={this.onEditPlaylistNotes}
+            onLaunchAddApp={this.props.onLaunchAddApp}
             gamePlaylistEntry={gamePlaylistEntry}
             isEditing={this.state.isEditing}
             isNewGame={this.state.isNewGame}
@@ -525,7 +527,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           if (res.data.game) {
             cb({
               currentGame: res.data.game,
-              currentAddApps: res.data.addApps,
+              currentAddApps: res.data.addApps || [],
               isNewGame: false,
             });
           } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }

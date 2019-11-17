@@ -3,6 +3,7 @@ import * as WebSocket from 'ws';
 import { BackInit, ViewGame } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IGameInfo } from '../shared/game/interfaces';
+import { ILogEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { GameManager } from './game/GameManager';
@@ -20,6 +21,7 @@ export type BackState = {
   init: { [key in BackInit]: boolean; };
   initEmitter: InitEmitter;
   queries: Record<string, BackQueryChache>;
+  log: ILogEntry[];
 }
 
 export type BackQueryChache = {

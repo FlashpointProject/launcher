@@ -4,12 +4,13 @@ import * as http from 'http';
 import * as path from 'path';
 import * as WebSocket from 'ws';
 import { Server } from 'ws';
-import { BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetConfigAndPrefsResponse, GetGameData, GetGameResponseData, LaunchGameData, SaveGameData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetConfigAndPrefsResponse, GetGameData, GetGameResponseData, GetLogResponseData, LaunchAddAppData, LaunchGameData, SaveGameData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { FilterGameOpts, filterGames, orderGames } from '../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { DeepPartial } from '../shared/interfaces';
+import { ILogEntry, ILogPreEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
@@ -39,6 +40,7 @@ const state: BackState = {
   },
   initEmitter: new EventEmitter() as any,
   queries: {},
+  log: [],
 };
 
 const preferencesFilename = 'preferences.json';
@@ -110,6 +112,19 @@ async function onMessageWrap(event: WebSocket.MessageEvent) {
 async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
   const req: WrappedRequest = JSON.parse(event.data.toString());
   switch (req.type) {
+    case BackIn.ADD_LOG: {
+      const reqData: AddLogData = req.data;
+      log(reqData, req.id);
+    } break;
+
+    case BackIn.GET_LOG: {
+      respond<GetLogResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: { entries: state.log }
+      });
+    } break;
+
     case BackIn.GET_CONFIG_AND_PREFERENCES: {
       const data: GetConfigAndPrefsResponse = {
         preferences: state.preferences,
@@ -138,6 +153,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           });
         }
       }
+
       respond(event.target, {
         id: req.id,
         type: BackOut.INIT_EVENT,
@@ -157,6 +173,31 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
         data: { libraries: libraries, },
+      });
+    } break;
+
+    case BackIn.LAUNCH_ADDAPP: {
+      const reqData: LaunchAddAppData = req.data;
+
+      let addApp: IAdditionalApplicationInfo | undefined;
+
+      const platforms = state.gameManager.platforms;
+      for (let i = 0; i < platforms.length; i++) {
+        const aa = platforms[i].collection.additionalApplications.find(item => item.id === reqData.id);
+        if (aa) {
+          addApp = aa;
+          break;
+        }
+      }
+
+      if (addApp) {
+        GameLauncher.launchAdditionalApplication(addApp, path.resolve(state.config.flashpointPath), state.preferences.useWine, log);
+      }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: undefined
       });
     } break;
 
@@ -184,7 +225,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       }
 
       if (game) {
-        GameLauncher.launchGame(game, addApps, path.resolve(state.config.flashpointPath), state.preferences.useWine);
+        GameLauncher.launchGame(game, addApps, path.resolve(state.config.flashpointPath), state.preferences.useWine, log);
       }
 
       respond(event.target, {
@@ -303,7 +344,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         orderReverse: reqData.query.orderReverse as GameOrderReverse,
       };
 
-      const hash = hashQuery(query);
+      const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
       let cache = state.queries[hash];
       if (!cache) {
         // @TODO Start clearing the cache if it gets too full
@@ -312,7 +353,6 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           extreme: query.extreme,
           broken: query.broken,
           query: query.search,
-          offset: reqData.offset,
           orderBy: query.orderBy,
           orderReverse: query.orderReverse,
           library: query.library,
@@ -380,6 +420,34 @@ function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
   target.send(JSON.stringify(response));
 }
 
+function broadcast<T>(response: WrappedResponse<T>): void {
+  console.log('BROADCAST', response);
+  const message = JSON.stringify(response);
+  state.server.clients.forEach(socket => {
+    if (socket.onmessage === onMessageWrap) { // (Check if authorized)
+      socket.send(message);
+    }
+  });
+}
+
+function log(preEntry: ILogPreEntry, id?: string): void {
+  const entry: ILogEntry = {
+    source: preEntry.source,
+    content: preEntry.content,
+    timestamp: Date.now(),
+  };
+  state.log.push(entry);
+
+  broadcast({
+    id: id || '',
+    type: BackOut.LOG_ENTRY_ADDED,
+    data: {
+      entry,
+      index: state.log.length - 1,
+    }
+  });
+}
+
 /**
  * Recursively iterate over all properties of the template object and compare the values of the same
  * properties in object A and B. All properties that are not equal will be added to the returned object.
@@ -414,10 +482,6 @@ type SearchGamesOpts = {
   broken: boolean;
   /** String to use as a search query */
   query: string;
-  /** Offset to begin in a search result */
-  offset: number;
-  /** Max number of results to return */
-  //limit: number;
   /** The field to order the games by. */
   orderBy: GameOrderBy;
   /** The way to order the games. */
@@ -448,8 +512,4 @@ function searchGames(opts: SearchGamesOpts): IGameInfo[] {
   orderGames(foundGames, { orderBy: opts.orderBy, orderReverse: opts.orderReverse });
 
   return foundGames;
-}
-
-function hashQuery(query: BackQuery): string {
-  return createHash('sha256').update(JSON.stringify(query)).digest('base64');
 }

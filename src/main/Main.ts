@@ -4,13 +4,11 @@ import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
-import { BackIn, BackInitArgs, BackOut, GetConfigAndPrefsResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInitArgs, BackOut, GetConfigAndPrefsResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import checkSanity from '../shared/checkSanity';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IMiscData, MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
-import { ILogPreEntry } from '../shared/Log/interface';
-import { LogMainApi } from '../shared/Log/LogMainApi';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import MainWindow from './MainWindow';
 import { ServicesMainApi } from './service/ServicesMainApi';
@@ -25,7 +23,6 @@ export class Main {
   private _secret: string = randomBytes(2048).toString('hex');
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   private _version: number = -2;
-  private _log: LogMainApi = new LogMainApi(this.sendToMainWindowRenderer.bind(this));
   public preferences?: IAppPreferencesData;
   public config?: IAppConfigData;
   public socket?: WebSocket;
@@ -39,7 +36,6 @@ export class Main {
     app.once('web-contents-created', this.onAppWebContentsCreated.bind(this));
 
     // Add IPC event listeners
-    this._log.bindListeners();
     ipcMain.on(MiscIPC.REQUEST_MISC_SYNC, this.onRequestMisc.bind(this));
     ipcMain.on(InitRendererChannel, this.onInit.bind(this));
 
@@ -89,7 +85,7 @@ export class Main {
       this.socket = ws;
       ws.onclose = () => { reject(new Error('Failed to authenticate to the back.')); };
       ws.onerror = (event) => { reject(event.error); };
-      ws.onopen  = (event) => {
+      ws.onopen  = () => {
         ws.onmessage = () => {
           ws.onclose = (event) => { console.log('socket closed', event.code, event.reason); };
           ws.onerror = (event) => { console.log('socket error', event.error); };
@@ -126,7 +122,16 @@ export class Main {
       .then(console.log, console.error);
       // Start background services
       this._services = new ServicesMainApi(this.sendToMainWindowRenderer.bind(this));
-      this._services.on('output', this.pushLogData.bind(this));
+      this._services.on('output', entry => {
+        if (this.socket) {
+          const req: WrappedRequest<AddLogData> = {
+            id: '',
+            type: BackIn.ADD_LOG,
+            data: entry,
+          };
+          this.socket.send(JSON.stringify(req));
+        }
+      });
       this._services.start(this.config);
       // Create main window when ready
       this._services.waitUntilDoneStarting()
@@ -214,24 +219,13 @@ export class Main {
     event.returnValue = data;
   }
 
-  private onMessage = (message: any) => {
-    const msg = JSON.parse(message);
+  private onMessage = (message: WebSocket.MessageEvent) => {
+    const msg = JSON.parse(message.data.toString());
     switch (msg[0]) {
       case BackOut.UPDATE_PREFERENCES_RESPONSE:
         this.preferences = msg[1];
         break;
     }
-  }
-
-  /**
-   * Append the output to the internal log data object and tell the main window
-   * about the updated log data. The main window will display the log data in
-   * the "Logs" tab. Also print the output to stdout.
-   * @param output The log entry to be added. Must end with a new line.
-   */
-  private pushLogData(output: ILogPreEntry): void {
-    // process.stdout.write(output);
-    this._log.addEntry(output);
   }
 
   /** Send a message to the main windows renderer */

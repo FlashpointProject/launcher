@@ -3,8 +3,8 @@ import * as uuid from 'uuid';
 import { BackIn, WrappedRequest, WrappedResponse } from './types';
 
 export interface SharedSocket {
-  /** Listen for all responses */
-  on(event: 'response', listener: (event: WrappedResponse) => void): this;
+  /** Fired when a message is received. */
+  on(event: 'message', listener: (event: WrappedResponse) => void): this;
 }
 
 export class SharedSocket extends EventEmitter {
@@ -22,7 +22,7 @@ export class SharedSocket extends EventEmitter {
     // Emit response to whoever sent it
     this.emit(response.id, response);
     // Emit to any message watchers
-    this.emit('response', response);
+    this.emit('message', response);
   }
 
   public send<T, U = any>(type: BackIn, data: U, callback?: (res: WrappedResponse<T>) => void): void {

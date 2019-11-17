@@ -3,7 +3,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, InitEventData, LaunchGameData, SaveGameData, DeleteGameData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetLogResponseData, InitEventData, LaunchAddAppData, LaunchGameData, LogEntryAddedData, SaveGameData } from '../shared/back/types';
 import { sendRequest } from '../shared/back/util';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
@@ -228,9 +228,14 @@ export class App extends React.Component<AppProps, AppState> {
       });
     });
 
-    window.External.back.on('response', res => {
+    window.External.back.on('message', res => {
       console.log('IN', res);
       switch (res.type) {
+        case BackOut.LOG_ENTRY_ADDED: {
+          const resData: LogEntryAddedData = res.data;
+          window.External.log.entries[resData.index - window.External.log.offset] = resData.entry;
+        } break;
+
         case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
           const resData: BrowseViewPageResponseData = res.data;
 
@@ -419,7 +424,9 @@ export class App extends React.Component<AppProps, AppState> {
 
   componentDidMount() {
     // Request all log entires
-    window.External.log.refreshEntries();
+    window.External.back.send<GetLogResponseData>(BackIn.GET_LOG, undefined, res => {
+      if (res.data) { window.External.log.entries = res.data.entries; }
+    });
   }
 
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {
@@ -535,6 +542,7 @@ export class App extends React.Component<AppProps, AppState> {
       launchGame: this.onLaunchGame,
       deleteGame: this.onDeleteGame,
       onRequestGames: this.onRequestGames,
+      onLaunchAddApp: this.onLaunchAddApp,
 
       onDeletePlaylist: this.onDeletePlaylist,
       onSavePlaylist: this.onSavePlaylist,
@@ -822,6 +830,10 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
+  onLaunchAddApp = (addAppId: string): void => {
+    window.External.back.send<any, LaunchAddAppData>(BackIn.LAUNCH_ADDAPP, { id: addAppId });
+  }
+
   onDeletePlaylist(playlistId: string) {
     // @TODO
   }
@@ -886,8 +898,8 @@ function getBrowseSubPath(urlPath: string): string {
 }
 
 function log(content: string): void {
-  window.External.log.addEntry({
+  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Launcher',
-    content: content
+    content: content,
   });
 }

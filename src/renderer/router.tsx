@@ -30,6 +30,7 @@ export type AppRouterProps = {
   launchGame: (gameId: string) => void;
   deleteGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
+  onLaunchAddApp: (addAppId: string) => void;
 
   onDeletePlaylist: (playlistId: string) => void;
   onSavePlaylist: (playlistId: string, edit: GamePlaylist) => void;
@@ -78,6 +79,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       launchGame: this.props.launchGame,
       deleteGame: this.props.deleteGame,
       onRequestGames: this.props.onRequestGames,
+      onLaunchAddApp: this.props.onLaunchAddApp,
 
       onDeletePlaylist: this.props.onDeletePlaylist,
       onSavePlaylist: this.props.onSavePlaylist,

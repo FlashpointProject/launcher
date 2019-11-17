@@ -7,7 +7,6 @@ import { PickType } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
-import { GameLauncher } from '../GameLauncher';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
@@ -26,6 +25,7 @@ import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 
 type OwnProps = {
+  onLaunchAddApp: (addAppId: string) => void;
   gameImages: GameImageCollection;
   /** Currently selected game (if any) */
   currentGame?: IGameInfo;
@@ -683,21 +683,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.props.onDeleteSelectedGame();
   }
 
-  onAddAppLaunch(addApp: IAdditionalApplicationInfo): void {
-    GameLauncher.launchAdditionalApplication(addApp);
+  onAddAppLaunch = (addAppId: string): void => {
+    this.props.onLaunchAddApp(addAppId);
   }
 
-  onAddAppDelete = (addApp: IAdditionalApplicationInfo): void => {
+  onAddAppDelete = (addAppId: string): void => {
     const addApps = this.props.currentAddApps;
     if (!addApps) { throw new Error('editAddApps is missing.'); }
-    // Find and remove add-app
-    let index = -1;
-    for (let i = addApps.length - 1; i >= 0; i--) {
-      if (addApps[i].id === addApp.id) {
-        index = i;
-        break;
-      }
-    }
+    const index = addApps.findIndex(addApp => addApp.id === addAppId);
     if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
     addApps.splice(index, 1);
     this.forceUpdate();

@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as React from 'react';
 import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
-import { BackIn } from '../../../shared/back/types';
+import { AddLogData, BackIn } from '../../../shared/back/types';
 import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { autoCode, LangContainer, LangFile } from '../../../shared/lang';
 import { memoizeOne } from '../../../shared/memoize';
@@ -471,9 +471,9 @@ function formatThemeItemName(item: IThemeListItem): string {
   return `${item.metaData.name} (${item.basename})`;
 }
 
-function log(str: string): void {
-  window.External.log.addEntry({
-    source: 'Config',
-    content: str,
+function log(content: string): void {
+  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+    source: 'Game Launcher',
+    content: content,
   });
 }

@@ -1,9 +1,9 @@
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
-import { LogRendererApi } from './Log/LogRendererApi';
 import { IAppPreferencesData } from './preferences/interfaces';
 import { ServicesApi } from './service/ServicesApi';
+import { ILogEntry } from './Log/interface';
 
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
@@ -57,8 +57,11 @@ export interface IMainWindowExternal {
   /** Renderers interface for Service data */
   services: ServicesApi;
 
-  /** Renderers interface for the Log data */
-  log: LogRendererApi;
+  /** Log entries fetched from the back process. */
+  log: {
+    entries: ILogEntry[];
+    offset: number;
+  }
 
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;

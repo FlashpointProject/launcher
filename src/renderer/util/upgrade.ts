@@ -4,6 +4,7 @@ import { IncomingMessage } from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
+import { AddLogData, BackIn } from '../../shared/back/types';
 import { UpgradeStage } from '../upgrade/types';
 import { unzipAll } from '../util/unzip';
 const http  = require('follow-redirects').http;
@@ -160,7 +161,7 @@ export async function performUpgradeStageChecks(stage: UpgradeStage, flashpointF
 }
 
 function log(content: string): void {
-  window.External.log.addEntry({
+  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Upgrade',
     content: content
   });

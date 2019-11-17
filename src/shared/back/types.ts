@@ -1,6 +1,7 @@
 import { IAppConfigData } from '../config/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
+import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
-import { IGameInfo, IAdditionalApplicationInfo } from '../game/interfaces';
 
 export enum BackIn {
   INIT_LISTEN,
@@ -9,6 +10,9 @@ export enum BackIn {
   GET_ALL_GAMES,
   LAUNCH_GAME,
   DELETE_GAME,
+  LAUNCH_ADDAPP,
+  ADD_LOG,
+  GET_LOG,
   /** Get all library names. */
   GET_LIBRARIES,
   /** Update a browse view. */
@@ -42,6 +46,7 @@ export enum BackOut {
   GET_CONFIG_AND_PREFERENCES_RESPONSE,
   UPDATE_PREFERENCES_RESPONSE,
   BROWSE_CHANGE,
+  LOG_ENTRY_ADDED,
 }
 
 export type WrappedRequest<T = any> = {
@@ -71,6 +76,12 @@ export type BackInitArgs = {
 
 export enum BackInit {
   GAMES,
+}
+
+export type AddLogData = ILogPreEntry;
+
+export type GetLogResponseData = {
+  entries: ILogEntry[];
 }
 
 export type InitEventData = {
@@ -108,6 +119,10 @@ export type GetGameResponseData = {
 
 export type GetAllGamesResponseData = {
   games: IGameInfo[];
+}
+
+export type LaunchAddAppData = {
+  id: string;
 }
 
 export type BrowseViewAllData = {
@@ -156,4 +171,9 @@ export type ViewGame = {
 
 export type BrowseChangeData = {
   library?: string;
+}
+
+export type LogEntryAddedData = {
+  entry: ILogEntry;
+  index: number;
 }

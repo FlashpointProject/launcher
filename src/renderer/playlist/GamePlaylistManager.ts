@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
+import { AddLogData, BackIn } from '../../shared/back/types';
 import { isFlashpointValidCheck } from '../../shared/checkSanity';
 import { recursiveDirectory } from '../../shared/Util';
 import { LoadGamePlaylistError, PlaylistFile } from './PlaylistFile';
@@ -240,8 +241,8 @@ enum CheckIfSameResult {
 }
 
 function logError(error: string): void {
-  window.External.log.addEntry({
+  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Playlist',
-    content: error
+    content: error,
   });
 }

@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { BackIn, BrowseViewAllData } from '../shared/back/types';
+import { AddLogData, BackIn } from '../shared/back/types';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
@@ -62,8 +62,8 @@ import { ThemeManager } from './theme/ThemeManager';
 })();
 
 function log(content: string): void {
-  window.External.log.addEntry({
+  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Launcher',
-    content: content
+    content: content,
   });
 }

@@ -5,8 +5,6 @@ import { SharedSocket } from '../shared/back/SharedSocket';
 import { BackIn, BackOut, GetConfigAndPrefsResponse, WrappedResponse } from '../shared/back/types';
 import { MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
-import { LogRendererApi } from '../shared/Log/LogRendererApi';
-import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { ServicesApi } from '../shared/service/ServicesApi';
 import { createErrorProxy } from '../shared/Util';
 import { isDev } from './Util';
@@ -14,10 +12,6 @@ import { isDev } from './Util';
 // Set up Services API
 const services = new ServicesApi();
 services.initialize();
-
-//
-const log = new LogRendererApi();
-log.bindListeners();
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -71,7 +65,10 @@ window.External = {
 
   services,
 
-  log,
+  log: {
+    entries: [],
+    offset: 0,
+  },
 
   isDev,
 
@@ -100,7 +97,7 @@ const onInit = new Promise<WebSocket>((resolve, reject) => {
 })
 .then((ws) => new Promise((resolve) => {
   window.External.back = new SharedSocket(ws);
-  window.External.back.on('response', onMessage);
+  window.External.back.on('message', onMessage);
   // Fetch the config and preferences
   window.External.back.send<GetConfigAndPrefsResponse>(BackIn.GET_CONFIG_AND_PREFERENCES, undefined, (response) => {
     if (response.data) {
