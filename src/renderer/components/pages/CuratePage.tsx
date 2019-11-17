@@ -29,6 +29,7 @@ import { getWarningCount } from '../CurateBoxWarnings';
 import { AutoProgressComponent } from '../ProgressComponents';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
+import { CheckBox } from '../CheckBox';
 
 type OwnProps = {
   /** Game manager to add imported curations to. */
@@ -310,8 +311,9 @@ export function CuratePage(props: CuratePageProps) {
     if (!props.games)      { throw new Error('Failed to import curation. "games" is undefined.'); }
     if (!props.gameImages) { throw new Error('Failed to import curation. "gameImages" is undefined.'); }
     return importCuration(curation, props.games, props.gameImages,
-                          props.libraryData.libraries, log, date);
-  }, [props.games, props.gameImages, props.libraryData.libraries]);
+                          props.libraryData.libraries, log, date, props.preferencesData.saveImportedCurations);
+  }, [props.games, props.gameImages, props.libraryData.libraries, props.preferencesData.saveImportedCurations]);
+
   // Import All Curations Callback
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
@@ -418,7 +420,7 @@ export function CuratePage(props: CuratePageProps) {
         });
       })();
     }
-  }, [dispatch, state.curations, props.games, props.gameImages]);
+  }, [dispatch, state.curations, props.games, props.gameImages, importCurationCallback]);
 
   // Delete all curations
   const onDeleteAllClick = useCallback(() => {
@@ -541,17 +543,29 @@ export function CuratePage(props: CuratePageProps) {
     remote.shell.openItem(curationsFolderPath);
   }, []);
 
-  // Open Curations Folder
+  // Open Exported Curations Folder
   const onOpenExportsFolder = useCallback(async () => {
     const exportsFolderPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Exports');
     await fs.ensureDir(exportsFolderPath);
     remote.shell.openItem(exportsFolderPath);
   }, []);
 
+  // Open Imported Curations Folder
+  const onOpenImportedFolder = useCallback(async () => {
+    const importedFolder = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported');
+    await fs.ensureDir(importedFolder);
+    remote.shell.openItem(importedFolder);
+  }, []);
+
+  // On keep imports toggle
+  const onSaveImportsToggle = useCallback((isChecked: boolean) => {
+    updatePreferencesData({
+      saveImportedCurations: isChecked
+    });
+  }, []);
+
   // On Left Sidebar Size change
   const onLeftSidebarResize = useCallback((event) => {
-    console.log('resize');
-    console.log(event);
     const maxWidth = getDivWidth(pageRef);
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
     updatePreferencesData({
@@ -622,7 +636,7 @@ export function CuratePage(props: CuratePageProps) {
         </div>
       );
     }
-  }, [state.curations, props.games, suggestions, strings]);
+  }, [state.curations, props.games, suggestions, strings, props.preferencesData.saveImportedCurations]);
 
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
@@ -691,6 +705,10 @@ export function CuratePage(props: CuratePageProps) {
               value={strings.curate.openExportsFolder}
               title={strings.curate.openExportsFolderDesc}
               onClick={onOpenExportsFolder} />
+            <SimpleButton
+              value={strings.curate.openImportedFolder}
+              title={strings.curate.openImportedFolderDesc}
+              onClick={onOpenImportedFolder} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
               onConfirm={onImportAllClick}
@@ -701,13 +719,22 @@ export function CuratePage(props: CuratePageProps) {
               onConfirm={onDeleteAllClick}
               children={renderDeleteAllButton}
               extra={strings.curate} />
+            <div className='curate-page__floating-box__divider'/>
+            <div className='curate-page__checkbox'>
+              <div className='curate-page__checkbox-text'>{strings.curate.saveImportedCurations}</div>
+              <CheckBox
+                onToggle={onSaveImportsToggle}
+                checked={props.preferencesData.saveImportedCurations}
+                />
+            </div>
           </div>
         </div>
       </div>
     </div>
   ), [curateBoxes, progressComponent, strings, state.curations.length,
      onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
-     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar]);
+     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar,
+     props.preferencesData.saveImportedCurations]);
 }
 
 function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {

@@ -29,7 +29,8 @@ import { curationLog, getContentFolderByKey, getCurationFolder } from './util';
  */
 export async function importCuration(
   curation: EditCuration, games: GameManager, gameImages: GameImageCollection,
-  libraries: GameLibraryFileItem[], log: boolean = false, date: Date = new Date()
+  libraries: GameLibraryFileItem[], log: boolean = false, date: Date = new Date(),
+  saveCuration: boolean
 ): Promise<void> {
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
@@ -68,6 +69,11 @@ export async function importCuration(
     getImageFolderName(game, libraryPrefix, true) ||
     removeFileExtension(formatUnknownPlatformName(libraryPrefix))
   );
+  // Make a copy if not deleting the curation afterwards
+  if (saveCuration) {
+    const backupPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported', `${curation.meta.title}_${curation.key}`);
+    copyFolder(getCurationFolder(curation), backupPath, false);
+  }
   // Copy/extract content and image files
   await Promise.all([
     games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
@@ -90,7 +96,7 @@ export async function importCuration(
     (async () => {
       // Copy each paired content folder one at a time (allows for cancellation)
       for (let pair of contentToMove) {
-        await copyFolder(pair[0], pair[1]);
+        await copyFolder(pair[0], pair[1], true);
       }
     })()
     .then(() => { if (log) { logMsg('Content Copied', curation); } })
@@ -246,7 +252,7 @@ async function linkContentFolder(curationKey: string) {
  * @param inFolder Folder to copy from
  * @param outFolder Folder to copy to
  */
-async function copyFolder(inFolder: string, outFolder: string) {
+async function copyFolder(inFolder: string, outFolder: string, move: boolean) {
   const contentIndex = await indexContentFolder(inFolder);
   let yesToAll = false;
   return Promise.all(
@@ -264,7 +270,7 @@ async function copyFolder(inFolder: string, outFolder: string) {
         // Only ask when files don't match
         if (filesDifferent) {
           if (!yesToAll) {
-            await fs.move(source, dest, { overwrite: true });
+            copyFile(source, dest, move);
             return;
           }
           const newStats = await fs.lstat(source);
@@ -280,25 +286,25 @@ async function copyFolder(inFolder: string, outFolder: string) {
           });
           switch (response) {
             case 0:
-              await fs.move(source, dest, { overwrite: true });
+              copyFile(source, dest, move);
               break;
             case 2:
               yesToAll = true;
-              await fs.move(source, dest, { overwrite: true });
+              copyFile(source, dest, move);
               break;
             case 3:
               cancel = true;
               break;
           }
           if (response === 0) {
-            await fs.move(source, dest, { overwrite: true });
+            copyFile(source, dest, move);
           }
           if (response === 2) { cancel = true; }
         }
       })
       .catch(async () => {
         // Dest file doesn't exist, just move
-        await fs.move(source, dest);
+        copyFile(source, dest, move);
       });
       if (cancel) { throw Error('Import cancelled by user.'); }
     })
@@ -306,6 +312,11 @@ async function copyFolder(inFolder: string, outFolder: string) {
   .catch((error) => {
     throw error;
   });
+}
+
+async function copyFile(source: string, dest: string, move: boolean) {
+  if (move) { await fs.move(source, dest, { overwrite: true }); }
+  else      { await fs.copy(source, dest, { overwrite: true }); }
 }
 
 /**

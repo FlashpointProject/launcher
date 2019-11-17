@@ -18,6 +18,7 @@
   --layout__warning-dark-color:   #5a1010;
   --layout__warning-medium-color: #731919;
   --layout__warning-bright-color: #a22020;
+  --layout__warning-shallow:      #c0ce00;
   /* Valid / Invalid */
   --layout__valid-color:   #009600;
   --layout__invalid-color: #840000;
@@ -193,8 +194,12 @@ body {
   color: var(--layout__disabled-text-color);
 }
 /* Input Field */
-.input-field--warn {
+.input-field--info {
   background-color: var(--layout__warning-medium-color);
+}
+.input-field--warn {
+  background-color: var(--layout__warning-shallow);
+  color: var(--layout__primary-background);
 }
 /* Checkbox Dropdown */
 .simple-dropdown {

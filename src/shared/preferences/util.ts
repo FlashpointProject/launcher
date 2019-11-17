@@ -48,6 +48,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
     height: undefined,
     maximized: false,
   }),
+  saveImportedCurations: true,
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
@@ -86,6 +87,7 @@ export function overwritePreferenceData(
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
   parser.prop('gamesOrderBy',                v => source.gamesOrderBy                = strOpt(v, gameOrderByOptions,      'title'    ));
   parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ascending'));
+  parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);

@@ -161,7 +161,7 @@ export function CurateBox(props: CurateBoxProps) {
         });
       });
     }
-  }, [props.dispatch, props.curation]);
+  }, [props.dispatch, props.curation, props.importCuration]);
   // Callback for testing a curation works
   const onRun = useCallback(() => {
     if (props.curation) {
@@ -588,7 +588,7 @@ export function CurateBox(props: CurateBoxProps) {
               text={props.curation && props.curation.meta.launchCommand || ''}
               placeholder={strings.browse.noLaunchCommand}
               onChange={onLaunchCommandChange}
-              className={(!warnings.invalidLaunchCommand || warnings.invalidLaunchCommand.length === 0) ? '' : 'input-field--warn'}
+              className={(warnings.noLaunchCommand || (warnings.invalidLaunchCommand && warnings.invalidLaunchCommand.length != 0)) ? 'input-field--warn' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.notes + ':'}>
@@ -613,7 +613,7 @@ export function CurateBox(props: CurateBoxProps) {
               placeholder={strings.curate.noCurationNotes}
               onChange={onAuthorNotesChange}
               multiline={true}
-              className={authorNotes.length > 0 ? 'input-field--warn' : ''}
+              className={authorNotes.length > 0 ? 'input-field--info' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.extreme + ':'}>
@@ -707,7 +707,7 @@ export function CurateBox(props: CurateBoxProps) {
         </div>
       </div>
     </div>
-  ), [props.curation, strings, disabled, warnings]);
+  ), [props.curation, strings, disabled, warnings, onImportClick]);
 }
 
 function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {

@@ -791,6 +791,10 @@ body {
 .curate-page__center {
   width: 40em;
 }
+.curate-page input[type="checkbox"] {
+  width: 2rem;
+  height: 2rem;
+}
 /* (Edit how other classes appear in this page) */
 .curate-page .input-dropdown__content {
   max-height: 25rem;
@@ -814,6 +818,15 @@ body {
 }
 .curate-page__floating-box__divider {
   height: 1rem;
+}
+/* Curate Page right panel checkbox item */
+.curate-page__checkbox {
+  display: flex;
+  align-items: center;
+}
+.curate-page__checkbox-text {
+  text-align: center;
+  margin: 0 0.2rem;
 }
 /* Curate Page Left Sidebar */
 .curate-page__left-sidebar-item {
