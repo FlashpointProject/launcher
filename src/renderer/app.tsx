@@ -229,7 +229,7 @@ export class App extends React.Component<AppProps, AppState> {
     });
 
     window.External.back.on('message', res => {
-      console.log('IN', res);
+      //console.log('IN', res);
       switch (res.type) {
         case BackOut.LOG_ENTRY_ADDED: {
           const resData: LogEntryAddedData = res.data;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
 import { ViewGame } from '../../shared/back/types';
-import { findElementAncestor } from '../Util';
+import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
@@ -36,7 +36,7 @@ export function RandomGames(props: RandomGamesProps) {
         id={game.id}
         title={game.title}
         platform={game.platform}
-        thumbnail={game.thumbnail}
+        thumbnail={getGameImageURL('Logos', game.id)}
         isSelected={false}
         isDragged={false} />
     ))

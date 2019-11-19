@@ -36,4 +36,8 @@ export type IAppConfigData = {
   backPortMin: number;
   /** Upper limit of the range of ports that the back should listen on. */
   backPortMax: number;
+  /** Lower limit of the range of ports that the back image server should listen on. */
+  imagesPortMin: number;
+  /** Upper limit of the range of ports that the back image server should listen on. */
+  imagesPortMax: number;
 };

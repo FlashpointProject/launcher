@@ -5,7 +5,7 @@ import { ViewGame } from '../../shared/back/types';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { GameImageCollection } from '../image/GameImageCollection';
 import { GAMES } from '../interfaces';
-import { findElementAncestor } from '../Util';
+import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
@@ -171,7 +171,7 @@ export class GameGrid extends React.Component<GameGridProps> {
         id={game.id}
         title={game.title}
         platform={game.platform}
-        thumbnail={game.thumbnail || ''}
+        thumbnail={getGameImageURL('Logos', game.id)}
         isDraggable={true}
         isSelected={game.id === selectedGameId}
         isDragged={game.id === draggedGameId} />

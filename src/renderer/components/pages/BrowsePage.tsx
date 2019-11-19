@@ -611,19 +611,3 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   menu.popup({ window: remote.getCurrentWindow() });
   return menu;
 }
-
-/* Check if two arrays are have strictly equal items (or if both are undefined). */
-function checkIfArraysAreEqual(a: any[] | undefined, b: any[] | undefined): boolean {
-  // Check if both arguments point to the same array (or if both are undefined)
-  if (a === b) { return true; }
-  // Check if either array is undefined
-  if (!a || !b) { return false; }
-  // Check if the arrays are of different lengths
-  if (a.length !== b.length) { return false; }
-  // Check if any of the items (with the same indices) in the arrays are not strictly equal
-  for (let i = a.length; i >= 0; i--) {
-    if (a[i] !== b[i]) { return false; }
-  }
-  // The arrays are equal
-  return true;
-}

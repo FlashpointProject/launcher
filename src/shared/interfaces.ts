@@ -69,6 +69,9 @@ export interface IMainWindowExternal {
   /** Socket to the back API. */
   back: SharedSocket;
 
+  /** Port of the image server. */
+  imageServerPort: number;
+
   /**
    * Wait for the preload to initialize.
    * @returns A promise that resolves when initialization is complete, or nothing if already initialized.

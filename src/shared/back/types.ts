@@ -19,8 +19,8 @@ export enum BackIn {
   BROWSE_VIEW_UPDATE,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
-  /** Get the full config and preferences objects. */
-  GET_CONFIG_AND_PREFERENCES,
+  /** Get all data needed on init (by the renderer). */
+  GET_INIT_DATA,
   /** Update any number of configs. */
   UPDATE_CONFIG,
   /** Update any number of preferences. */
@@ -43,7 +43,7 @@ export enum BackOut {
   GENERIC_RESPONSE,
   INIT_EVENT,
   BROWSE_VIEW_PAGE_RESPONSE,
-  GET_CONFIG_AND_PREFERENCES_RESPONSE,
+  GET_INIT_DATA_RESPONSE,
   UPDATE_PREFERENCES_RESPONSE,
   BROWSE_CHANGE,
   LOG_ENTRY_ADDED,
@@ -88,9 +88,10 @@ export type InitEventData = {
   done: BackInit[];
 }
 
-export type GetConfigAndPrefsResponse = {
+export type GetInitDataResponse = {
   config: IAppConfigData;
   preferences: IAppPreferencesData;
+  imageServerPort: number;
 }
 
 export type LaunchGameData = {
@@ -161,7 +162,6 @@ export type BrowseViewPageResponseData = {
 export type ViewGame = {
   id: string;
   title: string;
-  thumbnail: string;
   platform: string;
   // List view only
   genre: string;

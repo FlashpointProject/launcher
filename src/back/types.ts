@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { Server } from 'http';
 import * as WebSocket from 'ws';
 import { BackInit, ViewGame } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
@@ -11,6 +12,8 @@ import { GameManager } from './game/GameManager';
 export type BackState = {
   isInit: boolean;
   server: WebSocket.Server;
+  imageServer: Server;
+  imageServerPort: number;
   secret: string;
   preferences: IAppPreferencesData;
   config: IAppConfigData;

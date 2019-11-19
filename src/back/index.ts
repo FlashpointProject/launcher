@@ -3,8 +3,8 @@ import { EventEmitter } from 'events';
 import * as http from 'http';
 import * as path from 'path';
 import * as WebSocket from 'ws';
-import { Server } from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetConfigAndPrefsResponse, GetGameData, GetGameResponseData, GetLogResponseData, LaunchAddAppData, LaunchGameData, SaveGameData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import * as fs from 'fs';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetInitDataResponse, GetGameData, GetGameResponseData, GetLogResponseData, LaunchAddAppData, LaunchGameData, SaveGameData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { FilterGameOpts, filterGames, orderGames } from '../shared/game/GameFilter';
@@ -28,6 +28,8 @@ const send: Required<typeof process.send> = process.send
 const state: BackState = {
   isInit: false,
   server: createErrorProxy('server'),
+  imageServer: new http.Server(onImageServerRequest),
+  imageServerPort: -1,
   secret: createErrorProxy('secret'),
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
@@ -72,7 +74,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     let serverPort: number = -1;
     for (let port = state.config.backPortMin; port <= state.config.backPortMax; port++) {
       try {
-        state.server = new Server({
+        state.server = new WebSocket.Server({
           host: 'localhost',
           port,
         });
@@ -81,6 +83,27 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       } catch (error) { /* Do nothing. */ }
     }
     if (state.server) { state.server.on('connection', onConnect); }
+    // Find the first available port in the range
+    state.imageServerPort = await new Promise((resolve) => {
+      let port = state.config.imagesPortMin;
+      state.imageServer.once('listening', onListening);
+      state.imageServer.on('error', onError);
+      tryListen();
+
+      function tryListen() {
+        if (port <= state.config.imagesPortMax) {
+          state.imageServer.listen(port, 'localhost');
+          port += 1;
+        } else {
+          state.imageServer.off('listening', onListening);
+          state.imageServer.off('error', onError);
+          resolve(-1);
+        }
+      }
+      function onListening() { resolve(port - 1); }
+      function onError() { tryListen(); }
+    });
+    // Respond
     send(serverPort);
   }
 }
@@ -125,14 +148,15 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       });
     } break;
 
-    case BackIn.GET_CONFIG_AND_PREFERENCES: {
-      const data: GetConfigAndPrefsResponse = {
+    case BackIn.GET_INIT_DATA: {
+      const data: GetInitDataResponse = {
         preferences: state.preferences,
         config: state.config,
+        imageServerPort: state.imageServerPort,
       };
       respond(event.target, {
         id: req.id,
-        type: BackOut.GET_CONFIG_AND_PREFERENCES_RESPONSE,
+        type: BackOut.GET_INIT_DATA_RESPONSE,
         data,
       });
     } break;
@@ -364,7 +388,6 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           viewGames[i] = {
             id: g.id,
             title: g.title,
-            thumbnail: '@TODO',
             platform: g.platform,
             genre: g.genre,
             developer: g.developer,
@@ -413,6 +436,29 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       });
     } break;
   }
+}
+
+function onImageServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+  try {
+    const url = req.url || '';
+    const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+    const filePath = path.join(imageFolder, url);
+    if (filePath.startsWith(imageFolder)) {
+      fs.readFile(filePath, (error, data) => {
+        if (error) {
+          res.writeHead(404);
+          res.end();
+        } else {
+          res.writeHead(200, {
+            'Content-Type': 'image/png',
+            'Content-Length': data.length,
+          });
+          res.end(data);
+        }
+      });
+    }
+
+  } catch (error) { console.log(error); }
 }
 
 function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {

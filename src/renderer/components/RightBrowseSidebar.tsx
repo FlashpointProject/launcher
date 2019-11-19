@@ -12,6 +12,7 @@ import { ImageFolderCache } from '../image/ImageFolderCache';
 import { getImageFolderName } from '../image/util';
 import { SUGGESTIONS } from '../interfaces';
 import { GamePlaylistEntry } from '../playlist/types';
+import { getGameImageURL } from '../Util';
 import { copyGameImageFile, deleteGameImageFiles } from '../util/game';
 import { LangContext } from '../util/lang';
 import { uuid } from '../uuid';
@@ -122,14 +123,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const strings = this.context.browse;
     const game: IGameInfo | undefined = this.props.currentGame;
     if (game) {
-      const { currentAddApps, gameImages, gamePlaylistEntry, isEditing, isNewGame, preferencesData, suggestions } = this.props;
+      const { currentAddApps, gamePlaylistEntry, isEditing, isNewGame, preferencesData, suggestions } = this.props;
       const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
       const editable = !editDisabled && isEditing;
       const imageFolderName = this.getImageFolderName();
       const dateAdded = new Date(game.dateAdded).toUTCString();
-      const screenshotSrc = gameImages.getScreenshotPath(game);
-      const thumbnailSrc = gameImages.getThumbnailPath(game);
+      const screenshotSrc = getGameImageURL('Screenshots', game.id);
+      const thumbnailSrc = getGameImageURL('Logos', game.id);
       return (
         <div
           className={'browse-right-sidebar ' + (editable ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}

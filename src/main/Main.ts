@@ -4,7 +4,7 @@ import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInitArgs, BackOut, GetConfigAndPrefsResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInitArgs, BackOut, GetInitDataResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import checkSanity from '../shared/checkSanity';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IMiscData, MiscIPC } from '../shared/interfaces';
@@ -100,8 +100,8 @@ export class Main {
       const socket = this.socket;
       socket.onmessage = (event) => {
         const res: WrappedResponse = JSON.parse(event.data.toString());
-        if (res.type === BackOut.GET_CONFIG_AND_PREFERENCES_RESPONSE) {
-          const data: GetConfigAndPrefsResponse = res.data;
+        if (res.type === BackOut.GET_INIT_DATA_RESPONSE) {
+          const data: GetInitDataResponse = res.data;
           this.preferences = data.preferences;
           this.config = data.config;
           socket.onmessage = this.onMessage;
@@ -110,7 +110,7 @@ export class Main {
       };
       const req: WrappedRequest = {
         id: 'init',
-        type: BackIn.GET_CONFIG_AND_PREFERENCES,
+        type: BackIn.GET_INIT_DATA,
       };
       socket.send(JSON.stringify(req));
     }))
@@ -163,8 +163,8 @@ export class Main {
       let url: URL | undefined;
       try { url = new URL(details.url); }
       catch (e) { /* Do nothing. */ }
-      // Don't accept any connections other than WebSocket to localhost
-      if (url && url.protocol === 'ws:' && url.hostname === 'localhost') {
+      // Don't accept any connections other than to localhost
+      if (url && url.hostname === 'localhost') {
         callback({
           ...details.responseHeaders,
           responseHeaders: 'script-src \'self\'',

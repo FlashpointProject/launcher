@@ -24,8 +24,10 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   useFiddler: false,
   disableExtremeGames: false,
   showBrokenGames: false,
-  backPortMin: 12234,
-  backPortMax: 12334,
+  backPortMin: 10001,
+  backPortMax: 10100,
+  imagesPortMin: 10101,
+  imagesPortMax: 10200,
 });
 
 /**
@@ -83,6 +85,8 @@ export function overwriteConfigData(
   parser.prop('showBrokenGames',     v => source.showBrokenGames     = !!v);
   parser.prop('backPortMin',         v => source.backPortMin         = num(v));
   parser.prop('backPortMax',         v => source.backPortMax         = num(v));
+  parser.prop('imagesPortMin',       v => source.imagesPortMin       = num(v));
+  parser.prop('imagesPortMax',       v => source.imagesPortMax       = num(v));
   // Do some alterations
   source.flashpointPath = source.flashpointPath.replace(/\\/g, '/'); // (Clean path)
   // Return
