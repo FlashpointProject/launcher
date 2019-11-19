@@ -70,10 +70,7 @@ export async function importCuration(
     removeFileExtension(formatUnknownPlatformName(libraryPrefix))
   );
   // Make a copy if not deleting the curation afterwards
-  if (saveCuration) {
-    const backupPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported', `${curation.meta.title}_${curation.key}`);
-    copyFolder(getCurationFolder(curation), backupPath, false);
-  }
+  const moveFiles = !saveCuration;
   // Copy/extract content and image files
   await Promise.all([
     games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
@@ -96,10 +93,18 @@ export async function importCuration(
     (async () => {
       // Copy each paired content folder one at a time (allows for cancellation)
       for (let pair of contentToMove) {
-        await copyFolder(pair[0], pair[1], true);
+        await copyFolder(pair[0], pair[1], moveFiles);
       }
     })()
-    .then(() => { if (log) { logMsg('Content Copied', curation); } })
+    .then(() => {
+      if (saveCuration) {
+        const backupPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported', `${curation.meta.title}_${curation.key}`);
+        copyFolder(getCurationFolder(curation), backupPath, true);
+      }
+      if (log) {
+        logMsg('Content Copied', curation);
+      }
+    })
     .catch((error) => {
       curationLog(error.message);
       console.warn(error.message);
@@ -316,7 +321,7 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean) {
 
 async function copyFile(source: string, dest: string, move: boolean) {
   if (move) { await fs.move(source, dest, { overwrite: true }); }
-  else      { await fs.copy(source, dest, { overwrite: true }); }
+  else      { await fs.copyFile(source, dest); }
 }
 
 /**

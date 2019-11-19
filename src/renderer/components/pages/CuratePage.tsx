@@ -566,7 +566,7 @@ export function CuratePage(props: CuratePageProps) {
 
   // On Left Sidebar Size change
   const onLeftSidebarResize = useCallback((event) => {
-    const maxWidth = getDivWidth(pageRef);
+    const maxWidth = getDivWidth(pageRef) - 5;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
     updatePreferencesData({
       curatePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)

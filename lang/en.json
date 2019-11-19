@@ -226,7 +226,7 @@
     "saveImportedCurations": "Save Imported Curations",
     "openCurationsFolder": "Curations Folder",
     "openCurationsFolderDesc": "Open the Curations folder in explorer",
-    "openExportsFolder": "Exports Folder",
+    "openExportsFolder": "Exported Curations",
     "openExportsFolderDesc": "Open the default Exports folder containing your exported curations.",
     "openImportedFolder": "Imported Curations",
     "openImportedFolderDesc": "Open the default Imported curations folder containing your imported curations.",

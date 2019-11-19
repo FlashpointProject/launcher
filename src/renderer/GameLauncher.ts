@@ -136,42 +136,52 @@ export class GameLauncher {
     if (urlObj) { return path.join(GameLauncher.getHtdocsPath(flashpointPath), urlToFilePath(urlObj)); }
   }
 
-  public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
-    switch (addApp.applicationPath) {
-      case ':message:':
-        remote.dialog.showMessageBox({
-          type: 'info',
-          title: 'About This Game',
-          message: addApp.launchCommand,
-          buttons: ['Ok'],
-        });
-        break;
-      case ':extras:':
-        const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.launchCommand)));
-        remote.shell.openExternal(folderPath, { activate: true })
-        .catch(error => {
-          if (error) {
-            remote.dialog.showMessageBox({
-              type: 'error',
-              title: 'Failed to Open Extras',
-              message: `${error.toString()}\n`+
-                       `Path: ${folderPath}`,
-              buttons: ['Ok'],
-            });
+  public static async launchAdditionalApplication(addApp: IAdditionalApplicationInfo, waitForExit: boolean = false): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      switch (addApp.applicationPath) {
+        case ':message:':
+          remote.dialog.showMessageBoxSync({
+            type: 'info',
+            title: 'About This Game',
+            message: addApp.launchCommand,
+            buttons: ['Ok'],
+          });
+          resolve();
+          break;
+        case ':extras:':
+          const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.launchCommand)));
+          remote.shell.openExternal(folderPath, { activate: true })
+          .catch(error => {
+            if (error) {
+              remote.dialog.showMessageBoxSync({
+                type: 'error',
+                title: 'Failed to Open Extras',
+                message: `${error.toString()}\n`+
+                        `Path: ${folderPath}`,
+                buttons: ['Ok'],
+              });
+            }
+          });
+          resolve();
+          break;
+        default:
+          const appPath: string = fixSlashes(relativeToFlashpoint(addApp.applicationPath));
+          const appArgs: string = addApp.launchCommand;
+          const useWine = window.External.preferences.data.useWine;
+          const proc = GameLauncher.launch(
+            GameLauncher.createCommand(appPath, appArgs, useWine),
+            { env: GameLauncher.getEnvironment(useWine) }
+          );
+          log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.launchCommand}" ]`);
+          if (waitForExit) {
+            proc.on('exit', () => { resolve(); });
+            proc.on('error', (error) => { reject(error); });
+          } else {
+            resolve();
           }
-        });
-        break;
-      default:
-        const appPath: string = fixSlashes(relativeToFlashpoint(addApp.applicationPath));
-        const appArgs: string = addApp.launchCommand;
-        const useWine = window.External.preferences.data.useWine;
-        const proc = GameLauncher.launch(
-          GameLauncher.createCommand(appPath, appArgs, useWine),
-          { env: GameLauncher.getEnvironment(useWine) }
-        );
-        log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.launchCommand}" ]`);
-        break;
-    }
+          break;
+      }
+    });
   }
 
   /**
@@ -184,7 +194,7 @@ export class GameLauncher {
     // Run all provided additional applications with "AutoRunBefore" enabled
     addApps && addApps.forEach((addApp) => {
       if (addApp.autoRunBefore) {
-        GameLauncher.launchAdditionalApplication(addApp);
+        GameLauncher.launchAdditionalApplication(addApp, addApp.waitForExit);
       }
     });
     // Launch game

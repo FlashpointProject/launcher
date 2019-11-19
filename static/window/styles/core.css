@@ -847,7 +847,7 @@ body {
   background-position: center;
 }
 .curate-page__left {
-  flex: auto;
+  flex-grow: 0.5;
 }
 .curate-page__right {
   flex: auto;
