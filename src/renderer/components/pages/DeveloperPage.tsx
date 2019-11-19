@@ -21,6 +21,7 @@ import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
+import { ensureDir } from 'fs-extra';
 
 const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
@@ -121,6 +122,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.createMissingFolders}
               title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
+            <SimpleButton
+              value='Restructure Image Folders'
+              title='Restructures the image folders to the new format.'
+              onClick={this.onRestructureImageFoldersClick} />
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
@@ -184,6 +189,15 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       const games = this.props.central.games.collection.games;
       const gameImages = this.props.gameImages;
       this.setState({ text: await renameImagesToTitles(games, gameImages) });
+    }, 0);
+  }
+
+  onRestructureImageFoldersClick = (): void => {
+    this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
+    setTimeout(async () => {
+      const games = this.props.central.games.collection.games;
+      const gameImages = this.props.gameImages;
+      this.setState({ text: await restructureImageFolders(games, gameImages) });
     }, 0);
   }
 
@@ -631,6 +645,80 @@ function stringifyRenameImageStats(stats: RenameImagesStats): string {
     );
   }
   return str;
+}
+
+async function restructureImageFolders(games: IGameInfo[], gameImages: GameImageCollection): Promise<string> {
+  const config = window.External.config;
+  const screenshotsFolder = path.join(config.fullFlashpointPath, config.data.imageFolderPath, 'Screenshots');
+  const logosFolder = path.join(config.fullFlashpointPath, config.data.imageFolderPath, 'Logos');
+  // Create image folders
+  try { await mkdir(screenshotsFolder); } catch (error) { /* Do nothing. */ }
+  try { await mkdir(logosFolder); } catch (error) { /* Do nothing. */ }
+  // Rename images
+  const start = Date.now();
+  const screenshotStats = await yehaa(games, screenshotsFolder, folderName => gameImages.getScreenshotCache(folderName));
+  const thumbnailStats  = await yehaa(games, logosFolder, folderName => gameImages.getThumbnailCache(folderName));
+  const end = Date.now();
+  // Refresh all image caches
+  const screenshotCaches = gameImages.getAllScreenshotCaches();
+  for (let key in screenshotCaches) { screenshotCaches[key].refresh(); }
+  const thumbnailCaches = gameImages.getAllThumbnailCaches();
+  for (let key in thumbnailCaches) { thumbnailCaches[key].refresh(); }
+  // Write message
+  let str = '';
+  str += 'Screenshots:\n';
+  str += stringifyRenameImageStats(screenshotStats);
+  str += '\n\nThumbnails:\n';
+  str += stringifyRenameImageStats(thumbnailStats);
+  str += '\n\n';
+  str += `Finished in ${end - start}ms`;
+  return str;
+}
+
+async function yehaa(games: IGameInfo[], newFolderName: string, getCache: GetImageCacheFunc): Promise<RenameImagesStats> {
+  const stats: RenameImagesStats = {
+    totalFiles: games.length,
+    totalLooped: 0,
+    renamedFiles: 0,
+    skippedFiles: 0,
+    errors: [],
+  };
+  for (let game of games) {
+    const cache = getCache(removeFileExtension(game.filename));
+    if (cache && cache.getFolderPath() !== undefined) {
+      // Get all image filenames (might contain dupes if both "gets" finds the same file)
+      const filenames = (
+        cache.getFilePaths(game.title)
+        .concat(cache.getFilePaths(game.id))
+      );
+      // Remove all duplicate filenames
+      for (let i = filenames.length - 1; i >= 0; i--) {
+        if (filenames.indexOf(filenames[i]) < i) {
+          filenames.splice(i, 1);
+        }
+      }
+      // Move the image with the lowest index (leave all other images behind)
+      const organizedNames = organizeImageFilepaths(filenames);
+      const firstIndex = Object.keys(organizedNames).sort()[0];
+      if (firstIndex !== undefined) {
+        const index = parseInt(firstIndex);
+        const curFilename = path.join(cache.getFolderPath(), organizedNames[index]);
+        const newFilename = path.join(
+          newFolderName,
+          game.id.substr(0, 2),
+          game.id.substr(2, 2),
+          game.id + getFileExtension(organizedNames[index]).toLowerCase()
+        );
+        await ensureDir(path.dirname(newFilename))
+        .then(() => rename(curFilename, newFilename))
+        .then(() => { stats.renamedFiles += 1; })
+        .catch(error => { stats.errors.push({ game, error }); });
+      } else { stats.skippedFiles += 1; }
+    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.filename}")`) }); }
+    // Count number of loops
+    stats.totalLooped += 1;
+  }
+  return stats;
 }
 
 type FolderStructure = { [key: string]: FolderStructure | string[] } | string[];
