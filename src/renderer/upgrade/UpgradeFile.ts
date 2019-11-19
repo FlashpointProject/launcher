@@ -42,18 +42,24 @@ export namespace UpgradeFile {
       id: uuid(),
       title: '',
       description: '',
-      checks: [],
+      verify_files: [],
+      verify_md5: [],
       sources: [],
+      sources_md5: '',
       deletePaths: [],
       keepPaths: [],
+      launcherUpgrade: false,
       state: newUpgradeStageState()
     };
-    parser.prop('title',       v => parsed.title       = str(v));
-    parser.prop('description', v => parsed.description = str(v));
-    parser.prop('checks',      v => parsed.checks      = strArr(v));
-    parser.prop('sources',     v => parsed.sources     = strArr(v));
-    parser.prop('deletePaths', v => parsed.deletePaths = strArr(v));
-    parser.prop('keepPaths',   v => parsed.keepPaths   = strArr(v));
+    parser.prop('title',            v => parsed.title            = str(v));
+    parser.prop('description',      v => parsed.description      = str(v));
+    parser.prop('verify_files',     v => parsed.verify_files     = strArr(v));
+    parser.prop('verify_md5',       v => parsed.verify_md5       = strArr(v));
+    parser.prop('sources',          v => parsed.sources          = strArr(v));
+    parser.prop('sources_md5',      v => parsed.sources_md5      = str(v));
+    parser.prop('deletePaths',      v => parsed.deletePaths      = strArr(v));
+    parser.prop('keepPaths',        v => parsed.keepPaths        = strArr(v));
+    parser.prop('launcherUpgrade',  v => parsed.launcherUpgrade  = !!v);
     return parsed;
   }
 }
@@ -64,7 +70,8 @@ function newUpgradeStageState(): UpgradeStageState {
     checksDone: false,
     isInstalling: false,
     isInstallationComplete: false,
-    installProgressNote: ''
+    installProgressNote: '',
+    upToDate: false
   };
 }
 

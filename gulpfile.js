@@ -148,6 +148,8 @@ gulp.task('pack', (done) => {
         }
         // Copy Language folder
         fs.copySync('./lang', path.join(buildPath, 'lang/'));
+        // Copy Upgrade folder
+        fs.copySync('./upgrade', path.join(buildPath, 'upgrade'));
         // Create build version file
         fs.writeFileSync(path.join(buildPath, '.version'), config.buildVersion, done);
         // Copy licenses folder and the LICENSE file

@@ -33,6 +33,8 @@ export type UpgradeStageState = {
   alreadyInstalled: boolean;
   /** If the checks has been performed (this is to check if the stage has already been installed). */
   checksDone: boolean;
+  /** Whether the stage is up to date (checked via hash comparison) */
+  upToDate: boolean;
   /** If the stage is currently being downloaded or installed. */
   isInstalling: boolean;
   /** If the stage was installed during this session (this is so the user can be told to restart the application). */

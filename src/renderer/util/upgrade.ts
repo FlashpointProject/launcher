@@ -5,9 +5,12 @@ import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
+import * as crypto from 'crypto';
+import * as child_process from 'child_process';
 import { UpgradeStage } from '../upgrade/types';
 import { pathTo7z } from './SevenZip';
 import { indexContentFolder } from '../curate/importCuration';
+import { remote } from 'electron';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -82,7 +85,7 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
       await fs.ensureDir(extractionPath);
       status.currentTask = 'extracting';
       log(`Download of the "${upgrade.title}" upgrade complete!`);
-      log(`Installation of the "${upgrade.title}" upgrade started.`);
+      log(`Extraction of the "${upgrade.title}" upgrade started.`);
       extractFull(zipPath, extractionPath, { $bin: pathTo7z, $progress: true })
       .on('progress', (progress) => {
         status.extractProgress = progress.percent / 100;
@@ -97,6 +100,27 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
             const realPath = path.join(opts.installPath, p);
             await fs.remove(realPath);
           } catch (error) { /* Path not present */ }
+        }
+        // Follow different install process if upgrading Launcher
+        if (upgrade.launcherUpgrade) {
+          // Build folder path before window closes. Is this important?
+          if (window.External.isDev) {
+            // In dev folder, just abort for safety.
+            console.error('Do not upgrade the dev folder. Bad times.');
+            return;
+          }
+          const launcherPath = path.dirname(remote.app.getPath('exe'));
+          remote.app.once('will-quit', () => {
+            const updaterFile = 'FPL-Updater.bat';
+            const updaterPath = path.join(launcherPath, 'upgrade', updaterFile);
+            // Spawn updater application and immediately detach and unreference it so program can close.
+            child_process.spawn(updaterPath, [extractionPath, launcherPath], {
+              stdio: 'ignore',
+              detached: true
+            }).unref();
+          });
+          remote.app.quit();
+          return;
         }
         // Move extracted files to the install location, with filter
         const allFiles = await indexContentFolder(extractionPath);
@@ -178,16 +202,68 @@ function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offse
 }
 
 /**
- * Check if all files in the stage's "checks" array exists.
- * This aborts as soon as it encounters a "check" that does not exist.
+ * Check if all files in the stage's "verify_files" array exists.
+ * This aborts as soon as it encounters a file that does not exist.
+ * @param stage Stage to check the verification files of.
+ * @param flashpointFolder Path of the Flashpoint folder root.
+ */
+export async function checkUpgradeStateInstalled(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
+  const success = await Promise.all(stage.verify_files.map(check => (
+    fs.pathExists(path.join(baseFolder, check))
+  )));
+  return success.indexOf(false) === -1;
+}
+
+/**
+ * Check if all files in the stage's "verify_files" array match their MD5 counterparts from "verify_md5".
+ * This aborts as soon as it encounters a file that does not match its MD5.
  * @param stage Stage to check the "checks" of.
  * @param flashpointFolder Path of the Flashpoint folder root.
  */
-export async function performUpgradeStageChecks(stage: UpgradeStage, flashpointFolder: string): Promise<boolean[]> {
-  const success = await Promise.all(stage.checks.map(check => (
-    fs.pathExists(path.join(flashpointFolder, check))
-  )));
-  return success;
+export async function checkUpgradeStateUpdated(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
+  const success = await Promise.all(stage.verify_files.map((check, index) => {
+    if (stage.verify_md5.length >= index || stage.verify_md5[index] === 'SKIP') {
+      return new Promise<boolean>((resolve) => {
+        // MD5 present, perform check
+        const md5ToCheck = stage.verify_md5[index];
+        const fullPath = path.join(baseFolder, check);
+        return getMd5FromFile(fullPath)
+        .then((md5sum) => {
+          if (md5sum === md5ToCheck) {
+            console.log(`${fullPath} passed`);
+            return true;
+          }
+          return false;
+        })
+        .catch((error) => {
+          log(`Error verifying files MD5 hash - ${error.message}`);
+          console.error(error);
+          return false;
+        });
+      });
+    } else {
+      // MD5 not present or skipped, do not check.
+      return true;
+    }
+  }));
+  return success.indexOf(false) === -1;
+}
+
+async function getMd5FromFile(filePath: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const readStream = fs.createReadStream(filePath);
+    const md5hash = crypto.createHash('md5');
+    md5hash.setEncoding('hex');
+    md5hash.on('finish', () => {
+      md5hash.end();
+      readStream.close();
+      resolve(md5hash.read());
+    });
+    md5hash.on('error', (error) => {
+      reject(error);
+    });
+    readStream.pipe(md5hash);
+  });
 }
 
 function log(content: string): void {

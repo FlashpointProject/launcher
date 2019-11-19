@@ -332,7 +332,7 @@ function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, 
           )
         )
       )
-    ) : '...'
+    ) : 'Checking State...'
   );
 }
 

@@ -21,3 +21,4 @@ package-lock.json
 /.installed
 /.version
 /upgrade.json
+/upgrade_launcher.json

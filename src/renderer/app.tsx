@@ -44,7 +44,7 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { getPlatforms } from './util/platform';
-import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
+import { downloadAndInstallUpgrade, checkUpgradeStateInstalled, checkUpgradeStateUpdated } from './util/upgrade';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -269,11 +269,31 @@ export class App extends React.Component<AppProps, AppState> {
       });
       // Do existance checks on all upgrades
       await Promise.all(allData.map(async upgrade => {
-        const results = await performUpgradeStageChecks(upgrade, fullFlashpointPath);
+        const baseFolder = upgrade.launcherUpgrade ?
+          (window.External.isDev ? undefined : remote.app.getPath('exe'))
+          : fullFlashpointPath;
+        if (!baseFolder) {
+          // Skip launcher checks in dev environment
+          this.setUpgradeStageState(upgrade.id, {
+            alreadyInstalled: true,
+            checksDone: true,
+            upToDate: true
+          });
+          return;
+        }
+        // Perform install checks
+        const installed = await checkUpgradeStateInstalled(upgrade, baseFolder);
         this.setUpgradeStageState(upgrade.id, {
-          alreadyInstalled: results.indexOf(false) === -1,
+          alreadyInstalled: installed,
           checksDone: true
         });
+        // If installed, check for updates
+        if (installed) {
+          const upToDate = await checkUpgradeStateUpdated(upgrade, baseFolder);
+          this.setUpgradeStageState(upgrade.id, {
+            upToDate: true
+          });
+        }
       }));
     });
     // Load Credits
