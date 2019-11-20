@@ -12,7 +12,6 @@ import { formatString } from '../../../shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { GameImageCollection } from '../../image/GameImageCollection';
 import { CentralState, GAMES, SUGGESTIONS } from '../../interfaces';
 import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
 import { SearchQuery } from '../../store/search';
@@ -51,8 +50,6 @@ type OwnProps = {
   gameScale: number;
   /** Layout of the games. */
   gameLayout: BrowsePageLayout;
-  /** Collection to get game images from, and save game images to. */
-  gameImages: GameImageCollection;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently selected playlist (if any). */
@@ -224,7 +221,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   gamesTotal={this.props.gamesTotal}
                   selectedGameId={selectedGame}
                   draggedGameId={draggedGameId}
-                  gameImages={this.props.gameImages}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
@@ -246,7 +242,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   gamesTotal={this.props.gamesTotal}
                   selectedGameId={selectedGame}
                   draggedGameId={draggedGameId}
-                  gameImages={this.props.gameImages}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
@@ -271,7 +266,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             currentGame={this.state.currentGame}
             currentAddApps={this.state.currentAddApps}
             currentLibrary={this.props.gameLibrary}
-            gameImages={this.props.gameImages}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
             onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}

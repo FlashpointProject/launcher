@@ -7,31 +7,22 @@ import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedRes
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { PlatformInfo } from '../../../shared/platform/interfaces';
-import { removeFileExtension } from '../../../shared/Util';
-import { GameImageCollection } from '../../image/GameImageCollection';
-import { ImageFolderCache } from '../../image/ImageFolderCache';
-import { formatImageFilename, organizeImageFilepaths } from '../../image/util';
 import { CentralState } from '../../interfaces';
 import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
-import { getFileExtension } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
 
-const rename = promisify(fs.rename);
 const exists = promisify(fs.exists);
 const mkdir  = promisify(fs.mkdir);
-
 type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
   platforms: PlatformInfo[];
   /** Semi-global prop. */
   central: CentralState;
-  /** Collection to get game images from. */
-  gameImages: GameImageCollection;
 };
 
 type DeveloperPageState = {
@@ -105,14 +96,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               logData={text} />
             {/* Bottom Buttons */}
             <SimpleButton
-              value={strings.renameImagesTitleToId}
-              title={strings.renameImagesTitleToIdDesc}
-              onClick={this.onRenameImagesTitleToIDClick} />
-            <SimpleButton
-              value={strings.renameImagesIdToTitle}
-              title={strings.renameImagesIdToTitleDesc}
-              onClick={this.onRenameImagesIDToTitleClick} />
-            <SimpleButton
               value={strings.createMissingFolders}
               title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
@@ -137,9 +120,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   onCheckMissingImagesClick = async (): Promise<void> => {
-    const res = await fetchAllGames();
-    const gameImages = this.props.gameImages;
-    this.setState({ text: checkMissingGameImages(res, gameImages) });
+    // @TODO
   }
 
   onCheckGameIDsClick = async (): Promise<void> => {
@@ -168,55 +149,13 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     this.setState({ text: checkFileLocation(res) });
   }
 
-  onRenameImagesTitleToIDClick = (): void => {
-    this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
-    setTimeout(async () => {
-      const res = await fetchAllGames();
-      const gameImages = this.props.gameImages;
-      this.setState({ text: await renameImagesToIDs(res, gameImages) });
-    }, 0);
-  }
-
-  onRenameImagesIDToTitleClick = (): void => {
-    this.setState({ text: 'Please be patient. This may take a few seconds (or minutes)...' });
-    setTimeout(async () => {
-      const res = await fetchAllGames();
-      const gameImages = this.props.gameImages;
-      this.setState({ text: await renameImagesToTitles(res, gameImages) });
-    }, 0);
-  }
-
   onCreateMissingFoldersClick = (): void => {
     setTimeout(async () => {
-      const platforms = this.props.platforms;
-      this.setState({ text: await createMissingFolders(platforms) });
+      this.setState({ text: await createMissingFolders() });
     }, 0);
   }
 
   static contextType = LangContext;
-}
-
-function checkMissingGameImages(games: IGameInfo[], gameImages: GameImageCollection): string {
-  const timeStart = Date.now(); // Start timing
-  // Find all games with missing thumbnails and screenshots
-  const missingThumbnails:  IGameInfo[] = games.filter(game =>
-    gameImages.getThumbnailPath(game) === undefined
-  );
-  const missingScreenshots: IGameInfo[] = games.filter(game =>
-    gameImages.getScreenshotPath(game) === undefined
-  );
-  const timeEnd = Date.now(); // End timing
-  // Write log message
-  let text = '';
-  text += `Checked games for missing images (in ${timeEnd - timeStart}ms)\n`;
-  text += '\n';
-  text += `Games with missing thumbnails (${missingThumbnails.length}):\n`;
-  missingThumbnails.forEach((game) => { text += `"${game.title}" (ID: ${game.id})\n`; });
-  text += '\n';
-  text += `Games with missing screenshots (${missingScreenshots.length}):\n`;
-  missingScreenshots.forEach((game) => { text += `"${game.title}" (ID: ${game.id})\n`; });
-  text += '\n';
-  return text;
 }
 
 function checkGameIDs(games: IGameInfo[]): string {
@@ -495,179 +434,34 @@ type FilterFlags<Base, Condition> = {
 };
 type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base];
 
-type GetImageCacheFunc = (folderName: string) => ImageFolderCache | undefined;
-type RenameImagesStats = {
-  totalFiles: number;
-  totalLooped: number;
-  renamedFiles: number;
-  skippedFiles: number;
-  errors: Array<{ game: IGameInfo, error: any }>;
-};
-
-/** Find all game images named after the games Title and rename them after their ID instead */
-async function renameImagesToIDs(games: IGameInfo[], gameImages: GameImageCollection): Promise<string> {
-  // Rename images
-  const start = Date.now();
-  const screenshotStats = await renameImagesToIDsSub(games, folderName => gameImages.getScreenshotCache(folderName));
-  const thumbnailStats  = await renameImagesToIDsSub(games, folderName => gameImages.getThumbnailCache(folderName));
-  const end = Date.now();
-  // Refresh all image caches
-  const screenshotCaches = gameImages.getAllScreenshotCaches();
-  for (let key in screenshotCaches) { screenshotCaches[key].refresh(); }
-  const thumbnailCaches = gameImages.getAllThumbnailCaches();
-  for (let key in thumbnailCaches) { thumbnailCaches[key].refresh(); }
-  // Write message
-  let str = '';
-  str += 'Screenshots:\n';
-  str += stringifyRenameImageStats(screenshotStats);
-  str += '\n\nThumbnails:\n';
-  str += stringifyRenameImageStats(thumbnailStats);
-  str += '\n\n';
-  str += `Finished in ${end - start}ms`;
-  return str;
-}
-
-async function renameImagesToIDsSub(games: IGameInfo[], getCache: GetImageCacheFunc): Promise<RenameImagesStats> {
-  const stats: RenameImagesStats = {
-    totalFiles: games.length,
-    totalLooped: 0,
-    renamedFiles: 0,
-    skippedFiles: 0,
-    errors: [],
-  };
-  for (let game of games) {
-    const cache = getCache(removeFileExtension(game.platform));
-    if (cache && cache.getFolderPath() !== undefined) {
-      const filenames = organizeImageFilepaths(cache.getFilePaths(game.title));
-      if (Object.keys(filenames).length > 0) {
-        for (let index in filenames) {
-          const curFilename = path.join(cache.getFolderPath(), filenames[index]);
-          const newFilename = path.join(
-            cache.getFolderPath(),
-            formatImageFilename(game.id, (index as any)|0) + getFileExtension(filenames[index])
-          );
-          await rename(curFilename, newFilename)
-          .catch(error => { stats.errors.push({ game, error }); })
-          .then(() => { stats.renamedFiles += 1; });
-        }
-      } else { stats.skippedFiles += 1; }
-    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.platform}")`) }); }
-    // Count number of loops
-    stats.totalLooped += 1;
-  }
-  return stats;
-}
-
-/** Find all game images named after the games ID and rename them after their Title instead */
-async function renameImagesToTitles(games: IGameInfo[], gameImages: GameImageCollection): Promise<string> {
-  // Rename images
-  const start = Date.now();
-  const screenshotStats = await renameImagesToTitlesSub(games, folderName => gameImages.getScreenshotCache(folderName));
-  const thumbnailStats  = await renameImagesToTitlesSub(games, folderName => gameImages.getThumbnailCache(folderName));
-  const end = Date.now();
-  // Refresh all image caches
-  const screenshotCaches = gameImages.getAllScreenshotCaches();
-  for (let key in screenshotCaches) { screenshotCaches[key].refresh(); }
-  const thumbnailCaches = gameImages.getAllThumbnailCaches();
-  for (let key in thumbnailCaches) { thumbnailCaches[key].refresh(); }
-  // Write message
-  let str = '';
-  str += 'Screenshots:\n';
-  str += stringifyRenameImageStats(screenshotStats);
-  str += '\n\nThumbnails:\n';
-  str += stringifyRenameImageStats(thumbnailStats);
-  str += '\n\n';
-  str += `Finished in ${end - start}ms`;
-  return str;
-}
-
-async function renameImagesToTitlesSub(games: IGameInfo[], getCache: GetImageCacheFunc): Promise<RenameImagesStats> {
-  const stats: RenameImagesStats = {
-    totalFiles: games.length,
-    totalLooped: 0,
-    renamedFiles: 0,
-    skippedFiles: 0,
-    errors: [],
-  };
-  for (let game of games) {
-    const cache = getCache(removeFileExtension(game.platform));
-    if (cache && cache.getFolderPath() !== undefined) {
-      const filenames = organizeImageFilepaths(cache.getFilePaths(game.id));
-      if (Object.keys(filenames).length > 0) {
-        for (let index in filenames) {
-          const curFilename = path.join(cache.getFolderPath(), filenames[index]);
-          const newFilename = path.join(
-            cache.getFolderPath(),
-            formatImageFilename(game.title, (index as any)|0) + getFileExtension(filenames[index])
-          );
-          await rename(curFilename, newFilename)
-          .catch(error => { stats.errors.push({ game, error }); })
-          .then(() => { stats.renamedFiles += 1; });
-        }
-      } else { stats.skippedFiles += 1; }
-    } else { stats.errors.push({ game, error: new Error(`Image Folder Cache not found! (for image folder "${game.platform}")`) }); }
-    // Count number of loops
-    stats.totalLooped += 1;
-  }
-  return stats;
-}
-
-function stringifyRenameImageStats(stats: RenameImagesStats): string {
-  let str = '';
-  str += `    Total: ${stats.totalFiles}\n`;
-  str += `    Loops: ${stats.totalLooped}\n`;
-  str += `    Renamed: ${stats.renamedFiles}\n`;
-  str += `    Skipped: ${stats.skippedFiles}\n`;
-  if (stats.errors.length > 0) {
-    str += '    Errors:\n';
-    str += stats.errors.reduce((acc, error) =>
-      acc+`      Error: ${(error.error+'').replace(/\n/g, '\n             ')}\n`,
-      ''
-    );
-  }
-  return str;
-}
 
 type FolderStructure = { [key: string]: FolderStructure | string[] } | string[];
-async function createMissingFolders(platforms: PlatformInfo[]): Promise<string> {
+async function createMissingFolders(): Promise<string> {
   let str = '';
-  const log = (text?: string) => { str += (typeof text === 'string') ? text+'\n' : '\n'; };
   const fullFlashpointPath = window.External.config.fullFlashpointPath;
   // Create "static" folder structure (folders that should always exist)
-  log('Creating "static" folders:');
-  log('(Folders that should be in every Flashpoint folder)\n');
-  log(fullFlashpointPath);
+  str += 'Creating "static" folders:\n';
+  str += '(Folders that should be in every Flashpoint folder)\n\n';
+  str += `${fullFlashpointPath}\n`;
   await createFolderStructure(
     fullFlashpointPath, {
-      'Data': [
-        'Images',
-        'Logos',
-        'Platforms',
-        'Playlists',
-        'Themes',
-      ],
+      'Data': {
+        'Images': [
+          'Logos',
+          'Screenshots'
+        ],
+        'Logos': [],
+        'Platforms': [],
+        'Playlists': [],
+        'Themes': [],
+      },
       'Extras': [],
       'FPSoftware': [],
       'Launcher': [],
       'Server': [],
-    }, log, 2
+    }, (text?: string) => { str += (typeof text === 'string') ? text+'\n' : '\n'; }, 2
   ).catch(logError);
-  log('\n');
-  // Create image folders
-  log('Creating image folders:\n');
-  log(path.join(fullFlashpointPath, 'Data/Images'));
-  const imageFolders = platforms.map(p => p.name);
-  if (imageFolders.length > 0) {
-    const imageFolderStructure: FolderStructure = {};
-    imageFolders.forEach(folderName => { imageFolderStructure[folderName] = ['Box - Front', 'Screenshot - Gameplay']; });
-    await createFolderStructure(
-      path.join(fullFlashpointPath, 'Data/Images'),
-      imageFolderStructure,
-      log, 2
-    ).catch(logError);
-  } else { log('\n  No image folder names found (each platform ".xml" file get its own image folder).'); }
-  // Return string
-  log(); // Add final new line
+  str += '\n';
   return str;
 
   /** Create all the folders that are missing in a folder structure. */
@@ -712,7 +506,6 @@ async function createMissingFolders(platforms: PlatformInfo[]): Promise<string> 
     if (error) { console.warn(error); }
   }
 }
-
 /** Remove the last "item" in a path ("C:/foo/bar.png" => "C:/foo") */
 export function removeLastItemOfPath(filePath: string): string {
   return filePath.substr(0, Math.max(0, filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')));
@@ -730,7 +523,6 @@ function fetchAllGames(): Promise<IGameInfo[]> {
     });
   });
 }
-
 
 /** Path of the "htdocs" folder (relative to the Flashpoint folder) */
 const htdocsPath = 'Server/htdocs';

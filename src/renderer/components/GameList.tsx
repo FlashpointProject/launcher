@@ -2,7 +2,6 @@ import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices, ScrollParams } from 'react-virtualized';
 import { ViewGame } from '../../shared/back/types';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
-import { GameImageCollection } from '../image/GameImageCollection';
 import { GAMES } from '../interfaces';
 import { findElementAncestor } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
@@ -15,7 +14,6 @@ const RENDERER_OVERSCAN = 15;
 const BACK_OVERSCAN = 100;
 
 export type GameListProps = {
-  gameImages: GameImageCollection;
   onRequestGames: (start: number, end: number) => void;
   /** All games that will be shown in the list. */
   games?: GAMES;

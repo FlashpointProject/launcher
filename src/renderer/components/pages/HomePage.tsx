@@ -8,7 +8,6 @@ import { PlatformInfo } from '../../../shared/platform/interfaces';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
-import { GameImageCollection } from '../../image/GameImageCollection';
 import { CentralState, UpgradeStageState } from '../../interfaces';
 import { Paths } from '../../Paths';
 import { GamePlaylist } from '../../playlist/types';
@@ -25,8 +24,6 @@ type OwnProps = {
   /** Semi-global prop. */
   central: CentralState;
   onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
-  /** Collection to get game images from. */
-  gameImages: GameImageCollection;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
@@ -51,7 +48,6 @@ export class HomePage extends React.Component<HomePageProps> {
     const {
       onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick,
-      gameImages,
       central: {
         upgrade: {
           techState,

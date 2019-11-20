@@ -7,13 +7,13 @@ import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllD
 import { sendRequest } from '../shared/back/util';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
-import { IService, ProcessState, WindowIPC } from '../shared/interfaces';
+import { ProcessState, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
 import { getLibraryItemTitle } from '../shared/library/util';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
-import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
+import { recursiveReplace, versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -23,7 +23,6 @@ import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
-import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState, GAMES, SUGGESTIONS, UpgradeStageState, UpgradeState } from './interfaces';
 import { LangManager } from './lang/LangManager';
 import { Paths } from './Paths';
@@ -86,8 +85,6 @@ export type AppState = {
   gameScale: number;
   /** Layout of the browse page */
   gameLayout: BrowsePageLayout;
-  /** Manager of all the game image folders, and container of their data. */
-  gameImages: GameImageCollection;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
   /** Current language container. */
@@ -134,7 +131,6 @@ export class App extends React.Component<AppProps, AppState> {
         playlistsDoneLoading: false,
         playlistsFailedLoading: false,
       },
-      gameImages: new GameImageCollection(config.fullFlashpointPath),
       creditsData: undefined,
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
@@ -347,12 +343,7 @@ export class App extends React.Component<AppProps, AppState> {
     });
     // Initalize the Game Manager
     sendRequest<PlatformInfo[]>(BackIn.GET_PLATFORMS)
-    .then(platforms => {
-      const names = platforms.map(p => p.name);
-      this.state.gameImages.addImageFolders(names);
-      // Update stored platform info
-      this.setState({ platforms });
-    })
+    .then(platforms => { this.setState({ platforms }); })
     .catch((errors) => {
       // @TODO Make this errors passing a bit safer? Expecting specially formatted errors seems dangerous.
       errors.forEach((error: Error) => log(error.toString()));
@@ -571,7 +562,6 @@ export class App extends React.Component<AppProps, AppState> {
       order: this.state.order,
       gameScale: this.state.gameScale,
       gameLayout: this.state.gameLayout,
-      gameImages: this.state.gameImages,
       selectedGameId: view && view.selectedGameId,
       selectedPlaylistId: view && view.selectedPlaylistId,
       onSelectGame: this.onSelectGame,

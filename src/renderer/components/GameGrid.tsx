@@ -3,7 +3,6 @@ import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, ScrollParams } from 'react-virtualized/dist/es/Grid';
 import { ViewGame } from '../../shared/back/types';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
-import { GameImageCollection } from '../image/GameImageCollection';
 import { GAMES } from '../interfaces';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
@@ -21,7 +20,6 @@ type ColumnsRows = {
 };
 
 export type GameGridProps = {
-  gameImages?: GameImageCollection;
   onRequestGames: (offset: number, limit: number) => void;
   onGameLaunch: (gameId: string) => void;
   /** All games that will be shown in the grid (filter it before passing it here). */

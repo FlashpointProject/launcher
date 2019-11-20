@@ -14,7 +14,6 @@ import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/Conn
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { CreditsData } from './credits/types';
-import { GameImageCollection } from './image/GameImageCollection';
 import { CentralState, GAMES, SUGGESTIONS } from './interfaces';
 import { Paths } from './Paths';
 import { GamePlaylist } from './playlist/types';
@@ -44,7 +43,6 @@ export type AppRouterProps = {
   order?: GameOrderChangeEvent;
   gameScale: number;
   gameLayout: BrowsePageLayout;
-  gameImages: GameImageCollection;
   selectedGameId?: string;
   selectedPlaylistId?: string;
   onSelectGame: (gameId?: string) => void;
@@ -66,7 +64,6 @@ export class AppRouter extends React.Component<AppRouterProps> {
       launchGame: this.props.launchGame,
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
-      gameImages: this.props.gameImages,
       onDownloadTechUpgradeClick: this.props.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.props.onDownloadScreenshotsUpgradeClick,
     };
@@ -88,7 +85,6 @@ export class AppRouter extends React.Component<AppRouterProps> {
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
-      gameImages: this.props.gameImages,
       selectedGameId: this.props.selectedGameId,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
@@ -108,12 +104,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const curateProps: CuratePageProps = {
       games: this.props.games,
-      gameImages: this.props.gameImages
     };
     const developerProps: DeveloperPageProps = {
       platforms: this.props.platforms,
       central: this.props.central,
-      gameImages: this.props.gameImages,
     };
     return (
       <Switch>
