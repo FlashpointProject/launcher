@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
-import { BackIn, GetAllGamesResponseData } from '../../../shared/back/types';
+import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedResponse } from '../../../shared/back/types';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { PlatformInfo } from '../../../shared/platform/interfaces';
@@ -57,17 +57,17 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   componentDidMount() {
-    window.External.services.on('change', this.onServiceUpdate);
+    window.External.back.on('message', this.onServiceUpdate);
   }
 
   componentWillUnmount() {
-    window.External.services.removeListener('change', this.onServiceUpdate);
+    window.External.back.off('message', this.onServiceUpdate);
   }
 
   render() {
     const strings = this.context.developer;
     const { text } = this.state;
-    const services = window.External.services.data;
+    const services = window.External.services;
     return (
       <div className='developer-page simple-scroll'>
         <div className='developer-page__inner'>
@@ -132,6 +132,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     );
   }
 
+  onServiceUpdate = (response: WrappedResponse<ServiceChangeData>) => {
+    if (response.type === BackOut.SERVICE_CHANGE) { this.forceUpdate(); }
+  }
+
   onCheckMissingImagesClick = async (): Promise<void> => {
     const res = await fetchAllGames();
     const gameImages = this.props.gameImages;
@@ -187,10 +191,6 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       const platforms = this.props.platforms;
       this.setState({ text: await createMissingFolders(platforms) });
     }, 0);
-  }
-
-  onServiceUpdate = (): void => {
-    this.forceUpdate();
   }
 
   static contextType = LangContext;

@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import { IBackProcessInfo, ProcessState } from '../shared/interfaces';
 import { ILogPreEntry } from '../shared/Log/interface';
-import { ProcessState } from '../shared/service/interfaces';
 
 export declare interface ManagedChildProcess {
   /**
@@ -19,16 +19,15 @@ export declare interface ManagedChildProcess {
 /** Manages a single process. Wrapper around node's ChildProcess. */
 export class ManagedChildProcess extends EventEmitter {
   // @TODO Add timeouts for restarting and killing the process (it should give up after some time, like 10 seconds) maybe?
+
+  public id: string;
+  public info: IBackProcessInfo;
   /** Process that this is wrapping/managing. */
   private process?: ChildProcess;
   /** If the process is currently being restarted. */
   private _isRestarting: boolean = false;
   /** Display name of the service. */
   public readonly name: string;
-  /** Command of the process (usually a filename of a program). */
-  private command: string;
-  /** Arguments passed to the process. */
-  private args: string[];
   /** The current working directory of the process. */
   private cwd: string;
   /** If the process is detached (it is not spawned as a child process of this program). */
@@ -38,13 +37,13 @@ export class ManagedChildProcess extends EventEmitter {
   /** State of the process. */
   private state: ProcessState = ProcessState.STOPPED;
 
-  constructor(name: string, command: string, args: string[], cwd: string, detached: boolean) {
+  constructor(id: string, name: string, cwd: string, detached: boolean, info: IBackProcessInfo) {
     super();
+    this.id = id;
     this.name = name;
-    this.command = command;
-    this.args = args;
     this.cwd = cwd;
     this.detached = detached;
+    this.info = info;
   }
 
   /** Get the process ID (or -1 if the process is not running). */
@@ -66,7 +65,7 @@ export class ManagedChildProcess extends EventEmitter {
   public spawn(): void {
     if (!this.process && !this._isRestarting) {
       // Spawn process
-      this.process = spawn(this.command, this.args, { cwd: this.cwd, detached: this.detached });
+      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached });
       // Set start timestamp
       this.startTime = Date.now();
       // Log

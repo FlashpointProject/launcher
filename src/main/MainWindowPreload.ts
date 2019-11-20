@@ -2,16 +2,11 @@ import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
 import * as path from 'path';
 import { SharedSocket } from '../shared/back/SharedSocket';
-import { BackIn, BackOut, GetInitDataResponse, WrappedResponse } from '../shared/back/types';
+import { BackIn, BackOut, GetRendererInitDataResponse, WrappedResponse } from '../shared/back/types';
 import { MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
-import { ServicesApi } from '../shared/service/ServicesApi';
 import { createErrorProxy } from '../shared/Util';
 import { isDev } from './Util';
-
-// Set up Services API
-const services = new ServicesApi();
-services.initialize();
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -63,12 +58,12 @@ window.External = {
 
   config: createErrorProxy('config'),
 
-  services,
-
   log: {
     entries: [],
     offset: 0,
   },
+
+  services: createErrorProxy('services'),
 
   isDev,
 
@@ -82,7 +77,7 @@ window.External = {
 };
 
 let isInitDone: boolean = false;
-const onInit = new Promise<WebSocket>((resolve, reject) => {
+const onInit = new Promise<SharedSocket>((resolve, reject) => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
 
@@ -92,16 +87,16 @@ const onInit = new Promise<WebSocket>((resolve, reject) => {
 
   const ws = new WebSocket(url.href);
   ws.onopen = () => {
-    ws.onmessage = () => { resolve(ws); };
+    ws.onmessage = () => { resolve(new SharedSocket(ws)); };
     ws.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
     ws.send(data.secret);
   };
 })
-.then((ws) => new Promise((resolve) => {
-  window.External.back = new SharedSocket(ws);
+.then((socket) => new Promise((resolve) => {
+  window.External.back = socket;
   window.External.back.on('message', onMessage);
   // Fetch the config and preferences
-  window.External.back.send<GetInitDataResponse>(BackIn.GET_INIT_DATA, undefined, response => {
+  window.External.back.send<GetRendererInitDataResponse>(BackIn.GET_RENDERER_INIT_DATA, undefined, response => {
     if (response.data) {
       window.External.preferences.data = response.data.preferences;
       window.External.config = {
@@ -111,6 +106,8 @@ const onInit = new Promise<WebSocket>((resolve, reject) => {
         fullJsonFolderPath: path.resolve(response.data.config.flashpointPath, response.data.config.jsonFolderPath),
       };
       window.External.imageServerPort = response.data.imageServerPort;
+      window.External.log.entries = response.data.log;
+      window.External.services = response.data.services;
     }
     resolve();
   });

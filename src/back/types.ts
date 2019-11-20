@@ -4,10 +4,12 @@ import * as WebSocket from 'ws';
 import { BackInit, ViewGame } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IGameInfo } from '../shared/game/interfaces';
+import { IBackProcessInfo } from '../shared/interfaces';
 import { ILogEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { GameManager } from './game/GameManager';
+import { ManagedChildProcess } from './ManagedChildProcess';
 
 export type BackState = {
   isInit: boolean;
@@ -25,6 +27,8 @@ export type BackState = {
   initEmitter: InitEmitter;
   queries: Record<string, BackQueryChache>;
   log: ILogEntry[];
+  serviceInfo?: ServiceFileData;
+  services: Record<string, ManagedChildProcess>;
 }
 
 export type BackQueryChache = {
@@ -52,3 +56,13 @@ interface EmitterPart<E extends string | number | Symbol, F extends (...args: an
   off(event: E, listener: F): this;
   emit(event: E, ...args: Parameters<F>): boolean;
 }
+
+export type ServiceFileData = {
+  redirector?: IBackProcessInfo;
+  fiddler?: IBackProcessInfo;
+  server?: IBackProcessInfo;
+  /** Processes to run before the launcher starts. */
+  start: IBackProcessInfo[];
+  /** Processes to run when the launcher closes. */
+  stop: IBackProcessInfo[];
+};

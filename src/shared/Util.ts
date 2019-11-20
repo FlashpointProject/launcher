@@ -364,15 +364,23 @@ export function parseVarStr(str: string) {
   });
 }
 
+const errorProxySymbol = Symbol('Error Proxy');
+const errorProxyValue = {}; // Unique pointer
+
 /** Create a proxy that throws an error when you try to use it. */
 export function createErrorProxy(title: string): any {
   return new Proxy({}, {
     // @TODO Make it throw errors for all(?) cases (delete, construct etc.)
     get: (target, p, receiver) => {
+      if (p === errorProxySymbol) { return errorProxyValue; }
       throw new Error(`You must not get a value from ${title} before it is initialzed (property: "${p.toString()}").`);
     },
     set: (target, p, value, receiver) => {
       throw new Error(`You must not set a value from ${title} before it is initialzed (property: "${p.toString()}").`);
     },
   });
+}
+
+export function isErrorProxy(object: any) {
+  return (object[errorProxySymbol] === errorProxyValue);
 }

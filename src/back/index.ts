@@ -1,22 +1,25 @@
+import * as child_process from 'child_process';
 import { createHash } from 'crypto';
 import { EventEmitter } from 'events';
+import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
 import * as WebSocket from 'ws';
-import * as fs from 'fs';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetInitDataResponse, GetGameData, GetGameResponseData, GetLogResponseData, LaunchAddAppData, LaunchGameData, SaveGameData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetRendererInitDataResponse, LaunchAddAppData, LaunchGameData, SaveGameData, ServiceActionData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { FilterGameOpts, filterGames, orderGames } from '../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
-import { DeepPartial } from '../shared/interfaces';
+import { DeepPartial, IBackProcessInfo, IService, ProcessAction } from '../shared/interfaces';
 import { ILogEntry, ILogPreEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
-import { createErrorProxy, deepCopy } from '../shared/Util';
+import { createErrorProxy, deepCopy, isErrorProxy, stringifyArray } from '../shared/Util';
 import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
+import { ManagedChildProcess } from './ManagedChildProcess';
+import { ServicesFile } from './ServicesFile';
 import { BackQuery, BackState } from './types';
 
 // Make sure the process.send function is available
@@ -43,10 +46,14 @@ const state: BackState = {
   initEmitter: new EventEmitter() as any,
   queries: {},
   log: [],
+  serviceInfo: undefined,
+  services: {},
 };
 
 const preferencesFilename = 'preferences.json';
 const configFilename = 'config.json';
+
+const servicesSource = 'Background Services';
 
 process.on('message', onProcessMessage);
 
@@ -63,6 +70,28 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     ]));
     state.preferences = pref;
     state.config = conf;
+    // Init services
+    try {
+      state.serviceInfo = await ServicesFile.readFile(
+        path.join(state.config.flashpointPath, state.config.jsonFolderPath),
+        error => { log({ source: servicesSource, content: error.toString() }); }
+      );
+    } catch (error) { /* @TODO Do something about this error */ }
+    if (state.serviceInfo) {
+      // Run start commands
+      for (let i = 0; i < state.serviceInfo.start.length; i++) {
+        await execProcess(state.serviceInfo.start[i]);
+      }
+      // Run processes
+      if (state.serviceInfo.server) {
+        state.services.server = runService('server', 'Server', state.serviceInfo.server, false);
+      }
+      if (state.config.startRedirector && process.platform !== 'linux') {
+        const redirectorInfo = state.config.useFiddler ? state.serviceInfo.fiddler : state.serviceInfo.redirector;
+        if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${state.config.useFiddler ? 'Fiddler' : 'Redirector'})`); }
+        state.services.redirector = runService('redirector', 'Redirector', redirectorInfo, true);
+      }
+    }
     // Init Game manager
     state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
     .catch(error => { console.error(error); })
@@ -106,6 +135,34 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // Respond
     send(serverPort);
   }
+
+  function runService(id: string, name: string, info: IBackProcessInfo, detached: boolean): ManagedChildProcess {
+    const proc = new ManagedChildProcess(
+      id,
+      name,
+      path.join(state.config.flashpointPath, info.path),
+      !!detached,
+      info
+    );
+    proc.on('output', log);
+    proc.on('change', () => {
+      broadcast<IService>({
+        id: '',
+        type: BackOut.SERVICE_CHANGE,
+        data: procToService(proc),
+      });
+    });
+    try {
+      proc.spawn();
+    } catch (error) {
+      log({
+        source: servicesSource,
+        content: `An unexpected error occurred while trying to run the background process "${proc.name}".`+
+                 `  ${error.toString()}`
+      });
+    }
+    return proc;
+  }
 }
 
 function onConnect(this: WebSocket, socket: WebSocket, request: http.IncomingMessage): void {
@@ -140,24 +197,33 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       log(reqData, req.id);
     } break;
 
-    case BackIn.GET_LOG: {
-      respond<GetLogResponseData>(event.target, {
-        id: req.id,
-        type: BackOut.GENERIC_RESPONSE,
-        data: { entries: state.log }
-      });
-    } break;
-
-    case BackIn.GET_INIT_DATA: {
-      const data: GetInitDataResponse = {
+    case BackIn.GET_MAIN_INIT_DATA: {
+      const data: GetMainInitDataResponse = {
         preferences: state.preferences,
         config: state.config,
-        imageServerPort: state.imageServerPort,
       };
       respond(event.target, {
         id: req.id,
-        type: BackOut.GET_INIT_DATA_RESPONSE,
+        type: BackOut.GET_MAIN_INIT_DATA,
         data,
+      });
+    } break;
+
+    case BackIn.GET_RENDERER_INIT_DATA: {
+      const services: IService[] = [];
+      if (state.services.server) { services.push(procToService(state.services.server)); }
+      if (state.services.redirector) { services.push(procToService(state.services.redirector)); }
+
+      respond<GetRendererInitDataResponse>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: {
+          preferences: state.preferences,
+          config: state.config,
+          imageServerPort: state.imageServerPort,
+          log: state.log,
+          services: services,
+        },
       });
     } break;
 
@@ -435,6 +501,53 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         data: state.preferences,
       });
     } break;
+
+    case BackIn.SERVICE_ACTION: {
+      const reqData: ServiceActionData = req.data;
+
+      const proc = state.services[reqData.id];
+      if (proc) {
+        switch (reqData.action) {
+          case ProcessAction.START:
+            proc.spawn();
+            break;
+          case ProcessAction.STOP:
+            proc.kill();
+            break;
+          case ProcessAction.RESTART:
+            proc.restart();
+            break;
+          default:
+            console.warn('Unhandled Process Action');
+        }
+      }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+      });
+    } break;
+
+    case BackIn.QUIT: {
+      if (state.serviceInfo) {
+        // Kill services
+        if (state.services.server && state.serviceInfo.server && state.serviceInfo.server.kill) {
+          state.services.server.kill();
+        }
+        if (state.services.redirector) {
+          const doKill: boolean = !!(
+            state.config.useFiddler
+              ? state.serviceInfo.fiddler    && state.serviceInfo.fiddler.kill
+              : state.serviceInfo.redirector && state.serviceInfo.redirector.kill
+          );
+          if (doKill) { state.services.redirector.kill(); }
+        }
+        // Run stop commands
+        for (let i = 0; i < state.serviceInfo.stop.length; i++) {
+          execProcess(state.serviceInfo.stop[i], true);
+        }
+      }
+    } break;
   }
 }
 
@@ -468,12 +581,14 @@ function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
 
 function broadcast<T>(response: WrappedResponse<T>): void {
   console.log('BROADCAST', response);
-  const message = JSON.stringify(response);
-  state.server.clients.forEach(socket => {
-    if (socket.onmessage === onMessageWrap) { // (Check if authorized)
-      socket.send(message);
-    }
-  });
+  if (!isErrorProxy(state.server)) {
+    const message = JSON.stringify(response);
+    state.server.clients.forEach(socket => {
+      if (socket.onmessage === onMessageWrap) { // (Check if authorized)
+        socket.send(message);
+      }
+    });
+  }
 }
 
 function log(preEntry: ILogPreEntry, id?: string): void {
@@ -558,4 +673,32 @@ function searchGames(opts: SearchGamesOpts): IGameInfo[] {
   orderGames(foundGames, { orderBy: opts.orderBy, orderReverse: opts.orderReverse });
 
   return foundGames;
+}
+
+async function execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void> {
+  const cwd: string = path.join(state.config.flashpointPath, proc.path);
+  log({
+    source: servicesSource,
+    content: `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`
+  });
+  try {
+    if (sync) { child_process.execFileSync(  proc.filename, proc.arguments, { cwd: cwd }); }
+    else      { await child_process.execFile(proc.filename, proc.arguments, { cwd: cwd }); }
+  } catch (error) {
+    log({
+      source: servicesSource,
+      content: `An unexpected error occurred while executing a command:\n  "${error}"`
+    });
+  }
+}
+
+function procToService(proc: ManagedChildProcess): IService {
+  return {
+    id: proc.id,
+    name: proc.name,
+    state: proc.getState(),
+    pid: proc.getPid(),
+    startTime: proc.getStartTime(),
+    info: proc.info,
+  };
 }

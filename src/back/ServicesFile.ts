@@ -1,9 +1,8 @@
 import * as path from 'path';
-import { IBackProcessInfo } from '../../shared/service/interfaces';
-import { parseVarStr, readJsonFile } from '../../shared/Util';
-import { Coerce } from '../../shared/utils/Coerce';
-import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
-import { ServiceFileData } from './interfaces';
+import { IBackProcessInfo } from '../shared/interfaces';
+import { parseVarStr, readJsonFile } from '../shared/Util';
+import { Coerce } from '../shared/utils/Coerce';
+import { IObjectParserProp, ObjectParser } from '../shared/utils/ObjectParser';
 
 const { str } = Coerce;
 
@@ -59,4 +58,14 @@ export namespace ServicesFile {
     parser.prop('arguments').arrayRaw(item => parsed.arguments.push(parseVarStr(str(item))));
     return parsed;
   }
+}
+
+export type ServiceFileData = {
+  redirector?: IBackProcessInfo;
+  fiddler?: IBackProcessInfo;
+  server?: IBackProcessInfo;
+  /** Processes to run before the launcher starts. */
+  start: IBackProcessInfo[];
+  /** Processes to run when the launcher closes. */
+  stop: IBackProcessInfo[];
 }

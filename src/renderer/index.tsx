@@ -24,7 +24,6 @@ import { ThemeManager } from './theme/ThemeManager';
   });
   // Wait for the preferences and config to initialize
   await Promise.all([
-    window.External.services.waitUtilInitialized(),
     window.External.waitUntilInitialized(),
   ]);
   // Get preferences data

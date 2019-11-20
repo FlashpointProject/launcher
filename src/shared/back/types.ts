@@ -1,5 +1,6 @@
 import { IAppConfigData } from '../config/interfaces';
 import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
+import { IService, ProcessAction } from '../interfaces';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
 
@@ -12,7 +13,8 @@ export enum BackIn {
   DELETE_GAME,
   LAUNCH_ADDAPP,
   ADD_LOG,
-  GET_LOG,
+  SERVICE_ACTION,
+  QUIT,
   /** Get all library names. */
   GET_LIBRARIES,
   /** Update a browse view. */
@@ -20,7 +22,9 @@ export enum BackIn {
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   /** Get all data needed on init (by the renderer). */
-  GET_INIT_DATA,
+  GET_RENDERER_INIT_DATA,
+  /** Get all data needed on init (by the renderer). */
+  GET_MAIN_INIT_DATA,
   /** Update any number of configs. */
   UPDATE_CONFIG,
   /** Update any number of preferences. */
@@ -43,10 +47,11 @@ export enum BackOut {
   GENERIC_RESPONSE,
   INIT_EVENT,
   BROWSE_VIEW_PAGE_RESPONSE,
-  GET_INIT_DATA_RESPONSE,
+  GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
   BROWSE_CHANGE,
   LOG_ENTRY_ADDED,
+  SERVICE_CHANGE,
 }
 
 export type WrappedRequest<T = any> = {
@@ -80,18 +85,21 @@ export enum BackInit {
 
 export type AddLogData = ILogPreEntry;
 
-export type GetLogResponseData = {
-  entries: ILogEntry[];
-}
-
 export type InitEventData = {
   done: BackInit[];
 }
 
-export type GetInitDataResponse = {
+export type GetMainInitDataResponse = {
+  config: IAppConfigData;
+  preferences: IAppPreferencesData;
+}
+
+export type GetRendererInitDataResponse = {
   config: IAppConfigData;
   preferences: IAppPreferencesData;
   imageServerPort: number;
+  log: ILogEntry[];
+  services: IService[];
 }
 
 export type LaunchGameData = {
@@ -177,3 +185,10 @@ export type LogEntryAddedData = {
   entry: ILogEntry;
   index: number;
 }
+
+export type ServiceActionData = {
+  action: ProcessAction;
+  id: string;
+}
+
+export type ServiceChangeData = IService;

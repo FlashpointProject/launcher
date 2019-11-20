@@ -3,17 +3,17 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetLogResponseData, InitEventData, LaunchAddAppData, LaunchGameData, LogEntryAddedData, SaveGameData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, InitEventData, LaunchAddAppData, LaunchGameData, LogEntryAddedData, SaveGameData, ServiceChangeData } from '../shared/back/types';
 import { sendRequest } from '../shared/back/util';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
-import { WindowIPC } from '../shared/interfaces';
+import { IService, ProcessState, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
 import { getLibraryItemTitle } from '../shared/library/util';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
-import { versionNumberToText } from '../shared/Util';
+import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -286,6 +286,30 @@ export class App extends React.Component<AppProps, AppState> {
             this.setState({ views: newViews }, () => { this.onRequestGames(0, 1); });
           }
         } break;
+
+        case BackOut.SERVICE_CHANGE: {
+          const resData: ServiceChangeData = res.data;
+          if (resData.id) {
+            const service = window.External.services.find(item => item.id === resData.id);
+            if (service) {
+              recursiveReplace(service, resData);
+            } else {
+              window.External.services.push(recursiveReplace({
+                id: 'invalid',
+                name: 'Invalid',
+                state: ProcessState.STOPPED,
+                pid: -1,
+                startTime: 0,
+                info: {
+                  path: '',
+                  filename: '',
+                  arguments: [],
+                  kill: false,
+                },
+              }, resData));
+            }
+          } else { throw new Error('Service update did not reference a service.'); }
+        } break;
       }
     });
 
@@ -420,13 +444,6 @@ export class App extends React.Component<AppProps, AppState> {
         }
       });
     }
-  }
-
-  componentDidMount() {
-    // Request all log entires
-    window.External.back.send<GetLogResponseData>(BackIn.GET_LOG, undefined, res => {
-      if (res.data) { window.External.log.entries = res.data.entries; }
-    });
   }
 
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {

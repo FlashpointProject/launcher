@@ -4,19 +4,17 @@ import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInitArgs, BackOut, GetInitDataResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import checkSanity from '../shared/checkSanity';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IMiscData, MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import MainWindow from './MainWindow';
-import { ServicesMainApi } from './service/ServicesMainApi';
 import * as Util from './Util';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
-  private _services?: ServicesMainApi;
   private _installed?: boolean;
   /** The port that the back is listening on. */
   private _backPort: number = -1;
@@ -100,8 +98,8 @@ export class Main {
       const socket = this.socket;
       socket.onmessage = (event) => {
         const res: WrappedResponse = JSON.parse(event.data.toString());
-        if (res.type === BackOut.GET_INIT_DATA_RESPONSE) {
-          const data: GetInitDataResponse = res.data;
+        if (res.type === BackOut.GET_MAIN_INIT_DATA) {
+          const data: GetMainInitDataResponse = res.data;
           this.preferences = data.preferences;
           this.config = data.config;
           socket.onmessage = this.onMessage;
@@ -110,7 +108,7 @@ export class Main {
       };
       const req: WrappedRequest = {
         id: 'init',
-        type: BackIn.GET_INIT_DATA,
+        type: BackIn.GET_MAIN_INIT_DATA,
       };
       socket.send(JSON.stringify(req));
     }))
@@ -120,22 +118,8 @@ export class Main {
       // @TODO Launch the setup wizard when a check failed.
       checkSanity(this.config)
       .then(console.log, console.error);
-      // Start background services
-      this._services = new ServicesMainApi(this.sendToMainWindowRenderer.bind(this));
-      this._services.on('output', entry => {
-        if (this.socket) {
-          const req: WrappedRequest<AddLogData> = {
-            id: '',
-            type: BackIn.ADD_LOG,
-            data: entry,
-          };
-          this.socket.send(JSON.stringify(req));
-        }
-      });
-      this._services.start(this.config);
       // Create main window when ready
-      this._services.waitUntilDoneStarting()
-      .then(Util.waitUntilReady)
+      Util.waitUntilReady()
       .then(() => {
         if (!this.preferences) { throw new Error('preferences is undefined'); }
         this._mainWindow.createWindow(this.preferences.mainWindow);
@@ -188,8 +172,12 @@ export class Main {
   }
 
   private onAppWillQuit(): void {
-    if (this._services) {
-      this._services.stopAll();
+    if (this.socket) {
+      const req: WrappedRequest = {
+        id: 'byebye',
+        type: BackIn.QUIT,
+      };
+      this.socket.send(JSON.stringify(req));
     }
   }
 

@@ -14,6 +14,8 @@ export class SharedSocket extends EventEmitter {
     super();
     this.socket = socket;
     this.socket.onmessage = this.onMessage;
+    this.socket.onerror = this.onError;
+    this.socket.onclose = this.onClose;
   }
 
   private onMessage = (event: MessageEvent): void => {
@@ -25,6 +27,14 @@ export class SharedSocket extends EventEmitter {
     this.emit('message', response);
   }
 
+  private onError = (event: Event): void => {
+    console.log('SharedSocket Error:', event);
+  }
+
+  private onClose = (event: CloseEvent): void => {
+    console.log('SharedSocket Closed:', event);
+  }
+
   public send<T, U = any>(type: BackIn, data: U, callback?: (res: WrappedResponse<T>) => void): void {
     this.sendReq({
       id: uuid(),
@@ -34,7 +44,7 @@ export class SharedSocket extends EventEmitter {
   }
 
   public sendReq<T, U = any>(request: WrappedRequest<U>, callback?: (res: WrappedResponse<T>) => void): void {
-    console.log('OUT', request)
+    console.log('OUT', request);
     // Register callback
     if (callback) { this.once(request.id, callback); }
     // Send message

@@ -1,10 +1,11 @@
 import { remote } from 'electron';
 import * as React from 'react';
 import { setInterval } from 'timers';
+import { BackIn, ServiceActionData } from '../../shared/back/types';
+import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
 import { ILogEntry } from '../../shared/Log/interface';
 import { escapeHTML, formatTime, padLines, timeChars } from '../../shared/Log/LogCommon';
-import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '../../shared/service/interfaces';
 import { LangContext } from '../util/lang';
 import { LogData } from './LogData';
 import { SimpleButton } from './SimpleButton';
@@ -39,9 +40,9 @@ export function ServiceBox(props: ServiceBoxProps) {
     }
   }, 50, [service, service.startTime]);
   // Button callbacks
-  const onStopClick    = useProcessActionCallback(ProcessAction.STOP,    service.identifier);
-  const onStartClick   = useProcessActionCallback(ProcessAction.START,   service.identifier);
-  const onRestartClick = useProcessActionCallback(ProcessAction.RESTART, service.identifier);
+  const onStopClick    = useProcessActionCallback(ProcessAction.STOP,    service.id);
+  const onStartClick   = useProcessActionCallback(ProcessAction.START,   service.id);
+  const onRestartClick = useProcessActionCallback(ProcessAction.RESTART, service.id);
   const onDetailsClick = React.useCallback(() => {
     displayDetails(service.info);
   }, [service.info]);
@@ -127,29 +128,27 @@ function generateStatusText(service: IService, lang: LangContainer['developer'])
  * Display the info of a service in a dialog window.
  * @param info Info to display.
  */
-function displayDetails(info: IBackProcessInfo | undefined): void {
-  if (info) {
-    remote.dialog.showMessageBox({
-      type: 'info',
-      title: 'Service Details',
-      message: `Path: ${info.path}\n`+
-               `Filename: ${info.filename}\n`+
-               `Arguments: ${info.arguments}\n`+
-               `Kill on Exit: ${info.kill}`,
-      buttons: ['Ok']
-    });
-  }
+function displayDetails(info: IBackProcessInfo): void {
+  remote.dialog.showMessageBox({
+    type: 'info',
+    title: 'Service Details',
+    message: `Path: ${info.path}\n`+
+              `Filename: ${info.filename}\n`+
+              `Arguments: ${info.arguments}\n`+
+              `Kill on Exit: ${info.kill}`,
+    buttons: ['Ok']
+  });
 }
 
 /**
  * Return a memoized callback that sends a request to perform an action on a service.
  * @param action Action to perform (this value is only read the first time).
- * @param identifier Identifier of the service.
+ * @param id Identifier of the service.
  */
-function useProcessActionCallback(action: ProcessAction, identifier: string): () => void {
+function useProcessActionCallback(action: ProcessAction, id: string): () => void {
   return React.useCallback(() => {
-    window.External.services.sendAction({ action, identifier });
-  }, [identifier]);
+    window.External.back.send<any, ServiceActionData>(BackIn.SERVICE_ACTION, { id, action });
+  }, [id]);
 }
 
 /**

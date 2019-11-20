@@ -1,9 +1,8 @@
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
-import { IAppPreferencesData } from './preferences/interfaces';
-import { ServicesApi } from './service/ServicesApi';
 import { ILogEntry } from './Log/interface';
+import { IAppPreferencesData } from './preferences/interfaces';
 
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
@@ -54,14 +53,14 @@ export interface IMainWindowExternal {
     fullJsonFolderPath: string;
   };
 
-  /** Renderers interface for Service data */
-  services: ServicesApi;
-
   /** Log entries fetched from the back process. */
   log: {
     entries: ILogEntry[];
     offset: number;
   }
+
+  /** Current status of the services. */
+  services: IService[];
 
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;
@@ -129,4 +128,47 @@ export type IMiscData = {
 export enum MiscIPC {
   /** Request misc data synchronously (renderer -> main). */
   REQUEST_MISC_SYNC = 'misc-request-data',
+}
+export type IBackProcessInfo = {
+  /** Path of the file (relative to the Flashpoint root) */
+  path: string;
+  /** Name of the file to execute */
+  filename: string;
+  /** Arguments to pass to the process */
+  arguments: string[];
+  /**
+   * If the process should be "killed" when shutting down
+   * (This does not do anything for "start" and "stop" processes)
+   */
+  kill: boolean;
+};
+
+/** State of a managed process. */
+export enum ProcessState {
+  /** The process is not running. */
+  STOPPED,
+  /** The process is running. */
+  RUNNING,
+  /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
+  KILLING
+}
+
+/** Actions that can be performed on a service. */
+export enum ProcessAction {
+  /** Start the process if it is stopped */
+  START,
+  /** Stop the process if it is running */
+  STOP,
+  /** Stop the process if it is running, then start the process */
+  RESTART
+}
+
+/** Object describing the state of a service. */
+export type IService = {
+  id: string;
+  name: string;
+  state: ProcessState;
+  pid: number;
+  startTime: number;
+  info: IBackProcessInfo;
 }
