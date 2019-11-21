@@ -98,7 +98,12 @@ export async function importCuration(
     })()
     .then(() => {
       if (saveCuration) {
-        const backupPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported', `${curation.meta.title}_${curation.key}`);
+        const date = new Date();
+        // Date in form 'YYYY-MM-DD' for folder sorting
+        const dateStr = date.getFullYear().toString() + '-' +
+                        date.getUTCMonth().toString().padStart(2, '0') + '-' +
+                        date.getUTCDay().toString().padStart(2, '0');
+        const backupPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported', `${dateStr}__${curation.key}`);
         copyFolder(getCurationFolder(curation), backupPath, true);
       }
       if (log) {
@@ -205,8 +210,9 @@ export function stringToBool(str: string, defaultVal: boolean = false): boolean 
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export function launchCuration(curation: EditCuration) {
-  linkContentFolder(curation.key);
+export async function launchCuration(curation: EditCuration) {
+  await linkContentFolder(curation.key);
+  console.log('Finished linking');
   const game = createGameFromCurationMeta(curation.key, curation, new Date());
   const addApps = createAddAppsFromCurationMeta(curation.key, curation.addApps);
   GameLauncher.launchGame(game, addApps);
@@ -217,8 +223,8 @@ export function launchCuration(curation: EditCuration) {
  * @param curationKey Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration) {
-  linkContentFolder(curationKey);
+export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration) {
+  await linkContentFolder(curationKey);
   const addApp = createAddAppsFromCurationMeta(curationKey, [appCuration]);
   GameLauncher.launchAdditionalApplication(addApp[0]);
 }
@@ -230,24 +236,33 @@ async function linkContentFolder(curationKey: string) {
   const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', curationKey);
   const htdocsContentPath = path.join(GameLauncher.getHtdocsPath(), 'content');
   // Clear out old folder if exists
+  console.log('removing old content');
   await fs.access(htdocsContentPath, fs.constants.F_OK)
     .then(() => fs.remove(htdocsContentPath))
     .catch((error) => { /* No file is okay, ignore error */ });
   const contentPath = path.join(curationPath, 'content');
+  console.log(contentPath);
   if (fs.existsSync(contentPath)) {
+    console.log('content exists');
     if (process.platform === 'win32') {
       // Use symlinks on windows if running as Admin - Much faster than copying
-      await new Promise(() => {
-        exec('NET SESSION', (err,so,se) => {
+      await new Promise((resolve) => {
+        exec('NET SESSION', async (err,so,se) => {
           if (se.length === 0) {
-            return fs.symlink(contentPath, htdocsContentPath);
+            await fs.symlink(contentPath, htdocsContentPath);
+            resolve();
           } else {
-            return fs.copy(contentPath, htdocsContentPath);
+            console.log('Copying...');
+            await fs.copy(contentPath, htdocsContentPath);
+            console.log('Copied!');
+            resolve();
           }
         });
       });
     } else {
+      console.log('Copying...');
       await fs.copy(contentPath, htdocsContentPath);
+      console.log('Copied!');
     }
   }
 }

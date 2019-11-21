@@ -27,6 +27,8 @@ import { DropdownInputField } from './DropdownInputField';
 import { GameImageSplit } from './GameImageSplit';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
+import { ProgressContext, newProgress, ProgressDispatch } from '../context/ProgressContext';
+import { AutoProgressComponent } from './ProgressComponents';
 
 type CurateBoxProps = {
   /** Meta data of the curation to display. */
@@ -47,6 +49,7 @@ type CurateBoxProps = {
 export function CurateBox(props: CurateBoxProps) {
   // Localized strings
   const strings = React.useContext(LangContext);
+  const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
   // Content file collisions
   const [contentCollisions, setContentCollisions] = useState<ContentCollision[] | undefined>(undefined);
   // Check for content file collisions
@@ -128,6 +131,10 @@ export function CurateBox(props: CurateBoxProps) {
           return;
         }
       }
+      // Set status text
+      const statusProgress = newProgress(curation.key, progressDispatch);
+      ProgressDispatch.setText(statusProgress, 'Importing Curation...');
+      ProgressDispatch.setUsePercentDone(statusProgress, false);
       // Import the curation
       props.importCuration(curation)
       .then(() => {
@@ -159,13 +166,36 @@ export function CurateBox(props: CurateBoxProps) {
             content: content
           }
         });
+      })
+      .finally(() => {
+        ProgressDispatch.finished(statusProgress);
       });
     }
   }, [props.dispatch, props.curation, props.importCuration]);
   // Callback for testing a curation works
-  const onRun = useCallback(() => {
+  const onRun = useCallback(async () => {
     if (props.curation) {
-      launchCuration(props.curation);
+      // Lock the curation while copying files
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: props.curation.key,
+          lock: true,
+        },
+      });
+      const statusProgress = newProgress(props.curation.key, progressDispatch);
+      ProgressDispatch.setText(statusProgress, 'Launching Curation...');
+      ProgressDispatch.setUsePercentDone(statusProgress, false);
+      await launchCuration(props.curation);
+      ProgressDispatch.finished(statusProgress);
+      // Unlock the curation
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: props.curation.key,
+          lock: false,
+        },
+      });
     }
   }, [props.dispatch, props.curation]);
   // Callback for when the index content button is clicked
@@ -276,22 +306,34 @@ export function CurateBox(props: CurateBoxProps) {
         }]
       });
       if (filePath) {
-        fs.ensureDir(path.dirname(filePath))
-        .then(async () => {
-          // Remove old zip (if overwriting)
-          await fs.access(filePath, fs.constants.F_OK)
-            .then(() => {
-              return fs.unlink(filePath);
-            })
-            .catch((error) => { /* No file is okay, ignore error */ });
-          // Save working meta
-          const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
-          const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
-          return fs.writeFile(metaPath, meta)
+        await fs.ensureDir(path.dirname(filePath))
+        // Check if zip path already exists
+        await fs.access(filePath, fs.constants.F_OK)
           .then(() => {
-            // Zip it all up
-            add(filePath, getCurationFolder(curation), { recursive: true, $bin: pathTo7z });
+            // Remove old zip - 'Add' will expand zip if it exists
+            return fs.unlink(filePath);
+          })
+          .catch((error) => { /* No file is okay, ignore error */ });
+        // Save working meta
+        const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+        const statusProgress = newProgress(props.curation.key, progressDispatch);
+        ProgressDispatch.setText(statusProgress, 'Exporting Curation...');
+        ProgressDispatch.setUsePercentDone(statusProgress, false);
+        await fs.writeFile(metaPath, meta)
+        .then(() => {
+          // Zip it all up
+          return new Promise<void>((resolve) => {
+            return add(filePath, getCurationFolder(curation), { recursive: true, $bin: pathTo7z })
+            .on('end', () => { resolve(); })
+            .on('error', (error) => { 
+              curationLog(error.message); 
+              resolve();
+            });
           });
+        })
+        .finally(() => {
+          ProgressDispatch.finished(statusProgress);
         });
       }
       const msg = `Successfully Exported ${curation.meta.title} to ${filePath}`;
@@ -437,6 +479,21 @@ export function CurateBox(props: CurateBoxProps) {
     }
     return props.libraryOptions;
   }, [props.curation && props.curation.meta.library, props.libraryOptions, warnings]);
+
+  // Render all owned ProgressData as components
+  const progressComponent = useMemo(() => {
+    const key = props.curation ? props.curation.key : 'invalid';
+    const progressArray = progressState[key];
+    if (progressArray) {
+      return progressArray.map((data, index) => {
+        return (
+          <AutoProgressComponent
+            key={index}
+            progressData={data} />
+        );
+      });
+    }
+  }, [props.curation && progressState[props.curation.key]]);
 
   // Meta
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
@@ -631,15 +688,18 @@ export function CurateBox(props: CurateBoxProps) {
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.newAddApp}
-          onClick={onNewAddApp} />
+          onClick={onNewAddApp}
+          disabled={disabled} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.addExtras}
-          onClick={onAddExtras} />
+          onClick={onAddExtras}
+          disabled={disabled} />
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.addMessage}
-          onClick={onAddMessage} />
+          onClick={onAddMessage}
+          disabled={disabled} />
         <hr className='curate-box-divider' />
       </div>
       {/* Content */}
@@ -706,8 +766,9 @@ export function CurateBox(props: CurateBoxProps) {
             disabled={disabled} />
         </div>
       </div>
+      {progressComponent}
     </div>
-  ), [props.curation, strings, disabled, warnings, onImportClick]);
+  ), [props.curation, strings, disabled, warnings, onImportClick, progressComponent]);
 }
 
 function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {

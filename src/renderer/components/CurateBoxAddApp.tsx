@@ -57,8 +57,8 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
     });
   }, [props.curationKey, props.curation.key, props.dispatch]);
   // Callback for the "run" button
-  const onRun = useCallback(() => {
-    launchAddAppCuration(props.curationKey, props.curation);
+  const onRun = useCallback(async () => {
+    await launchAddAppCuration(props.curationKey, props.curation);
   }, [props.curation && props.curation.meta && props.curationKey]);
   // Render
   return (

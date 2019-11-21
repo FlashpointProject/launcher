@@ -317,6 +317,7 @@ export function CuratePage(props: CuratePageProps) {
   // Import All Curations Callback
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
+    
     // Keep same date for all imports
     const now = new Date();
     if (games && gameImages && state.curations.length > 0) {
@@ -329,9 +330,17 @@ export function CuratePage(props: CuratePageProps) {
       // Import all curations, one at a time
       (async () => {
         let success = 0;
-        for (let curation of state.curations) {
+        // Build list of valid curations
+        const curations = state.curations.filter(c => !c.delete);
+        // Setup progress
+        const statusProgress = newProgress(progressKey, progressDispatch);
+        ProgressDispatch.setUsePercentDone(statusProgress, false);
+        // Import each curation
+        for (let i = 0; i < curations.length; i++) {
+          const curation = curations[i];
           // Log status
           console.log(`Importing... (id: ${curation.key})`);
+          ProgressDispatch.setText(statusProgress, `Importing Curation ${i+1} of ${curations.length}`);
           // Check for warnings
           const warnings = getCurationWarnings(curation, suggestions, props.libraryData, strings.curate);
           const warningCount = getWarningCount(warnings);
@@ -406,6 +415,7 @@ export function CuratePage(props: CuratePageProps) {
             });
           }
         }
+        ProgressDispatch.finished(statusProgress);
         // Log state
         const total = state.curations.length;
         console.log(
