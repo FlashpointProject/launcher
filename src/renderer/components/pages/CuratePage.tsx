@@ -164,11 +164,20 @@ export function CuratePage(props: CuratePageProps) {
                 // Remove old style meta file
                 await fs.unlink(fullPath);
               })
-              .catch((error) => {
-                const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}`;
+              .catch(async (error) => {
+                const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}\n\n` + 
+                                      'A default meta has been loaded.\n' +
+                                      'You may edit your meta.txt in the curation folder to be valid, this will then replace the loaded meta automatically.';
                 console.error(error);
                 curationLog(formedMessage);
                 showWarningBox(formedMessage);
+                const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
+                await fs.access(newMetaPath, fs.constants.F_OK)
+                  .catch((error) => {
+                    // File doesn't exist yet, make an empty one
+                    return fs.createFile(newMetaPath);
+                  })
+                // Leave errored meta.txt intact
               });
             break;
           }
