@@ -258,7 +258,7 @@
     "authorPlaceholder": "Auteur(e)..."
   },
   "misc": {
-    "noBlankFound": "No {0} Found",
+    "noBlankFound": "Aucune {0} trouvée",
     "addBlank": "Ajouter une {0}",
     "deleteAllBlankImages": "Supprimer TOUTES les images {0} pour ce jeu",
     "yes": "Oui",
