@@ -90,6 +90,8 @@
     "platform": "Plataforma",
     "series": "Séries",
     "title": "Título",
+    "developer": "Developer",
+    "publisher": "Publisher",
     "ascending": "Ascendendo",
     "descending": "Descendendo"
   },
@@ -115,6 +117,7 @@
     "createMissingFolders": "Criar Pastas em Falta",
     "createMissingFoldersDesc": "Encontrar todas as pastas em falta na estrutura da pasta do Flashpoint e criá-las",
     "servicesHeader": "Serviços de Plano de Fundo",
+    "servicesMissing": "There are no services.",
     "running": "Em execução",
     "stopped": "Parou",
     "killing": "Encerrando",
@@ -181,6 +184,8 @@
     "noApplicationPath": "Sem Caminho da Aplicação",
     "launchCommand": "Iniciar Comando",
     "noLaunchCommand": "Sem iniciar Comando",
+    "library": "Library",
+    "defaultLibrary": "Default Library",
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Largue uma imagem aqui para adicioná-la",
@@ -207,7 +212,9 @@
     "noteSaveAndRestart": "Nota: Tens de pressionar {0} para as alterações ter efeito.",
     "saveAndRestart": "Salvar e Reiniciar",
     "loadingGames": "Carregando Jogos...",
-    "thereAreNoGames": "Não há jogos."
+    "thereAreNoGames": "Não há jogos.",
+    "noGameMatchedDesc": "No game title matched your search.",
+    "noGameMatchedSearch": "Try searching for something less restrictive."
   },
   "curate": {
     "importAll": "Importar Todos",
@@ -232,6 +239,7 @@
     "unusedApplicationPath": "'Caminho da Aplicação' tem um valor não utilizado. Certifique-se que está bem escrito!",
     "unusedGenre": "'Gênero' tem um valor não utilizado. Certifique-se que está bem escrito!",
     "unusedPlatform": "'Plataforma' tem um valor não utilizado. Certifique-se que está bem escrito!",
+    "nonExistingLibrary": "'Library' is not the name of an existing library! (Default will be used)",
     "noContent": "Conteúdo não encontrado! Certifique-se que a pasta tem o nome e o sítio certo!"
   },
   "playlist": {
