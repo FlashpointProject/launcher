@@ -1,9 +1,10 @@
 import { ipcRenderer, remote } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import { Theme } from 'src/shared/ThemeFile';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, InitEventData, LaunchAddAppData, LaunchGameData, LogEntryAddedData, SaveGameData, ServiceChangeData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, LogEntryAddedData, SaveGameData, ServiceChangeData, ThemeChangeData, ThemeListChangeData } from '../shared/back/types';
 import { sendRequest } from '../shared/back/util';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
@@ -13,6 +14,7 @@ import { getLibraryItemTitle } from '../shared/library/util';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
+import { setTheme } from '../shared/Theme';
 import { recursiveReplace, versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
@@ -24,14 +26,11 @@ import { WithPreferencesProps } from './containers/withPreferences';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
 import { CentralState, GAMES, SUGGESTIONS, UpgradeStageState, UpgradeState } from './interfaces';
-import { LangManager } from './lang/LangManager';
 import { Paths } from './Paths';
 import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { GamePlaylist } from './playlist/types';
 import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
-import { Theme } from './theme/Theme';
-import { ThemeManager } from './theme/ThemeManager';
 import { UpgradeStage } from './upgrade/types';
 import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute } from './Util';
@@ -52,16 +51,11 @@ type View = {
     orderReverse: GameOrderReverse;
   };
 }
-type ViewPage = {
-}
+type ViewPage = {}
 
 type AppOwnProps = {
   /** Most recent search query. */
   search: SearchQuery;
-  /** Theme manager. */
-  themes: ThemeManager;
-  /** Lang manager. */
-  langManager: LangManager;
 };
 
 export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps;
@@ -73,6 +67,7 @@ export type AppState = {
   suggestions: SUGGESTIONS;
   platforms: PlatformInfo[];
   loaded: { [key in BackInit]: boolean; };
+  themeList: Theme[];
 
   /** Semi-global prop. */
   central: CentralState;
@@ -98,7 +93,6 @@ export class App extends React.Component<AppProps, AppState> {
     super(props);
     // Normal constructor stuff
     const preferencesData = this.props.preferencesData;
-    const config = window.External.config;
     this.state = {
       views: {},
       libraries: [],
@@ -108,6 +102,7 @@ export class App extends React.Component<AppProps, AppState> {
       loaded: {
         0: false,
       },
+      themeList: window.External.initialThemes,
 
       central: {
         playlists: new GamePlaylistManager(),
@@ -135,8 +130,8 @@ export class App extends React.Component<AppProps, AppState> {
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
-      lang: this.props.langManager.container,
-      langList: this.props.langManager.items,
+      lang: window.External.initialLang,
+      langList: window.External.initialLangList,
       wasNewGameClicked: false,
       order: {
         orderBy: preferencesData.gamesOrderBy,
@@ -225,7 +220,7 @@ export class App extends React.Component<AppProps, AppState> {
     });
 
     window.External.back.on('message', res => {
-      //console.log('IN', res);
+      // console.log('IN', res);
       switch (res.type) {
         case BackOut.LOG_ENTRY_ADDED: {
           const resData: LogEntryAddedData = res.data;
@@ -306,22 +301,31 @@ export class App extends React.Component<AppProps, AppState> {
             }
           } else { throw new Error('Service update did not reference a service.'); }
         } break;
+
+        case BackOut.LANGUAGE_CHANGE: {
+          const resData: LanguageChangeData = res.data;
+          this.setState({ lang: resData });
+        } break;
+
+        case BackOut.LANGUAGE_LIST_CHANGE: {
+          const resData: LanguageListChangeData = res.data;
+          this.setState({ langList: resData });
+        } break;
+
+        case BackOut.THEME_CHANGE: {
+          const resData: ThemeChangeData = res.data;
+          setTheme(resData);
+        } break;
+
+        case BackOut.THEME_LIST_CHANGE: {
+          const resData: ThemeListChangeData = res.data;
+          this.setState({ themeList: resData });
+        } break;
       }
     });
 
     // -- Stuff that should probably be moved to the back --
 
-    // Listen for changes to the theme files
-    this.props.themes.on('change', item => {
-      if (item.entryPath === this.props.preferencesData.currentTheme) {
-        this.reloadTheme(item.entryPath);
-      }
-    });
-    this.props.themes.on('add',    item => { this.forceUpdate(); });
-    this.props.themes.on('remove', item => { this.forceUpdate(); });
-    // Listen for changes to lang files, load in used ones
-    this.props.langManager.on('list-change', list => { this.setState({ langList: list }); });
-    this.props.langManager.on('update',      data => { this.setState({ lang: data     }); });
     // Load Playlists
     this.state.central.playlists.load()
     .catch((err) => {
@@ -441,7 +445,11 @@ export class App extends React.Component<AppProps, AppState> {
     const { history, location, preferencesData } = this.props;
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
-    // Check if the library changes
+    // Check if theme changed
+    if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
+      setTheme(preferencesData.currentTheme);
+    }
+    // Check if the library changed
     const prevLibrary = getBrowseSubPath(prevProps.location.pathname);
     if (library && prevLibrary && library !== prevLibrary) {
       // Fetch first games when switching browse page view
@@ -570,10 +578,8 @@ export class App extends React.Component<AppProps, AppState> {
       onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
       onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
       gameLibrary: libraryPath,
-      themeItems: this.props.themes.items,
-      reloadTheme: this.reloadTheme,
+      themeList: this.state.themeList,
       languages: this.state.langList,
-      updateLocalization: this.updateLanguage,
     };
     // Render
     return (
@@ -740,32 +746,6 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  /**
-   * Apply another theme or clear the current theme.
-   * @param themePath Path to the theme to apply (relative to the themes folder).
-   *                  If undefined, the current theme will be cleared and no theme will be applied.
-   */
-  private reloadTheme = (themePath: string | undefined): void => {
-    if (themePath) { // (Apply another theme)
-      this.props.themes.load(themePath)
-      .then((theme) => {
-        if (typeof theme !== 'number') { Theme.set(theme); }
-        else {
-          Theme.clear(Theme.findGlobal());
-          log(Theme.toError(theme) || '');
-        }
-      })
-      .catch(console.error);
-    } else { // (Clear the current theme)
-      Theme.clear(Theme.findGlobal());
-    }
-  }
-
-  /** Update the combined language container. */
-  private updateLanguage = (): void => {
-    this.props.langManager.updateContainer();
-  }
-
   onSaveGame = (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
     window.External.back.send<any, SaveGameData>(BackIn.SAVE_GAME, { game, addApps: addApps || [], library, saveToFile });
@@ -799,7 +779,7 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     if (pages.length > 0) {
-      //console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
+      // console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
       const library = getBrowseSubPath(this.props.location.pathname);
       window.External.back.sendReq<any, BrowseViewPageData>({
         id: library,
@@ -811,9 +791,9 @@ export class App extends React.Component<AppProps, AppState> {
             extreme: this.props.preferencesData.browsePageShowExtreme,
             broken: false, // @TODO Add an option for this or something
             library: library,
-            search: this.props.search.text, //view.query.search,
-            orderBy: this.state.order.orderBy, //view.query.orderBy,
-            orderReverse: this.state.order.orderReverse, //view.query.orderReverse,
+            search: this.props.search.text, // view.query.search,
+            orderBy: this.state.order.orderBy, // view.query.orderBy,
+            orderReverse: this.state.order.orderReverse, // view.query.orderReverse,
           },
         }
       });

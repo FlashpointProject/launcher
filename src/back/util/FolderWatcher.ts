@@ -8,9 +8,7 @@ type IMap<K extends string | number, V> = { [key in K]: V; };
 
 export type FolderWatcherOptions = {
   recursionDepth?: number;
-};
-
-type ChangeEventType = 'rename' | 'change';
+}
 
 export interface FolderWatcher {
   on  (event: string, listener: (...args: any[]) => void): this;
@@ -150,6 +148,16 @@ export class FolderWatcher extends WrappedEventEmitter {
     }
     this._childWatchers = {};
     // @TODO Clear the event queue and the currently executing event
+  }
+
+  getFile(filepath: string[]): fs.Stats | undefined {
+    let folder: FolderWatcher | undefined = this;
+    const length = filepath.length - 1;
+    for (let i = 0; i < length; i++) {
+      folder = folder._childWatchers[filepath[i]];
+      if (!folder) { return undefined; }
+    }
+    return folder._files[filepath[length]];
   }
 
   /**

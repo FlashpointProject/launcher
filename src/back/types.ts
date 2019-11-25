@@ -5,21 +5,27 @@ import { BackInit, ViewGame } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IGameInfo } from '../shared/game/interfaces';
 import { IBackProcessInfo } from '../shared/interfaces';
+import { LangFile } from '../shared/lang';
 import { ILogEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
+import { Theme, ThemeMeta } from '../shared/ThemeFile';
 import { GameManager } from './game/GameManager';
 import { ManagedChildProcess } from './ManagedChildProcess';
+import { EventQueue } from './util/EventQueue';
+import { FolderWatcher } from './util/FolderWatcher';
 
 export type BackState = {
   isInit: boolean;
+  isExit: boolean;
   server: WebSocket.Server;
-  imageServer: Server;
+  fileServer: Server;
   imageServerPort: number;
   secret: string;
   preferences: IAppPreferencesData;
   config: IAppConfigData;
   configFolder: string;
+  countryCode: string;
   gameManager: GameManager;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;
@@ -29,6 +35,12 @@ export type BackState = {
   log: ILogEntry[];
   serviceInfo?: ServiceFileData;
   services: Record<string, ManagedChildProcess>;
+  languageWatcher: FolderWatcher;
+  languageQueue: EventQueue;
+  languages: LangFile[];
+  themeWatcher: FolderWatcher;
+  themeQueue: EventQueue;
+  themeFiles: ThemeListItem[];
 }
 
 export type BackQueryChache = {
@@ -66,3 +78,11 @@ export type ServiceFileData = {
   /** Processes to run when the launcher closes. */
   stop: IBackProcessInfo[];
 };
+
+export type ThemeListItem = Theme & {
+  /**
+   * File or folder name of the theme (relative to the theme folder).
+   * Format: X in "\X" or "\X\theme.css"
+   */
+  basename: string;
+}

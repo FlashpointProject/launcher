@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
+import { Theme } from 'src/shared/ThemeFile';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { LangFile } from '../shared/lang';
@@ -17,7 +18,6 @@ import { CreditsData } from './credits/types';
 import { CentralState, GAMES, SUGGESTIONS } from './interfaces';
 import { Paths } from './Paths';
 import { GamePlaylist } from './playlist/types';
-import { IThemeListItem } from './theme/ThemeManager';
 
 export type AppRouterProps = {
   games: GAMES | undefined;
@@ -51,10 +51,8 @@ export type AppRouterProps = {
   onDownloadTechUpgradeClick: () => void;
   onDownloadScreenshotsUpgradeClick: () => void;
   gameLibrary: string;
-  themeItems: IThemeListItem[];
-  reloadTheme: (themePath: string | undefined) => void;
+  themeList: Theme[];
   languages: LangFile[];
-  updateLocalization: () => void;
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -93,10 +91,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
       gameLibrary: this.props.gameLibrary,
     };
     const configProps: ConnectedConfigPageProps = {
-      themeItems: this.props.themeItems,
-      reloadTheme: this.props.reloadTheme,
+      themeList: this.props.themeList,
       availableLangs: this.props.languages,
-      updateLocalization: this.props.updateLocalization,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,

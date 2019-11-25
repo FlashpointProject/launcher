@@ -1,13 +1,13 @@
 import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { EventQueue } from '../../renderer/util/EventQueue';
 import { FilterGameOpts, filterGames, orderGames } from '../../shared/game/GameFilter';
 import { GameParser } from '../../shared/game/GameParser';
 import { FetchGameRequest, FetchGameResponse, GameAppDeleteRequest, IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate, SearchRequest, SearchResults, ServerResponse } from '../../shared/game/interfaces';
 import { GamePlatform, IRawPlatformFile, PlatformInfo } from '../../shared/platform/interfaces';
 import { PlatformParser } from '../../shared/platform/PlatformParser';
 import { IAppPreferencesData } from '../../shared/preferences/interfaces';
+import { EventQueue } from '../util/EventQueue';
 import { LoadPlatformError, SearchCache, SearchCacheQuery } from './interfaces';
 
 const UNIMPLEMENTED_RESPONSE: ServerResponse = {

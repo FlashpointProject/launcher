@@ -1,8 +1,10 @@
 import { IAppConfigData } from '../config/interfaces';
 import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
 import { IService, ProcessAction } from '../interfaces';
+import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
+import { Theme } from '../ThemeFile';
 
 export enum BackIn {
   INIT_LISTEN,
@@ -52,6 +54,11 @@ export enum BackOut {
   BROWSE_CHANGE,
   LOG_ENTRY_ADDED,
   SERVICE_CHANGE,
+  LANGUAGE_CHANGE,
+  LANGUAGE_LIST_CHANGE,
+  THEME_CHANGE,
+  THEME_LIST_CHANGE,
+  QUIT,
 }
 
 export type WrappedRequest<T = any> = {
@@ -77,6 +84,8 @@ export type BackInitArgs = {
   configFolder: string;
   /** Secret string used for authentication. */
   secret: string;
+  isDev: boolean;
+  countryCode: string;
 }
 
 export enum BackInit {
@@ -100,6 +109,9 @@ export type GetRendererInitDataResponse = {
   imageServerPort: number;
   log: ILogEntry[];
   services: IService[];
+  languages: LangFile[];
+  language: LangContainer;
+  themes: Theme[];
 }
 
 export type LaunchGameData = {
@@ -192,3 +204,11 @@ export type ServiceActionData = {
 }
 
 export type ServiceChangeData = IService;
+
+export type LanguageChangeData = LangContainer;
+
+export type LanguageListChangeData = LangFile[];
+
+export type ThemeChangeData = string;
+
+export type ThemeListChangeData = Theme[];

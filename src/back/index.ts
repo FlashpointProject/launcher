@@ -4,23 +4,31 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
+import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetRendererInitDataResponse, LaunchAddAppData, LaunchGameData, SaveGameData, ServiceActionData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, SaveGameData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { FilterGameOpts, filterGames, orderGames } from '../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
-import { DeepPartial, IBackProcessInfo, IService, ProcessAction } from '../shared/interfaces';
+import { DeepPartial, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '../shared/interfaces';
+import { autoCode, getDefaultLocalization, LangContainer, LangFile, LangFileContent } from '../shared/lang';
 import { ILogEntry, ILogPreEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
-import { createErrorProxy, deepCopy, isErrorProxy, stringifyArray } from '../shared/Util';
+import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '../shared/ThemeFile';
+import { createErrorProxy, deepCopy, isErrorProxy, recursiveReplace, removeFileExtension, stringifyArray } from '../shared/Util';
 import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { ServicesFile } from './ServicesFile';
 import { BackQuery, BackState } from './types';
+import { EventQueue } from './util/EventQueue';
+import { FolderWatcher } from './util/FolderWatcher';
+import { getContentType } from './util/misc';
+
+const readFile = promisify(fs.readFile);
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -30,13 +38,15 @@ const send: Required<typeof process.send> = process.send
 
 const state: BackState = {
   isInit: false,
+  isExit: false,
   server: createErrorProxy('server'),
-  imageServer: new http.Server(onImageServerRequest),
+  fileServer: new http.Server(onFileServerRequest),
   imageServerPort: -1,
   secret: createErrorProxy('secret'),
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
   configFolder: createErrorProxy('configFolder'),
+  countryCode: createErrorProxy('countryCode'),
   gameManager: new GameManager(),
   messageQueue: [],
   isHandling: false,
@@ -48,6 +58,12 @@ const state: BackState = {
   log: [],
   serviceInfo: undefined,
   services: {},
+  languageWatcher: new FolderWatcher(),
+  languageQueue: new EventQueue(),
+  languages: [],
+  themeWatcher: new FolderWatcher(),
+  themeQueue: new EventQueue(),
+  themeFiles: [],
 };
 
 const preferencesFilename = 'preferences.json';
@@ -56,6 +72,7 @@ const configFilename = 'config.json';
 const servicesSource = 'Background Services';
 
 process.on('message', onProcessMessage);
+process.on('disconnect', () => { exit(); }); // (Exit when the main process does)
 
 async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (!state.isInit) {
@@ -63,6 +80,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     const content: BackInitArgs = JSON.parse(message);
     state.secret = content.secret;
     state.configFolder = content.configFolder;
+    state.countryCode = content.countryCode;
+
     // Read configs & preferences
     const [pref, conf] = await (Promise.all([
       PreferencesFile.readOrCreateFile(path.join(state.configFolder, preferencesFilename)),
@@ -70,6 +89,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     ]));
     state.preferences = pref;
     state.config = conf;
+
     // Init services
     try {
       state.serviceInfo = await ServicesFile.readFile(
@@ -89,9 +109,173 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       if (state.config.startRedirector && process.platform !== 'linux') {
         const redirectorInfo = state.config.useFiddler ? state.serviceInfo.fiddler : state.serviceInfo.redirector;
         if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${state.config.useFiddler ? 'Fiddler' : 'Redirector'})`); }
-        state.services.redirector = runService('redirector', 'Redirector', redirectorInfo, true);
+        state.services.redirector = runService('redirector', 'Redirector', redirectorInfo, false);
       }
     }
+
+    // Init language
+    state.languageWatcher.on('ready', () => {
+      // Add event listeners
+      state.languageWatcher.on('add', onLangAddOrChange);
+      state.languageWatcher.on('change', onLangAddOrChange);
+      state.languageWatcher.on('remove', (filename: string, offsetPath: string) => {
+        state.languageQueue.push(() => {
+          const filePath = path.join(state.languageWatcher.getFolder() || '', offsetPath, filename);
+          const index = state.languages.findIndex(l => l.filename === filePath);
+          if (index >= 0) { state.languages.splice(index, 1); }
+        });
+      });
+      // Add initial files
+      for (let filename of state.languageWatcher.filenames) {
+        onLangAddOrChange(filename, '');
+      }
+      // Functions
+      function onLangAddOrChange(filename: string, offsetPath: string) {
+        state.languageQueue.push(async () => {
+          const filePath = path.join(state.languageWatcher.getFolder() || '', offsetPath, filename);
+          const langFile = await readLangFile(filePath);
+          let lang = state.languages.find(l => l.filename === filePath);
+          if (lang) {
+            lang.data = langFile;
+          } else {
+            lang = {
+              filename: filePath,
+              code: removeFileExtension(filename),
+              data: langFile,
+            };
+            state.languages.push(lang);
+          }
+
+          broadcast<LanguageListChangeData>({
+            id: '',
+            type: BackOut.LANGUAGE_LIST_CHANGE,
+            data: state.languages,
+          });
+
+          if (lang.code === state.preferences.currentLanguage ||
+              lang.code === state.countryCode ||
+              lang.code === state.preferences.fallbackLanguage) {
+            broadcast<LanguageChangeData>({
+              id: '',
+              type: BackOut.LANGUAGE_CHANGE,
+              data: createContainer(
+                state.preferences.currentLanguage,
+                state.countryCode,
+                state.preferences.fallbackLanguage)
+            });
+          }
+        });
+      }
+    });
+    const langFolder = path.join(content.isDev ? process.cwd() : content.configFolder, 'lang');
+    fs.stat(langFolder, (error) => {
+      if (!error) { state.languageWatcher.watch(langFolder); }
+      else {
+        log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        if (error.code === 'ENOENT') {
+          log({ source: 'Back', content: `Failed to watch language folder. Folder does not exist (Path: "${langFolder}")` });
+        } else {
+          log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        }
+      }
+    });
+
+    // Init themes
+    state.themeWatcher.on('ready', () => {
+      // Add event listeners
+      state.themeWatcher.on('add', onThemeAdd);
+      state.themeWatcher.on('change', (filename: string, offsetPath: string) => {
+        state.themeQueue.push(() => {
+          const item = findOwner(filename, offsetPath);
+          if (item) {
+            // A FILE HAS BEEN CHANGED IN A THEME
+          } else {
+            console.warn('A file has been changed in a theme that is not registered '+
+                         `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
+          }
+        });
+      });
+      state.themeWatcher.on('remove', (filename: string, offsetPath: string) => {
+        state.themeQueue.push(() => {
+          const item = findOwner(filename, offsetPath);
+          if (item) {
+            if (item.entryPath === path.join(offsetPath, filename)) { // (Entry file was removed)
+              state.themeFiles.splice(state.themeFiles.indexOf(item), 1);
+              // A THEME HAS BEEN REMOVED
+            } else { // (Non-entry file was removed)
+              // A FILE HAS BEEN REMOVED IN A THEME
+            }
+          } else {
+            console.warn('A file has been removed from a theme that is not registered '+
+                         `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
+          }
+        });
+      });
+      // Add initial files
+      for (let filename of state.themeWatcher.filenames) {
+        onThemeAdd(filename, '', false);
+      }
+      // Functions
+      function onThemeAdd(filename: string, offsetPath: string, doBroadcast: boolean = true) {
+        state.themeQueue.push(async () => {
+          const item = findOwner(filename, offsetPath);
+          if (item) {
+            // THIS THEME HAS BEEN UPDATED (a file has been added to it)
+          } else {
+            // Check if it is a potential entry file
+            // (Entry files are either directly inside the "Theme Folder", or one folder below that and named "theme.css")
+            const folders = offsetPath.split(path.sep);
+            const folderName = folders[0] || offsetPath;
+            const file = state.themeWatcher.getFile(folderName ? [...folders, filename] : [filename]);
+            if ((file && file.isFile()) && (offsetPath === '' || (offsetPath === folderName && filename === themeEntryFilename))) {
+              const themeFolder = state.themeWatcher.getFolder() || '';
+              const entryPath = path.join(themeFolder, folderName, filename);
+              let meta: Partial<ThemeMeta> | undefined;
+              try {
+                const data = await readFile(entryPath, 'utf8');
+                meta = parseThemeMetaData(data) || {};
+              } catch (error) { console.warn(`Failed to load theme entry file (File: "${entryPath}")`, error); }
+              if (meta) {
+                state.themeFiles.push({
+                  basename: folderName || filename,
+                  meta: meta,
+                  entryPath: path.relative(themeFolder, entryPath),
+                });
+                if (doBroadcast) {
+                  broadcast<ThemeListChangeData>({
+                    id: '',
+                    type: BackOut.THEME_LIST_CHANGE,
+                    data: state.themeFiles,
+                  });
+                }
+              }
+            }
+          }
+        });
+      }
+      function findOwner(filename: string, offsetPath: string) {
+        const index = offsetPath.indexOf(path.sep);
+        if (index >= 0) { // (Sub-folder)
+          const folderName = offsetPath.substr(0, index);
+          return state.themeFiles.find(item => item.basename === folderName);
+        } else { // (Theme folder)
+          return state.themeFiles.find(item => item.entryPath === filename);
+        }
+      }
+    });
+    const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+    fs.stat(themeFolder, (error) => {
+      if (!error) { state.themeWatcher.watch(themeFolder, { recursionDepth: -1 }); }
+      else {
+        log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        if (error.code === 'ENOENT') {
+          log({ source: 'Back', content: `Failed to watch theme folder. Folder does not exist (Path: "${themeFolder}")` });
+        } else {
+          log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        }
+      }
+    });
+
     // Init Game manager
     state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
     .catch(error => { console.error(error); })
@@ -99,6 +283,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       state.init[BackInit.GAMES] = true;
       state.initEmitter.emit(BackInit.GAMES);
     });
+
     // Find the first available port in the range
     let serverPort: number = -1;
     for (let port = state.config.backPortMin; port <= state.config.backPortMax; port++) {
@@ -112,26 +297,28 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       } catch (error) { /* Do nothing. */ }
     }
     if (state.server) { state.server.on('connection', onConnect); }
+
     // Find the first available port in the range
     state.imageServerPort = await new Promise((resolve) => {
-      let port = state.config.imagesPortMin;
-      state.imageServer.once('listening', onListening);
-      state.imageServer.on('error', onError);
+      let port = state.config.imagesPortMin - 1;
+      state.fileServer.once('listening', onListening);
+      state.fileServer.on('error', onError);
       tryListen();
 
       function tryListen() {
         if (port <= state.config.imagesPortMax) {
-          state.imageServer.listen(port, 'localhost');
           port += 1;
+          state.fileServer.listen(port, 'localhost');
         } else {
-          state.imageServer.off('listening', onListening);
-          state.imageServer.off('error', onError);
+          state.fileServer.off('listening', onListening);
+          state.fileServer.off('error', onError);
           resolve(-1);
         }
       }
-      function onListening() { resolve(port - 1); }
+      function onListening() { resolve(port); }
       function onError() { tryListen(); }
     });
+
     // Respond
     send(serverPort);
   }
@@ -223,6 +410,12 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           imageServerPort: state.imageServerPort,
           log: state.log,
           services: services,
+          languages: state.languages,
+          language: createContainer(
+            state.preferences.currentLanguage,
+            state.countryCode,
+            state.preferences.fallbackLanguage),
+          themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
         },
       });
     } break;
@@ -492,6 +685,18 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.UPDATE_PREFERENCES: {
       const dif = difObjects(defaultPreferencesData, state.preferences, req.data);
       if (dif) {
+        if ((typeof dif.currentLanguage  !== 'undefined' && dif.currentLanguage  !== state.preferences.currentLanguage) ||
+            (typeof dif.fallbackLanguage !== 'undefined' && dif.fallbackLanguage !== state.preferences.fallbackLanguage)) {
+          broadcast<LanguageChangeData>({
+            id: '',
+            type: BackOut.LANGUAGE_CHANGE,
+            data: createContainer(
+              (typeof dif.currentLanguage !== 'undefined') ? dif.currentLanguage : state.preferences.currentLanguage,
+              state.countryCode,
+              (typeof dif.fallbackLanguage !== 'undefined') ? dif.fallbackLanguage : state.preferences.fallbackLanguage)
+          });
+        }
+
         overwritePreferenceData(state.preferences, dif);
         await PreferencesFile.saveFile(path.join(state.configFolder, preferencesFilename), state.preferences);
       }
@@ -546,41 +751,98 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         for (let i = 0; i < state.serviceInfo.stop.length; i++) {
           execProcess(state.serviceInfo.stop[i], true);
         }
+        respond(event.target, {
+          id: req.id,
+          type: BackOut.QUIT,
+        });
+        exit();
       }
     } break;
   }
 }
 
-function onImageServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
   try {
-    const url = req.url || '';
-    const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-    const filePath = path.join(imageFolder, url);
-    if (filePath.startsWith(imageFolder)) {
-      fs.readFile(filePath, (error, data) => {
-        if (error) {
-          res.writeHead(404);
-          res.end();
-        } else {
-          res.writeHead(200, {
-            'Content-Type': 'image/png',
-            'Content-Length': data.length,
-          });
-          res.end(data);
-        }
-      });
+    let url = req.url || '';
+    for (let i = 0; i < url.length; i++) { // (Remove all leading slashes)
+      if (url[i] !== '/') {
+        url = url.substr(i);
+        break;
+      }
     }
+    const index = url.indexOf('/');
+    if (index >= 0) {
+      switch (url.substr(0, index).toLowerCase()) {
+        case 'logos':
+        case 'screenshots': {
+          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+          const filePath = path.join(imageFolder, url);
+          if (filePath.startsWith(imageFolder)) {
+            fs.readFile(filePath, (error, data) => {
+              if (error) {
+                res.writeHead(404);
+                res.end();
+              } else {
+                res.writeHead(200, {
+                  'Content-Type': 'image/png',
+                  'Content-Length': data.length,
+                });
+                res.end(data);
+              }
+            });
+          }
+        } break;
 
-  } catch (error) { console.log(error); }
+        case 'themes': {
+          const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+          const index = url.indexOf('/');
+          const relativeUrl = (index >= 0) ? url.substr(index + 1) : url;
+          const filePath = path.join(themeFolder, relativeUrl);
+          if (filePath.startsWith(themeFolder)) {
+            fs.readFile(filePath, (error, data) => {
+              if (error) {
+                res.writeHead(404);
+                res.end();
+              } else {
+                res.writeHead(200, {
+                  'Content-Type': getContentType(getFileExtension(filePath)),
+                  'Content-Length': data.length,
+                });
+                res.end(data);
+              }
+            });
+          }
+        } break;
+      }
+    }
+  } catch (error) { console.warn(error); }
+}
+
+function exit() {
+  if (!state.isExit) {
+    state.isExit = true;
+    state.languageWatcher.abort();
+    state.themeWatcher.abort();
+    Promise.all([
+      new Promise(resolve => state.server.close(error => {
+        if (error) { console.log('An error occurred whie closing the WebSocket server.', error); }
+        resolve();
+      })),
+      new Promise(resolve => state.fileServer.close(error => {
+        if (error) { console.log('An error occurred whie closing the file server.', error); }
+        resolve();
+      })),
+    ]).then(() => { process.exit(); });
+  }
 }
 
 function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
-  console.log('RESPOND', response);
+  // console.log('RESPOND', response);
   target.send(JSON.stringify(response));
 }
 
 function broadcast<T>(response: WrappedResponse<T>): void {
-  console.log('BROADCAST', response);
+  // console.log('BROADCAST', response);
   if (!isErrorProxy(state.server)) {
     const message = JSON.stringify(response);
     state.server.clients.forEach(socket => {
@@ -701,4 +963,52 @@ function procToService(proc: ManagedChildProcess): IService {
     startTime: proc.getStartTime(),
     info: proc.info,
   };
+}
+
+function readLangFile(filepath: string): Promise<RecursivePartial<LangFileContent>> {
+  return new Promise(function(resolve, reject) {
+    fs.readFile(filepath, 'utf8', function(error, data) {
+      if (error) {
+        reject(error);
+      } else {
+        // @TODO Verify that the file is properly formatted (type-wise)
+        try { resolve(JSON.parse(data)); }
+        catch (error) { reject(error); }
+      }
+    });
+  });
+}
+
+const defaultLang = getDefaultLocalization();
+function createContainer(currentCode: string, autoLangCode: string, fallbackCode: string): LangContainer {
+  // Get current language
+  let current: LangFile | undefined;
+  if (currentCode !== autoCode) { // (Specific language)
+    current = state.languages.find(item => item.code === currentCode);
+  }
+  if (!current) { // (Auto language)
+    current = state.languages.find(item => item.code === autoLangCode);
+  }
+  // Get fallback language
+  const fallback = state.languages.find(item => item.code === fallbackCode);
+  // Combine all language container objects (by overwriting the default with the fallback and the current)
+  const data = recursiveReplace(recursiveReplace(deepCopy(defaultLang), fallback && fallback.data), current && current.data);
+  data.libraries = { // Allow libraries to add new properties (and not just overwrite the default)
+    ...data.libraries,
+    ...(fallback && fallback.data && fallback.data.libraries),
+    ...(current && current.data && current.data.libraries)
+  };
+  return data;
+}
+
+/** Get the file extension of a file path (efterything after the last dot, or an empty string if the filename has no dots). */
+function getFileExtension(filename: string): string {
+  for (let i = filename.length - 1; i >= 0; i--) {
+    switch (filename[i]) {
+      case '/':
+      case '\\': return '';
+      case '.': return filename.substr(i + 1);
+    }
+  }
+  return '';
 }

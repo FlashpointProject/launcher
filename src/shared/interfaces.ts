@@ -1,8 +1,10 @@
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
+import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { IAppPreferencesData } from './preferences/interfaces';
+import { Theme } from './ThemeFile';
 
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
@@ -70,6 +72,10 @@ export interface IMainWindowExternal {
 
   /** Port of the image server. */
   imageServerPort: number;
+
+  initialLang: LangContainer;
+  initialLangList: LangFile[];
+  initialThemes: Theme[];
 
   /**
    * Wait for the preload to initialize.

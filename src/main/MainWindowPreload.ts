@@ -5,6 +5,7 @@ import { SharedSocket } from '../shared/back/SharedSocket';
 import { BackIn, BackOut, GetRendererInitDataResponse, WrappedResponse } from '../shared/back/types';
 import { MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
+import { setTheme } from '../shared/Theme';
 import { createErrorProxy } from '../shared/Util';
 import { isDev } from './Util';
 
@@ -71,6 +72,12 @@ window.External = {
 
   imageServerPort: -1,
 
+  initialLang: createErrorProxy('initialLang'),
+
+  initialLangList: createErrorProxy('initialLangList'),
+
+  initialThemes: createErrorProxy('initialThemes'),
+
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
   }
@@ -92,7 +99,7 @@ const onInit = new Promise<SharedSocket>((resolve, reject) => {
     ws.send(data.secret);
   };
 })
-.then((socket) => new Promise((resolve) => {
+.then((socket) => new Promise((resolve, reject) => {
   window.External.back = socket;
   window.External.back.on('message', onMessage);
   // Fetch the config and preferences
@@ -108,8 +115,12 @@ const onInit = new Promise<SharedSocket>((resolve, reject) => {
       window.External.imageServerPort = response.data.imageServerPort;
       window.External.log.entries = response.data.log;
       window.External.services = response.data.services;
-    }
-    resolve();
+      window.External.initialLang = response.data.language;
+      window.External.initialLangList = response.data.languages;
+      window.External.initialThemes = response.data.themes;
+      if (window.External.preferences.data.currentTheme) { setTheme(window.External.preferences.data.currentTheme); }
+      resolve();
+    } else { reject(new Error('"Get Renderer Init Data" response does not contain any data.')); }
   });
 }))
 .then(() => { isInitDone = true; });

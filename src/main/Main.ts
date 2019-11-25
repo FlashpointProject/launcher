@@ -55,9 +55,7 @@ export class Main {
     }))
     // Start back process
     .then(() => new Promise((resolve, reject) => {
-      this.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, {
-        detached: false,
-      });
+      this.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
       // Wait for process to initialize
       this.backProc.once('message', (port) => {
         if (port >= 0) {
@@ -71,46 +69,46 @@ export class Main {
       const msg: BackInitArgs = {
         configFolder: Util.getConfigFolderPath(!!this._installed),
         secret: this._secret,
+        isDev: Util.isDev,
+        countryCode: app.getLocaleCountryCode().toLowerCase() || '',
       };
       this.backProc.send(JSON.stringify(msg));
     }))
     // Connect to back process
-    .then(() => new Promise((resolve, reject) => {
+    .then<WebSocket>(() => new Promise((resolve, reject) => {
       const url = new URL('ws://localhost');
       url.host = 'localhost';
       url.port = this._backPort+'';
       const ws = new WebSocket(url.href);
-      this.socket = ws;
       ws.onclose = () => { reject(new Error('Failed to authenticate to the back.')); };
       ws.onerror = (event) => { reject(event.error); };
       ws.onopen  = () => {
         ws.onmessage = () => {
           ws.onclose = (event) => { console.log('socket closed', event.code, event.reason); };
           ws.onerror = (event) => { console.log('socket error', event.error); };
-          resolve();
+          resolve(ws);
         };
         ws.send(this._secret);
       };
     }))
     // Send init message
-    .then(() => new Promise((resolve, reject) => {
-      if (!this.socket) { throw new Error('socket is undefined'); }
-      const socket = this.socket;
-      socket.onmessage = (event) => {
+    .then(ws => new Promise((resolve, reject) => {
+      ws.onmessage = (event) => {
         const res: WrappedResponse = JSON.parse(event.data.toString());
         if (res.type === BackOut.GET_MAIN_INIT_DATA) {
           const data: GetMainInitDataResponse = res.data;
           this.preferences = data.preferences;
           this.config = data.config;
-          socket.onmessage = this.onMessage;
+          this.socket = ws;
+          this.socket.onmessage = this.onMessage;
           resolve();
-        } else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[res.type]}".`)); }
+        }// else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[res.type]}".`)); }
       };
       const req: WrappedRequest = {
         id: 'init',
         type: BackIn.GET_MAIN_INIT_DATA,
       };
-      socket.send(JSON.stringify(req));
+      ws.send(JSON.stringify(req));
     }))
     .then(() => {
       if (!this.config) { throw new Error('config is undefined'); }
@@ -129,6 +127,17 @@ export class Main {
       console.log(error);
       app.quit();
     });
+  }
+
+  onMessage = (message: WebSocket.MessageEvent): void => {
+    const res: WrappedResponse = JSON.parse(message.data.toString());
+    switch (res.type) {
+      case BackOut.QUIT: {
+        this.socket = undefined;
+        this.backProc = undefined;
+        app.quit();
+      } break;
+    }
   }
 
   private onAppReady(): void {
@@ -171,10 +180,11 @@ export class Main {
     }
   }
 
-  private onAppWillQuit(): void {
+  private onAppWillQuit(event: Event): void {
     if (this.socket) {
+      event.preventDefault();
       const req: WrappedRequest = {
-        id: 'byebye',
+        id: 'bye',
         type: BackIn.QUIT,
       };
       this.socket.send(JSON.stringify(req));
@@ -205,15 +215,6 @@ export class Main {
       secret: this._secret,
     };
     event.returnValue = data;
-  }
-
-  private onMessage = (message: WebSocket.MessageEvent) => {
-    const msg = JSON.parse(message.data.toString());
-    switch (msg[0]) {
-      case BackOut.UPDATE_PREFERENCES_RESPONSE:
-        this.preferences = msg[1];
-        break;
-    }
   }
 
   /** Send a message to the main windows renderer */

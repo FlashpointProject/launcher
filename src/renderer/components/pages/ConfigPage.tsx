@@ -8,8 +8,8 @@ import { isFlashpointValidCheck } from '../../../shared/checkSanity';
 import { autoCode, LangContainer, LangFile } from '../../../shared/lang';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
+import { Theme } from '../../../shared/ThemeFile';
 import { formatString } from '../../../shared/utils/StringFormatter';
-import { IThemeListItem } from '../../theme/ThemeManager';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
@@ -17,13 +17,9 @@ import { DropdownInputField } from '../DropdownInputField';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
-  themeItems: IThemeListItem[];
-  /** Load and apply a theme. */
-  reloadTheme(themePath: string | undefined): void;
+  themeList: Theme[];
   /** List of available languages. */
   availableLangs: LangFile[];
-  /** Method to update localization */
-  updateLocalization: () => void;
 };
 
 export type ConfigPageProps = OwnProps & WithPreferencesProps;
@@ -245,16 +241,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       placeholder={strings.noTheme}
                       onChange={this.onCurrentThemeChange}
                       editable={true}
-                      onKeyDown={this.onCurrentThemeKeyDown}
-                      items={[ ...this.props.themeItems.map(formatThemeItemName), 'No Theme' ]}
+                      items={[ ...this.props.themeList.map(formatThemeItemName), 'No Theme' ]}
                       onItemSelect={this.onCurrentThemeItemSelect}
                       inputRef={this.currentThemeInputRefFunc}
                       />
-                    <input
-                      type='button'
-                      value={strings.browse}
-                      className='simple-button'
-                      onClick={this.onCurrentThemeBrowseClick} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
@@ -348,15 +338,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const code = event.target.value;
-    updatePreferencesData({ currentLanguage: code });
-    this.props.updateLocalization();
+    updatePreferencesData({ currentLanguage: event.target.value });
   }
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const code = event.target.value;
-    updatePreferencesData({ fallbackLanguage: code });
-    this.props.updateLocalization();
+    updatePreferencesData({ fallbackLanguage: event.target.value });
   }
 
   onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -406,46 +392,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ currentTheme: event.currentTarget.value });
   }
 
-  onCurrentThemeKeyDown = (event: React.KeyboardEvent): void => {
-    if (event.key === 'Enter') {
-      // Load the entered theme
-      this.props.reloadTheme(this.props.preferencesData.currentTheme);
-    }
-  }
-
   onCurrentThemeItemSelect = (text: string, index: number): void => {
     // Note: Suggestions with index 0 to "length - 1" are filenames of themes.
     //       Directly after that comes the "No Theme" suggestion.
     let theme: string | undefined;
-    if (index < this.props.themeItems.length) { // (Select a Theme)
-      theme = this.props.themeItems[index].entryPath;
+    if (index < this.props.themeList.length) { // (Select a Theme)
+      theme = this.props.themeList[index].entryPath;
     } else { theme = undefined; } // (Deselect the current theme)
     updatePreferencesData({ currentTheme: theme });
-    this.props.reloadTheme(theme);
     // Select the input field
     if (this.currentThemeInputRef) {
       this.currentThemeInputRef.focus();
-    }
-  }
-
-  onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
-    // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-    const filePaths = window.External.showOpenDialogSync({
-      title: this.context.dialog.selectThemeFile,
-      properties: ['openFile'],
-    });
-    if (filePaths) {
-      // Get the selected files path relative to the themes folder
-      const filePath = filePaths[0] || '';
-      const themeFolderPath = path.join(
-        window.External.config.fullFlashpointPath,
-        window.External.config.data.themeFolderPath
-      );
-      const relativePath = path.relative(themeFolderPath, filePath);
-      // Update current theme
-      updatePreferencesData({ currentTheme: relativePath });
-      // Reload theme
-      this.props.reloadTheme(relativePath);
     }
   }
 
@@ -467,8 +424,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 }
 
 /** Format a theme item into a displayable name for the themes drop-down. */
-function formatThemeItemName(item: IThemeListItem): string {
-  return `${item.metaData.name} (${item.basename})`;
+function formatThemeItemName(item: Theme): string {
+  return `${item.meta.name} (${item.entryPath})`;
 }
 
 function log(content: string): void {
