@@ -208,8 +208,16 @@ function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offse
  * @param flashpointFolder Path of the Flashpoint folder root.
  */
 export async function checkUpgradeStateInstalled(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
+  console.log(stage);
   const success = await Promise.all(stage.verify_files.map(check => (
-    fs.pathExists(path.join(baseFolder, check))
+    new Promise<boolean>((resolve) => {
+      console.log(path.join(baseFolder, check));
+      fs.access(path.join(baseFolder, check), fs.constants.F_OK)
+      // File exists
+      .then(() => resolve(true))
+      // File does not exist
+      .catch((error) => resolve(false));
+    })
   )));
   return success.indexOf(false) === -1;
 }

@@ -44,7 +44,7 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { getPlatforms } from './util/platform';
-import { downloadAndInstallUpgrade, checkUpgradeStateInstalled, checkUpgradeStateUpdated } from './util/upgrade';
+import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -269,11 +269,7 @@ export class App extends React.Component<AppProps, AppState> {
       });
       // Do existance checks on all upgrades
       await Promise.all(allData.map(async upgrade => {
-        const baseFolder = upgrade.launcherUpgrade ?
-          (window.External.isDev ? undefined : remote.app.getPath('exe'))
-          : fullFlashpointPath;
-        if (!baseFolder) {
-          // Skip launcher checks in dev environment
+        if (upgrade.launcherUpgrade && window.External.isDev) {
           this.setUpgradeStageState(upgrade.id, {
             alreadyInstalled: true,
             checksDone: true,
@@ -281,6 +277,7 @@ export class App extends React.Component<AppProps, AppState> {
           });
           return;
         }
+        const baseFolder = upgrade.launcherUpgrade ? remote.app.getPath('exe') : fullFlashpointPath;
         // Perform install checks
         const installed = await checkUpgradeStateInstalled(upgrade, baseFolder);
         this.setUpgradeStageState(upgrade.id, {
@@ -413,7 +410,7 @@ export class App extends React.Component<AppProps, AppState> {
             creditsLoaded={this.state.creditsDoneLoading} />
           {/* Title-bar (if enabled) */}
           { window.External.config.data.useCustomTitlebar ? (
-            <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
+            <TitleBar title={`${AppConstants.appTitle} (${remote.app.getVersion()})`} />
           ) : undefined }
           {/* "Content" */}
           {loaded ? (

@@ -15,6 +15,8 @@ import { AppConfigMain } from './config/AppConfigMain';
 import MainWindow from './MainWindow';
 import { ServicesMainApi } from './service/ServicesMainApi';
 import * as Util from './Util';
+import { dialog } from 'electron';
+import { autoUpdater, UpdateInfo } from 'electron-updater';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
@@ -53,6 +55,17 @@ export class Main {
     this._log.bindListeners();
     ipcMain.on(MiscIPC.REQUEST_MISC_SYNC, this.onRequestMisc.bind(this));
     ipcMain.on(InitRendererChannel, this.onInit.bind(this));
+    // Updater code
+    if (!Util.isDev) {
+      autoUpdater.autoDownload = false;
+      autoUpdater.on('error', (error) => {
+        console.log(error);
+      });
+      autoUpdater.on('update-available', onUpdateAvailable);
+      autoUpdater.on('update-downloaded', onUpdateDownloaded);
+      autoUpdater.checkForUpdates();
+      console.log('Checking for updates...');
+    }
     // Load various files and prepare the back
     Promise.all([
       this._config.load(this.installed),
@@ -260,4 +273,30 @@ export class Main {
     this._mainWindow.window.webContents.send(channel, ...rest);
     return true;
   }
+}
+
+function onUpdateAvailable (info: UpdateInfo) {
+  console.log(info);
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Available',
+    message: `There is an update available for the Flashpoint Launcher\n${info.releaseName}\nDo you wish to update now?`,
+    buttons: ['Yes', 'No']
+  })
+  .then(res => {
+    if (res.response === 0) {
+      autoUpdater.downloadUpdate();
+    }
+  });
+}
+
+function onUpdateDownloaded() { 
+  dialog.showMessageBox({
+    title: 'Installing Update',
+    message: 'The Launcher will restart to install the update now.',
+    buttons: ['OK']
+  })
+  .then(() => {
+    setImmediate(() => autoUpdater.quitAndInstall());
+  })
 }
