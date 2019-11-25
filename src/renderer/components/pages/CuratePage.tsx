@@ -48,6 +48,7 @@ export function CuratePage(props: CuratePageProps) {
   const [state, dispatch] = useContext(CurationContext.context);
   const [progressState, progressDispatch] = useContext(ProgressContext.context);
   const [indexedCurations, setIndexedCurations] = React.useState<string[]>(initialIndexedCurations(state.curations));
+  const [allLock, setAllLock] = React.useState<boolean>(false);
   const pageRef = React.useRef<HTMLDivElement>(null);
   const localState = useMemo(() => { return { state: state }; }, []);
   // Get default curation game meta values
@@ -336,6 +337,7 @@ export function CuratePage(props: CuratePageProps) {
         type: 'change-curation-lock-all',
         payload: { lock: true },
       });
+      setAllLock(true);
       // Import all curations, one at a time
       (async () => {
         let success = 0;
@@ -355,12 +357,12 @@ export function CuratePage(props: CuratePageProps) {
           const warningCount = getWarningCount(warnings);
           if (warningCount > 0) {
             // Prompt user
-            const res = remote.dialog.showMessageBoxSync({
+            const res = await remote.dialog.showMessageBox({
               title: 'Import Warnings',
               message: `There are Warnings present on this Curation.\n${curation.meta.title}\n\nDo you still wish to import?`,
               buttons: ['Yes', 'No']
             });
-            if (res === 1) {
+            if (res.response === 1) {
               // No - Skip to next curation
               // Unlock the curation
               dispatch({
@@ -426,13 +428,21 @@ export function CuratePage(props: CuratePageProps) {
         }
         ProgressDispatch.finished(statusProgress);
         // Log state
-        const total = state.curations.length;
-        console.log(
-          '"Import All" complete\n'+
-          `  Total:   ${total}\n`+
-          `  Success: ${success} (${100 * (success / total)}%)\n`+
-          `  Failed:  ${total - success}`
-        );
+        const total = curations.length;
+        const logStr = '"Import All" complete\n'+
+        `  Total:   ${total}\n`+
+        `  Success: ${success} (${Math.floor(100 * (success / total))}%)\n`+
+        `  Failed:  ${total - success}`;
+        console.log(logStr);
+        curationLog(logStr);
+        if (remote.Notification.isSupported()) {
+          const notification = new remote.Notification({
+            title: 'Flashpoint',
+            body: logStr
+          });
+          notification.show();
+        }
+        setAllLock(true);
         dispatch({
           type: 'change-curation-lock-all',
           payload: { lock: false },
@@ -476,7 +486,7 @@ export function CuratePage(props: CuratePageProps) {
     const statusProgress = newProgress(progressKey, progressDispatch);
     let filesCounted = 1;
     if (filePaths) {
-      ProgressDispatch.setText(statusProgress, `Importing Curation ${filesCounted} of ${filePaths.length}`);
+      ProgressDispatch.setText(statusProgress, `Loading Curation ${filesCounted} of ${filePaths.length}`);
       // Don't use percentDone
       ProgressDispatch.setUsePercentDone(statusProgress, false);
       for (let archivePath of filePaths) {
@@ -499,7 +509,7 @@ export function CuratePage(props: CuratePageProps) {
         // Update Status Progress with new number of counted files
         .finally(() => {
           filesCounted++;
-          ProgressDispatch.setText(statusProgress, `Importing Curation ${filesCounted} of ${filePaths.length}`);
+          ProgressDispatch.setText(statusProgress, `Loading Curation ${filesCounted} of ${filePaths.length}`);
         });
       }
     }
@@ -514,9 +524,14 @@ export function CuratePage(props: CuratePageProps) {
       properties: ['openDirectory', 'multiSelections'],
     });
     if (filePaths) {
+      const statusProgress = newProgress(progressKey, progressDispatch);
+      ProgressDispatch.setUsePercentDone(statusProgress, false);
+      let imported = 0;
       // Process in series - IO bound anyway, and serves progress better
       Promise.all(
         filePaths.map((dirPath) => {
+          imported += 1;
+          ProgressDispatch.setText(statusProgress, `Loading Curation ${imported} of ${filePaths.length}`);
           // Mark as indexed so can index ourselves after copying
           const key = uuid();
           indexedCurations.push(key);
@@ -534,7 +549,10 @@ export function CuratePage(props: CuratePageProps) {
             });
           });
         })
-      );
+      )
+      .finally(() => {
+        ProgressDispatch.finished(statusProgress);
+      });
     }
   }, [dispatch, indexedCurations, setIndexedCurations]);
 
@@ -732,12 +750,12 @@ export function CuratePage(props: CuratePageProps) {
             <ConfirmElement
               onConfirm={onImportAllClick}
               children={renderImportAllButton}
-              extra={strings.curate} />
+              extra={[strings.curate, allLock]} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
               onConfirm={onDeleteAllClick}
               children={renderDeleteAllButton}
-              extra={strings.curate} />
+              extra={[strings.curate, allLock]} />
             <div className='curate-page__floating-box__divider'/>
             <div className='curate-page__checkbox'>
               <div className='curate-page__checkbox-text'>{strings.curate.saveImportedCurations}</div>
@@ -756,24 +774,26 @@ export function CuratePage(props: CuratePageProps) {
      props.preferencesData.saveImportedCurations]);
 }
 
-function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
+function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra.importAll}
-      title={extra.importAllDesc}
+      value={extra[0].importAll}
+      title={extra[0].importAllDesc}
       onClick={activate}
+      disabled={extra[1]}
       onMouseLeave={reset} />
   );
 }
 
-function renderDeleteAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
+function renderDeleteAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra.deleteAll}
-      title={extra.deleteAllDesc}
+      value={extra[0].deleteAll}
+      title={extra[0].deleteAllDesc}
       onClick={activate}
+      disabled={extra[1]}
       onMouseLeave={reset} />
   );
 }
