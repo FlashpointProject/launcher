@@ -148,6 +148,12 @@ export class Main {
     session.defaultSession.setPermissionRequestHandler(
       (webContents, permission, callback) => callback(false)
     );
+    // Ignore proxy settings with chromium APIs (makes WebSockets not close when the Redirector changes proxy settings)
+    session.defaultSession.setProxy({
+      pacScript: '',
+      proxyRules: '',
+      proxyBypassRules: '',
+    });
     // Stop non-local resources from being fetched (as long as their response has at least one header?)
     // Only allow local scripts to execute (Not sure what this allows? "file://"? "localhost"?)
     // (TypeScript type information is missing, check the link below for the type info)
