@@ -223,6 +223,11 @@ export class LangManager extends WrappedEventEmitter {
       ...(fallback && fallback.data && fallback.data.libraries),
       ...(current && current.data && current.data.libraries)
     };
+    data.upgrades = { // Allow libraries to add new properties (and not just overwrite the default)
+      ...data.upgrades,
+      ...(fallback && fallback.data && fallback.data.upgrades),
+      ...(current && current.data && current.data.upgrades)
+    };
     return data;
   }
 }

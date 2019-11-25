@@ -36,6 +36,11 @@
     "saveAndRestart": "Save and Restart"
   },
   "home": {
+    "updateHeader": "Launcher Update",
+    "currentVersion": "Current Version",
+    "nextVersion": "Next Version",
+    "updateAvailable": "Update Available",
+    "upToDate": "Up to date.",
     "quickStartHeader": "Quick Start",
     "hallOfFameInfo": "Only want the best of the best? Check out the {0}!",
     "hallOfFame": "Hall of Fame",
@@ -51,6 +56,8 @@
     "installComplete": "Install Complete",
     "alreadyInstalled": "Already Installed",
     "download": "Download",
+    "update": "Update",
+    "checkingUpgradeState": "Checking Upgrade State...",
     "extrasHeader": "Extras",
     "favoritesPlaylist": "Favorites Playlist",
     "tagList": "Tag List",
@@ -308,13 +315,17 @@
     "selectCurationArchive": "Select Curation Archive(s)",
     "selectCurationMeta": "Select Curation Meta(s)",
     "errorParsingPlatforms": "Error parsing platforms!",
-    "errorParsingPlatformsMessage": "{0} Error(s) raised while parsing platform XMLs\nPlease check the logs for details."
+    "errorParsingPlatformsMessage": "{0} Error(s) raised while parsing platform XMLs\nPlease check the logs for details.",
+    "dataRequired": "Additional Data Required",
+    "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?"
   },
   "libraries": {
     "arcade": "Games",
     "theatre": "Animations"
   },
   "upgrades": {
+    "infinity": "Flashpoint Infinity",
+    "infinityDesc": "Required files. Adds support for Flash games.",
     "tech": "Other Technologies",
     "techDesc": "SOmething Something",
     "screenshots": "Screenshots and Logos",

@@ -43,6 +43,11 @@ const langTemplate = {
     'browse',
   ] as const,
   home: [
+    'updateHeader',
+    'currentVersion',
+    'nextVersion',
+    'updateAvailable',
+    'upToDate',
     'quickStartHeader',
     'hallOfFameInfo',
     'hallOfFame',
@@ -58,6 +63,8 @@ const langTemplate = {
     'installComplete',
     'alreadyInstalled',
     'download',
+    'update',
+    'checkingUpgradeState',
     'extrasHeader',
     'favoritesPlaylist',
     'tagList',
@@ -322,6 +329,8 @@ const langTemplate = {
     'selectCurationMeta',
     'errorParsingPlatforms',
     'errorParsingPlatformsMessage',
+    'dataRequired',
+    'dataRequiredDesc'
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
@@ -347,6 +356,7 @@ export type BaseLangContainer = {
 /** Container of all language strings used by the launcher. */
 export type LangContainer = BaseLangContainer & {
   libraries: DynamicLangCategory;
+  upgrades: DynamicLangCategory;
 };
 
 /**
@@ -376,6 +386,7 @@ export function createLangContainer(): LangContainer {
   return {
     ...createBaseLangContainer(),
     libraries: {},
+    upgrades: {},
   };
 }
 

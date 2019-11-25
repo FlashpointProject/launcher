@@ -43,23 +43,21 @@ export namespace UpgradeFile {
       title: '',
       description: '',
       verify_files: [],
-      verify_md5: [],
+      verify_sha256: [],
       sources: [],
-      sources_md5: '',
+      sources_sha256: '',
       deletePaths: [],
       keepPaths: [],
-      launcherUpgrade: false,
       state: newUpgradeStageState()
     };
-    parser.prop('title',            v => parsed.title            = str(v));
-    parser.prop('description',      v => parsed.description      = str(v));
-    parser.prop('verify_files',     v => parsed.verify_files     = strArr(v));
-    parser.prop('verify_md5',       v => parsed.verify_md5       = strArr(v));
-    parser.prop('sources',          v => parsed.sources          = strArr(v));
-    parser.prop('sources_md5',      v => parsed.sources_md5      = str(v));
-    parser.prop('deletePaths',      v => parsed.deletePaths      = strArr(v));
-    parser.prop('keepPaths',        v => parsed.keepPaths        = strArr(v));
-    parser.prop('launcherUpgrade',  v => parsed.launcherUpgrade  = !!v);
+    parser.prop('title',           v => parsed.title            = str(v));
+    parser.prop('description',     v => parsed.description      = str(v));
+    parser.prop('verify_files',    v => parsed.verify_files     = strArr(v));
+    parser.prop('verify_sha256',   v => parsed.verify_sha256    = strArr(v));
+    parser.prop('sources',         v => parsed.sources          = strArr(v));
+    parser.prop('sources_sha256',  v => parsed.sources_sha256   = str(v));
+    parser.prop('deletePaths',     v => parsed.deletePaths      = strArr(v));
+    parser.prop('keepPaths',       v => parsed.keepPaths        = strArr(v));
     return parsed;
   }
 }

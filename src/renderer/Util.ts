@@ -125,15 +125,15 @@ export function getFileExtension(filename: string): string {
 }
 
 /** Open a confirmation box, returning true if Yes, false if No, throwing if Cancelled. */
-export function openConfirmDialog(title: string, message: string, cancel: boolean = false): boolean {
+export async function openConfirmDialog(title: string, message: string, cancel: boolean = false): Promise<boolean> {
   const buttons = ['Yes', 'No'];
   if (cancel) { buttons.push('Cancel'); }
-  const res = remote.dialog.showMessageBoxSync({
+  const res = await remote.dialog.showMessageBox({
     title: title,
     message: message,
     buttons: buttons
   });
-  if (res === 0) { return true; }
-  if (res === 1) { return false; }
+  if (res.response === 0) { return true; }
+  if (res.response === 1) { return false; }
   else { throw 'Cancelled'; }
 }

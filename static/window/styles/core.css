@@ -633,6 +633,10 @@ body {
   padding: 0 1rem;
   text-align: center;
 }
+/* Update */
+.home-page__update-box {
+  text-align: center;
+}
 /* Random Games */
 .home-page__random-games {
   text-align: center;

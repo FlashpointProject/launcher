@@ -1,4 +1,5 @@
 import { remote } from 'electron';
+import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
@@ -23,6 +24,7 @@ import { getPlatforms } from '../../util/platform';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
+import { SimpleButton } from '../SimpleButton';
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -34,6 +36,10 @@ type OwnProps = {
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
   onDownloadUpgradeClick: (stage: UpgradeStage) => void;
+  /** Whether an update is available to the Launcher */
+  updateInfo: UpdateInfo | undefined;
+  /** Callback to initiate the update */
+  autoUpdater: AppUpdater;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps & WithSearchProps;
@@ -45,8 +51,9 @@ export interface HomePage {
 export function HomePage(props: HomePageProps) {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   const logoDelay = React.useMemo(() => (Date.now() * -0.001) + 's', []);
-  const strings = React.useContext(LangContext).home;
-  const dialogStrings = React.useContext(LangContext).dialog;
+  const allStrings = React.useContext(LangContext);
+  const strings = allStrings.home;
+  const dialogStrings = allStrings.dialog;
   const {
     onDownloadUpgradeClick,
     gameImages,
@@ -60,6 +67,8 @@ export function HomePage(props: HomePageProps) {
   const upgradeStages = props.central.upgrades;
   const { showBrokenGames } = window.External.config.data;
   const { disableExtremeGames } = window.External.config.data;
+  /** Whether the Update Available button has been pressed */
+  const [updateStarted, setUpdateStarted] = React.useState(false);
 
   const onPlatformClick = React.useCallback((platform: string) => (event: any) => {
     // Search to filter out all other platforms
@@ -143,6 +152,36 @@ export function HomePage(props: HomePageProps) {
 
   /** Render for each box */
 
+  const renderUpdate = React.useMemo(() =>
+  <div className='home-page__box'>
+    <div className='home-page__box-head'>{strings.updateHeader}</div>
+    <ul className='home-page__box-body home-page__update-box'>
+      {strings.currentVersion} - {remote.app.getVersion()}
+      <br/>
+      {props.updateInfo != undefined ? 
+      <>
+        <p>
+          {strings.nextVersion} - {props.updateInfo.version}
+        </p>
+        <SimpleButton
+          value={strings.updateAvailable}
+          disabled={updateStarted}
+          onClick={() => { 
+            if (props.updateInfo) {
+              const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
+              if (updateNow) {
+                props.autoUpdater.downloadUpdate();
+                setUpdateStarted(true);
+              }
+            }
+          }}>
+        </SimpleButton>
+      </>
+      : strings.upToDate}
+    </ul>
+  </div>
+, [strings, props.autoUpdater, props.updateInfo, updateStarted, setUpdateStarted]);
+
   const renderQuickStart = React.useMemo(() =>
     <div className='home-page__box'>
       <div className='home-page__box-head'>{strings.quickStartHeader}</div>
@@ -209,7 +248,7 @@ export function HomePage(props: HomePageProps) {
       for (let i = 0; i < upgradeStages.length; i++) {
         renderedStages.push(
           <div key={i*2}>
-            {renderStageSection(strings, upgradeStages[i], onDownloadUpgradeClick)}
+            {renderStageSection(allStrings, upgradeStages[i], onDownloadUpgradeClick)}
           </div>
         );
         renderedStages.push(
@@ -227,7 +266,7 @@ export function HomePage(props: HomePageProps) {
         </div>
       );
     }
-  }, [strings, upgradeStages, onDownloadUpgradeClick]);
+  }, [allStrings, upgradeStages, onDownloadUpgradeClick]);
 
   const renderNotes = React.useMemo(() =>
     <div className='home-page__box'>
@@ -272,6 +311,9 @@ export function HomePage(props: HomePageProps) {
             className='fp-logo fp-logo--animated'
             style={{ animationDelay: logoDelay }} />
         </div>
+        {/* Updates */}
+        { renderUpdate }
+        {/* Quick Start */}
         { renderQuickStart }
         {/* Upgrades */}
         { renderUpgrades }
@@ -283,7 +325,7 @@ export function HomePage(props: HomePageProps) {
         { renderRandomGames }
       </div>
     </div>
-  ), [renderQuickStart, renderExtras, renderNotes, renderRandomGames]);
+  ), [renderUpdate, renderQuickStart, renderExtras, renderNotes, renderRandomGames]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {
@@ -301,21 +343,22 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   );
 }
 
-function renderStageSection(strings: LangContainer['home'], stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
+function renderStageSection(strings: LangContainer, stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
   return (
     <>
-      <QuickStartItem><b>{stage && stage.title || '...'}</b></QuickStartItem>
-      <QuickStartItem><i>{stage && stage.description || '...'}</i></QuickStartItem>
-      <QuickStartItem>{ renderStageButton(strings, stage, onDownload) }</QuickStartItem>
+      <QuickStartItem><b>{stage && strings.upgrades[stage.title] || stage.title || '...'}</b></QuickStartItem>
+      <QuickStartItem><i>{stage && strings.upgrades[stage.description] || stage.description || '...'}</i></QuickStartItem>
+      <QuickStartItem>{ renderStageButton(strings.home, stage, onDownload) }</QuickStartItem>
     </>
   );
 }
 
 function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
   const stageState = stage.state;
+  console.log(stageState);
   return (
     stageState.checksDone ? (
-      stageState.alreadyInstalled ? (
+      stageState.alreadyInstalled && stageState.upToDate ? (
         <p className='home-page__grayed-out'>{strings.alreadyInstalled}</p>
       ) : (
         stageState.isInstallationComplete ? (
@@ -327,12 +370,12 @@ function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, 
             <a
               className='simple-button'
               onClick={() => { onDownload(stage); }}>
-              {strings.download}
+              {stageState.alreadyInstalled ? strings.update : strings.download}
             </a>
           )
         )
       )
-    ) : 'Checking State...'
+    ) : strings.checkingUpgradeState
   );
 }
 
@@ -342,6 +385,21 @@ function findHallOfFamePlaylist(playlists: GamePlaylist[]): GamePlaylist | undef
 
 function findFavoritePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
   return playlists.find(playlist => playlist.title === '*Favorites*');
+}
+
+function onUpdateDownload(updateInfo: UpdateInfo, downloadFunc: () => void): boolean {
+  const message = (updateInfo.releaseName ? `${updateInfo.releaseName}\n\n` : '') 
+              + (updateInfo.releaseNotes ? `Release Notes:\n${updateInfo.releaseNotes}\n\n` : 'No Release Notes Available.\n\n')
+              + 'Download and Install now?'
+  const res = remote.dialog.showMessageBoxSync({
+    title: 'Update Available',
+    message: message,
+    buttons: ['Yes', 'No']
+  });
+  if (res === 0) {
+    return true;
+  }
+  return false;
 }
 
 /**

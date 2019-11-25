@@ -19,6 +19,7 @@ import { Paths } from './Paths';
 import { GamePlaylist } from './playlist/types';
 import { IThemeListItem } from './theme/ThemeManager';
 import { UpgradeStage } from './upgrade/types';
+import { AppUpdater, UpdateInfo } from 'electron-updater';
 
 export type AppRouterProps = {
   /** Semi-global prop. */
@@ -42,6 +43,8 @@ export type AppRouterProps = {
   languages: LangFile[];
   updateLocalization: () => void;
   platformList: string[];
+  updateInfo: UpdateInfo | undefined,
+  autoUpdater: AppUpdater
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -50,7 +53,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
       gameImages: this.props.gameImages,
-      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick
+      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
+      updateInfo: this.props.updateInfo,
+      autoUpdater: this.props.autoUpdater
     };
     const browseProps: ConnectedBrowsePageProps = {
       central: this.props.central,

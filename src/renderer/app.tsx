@@ -14,7 +14,7 @@ import { GameLibraryFileItem } from '../shared/library/types';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { updatePreferencesData } from '../shared/preferences/util';
-import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
+import { deepCopy, recursiveReplace } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -45,6 +45,9 @@ import { joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { getPlatforms } from './util/platform';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
+import { AppUpdater, UpdateInfo } from 'electron-updater';
+
+const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -81,6 +84,8 @@ export type AppState = {
   lang: LangContainer;
   /** Current list of available language files. */
   langList: LangFile[];
+  /** Info of the update, if one was found */
+  updateInfo: UpdateInfo | undefined;
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -113,6 +118,7 @@ export class App extends React.Component<AppProps, AppState> {
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
+      updateInfo: undefined,
       order: {
         orderBy: preferencesData.gamesOrderBy,
         orderReverse: preferencesData.gamesOrder
@@ -267,17 +273,24 @@ export class App extends React.Component<AppProps, AppState> {
           upgradesDoneLoading: true,
         })
       });
+      const isValid = await isFlashpointValidCheck(window.External.config.data.flashpointPath);
+      // Notify of downloading initial data (if available)
+      if (!isValid && allData.length > 0) {
+        remote.dialog.showMessageBox({
+          type: 'info',
+          title: strings.dialog.dataRequired,
+          message: strings.dialog.dataRequiredDesc,
+          buttons: [strings.misc.yes, strings.misc.no]
+        })
+        .then((res) => {
+          if (res.response === 0) {
+            this.onDownloadUpgradeClick(allData[0]);
+          }
+        });
+      }
       // Do existance checks on all upgrades
       await Promise.all(allData.map(async upgrade => {
-        if (upgrade.launcherUpgrade && window.External.isDev) {
-          this.setUpgradeStageState(upgrade.id, {
-            alreadyInstalled: true,
-            checksDone: true,
-            upToDate: true
-          });
-          return;
-        }
-        const baseFolder = upgrade.launcherUpgrade ? remote.app.getPath('exe') : fullFlashpointPath;
+        const baseFolder = fullFlashpointPath;
         // Perform install checks
         const installed = await checkUpgradeStateInstalled(upgrade, baseFolder);
         this.setUpgradeStageState(upgrade.id, {
@@ -288,7 +301,7 @@ export class App extends React.Component<AppProps, AppState> {
         if (installed) {
           const upToDate = await checkUpgradeStateUpdated(upgrade, baseFolder);
           this.setUpgradeStageState(upgrade.id, {
-            upToDate: true
+            upToDate: upToDate
           });
         }
       }));
@@ -314,6 +327,27 @@ export class App extends React.Component<AppProps, AppState> {
       console.error(error);
       log(`Failed to load exec mappings file. Ignore if on Windows. - ${error}`);
     });
+
+    // Updater code - DO NOT run in development environment!
+    if (!window.External.isDev) {
+      autoUpdater.autoDownload = false;
+      autoUpdater.on('error', (error: Error) => {
+        console.log(error);
+      });
+      autoUpdater.on('update-available', (info) => {
+        log(`Update Available - ${info.version}`);
+        console.log(info);
+        this.setState({
+          updateInfo: info
+        });
+      });
+      autoUpdater.on('update-downloaded', onUpdateDownloaded);
+      autoUpdater.checkForUpdates()
+      .catch((error) => { log(`Error Fetching Update Info - ${error.message}`)});
+      console.log('Checking for updates...');
+    }
+
+    
 
     // Check for Wine and PHP on Linux/Mac
     if (process.platform != 'win32') {
@@ -395,7 +429,9 @@ export class App extends React.Component<AppProps, AppState> {
       reloadTheme: this.reloadTheme,
       languages: this.state.langList,
       updateLocalization: this.updateLanguage,
-      platformList: getPlatforms(this.state.central.games.collection)
+      platformList: getPlatforms(this.state.central.games.collection),
+      updateInfo: this.state.updateInfo,
+      autoUpdater: autoUpdater
     };
     // Render
     return (
@@ -558,7 +594,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
   let promptRestartWhenFinished = false;
   if (!isValid) {
     // If folder isn't set, ask to set now
-    const res = openConfirmDialog('No Folder Found', 'The Flashpoint folder is not set or invalid. Do you want to choose a folder to install to now?');
+    const res = await openConfirmDialog('No Folder Found', 'The Flashpoint folder is not set or invalid. Do you want to choose a folder to install to now?');
     if (!res) { return; }
     // Set folder now
     const picks = window.External.showOpenDialogSync({
@@ -606,14 +642,14 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
         }
       }
     })
-    .once('done', () => {
+    .once('done', async () => {
       // Flag as done installing
       setStageState(stage.id, {
         isInstalling: false,
         isInstallationComplete: true,
       });
       if (promptRestartWhenFinished) {
-        const res = openConfirmDialog('Restart Now?', 'This upgrade will not be applied until you restart.\nDo you wish to do this now?');
+        const res = await openConfirmDialog('Restart Now?', 'This upgrade will not be applied until you restart.\nDo you wish to do this now?');
         if (res) {
           window.External.restart();
         }
@@ -655,6 +691,17 @@ function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], librari
     (acc, platform) => acc + (platform.collection ? platform.collection.games.length : 0),
     0
   );
+}
+
+function onUpdateDownloaded() { 
+  remote.dialog.showMessageBox({
+    title: 'Installing Update',
+    message: 'The Launcher will restart to install the update now.',
+    buttons: ['OK']
+  })
+  .then(() => {
+    setImmediate(() => autoUpdater.quitAndInstall());
+  })
 }
 
 function copyMap<T>(map: IObjectMap<T>): IObjectMap<T> {

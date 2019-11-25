@@ -75,13 +75,16 @@ gulp.task('config-version', (done) => {
 /* ------ Pack ------ */
 
 gulp.task('pack', (done) => {
+  if (!fs.existsSync('.installed')) {
+    fs.createFileSync('.installed');
+  }
   const targets = createBuildTargets(process.env.PACK_PLATFORM, process.env.PACK_ARCH);
   const publish = process.env.PUBLISH ? createPublishInfo() : [];
   console.log(publish);
   builder.build({
     config: {
       appId: 'com.bluemaxima.flashpoint-launcher',
-      productName: 'FlashpointLauncher',
+      productName: 'Flashpoint',
       directories: {
         buildResources: './static/',
         output: './dist/'
@@ -97,16 +100,16 @@ gulp.task('pack', (done) => {
           filter: ['${os}/**/*']
         },
         './lang',
-        './upgrade',
         './licenses',
+        '.installed',
+        'upgrade.json',
         {
           from: './LICENSE',
           to: './licenses/LICENSE'
         }
       ],
-      compression: 'maximum', // Only used if a compressed target (like 7z, zip, etc)
-      onNodeModuleFile: compressModule,
-      target: 'dir',
+      compression: 'store', // Only used if a compressed target (like 7z, nsis, dmg etc)
+      target: 'dir', // Keep unpacked versions of every pack
       asar: config.isRelease,
       publish: publish,
       win: {
@@ -169,14 +172,11 @@ function execute(command, callback) {
   }
 }
 
-function compressModule(file) {
-}
-
 function createBuildTargets(os, arch) {
   switch (os) {
     case 'win32':
       return Platform.WINDOWS.createTarget('nsis', archFromString(arch));
-    case 'mac':
+    case 'darwin':
       return Platform.MAC.createTarget('dmg');
     case 'linux':
       return Platform.LINUX.createTarget('appimage', archFromString(arch));
@@ -187,8 +187,7 @@ function createPublishInfo() {
   return [
     {
       provider: 'generic',
-      url: 'http://localhost:8000/${name}/${os}/${arch}/${channel}/'
-      // url: 'https://download.unstable.life/${name}/${os}/${arch}/${channel}/'
+      url: 'https://download.unstable.life/${name}/${os}/${arch}/${channel}/'
     }
   ];
 }
