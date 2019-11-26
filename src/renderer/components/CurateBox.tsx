@@ -89,6 +89,8 @@ export function CurateBox(props: CurateBoxProps) {
   const onAuthorNotesChange         = useOnInputChange('authorNotes',         key, props.dispatch);
   const onExtremeChange             = useOnCheckboxToggle('extreme',          key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
+  const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
+  const onStatusSelect              = useCallback(transformOnItemSelect(onStatusChange),          [onStatusChange]);
   const onTagItemSelect             = useCallback(transformOnItemSelect(onTagsChange),            [onTagsChange]);
   const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
   const onApplicationPathItemSelect = useCallback(transformOnItemSelect(onApplicationPathChange), [onPlatformChange]);
@@ -578,17 +580,21 @@ export function CurateBox(props: CurateBoxProps) {
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.playMode + ':'}>
-            <InputField
+            <DropdownInputField
               text={props.curation && props.curation.meta.playMode || ''}
               placeholder={strings.browse.noPlayMode}
               onChange={onPlayModeChange}
+              items={props.suggestions && props.suggestions.playMode || []}
+              onItemSelect={onPlayModeSelect}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.status + ':'}>
-            <InputField
+            <DropdownInputField
               text={props.curation && props.curation.meta.status || ''}
               placeholder={strings.browse.noStatus}
               onChange={onStatusChange}
+              items={props.suggestions && props.suggestions.status || []}
+              onItemSelect={onStatusSelect}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.version + ':'}>

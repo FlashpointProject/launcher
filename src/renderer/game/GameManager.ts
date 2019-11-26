@@ -174,7 +174,7 @@ class GameManager extends EventEmitter {
       Object.assign(rawAddApp, GameParser.reverseParseAdditionalApplication(oldAddApp));
     }
     // Add new add-apps
-    for (let i = newAddApps.length - 1; i >= 0; i--) {
+    for (let i = 0; i < newAddApps.length; i++) {
       const addApp = newAddApps[i];
       platform.addAdditionalApplication(addApp);
       const newRawAddApp = Object.assign(
