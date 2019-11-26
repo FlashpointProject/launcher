@@ -3,7 +3,6 @@ import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
-import { GameCollection } from 'src/shared/game/GameCollection';
 import { promisify } from 'util';
 import * as YAML from 'yaml';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';

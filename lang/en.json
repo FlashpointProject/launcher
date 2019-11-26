@@ -41,6 +41,7 @@
     "nextVersion": "Next Version",
     "updateAvailable": "Update Available",
     "upToDate": "Up to date.",
+    "downloadingUpdate": "Downloading Update...",
     "quickStartHeader": "Quick Start",
     "hallOfFameInfo": "Only want the best of the best? Check out the {0}!",
     "hallOfFame": "Hall of Fame",
@@ -287,7 +288,11 @@
     "addBlank": "Add {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "downloading": "Downloading",
+    "extracting": "Extracting",
+    "installingFiles": "Installing Files...",
+    "complete": "Complete"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",

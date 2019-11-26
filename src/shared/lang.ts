@@ -48,6 +48,7 @@ const langTemplate = {
     'nextVersion',
     'updateAvailable',
     'upToDate',
+    'downloadingUpdate',
     'quickStartHeader',
     'hallOfFameInfo',
     'hallOfFame',
@@ -301,6 +302,10 @@ const langTemplate = {
     'deleteAllBlankImages',
     'yes',
     'no',
+    'downloading',
+    'extracting',
+    'installingFiles',
+    'complete',
   ] as const,
   menu: [
     'viewThumbnailInFolder',

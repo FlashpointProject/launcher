@@ -284,7 +284,7 @@ export class App extends React.Component<AppProps, AppState> {
         })
         .then((res) => {
           if (res.response === 0) {
-            this.onDownloadUpgradeClick(allData[0]);
+            this.onDownloadUpgradeClick(allData[0], strings);
           }
         });
       }
@@ -534,8 +534,8 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  private onDownloadUpgradeClick = (stage: UpgradeStage) => {
-    downloadAndInstallStage(stage, this.setUpgradeStageState);
+  private onDownloadUpgradeClick = (stage: UpgradeStage, strings: LangContainer) => {
+    downloadAndInstallStage(stage, this.setUpgradeStageState, strings);
   }
 
   private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
@@ -587,7 +587,7 @@ export class App extends React.Component<AppProps, AppState> {
   }
 }
 
-async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void) {
+async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void, strings: LangContainer) {
   // Check data folder is set
   let flashpointPath = window.External.config.data.flashpointPath;
   const isValid = await isFlashpointValidCheck(flashpointPath);
@@ -635,9 +635,9 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
         prevProgressUpdate = now;
         lastUpdateType = state.currentTask;
         switch (state.currentTask) {
-          case 'downloading': setStageState(stage.id, { installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
-          case 'extracting':  setStageState(stage.id, { installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
-          case 'installing':  setStageState(stage.id, { installProgressNote: 'Installing Files...'});                                         break;
+          case 'downloading': setStageState(stage.id, { installProgressNote: `${strings.misc.downloading}: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
+          case 'extracting':  setStageState(stage.id, { installProgressNote: `${strings.misc.extracting}: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
+          case 'installing':  setStageState(stage.id, { installProgressNote: `${strings.misc.installingFiles}`});                                         break;
           default:            setStageState(stage.id, { installProgressNote: '...' });                                                        break;
         }
       }

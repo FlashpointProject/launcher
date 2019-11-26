@@ -3,6 +3,7 @@ import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
+import { LangContainer } from '../../shared/lang';
 import { GameLibraryFileItem } from '../../shared/library/types';
 import { formatDate, removeFileExtension } from '../../shared/Util';
 import { EditAddAppCuration, EditCuration } from '../context/CurationContext';
@@ -17,7 +18,6 @@ import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { uuid } from '../uuid';
 import { CurationIndexImage, indexContentFolder } from './importCuration';
 import { curationLog, getContentFolderByKey, getCurationFolder } from './util';
-import { LangContainer } from 'src/shared/lang';
 
 
 /**

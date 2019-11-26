@@ -1,8 +1,9 @@
+import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
-import { LangFile } from '../shared/lang';
+import { LangContainer, LangFile } from '../shared/lang';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
@@ -19,7 +20,6 @@ import { Paths } from './Paths';
 import { GamePlaylist } from './playlist/types';
 import { IThemeListItem } from './theme/ThemeManager';
 import { UpgradeStage } from './upgrade/types';
-import { AppUpdater, UpdateInfo } from 'electron-updater';
 
 export type AppRouterProps = {
   /** Semi-global prop. */
@@ -36,7 +36,7 @@ export type AppRouterProps = {
   onSelectGame?: (game?: IGameInfo) => void;
   onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
   wasNewGameClicked: boolean;
-  onDownloadUpgradeClick: (stage: UpgradeStage) => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   gameLibraryRoute: string;
   themeItems: IThemeListItem[];
   reloadTheme: (themePath: string | undefined) => void;

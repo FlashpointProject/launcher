@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 import * as fs from 'fs-extra';
 import { IncomingMessage } from 'http';
@@ -5,12 +6,9 @@ import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
-import * as crypto from 'crypto';
-import * as child_process from 'child_process';
+import { indexContentFolder } from '../curate/importCuration';
 import { UpgradeStage } from '../upgrade/types';
 import { pathTo7z } from './SevenZip';
-import { indexContentFolder } from '../curate/importCuration';
-import { remote } from 'electron';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 

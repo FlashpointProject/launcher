@@ -12,6 +12,7 @@ import { formatString } from '../../../shared/utils/StringFormatter';
 import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
+import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { GameLauncher } from '../../GameLauncher';
 import { GameImageCollection } from '../../image/GameImageCollection';
 import { CentralState } from '../../interfaces';
@@ -22,9 +23,10 @@ import { joinLibraryRoute } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { getPlatforms } from '../../util/platform';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
+import { AutoProgressComponent } from '../ProgressComponents';
 import { RandomGames } from '../RandomGames';
-import { SizeProvider } from '../SizeProvider';
 import { SimpleButton } from '../SimpleButton';
+import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -35,7 +37,7 @@ type OwnProps = {
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
-  onDownloadUpgradeClick: (stage: UpgradeStage) => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   /** Whether an update is available to the Launcher */
   updateInfo: UpdateInfo | undefined;
   /** Callback to initiate the update */
@@ -47,6 +49,9 @@ export type HomePageProps = OwnProps & WithPreferencesProps & WithLibraryProps &
 export interface HomePage {
   context: LangContainer;
 }
+
+const updateProgressKey = 'home-page__update-progress';
+export const homePageProgressKey = 'home-page__upgrade-progress';
 
 export function HomePage(props: HomePageProps) {
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
@@ -69,6 +74,7 @@ export function HomePage(props: HomePageProps) {
   const { disableExtremeGames } = window.External.config.data;
   /** Whether the Update Available button has been pressed */
   const [updateStarted, setUpdateStarted] = React.useState(false);
+  const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
 
   const onPlatformClick = React.useCallback((platform: string) => (event: any) => {
     // Search to filter out all other platforms
@@ -150,37 +156,70 @@ export function HomePage(props: HomePageProps) {
   const height: number = 140;
   const width: number = (height * 0.666) | 0;
 
+  // Render all owned ProgressData as components
+  const updateProgressComponent = React.useMemo(() => {
+    const progressArray = progressState[updateProgressKey];
+    if (progressArray) {
+      return progressArray.map((data, index) => {
+        return (
+          <AutoProgressComponent
+            key={index}
+            progressData={data}
+            wrapperClass={'home-page__progress-wrapper'} />
+        );
+      });
+    }
+  }, [progressState[updateProgressKey]]);
+
   /** Render for each box */
 
-  const renderUpdate = React.useMemo(() =>
-  <div className='home-page__box'>
-    <div className='home-page__box-head'>{strings.updateHeader}</div>
-    <ul className='home-page__box-body home-page__update-box'>
-      {strings.currentVersion} - {remote.app.getVersion()}
-      <br/>
-      {props.updateInfo != undefined ? 
-      <>
-        <p>
-          {strings.nextVersion} - {props.updateInfo.version}
-        </p>
-        <SimpleButton
-          value={strings.updateAvailable}
-          disabled={updateStarted}
-          onClick={() => { 
-            if (props.updateInfo) {
-              const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
-              if (updateNow) {
-                props.autoUpdater.downloadUpdate();
-                setUpdateStarted(true);
+  const renderUpdate = React.useMemo(() => {
+    if (window.External.misc.installed) {
+      return (
+        <div className='home-page__box'>
+          <div className='home-page__box-head'>{strings.updateHeader}</div>
+          <ul className='home-page__box-body home-page__update-box'>
+            {strings.currentVersion} - {remote.app.getVersion()}
+            <br/>
+            {props.updateInfo != undefined ? 
+            <>
+              <p>
+                {strings.nextVersion} - {props.updateInfo.version}
+              </p>
+              {updateStarted ? undefined : 
+                <SimpleButton
+                  value={strings.updateAvailable}
+                  onClick={() => { 
+                    if (props.updateInfo) {
+                      const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
+                      if (updateNow) {
+                        const updateProgressState = newProgress(updateProgressKey, progressDispatch);
+                        ProgressDispatch.setText(updateProgressState, strings.downloadingUpdate);
+                        props.autoUpdater.on('download-progress', (progress) => {
+                          ProgressDispatch.setPercentDone(updateProgressState, Math.floor(progress.percent));
+                        });
+                        props.autoUpdater.once('update-downloaded', (info) => {
+                          ProgressDispatch.finished(updateProgressState);
+                        })
+                        props.autoUpdater.downloadUpdate();
+                        setUpdateStarted(true);
+                      }
+                    }
+                  }}>
+                </SimpleButton>
               }
-            }
-          }}>
-        </SimpleButton>
-      </>
-      : strings.upToDate}
-    </ul>
-  </div>
-, [strings, props.autoUpdater, props.updateInfo, updateStarted, setUpdateStarted]);
+              { updateProgressComponent }
+            </>
+            : strings.upToDate}
+          </ul>
+        </div>
+      );
+    } else {
+      return (
+        <></>
+      );
+    }
+  }, [strings, props.autoUpdater, props.updateInfo, updateStarted, setUpdateStarted, updateProgressComponent]);
 
   const renderQuickStart = React.useMemo(() =>
     <div className='home-page__box'>
@@ -248,7 +287,7 @@ export function HomePage(props: HomePageProps) {
       for (let i = 0; i < upgradeStages.length; i++) {
         renderedStages.push(
           <div key={i*2}>
-            {renderStageSection(allStrings, upgradeStages[i], onDownloadUpgradeClick)}
+            {renderStageSection(allStrings, upgradeStages[i], (stage) => onDownloadUpgradeClick(stage, allStrings))}
           </div>
         );
         renderedStages.push(
