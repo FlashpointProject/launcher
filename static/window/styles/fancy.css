@@ -78,6 +78,11 @@
   /* Home Page */
   --layout__home-page-box-border:     #3f3f3f;
   --layout__home-page-box-background: #252525;
+  /* Curate Page */
+  --layout__curate-page-box-background: var(--layout__tertiary-background);
+  --layout__curate-page-box-border: var(--layout__primary-outline-color);
+  --layout__curate-page-floating-box-background: var(--layout__quaternary-background);
+  --layout__curate-page-floating-box-border: var(--layout__tertiary-background);
   /* Log (at the Log Page) */
   --layout__log-time-stamp:                 #857df3;
   --layout__log-source:                     #d4d4d4;
@@ -424,12 +429,12 @@ body {
 /* ------ Curate ------ */
 /* Curate Page Top */
 .curate-page__floating-box {
-  border-color: var(--layout__tertiary-background);
-  background-color: var(--layout__quaternary-background);
+  border-color: var(--layout__curate-page-floating-box-border);
+  background-color: var(--layout__curate-page-floating-box-background);
 }
 /* Curate Page Left Sidebar Items */
 .curate-page__left-sidebar-item {
-  background-color: var(--layout__primary-background);
+  background-color: var(--layout__playlist-list-fake-even-background);
   color: var(--layout__secondary-text-color);
 }
 .curate-page__left-sidebar-item:nth-child(2n) {
@@ -440,8 +445,8 @@ body {
 }
 /* Curate Box */
 .curate-box {
-  background-color: var(--layout__tertiary-background);
-  border-color: var(--layout__primary-outline-color);
+  background-color: var(--layout__curate-page-box-background);
+  border-color: var(--layout__curate-page-box-border);
 }
 .curate-box input[type="checkbox"] {
   vertical-align: middle;

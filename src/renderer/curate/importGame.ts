@@ -71,32 +71,37 @@ export async function importCuration(
   );
   // Make a copy if not deleting the curation afterwards
   const moveFiles = !saveCuration;
+  curationLog('Importing Curation Meta');
   // Copy/extract content and image files
-  await Promise.all([
-    games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
-    .then(() => { if (log) { logMsg('Meta Added', curation); } }),
-    // Copy Thumbnail
-    (async () => {
-      const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
-      await importGameImage(curation.thumbnail, thumbnailCache, game)
-      .then(() => { thumbnailCache.refresh(); });
-    })()
-    .then(() => { if (log) { logMsg('Thumbnail Copied', curation); } }),
-    // Copy Screenshot
-    (async () => {
-      const screenshotCache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
-      await importGameImage(curation.screenshot, screenshotCache, game)
-      .then(() => { screenshotCache.refresh(); });
-    })()
-    .then(() => { if (log) { logMsg('Screenshot Copied', curation); } }),
-    // Copy content and Extra files
-    (async () => {
-      // Copy each paired content folder one at a time (allows for cancellation)
-      for (let pair of contentToMove) {
-        await copyFolder(pair[0], pair[1], moveFiles);
-      }
-    })()
-    .then(() => {
+  await games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
+  .then(() => { if (log) { logMsg('Meta Added', curation); } }),
+  // Copy Thumbnail
+  curationLog('Importing Curation Thumbnail');
+  await (async () => {
+    const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
+    await importGameImage(curation.thumbnail, thumbnailCache, game)
+    .then(() => { thumbnailCache.refresh(); });
+  })()
+  .then(() => { if (log) { logMsg('Thumbnail Copied', curation); } }),
+  // Copy Screenshot
+  curationLog('Importing Curation Screenshot');
+  await (async () => {
+    const screenshotCache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
+    await importGameImage(curation.screenshot, screenshotCache, game)
+    .then(() => { screenshotCache.refresh(); });
+  })()
+  .then(() => { if (log) { logMsg('Screenshot Copied', curation); } }),
+  // Copy content and Extra files
+  curationLog('Importing Curation Content');
+  await (async () => {
+    // Copy each paired content folder one at a time (allows for cancellation)
+    for (let pair of contentToMove) {
+      await copyFolder(pair[0], pair[1], moveFiles);
+    }
+  })()
+  .then(async () => {
+    curationLog('Saving Imported Content');
+    try {
       if (saveCuration) {
         const date = new Date();
         // Date in form 'YYYY-MM-DD' for folder sorting
@@ -104,17 +109,28 @@ export async function importCuration(
                         date.getUTCMonth().toString().padStart(2, '0') + '-' +
                         date.getUTCDay().toString().padStart(2, '0');
         const backupPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported', `${dateStr}__${curation.key}`);
-        copyFolder(getCurationFolder(curation), backupPath, true);
+        await copyFolder(getCurationFolder(curation), backupPath, true);
       }
       if (log) {
         logMsg('Content Copied', curation);
       }
-    })
-    .catch((error) => {
-      curationLog(error.message);
-      console.warn(error.message);
-    })
-  ]);
+    } catch (error) {
+      curationLog(`Error importing ${curation.meta.title} - Informing user...`);
+      const res = remote.dialog.showMessageBoxSync({
+        title: 'Error saving curation',
+        message: 'Saving curation import failed. Some/all files failed to move. Please check the content folder yourself before removing manually.\n\nOpen folder now?',
+        buttons: ['Yes', 'No']
+      })
+      if (res === 0) {
+        console.log('Opening curation folder after error');
+        remote.shell.openItem(getCurationFolder(curation));
+      }
+    }
+  })
+  .catch((error) => {
+    curationLog(error.message);
+    console.warn(error.message);
+  })
 }
 
 function logMsg(text: string, curation: EditCuration): void {
@@ -212,7 +228,8 @@ export function stringToBool(str: string, defaultVal: boolean = false): boolean 
  */
 export async function launchCuration(curation: EditCuration) {
   await linkContentFolder(curation.key);
-  console.log('Finished linking');
+  console.log(`Launching Curation ${curation.meta.title}`);
+  curationLog(`Launching Curation ${curation.meta.title}`);
   const game = createGameFromCurationMeta(curation.key, curation, new Date());
   const addApps = createAddAppsFromCurationMeta(curation.key, curation.addApps);
   GameLauncher.launchGame(game, addApps);
@@ -236,20 +253,21 @@ async function linkContentFolder(curationKey: string) {
   const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', curationKey);
   const htdocsContentPath = path.join(GameLauncher.getHtdocsPath(), 'content');
   // Clear out old folder if exists
-  console.log('removing old content');
+  console.log('Removing old Server/htdocs/content ...');
   await fs.access(htdocsContentPath, fs.constants.F_OK)
     .then(() => fs.remove(htdocsContentPath))
     .catch((error) => { /* No file is okay, ignore error */ });
   const contentPath = path.join(curationPath, 'content');
-  console.log(contentPath);
+  console.log('Building new Server/htdocs/content ...');
   if (fs.existsSync(contentPath)) {
-    console.log('content exists');
     if (process.platform === 'win32') {
       // Use symlinks on windows if running as Admin - Much faster than copying
       await new Promise((resolve) => {
         exec('NET SESSION', async (err,so,se) => {
           if (se.length === 0) {
+            console.log('Linking...');
             await fs.symlink(contentPath, htdocsContentPath);
+            console.log('Linked!!');
             resolve();
           } else {
             console.log('Copying...');
@@ -335,8 +353,22 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean) {
 }
 
 async function copyFile(source: string, dest: string, move: boolean) {
-  if (move) { await fs.move(source, dest, { overwrite: true }); }
-  else      { await fs.copyFile(source, dest); }
+  try {
+    if (move) { await fs.move(source, dest, { overwrite: true }); }
+    else      { await fs.copyFile(source, dest); }
+  } catch (error) {
+    curationLog(`Error copying file '${source}' to '${dest}' - ${error.message}`);
+    if (move) {
+      curationLog(`Attempting to copy file instead of move...`);
+      try {
+        await fs.copyFile(source, dest);
+      } catch (error) {
+        curationLog(`Copy unsuccessful`);
+        throw error;
+      }
+      curationLog(`Copy successful`);
+    }
+  }
 }
 
 /**
