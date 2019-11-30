@@ -2,6 +2,7 @@ import { exec } from 'child_process';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as YAML from 'yaml';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { GameLibraryFileItem } from '../../shared/library/types';
 import { formatDate, removeFileExtension } from '../../shared/Util';
@@ -16,8 +17,8 @@ import { getFileExtension, sizeToString } from '../Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { uuid } from '../uuid';
 import { CurationIndexImage, indexContentFolder } from './importCuration';
+import { convertEditToCurationMeta } from './metaToMeta';
 import { curationLog, getContentFolderByKey, getCurationFolder } from './util';
-
 
 /**
  * Import a curation.
@@ -103,8 +104,12 @@ export async function importCuration(
     curationLog('Saving Imported Content');
     try {
       if (saveCuration) {
-        const date = new Date();
+        // Save working meta
+        const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+        await fs.writeFile(metaPath, meta)
         // Date in form 'YYYY-MM-DD' for folder sorting
+        const date = new Date();
         const dateStr = date.getFullYear().toString() + '-' +
                         date.getUTCMonth().toString().padStart(2, '0') + '-' +
                         date.getUTCDay().toString().padStart(2, '0');
