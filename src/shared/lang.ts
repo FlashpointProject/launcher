@@ -320,12 +320,15 @@ const langTemplate = {
     'programNotFound',
     'phpNotFound',
     'wineNotFound',
+    'flashpointPathNotFound',
     'fileNotFound',
+    'flashpointPathInvalid',
     'pathNotFound',
     'selectFileToExportMeta',
     'selectFolderToExportMetaAndImages',
     'replaceFilesQuestion',
     'exportedAlreadyExistsYesNo',
+    'selectFolder',
     'selectScreenshot',
     'selectThumbnail',
     'selectThemeFile',
@@ -335,7 +338,12 @@ const langTemplate = {
     'errorParsingPlatforms',
     'errorParsingPlatformsMessage',
     'dataRequired',
-    'dataRequiredDesc'
+    'dataRequiredDesc',
+    'upgradeWillInstallTo',
+    'verifyPathSelection',
+    'restartNow',
+    'restartToApplyUpgrade',
+    'areYouSure'
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

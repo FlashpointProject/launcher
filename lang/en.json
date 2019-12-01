@@ -307,12 +307,15 @@
     "programNotFound": "Program not found!",
     "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
     "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
+    "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "File not found!",
+    "flashpointPathInvalid": "Flashpoint path invalid!",
     "pathNotFound": "Path not found!",
     "selectFileToExportMeta": "Select file to save meta to",
     "selectFolderToExportMetaAndImages": "Select folder to save meta and images to",
     "replaceFilesQuestion": "Replace files?",
     "exportedAlreadyExistsYesNo": "One or more of the exported files already exists.\n Do you want to replace them?",
+    "selectFolder": "Select Folder",
     "selectScreenshot": "Select Screenshot",
     "selectThumbnail": "Select Thumbnail",
     "selectThemeFile": "Select Theme File",
@@ -322,7 +325,12 @@
     "errorParsingPlatforms": "Error parsing platforms!",
     "errorParsingPlatformsMessage": "{0} Error(s) raised while parsing platform XMLs\nPlease check the logs for details.",
     "dataRequired": "Additional Data Required",
-    "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?"
+    "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
+    "upgradeWillInstallTo": "{0} will be installed to",
+    "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
+    "restartNow": "Restart Now?",
+    "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
+    "areYouSure": "Are you sure?"
   },
   "libraries": {
     "arcade": "Games",
@@ -332,8 +340,8 @@
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "Required files. Adds support for Flash games.",
     "tech": "Other Technologies",
-    "techDesc": "SOmething Something",
-    "screenshots": "Screenshots and Logos",
-    "screenshotsDesc": "YES"
+    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
+    "screenshots": "Logos & Screenshots",
+    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
   }
 }

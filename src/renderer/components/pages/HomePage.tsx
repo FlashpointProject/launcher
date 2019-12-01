@@ -27,6 +27,7 @@ import { AutoProgressComponent } from '../ProgressComponents';
 import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
+import { getUpgradeString } from '../../../shared/upgrade/util';
 
 type OwnProps = {
   /** Semi-global prop. */
@@ -181,15 +182,15 @@ export function HomePage(props: HomePageProps) {
           <ul className='home-page__box-body home-page__update-box'>
             {strings.currentVersion} - {remote.app.getVersion()}
             <br/>
-            {props.updateInfo != undefined ? 
+            {props.updateInfo != undefined ?
             <>
               <p>
                 {strings.nextVersion} - {props.updateInfo.version}
               </p>
-              {updateStarted ? undefined : 
+              {updateStarted ? undefined :
                 <SimpleButton
                   value={strings.updateAvailable}
-                  onClick={() => { 
+                  onClick={() => {
                     if (props.updateInfo) {
                       const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
                       if (updateNow) {
@@ -200,7 +201,7 @@ export function HomePage(props: HomePageProps) {
                         });
                         props.autoUpdater.once('update-downloaded', (info) => {
                           ProgressDispatch.finished(updateProgressState);
-                        })
+                        });
                         props.autoUpdater.downloadUpdate();
                         setUpdateStarted(true);
                       }
@@ -385,8 +386,8 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
 function renderStageSection(strings: LangContainer, stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
   return (
     <>
-      <QuickStartItem><b>{stage && strings.upgrades[stage.title] || stage.title || '...'}</b></QuickStartItem>
-      <QuickStartItem><i>{stage && strings.upgrades[stage.description] || stage.description || '...'}</i></QuickStartItem>
+      <QuickStartItem><b>{getUpgradeString(stage.title, strings.upgrades)}</b></QuickStartItem>
+      <QuickStartItem><i>{getUpgradeString(stage.description, strings.upgrades)}</i></QuickStartItem>
       <QuickStartItem>{ renderStageButton(strings.home, stage, onDownload) }</QuickStartItem>
     </>
   );
@@ -394,7 +395,6 @@ function renderStageSection(strings: LangContainer, stage: UpgradeStage, onDownl
 
 function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
   const stageState = stage.state;
-  console.log(stageState);
   return (
     stageState.checksDone ? (
       stageState.alreadyInstalled && stageState.upToDate ? (
@@ -427,9 +427,9 @@ function findFavoritePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefin
 }
 
 function onUpdateDownload(updateInfo: UpdateInfo, downloadFunc: () => void): boolean {
-  const message = (updateInfo.releaseName ? `${updateInfo.releaseName}\n\n` : '') 
+  const message = (updateInfo.releaseName ? `${updateInfo.releaseName}\n\n` : '')
               + (updateInfo.releaseNotes ? `Release Notes:\n${updateInfo.releaseNotes}\n\n` : 'No Release Notes Available.\n\n')
-              + 'Download and Install now?'
+              + 'Download and Install now?';
   const res = remote.dialog.showMessageBoxSync({
     title: 'Update Available',
     message: message,

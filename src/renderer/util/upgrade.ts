@@ -119,7 +119,6 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
         .catch((errors) => {
           console.log(errors);
         });
-        console.log('extract ' + extractionPath);
         // Clean up extraction folder
         await fs.remove(extractionPath);
         // Install complete
@@ -188,10 +187,8 @@ function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offse
  * @param flashpointFolder Path of the Flashpoint folder root.
  */
 export async function checkUpgradeStateInstalled(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
-  console.log(stage);
   const success = await Promise.all(stage.verify_files.map(check => (
     new Promise<boolean>((resolve) => {
-      console.log(path.join(baseFolder, check));
       fs.access(path.join(baseFolder, check), fs.constants.F_OK)
       // File exists
       .then(() => resolve(true))
@@ -217,10 +214,7 @@ export async function checkUpgradeStateUpdated(stage: UpgradeStage, baseFolder: 
         const fullPath = path.join(baseFolder, check);
         return getSha256FromFile(fullPath)
         .then((shaSum) => {
-          console.log('calced ' + shaSum);
-          console.log('compare ' + shaToCheck);
           if (shaSum === shaToCheck) {
-            console.log(`${fullPath} passed`);
             resolve(true);
           }
           return (false);

@@ -46,6 +46,7 @@ import { LangContext } from './util/lang';
 import { getPlatforms } from './util/platform';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
+import { getUpgradeString } from '../shared/upgrade/util';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -343,11 +344,9 @@ export class App extends React.Component<AppProps, AppState> {
       });
       autoUpdater.on('update-downloaded', onUpdateDownloaded);
       autoUpdater.checkForUpdates()
-      .catch((error) => { log(`Error Fetching Update Info - ${error.message}`)});
+      .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
       console.log('Checking for updates...');
     }
-
-    
 
     // Check for Wine and PHP on Linux/Mac
     if (process.platform != 'win32') {
@@ -591,26 +590,40 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
   // Check data folder is set
   let flashpointPath = window.External.config.data.flashpointPath;
   const isValid = await isFlashpointValidCheck(flashpointPath);
-  let promptRestartWhenFinished = false;
   if (!isValid) {
-    // If folder isn't set, ask to set now
-    const res = await openConfirmDialog('No Folder Found', 'The Flashpoint folder is not set or invalid. Do you want to choose a folder to install to now?');
-    if (!res) { return; }
-    // Set folder now
-    const picks = window.External.showOpenDialogSync({
-      title: 'Pick Flashpoint Folder',
-      properties: ['openDirectory', 'promptToCreate', 'createDirectory']
-    });
+    let verifiedPath = false;
+    let chosenPath: (string | undefined);
+    while (verifiedPath != true) {
+      // If folder isn't set, ask to set now
+      const res = await openConfirmDialog(strings.dialog.flashpointPathInvalid, strings.dialog.flashpointPathNotFound);
+      if (!res) { return; }
+      // Set folder now
+      const chosenPaths = window.External.showOpenDialogSync({
+        title: strings.dialog.selectFolder,
+        properties: ['openDirectory', 'promptToCreate', 'createDirectory']
+      });
+      if (chosenPaths && chosenPaths.length > 0) {
+        // Verify the path chosen
+        chosenPath = chosenPaths[0];
+        const topString = formatString(strings.dialog.upgradeWillInstallTo, getUpgradeString(stage.title, strings.upgrades));
+        const choiceVerify = await openConfirmDialog(strings.dialog.areYouSure, `${topString}:\n\n${chosenPath}\n\n${strings.dialog.verifyPathSelection}`);
+        if (choiceVerify) {
+          verifiedPath = true;
+        }
+      } else {
+        // Window closed, cancel the upgrade
+        return;
+      }
+    }
     // Make sure folder given exists
-    if (picks && picks.length > 0) {
-      flashpointPath = picks[0];
+    if (chosenPath) {
+      flashpointPath = chosenPath;
       fs.ensureDirSync(flashpointPath);
       // Save picked folder to config
       let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
         flashpointPath: flashpointPath
       });
       window.External.config.save(newConfig);
-      promptRestartWhenFinished = true;
     }
   }
   // Flag as installing
@@ -648,11 +661,9 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
         isInstalling: false,
         isInstallationComplete: true,
       });
-      if (promptRestartWhenFinished) {
-        const res = await openConfirmDialog('Restart Now?', 'This upgrade will not be applied until you restart.\nDo you wish to do this now?');
-        if (res) {
-          window.External.restart();
-        }
+      const res = await openConfirmDialog(strings.dialog.restartNow, strings.dialog.restartToApplyUpgrade);
+      if (res) {
+        window.External.restart();
       }
     })
     .once('error', (error) => {
@@ -693,7 +704,7 @@ function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], librari
   );
 }
 
-function onUpdateDownloaded() { 
+function onUpdateDownloaded() {
   remote.dialog.showMessageBox({
     title: 'Installing Update',
     message: 'The Launcher will restart to install the update now.',
@@ -701,7 +712,7 @@ function onUpdateDownloaded() {
   })
   .then(() => {
     setImmediate(() => autoUpdater.quitAndInstall());
-  })
+  });
 }
 
 function copyMap<T>(map: IObjectMap<T>): IObjectMap<T> {

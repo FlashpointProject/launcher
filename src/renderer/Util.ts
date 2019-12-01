@@ -137,3 +137,5 @@ export async function openConfirmDialog(title: string, message: string, cancel: 
   if (res.response === 1) { return false; }
   else { throw 'Cancelled'; }
 }
+
+/** Returns the  */

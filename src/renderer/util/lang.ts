@@ -21,6 +21,7 @@ export function getDefaultLocalization(): LangContainer {
   lang.misc.addBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';
   lang.dialog.errorParsingPlatformsMessage = '{0} ' + lang.dialog.errorParsingPlatformsMessage;
+  lang.dialog.upgradeWillInstallTo = '{0} ' + lang.dialog.upgradeWillInstallTo;
   // Return object
   return lang;
 }
