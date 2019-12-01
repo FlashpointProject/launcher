@@ -176,10 +176,11 @@ function filterSearch(text: string, games: IGameInfo[]): IGameInfo[] {
       for (let j = titleFilters.length - 1; j >= 0; j--) {
         const filter = titleFilters[j];
         const word = filter.phrase.toLowerCase();
-        if (game.title.toLowerCase().indexOf(word)     === -1 &&
-            game.developer.toLowerCase().indexOf(word) === -1 &&
-            game.publisher.toLowerCase().indexOf(word) === -1 &&
-            game.series.toLowerCase().indexOf(word)    === -1) {
+        if (game.title.toLowerCase().indexOf(word)           === -1 &&
+            game.alternateTitles.toLowerCase().indexOf(word) === -1 &&
+            game.developer.toLowerCase().indexOf(word)       === -1 &&
+            game.publisher.toLowerCase().indexOf(word)       === -1 &&
+            game.series.toLowerCase().indexOf(word)          === -1) {
           if (!filter.inverse) {
             filteredGames[i] = undefined;
             break;

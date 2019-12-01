@@ -2,6 +2,7 @@ import { exec } from 'child_process';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as YAML from 'yaml';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
 import { GameLibraryFileItem } from '../../shared/library/types';
 import { formatDate, removeFileExtension } from '../../shared/Util';
@@ -16,9 +17,9 @@ import { getFileExtension, sizeToString } from '../Util';
 import { copyGameImageFile, createGameImageFileFromData } from '../util/game';
 import { uuid } from '../uuid';
 import { CurationIndexImage, indexContentFolder } from './importCuration';
+import { convertEditToCurationMeta } from './metaToMeta';
 import { curationLog, getContentFolderByKey, getCurationFolder } from './util';
 import { LangContainer } from 'src/shared/lang';
-
 
 /**
  * Import a curation.
@@ -30,14 +31,34 @@ import { LangContainer } from 'src/shared/lang';
  */
 export async function importCuration(
   curation: EditCuration, games: GameManager, gameImages: GameImageCollection,
-  libraries: GameLibraryFileItem[], log: boolean = false, date: Date = new Date()
+  libraries: GameLibraryFileItem[], log: boolean = false, date: Date = new Date(),
+  saveCuration: boolean
 ): Promise<void> {
+  // TODO: Consider moving this check outside importCuration
+  // Warn if launch command is already present on another game
+  const existingGame = games.collection.games.find(g => g.launchCommand === curation.meta.launchCommand);
+  if (existingGame) {
+    // Warn user of possible duplicate
+    const res = await remote.dialog.showMessageBox({
+      title: 'Possible Duplicate',
+      message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
+               + `Curation:\n\tTitle: ${curation.meta.title}\n\tPlatform: ${curation.meta.platform}\n\n`
+               + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
+      buttons: ['Yes', 'No']
+    });
+    if (res.response === 1) {
+      throw 'User Cancelled Import';
+    }
+  }
+  // Build content list
   const contentToMove = [
-    [getContentFolderByKey(curation.key),                   GameLauncher.getHtdocsPath()],
-    [path.join(getCurationFolder(curation), 'Extras'),      path.join(window.External.config.fullFlashpointPath, 'Extras')],
-    [path.join(getCurationFolder(curation), 'ActiveX'),     path.join(window.External.config.fullFlashpointPath, 'FPSoftware', 'ActiveX')],
-    [path.join(getCurationFolder(curation), '3DGrooveGX'),  path.join(window.External.config.fullFlashpointPath, 'FPSoftware', '3DGrooveGX')]
+    [getContentFolderByKey(curation.key),                   GameLauncher.getHtdocsPath()]
   ];
+  const extrasAddApp = curation.addApps.find(a => a.meta.applicationPath === ':extras:');
+  if (extrasAddApp && extrasAddApp.meta.launchCommand && extrasAddApp.meta.launchCommand.length > 0) {
+    // Add extras folder if meta has an entry
+    contentToMove.push([path.join(getCurationFolder(curation), 'Extras'), path.join(window.External.config.fullFlashpointPath, 'Extras', extrasAddApp.meta.launchCommand)]);
+  }
   // Find the library and get its prefix
   const library = libraries.find(lib => lib.route === curation.meta.library);
   const libraryPrefix = library && library.prefix || '';
@@ -50,37 +71,72 @@ export async function importCuration(
     getImageFolderName(game, libraryPrefix, true) ||
     removeFileExtension(formatUnknownPlatformName(libraryPrefix))
   );
+  // Make a copy if not deleting the curation afterwards
+  const moveFiles = !saveCuration;
+  curationLog('Importing Curation Meta');
   // Copy/extract content and image files
-  await Promise.all([
-    games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
-    .then(() => { if (log) { logMsg('Meta Added', curation); } }),
-    // Copy Thumbnail
-    (async () => {
-      const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
-      await importGameImage(curation.thumbnail, thumbnailCache, game)
-      .then(() => { thumbnailCache.refresh(); });
-    })()
-    .then(() => { if (log) { logMsg('Thumbnail Copied', curation); } }),
-    // Copy Screenshot
-    (async () => {
-      const screenshotCache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
-      await importGameImage(curation.screenshot, screenshotCache, game)
-      .then(() => { screenshotCache.refresh(); });
-    })()
-    .then(() => { if (log) { logMsg('Screenshot Copied', curation); } }),
-    // Copy content and Extra files
-    (async () => {
-      // Copy each paired content folder one at a time (allows for cancellation)
-      for (let pair of contentToMove) {
-        await copyFolder(pair[0], pair[1]);
+  await games.addOrUpdateGame({ game, addApps, library, saveToFile: true })
+  .then(() => { if (log) { logMsg('Meta Added', curation); } }),
+  // Copy Thumbnail
+  curationLog('Importing Curation Thumbnail');
+  await (async () => {
+    const thumbnailCache = await gameImages.getOrCreateThumbnailCache(imageFolderName);
+    await importGameImage(curation.thumbnail, thumbnailCache, game)
+    .then(() => { thumbnailCache.refresh(); });
+  })()
+  .then(() => { if (log) { logMsg('Thumbnail Copied', curation); } }),
+  // Copy Screenshot
+  curationLog('Importing Curation Screenshot');
+  await (async () => {
+    const screenshotCache = await gameImages.getOrCreateScreenshotCache(imageFolderName);
+    await importGameImage(curation.screenshot, screenshotCache, game)
+    .then(() => { screenshotCache.refresh(); });
+  })()
+  .then(() => { if (log) { logMsg('Screenshot Copied', curation); } }),
+  // Copy content and Extra files
+  curationLog('Importing Curation Content');
+  await (async () => {
+    // Copy each paired content folder one at a time (allows for cancellation)
+    for (let pair of contentToMove) {
+      await copyFolder(pair[0], pair[1], moveFiles);
+    }
+  })()
+  .then(async () => {
+    curationLog('Saving Imported Content');
+    try {
+      if (saveCuration) {
+        // Save working meta
+        const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+        await fs.writeFile(metaPath, meta)
+        // Date in form 'YYYY-MM-DD' for folder sorting
+        const date = new Date();
+        const dateStr = date.getFullYear().toString() + '-' +
+                        date.getUTCMonth().toString().padStart(2, '0') + '-' +
+                        date.getUTCDay().toString().padStart(2, '0');
+        const backupPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported', `${dateStr}__${curation.key}`);
+        await copyFolder(getCurationFolder(curation), backupPath, true);
       }
-    })()
-    .then(() => { if (log) { logMsg('Content Copied', curation); } })
-    .catch((error) => {
-      curationLog(error.message);
-      console.warn(error.message);
-    })
-  ]);
+      if (log) {
+        logMsg('Content Copied', curation);
+      }
+    } catch (error) {
+      curationLog(`Error importing ${curation.meta.title} - Informing user...`);
+      const res = remote.dialog.showMessageBoxSync({
+        title: 'Error saving curation',
+        message: 'Saving curation import failed. Some/all files failed to move. Please check the content folder yourself before removing manually.\n\nOpen folder now?',
+        buttons: ['Yes', 'No']
+      })
+      if (res === 0) {
+        console.log('Opening curation folder after error');
+        remote.shell.openItem(getCurationFolder(curation));
+      }
+    }
+  })
+  .catch((error) => {
+    curationLog(error.message);
+    console.warn(error.message);
+  })
 }
 
 function logMsg(text: string, curation: EditCuration): void {
@@ -97,6 +153,7 @@ function createGameFromCurationMeta(gameId: string, curation: EditCuration, date
   return {
     id:                  gameId, // (Re-use the id of the curation)
     title:               meta.title               || '',
+    alternateTitles:     meta.alternateTitles     || '',
     series:              meta.series              || '',
     developer:           meta.developer           || '',
     publisher:           meta.publisher           || '',
@@ -175,8 +232,10 @@ export function stringToBool(str: string, defaultVal: boolean = false): boolean 
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export function launchCuration(curation: EditCuration, lang: LangContainer['dialog']) {
-  linkContentFolder(curation.key);
+export async function launchCuration(curation: EditCuration, lang: LangContainer['dialog']) {
+  await linkContentFolder(curation.key);
+  console.log(`Launching Curation ${curation.meta.title}`);
+  curationLog(`Launching Curation ${curation.meta.title}`);
   const game = createGameFromCurationMeta(curation.key, curation, new Date());
   const addApps = createAddAppsFromCurationMeta(curation.key, curation.addApps);
   GameLauncher.launchGame(game, lang, addApps);
@@ -187,8 +246,8 @@ export function launchCuration(curation: EditCuration, lang: LangContainer['dial
  * @param curationKey Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export function launchAddAppCuration(curationKey: string, native: boolean, appCuration: EditAddAppCuration) {
-  linkContentFolder(curationKey);
+export async function launchAddAppCuration(curationKey: string, native: boolean, appCuration: EditAddAppCuration) {
+  await linkContentFolder(curationKey);
   const addApp = createAddAppsFromCurationMeta(curationKey, [appCuration]);
   GameLauncher.launchAdditionalApplication(addApp[0], native);
 }
@@ -200,24 +259,34 @@ async function linkContentFolder(curationKey: string) {
   const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', curationKey);
   const htdocsContentPath = path.join(GameLauncher.getHtdocsPath(), 'content');
   // Clear out old folder if exists
+  console.log('Removing old Server/htdocs/content ...');
   await fs.access(htdocsContentPath, fs.constants.F_OK)
     .then(() => fs.remove(htdocsContentPath))
     .catch((error) => { /* No file is okay, ignore error */ });
   const contentPath = path.join(curationPath, 'content');
+  console.log('Building new Server/htdocs/content ...');
   if (fs.existsSync(contentPath)) {
     if (process.platform === 'win32') {
       // Use symlinks on windows if running as Admin - Much faster than copying
-      await new Promise(() => {
-        exec('NET SESSION', (err,so,se) => {
+      await new Promise((resolve) => {
+        exec('NET SESSION', async (err,so,se) => {
           if (se.length === 0) {
-            return fs.symlink(contentPath, htdocsContentPath);
+            console.log('Linking...');
+            await fs.symlink(contentPath, htdocsContentPath);
+            console.log('Linked!!');
+            resolve();
           } else {
-            return fs.copy(contentPath, htdocsContentPath);
+            console.log('Copying...');
+            await fs.copy(contentPath, htdocsContentPath);
+            console.log('Copied!');
+            resolve();
           }
         });
       });
     } else {
+      console.log('Copying...');
       await fs.copy(contentPath, htdocsContentPath);
+      console.log('Copied!');
     }
   }
 }
@@ -227,49 +296,85 @@ async function linkContentFolder(curationKey: string) {
  * @param inFolder Folder to copy from
  * @param outFolder Folder to copy to
  */
-async function copyFolder(inFolder: string, outFolder: string) {
+async function copyFolder(inFolder: string, outFolder: string, move: boolean) {
   const contentIndex = await indexContentFolder(inFolder);
+  let yesToAll = false;
   return Promise.all(
     contentIndex.map(async (content) => {
-        // For checking cancel at end
-        let cancel = false;
-        const source = path.join(inFolder, content.filePath);
-        const dest = path.join(outFolder, content.filePath);
-        // Ensure that the folders leading up to the file exists
-        await fs.ensureDir(path.dirname(dest));
+      // For checking cancel at end
+      let cancel = false;
+      const source = path.join(inFolder, content.filePath);
+      const dest = path.join(outFolder, content.filePath);
+      // Ensure that the folders leading up to the file exists
+      await fs.ensureDir(path.dirname(dest));
+      await fs.access(dest, fs.constants.F_OK)
+      .then(async () => {
         // Ask to overwrite if file already exists
-        await fs.access(dest, fs.constants.F_OK)
-          .then(async () => {
-            const filesDifferent = !(await equalFileHashes(source, dest));
-            // Only ask when files don't match
-            if (filesDifferent) {
-              const newStats = await fs.lstat(source);
-              const currentStats = await fs.lstat(dest);
-              const response = remote.dialog.showMessageBoxSync({
-                type: 'warning',
-                title: 'Import Warning',
-                message: 'Overwrite File?\n' +
-                        `${content.filePath}\n` +
-                        `Current File: ${sizeToString(currentStats.size)} (${currentStats.size} Bytes)\n`+
-                        `New File: ${sizeToString(newStats.size)} (${newStats.size} Bytes)`,
-                buttons: ['Yes', 'No', 'Cancel']
-              });
-              if (response === 0) {
-                await fs.move(source, dest, { overwrite: true });
-              }
-              if (response === 2) { cancel = true; }
-            }
-          })
-          // Dest file doesn't exist, just move
-          .catch(async () => {
-            await fs.move(source, dest);
+        const filesDifferent = !(await equalFileHashes(source, dest));
+        // Only ask when files don't match
+        if (filesDifferent) {
+          if (!yesToAll) {
+            copyFile(source, dest, move);
+            return;
+          }
+          const newStats = await fs.lstat(source);
+          const currentStats = await fs.lstat(dest);
+          const response = remote.dialog.showMessageBoxSync({
+            type: 'warning',
+            title: 'Import Warning',
+            message: 'Overwrite File?\n' +
+                    `${content.filePath}\n` +
+                    `Current File: ${sizeToString(currentStats.size)} (${currentStats.size} Bytes)\n`+
+                    `New File: ${sizeToString(newStats.size)} (${newStats.size} Bytes)`,
+            buttons: ['Yes', 'No', 'Yes to All', 'Cancel']
           });
-        if (cancel) { throw Error('Import cancelled by user.'); }
+          switch (response) {
+            case 0:
+              copyFile(source, dest, move);
+              break;
+            case 2:
+              yesToAll = true;
+              copyFile(source, dest, move);
+              break;
+            case 3:
+              cancel = true;
+              break;
+          }
+          if (response === 0) {
+            copyFile(source, dest, move);
+          }
+          if (response === 2) { cancel = true; }
+        }
+      })
+      .catch(async () => {
+        // Dest file doesn't exist, just move
+        copyFile(source, dest, move);
+      });
+      if (cancel) { throw Error('Import cancelled by user.'); }
     })
   )
   .catch((error) => {
     throw error;
   });
+}
+
+async function copyFile(source: string, dest: string, move: boolean) {
+  try {
+    if (move) { await fs.move(source, dest, { overwrite: true }); }
+    else      { await fs.copyFile(source, dest); }
+  } catch (error) {
+    curationLog(`Error copying file '${source}' to '${dest}' - ${error.message}`);
+    if (move) {
+      curationLog(`Attempting to copy file instead of move...`);
+      try {
+        await fs.copyFile(source, dest);
+      } catch (error) {
+        curationLog(`Copy unsuccessful`);
+        throw error;
+      }
+      curationLog(`Copy successful`);
+    }
+  }
 }
 
 /**

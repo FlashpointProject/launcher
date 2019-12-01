@@ -34,6 +34,20 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   const disabled = props.disabled;
   // Localized strings
   const strings = React.useContext(LangContext);
+  const specialType = props.curation.meta.applicationPath === ':extras:' || props.curation.meta.applicationPath === ':message:';
+  let lcString = strings.browse.launchCommand;
+  let lcPlaceholderString = strings.browse.noLaunchCommand;
+  // Change Launch Command strings depending on add app type
+  switch (props.curation.meta.applicationPath) {
+    case ':message:':
+      lcString = strings.curate.message;
+      lcPlaceholderString = strings.curate.noMessage;
+      break;
+    case ':extras:':
+      lcString = strings.curate.folderName;
+      lcPlaceholderString = strings.curate.noFolderName;
+      break;
+  }
   // Callback for the "remove" button
   const onRemove = useCallback(() => {
     props.dispatch({
@@ -45,8 +59,8 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
     });
   }, [props.curationKey, props.curation.key, props.dispatch]);
   // Callback for the "run" button
-  const onRun = useCallback(() => {
-    launchAddAppCuration(props.curationKey, props.native, props.curation);
+  const onRun = useCallback(async () => {
+    await launchAddAppCuration(props.curationKey, props.native, props.curation);
   }, [props.curation && props.curation.meta && props.curationKey]);
   // Render
   return (
@@ -60,6 +74,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
             disabled={disabled}
             onKeyDown={props.onInputKeyDown} />
         </CurateBoxRow>
+        {specialType ? undefined :
         <CurateBoxRow title={strings.browse.applicationPath + ':'}>
           <InputField
             text={props.curation && props.curation.meta.applicationPath || ''}
@@ -69,28 +84,27 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
             disabled={disabled}
             onKeyDown={props.onInputKeyDown} />
         </CurateBoxRow>
-        <CurateBoxRow title={strings.browse.launchCommand + ':'}>
+        }
+        <CurateBoxRow title={lcString + ':'}>
           <InputField
             text={props.curation && props.curation.meta.launchCommand || ''}
-            placeholder={strings.browse.noLaunchCommand}
+            placeholder={lcPlaceholderString}
             onChange={onLaunchCommandChange}
             editable={editable}
             disabled={disabled}
             onKeyDown={props.onInputKeyDown} />
         </CurateBoxRow>
-        <td>
-          <SimpleButton
-            className='curate-box-buttons__button'
-            value={strings.curate.removeAddApp}
-            disabled={disabled}
-            onClick={onRemove} />
-          <SimpleButton
-            className='curate-box-buttons__button'
-            value={strings.curate.run}
-            disabled={disabled}
-            onClick={onRun} />
-        </td>
-    </tr>
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.removeAddApp}
+          disabled={disabled}
+          onClick={onRemove} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.run}
+          disabled={disabled}
+          onClick={onRun} />
+  </tr>
   );
 }
 

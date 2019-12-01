@@ -32,7 +32,10 @@ function onProcessMessage(message: any, sendHandle: any): void {
     let serverPort: number = -1;
     for (let port = content.portMin; port <= content.portMax; port++) {
       try {
-        server = new Server({ port });
+        server = new Server({
+          host: 'localhost',
+          port,
+        });
         serverPort = port;
         break;
       } catch (error) { /* Do nothing. */ }

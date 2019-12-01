@@ -74,6 +74,7 @@ export function convertEditToCurationMeta(curation: EditCurationMeta, addApps?: 
   const parsed: CurationFormatMeta = {};
   // Edit curation meta
   parsed['Title']                = curation.title;
+  parsed['Alternate Titles']     = curation.alternateTitles;
   parsed['Library']              = curation.library;
   parsed['Series']               = curation.series;
   parsed['Developer']            = curation.developer;
@@ -140,6 +141,7 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta): Curat
   const parsed: CurationFormatMeta = {};
   // Edit curation meta
   parsed['Title']                = curation.game.title;
+  parsed['Alternate Titles']     = curation.game.alternateTitles;
   parsed['Library']              = curation.game.library;
   parsed['Series']               = curation.game.series;
   parsed['Developer']            = curation.game.developer;
@@ -214,6 +216,7 @@ type CurationFormatMeta = {
   'Status'?: string;
   'Tags'?: string;
   'Title'?: string;
+  'Alternate Titles'?: string;
   'Library'?: string;
   'Version'?: string;
   'Additional Applications'?: CurationFormatAddApps;

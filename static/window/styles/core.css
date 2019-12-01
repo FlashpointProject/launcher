@@ -792,6 +792,10 @@ body {
 .curate-page__center {
   width: 40em;
 }
+.curate-page input[type="checkbox"] {
+  width: 2rem;
+  height: 2rem;
+}
 /* (Edit how other classes appear in this page) */
 .curate-page .input-dropdown__content {
   max-height: 25rem;
@@ -816,6 +820,15 @@ body {
 .curate-page__floating-box__divider {
   height: 1rem;
 }
+/* Curate Page right panel checkbox item */
+.curate-page__checkbox {
+  display: flex;
+  align-items: center;
+}
+.curate-page__checkbox-text {
+  text-align: center;
+  margin: 0 0.2rem;
+}
 /* Curate Page Left Sidebar */
 .curate-page__left-sidebar-item {
   display: flex;
@@ -835,7 +848,7 @@ body {
   background-position: center;
 }
 .curate-page__left {
-  flex: auto;
+  flex-grow: 0.5;
 }
 .curate-page__right {
   flex: auto;
@@ -1857,7 +1870,6 @@ body {
 .progress-component__wrapper {
   position: relative;
   width: 100%;
-  height: 100%;
   top: 0;
   left: 0;
   /* Font Size acts to scale child component */

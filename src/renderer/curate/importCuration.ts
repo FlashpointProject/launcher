@@ -143,7 +143,7 @@ export async function importCurationArchive(filePath: string, key: string = uuid
 function extractFullPromise(args: Parameters<typeof extractFull>, progress?: ProgressHandle) : Promise<void> {
   return new Promise<void>((resolve, reject) => {
     extractFull(...args)
-    .on(('progress'), (event) => {
+    .on(('progress'), async (event) => {
       if (progress) {
         // Update the text and percentage of a (possibly) given progress with 7z's progress
         ProgressDispatch.setPercentDone(progress, event.percent);

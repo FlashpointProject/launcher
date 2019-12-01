@@ -22,11 +22,13 @@ import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { CurateBoxAddApp } from './CurateBoxAddApp';
 import { CurateBoxRow } from './CurateBoxRow';
-import { CurateBoxWarnings, CurationWarnings } from './CurateBoxWarnings';
+import { CurateBoxWarnings, CurationWarnings, getWarningCount } from './CurateBoxWarnings';
 import { DropdownInputField } from './DropdownInputField';
 import { GameImageSplit } from './GameImageSplit';
 import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
+import { ProgressContext, newProgress, ProgressDispatch } from '../context/ProgressContext';
+import { AutoProgressComponent } from './ProgressComponents';
 
 type CurateBoxProps = {
   /** Meta data of the curation to display. */
@@ -47,6 +49,7 @@ type CurateBoxProps = {
 export function CurateBox(props: CurateBoxProps) {
   // Localized strings
   const strings = React.useContext(LangContext);
+  const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
   // Content file collisions
   const [contentCollisions, setContentCollisions] = useState<ContentCollision[] | undefined>(undefined);
   // Check for content file collisions
@@ -66,6 +69,7 @@ export function CurateBox(props: CurateBoxProps) {
   // Callbacks for the fields (onChange)
   const key                         = props.curation ? props.curation.key : undefined;
   const onTitleChange               = useOnInputChange('title',               key, props.dispatch);
+  const onAlternateTitlesChange     = useOnInputChange('alternateTitles',    key, props.dispatch);
   const onSeriesChange              = useOnInputChange('series',              key, props.dispatch);
   const onDeveloperChange           = useOnInputChange('developer',           key, props.dispatch);
   const onPublisherChange           = useOnInputChange('publisher',           key, props.dispatch);
@@ -85,6 +89,8 @@ export function CurateBox(props: CurateBoxProps) {
   const onAuthorNotesChange         = useOnInputChange('authorNotes',         key, props.dispatch);
   const onExtremeChange             = useOnCheckboxToggle('extreme',          key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
+  const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
+  const onStatusSelect              = useCallback(transformOnItemSelect(onStatusChange),          [onStatusChange]);
   const onTagItemSelect             = useCallback(transformOnItemSelect(onTagsChange),            [onTagsChange]);
   const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
   const onApplicationPathItemSelect = useCallback(transformOnItemSelect(onApplicationPathChange), [onPlatformChange]);
@@ -105,6 +111,32 @@ export function CurateBox(props: CurateBoxProps) {
           lock: true,
         },
       });
+      // Check for warnings before importing
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraryData, strings.curate);
+      const warningCount = getWarningCount(warnings);
+      if (warningCount > 0) {
+        // Prompt user
+        const res = remote.dialog.showMessageBoxSync({
+          title: 'Import Warnings',
+          message: 'There are Warnings present on this Curation.\n\nDo you still wish to import?',
+          buttons: ['Yes', 'No']
+        });
+        if (res === 1) {
+          // No
+          props.dispatch({
+            type: 'change-curation-lock',
+            payload: {
+              key: curation.key,
+              lock: false,
+            },
+          });
+          return;
+        }
+      }
+      // Set status text
+      const statusProgress = newProgress(curation.key, progressDispatch);
+      ProgressDispatch.setText(statusProgress, 'Importing Curation...');
+      ProgressDispatch.setUsePercentDone(statusProgress, false);
       // Import the curation
       props.importCuration(curation)
       .then(() => {
@@ -136,13 +168,36 @@ export function CurateBox(props: CurateBoxProps) {
             content: content
           }
         });
+      })
+      .finally(() => {
+        ProgressDispatch.finished(statusProgress);
       });
     }
-  }, [props.dispatch, props.curation]);
+  }, [props.dispatch, props.curation, props.importCuration]);
   // Callback for testing a curation works
-  const onRun = useCallback(() => {
+  const onRun = useCallback(async () => {
     if (props.curation) {
-      launchCuration(props.curation, strings.dialog);
+      // Lock the curation while copying files
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: props.curation.key,
+          lock: true,
+        },
+      });
+      const statusProgress = newProgress(props.curation.key, progressDispatch);
+      ProgressDispatch.setText(statusProgress, 'Launching Curation...');
+      ProgressDispatch.setUsePercentDone(statusProgress, false);
+      await launchCuration(props.curation, strings.dialog);
+      ProgressDispatch.finished(statusProgress);
+      // Unlock the curation
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: props.curation.key,
+          lock: false,
+        },
+      });
     }
   }, [props.dispatch, props.curation, strings.dialog]);
   // Callback for when the index content button is clicked
@@ -178,7 +233,34 @@ export function CurateBox(props: CurateBoxProps) {
     if (props.curation) {
       props.dispatch({
         type: 'new-addapp',
-        payload: { key: props.curation.key }
+        payload: {
+          key: props.curation.key,
+          type: 'normal'
+        }
+      });
+    }
+  }, [props.dispatch, props.curation && props.curation.key]);
+  // Callback for when adding an Extras add app
+  const onAddExtras = useCallback(() => {
+    if (props.curation) {
+      props.dispatch({
+        type: 'new-addapp',
+        payload: {
+          key: props.curation.key,
+          type: 'extras'
+        }
+      });
+    }
+  }, [props.dispatch, props.curation && props.curation.key]);
+  // Callback for when adding a Message add app
+  const onAddMessage = useCallback(() => {
+    if (props.curation) {
+      props.dispatch({
+        type: 'new-addapp',
+        payload: {
+          key: props.curation.key,
+          type: 'message'
+        }
       });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
@@ -186,6 +268,34 @@ export function CurateBox(props: CurateBoxProps) {
   const onExportClick = useCallback(async () => {
     if (props.curation) {
       const curation = props.curation;
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: curation.key,
+          lock: true,
+        },
+      });
+      const warnings = getCurationWarnings(curation, props.suggestions, props.libraryData, strings.curate);
+      const warningCount = getWarningCount(warnings);
+      if (warningCount > 0) {
+        // Prompt user
+        const res = remote.dialog.showMessageBoxSync({
+          title: 'Export Warnings',
+          message: 'There are Warnings present on this Curation.\n\nDo you still wish to export?',
+          buttons: ['Yes', 'No']
+        });
+        if (res === 1) {
+          // No
+          props.dispatch({
+            type: 'change-curation-lock',
+            payload: {
+              key: curation.key,
+              lock: false,
+            },
+          });
+          return;
+        }
+      }
       // Choose where to save the file
       const defaultPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Exports');
       await fs.ensureDir(defaultPath);
@@ -198,24 +308,46 @@ export function CurateBox(props: CurateBoxProps) {
         }]
       });
       if (filePath) {
-        fs.ensureDir(path.dirname(filePath))
-        .then(async () => {
-          // Remove old zip (if overwriting)
-          await fs.access(filePath, fs.constants.F_OK)
-            .then(() => {
-              return fs.unlink(filePath);
-            })
-            .catch((error) => { /* No file is okay, ignore error */ });
-          // Save working meta
-          const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
-          const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
-          return fs.writeFile(metaPath, meta)
+        await fs.ensureDir(path.dirname(filePath))
+        // Check if zip path already exists
+        await fs.access(filePath, fs.constants.F_OK)
           .then(() => {
-            // Zip it all up
-            add(filePath, getCurationFolder(curation), { recursive: true, $bin: pathTo7z });
+            // Remove old zip - 'Add' will expand zip if it exists
+            return fs.unlink(filePath);
+          })
+          .catch((error) => { /* No file is okay, ignore error */ });
+        // Save working meta
+        const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+        const statusProgress = newProgress(props.curation.key, progressDispatch);
+        ProgressDispatch.setText(statusProgress, 'Exporting Curation...');
+        ProgressDispatch.setUsePercentDone(statusProgress, false);
+        await fs.writeFile(metaPath, meta)
+        .then(() => {
+          // Zip it all up
+          return new Promise<void>((resolve) => {
+            return add(filePath, getCurationFolder(curation), { recursive: true, $bin: pathTo7z })
+            .on('end', () => { resolve(); })
+            .on('error', (error) => { 
+              curationLog(error.message); 
+              resolve();
+            });
           });
+        })
+        .finally(() => {
+          ProgressDispatch.finished(statusProgress);
         });
       }
+      const msg = `Successfully Exported ${curation.meta.title} to ${filePath}`;
+      console.log(msg);
+      curationLog(msg);
+      props.dispatch({
+        type: 'change-curation-lock',
+        payload: {
+          key: curation.key,
+          lock: false,
+        },
+      });
     }
   }, [props.curation]);
 
@@ -306,28 +438,11 @@ export function CurateBox(props: CurateBoxProps) {
 
   // Generate Warnings
   const warnings = useMemo(() => {
-    const warns: CurationWarnings = {};
     if (props.curation) {
-      // Check launch command exists
-      const launchCommand = props.curation.meta.launchCommand || '';
-      warns.noLaunchCommand = launchCommand === '';
-      // Check launch command is valid (if exists)
-      warns.invalidLaunchCommand = !warns.noLaunchCommand && !validLaunchCommand(getContentFolderByKey(props.curation.key), launchCommand);
-      // Validate release date
-      const releaseDate = props.curation.meta.releaseDate;
-      if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
-      // Check for unused values (with suggestions)
-      warns.unusedTags = listValuesNotSuggested(props, 'tags', ';');
-      warns.unusedPlatform = !isValueSuggested(props, 'platform');
-      warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
-      // Check if there is no content
-      warns.noContent = props.curation.content.length === 0;
-      // Check if library is set
-      const curLibrary = props.curation.meta.library;
-      warns.nonExistingLibrary = props.libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
+      return getCurationWarnings(props.curation, props.suggestions, props.libraryData, strings.curate);
     }
-    return warns;
-  }, [props.curation && props.curation.meta, props.curation && props.curation.content]);
+    return {};
+  }, [props.curation, strings]);
 
   // Render images (logo + ss)
   const imageSplit = useMemo(() => {
@@ -339,6 +454,7 @@ export function CurateBox(props: CurateBoxProps) {
           <GameImageSplit
             text={strings.browse.thumbnail}
             imgSrc={thumbnailPath}
+            showHeaders={false}
             onAddClick={onAddThumbnailClick}
             onRemoveClick={onRemoveThumbnailClick}
             disabled={disabled}
@@ -347,6 +463,7 @@ export function CurateBox(props: CurateBoxProps) {
           <GameImageSplit
             text={strings.browse.screenshot}
             imgSrc={screenshotPath}
+            showHeaders={false}
             onAddClick={onAddScreenshotClick}
             onRemoveClick={onRemoveScreenshotClick}
             disabled={disabled}
@@ -373,6 +490,21 @@ export function CurateBox(props: CurateBoxProps) {
     }
     return props.libraryOptions;
   }, [props.curation && props.curation.meta.library, props.libraryOptions, warnings]);
+
+  // Render all owned ProgressData as components
+  const progressComponent = useMemo(() => {
+    const key = props.curation ? props.curation.key : 'invalid';
+    const progressArray = progressState[key];
+    if (progressArray) {
+      return progressArray.map((data, index) => {
+        return (
+          <AutoProgressComponent
+            key={index}
+            progressData={data} />
+        );
+      });
+    }
+  }, [props.curation && progressState[props.curation.key]]);
 
   // Meta
   const authorNotes = props.curation && props.curation.meta.authorNotes || '';
@@ -402,6 +534,13 @@ export function CurateBox(props: CurateBoxProps) {
               text={props.curation && props.curation.meta.title || ''}
               placeholder={strings.browse.noTitle}
               onChange={onTitleChange}
+              { ...sharedInputProps } />
+          </CurateBoxRow>
+          <CurateBoxRow title={strings.browse.alternateTitles + ':'}>
+            <InputField
+              text={props.curation && props.curation.meta.alternateTitles || ''}
+              placeholder={strings.browse.noAlternateTitles}
+              onChange={onAlternateTitlesChange}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.library + ':'}>
@@ -446,21 +585,25 @@ export function CurateBox(props: CurateBoxProps) {
               onChange={onTagsChange}
               items={props.suggestions && props.suggestions.tags || []}
               onItemSelect={onTagItemSelect}
-              className={warnings.unusedTags ? 'input-field--warn' : ''}
+              className={(warnings.unusedTags && warnings.unusedTags.length > 0) ? 'input-field--warn' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.playMode + ':'}>
-            <InputField
+            <DropdownInputField
               text={props.curation && props.curation.meta.playMode || ''}
               placeholder={strings.browse.noPlayMode}
               onChange={onPlayModeChange}
+              items={props.suggestions && props.suggestions.playMode || []}
+              onItemSelect={onPlayModeSelect}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.status + ':'}>
-            <InputField
+            <DropdownInputField
               text={props.curation && props.curation.meta.status || ''}
               placeholder={strings.browse.noStatus}
               onChange={onStatusChange}
+              items={props.suggestions && props.suggestions.status || []}
+              onItemSelect={onStatusSelect}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.version + ':'}>
@@ -517,7 +660,7 @@ export function CurateBox(props: CurateBoxProps) {
               text={props.curation && props.curation.meta.launchCommand || ''}
               placeholder={strings.browse.noLaunchCommand}
               onChange={onLaunchCommandChange}
-              className={(warnings.invalidLaunchCommand || warnings.noLaunchCommand) ? 'input-field--warn' : ''}
+              className={(warnings.noLaunchCommand || (warnings.invalidLaunchCommand && warnings.invalidLaunchCommand.length != 0)) ? 'input-field--warn' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.notes + ':'}>
@@ -542,7 +685,7 @@ export function CurateBox(props: CurateBoxProps) {
               placeholder={strings.curate.noCurationNotes}
               onChange={onAuthorNotesChange}
               multiline={true}
-              className={authorNotes.length > 0 ? 'input-field--warn' : ''}
+              className={authorNotes.length > 0 ? 'input-field--info' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.extreme + ':'}>
@@ -560,7 +703,18 @@ export function CurateBox(props: CurateBoxProps) {
         <SimpleButton
           className='curate-box-buttons__button'
           value={strings.curate.newAddApp}
-          onClick={onNewAddApp} />
+          onClick={onNewAddApp}
+          disabled={disabled} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.addExtras}
+          onClick={onAddExtras}
+          disabled={disabled} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.addMessage}
+          onClick={onAddMessage}
+          disabled={disabled} />
         <hr className='curate-box-divider' />
       </div>
       {/* Content */}
@@ -627,8 +781,9 @@ export function CurateBox(props: CurateBoxProps) {
             disabled={disabled} />
         </div>
       </div>
+      {progressComponent}
     </div>
-  ), [props.curation, strings, disabled, warnings]);
+  ), [props.curation, strings, disabled, warnings, onImportClick, progressComponent]);
 }
 
 function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
@@ -750,11 +905,11 @@ function useDropImageCallback(filename: string, curation: EditCuration | undefin
  * @param props Properties of the CurateBox.
  * @param key Key of the field to check.
  */
-function isValueSuggested<T extends keyof Partial<GamePropSuggestions>>(props: CurateBoxProps, key: T & string): boolean {
+function isValueSuggested<T extends keyof Partial<GamePropSuggestions>>(curation: EditCuration, _suggestions: Partial<GamePropSuggestions> | undefined, key: T & string): boolean {
   // Get the values used
   // (the dumb compiler doesn't understand that this is a string >:((( )
-  const value = (props.curation && props.curation.meta[key] || '') as string;
-  const suggestions = props.suggestions && props.suggestions[key];
+  const value = (curation.meta[key] || '') as string;
+  const suggestions = _suggestions && _suggestions[key];
   // Check if the value is suggested
   return suggestions ? (suggestions.indexOf(value) >= 0) : false;
 }
@@ -766,11 +921,11 @@ function isValueSuggested<T extends keyof Partial<GamePropSuggestions>>(props: C
  * @param delimiter String delimiter between values
  * @returns List of values not found in suggestions
  */
-function listValuesNotSuggested<T extends keyof Partial<GamePropSuggestions>>(props: CurateBoxProps, key: T & string, delimiter: string): string[] {
+function listValuesNotSuggested<T extends keyof Partial<GamePropSuggestions>>(curation: EditCuration, _suggestions: Partial<GamePropSuggestions> | undefined, key: T & string, delimiter: string): string[] {
   // Get the values used
   // (the dumb compiler doesn't understand that this is a string >:((( )
-  const value = (props.curation && props.curation.meta[key] || '') as string;
-  const suggestions = props.suggestions && props.suggestions[key];
+  const value = (curation.meta[key] || '') as string;
+  const suggestions = _suggestions && _suggestions[key];
   const unusedValues: string[] = [];
   // Delimiter given, split string
   if (suggestions && value.length > 0) {
@@ -846,17 +1001,23 @@ function isHttpUrl(str: string): boolean {
   catch (e) { return false; }
 }
 
-function validLaunchCommand(folderPath: string, launchCommand: string): boolean {
+function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string, strings: LangContainer['curate']): string[] {
+  // Keep list of warns for end
+  const warns: string[] = [];
   // Extract first string from launch command via regex
   let match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
   if (match) {
     // Match 1 - Inside quotes, Match 0 - No Quotes Found
     let lc = match[1] || match[0];
-    // Only check URLS (ignore bash/shell script non-URL commands)
-    if (lc.toLowerCase().startsWith('http')) {
-      if (lc.toLowerCase().startsWith('https')) {
-        // Using HTTPS, warn
-        return false;
+    // Extract protocol from potential URL
+    console.log(lc);
+    let protocol = lc.match(/(.+):\/\//);
+    console.log(protocol);
+    if (protocol) {
+      // Protocol found, must be URL
+      if (protocol[1] != 'http') {
+        // Not using HTTP
+        warns.push(strings.ilc_notHttp);
       }
       const ending = lc.split('/').pop();
       // If the string ends in file, cut off parameters
@@ -865,13 +1026,12 @@ function validLaunchCommand(folderPath: string, launchCommand: string): boolean 
       }
       const filePath = path.join(folderPath, unescape(lc).replace(/(^\w+:|^)\/\//, ''));
       // Push a game to the list if its launch command file is missing
-      return fs.existsSync(filePath);
-    } else {
-      // Isn't a URL, ignore
-      return true;
+      if (!fs.existsSync(filePath)) {
+        warns.push(strings.ilc_nonExistant);
+      }
     }
   }
-  return false;
+  return warns;
 }
 
 /**
@@ -885,4 +1045,27 @@ function validLaunchCommand(folderPath: string, launchCommand: string): boolean 
  */
 function isValidDate(str: string): boolean {
   return (/^\d{4}(-(0?[1-9]|1[012])(-(0?[1-9]|[12][0-9]|3[01]))?)?$/).test(str);
+}
+
+export function getCurationWarnings(curation: EditCuration, suggestions: Partial<GamePropSuggestions> | undefined, libraryData: GameLibraryFile, strings: LangContainer['curate']) {
+  const warns: CurationWarnings = {};
+  // Check launch command exists
+  const launchCommand = curation.meta.launchCommand || '';
+  warns.noLaunchCommand = launchCommand === '';
+  // Check launch command is valid (if exists)
+  if (!warns.noLaunchCommand) {
+    warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey(curation.key), launchCommand, strings);
+  }
+  // Validate release date
+  const releaseDate = curation.meta.releaseDate;
+  if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
+  // Check for unused values (with suggestions)
+  warns.unusedTags = listValuesNotSuggested(curation, suggestions, 'tags', ';');
+  warns.unusedPlatform = !isValueSuggested(curation, suggestions, 'platform');
+  warns.unusedApplicationPath = !isValueSuggested(curation, suggestions, 'applicationPath');
+  warns.nonContentFolders = curation.unusedDirs;
+  // Check if library is set
+  const curLibrary = curation.meta.library;
+  warns.nonExistingLibrary = libraryData.libraries.findIndex(library => library.route === curLibrary) === -1;
+  return warns;
 }

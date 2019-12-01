@@ -40,6 +40,8 @@ export type IAppPreferencesData = {
   gamesOrder: GameOrderReverse;
   /** Position and size of the main window. */
   mainWindow: IAppPreferencesDataMainWindow;
+  /** Save curations after importing */
+  saveImportedCurations: boolean;
   /** Sources to show/hide in the log page. */
   showLogSource: {
     [key: string]: boolean;

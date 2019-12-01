@@ -161,42 +161,50 @@ export class GameLauncher {
     if (urlObj) { return path.join(GameLauncher.getHtdocsPath(flashpointPath), urlToFilePath(urlObj)); }
   }
 
-  public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo, native: boolean): void {
-    switch (addApp.applicationPath) {
-      case ':message:':
-        remote.dialog.showMessageBox({
-          type: 'info',
-          title: 'About This Game',
-          message: addApp.launchCommand,
-          buttons: ['Ok'],
-        });
-        break;
-      case ':extras:':
-        const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.launchCommand)));
-        remote.shell.openExternal(folderPath, { activate: true })
-        .catch(error => {
-          if (error) {
-            remote.dialog.showMessageBox({
-              type: 'error',
-              title: 'Failed to Open Extras',
-              message: `${error.toString()}\n`+
-                       `Path: ${folderPath}`,
-              buttons: ['Ok'],
-            });
+  public static async launchAdditionalApplication(addApp: IAdditionalApplicationInfo, native: boolean, waitForExit: boolean = false): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      switch (addApp.applicationPath) {
+        case ':message:':
+          remote.dialog.showMessageBoxSync({
+            type: 'info',
+            title: 'About This Game',
+            message: addApp.launchCommand,
+            buttons: ['Ok'],
+          });
+          break;
+        case ':extras:':
+          const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.launchCommand)));
+          remote.shell.openExternal(folderPath, { activate: true })
+          .catch(error => {
+            if (error) {
+              remote.dialog.showMessageBoxSync({
+                type: 'error',
+                title: 'Failed to Open Extras',
+                message: `${error.toString()}\n`+
+                        `Path: ${folderPath}`,
+                buttons: ['Ok'],
+              });
+            }
+          });
+          break;
+        default:
+          const appArgs: string = addApp.launchCommand;
+          const appPath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(addApp.applicationPath, native)));
+          const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
+          const proc = GameLauncher.launch(
+            GameLauncher.createCommand(appPath, appArgs, useWine),
+            { env: GameLauncher.getEnvironment(useWine) }
+          );
+          log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.launchCommand}" ]`);
+          if (waitForExit) {
+            proc.on('exit', () => { resolve(); });
+            proc.on('error', (error) => { reject(error); });
+          } else {
+            resolve();
           }
-        });
-        break;
-      default:
-        const appArgs: string = addApp.launchCommand;
-        const appPath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(addApp.applicationPath, native)));
-        const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
-        const proc = GameLauncher.launch(
-          GameLauncher.createCommand(appPath, appArgs, useWine),
-          { env: GameLauncher.getEnvironment(useWine) }
-        );
-        log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.launchCommand}" ]`);
-        break;
-    }
+          break;
+      }
+    });
   }
 
   /**
@@ -212,11 +220,11 @@ export class GameLauncher {
     // Run all provided additional applications with "AutoRunBefore" enabled
     addApps && addApps.forEach((addApp) => {
       if (addApp.autoRunBefore) {
-        GameLauncher.launchAdditionalApplication(addApp, native);
+        GameLauncher.launchAdditionalApplication(addApp, native, addApp.waitForExit);
       }
     });
     // Launch game
-    const gameArgs: string = game.launchCommand;
+    const gameArgs: string = getLaunchCommand(game);
     const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game.applicationPath, native)));
     // Force Wine usage if application path resolves to an .exe file (and not on Windows)
     const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
@@ -311,7 +319,7 @@ export class GameLauncher {
       // Add Wine related env vars if it's running through Wine
       ...(useWine ? {
         WINEPREFIX: path.join(window.External.config.fullFlashpointPath, 'FPSoftware/wineprefix'),
-        WINEARCH: 'win32',
+        // WINEARCH: 'win32',
         WINEDEBUG: '-all',
       } : null),
       // Copy this processes environment variables
@@ -532,3 +540,29 @@ const unityOutputResponses = [
     }
   }
 ];
+
+/** Returns a correctly formed Launch Command for a game (Important for cross-platform string forming)
+ * E.G Adobe Flash joins parameters on Windows, but not on Linux
+ */
+function getLaunchCommand(game: IGameInfo) {
+  if (game.platform.toLowerCase() === 'flash') {
+    // Special checks for Flash
+    let match = game.launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+    if (match && !match[1]) {
+      // Extracted first string from launch command via regex, was outside quotes
+      console.log(match);
+      // Match 1 - Inside quotes, Match 0 - No Quotes Found
+      if (match[0].length != game.launchCommand.length) {
+        // Unquoted launch command with spaces, check for a protocol at the start
+        let protocol = match[0].match(/(.+):\/\//);
+        if (protocol) {
+          console.log('Improper');
+          // Protocol found, must be an unquoted url!
+          return `"${game.launchCommand}"`;
+        }
+      }
+    }
+  }
+  // No launch command found, return it as is
+  return game.launchCommand;
+}

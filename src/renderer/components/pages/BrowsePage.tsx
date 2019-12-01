@@ -406,7 +406,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {
-    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth;
+    const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
     updatePreferencesData({
       browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
@@ -414,7 +414,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onRightSidebarResize = (event: SidebarResizeEvent): void => {
-    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth;
+    const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.startX - event.event.clientX;
     updatePreferencesData({
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)

@@ -6,8 +6,6 @@ import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import * as YAML from 'yaml';
 import { LangContainer } from '../../../shared/lang';
-import { GameLibraryFileItem } from '../../../shared/library/types';
-import { findLibraryByRoute } from '../../../shared/library/util';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
 import { WithLibraryProps } from '../../containers/withLibrary';
@@ -26,10 +24,12 @@ import { LangContext } from '../../util/lang';
 import { getSuggestions } from '../../util/suggestions';
 import { uuid } from '../../uuid';
 import { ConfirmElement, ConfirmElementArgs } from '../ConfirmElement';
-import { CurateBox } from '../CurateBox';
+import { CurateBox, getCurationWarnings } from '../CurateBox';
+import { getWarningCount } from '../CurateBoxWarnings';
 import { AutoProgressComponent } from '../ProgressComponents';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
+import { CheckBox } from '../CheckBox';
 
 type OwnProps = {
   /** Game manager to add imported curations to. */
@@ -48,6 +48,7 @@ export function CuratePage(props: CuratePageProps) {
   const [state, dispatch] = useContext(CurationContext.context);
   const [progressState, progressDispatch] = useContext(ProgressContext.context);
   const [indexedCurations, setIndexedCurations] = React.useState<string[]>(initialIndexedCurations(state.curations));
+  const [allLock, setAllLock] = React.useState<boolean>(false);
   const pageRef = React.useRef<HTMLDivElement>(null);
   const localState = useMemo(() => { return { state: state }; }, []);
   // Get default curation game meta values
@@ -61,6 +62,23 @@ export function CuratePage(props: CuratePageProps) {
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
     const relativePath = path.relative(curationsPath, fullPath);
     const splitPath = relativePath.split(path.sep);
+    const dirName = path.basename(fullPath);
+    console.log(dirName);
+    // Inside curation dir and is unused
+    if (splitPath.length > 1 && dirName != 'content' && dirName != 'Extras') {
+      const key = splitPath.shift();
+      console.log(key);
+      // Forcefully re-render a curate box (Non-Content folder warnings)
+      if (key) {
+        dispatch({
+          type: 'remove-unused-dir',
+          payload: {
+            key: key,
+            dir: dirName
+          }
+        });
+      }
+    }
     // Only 1 dir in relative path, must be curation dir
     if (splitPath.length === 1) {
       dispatch({
@@ -103,7 +121,7 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [dispatch]);
 
-  // Callback for added/changed file/dir (watcher)
+  // Callback for added/changed file (watcher)
   const updateCurationFile = useCallback(async (fullPath) => {
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
     const relativePath = path.relative(curationsPath, fullPath);
@@ -147,11 +165,20 @@ export function CuratePage(props: CuratePageProps) {
                 // Remove old style meta file
                 await fs.unlink(fullPath);
               })
-              .catch((error) => {
-                const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}`;
+              .catch(async (error) => {
+                const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}\n\n` + 
+                                      'A default meta has been loaded.\n' +
+                                      'You may edit your meta.txt in the curation folder to be valid, this will then replace the loaded meta automatically.';
                 console.error(error);
                 curationLog(formedMessage);
                 showWarningBox(formedMessage);
+                const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
+                await fs.access(newMetaPath, fs.constants.F_OK)
+                  .catch((error) => {
+                    // File doesn't exist yet, make an empty one
+                    return fs.createFile(newMetaPath);
+                  })
+                // Leave errored meta.txt intact
               });
             break;
           }
@@ -178,6 +205,33 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [dispatch, localState, defaultGameMetaValues]);
 
+  const updateCurationDir = useCallback(async (fullPath) => {
+    const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
+    const relativePath = path.relative(curationsPath, fullPath);
+    const splitPath = relativePath.split(path.sep);
+    const dirName = path.basename(fullPath);
+    console.log(dirName);
+    // Dir inside curation folders and unused
+    if (splitPath.length > 1 && dirName != 'content' && dirName != 'Extras') {
+      const key = splitPath.shift();
+      console.log(key);
+      // Forcefully re-render a curate box (Non-Content folder warnings)
+      if (key) {
+        // Verify it is actually a curation folder by searching for meta file
+        const curationFiles = await fs.readdir(path.join(curationsPath, key));
+        if (curationFiles.findIndex(f => f.startsWith('meta.')) != -1) {
+          dispatch({
+            type: 'add-unused-dir',
+            payload: {
+              key: key,
+              dir: dirName
+            }
+          });
+        }
+      }
+    }
+  }, [dispatch]);
+
   // Start a watcher for the 'Curations' folder to montior curations (meta + images)
   const watcher = useMemo(() => {
     const curationsPath = path.join(window.External.config.fullFlashpointPath, 'Curations');
@@ -195,6 +249,9 @@ export function CuratePage(props: CuratePageProps) {
     .on('add', (fullPath) => {
       updateCurationFile(fullPath);
     })
+    .on('addDir', (fullPath) => {
+      updateCurationDir(fullPath);
+    })
     .on('unlink', (fullPath) => {
       removeCurationFile(fullPath);
     })
@@ -204,7 +261,7 @@ export function CuratePage(props: CuratePageProps) {
     .on('error', (error) => {
       // Discard watcher errors - Throws useless lstat errors when watching already unlinked files?
     });
-  }, [dispatch]);
+  }, []);
 
   // Called whenever the state changes
   React.useEffect(() => {
@@ -242,16 +299,18 @@ export function CuratePage(props: CuratePageProps) {
         // Delete if marked
         if (curation.delete) {
           const curationPath = getCurationFolder(curation);
-          fs.remove(curationPath);
+          // Use sync methods to block tab switching before done
+          fs.removeSync(curationPath);
         // Save if not marked
         } else {
           const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
           const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
-          fs.writeFile(metaPath, meta)
-          .catch((error) => {
+          try {
+            fs.writeFileSync(metaPath, meta);
+          } catch (error) {
             curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
             console.error(error);
-          });
+          }
         }
       }
     };
@@ -262,11 +321,13 @@ export function CuratePage(props: CuratePageProps) {
     if (!props.games)      { throw new Error('Failed to import curation. "games" is undefined.'); }
     if (!props.gameImages) { throw new Error('Failed to import curation. "gameImages" is undefined.'); }
     return importCuration(curation, props.games, props.gameImages,
-                          props.libraryData.libraries, log, date);
-  }, [props.games, props.gameImages, props.libraryData.libraries]);
+                          props.libraryData.libraries, log, date, props.preferencesData.saveImportedCurations);
+  }, [props.games, props.gameImages, props.libraryData.libraries, props.preferencesData.saveImportedCurations]);
+
   // Import All Curations Callback
   const onImportAllClick = useCallback(async () => {
     const { games, gameImages } = props;
+    
     // Keep same date for all imports
     const now = new Date();
     if (games && gameImages && state.curations.length > 0) {
@@ -276,41 +337,80 @@ export function CuratePage(props: CuratePageProps) {
         type: 'change-curation-lock-all',
         payload: { lock: true },
       });
+      setAllLock(true);
       // Import all curations, one at a time
       (async () => {
         let success = 0;
-        for (let curation of state.curations) {
+        // Build list of valid curations
+        const curations = state.curations.filter(c => !c.delete);
+        // Setup progress
+        const statusProgress = newProgress(progressKey, progressDispatch);
+        ProgressDispatch.setUsePercentDone(statusProgress, false);
+        // Import each curation
+        for (let i = 0; i < curations.length; i++) {
+          const curation = curations[i];
           // Log status
           console.log(`Importing... (id: ${curation.key})`);
+          ProgressDispatch.setText(statusProgress, `Importing Curation ${i+1} of ${curations.length}`);
+          // Check for warnings
+          const warnings = getCurationWarnings(curation, suggestions, props.libraryData, strings.curate);
+          const warningCount = getWarningCount(warnings);
+          if (warningCount > 0) {
+            // Prompt user
+            const res = await remote.dialog.showMessageBox({
+              title: 'Import Warnings',
+              message: `There are Warnings present on this Curation.\n${curation.meta.title}\n\nDo you still wish to import?`,
+              buttons: ['Yes', 'No']
+            });
+            if (res.response === 1) {
+              // No - Skip to next curation
+              // Unlock the curation
+              dispatch({
+                type: 'change-curation-lock',
+                payload: {
+                  key: curation.key,
+                  lock: false,
+                },
+              });
+              continue;
+            }
+          }
           // Try importing curation
           try {
-            let library: GameLibraryFileItem | undefined = undefined;
-            if (curation.meta.library) {
-              library = findLibraryByRoute(props.libraryData.libraries, curation.meta.library);
-            }
             // Import curation (and wait for it to complete)
             await importCurationCallback(curation, true, now)
-              // Import failed, could be error or user cancelled
-              .catch(async (error) => {
-                curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
-                console.error(error);
-                const content = await indexContentFolder(getContentFolderByKey(curation.key));
-                dispatch({
-                  type: 'set-curation-content',
-                  payload: {
-                    key: curation.key,
-                    content: content
-                  }
-                });
+            .then(() => {
+              // Increment success counter
+              success += 1;
+              // Log status
+              curationLog(`Curation successfully imported! (title: ${curation.meta.title} id: ${curation.key})`);
+              // Remove the curation
+              dispatch({
+                type: 'remove-curation',
+                payload: { key: curation.key }
               });
-            // Increment success counter
-            success += 1;
-            // Log status
-            curationLog(`Curation successfully imported! (title: ${curation.meta.title} id: ${curation.key})`);
-            // Remove the curation
-            dispatch({
-              type: 'remove-curation',
-              payload: { key: curation.key }
+            })
+            // Import failed, could be error or user cancelled
+            .catch(async (error) => {
+              curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
+              console.error(error);
+              const content = await indexContentFolder(getContentFolderByKey(curation.key));
+              // Update curation content. It may have been changed before error thrown.
+              dispatch({
+                type: 'set-curation-content',
+                payload: {
+                  key: curation.key,
+                  content: content
+                }
+              });
+              // Unlock the curation
+              dispatch({
+                type: 'change-curation-lock',
+                payload: {
+                  key: curation.key,
+                  lock: false,
+                },
+              });
             });
           } catch (error) {
             // Log error
@@ -326,17 +426,30 @@ export function CuratePage(props: CuratePageProps) {
             });
           }
         }
+        ProgressDispatch.finished(statusProgress);
         // Log state
-        const total = state.curations.length;
-        console.log(
-          '"Import All" complete\n'+
-          `  Total:   ${total}\n`+
-          `  Success: ${success} (${100 * (success / total)}%)\n`+
-          `  Failed:  ${total - success}`
-        );
+        const total = curations.length;
+        const logStr = '"Import All" complete\n'+
+        `  Total:   ${total}\n`+
+        `  Success: ${success} (${Math.floor(100 * (success / total))}%)\n`+
+        `  Failed:  ${total - success}`;
+        console.log(logStr);
+        curationLog(logStr);
+        if (remote.Notification.isSupported()) {
+          const notification = new remote.Notification({
+            title: 'Flashpoint',
+            body: logStr
+          });
+          notification.show();
+        }
+        setAllLock(true);
+        dispatch({
+          type: 'change-curation-lock-all',
+          payload: { lock: false },
+        });
       })();
     }
-  }, [dispatch, state.curations, props.games, props.gameImages]);
+  }, [dispatch, state.curations, props.games, props.gameImages, importCurationCallback]);
 
   // Delete all curations
   const onDeleteAllClick = useCallback(() => {
@@ -353,9 +466,8 @@ export function CuratePage(props: CuratePageProps) {
     const newCurationFolder = path.join(window.External.config.fullFlashpointPath, 'Curations', uuid());
     try {
       // Create content folder and empty meta.yaml
-      await fs.mkdir(newCurationFolder);
-      await fs.mkdir(path.join(newCurationFolder, 'content'));
-      await fs.close(await fs.open(path.join(newCurationFolder, 'meta.yaml'), 'w'));
+      await fs.ensureDir(path.join(newCurationFolder, 'content'));
+      await fs.createFile(path.join(newCurationFolder, 'meta.yaml'));
     } catch (error) {
       curationLog('Error creating new curation - ' + error.message);
       console.error(error);
@@ -374,7 +486,7 @@ export function CuratePage(props: CuratePageProps) {
     const statusProgress = newProgress(progressKey, progressDispatch);
     let filesCounted = 1;
     if (filePaths) {
-      ProgressDispatch.setText(statusProgress, `Importing Curation ${filesCounted} of ${filePaths.length}`);
+      ProgressDispatch.setText(statusProgress, `Loading Curation ${filesCounted} of ${filePaths.length}`);
       // Don't use percentDone
       ProgressDispatch.setUsePercentDone(statusProgress, false);
       for (let archivePath of filePaths) {
@@ -397,7 +509,7 @@ export function CuratePage(props: CuratePageProps) {
         // Update Status Progress with new number of counted files
         .finally(() => {
           filesCounted++;
-          ProgressDispatch.setText(statusProgress, `Importing Curation ${filesCounted} of ${filePaths.length}`);
+          ProgressDispatch.setText(statusProgress, `Loading Curation ${filesCounted} of ${filePaths.length}`);
         });
       }
     }
@@ -412,9 +524,14 @@ export function CuratePage(props: CuratePageProps) {
       properties: ['openDirectory', 'multiSelections'],
     });
     if (filePaths) {
+      const statusProgress = newProgress(progressKey, progressDispatch);
+      ProgressDispatch.setUsePercentDone(statusProgress, false);
+      let imported = 0;
       // Process in series - IO bound anyway, and serves progress better
       Promise.all(
         filePaths.map((dirPath) => {
+          imported += 1;
+          ProgressDispatch.setText(statusProgress, `Loading Curation ${imported} of ${filePaths.length}`);
           // Mark as indexed so can index ourselves after copying
           const key = uuid();
           indexedCurations.push(key);
@@ -432,7 +549,10 @@ export function CuratePage(props: CuratePageProps) {
             });
           });
         })
-      );
+      )
+      .finally(() => {
+        ProgressDispatch.finished(statusProgress);
+      });
     }
   }, [dispatch, indexedCurations, setIndexedCurations]);
 
@@ -460,11 +580,30 @@ export function CuratePage(props: CuratePageProps) {
     remote.shell.openItem(curationsFolderPath);
   }, []);
 
+  // Open Exported Curations Folder
+  const onOpenExportsFolder = useCallback(async () => {
+    const exportsFolderPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Exports');
+    await fs.ensureDir(exportsFolderPath);
+    remote.shell.openItem(exportsFolderPath);
+  }, []);
+
+  // Open Imported Curations Folder
+  const onOpenImportedFolder = useCallback(async () => {
+    const importedFolder = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Imported');
+    await fs.ensureDir(importedFolder);
+    remote.shell.openItem(importedFolder);
+  }, []);
+
+  // On keep imports toggle
+  const onSaveImportsToggle = useCallback((isChecked: boolean) => {
+    updatePreferencesData({
+      saveImportedCurations: isChecked
+    });
+  }, []);
+
   // On Left Sidebar Size change
   const onLeftSidebarResize = useCallback((event) => {
-    console.log('resize');
-    console.log(event);
-    const maxWidth = getDivWidth(pageRef);
+    const maxWidth = getDivWidth(pageRef) - 5;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
     updatePreferencesData({
       curatePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
@@ -486,7 +625,7 @@ export function CuratePage(props: CuratePageProps) {
         {library.title}
       </option>
     ));
-    // Add default entry if no libraries available
+    // Add default enonRuntry if no libraries available
     if (props.libraryData.libraries.length === 0) {
       const defaultLibrary = (
         <option key={0}>
@@ -534,7 +673,7 @@ export function CuratePage(props: CuratePageProps) {
         </div>
       );
     }
-  }, [state.curations, props.games, suggestions, strings]);
+  }, [state.curations, props.games, suggestions, strings, props.preferencesData.saveImportedCurations]);
 
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
@@ -599,43 +738,62 @@ export function CuratePage(props: CuratePageProps) {
               value={strings.curate.openCurationsFolder}
               title={strings.curate.openCurationsFolderDesc}
               onClick={onOpenCurationsFolder} />
+            <SimpleButton
+              value={strings.curate.openExportsFolder}
+              title={strings.curate.openExportsFolderDesc}
+              onClick={onOpenExportsFolder} />
+            <SimpleButton
+              value={strings.curate.openImportedFolder}
+              title={strings.curate.openImportedFolderDesc}
+              onClick={onOpenImportedFolder} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
               onConfirm={onImportAllClick}
               children={renderImportAllButton}
-              extra={strings.curate} />
+              extra={[strings.curate, allLock]} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
               onConfirm={onDeleteAllClick}
               children={renderDeleteAllButton}
-              extra={strings.curate} />
+              extra={[strings.curate, allLock]} />
+            <div className='curate-page__floating-box__divider'/>
+            <div className='curate-page__checkbox'>
+              <div className='curate-page__checkbox-text'>{strings.curate.saveImportedCurations}</div>
+              <CheckBox
+                onToggle={onSaveImportsToggle}
+                checked={props.preferencesData.saveImportedCurations}
+                />
+            </div>
           </div>
         </div>
       </div>
     </div>
   ), [curateBoxes, progressComponent, strings, state.curations.length,
      onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
-     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar]);
+     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar,
+     props.preferencesData.saveImportedCurations]);
 }
 
-function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
+function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra.importAll}
-      title={extra.importAllDesc}
+      value={extra[0].importAll}
+      title={extra[0].importAllDesc}
       onClick={activate}
+      disabled={extra[1]}
       onMouseLeave={reset} />
   );
 }
 
-function renderDeleteAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<LangContainer['curate']>): JSX.Element {
+function renderDeleteAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
   return (
     <SimpleButton
       className={(activationCounter > 0) ? 'simple-button--red simple-vertical-shake' : ''}
-      value={extra.deleteAll}
-      title={extra.deleteAllDesc}
+      value={extra[0].deleteAll}
+      title={extra[0].deleteAllDesc}
       onClick={activate}
+      disabled={extra[1]}
       onMouseLeave={reset} />
   );
 }

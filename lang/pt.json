@@ -229,8 +229,7 @@
     "releaseDateInvalid": "'Data de Lançamento' deve seguir YYYY-MM-DD (mês e dia são opcionais).",
     "unusedApplicationPath": "'Caminho da Aplicação' tem um valor não utilizado. Certifique-se que está bem escrito!",
     "unusedGenre": "'Gênero' tem um valor não utilizado. Certifique-se que está bem escrito!",
-    "unusedPlatform": "'Plataforma' tem um valor não utilizado. Certifique-se que está bem escrito!",
-    "noContent": "Conteúdo não encontrado! Certifique-se que a pasta tem o nome e o sítio certo!"
+    "unusedPlatform": "'Plataforma' tem um valor não utilizado. Certifique-se que está bem escrito!"
   },
   "playlist": {
     "enterDescriptionHere": "Escrever uma Descrição aqui...",

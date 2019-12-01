@@ -3,6 +3,7 @@ import { ReducerAction } from '../context-reducer/interfaces';
 import { GameMetaDefaults } from '../curate/defaultValues';
 import { createCurationIndexImage, CurationIndexImage, IndexedContent } from '../curate/importCuration';
 import { ParsedCurationMeta } from '../curate/parse';
+import { generateExtrasAddApp, generateMessageAddApp } from '../curate/util';
 import { uuid } from '../uuid';
 
 const curationDefaultState: CurationsState = {
@@ -99,10 +100,26 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         // Copy the previous curation (and the nested addApps array)
         const prevCuration = nextCurations[index];
         const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
-        nextCuration.addApps.push({
-          key: uuid(),
-          meta: {}
-        });
+        switch (action.payload.type) {
+          case 'normal':
+            nextCuration.addApps.push({
+              key: uuid(),
+              meta: {}
+            });
+            break;
+          case 'extras':
+            nextCuration.addApps.push({
+              key: uuid(),
+              meta: generateExtrasAddApp('')
+            });
+            break;
+          case 'message':
+            nextCuration.addApps.push({
+              key: uuid(),
+              meta: generateMessageAddApp('')
+            });
+            break;
+        }
         nextCurations[index] = nextCuration;
       }
       return { ...prevState, curations: nextCurations };
@@ -191,6 +208,32 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         })),
       };
     }
+    // Forcefully causes a CurateBox to re-render by changing the state
+    case 'add-unused-dir': {
+      const nextCurations = [ ...prevState.curations ];
+      const index = ensureCurationIndex(nextCurations, action.payload.key);
+      const prevCuration = nextCurations[index];
+      const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+      nextCuration.unusedDirs.push(action.payload.dir);
+      nextCurations[index] = nextCuration;
+      return { ...prevState, curations: nextCurations };
+    }
+    // Forcefully causes a CurateBox to re-render by changing the state
+    case 'remove-unused-dir': {
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex(c => c.key === action.payload.key);
+      if (index >= 0) {
+        const prevCuration = nextCurations[index];
+        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+        const existingDirIndex = nextCuration.unusedDirs.findIndex(d => d === action.payload.dir);
+        if (existingDirIndex != -1) {
+          console.log('removed');
+          nextCuration.unusedDirs.splice(existingDirIndex, 1);
+          nextCurations[index] = nextCuration;
+        }
+      }
+      return { ...prevState, curations: nextCurations };
+    }
   }
 }
 
@@ -213,6 +256,7 @@ export function createEditCuration(key: string): EditCuration {
     key: key,
     meta: {},
     content: [],
+    unusedDirs: [],
     addApps: [],
     thumbnail: createCurationIndexImage(),
     screenshot: createCurationIndexImage(),
@@ -254,6 +298,7 @@ export type CurationAction = (
   /** Add an empty additional application to curation */
   ReducerAction<'new-addapp', {
     key: string;
+    type: 'normal' | 'extras' | 'message';
   }> |
   /** Remove an additional application (by key) from a curation */
   ReducerAction<'remove-addapp', {
@@ -291,6 +336,18 @@ export type CurationAction = (
   ReducerAction<'change-curation-lock-all', {
     /** Lock status to set all curations to. */
     lock: boolean;
+  }> |
+  /** Add an unused folder of a Curation */
+  ReducerAction<'add-unused-dir', {
+    /** Key of the curation to update. */
+    key: string;
+    dir: string;
+  }> |
+  /** Remove an unused folder of a Curation */
+  ReducerAction<'remove-unused-dir', {
+    /** Key of the curation to update. */
+    key: string;
+    dir: string;
   }>
 );
 
@@ -304,6 +361,8 @@ export type EditCuration = {
   addApps: EditAddAppCuration[];
   /** Data of each file in the content folder (and sub-folders). */
   content: IndexedContent[];
+  /** List of unused folders at root. Easier for Watcher to update. */
+  unusedDirs: string[];
   /** Screenshot. */
   screenshot: CurationIndexImage;
   /** Thumbnail. */
@@ -318,6 +377,7 @@ export type EditCuration = {
 export type EditCurationMeta = {
   // Game fields
   title?: string;
+  alternateTitles?: string;
   series?: string;
   developer?: string;
   publisher?: string;

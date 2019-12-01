@@ -17,6 +17,7 @@ export type IRawPlatform = {
 export type IRawGameInfo = {
   ID: string;                   // (String)
   Title?: string;               // (String)
+  AlternateTitles?: string;     // (String)
   Series?: string;              // (String)
   Developer?: string;           // (String)
   Publisher?: string;           // (String)
