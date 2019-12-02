@@ -76,7 +76,7 @@
     "developer": "Developer",
     "searchPlaceholder": "Search...",
     "hideRightSidebar": "Hide right sidebar",
-    "showRightSidebar": "Show right sidebar",
+    "showRightSidebar": "Revelar barra-lateral direita",
     "hideLeftSidebar": "Hide left sidebar",
     "showLeftSidebar": "Show left sidebar",
     "total": "Total",
@@ -228,7 +228,7 @@
     "heading": "Heading",
     "noHeading": "No Heading",
     "curationNotes": "Curation Notes",
-    "noCurationNotes": "No Curation Notes",
+    "noCurationNotes": "Sem Notas de Preservação",
     "remove": "Remove",
     "removeCurationDesc": "Remove this curation (no changes will be made to any files)",
     "import": "Import",
@@ -290,7 +290,7 @@
     "selectCurationArchive": "Select Curation Archive(s)",
     "selectCurationMeta": "Select Curation Meta(s)",
     "errorParsingPlatforms": "Error parsing platforms!",
-    "errorParsingPlatformsMessage": "{0} Error(s) raised while parsing platform XMLs\nPlease check the logs for details."
+    "errorParsingPlatformsMessage": "{0} Erro(s) encontrados durante a análise da plataforma XMLs\nPorfavor verificar os logs por detalhes."
   },
   "libraries": {
     "arcade": "Games",
