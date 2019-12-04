@@ -175,12 +175,12 @@
     "noNotes": "Nu există note",
     "originalDescription": "Descrierea originală a jocului",
     "noOriginalDescription": "Nu este introdusă descrierea originală",
-    "additionalApplications": "Aplicație suplimentară",
+    "additionalApplications": "Aplicația de lansare",
     "noName": "Nu este introdus un nume",
     "launch": "Lansare",
     "autoRunBefore": "Lansare înainte",
     "waitForExit": "Așteptați pentru oprire",
-    "applicationPath": "Calea aplicației suplimentare",
+    "applicationPath": "Calea aplicației",
     "noApplicationPath": "Nu este introdusă calea aplicației",
     "launchCommand": "Comandă de lansare",
     "noLaunchCommand": "Nu este introdusă comanda de lansare",
@@ -258,7 +258,7 @@
     "authorPlaceholder": "Introduceți numele autorului..."
   },
   "misc": {
-    "noBlankFound": "Nicio {0} găsită.",
+    "noBlankFound": "Nu s-a găsit {0}",
     "addBlank": "Adaugă o {0}...",
     "deleteAllBlankImages": "Șterge toate imaginile pentru acest joc",
     "yes": "Da",
