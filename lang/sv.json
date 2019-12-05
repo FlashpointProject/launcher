@@ -126,19 +126,19 @@
     "stop": "Stoppa",
     "stopDesc": "Stoppa den aktiva processen",
     "restart": "Starta om",
-    "restartDesc": "Restart the service",
-    "details": "Details",
-    "detailsDesc": "Open dialog with service details"
+    "restartDesc": "Starta om processen",
+    "details": "Information",
+    "detailsDesc": "Öppna ett fönster med detaljerad information om processen"
   },
   "about": {
-    "aboutHeader": "About",
+    "aboutHeader": "Om",
     "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.",
-    "website": "Website",
+    "flashpointDesc": "Bevaringsprojektet som det här programmet byggdes för, med målet att agera som ett arkiv, ett museum och en spelbar samling av webbspel.",
+    "website": "Webbplats",
     "flashpointLauncher": "Flashpoint Launcher",
-    "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint project.",
+    "flashpointLauncherDesc": "Ett datorprogram med öppen källkod som används för att utforska, hantera och spela spel från Flashpoint-projektet.",
     "version": "Version",
-    "license": "License",
+    "license": "Licens",
     "licenseInfo": "MIT (Read the file named 'LICENSE' for more information)",
     "creditsHeader": "Credits"
   },
