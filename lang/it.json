@@ -1,14 +1,14 @@
 {
-  "name": "English",
+  "name": "Italiano",
   "config": {
-    "configHeader": "Config",
-    "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
+    "configHeader": "Impostazioni",
+    "configDesc": "(Devi premere 'Salva & riavvia' per rendere effettive alcune modifiche)",
     "preferencesHeader": "Preferences",
     "extremeGames": "Extreme Games",
     "extremeGamesDesc": "Show games with sexual, violent or other content unsuitable for children.",
     "enableEditing": "Enable Editing",
     "enableEditingDesc": "Enable editing of games, additional applications and playlists. Also shows the 'Curate' tab.",
-    "currentLanguage": "Language",
+    "currentLanguage": "Lingua",
     "currentLanguageDesc": "Which language the launcher will use primarily.",
     "fallbackLanguage": "Fallback Language",
     "fallbackLanguageDesc": "Which language to use in place of an incomplete current language.",
