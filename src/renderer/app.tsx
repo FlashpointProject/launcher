@@ -14,7 +14,7 @@ import { GameLibraryFileItem } from '../shared/library/types';
 import { findDefaultLibrary, findLibraryByRoute, getLibraryItemTitle, getLibraryPlatforms } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { updatePreferencesData } from '../shared/preferences/util';
-import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
+import { deepCopy, recursiveReplace } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -44,7 +44,11 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { getPlatforms } from './util/platform';
-import { downloadAndInstallUpgrade, checkUpgradeStateInstalled, checkUpgradeStateUpdated } from './util/upgrade';
+import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
+import { AppUpdater, UpdateInfo } from 'electron-updater';
+import { getUpgradeString } from '../shared/upgrade/util';
+
+const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
 type AppOwnProps = {
   /** Most recent search query. */
@@ -81,6 +85,8 @@ export type AppState = {
   lang: LangContainer;
   /** Current list of available language files. */
   langList: LangFile[];
+  /** Info of the update, if one was found */
+  updateInfo: UpdateInfo | undefined;
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -113,6 +119,7 @@ export class App extends React.Component<AppProps, AppState> {
       selectedGames: {},
       selectedPlaylists: {},
       wasNewGameClicked: false,
+      updateInfo: undefined,
       order: {
         orderBy: preferencesData.gamesOrderBy,
         orderReverse: preferencesData.gamesOrder
@@ -267,20 +274,24 @@ export class App extends React.Component<AppProps, AppState> {
           upgradesDoneLoading: true,
         })
       });
+      const isValid = await isFlashpointValidCheck(window.External.config.data.flashpointPath);
+      // Notify of downloading initial data (if available)
+      if (!isValid && allData.length > 0) {
+        remote.dialog.showMessageBox({
+          type: 'info',
+          title: strings.dialog.dataRequired,
+          message: strings.dialog.dataRequiredDesc,
+          buttons: [strings.misc.yes, strings.misc.no]
+        })
+        .then((res) => {
+          if (res.response === 0) {
+            this.onDownloadUpgradeClick(allData[0], strings);
+          }
+        });
+      }
       // Do existance checks on all upgrades
       await Promise.all(allData.map(async upgrade => {
-        const baseFolder = upgrade.launcherUpgrade ?
-          (window.External.isDev ? undefined : remote.app.getPath('exe'))
-          : fullFlashpointPath;
-        if (!baseFolder) {
-          // Skip launcher checks in dev environment
-          this.setUpgradeStageState(upgrade.id, {
-            alreadyInstalled: true,
-            checksDone: true,
-            upToDate: true
-          });
-          return;
-        }
+        const baseFolder = fullFlashpointPath;
         // Perform install checks
         const installed = await checkUpgradeStateInstalled(upgrade, baseFolder);
         this.setUpgradeStageState(upgrade.id, {
@@ -291,7 +302,7 @@ export class App extends React.Component<AppProps, AppState> {
         if (installed) {
           const upToDate = await checkUpgradeStateUpdated(upgrade, baseFolder);
           this.setUpgradeStageState(upgrade.id, {
-            upToDate: true
+            upToDate: upToDate
           });
         }
       }));
@@ -317,6 +328,25 @@ export class App extends React.Component<AppProps, AppState> {
       console.error(error);
       log(`Failed to load exec mappings file. Ignore if on Windows. - ${error}`);
     });
+
+    // Updater code - DO NOT run in development environment!
+    if (!window.External.isDev) {
+      autoUpdater.autoDownload = false;
+      autoUpdater.on('error', (error: Error) => {
+        console.log(error);
+      });
+      autoUpdater.on('update-available', (info) => {
+        log(`Update Available - ${info.version}`);
+        console.log(info);
+        this.setState({
+          updateInfo: info
+        });
+      });
+      autoUpdater.on('update-downloaded', onUpdateDownloaded);
+      autoUpdater.checkForUpdates()
+      .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
+      console.log('Checking for updates...');
+    }
 
     // Check for Wine and PHP on Linux/Mac
     if (process.platform != 'win32') {
@@ -398,7 +428,9 @@ export class App extends React.Component<AppProps, AppState> {
       reloadTheme: this.reloadTheme,
       languages: this.state.langList,
       updateLocalization: this.updateLanguage,
-      platformList: getPlatforms(this.state.central.games.collection)
+      platformList: getPlatforms(this.state.central.games.collection),
+      updateInfo: this.state.updateInfo,
+      autoUpdater: autoUpdater
     };
     // Render
     return (
@@ -413,7 +445,7 @@ export class App extends React.Component<AppProps, AppState> {
             creditsLoaded={this.state.creditsDoneLoading} />
           {/* Title-bar (if enabled) */}
           { window.External.config.data.useCustomTitlebar ? (
-            <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
+            <TitleBar title={`${AppConstants.appTitle} (${remote.app.getVersion()})`} />
           ) : undefined }
           {/* "Content" */}
           {loaded ? (
@@ -501,8 +533,8 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  private onDownloadUpgradeClick = (stage: UpgradeStage) => {
-    downloadAndInstallStage(stage, this.setUpgradeStageState);
+  private onDownloadUpgradeClick = (stage: UpgradeStage, strings: LangContainer) => {
+    downloadAndInstallStage(stage, this.setUpgradeStageState, strings);
   }
 
   private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
@@ -554,30 +586,44 @@ export class App extends React.Component<AppProps, AppState> {
   }
 }
 
-async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void) {
+async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void, strings: LangContainer) {
   // Check data folder is set
   let flashpointPath = window.External.config.data.flashpointPath;
   const isValid = await isFlashpointValidCheck(flashpointPath);
-  let promptRestartWhenFinished = false;
   if (!isValid) {
-    // If folder isn't set, ask to set now
-    const res = openConfirmDialog('No Folder Found', 'The Flashpoint folder is not set or invalid. Do you want to choose a folder to install to now?');
-    if (!res) { return; }
-    // Set folder now
-    const picks = window.External.showOpenDialogSync({
-      title: 'Pick Flashpoint Folder',
-      properties: ['openDirectory', 'promptToCreate', 'createDirectory']
-    });
+    let verifiedPath = false;
+    let chosenPath: (string | undefined);
+    while (verifiedPath != true) {
+      // If folder isn't set, ask to set now
+      const res = await openConfirmDialog(strings.dialog.flashpointPathInvalid, strings.dialog.flashpointPathNotFound);
+      if (!res) { return; }
+      // Set folder now
+      const chosenPaths = window.External.showOpenDialogSync({
+        title: strings.dialog.selectFolder,
+        properties: ['openDirectory', 'promptToCreate', 'createDirectory']
+      });
+      if (chosenPaths && chosenPaths.length > 0) {
+        // Verify the path chosen
+        chosenPath = chosenPaths[0];
+        const topString = formatString(strings.dialog.upgradeWillInstallTo, getUpgradeString(stage.title, strings.upgrades));
+        const choiceVerify = await openConfirmDialog(strings.dialog.areYouSure, `${topString}:\n\n${chosenPath}\n\n${strings.dialog.verifyPathSelection}`);
+        if (choiceVerify) {
+          verifiedPath = true;
+        }
+      } else {
+        // Window closed, cancel the upgrade
+        return;
+      }
+    }
     // Make sure folder given exists
-    if (picks && picks.length > 0) {
-      flashpointPath = picks[0];
+    if (chosenPath) {
+      flashpointPath = chosenPath;
       fs.ensureDirSync(flashpointPath);
       // Save picked folder to config
       let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
         flashpointPath: flashpointPath
       });
       window.External.config.save(newConfig);
-      promptRestartWhenFinished = true;
     }
   }
   // Flag as installing
@@ -602,24 +648,22 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
         prevProgressUpdate = now;
         lastUpdateType = state.currentTask;
         switch (state.currentTask) {
-          case 'downloading': setStageState(stage.id, { installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
-          case 'extracting':  setStageState(stage.id, { installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
-          case 'installing':  setStageState(stage.id, { installProgressNote: 'Installing Files...'});                                         break;
+          case 'downloading': setStageState(stage.id, { installProgressNote: `${strings.misc.downloading}: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
+          case 'extracting':  setStageState(stage.id, { installProgressNote: `${strings.misc.extracting}: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
+          case 'installing':  setStageState(stage.id, { installProgressNote: `${strings.misc.installingFiles}`});                                         break;
           default:            setStageState(stage.id, { installProgressNote: '...' });                                                        break;
         }
       }
     })
-    .once('done', () => {
+    .once('done', async () => {
       // Flag as done installing
       setStageState(stage.id, {
         isInstalling: false,
         isInstallationComplete: true,
       });
-      if (promptRestartWhenFinished) {
-        const res = openConfirmDialog('Restart Now?', 'This upgrade will not be applied until you restart.\nDo you wish to do this now?');
-        if (res) {
-          window.External.restart();
-        }
+      const res = await openConfirmDialog(strings.dialog.restartNow, strings.dialog.restartToApplyUpgrade);
+      if (res) {
+        window.External.restart();
       }
     })
     .once('error', (error) => {
@@ -658,6 +702,17 @@ function countGamesOfLibrarysPlatforms(platforms: GameManagerPlatform[], librari
     (acc, platform) => acc + (platform.collection ? platform.collection.games.length : 0),
     0
   );
+}
+
+function onUpdateDownloaded() {
+  remote.dialog.showMessageBox({
+    title: 'Installing Update',
+    message: 'The Launcher will restart to install the update now.',
+    buttons: ['OK']
+  })
+  .then(() => {
+    setImmediate(() => autoUpdater.quitAndInstall());
+  });
 }
 
 function copyMap<T>(map: IObjectMap<T>): IObjectMap<T> {

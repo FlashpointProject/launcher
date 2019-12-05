@@ -32,34 +32,36 @@ export namespace UpgradeFile {
     });
     const stages: UpgradeStage[] = [];
     for (let key in data) {
-      stages.push(parseUpgradeStage(parser.prop(key)));
+      stages.push(parseUpgradeStage(parser.prop(key), key, onError));
     }
     return stages;
   }
 
-  function parseUpgradeStage(parser: IObjectParserProp<any>): UpgradeStage {
+  function parseUpgradeStage(parser: IObjectParserProp<any>, key: string, onError?: (error: string) => void): UpgradeStage {
     const parsed: UpgradeStage = {
       id: uuid(),
       title: '',
       description: '',
       verify_files: [],
-      verify_md5: [],
+      verify_sha256: [],
       sources: [],
-      sources_md5: '',
+      sources_sha256: '',
       deletePaths: [],
       keepPaths: [],
-      launcherUpgrade: false,
       state: newUpgradeStageState()
     };
-    parser.prop('title',            v => parsed.title            = str(v));
-    parser.prop('description',      v => parsed.description      = str(v));
-    parser.prop('verify_files',     v => parsed.verify_files     = strArr(v));
-    parser.prop('verify_md5',       v => parsed.verify_md5       = strArr(v));
-    parser.prop('sources',          v => parsed.sources          = strArr(v));
-    parser.prop('sources_md5',      v => parsed.sources_md5      = str(v));
-    parser.prop('deletePaths',      v => parsed.deletePaths      = strArr(v));
-    parser.prop('keepPaths',        v => parsed.keepPaths        = strArr(v));
-    parser.prop('launcherUpgrade',  v => parsed.launcherUpgrade  = !!v);
+    parser.prop('title',           v => parsed.title            = str(v));
+    parser.prop('description',     v => parsed.description      = str(v));
+    parser.prop('verify_files',    v => parsed.verify_files     = strArr(v));
+    parser.prop('verify_sha256',   v => parsed.verify_sha256    = strArr(v), true);
+    parser.prop('sources',         v => parsed.sources          = strArr(v));
+    parser.prop('sources_sha256',  v => parsed.sources_sha256   = str(v), true);
+    parser.prop('deletePaths',     v => parsed.deletePaths      = strArr(v), true);
+    parser.prop('keepPaths',       v => parsed.keepPaths        = strArr(v), true);
+    if (parsed.sources_sha256.length != 64 && onError) {
+      // All SHA256 sums are 64 characters long
+      onError(`IMPORTANT: No valid SHA256 sum given, risk of corrupted or malicious downloads. (stack: "${key}")`);
+    }
     return parsed;
   }
 }

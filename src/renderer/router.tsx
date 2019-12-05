@@ -1,8 +1,9 @@
+import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IGameInfo } from '../shared/game/interfaces';
-import { LangFile } from '../shared/lang';
+import { LangContainer, LangFile } from '../shared/lang';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
@@ -35,13 +36,15 @@ export type AppRouterProps = {
   onSelectGame?: (game?: IGameInfo) => void;
   onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
   wasNewGameClicked: boolean;
-  onDownloadUpgradeClick: (stage: UpgradeStage) => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   gameLibraryRoute: string;
   themeItems: IThemeListItem[];
   reloadTheme: (themePath: string | undefined) => void;
   languages: LangFile[];
   updateLocalization: () => void;
   platformList: string[];
+  updateInfo: UpdateInfo | undefined,
+  autoUpdater: AppUpdater
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -50,7 +53,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
       gameImages: this.props.gameImages,
-      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick
+      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
+      updateInfo: this.props.updateInfo,
+      autoUpdater: this.props.autoUpdater
     };
     const browseProps: ConnectedBrowsePageProps = {
       central: this.props.central,

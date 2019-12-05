@@ -4,6 +4,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as YAML from 'yaml';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
+import { LangContainer } from '../../shared/lang';
 import { GameLibraryFileItem } from '../../shared/library/types';
 import { formatDate, removeFileExtension } from '../../shared/Util';
 import { EditAddAppCuration, EditCuration } from '../context/CurationContext';
@@ -19,7 +20,6 @@ import { uuid } from '../uuid';
 import { CurationIndexImage, indexContentFolder } from './importCuration';
 import { convertEditToCurationMeta } from './metaToMeta';
 import { curationLog, getContentFolderByKey, getCurationFolder } from './util';
-import { LangContainer } from 'src/shared/lang';
 
 /**
  * Import a curation.

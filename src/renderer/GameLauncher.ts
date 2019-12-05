@@ -2,9 +2,9 @@ import { ChildProcess, exec, ExecOptions } from 'child_process';
 import { remote } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import { LangContainer } from 'src/shared/lang';
 import * as which from 'which';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
+import { LangContainer } from '../shared/lang';
 import { padStart, stringifyArray } from '../shared/Util';
 import { ExecMapping } from './game/Execs';
 

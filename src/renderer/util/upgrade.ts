@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 import * as fs from 'fs-extra';
 import { IncomingMessage } from 'http';
@@ -5,12 +6,9 @@ import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
-import * as crypto from 'crypto';
-import * as child_process from 'child_process';
+import { indexContentFolder } from '../curate/importCuration';
 import { UpgradeStage } from '../upgrade/types';
 import { pathTo7z } from './SevenZip';
-import { indexContentFolder } from '../curate/importCuration';
-import { remote } from 'electron';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -101,45 +99,26 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
             await fs.remove(realPath);
           } catch (error) { /* Path not present */ }
         }
-        // Follow different install process if upgrading Launcher
-        if (upgrade.launcherUpgrade) {
-          // Build folder path before window closes. Is this important?
-          if (window.External.isDev) {
-            // In dev folder, just abort for safety.
-            console.error('Do not upgrade the dev folder. Bad times.');
-            return;
-          }
-          const launcherPath = path.dirname(remote.app.getPath('exe'));
-          remote.app.once('will-quit', () => {
-            const updaterFile = 'FPL-Updater.bat';
-            const updaterPath = path.join(launcherPath, 'upgrade', updaterFile);
-            // Spawn updater application and immediately detach and unreference it so program can close.
-            child_process.spawn(updaterPath, [extractionPath, launcherPath], {
-              stdio: 'ignore',
-              detached: true
-            }).unref();
-          });
-          remote.app.quit();
-          return;
-        }
         // Move extracted files to the install location, with filter
         const allFiles = await indexContentFolder(extractionPath);
         // Move all folders into install path
         await Promise.all(allFiles.map(async file => {
           const source = path.join(extractionPath, file.filePath);
           const dest = path.join(opts.installPath, file.filePath);
-          console.log(path.normalize(file.filePath));
           if (upgrade.keepPaths.findIndex(s => path.normalize(s).startsWith(path.normalize(file.filePath))) === -1) {
             // Only passes paths not in keepPaths.
             await fs.ensureDir(path.dirname(dest));
-            await fs.move(source, dest);
+            await fs.move(source, dest, { overwrite: true });
           } else {
             // Requested to keep, copy if not present
             await fs.access(dest, fs.constants.F_OK)
             .then(() => { /* File found, don't copy */ })
             .catch(async (error) => { await fs.move(source, dest); });
           }
-        }));
+        }))
+        .catch((errors) => {
+          console.log(errors);
+        });
         // Clean up extraction folder
         await fs.remove(extractionPath);
         // Install complete
@@ -209,60 +188,65 @@ function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offse
  */
 export async function checkUpgradeStateInstalled(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
   const success = await Promise.all(stage.verify_files.map(check => (
-    fs.pathExists(path.join(baseFolder, check))
+    new Promise<boolean>((resolve) => {
+      fs.access(path.join(baseFolder, check), fs.constants.F_OK)
+      // File exists
+      .then(() => resolve(true))
+      // File does not exist
+      .catch((error) => resolve(false));
+    })
   )));
   return success.indexOf(false) === -1;
 }
 
 /**
- * Check if all files in the stage's "verify_files" array match their MD5 counterparts from "verify_md5".
- * This aborts as soon as it encounters a file that does not match its MD5.
+ * Check if all files in the stage's "verify_files" array match their SHA256 counterparts from "verify_sha256".
+ * This aborts as soon as it encounters a file that does not match its SHA256.
  * @param stage Stage to check the "checks" of.
  * @param flashpointFolder Path of the Flashpoint folder root.
  */
 export async function checkUpgradeStateUpdated(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
   const success = await Promise.all(stage.verify_files.map((check, index) => {
-    if (stage.verify_md5.length >= index || stage.verify_md5[index] === 'SKIP') {
+    if (index < stage.verify_sha256.length && stage.verify_sha256[index] != 'SKIP') {
       return new Promise<boolean>((resolve) => {
-        // MD5 present, perform check
-        const md5ToCheck = stage.verify_md5[index];
+        // SHA256 present, perform check
+        const shaToCheck = stage.verify_sha256[index].toLowerCase();
         const fullPath = path.join(baseFolder, check);
-        return getMd5FromFile(fullPath)
-        .then((md5sum) => {
-          if (md5sum === md5ToCheck) {
-            console.log(`${fullPath} passed`);
-            return true;
+        return getSha256FromFile(fullPath)
+        .then((shaSum) => {
+          if (shaSum === shaToCheck) {
+            resolve(true);
           }
-          return false;
+          return (false);
         })
         .catch((error) => {
-          log(`Error verifying files MD5 hash - ${error.message}`);
+          log(`Error calculating SHA256 sum of upgrade. - ${error.message}`);
           console.error(error);
-          return false;
+          resolve(true);
         });
       });
     } else {
-      // MD5 not present or skipped, do not check.
+      // SHA256 not present or skipped, do not check.
       return true;
     }
   }));
   return success.indexOf(false) === -1;
 }
 
-async function getMd5FromFile(filePath: string): Promise<string> {
+async function getSha256FromFile(filePath: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const readStream = fs.createReadStream(filePath);
-    const md5hash = crypto.createHash('md5');
-    md5hash.setEncoding('hex');
-    md5hash.on('finish', () => {
-      md5hash.end();
+    const shaHash = crypto.createHash('sha256');
+    shaHash.setEncoding('hex');
+    shaHash.on('finish', () => {
+      shaHash.end();
       readStream.close();
-      resolve(md5hash.read());
+      resolve(shaHash.read());
     });
-    md5hash.on('error', (error) => {
+    shaHash.on('error', (error) => {
       reject(error);
     });
-    readStream.pipe(md5hash);
+    readStream.pipe(shaHash);
   });
 }
 
