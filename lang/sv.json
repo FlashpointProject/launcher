@@ -258,20 +258,20 @@
     "authorPlaceholder": "Skapare..."
   },
   "misc": {
-    "noBlankFound": "No {0} Found",
-    "addBlank": "Add {0}",
-    "deleteAllBlankImages": "Delete ALL {0} images for this game",
-    "yes": "Yes",
-    "no": "No"
+    "noBlankFound": "Ingen {0} hittades",
+    "addBlank": "Lägg till {0}",
+    "deleteAllBlankImages": "Radera ALLA {0}-bilder för det här spelet",
+    "yes": "Ja",
+    "no": "Nej"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
-    "viewScreenshotInFolder": "View Screenshot in Folder",
+    "viewScreenshotInFolder": "Visa skärmdump i mapp",
     "openFileLocation": "Open File Location",
-    "duplicateMetaOnly": "Duplicate (Meta Only)",
-    "duplicateMetaAndImages": "Duplicate (Meta && Images)",
-    "exportMetaOnly": "Export (Meta Only)",
-    "exportMetaAndImages": "Export (Meta && Images)"
+    "duplicateMetaOnly": "Duplicera (endast metadata)",
+    "duplicateMetaAndImages": "Duplicera (metadata && bilder)",
+    "exportMetaOnly": "Exportera (endast metadata)",
+    "exportMetaAndImages": "Exportera (metadata && bilder)"
   },
   "dialog": {
     "programNotFound": "Program not found!",
