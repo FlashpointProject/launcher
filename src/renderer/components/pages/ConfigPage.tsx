@@ -52,8 +52,8 @@ export interface ConfigPage {
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
   currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
-  /** Country code if the local machine (used to detect which language to use for "auto"). */
-  countryCode: string = remote.app.getLocaleCountryCode().toLowerCase();
+  /** Locale (language) code of the local machine (used to detect which language to use for "auto"). */
+  localeCode: string = remote.app.getLocale().toLowerCase();
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -68,7 +68,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   render() {
     const strings = this.context.config;
-    const autoString = formatString(strings.auto, this.countryCode);
+    const autoString = formatString(strings.auto, this.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     return (
       <div className='config-page simple-scroll'>

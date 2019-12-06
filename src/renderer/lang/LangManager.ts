@@ -211,11 +211,16 @@ export class LangManager extends WrappedEventEmitter {
       current = this.items.find(item => item.code === currentCode);
     }
     if (!current) { // (Auto language)
-      const code = remote.app.getLocaleCountryCode().toLowerCase() || '';
+      const code = remote.app.getLocale().toLowerCase() || '';
+      // Get current language
       current = this.items.find(item => item.code === code);
+      if (!current) { current = this.items.find(item => item.code.startsWith(code.substr(0, 2))) }
+      // If code-region isn't available, look for code
     }
     // Get fallback language
-    const fallback = this.items.find(item => item.code === fallbackCode);
+    let fallback = this.items.find(item => item.code === fallbackCode);
+    // If code-region isn't available, look for code
+    if (!fallback) { fallback = this.items.find(item => item.code.startsWith(fallbackCode.substr(0, 2))) }
     // Combine all language container objects (by overwriting the default with the fallback and the current)
     const data = recursiveReplace(recursiveReplace(deepCopy(defaultLang), fallback && fallback.data), current && current.data);
     data.libraries = { // Allow libraries to add new properties (and not just overwrite the default)
