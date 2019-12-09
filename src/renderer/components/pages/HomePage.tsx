@@ -142,7 +142,7 @@ export class HomePage extends React.Component<HomePageProps> {
                 <a
                   href='http://bluemaxima.org/flashpoint/datahub/Genres'
                   target='_top'>
-                  {strings.genreList}
+                  {strings.tagList}
                 </a>
               </QuickStartItem>
               <br />

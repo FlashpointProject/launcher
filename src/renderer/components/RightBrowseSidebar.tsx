@@ -222,10 +222,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             <>
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                  <p>{strings.genre}: </p>
+                  <p>{strings.tags}: </p>
                   <DropdownInputField
                     text={game.genre}
-                    placeholder={strings.noGenre}
+                    placeholder={strings.noTags}
                     className='browse-right-sidebar__searchable'
                     onChange={this.onGenreChange}
                     editable={editable}

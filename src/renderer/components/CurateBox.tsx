@@ -200,7 +200,7 @@ export function CurateBox(props: CurateBoxProps) {
       const releaseDate = props.curation.meta.releaseDate;
       if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
       // Check for unused values (with suggestions)
-      warns.unusedGenre = !isValueSuggested(props, 'genre');
+      warns.unusedTags = !isValueSuggested(props, 'genre');
       warns.unusedPlatform = !isValueSuggested(props, 'platform');
       warns.unusedApplicationPath = !isValueSuggested(props, 'applicationPath');
       warns.nonExistingLibrary = !!(
@@ -262,14 +262,14 @@ export function CurateBox(props: CurateBoxProps) {
           onChange={onPublisherChange}
           { ...sharedInputProps } />
       </CurateBoxRow>
-      <CurateBoxRow title={strings.browse.genre + ':'}>
+      <CurateBoxRow title={strings.browse.tags + ':'}>
         <DropdownInputField
           text={props.curation && props.curation.meta.genre || ''}
-          placeholder={strings.browse.noGenre}
+          placeholder={strings.browse.noTags}
           onChange={onGenreChange}
           items={props.suggestions && props.suggestions.genre || []}
           onItemSelect={onGenreItemSelect}
-          className={warnings.unusedGenre ? 'input-field--warn' : ''}
+          className={warnings.unusedTags ? 'input-field--warn' : ''}
           { ...sharedInputProps } />
       </CurateBoxRow>
       <CurateBoxRow title={strings.browse.playMode + ':'}>
@@ -428,8 +428,8 @@ function renderRemoveButton({ activate, activationCounter, reset, extra }: Confi
         'curate-box-buttons__button' +
         ((activationCounter > 0) ? ' curate-box-buttons__button--active simple-vertical-shake' : '')
       }
-      value={extra.remove}
-      title={extra.removeCurationDesc}
+      value={extra.delete}
+      title={extra.deleteCurationDesc}
       onClick={activate}
       onMouseLeave={reset} />
   );

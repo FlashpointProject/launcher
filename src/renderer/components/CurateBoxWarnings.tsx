@@ -16,7 +16,7 @@ export type CurationWarnings = {
   /** If the application path value isn't used by any other game. */
   unusedApplicationPath?: boolean;
   /** If the genre value isn't used by any other game. */
-  unusedGenre?: boolean;
+  unusedTags?: boolean;
   /** If the platform value isn't used by any other game. */
   unusedPlatform?: boolean;
   /** If the library value does not point to an existing library. */
@@ -40,7 +40,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
         <span
           key={key}
           className='curate-box-warnings__entry'>
-          {`- ${strings[key as keyof CurationWarnings]}\n`}
+          {`- ${(strings as any)[key] || ''}\n` /* Workaround because this uses the new language file types. */}
         </span>
       ) : undefined)
   ), [warnings]);
