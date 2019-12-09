@@ -3,6 +3,12 @@ The launcher for BlueMaxima's Flashpoint (the web preservation project).
 
 ![Screenshot](https://user-images.githubusercontent.com/10117720/55276674-a24e8c80-52f6-11e9-8b59-4fb396c36026.png)
 
+### Status
+
+[![Flashpoint Launcher](https://github.com/FlashpointProject/launcher/workflows/Build%20and%20Release%20Latest/badge.svg)](https://github.com/FlashpointProject/launcher)
+
+[![Crowdin](https://badges.crowdin.net/flashpoint-launcher/localized.svg)](https://crowdin.com/project/flashpoint-launcher)
+
 ### Links
 * [BlueMaxima's Flashpoint](http://bluemaxima.org/flashpoint) - Download Flashpoint here (the launcher is bundled with it)
 * [Trello](https://trello.com/b/Tu9E5GLk/launcher) - Upcoming features, known bugs etc.
