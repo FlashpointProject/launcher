@@ -2,14 +2,16 @@ import * as React from 'react';
 
 export type SplashScreenProps = {
   gamesLoaded: boolean;
+  playlistsLoaded: boolean;
   creditsLoaded: boolean;
   upgradesLoaded: boolean;
 }
 
 export function SplashScreen(props: SplashScreenProps) {
-  const { gamesLoaded, creditsLoaded, upgradesLoaded } = props;
-  const loaded = gamesLoaded && creditsLoaded && upgradesLoaded;
-  const extraClass = loaded ? ' splash-screen--fade-out' : '';
+  const { gamesLoaded, playlistsLoaded, creditsLoaded, upgradesLoaded } = props;
+  const extraClass = (gamesLoaded && playlistsLoaded && creditsLoaded && upgradesLoaded)
+    ? ' splash-screen--fade-out'
+    : '';
   return (
     <div className={'splash-screen' + extraClass}>
       <div className='splash-screen__logo fp-logo-box'>
@@ -22,6 +24,11 @@ export function SplashScreen(props: SplashScreenProps) {
         {!gamesLoaded ?
           <div className='splash-screen__status'>
             Games
+          </div>
+        : undefined}
+        {!playlistsLoaded ?
+          <div className='splash-screen__status'>
+            Playlists
           </div>
         : undefined}
         {!creditsLoaded ?

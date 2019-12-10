@@ -24,7 +24,7 @@ export type AppRouterProps = {
   gamesTotal: number;
   playlists: GamePlaylist[];
   suggestions: SUGGESTIONS;
-  platforms: PlatformInfo[];
+  platforms: string[];
   onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
   onLaunchGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;

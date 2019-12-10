@@ -76,7 +76,8 @@ export interface IMainWindowExternal {
   initialLang: LangContainer;
   initialLangList: LangFile[];
   initialThemes: Theme[];
-  initialPlaylists: GamePlaylist[];
+  initialPlaylists?: GamePlaylist[];
+  initialPlatformNames: string[];
 
   /**
    * Wait for the preload to initialize.

@@ -6,7 +6,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse, GetPlaylistResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '../shared/game/GameFilter';
@@ -55,6 +55,7 @@ const state: BackState = {
   isHandling: false,
   init: {
     0: false,
+    1: false,
   },
   initEmitter: new EventEmitter() as any,
   queries: {},
@@ -315,6 +316,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       for (let filename of state.playlistWatcher.filenames) {
         onPlaylistAddOrChange(filename, '', false);
       }
+      // Track when all playlist are done loading
+      state.playlistQueue.push(async () => {
+        state.init[BackInit.PLAYLISTS] = true;
+        state.initEmitter.emit(BackInit.PLAYLISTS);
+      });
       // Functions
       function onPlaylistAddOrChange(filename: string, offsetPath: string, doBroadcast: boolean = true) {
         state.playlistQueue.push(async () => {
@@ -367,6 +373,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         } else {
           log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
         }
+
+        state.init[BackInit.PLAYLISTS] = true;
+        state.initEmitter.emit(BackInit.PLAYLISTS);
       }
     });
 
@@ -510,7 +519,8 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
             state.countryCode,
             state.preferences.fallbackLanguage),
           themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
-          playlists: state.playlists,
+          playlists: state.init[BackInit.PLAYLISTS] ? state.playlists : undefined,
+          platformNames: state.gameManager.platforms.map(p => p.name),
         },
       });
     } break;
@@ -829,6 +839,14 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       respond(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
+      });
+    } break;
+
+    case BackIn.GET_PLAYLISTS: {
+      respond<GetPlaylistResponse>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: state.playlists,
       });
     } break;
 

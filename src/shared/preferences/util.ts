@@ -41,7 +41,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   lastSelectedLibrary: '',
   gamesOrderBy: 'title',
   gamesOrder: 'ascending',
-  defaultLibrary: 'arcade',
+  defaultLibrary: 'Arcade',
   mainWindow: Object.freeze({
     x: undefined,
     y: undefined,

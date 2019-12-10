@@ -18,8 +18,11 @@ import { OpenIcon, OpenIconType } from '../OpenIcon';
 import { RandomGames } from '../RandomGames';
 import { SizeProvider } from '../SizeProvider';
 
+const ARCADE = 'Arcade';
+const THEATRE = 'Theatre';
+
 type OwnProps = {
-  platforms: PlatformInfo[];
+  platforms: string[];
   playlists: GamePlaylist[];
   /** Semi-global prop. */
   central: CentralState;
@@ -66,8 +69,8 @@ export class HomePage extends React.Component<HomePageProps> {
     const formatPlatforms = this.props.platforms.map((platform, index) =>
       <span key={index}>
         <Link
-          to={joinLibraryRoute('arcade')}
-          onClick={this.onPlatformClick(platform.name)}>
+          to={joinLibraryRoute(ARCADE)}
+          onClick={this.onPlatformClick(platform)}>
           {platform}
         </Link>
         { (index < numOfPlatforms - 1) ? ', ' : undefined }
@@ -90,13 +93,13 @@ export class HomePage extends React.Component<HomePageProps> {
             <div className='home-page__box-head'>{strings.quickStartHeader}</div>
             <ul className='home-page__box-body'>
               <QuickStartItem icon='badge'>
-                {formatString(strings.hallOfFameInfo, <Link to={this.getHallOfFameBrowseRoute()} onClick={this.onHallOfFameClick}>{strings.hallOfFame}</Link>)}
+                {formatString(strings.hallOfFameInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={this.onHallOfFameClick}>{strings.hallOfFame}</Link>)}
               </QuickStartItem>
               <QuickStartItem icon='play-circle'>
-                {formatString(strings.allGamesInfo, <Link to={joinLibraryRoute('arcade')} onClick={this.onAllGamesClick}>{strings.allGames}</Link>)}
+                {formatString(strings.allGamesInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={this.onAllGamesClick}>{strings.allGames}</Link>)}
               </QuickStartItem>
               <QuickStartItem icon='video'>
-                {formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute('theatre')} onClick={this.onAllAnimationsClick}>{strings.allAnimations}</Link>)}
+                {formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute(THEATRE)} onClick={this.onAllAnimationsClick}>{strings.allAnimations}</Link>)}
               </QuickStartItem>
               <QuickStartItem icon='wrench'>
                 {formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)}
@@ -124,7 +127,7 @@ export class HomePage extends React.Component<HomePageProps> {
             <ul className='home-page__box-body'>
               <QuickStartItem icon='heart'>
                 <Link
-                  to={this.getFavoriteBrowseRoute()}
+                  to={joinLibraryRoute(ARCADE)}
                   onClick={this.onFavoriteClick}>
                   {strings.favoritesPlaylist}
                 </Link>
@@ -218,59 +221,35 @@ export class HomePage extends React.Component<HomePageProps> {
   }
 
   private onHallOfFameClick = () => {
-    const { clearSearch, onSelectPlaylist, playlists, preferencesData } = this.props;
-    // Find the hall of fame playlist and select it
-    const playlist = findHallOfFamePlaylist(playlists);
-    const library = playlist && (playlist.library ? playlist.library : preferencesData.defaultLibrary );
-    if (playlist && library !== undefined) {
-      onSelectPlaylist(library, playlist && playlist.filename);
-      clearSearch();
+    const playlist = this.props.playlists.find(p => p.title === 'Flashpoint Hall of Fame');
+    if (playlist) {
+      this.props.onSelectPlaylist(ARCADE, playlist.filename);
+      this.props.clearSearch();
     }
   }
 
   onFavoriteClick = () => {
-    const { clearSearch, onSelectPlaylist, playlists, preferencesData } = this.props;
-    // Find the favorites playlist and select it
-    const playlist = findFavoritePlaylist(playlists);
-    const library = playlist && (playlist.library ? playlist.library : preferencesData.defaultLibrary );
-    if (playlist && library !== undefined) {
-      onSelectPlaylist(library, playlist && playlist.filename);
-      clearSearch();
+    const playlist = this.props.playlists.find(p => p.title === '*Favorites*');
+    if (playlist) {
+      this.props.onSelectPlaylist(ARCADE, playlist.filename);
+      this.props.clearSearch();
     }
   }
 
   onAllGamesClick = () => {
-    this.props.onSelectPlaylist('arcade', undefined);
+    this.props.onSelectPlaylist(ARCADE, undefined);
     this.props.clearSearch();
   }
 
   onAllAnimationsClick = () => {
-    this.props.onSelectPlaylist('theatre', undefined);
+    this.props.onSelectPlaylist(THEATRE, undefined);
     this.props.clearSearch();
   }
 
   /** Gets the platform as a string and performs a search dynamically for each platform generated. */
   onPlatformClick = (platform: string) => (event: any) => {
-    // Search to filter out all other platforms
     this.props.onSearch('!' + wrapSearchTerm(platform));
-    // Deselect the curret playlist
-    this.props.onSelectPlaylist('arcade', undefined);
-  }
-
-  getHallOfFameBrowseRoute = (): string => {
-    const defaultLibrary = this.props.preferencesData.defaultLibrary;
-    const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary) : Paths.BROWSE;
-    let hof = findHallOfFamePlaylist(this.props.playlists);
-    if (hof && hof.library) { return joinLibraryRoute(hof.library); }
-    else                    { return defaultRoute;                  }
-  }
-
-  getFavoriteBrowseRoute = (): string => {
-    const defaultLibrary = this.props.preferencesData.defaultLibrary;
-    const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary) : Paths.BROWSE;
-    let fav = findFavoritePlaylist(this.props.playlists);
-    if (fav && fav.library) { return joinLibraryRoute(fav.library); }
-    else                    { return defaultRoute;                  }
+    this.props.onSelectPlaylist(ARCADE, undefined);
   }
 
   static contextType = LangContext;
@@ -291,10 +270,3 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   );
 }
 
-function findHallOfFamePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
-  return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
-}
-
-function findFavoritePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
-  return playlists.find(playlist => playlist.title === '*Favorites*');
-}

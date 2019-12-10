@@ -73,12 +73,10 @@ window.External = {
   imageServerPort: -1,
 
   initialLang: createErrorProxy('initialLang'),
-
   initialLangList: createErrorProxy('initialLangList'),
-
   initialThemes: createErrorProxy('initialThemes'),
-
   initialPlaylists: createErrorProxy('initialPlaylists'),
+  initialPlatformNames: createErrorProxy('initialPlatformNames'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -115,6 +113,7 @@ const onInit = (async () => {
       window.External.initialLangList = response.data.languages;
       window.External.initialThemes = response.data.themes;
       window.External.initialPlaylists = response.data.playlists;
+      window.External.initialPlatformNames = response.data.platformNames;
       if (window.External.preferences.data.currentTheme) { setTheme(window.External.preferences.data.currentTheme); }
       resolve();
     } else { reject(new Error('"Get Renderer Init Data" response does not contain any data.')); }

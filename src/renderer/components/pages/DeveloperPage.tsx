@@ -20,7 +20,7 @@ const mkdir  = promisify(fs.mkdir);
 type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
-  platforms: PlatformInfo[];
+  platforms: string[];
   playlists: GamePlaylist[];
   /** Semi-global prop. */
   central: CentralState;

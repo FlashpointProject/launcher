@@ -3,8 +3,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData } from '../shared/back/types';
-import { sendRequest } from '../shared/back/util';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
 import { GamePlaylist, ProcessState, WindowIPC } from '../shared/interfaces';
@@ -12,12 +11,10 @@ import { LangContainer, LangFile } from '../shared/lang';
 import { getLibraryItemTitle } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
-import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
 import { setTheme } from '../shared/Theme';
 import { Theme } from '../shared/ThemeFile';
 import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
-import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
@@ -67,7 +64,7 @@ export type AppState = {
   playlists: GamePlaylist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
   suggestions: SUGGESTIONS;
-  platforms: PlatformInfo[];
+  platforms: string[];
   loaded: { [key in BackInit]: boolean; };
   themeList: Theme[];
 
@@ -98,12 +95,13 @@ export class App extends React.Component<AppProps, AppState> {
     this.state = {
       views: {},
       libraries: [],
-      playlists: window.External.initialPlaylists,
+      playlists: window.External.initialPlaylists || [],
       playlistIconCache: {},
       suggestions: {},
-      platforms: [],
+      platforms: window.External.initialPlatformNames,
       loaded: {
         0: false,
+        1: false,
       },
       themeList: window.External.initialThemes,
 
@@ -229,6 +227,15 @@ export class App extends React.Component<AppProps, AppState> {
           const loaded = { ...this.state.loaded };
           for (let index of resData.done) {
             loaded[index] = true;
+
+            if (index+'' === BackInit.PLAYLISTS+'') {
+              window.External.back.send<GetPlaylistResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
+                if (res.data) {
+                  this.setState({ playlists: res.data });
+                  this.cachePlaylistIcons(res.data);
+                }
+              });
+            }
           }
 
           this.setState({ loaded });
@@ -411,62 +418,11 @@ export class App extends React.Component<AppProps, AppState> {
       }
     });
 
-
-    // Add all playlist icons to blobs
-    (async () => {
-      console.time('playlists');
-      for (let i = 0; i < window.External.initialPlaylists.length; i++) {
-        const playlist = window.External.initialPlaylists[i];
-
-      }
-      const playlists: GamePlaylist[] = window.External.initialPlaylists.map(p => ({
-        ...p,
-      }));
-      Promise.all(window.External.initialPlaylists.map(p => (async () => {
-        if (p.icon) { return cacheIcon(p.icon); }
-      })()))
-      .then(urls => {
-        const cache: Record<string, string> = {};
-        for (let i = 0; i < window.External.initialPlaylists.length; i++) {
-          const url = urls[i];
-          if (url) { cache[window.External.initialPlaylists[i].filename] = url; }
-        }
-        this.setState({ playlistIconCache: cache });
-      });
-      console.timeEnd('playlists');
-      return playlists;
-    })();
+    // Cache playlist icons (if they are loaded)
+    if (this.state.playlists.length > 0) { this.cachePlaylistIcons(this.state.playlists); }
 
     // -- Stuff that should probably be moved to the back --
 
-    // Initalize the Game Manager
-    sendRequest<PlatformInfo[]>(BackIn.GET_PLATFORMS)
-    .then(platforms => { this.setState({ platforms }); })
-    .catch((errors) => {
-      // @TODO Make this errors passing a bit safer? Expecting specially formatted errors seems dangerous.
-      errors.forEach((error: Error) => log(error.toString()));
-      // Show a popup about the errors
-      remote.dialog.showMessageBox({
-        type: 'error',
-        title: strings.dialog.errorParsingPlatforms,
-        message: formatString(strings.dialog.errorParsingPlatformsMessage, String(errors.length)),
-        buttons: ['Ok']
-      });
-      // Flag loading as failed
-      this.setState({
-        central: Object.assign({}, this.state.central, {
-          gamesFailedLoading: true,
-        })
-      });
-    })
-    .finally(() => {
-      // Flag loading as done
-      this.setState({
-        central: Object.assign({}, this.state.central, {
-          gamesDoneLoading: true,
-        })
-      });
-    });
     //
     UpgradeFile.readFile(fullJsonFolderPath, log)
     .then((data) => {
@@ -644,9 +600,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   render() {
-    const loaded = this.state.loaded[BackInit.GAMES] &&
-                   this.state.central.upgrade.doneLoading &&
-                   this.state.creditsDoneLoading;
+    const loaded = (
+      this.state.loaded[BackInit.GAMES] &&
+      this.state.loaded[BackInit.PLAYLISTS] &&
+      this.state.central.upgrade.doneLoading &&
+      this.state.creditsDoneLoading
+    );
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[libraryPath];
     const playlists = this.filterAndOrderPlaylistsMemo(this.state.playlists, libraryPath);
@@ -685,6 +644,7 @@ export class App extends React.Component<AppProps, AppState> {
         {/* Splash screen */}
         <SplashScreen
           gamesLoaded={this.state.loaded[BackInit.GAMES]}
+          playlistsLoaded={this.state.loaded[BackInit.PLAYLISTS]}
           upgradesLoaded={this.state.central.upgrade.doneLoading}
           creditsLoaded={this.state.creditsDoneLoading} />
         {/* Title-bar (if enabled) */}
@@ -875,7 +835,10 @@ export class App extends React.Component<AppProps, AppState> {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
 
-    if (!view) { throw new Error(`Failed to request games. Current view is missing (Library: "${library}", View: "${view}").`); }
+    if (!view) {
+      log(`Failed to request games. Current view is missing (Library: "${library}", View: "${view}").`);
+      return;
+    }
 
     const pageMin = Math.floor(offset / VIEW_PAGE_SIZE);
     const pageMax = Math.ceil((offset + limit) / VIEW_PAGE_SIZE);
@@ -926,6 +889,20 @@ export class App extends React.Component<AppProps, AppState> {
         }
       });
     }
+  }
+
+  cachePlaylistIcons(playlists: GamePlaylist[]): void {
+    Promise.all(playlists.map(p => (async () => {
+      if (p.icon) { return cacheIcon(p.icon); }
+    })()))
+    .then(urls => {
+      const cache: Record<string, string> = {};
+      for (let i = 0; i < playlists.length; i++) {
+        const url = urls[i];
+        if (url) { cache[playlists[i].filename] = url; }
+      }
+      this.setState({ playlistIconCache: cache });
+    });
   }
 
   filterAndOrderPlaylistsMemo = memoizeOne((playlists: GamePlaylist[], library: string) => {

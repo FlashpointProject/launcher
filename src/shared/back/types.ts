@@ -16,13 +16,12 @@ export enum BackIn {
   LAUNCH_ADDAPP,
   ADD_LOG,
   SERVICE_ACTION,
+  GET_PLAYLISTS,
   SAVE_PLAYLIST,
   DELETE_PLAYLIST,
   QUIT,
   /** Get all library names. */
   GET_LIBRARIES,
-  /** Update a browse view. */
-  BROWSE_VIEW_UPDATE,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   /** Get all data needed on init (by the renderer). */
@@ -33,18 +32,6 @@ export enum BackIn {
   UPDATE_CONFIG,
   /** Update any number of preferences. */
   UPDATE_PREFERENCES,
-  /** Load the backend game manager */
-  LOAD_GAMEMANAGER,
-  /** Get a list of loaded platforms */
-  GET_PLATFORMS,
-  /** Find a game */
-  FIND_GAME,
-  /** Search for games */
-  SEARCH_GAMES,
-  /** Remove a game or add app */
-  REMOVE_GAMEAPP,
-  /** Update any number of games or add apps metadata */
-  UPDATE_META,
 }
 
 export enum BackOut {
@@ -94,6 +81,7 @@ export type BackInitArgs = {
 
 export enum BackInit {
   GAMES,
+  PLAYLISTS,
 }
 
 export type AddLogData = ILogPreEntry;
@@ -116,7 +104,8 @@ export type GetRendererInitDataResponse = {
   languages: LangFile[];
   language: LangContainer;
   themes: Theme[];
-  playlists: GamePlaylist[];
+  playlists?: GamePlaylist[];
+  platformNames: string[]
 }
 
 export type LaunchGameData = {
@@ -223,10 +212,11 @@ export type PlaylistUpdateData = GamePlaylist;
 
 export type PlaylistRemoveData = string;
 
+export type GetPlaylistResponse = GamePlaylist[];
+
 export type SavePlaylistData = {
   prevFilename?: string;
   playlist: GamePlaylist;
 };
 
 export type DeletePlaylistData = string;
-
