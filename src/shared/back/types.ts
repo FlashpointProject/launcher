@@ -11,6 +11,7 @@ export enum BackIn {
   SAVE_GAME,
   GET_GAME,
   GET_ALL_GAMES,
+  RANDOM_GAMES,
   LAUNCH_GAME,
   DELETE_GAME,
   LAUNCH_ADDAPP,
@@ -135,6 +136,12 @@ export type GetGameResponseData = {
 export type GetAllGamesResponseData = {
   games: IGameInfo[];
 }
+
+export type RandomGamesData = {
+  count: number;
+}
+
+export type RandomGamesResponseData = IGameInfo[];
 
 export type LaunchAddAppData = {
   id: string;

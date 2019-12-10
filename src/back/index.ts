@@ -6,7 +6,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse, GetPlaylistResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '../shared/game/GameFilter';
@@ -717,6 +717,28 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
         data: { games }
+      });
+    } break;
+
+    case BackIn.RANDOM_GAMES: {
+      const reqData: RandomGamesData = req.data;
+
+      const allGames: IGameInfo[] = [];
+      for (let platform of state.gameManager.platforms) {
+        Array.prototype.push.apply(allGames, platform.collection.games);
+      }
+
+      const pickedGames: IGameInfo[] = [];
+      for (let i = 0; i < reqData.count; i++) {
+        const index = (Math.random() * allGames.length) | 0;
+        pickedGames.push(allGames[index]);
+        allGames.splice(index, 1);
+      }
+
+      respond<RandomGamesResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: pickedGames
       });
     } break;
 

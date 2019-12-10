@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { useCallback, useMemo } from 'react';
-import { ViewGame, LaunchGameData, BackIn } from '../../shared/back/types';
+import { useState } from 'react';
+import { IGameInfo } from 'src/shared/game/interfaces';
+import { BackIn, LaunchGameData, RandomGamesData, RandomGamesResponseData } from '../../shared/back/types';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
@@ -12,19 +13,20 @@ type RandomGamesProps = {
   showBroken: boolean;
 };
 
-/** The number of games shown in the RandomGames component. */
-const numberOfGames = 6;
-
 /** A small "grid" of randomly selected games. */
 export function RandomGames(props: RandomGamesProps) {
-  // Select random games to display
-  const randomGames = useMemo((): ViewGame[] => {
-    // @FIXTHIS Select random games
-    return [];
-  }, [/* Only pick games on the first render. */]);
-  // Render games
+  const [games, setGames] = useState<IGameInfo[]>([]);
+
+  React.useEffect(() => {
+    window.External.back.send<RandomGamesResponseData, RandomGamesData>(
+      BackIn.RANDOM_GAMES,
+      { count: 6, },
+      res => { if (res.data) { setGames(res.data); } }
+    );
+  }, []);
+
   const gameItems = React.useMemo(() => (
-    randomGames.map(game => (
+    games.map(game => (
       <GameGridItem
         key={game.id}
         id={game.id}
@@ -34,8 +36,8 @@ export function RandomGames(props: RandomGamesProps) {
         isSelected={false}
         isDragged={false} />
     ))
-  ), [randomGames]);
-  // Render
+  ), [games]);
+
   return (
     <GameItemContainer
       className='random-games'
