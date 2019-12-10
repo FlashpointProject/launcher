@@ -344,8 +344,8 @@
     "upgradeWillInstallTo": "{0} will be installed to",
     "verifyPathSelection": "미래 업그레이드도 이곳에 설치됩니다. 맞습니까?",
     "restartNow": "지금 재시작하겠습니까?",
-    "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
-    "areYouSure": "Are you sure?"
+    "restartToApplyUpgrade": "이 업그레이드는 재시작하기 전에는 적용되지 않습니다.\n그래도 지금 하시겠습니까?",
+    "areYouSure": "확실하세요?"
   },
   "libraries": {
     "arcade": "게임",
