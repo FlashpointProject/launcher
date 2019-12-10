@@ -266,6 +266,8 @@ const langTemplate = {
     'titlePlaceholder',
     'noAuthor',
     'authorPlaceholder',
+    'filename',
+    'by',
   ] as const,
   misc: [
     'noBlankFound',

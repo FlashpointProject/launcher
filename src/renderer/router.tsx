@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { Theme } from 'src/shared/ThemeFile';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
+import { GamePlaylist } from '../shared/interfaces';
 import { LangFile } from '../shared/lang';
 import { PlatformInfo } from '../shared/platform/interfaces';
+import { Theme } from '../shared/ThemeFile';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
@@ -17,7 +18,6 @@ import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { CreditsData } from './credits/types';
 import { CentralState, GAMES, SUGGESTIONS } from './interfaces';
 import { Paths } from './Paths';
-import { GamePlaylist } from './playlist/types';
 
 export type AppRouterProps = {
   games: GAMES | undefined;
@@ -25,15 +25,10 @@ export type AppRouterProps = {
   playlists: GamePlaylist[];
   suggestions: SUGGESTIONS;
   platforms: PlatformInfo[];
-  save: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean) => void;
-  launchGame: (gameId: string) => void;
-  deleteGame: (gameId: string) => void;
+  onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
+  onLaunchGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
-  onLaunchAddApp: (addAppId: string) => void;
-
-  onDeletePlaylist: (playlistId: string) => void;
-  onSavePlaylist: (playlistId: string, edit: GamePlaylist) => void;
-  onCreatePlaylist: () => void;
+  playlistIconCache: Record<string, string>;
 
   /** Semi-global prop. */
   central: CentralState;
@@ -46,7 +41,7 @@ export type AppRouterProps = {
   selectedGameId?: string;
   selectedPlaylistId?: string;
   onSelectGame: (gameId?: string) => void;
-  onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
+  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   wasNewGameClicked: boolean;
   onDownloadTechUpgradeClick: () => void;
   onDownloadScreenshotsUpgradeClick: () => void;
@@ -59,7 +54,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
   render() {
     const homeProps: ConnectedHomePageProps = {
       platforms: this.props.platforms,
-      launchGame: this.props.launchGame,
+      playlists: this.props.playlists,
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
       onDownloadTechUpgradeClick: this.props.onDownloadTechUpgradeClick,
@@ -70,15 +65,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       gamesTotal: this.props.gamesTotal,
       playlists: this.props.playlists,
       suggestions: this.props.suggestions,
-      save: this.props.save,
-      launchGame: this.props.launchGame,
-      deleteGame: this.props.deleteGame,
+      playlistIconCache: this.props.playlistIconCache,
+      onSaveGame: this.props.onSaveGame,
       onRequestGames: this.props.onRequestGames,
-      onLaunchAddApp: this.props.onLaunchAddApp,
-
-      onDeletePlaylist: this.props.onDeletePlaylist,
-      onSavePlaylist: this.props.onSavePlaylist,
-      onCreatePlaylist: this.props.onCreatePlaylist,
 
       order: this.props.order,
       gameScale: this.props.gameScale,
@@ -103,6 +92,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const developerProps: DeveloperPageProps = {
       platforms: this.props.platforms,
+      playlists: this.props.playlists,
       central: this.props.central,
     };
     return (

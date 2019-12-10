@@ -1,54 +1,51 @@
 import * as React from 'react';
+import { GamePlaylist } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
+import { memoizeOne } from '../../shared/memoize';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { GamePlaylist } from '../playlist/types';
 import { gameIdDataType } from '../Util';
 import { LangContext } from '../util/lang';
+import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { PlaylistItemContent } from './PlaylistContent';
 import { PlaylistItem } from './PlaylistItem';
 
 type OwnProps = {
   playlists: GamePlaylist[];
-  currentLibrary: string;
-  onDelete: (playlistId: string) => void;
-  onSave: (playlistId: string, edit: GamePlaylist) => void;
-  onCreate: () => void;
   /** ID of the playlist that is selected (empty string if none). */
   selectedPlaylistID: string;
-  /** Called when a playlist is selected. */
-  onSelectPlaylist?: (playlist: GamePlaylist) => void;
-  /** Called when a the current playlist is deselected (and no playlist is selected in its place). */
-  onDeselectPlaylist?: () => void;
-  /** Called when a displayed playlist has been changed (by means that doesn't already re-render). */
-  onPlaylistChanged?: (playlist: GamePlaylist) => void;
-  /** Called when the "Show All" button is clicked. */
+  isEditing: boolean;
+  isNewPlaylist: boolean;
+  currentPlaylist?: GamePlaylist;
+  currentPlaylistFilename?: string;
+  playlistIconCache: Record<string, string>;
+  onDelete: () => void;
+  onSave: () => void;
+  onCreate: () => void;
+  onDiscard: () => void;
+  onEditClick: () => void;
+  onDrop: (event: React.DragEvent, playlistId: string) => void;
+  onItemClick: (playlistId: string, selected: boolean) => void;
+  onSetIcon: () => void;
+  onTitleChange: (event: React.ChangeEvent<InputElement>) => void;
+  onAuthorChange: (event: React.ChangeEvent<InputElement>) => void;
+  onDescriptionChange: (event: React.ChangeEvent<InputElement>) => void;
+  onFilenameChange: (event: React.ChangeEvent<InputElement>) => void;
+  onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
   onShowAllClick?: () => void;
 };
 
 export type LeftBrowseSidebarProps = OwnProps & WithPreferencesProps;
-
-type LeftBrowseSidebarState = {
-  /** If the selected playlist is being edited. */
-  isEditing: boolean;
-};
 
 export interface LeftBrowseSidebar {
   context: LangContainer;
 }
 
 /** Sidebar on the left side of BrowsePage. */
-export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, LeftBrowseSidebarState> {
-  constructor(props: LeftBrowseSidebarProps) {
-    super(props);
-    this.state = {
-      isEditing: false,
-    };
-  }
-
+export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
   render() {
     const strings = this.context.browse;
-    const { onShowAllClick, playlists, preferencesData, selectedPlaylistID } = this.props;
-    const { isEditing } = this.state;
+    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, preferencesData, selectedPlaylistID } = this.props;
     const editingDisabled = !preferencesData.enableEditing;
     return (
       <div className='browse-left-sidebar'>
@@ -65,28 +62,12 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
             </div>
           </div>
           {/* List all playlists */}
-          {playlists.map((playlist) => {
-            const isSelected = playlist.id === selectedPlaylistID;
-            return (
-              <PlaylistItem
-                key={playlist.id}
-                playlist={playlist}
-                expanded={isSelected}
-                editingDisabled={editingDisabled}
-                editing={isSelected && isEditing}
-                onHeadClick={this.onPlaylistItemHeadClick}
-                onEditClick={this.onPlaylistItemEditClick}
-                onDeleteClick={this.onPlaylistItemDeleteClick}
-                onSaveClick={this.onPlaylistItemSaveClick}
-                onDrop={this.onPlaylistItemDrop}
-                onDragOver={this.onPlaylistItemDragOver} />
-            );
-          })}
+          {this.renderPlaylistsMemo(playlists, playlistIconCache, currentPlaylist, selectedPlaylistID, editingDisabled, isEditing, isEditingNew)}
           {/* Create New Playlist */}
           { editingDisabled ? undefined : (
             <div
               className='playlist-list-fake-item'
-              onClick={this.onCreatePlaylistClick}>
+              onClick={this.props.onCreate}>
               <div className='playlist-list-fake-item__inner'>
                 <OpenIcon icon='plus' />
               </div>
@@ -100,37 +81,65 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
     );
   }
 
-  private onPlaylistItemHeadClick = (playlist: GamePlaylist): void => {
-    if (this.props.selectedPlaylistID === playlist.id) {
-      this.props.onDeselectPlaylist && this.props.onDeselectPlaylist();
-    } else {
-      this.props.onSelectPlaylist && this.props.onSelectPlaylist(playlist);
+  renderPlaylistsMemo = memoizeOne((
+    playlists: GamePlaylist[],
+    playlistIconCache: Record<string, string>,
+    currentPlaylist: GamePlaylist | undefined,
+    selectedPlaylistID: string,
+    editingDisabled: boolean,
+    isEditing: boolean,
+    isEditingNew: boolean,
+  ) => {
+    const renderItem = (playlist: GamePlaylist, isNew: boolean): void => {
+      const isSelected = isNew || playlist.filename === selectedPlaylistID;
+      const p = (isSelected && currentPlaylist) ? currentPlaylist : playlist;
+      const key = isNew ? '?new' : playlist.filename;
+      elements.push(
+        <PlaylistItem
+          key={key}
+          playlist={p}
+          iconFilename={isSelected ? this.props.currentPlaylistFilename : undefined}
+          selected={isSelected}
+          editing={isSelected && isEditing}
+          playlistIconCache={playlistIconCache}
+          onDrop={this.props.onDrop}
+          onDragOver={this.onPlaylistItemDragOver}
+          onHeadClick={this.props.onItemClick}
+          onSetIcon={this.props.onSetIcon}
+          onTitleChange={this.props.onTitleChange}
+          onAuthorChange={this.props.onAuthorChange}
+          onKeyDown={this.props.onKeyDown} />
+      );
+      if (isSelected) {
+        elements.push(
+          <PlaylistItemContent
+            key={key + '?content'} // Includes "?" because it's an invalid filename character
+            editingDisabled={editingDisabled}
+            editing={isSelected && isEditing}
+            playlist={p}
+            onDescriptionChange={this.props.onDescriptionChange}
+            OnFilenameChange={this.props.onFilenameChange}
+            onKeyDown={this.props.onKeyDown}
+            onSave={this.props.onSave}
+            onDiscard={this.props.onDiscard}
+            onEdit={this.props.onEditClick}
+            onDelete={this.props.onDelete} />
+        );
+      }
+    };
+
+    const elements: JSX.Element[] = [];
+    for (let i = 0; i < playlists.length; i++) {
+      renderItem(playlists[i], false);
     }
-    this.setState({ isEditing: false });
-  }
-
-  private onPlaylistItemEditClick = (playlist: GamePlaylist): void => {
-    if (this.props.selectedPlaylistID === playlist.id) {
-      this.setState({ isEditing: !this.state.isEditing });
+    if (isEditingNew) {
+      if (!this.props.currentPlaylist) { throw new Error('Failed to render new playlist. Playlist state is missing.'); }
+      renderItem(this.props.currentPlaylist, true);
     }
-  }
+    return elements;
+  })
 
-  private onPlaylistItemDeleteClick = (playlist: GamePlaylist): void => {
-    this.props.onDelete(playlist.id);
-  }
-
-  private onPlaylistItemSaveClick = (playlist: GamePlaylist, edit: GamePlaylist): void => {
-    this.props.onSave(playlist.id, edit);
-    this.setState({ isEditing: false });
-  }
-
-  private onPlaylistItemDrop = (event: React.DragEvent, playlist: GamePlaylist): void => {
-    if (this.props.onPlaylistChanged) {
-      this.props.onPlaylistChanged(playlist);
-    }
-  }
-
-  private onPlaylistItemDragOver = (event: React.DragEvent, playlist: GamePlaylist): void => {
+  onPlaylistItemDragOver = (event: React.DragEvent): void => {
     if (this.props.preferencesData.enableEditing) {
       const types = event.dataTransfer.types;
       if (types.length === 1 && types[0] === gameIdDataType) {
@@ -139,23 +148,6 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
         event.preventDefault();
       }
     }
-  }
-
-  private onCreatePlaylistClick = (): void => {
-    this.props.onCreate();
-    /*
-    const { currentLibrary, onSelectPlaylist, playlists } = this.props;
-    // Create and save a new playlist
-    const playlist = playlists.create();
-    if (currentLibrary) { playlist.library = currentLibrary; }
-    playlists.save(playlist);
-    // Select the new playlist
-    this.forceUpdate();
-    setTimeout(() => { // (Give the playlist list item some time to be created before selecting it)
-      onSelectPlaylist && onSelectPlaylist(playlist);
-      this.setState({ isEditing: false });
-    }, 1);
-    */
   }
 
   static contextType = LangContext;

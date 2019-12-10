@@ -1,15 +1,15 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as React from 'react';
+import { BackIn, LaunchAddAppData } from '../../shared/back/types';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { wrapSearchTerm } from '../../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { PickType } from '../../shared/interfaces';
+import { GamePlaylistEntry, PickType } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import { SUGGESTIONS } from '../interfaces';
-import { GamePlaylistEntry } from '../playlist/types';
-import { getGameImageURL, getGameImagePath } from '../Util';
+import { getGameImagePath, getGameImageURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { uuid } from '../uuid';
 import { CheckBox } from './CheckBox';
@@ -22,11 +22,12 @@ import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 
 type OwnProps = {
-  onLaunchAddApp: (addAppId: string) => void;
   /** Currently selected game (if any) */
   currentGame?: IGameInfo;
   /** Additional Applications of the currently selected game (if any) */
   currentAddApps?: IAdditionalApplicationInfo[];
+  /** Notes of the selected game in the selected playlist (if any) */
+  currentPlaylistNotes?: string;
   /* Current Library */
   currentLibrary: string;
   /** Currently selected game entry (if any) */
@@ -38,7 +39,7 @@ type OwnProps = {
   /** Called when a playlist is deselected (searching game fields) */
   onDeselectPlaylist: () => void;
   /** Called when the playlist notes for the selected game has been changed */
-  onEditPlaylistNotes?: (text: string) => void;
+  onEditPlaylistNotes: (text: string) => void;
   /** If the "edit mode" is currently enabled */
   isEditing: boolean;
   /** If the selected game is a new game being created */
@@ -46,9 +47,9 @@ type OwnProps = {
   /** ... */
   suggestions?: SUGGESTIONS;
 
-  onEditClick?: () => void;
-  onDiscardClick?: () => void;
-  onSaveGame?: () => void;
+  onEditClick: () => void;
+  onDiscardClick: () => void;
+  onSaveGame: () => void;
 };
 
 export type RightBrowseSidebarProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -118,7 +119,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const strings = this.context.browse;
     const game: IGameInfo | undefined = this.props.currentGame;
     if (game) {
-      const { currentAddApps, gamePlaylistEntry, isEditing, isNewGame, preferencesData, suggestions } = this.props;
+      const { currentAddApps, gamePlaylistEntry, currentPlaylistNotes, isEditing, isNewGame, preferencesData, suggestions } = this.props;
       const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
       const editable = !editDisabled && isEditing;
@@ -369,7 +370,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               <div className='browse-right-sidebar__row'>
                 <p>{strings.playlistNotes}: </p>
                 <InputField
-                  text={gamePlaylistEntry.notes || ''}
+                  text={currentPlaylistNotes|| ''}
                   placeholder={strings.noPlaylistNotes}
                   onChange={this.onEditPlaylistNotes}
                   editable={editable}
@@ -550,22 +551,20 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   /** When a key is pressed down "globally" (and this component is present) */
   onGlobalKeyDown = (event: KeyboardEvent) => {
-    const { currentGame, isEditing, onEditClick } = this.props;
     // Start editing
     if (event.ctrlKey && event.code === 'KeyE' && // (CTRL + E ...
-        !isEditing && currentGame) { // ... while not editing, and a game is selected)
-      if (onEditClick) { onEditClick(); }
+        !this.props.isEditing && this.props.currentGame) { // ... while not editing, and a game is selected)
+      this.props.onEditClick();
       if (this.launchCommandRef.current) { this.launchCommandRef.current.focus(); }
       event.preventDefault();
     }
   }
 
   onLocalKeyDown = (event: React.KeyboardEvent) => {
-    const { currentGame, isEditing, onSaveGame } = this.props;
     // Save changes
     if (event.ctrlKey && event.key === 's' && // (CTRL + S ...
-        isEditing && currentGame) { // ... while editing, and a game is selected)
-      if (onSaveGame) { onSaveGame(); }
+        this.props.isEditing && this.props.currentGame) { // ... while editing, and a game is selected)
+      this.props.onSaveGame();
       event.preventDefault();
     }
   }
@@ -661,7 +660,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onAddAppLaunch = (addAppId: string): void => {
-    this.props.onLaunchAddApp(addAppId);
+    window.External.back.send<any, LaunchAddAppData>(BackIn.LAUNCH_ADDAPP, { id: addAppId });
   }
 
   onAddAppDelete = (addAppId: string): void => {
@@ -692,17 +691,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onEditPlaylistNotes = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-    if (this.props.onEditPlaylistNotes) {
-      this.props.onEditPlaylistNotes(event.currentTarget.value);
-      this.forceUpdate();
-    }
+    this.props.onEditPlaylistNotes(event.currentTarget.value);
   }
 
   /** When a key is pressed while an input field is selected (except for multiline fields) */
   onInputKeyDown = (event: React.KeyboardEvent): void => {
-    if (event.key === 'Enter') {
-      if (this.props.onSaveGame) { this.props.onSaveGame(); }
-    }
+    if (event.key === 'Enter') { this.props.onSaveGame(); }
   }
 
   /** Create a callback for when a game field is clicked. */

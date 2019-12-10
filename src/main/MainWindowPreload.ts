@@ -68,7 +68,7 @@ window.External = {
 
   isDev,
 
-  back: createErrorProxy('backSocket'),
+  back: new SharedSocket(),
 
   imageServerPort: -1,
 
@@ -78,29 +78,25 @@ window.External = {
 
   initialThemes: createErrorProxy('initialThemes'),
 
+  initialPlaylists: createErrorProxy('initialPlaylists'),
+
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
   }
 };
 
 let isInitDone: boolean = false;
-const onInit = new Promise<SharedSocket>((resolve, reject) => {
+const onInit = (async () => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
-
-  // Connect to the back API
-  const url = new URL('ws://localhost');
-  url.port = data.port+'';
-
-  const ws = new WebSocket(url.href);
-  ws.onopen = () => {
-    ws.onmessage = () => { resolve(new SharedSocket(ws)); };
-    ws.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
-    ws.send(data.secret);
-  };
-})
-.then((socket) => new Promise((resolve, reject) => {
-  window.External.back = socket;
+  // Connect to the back
+  const url = `ws://localhost:${data.port}`;
+  const socket = await SharedSocket.connect(url, data.secret);
+  window.External.back.url = url;
+  window.External.back.secret = data.secret;
+  window.External.back.setSocket(socket);
+})()
+.then(() => new Promise((resolve, reject) => {
   window.External.back.on('message', onMessage);
   // Fetch the config and preferences
   window.External.back.send<GetRendererInitDataResponse>(BackIn.GET_RENDERER_INIT_DATA, undefined, response => {
@@ -118,6 +114,7 @@ const onInit = new Promise<SharedSocket>((resolve, reject) => {
       window.External.initialLang = response.data.language;
       window.External.initialLangList = response.data.languages;
       window.External.initialThemes = response.data.themes;
+      window.External.initialPlaylists = response.data.playlists;
       if (window.External.preferences.data.currentTheme) { setTheme(window.External.preferences.data.currentTheme); }
       resolve();
     } else { reject(new Error('"Get Renderer Init Data" response does not contain any data.')); }

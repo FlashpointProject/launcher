@@ -1,6 +1,5 @@
-import { GamePlaylist } from '../../renderer/playlist/types';
+import { GamePlaylist } from '../interfaces';
 import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
-import { GameInfo } from './GameInfo';
 import { IGameInfo } from './interfaces';
 
 type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
@@ -116,16 +115,12 @@ function filterPlaylist(playlist: GamePlaylist | undefined, games: IGameInfo[]):
   const filteredGames: IGameInfo[] = [];
   for (let gameEntry of playlist.games) {
     const id = gameEntry.id;
-    let gameFound = false;
     for (let game of games) {
       if (game.id === id) {
         filteredGames.push(game);
-        gameFound = true;
         break;
       }
     }
-    // Add a placeholder if the game was not found
-    if (!gameFound) { filteredGames.push({ ...notFoundGame, id }); }
   }
   return filteredGames;
 }
@@ -362,6 +357,26 @@ export function orderGames(games: IGameInfo[], opts: OrderGamesOpts) {
 }
 
 /**
+ * Order an array of games after how they are orderen in a playlist.
+ * Note: Don't include games that are not in the playlist, it will not properly sort them.
+ * @param games Games to order (this array WILL be manipulated)
+ * @param playlist Playlist to order the games after
+ */
+export function orderGamesInPlaylist(games: IGameInfo[], playlist: GamePlaylist): void {
+  for (let i = 0; i < playlist.games.length; i++) {
+    const id = playlist.games[i].id;
+    for (let j = i; j < games.length; j++) {
+      if (games[j].id === id) {
+        // Swap places
+        const temp = games[j];
+        games[j] = games[i];
+        games[i] = temp;
+      }
+    }
+  }
+}
+
+/**
  * Wrap a search term in quotes if they are needed (to keep it as a single search term).
  * @param text Search term to wrap.
  */
@@ -370,10 +385,3 @@ export function wrapSearchTerm(text: string): string {
     ? `"${text}"`
     : text;
 }
-
-/* "Game" used for displaying games that are not found. */
-const notFoundGame: IGameInfo = Object.freeze({
-  ...GameInfo.create(),
-  title: 'Game not found',
-  placeholder: true, // (This game is not an "actual" game - it just shows the actual game was not found)
-});

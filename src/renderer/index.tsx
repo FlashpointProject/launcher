@@ -19,9 +19,7 @@ import { PreferencesContextProvider } from './context/PreferencesContext';
     }
   });
   // Wait for the preferences and config to initialize
-  await Promise.all([
-    window.External.waitUntilInitialized(),
-  ]);
+  await window.External.waitUntilInitialized();
   // Create history
   const history = createMemoryHistory();
   // Create Redux store

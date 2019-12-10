@@ -1,6 +1,6 @@
-import { GamePlaylist } from '../../renderer/playlist/types';
 import { OrderGamesOpts } from '../../shared/game/GameFilter';
 import { IGameInfo } from '../../shared/game/interfaces';
+import { GamePlaylist } from '../../shared/interfaces';
 
 
 export interface LoadPlatformError extends Error {

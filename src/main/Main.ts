@@ -222,13 +222,6 @@ export class Main {
     };
     event.returnValue = data;
   }
-
-  /** Send a message to the main windows renderer */
-  private sendToMainWindowRenderer(channel: string , ...rest: any[]): boolean {
-    if (!this._mainWindow.window) { return false; }
-    this._mainWindow.window.webContents.send(channel, ...rest);
-    return true;
-  }
 }
 
 function exists(filePath: string): Promise<boolean> {

@@ -1,6 +1,6 @@
-import { GamePlaylist } from '../../renderer/playlist/types';
 import { PlatformInfo } from '../platform/interfaces';
 import { OrderGamesOpts } from './GameFilter';
+import { GamePlaylist } from '../interfaces';
 
 export const UNKNOWN_LIBRARY = 'unknown';
 

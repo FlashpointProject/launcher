@@ -255,7 +255,8 @@
     "noTitle": "No Title",
     "titlePlaceholder": "Title...",
     "noAuthor": "No Author",
-    "authorPlaceholder": "Author..."
+    "authorPlaceholder": "Author...",
+    "by": "by"
   },
   "misc": {
     "noBlankFound": "No {0} Found",

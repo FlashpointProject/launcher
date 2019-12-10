@@ -1,21 +1,22 @@
 import { ipcRenderer, remote } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
-import { Theme } from 'src/shared/ThemeFile';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, LogEntryAddedData, SaveGameData, ServiceChangeData, ThemeChangeData, ThemeListChangeData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData } from '../shared/back/types';
 import { sendRequest } from '../shared/back/util';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
-import { ProcessState, WindowIPC } from '../shared/interfaces';
+import { GamePlaylist, ProcessState, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
 import { getLibraryItemTitle } from '../shared/library/util';
+import { memoizeOne } from '../shared/memoize';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { PlatformInfo } from '../shared/platform/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
 import { setTheme } from '../shared/Theme';
-import { recursiveReplace, versionNumberToText } from '../shared/Util';
+import { Theme } from '../shared/ThemeFile';
+import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -27,8 +28,6 @@ import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
 import { CentralState, GAMES, SUGGESTIONS, UpgradeStageState, UpgradeState } from './interfaces';
 import { Paths } from './Paths';
-import { GamePlaylistManager } from './playlist/GamePlaylistManager';
-import { GamePlaylist } from './playlist/types';
 import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
@@ -44,6 +43,8 @@ type View = {
   total: number;
   selectedPlaylistId?: string;
   selectedGameId?: string;
+  /** If the cache is dirty and should be discarded. */
+  dirtyCache: boolean;
   /** The most recent query used for this view. */
   query: {
     search: string;
@@ -64,6 +65,7 @@ export type AppState = {
   views: Views;
   libraries: string[];
   playlists: GamePlaylist[];
+  playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
   suggestions: SUGGESTIONS;
   platforms: PlatformInfo[];
   loaded: { [key in BackInit]: boolean; };
@@ -96,7 +98,8 @@ export class App extends React.Component<AppProps, AppState> {
     this.state = {
       views: {},
       libraries: [],
-      playlists: [],
+      playlists: window.External.initialPlaylists,
+      playlistIconCache: {},
       suggestions: {},
       platforms: [],
       loaded: {
@@ -105,7 +108,6 @@ export class App extends React.Component<AppProps, AppState> {
       themeList: window.External.initialThemes,
 
       central: {
-        playlists: new GamePlaylistManager(),
         upgrade: {
           doneLoading: false,
           techState: {
@@ -123,8 +125,6 @@ export class App extends React.Component<AppProps, AppState> {
             installProgressNote: '',
           },
         },
-        playlistsDoneLoading: false,
-        playlistsFailedLoading: false,
       },
       creditsData: undefined,
       creditsDoneLoading: false,
@@ -202,6 +202,7 @@ export class App extends React.Component<AppProps, AppState> {
       const views: Record<string, View> = {};
       for (let library of libraries) {
         views[library] = {
+          dirtyCache: false,
           games: {},
           pages: {},
           total: 0,
@@ -220,8 +221,19 @@ export class App extends React.Component<AppProps, AppState> {
     });
 
     window.External.back.on('message', res => {
-      // console.log('IN', res);
+      console.log('IN', res);
       switch (res.type) {
+        case BackOut.INIT_EVENT: {
+          const resData: InitEventData = res.data;
+
+          const loaded = { ...this.state.loaded };
+          for (let index of resData.done) {
+            loaded[index] = true;
+          }
+
+          this.setState({ loaded });
+        } break;
+
         case BackOut.LOG_ENTRY_ADDED: {
           const resData: LogEntryAddedData = res.data;
           window.External.log.entries[resData.index - window.External.log.offset] = resData.entry;
@@ -234,7 +246,14 @@ export class App extends React.Component<AppProps, AppState> {
 
           if (view) {
             const views = { ...this.state.views };
-            const newView = views[res.id] = { ...view, games: { ...view.games } };
+            const newView = views[res.id] = { ...view };
+            if (view.dirtyCache) {
+              newView.dirtyCache = false;
+              newView.games = {};
+              newView.pages = {};
+            } else {
+              newView.games = { ...view.games };
+            }
             for (let i = 0; i < resData.games.length; i++) {
               newView.games[resData.offset + i] = resData.games[i];
             }
@@ -254,9 +273,7 @@ export class App extends React.Component<AppProps, AppState> {
                   ...this.state.views,
                   [resData.library]: {
                     ...view,
-                    // Clear cache
-                    games: {},
-                    pages: {},
+                    dirtyCache: true,
                   }
                 }
               }, () => { this.onRequestGames(0, 1); });
@@ -268,9 +285,7 @@ export class App extends React.Component<AppProps, AppState> {
               if (view) {
                 newViews[library] = {
                   ...view,
-                  // Clear cache
-                  games: {},
-                  pages: {},
+                  dirtyCache: true,
                 };
               }
             }
@@ -321,30 +336,109 @@ export class App extends React.Component<AppProps, AppState> {
           const resData: ThemeListChangeData = res.data;
           this.setState({ themeList: resData });
         } break;
+
+        case BackOut.PLAYLIST_UPDATE: {
+          const resData: PlaylistUpdateData = res.data;
+          const index = this.state.playlists.findIndex(p => p.filename === resData.filename);
+          if (index >= 0) {
+            const playlist = this.state.playlists[index];
+            const state: Partial<Pick<AppState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
+
+            // Remove old icon from cache
+            if (playlist.filename in this.state.playlistIconCache) {
+              state.playlistIconCache = { ...this.state.playlistIconCache };
+              delete state.playlistIconCache[playlist.filename];
+              URL.revokeObjectURL(state.playlistIconCache[playlist.filename]); // Free blob from memory
+            }
+
+            // Cache new icon
+            if (resData.icon !== undefined) {
+              cacheIcon(resData.icon).then(url => {
+                this.setState({
+                  playlistIconCache: {
+                    ...this.state.playlistIconCache,
+                    [resData.filename]: url,
+                  }
+                });
+              });
+            }
+
+            // Update playlist
+            state.playlists = [ ...this.state.playlists ];
+            state.playlists[index] = resData;
+
+            // Clear view caches (that use this playlist)
+            for (let id in this.state.views) {
+              const view = this.state.views[id];
+              if (view) {
+                if (view.selectedPlaylistId === resData.filename) {
+                  if (!state.views) { state.views = { ...this.state.views }; }
+                  state.views[id] = {
+                    ...view,
+                    dirtyCache: true,
+                  };
+                }
+              }
+            }
+
+            this.setState(
+              state as any, // (This is very annoying to make typesafe)
+              () => { if (state.views) { this.onRequestGames(0, 1); } }
+            );
+          } else {
+            this.setState({ playlists: [...this.state.playlists, resData] });
+          }
+        } break;
+
+        case BackOut.PLAYLIST_REMOVE: {
+          const resData: PlaylistRemoveData = res.data;
+
+          const index = this.state.playlists.findIndex(p => p.filename === resData);
+          if (index >= 0) {
+            const playlists = [ ...this.state.playlists ];
+            playlists.splice(index, 1);
+
+            const cache: Record<string, string> = { ...this.state.playlistIconCache };
+            const filename = this.state.playlists[index].filename;
+            if (filename in cache) { delete cache[filename]; }
+
+            this.setState({
+              playlists: playlists,
+              playlistIconCache: cache
+            });
+          }
+        } break;
       }
     });
 
+
+    // Add all playlist icons to blobs
+    (async () => {
+      console.time('playlists');
+      for (let i = 0; i < window.External.initialPlaylists.length; i++) {
+        const playlist = window.External.initialPlaylists[i];
+
+      }
+      const playlists: GamePlaylist[] = window.External.initialPlaylists.map(p => ({
+        ...p,
+      }));
+      Promise.all(window.External.initialPlaylists.map(p => (async () => {
+        if (p.icon) { return cacheIcon(p.icon); }
+      })()))
+      .then(urls => {
+        const cache: Record<string, string> = {};
+        for (let i = 0; i < window.External.initialPlaylists.length; i++) {
+          const url = urls[i];
+          if (url) { cache[window.External.initialPlaylists[i].filename] = url; }
+        }
+        this.setState({ playlistIconCache: cache });
+      });
+      console.timeEnd('playlists');
+      return playlists;
+    })();
+
     // -- Stuff that should probably be moved to the back --
 
-    // Load Playlists
-    this.state.central.playlists.load()
-    .catch((err) => {
-      this.setState({
-        central: Object.assign({}, this.state.central, {
-          playlistsDoneLoading: true,
-          playlistsFailedLoading: true,
-        })
-      });
-      log(err+'');
-      throw err;
-    })
-    .then(() => {
-      this.setState({
-        central: Object.assign({}, this.state.central, {
-          playlistsDoneLoading: true,
-        })
-      });
-    });
     // Initalize the Game Manager
     sendRequest<PlatformInfo[]>(BackIn.GET_PLATFORMS)
     .then(platforms => { this.setState({ platforms }); })
@@ -444,13 +538,26 @@ export class App extends React.Component<AppProps, AppState> {
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {
     const { history, location, preferencesData } = this.props;
     const library = getBrowseSubPath(this.props.location.pathname);
+    const prevLibrary = getBrowseSubPath(prevProps.location.pathname);
     const view = this.state.views[library];
+    const prevView = prevState.views[prevLibrary];
     // Check if theme changed
     if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
       setTheme(preferencesData.currentTheme);
     }
+    // Check if the playlist changed
+    if (view && (view.selectedPlaylistId !== (prevView && prevView.selectedPlaylistId))) {
+      this.setState({
+        views: {
+          ...this.state.views,
+          [library]: {
+            ...view,
+            dirtyCache: true,
+          }
+        }
+      }, () => { this.onRequestGames(0, 1); });
+    }
     // Check if the library changed
-    const prevLibrary = getBrowseSubPath(prevProps.location.pathname);
     if (library && prevLibrary && library !== prevLibrary) {
       // Fetch first games when switching browse page view
       this.onRequestGames(0, 1);
@@ -464,15 +571,13 @@ export class App extends React.Component<AppProps, AppState> {
               ...this.state.views,
               [library]: {
                 ...view,
+                dirtyCache: true,
                 query: {
                   ...view.query,
                   search: this.props.search.text,
                   orderBy: this.state.order.orderBy,
                   orderReverse: this.state.order.orderReverse,
                 },
-                // Clear cache
-                games: {},
-                pages: {},
               }
             }
           }, () => { this.onRequestGames(0, 1); });
@@ -488,13 +593,11 @@ export class App extends React.Component<AppProps, AppState> {
               ...this.state.views,
               [library]: {
                 ...view,
+                dirtyCache: true,
                 query: {
                   ...view.query,
                   search: this.props.search.text,
                 },
-                // Clear cache
-                games: {},
-                pages: {},
               }
             }
           }, () => {
@@ -542,27 +645,22 @@ export class App extends React.Component<AppProps, AppState> {
 
   render() {
     const loaded = this.state.loaded[BackInit.GAMES] &&
-                   this.state.central.playlistsDoneLoading &&
                    this.state.central.upgrade.doneLoading &&
                    this.state.creditsDoneLoading;
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[libraryPath];
+    const playlists = this.filterAndOrderPlaylistsMemo(this.state.playlists, libraryPath);
     // Props to set to the router
     const routerProps: AppRouterProps = {
       games: view && view.games,
       gamesTotal: view ? view.total : 0,
-      playlists: this.state.playlists,
+      playlists: playlists,
       suggestions: this.state.suggestions,
       platforms: this.state.platforms,
-      save: this.onSaveGame,
-      launchGame: this.onLaunchGame,
-      deleteGame: this.onDeleteGame,
+      playlistIconCache: this.state.playlistIconCache,
+      onSaveGame: this.onSaveGame,
+      onLaunchGame: this.onLaunchGame,
       onRequestGames: this.onRequestGames,
-      onLaunchAddApp: this.onLaunchAddApp,
-
-      onDeletePlaylist: this.onDeletePlaylist,
-      onSavePlaylist: this.onSavePlaylist,
-      onCreatePlaylist: this.onCreatePlaylist,
 
       central: this.state.central,
       creditsData: this.state.creditsData,
@@ -587,7 +685,6 @@ export class App extends React.Component<AppProps, AppState> {
         {/* Splash screen */}
         <SplashScreen
           gamesLoaded={this.state.loaded[BackInit.GAMES]}
-          playlistsLoaded={this.state.central.playlistsDoneLoading}
           upgradesLoaded={this.state.central.upgrade.doneLoading}
           creditsLoaded={this.state.creditsDoneLoading} />
         {/* Title-bar (if enabled) */}
@@ -639,14 +736,12 @@ export class App extends React.Component<AppProps, AppState> {
           ...this.state.views,
           [library]: {
             ...view,
+            dirtyCache: true,
             query: {
               ...view.query,
               orderBy: event.orderBy,
               orderReverse: event.orderReverse,
             },
-            // Clear cache
-            games: {},
-            pages: {},
           }
         }
       }, () => { this.onRequestGames(0, 1); });
@@ -701,15 +796,20 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   /** Set the selected playlist for a single "browse route" */
-  private onSelectPlaylist = (playlist?: GamePlaylist, route?: string): void => {
-    /*
-    const { selectedGames, selectedPlaylists } = this.state;
-    if (route === undefined) { route = getBrowseSubPath(this.props.location.pathname); }
-    this.setState({
-      selectedPlaylists: setMapProp(copyMap(selectedPlaylists), route, playlist),
-      selectedGames: deleteMapProp(copyMap(selectedGames), route),
-    });
-    */
+  private onSelectPlaylist = (library: string, playlistId: string | undefined): void => {
+    const view = this.state.views[library];
+    if (view) {
+      this.setState({
+        views: {
+          ...this.state.views,
+          [library]: {
+            ...view,
+            selectedPlaylistId: playlistId,
+            selectedGameId: undefined,
+          }
+        }
+      });
+    }
   }
 
   private onDownloadTechUpgradeClick = () => {
@@ -746,25 +846,36 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  onSaveGame = (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, saveToFile: boolean): void => {
+  onSaveGame = (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
     window.External.back.send<any, SaveGameData>(BackIn.SAVE_GAME, { game, addApps: addApps || [], library, saveToFile });
+
+    const view = this.state.views[library];
+    if (view && view.selectedPlaylistId && view.selectedGameId) {
+      // Find the selected game in the selected playlist
+      const playlist = this.state.playlists.find(p => p.filename === view.selectedPlaylistId);
+      if (playlist) {
+        const entryIndex = playlist.games.findIndex(g => g.id === view.selectedGameId);
+        if (entryIndex >= 0 && playlist.games[entryIndex].notes !== playlistNotes) {
+          // Save playlist
+          const newPlaylist = deepCopy(playlist); // @PERF This should only copy the objects that are modified instead of the whole thing
+          newPlaylist.games[entryIndex].notes = playlistNotes;
+          window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, { playlist: newPlaylist });
+        }
+      }
+    }
   }
 
   onLaunchGame(gameId: string): void {
     window.External.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
   }
 
-  onDeleteGame(gameId: string): void {
-    window.External.back.send<any, DeleteGameData>(BackIn.DELETE_GAME, { id: gameId });
-  }
-
   onRequestGames = (offset: number, limit: number): void => {
     const VIEW_PAGE_SIZE = 250;
-    const libraryPath = getBrowseSubPath(this.props.location.pathname);
-    const view = this.state.views[libraryPath];
+    const library = getBrowseSubPath(this.props.location.pathname);
+    const view = this.state.views[library];
 
-    if (!view) { throw new Error(`Failed to request games. Current view is missing (Library: "${libraryPath}", View: "${view}").`); }
+    if (!view) { throw new Error(`Failed to request games. Current view is missing (Library: "${library}", View: "${view}").`); }
 
     const pageMin = Math.floor(offset / VIEW_PAGE_SIZE);
     const pageMax = Math.ceil((offset + limit) / VIEW_PAGE_SIZE);
@@ -772,7 +883,7 @@ export class App extends React.Component<AppProps, AppState> {
     const pageIndices: number[] = [];
     const pages: ViewPage[] = [];
     for (let page = pageMin; page <= pageMax; page++) {
-      if (!view.pages[page]) {
+      if (view.dirtyCache || !view.pages[page]) {
         pageIndices.push(page);
         pages.push({});
       }
@@ -780,7 +891,6 @@ export class App extends React.Component<AppProps, AppState> {
 
     if (pages.length > 0) {
       // console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
-      const library = getBrowseSubPath(this.props.location.pathname);
       window.External.back.sendReq<any, BrowseViewPageData>({
         id: library,
         type: BackIn.BROWSE_VIEW_PAGE,
@@ -792,6 +902,7 @@ export class App extends React.Component<AppProps, AppState> {
             broken: false, // @TODO Add an option for this or something
             library: library,
             search: this.props.search.text, // view.query.search,
+            playlistId: view && view.selectedPlaylistId,
             orderBy: this.state.order.orderBy, // view.query.orderBy,
             orderReverse: this.state.order.orderReverse, // view.query.orderReverse,
           },
@@ -805,7 +916,7 @@ export class App extends React.Component<AppProps, AppState> {
       this.setState({
         views: {
           ...this.state.views,
-          [libraryPath]: {
+          [library]: {
             ...view,
             pages: {
               ...view.pages,
@@ -817,21 +928,19 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  onLaunchAddApp = (addAppId: string): void => {
-    window.External.back.send<any, LaunchAddAppData>(BackIn.LAUNCH_ADDAPP, { id: addAppId });
-  }
-
-  onDeletePlaylist(playlistId: string) {
-    // @TODO
-  }
-
-  onSavePlaylist(playlistId: string, edit: GamePlaylist) {
-    // @TODO
-  }
-
-  onCreatePlaylist() {
-    // @TODO
-  }
+  filterAndOrderPlaylistsMemo = memoizeOne((playlists: GamePlaylist[], library: string) => {
+    // @FIXTHIS "arcade" should not be hard coded as the "default" library
+    const lowerLibrary = library.toLowerCase();
+    return (
+      playlists
+      .filter(p => p.library ? p.library.toLowerCase() === lowerLibrary : (lowerLibrary === '' || lowerLibrary === 'arcade'))
+      .sort((a, b) => {
+        if (a.title < b.title) { return -1; }
+        if (a.title > b.title) { return  1; }
+        return 0;
+      })
+    );
+  });
 }
 
 function downloadAndInstallStage(stage: UpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
@@ -882,6 +991,12 @@ function getBrowseSubPath(urlPath: string): string {
     return str;
   }
   return '';
+}
+
+async function cacheIcon(icon: string): Promise<string> {
+  const r = await fetch(icon);
+  const blob = await r.blob();
+  return `url(${URL.createObjectURL(blob)})`;
 }
 
 function log(content: string): void {

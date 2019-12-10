@@ -1,5 +1,4 @@
 import { ViewGame } from '../shared/back/types';
-import { GamePlaylistManager } from './playlist/GamePlaylistManager';
 import { UpgradeData } from './upgrade/types';
 
 export type GAMES = Record<number, ViewGame | undefined>;
@@ -10,14 +9,8 @@ export type SUGGESTIONS = Partial<any>;
  * This is sort of a hacky and temporary solution. It should be phased out.
  */
 export type CentralState = {
-  /** Manager of all playlists. */
-  playlists: GamePlaylistManager;
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrade: UpgradeState;
-  /** If all the playlists are done loading (even if it was unsuccessful). */
-  playlistsDoneLoading: boolean;
-  /** If the playlists failed to load (this value is only meaningful after the playlists are done loading). */
-  playlistsFailedLoading: boolean;
 };
 
 /** Data and state used for the upgrade system. */

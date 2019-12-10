@@ -68,7 +68,6 @@
   --layout__playlist-list-item-drag-over-border:               #818181;
   --layout__playlist-list-item-editing-odd-background:         #151f14;
   --layout__playlist-list-item-editing-even-background:        #192519;
-  --layout__playlist-list-item-editing-drag-over-background:   #20301f;
   --layout__playlist-list-item-editing-content-background:     #1c291b;
   --layout__playlist-list-item-editing-description-background: #3a5637;
   /* Game Image Split */
@@ -615,7 +614,8 @@ body {
   image-rendering: var(--layout__game-item-thumb-image-rendering);
 }
 
-/* Playlist-List-Item */
+
+/* Playlist Item */
 .playlist-list-item {
   background-color: var(--layout__primary-background);
   color: var(--layout__secondary-text-color);
@@ -627,15 +627,12 @@ body {
 .playlist-list-item.playlist-list-item--drag-over {
   background-color: var(--layout__playlist-list-item-drag-over-background);
 }
-.playlist-list-item--editing {
+.playlist-list-item--editing,
+.playlist-list-item--editing:hover {
   background-color: var(--layout__playlist-list-item-editing-odd-background);
 }
 .playlist-list-item--editing:nth-child(2n) {
   background-color: var(--layout__playlist-list-item-editing-even-background);
-}
-.playlist-list-item--editing:hover,
-.playlist-list-item--editing.playlist-list-item--drag-over {
-  background-color: var(--layout__playlist-list-item-editing-drag-over-background);
 }
 .playlist-list-item--drag-over .playlist-list-item__drag-overlay {
   border-color: var(--layout__playlist-list-item-drag-over-border);
@@ -649,20 +646,44 @@ body {
 .playlist-list-item--drag-over .playlist-list-item__head {
   --color: var(--layout__playlist-list-item-hover-color);
 }
-.playlist-list-item__head__icon__no-image__icon .icon__use {
+.playlist-list-item--editing .playlist-list-item__head:hover {
+  --color: var(--layout__secondary-text-color);
+}
+.playlist-list-item__icon-placeholder-inner .icon__use {
   fill: var(--color);
 }
-/* Playlist-List-Item Content */
-.playlist-list-item__content {
+.playlist-list-item__text-field {
+  color: var(--color);
+}
+
+
+/* PlaylistContent */
+.playlist-list-content {
   background-color: var(--layout__playlist-list-item-content-background);
 }
-.playlist-list-item--editing .playlist-list-item__content {
+.playlist-list-content--edit {
   background-color: var(--layout__playlist-list-item-editing-content-background);
   color: var(--layout__highlighted-text-color);
 }
-.playlist-list-item__content__description-edit {
-  background-color: var(--layout__playlist-list-item-editing-description-background);
+.playlist-list-content__description {
+  color: var(--layout__secondary-text-color);
 }
+.playlist-list-content--edit .playlist-list-content__description {
+  background-color: var(--layout__playlist-list-item-editing-description-background);
+  color: var(--layout__primary-text-color);
+}
+/* Playlist-List-Content Buttons */
+.playlist-list-content__button--confirm:hover .icon__use {
+  fill: var(--layout__confirm-color);
+}
+.playlist-list-content__button--warning:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.playlist-list-content__button--warning.playlist-list-content__button--active:hover .icon__use {
+  fill: var(--layout__warning-medium-color);
+}
+
+
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
   background-color: var(--layout__playlist-list-fake-even-background);

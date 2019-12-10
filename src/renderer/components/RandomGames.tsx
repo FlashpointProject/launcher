@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
-import { ViewGame } from '../../shared/back/types';
+import { ViewGame, LaunchGameData, BackIn } from '../../shared/back/types';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
 type RandomGamesProps = {
-  /** Called when the user attempts to launch a game. */
-  onLaunchGame: (gameId: string) => void;
   /** If extreme games could be picked and displayed. */
   showExtreme: boolean;
   /** If broken games could be picked and displayed. */
@@ -24,10 +22,6 @@ export function RandomGames(props: RandomGamesProps) {
     // @FIXTHIS Select random games
     return [];
   }, [/* Only pick games on the first render. */]);
-  // Launch Callback
-  const onGameLaunch = useCallback((event: React.MouseEvent, gameId: string) => {
-    props.onLaunchGame(gameId);
-  }, []);
   // Render games
   const gameItems = React.useMemo(() => (
     randomGames.map(game => (
@@ -50,6 +44,10 @@ export function RandomGames(props: RandomGamesProps) {
       { gameItems }
     </GameItemContainer>
   );
+}
+
+function onGameLaunch(event: React.MouseEvent, gameId: string): void {
+  window.External.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
 }
 
 /**

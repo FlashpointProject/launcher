@@ -5,10 +5,10 @@ import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedResponse } from '../../../shared/back/types';
 import { IGameInfo } from '../../../shared/game/interfaces';
+import { GamePlaylistEntry, GamePlaylist } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { PlatformInfo } from '../../../shared/platform/interfaces';
 import { CentralState } from '../../interfaces';
-import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../uuid';
 import { LogData } from '../LogData';
@@ -21,6 +21,7 @@ type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
   platforms: PlatformInfo[];
+  playlists: GamePlaylist[];
   /** Semi-global prop. */
   central: CentralState;
 };
@@ -139,7 +140,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   onCheckPlaylistsClick = async (): Promise<void> => {
-    const playlists = this.props.central.playlists.playlists;
+    const playlists = this.props.playlists;
     const res = await fetchAllGames();
     this.setState({ text: checkPlaylists(playlists, res) });
   }
@@ -277,8 +278,8 @@ type PlaylistReport = {
 };
 function checkPlaylists(playlists: GamePlaylist[], games: IGameInfo[]): string {
   const timeStart = Date.now(); // Start timing
-  const dupes = checkDupes(playlists, playlist => playlist.id); // Find all playlists with duplicate IDs
-  const invalidIDs: GamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.id, 4)); // Find all playlists with invalid IDs
+  const dupes = checkDupes(playlists, playlist => playlist.filename); // Find all playlists with duplicate IDs
+  const invalidIDs: GamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.filename, 4)); // Find all playlists with invalid IDs
   // Check the games of all playlists (if they are missing or if their IDs are invalid or duplicates)
   const reports: PlaylistReport[] = [];
   for (let i = 0; i < playlists.length - 1; i++) {
@@ -311,16 +312,16 @@ function checkPlaylists(playlists: GamePlaylist[], games: IGameInfo[]): string {
   text += `Checked all playlists for duplicate or invalid IDs, and for game entries with invalid, missing or duplicate IDs (in ${timeEnd - timeStart}ms)\n`;
   text += '\n';
   text += `Playlists with invalid IDs (${invalidIDs.length}):\n`;
-  invalidIDs.forEach(playlist => { text += `"${playlist.title}" (ID: ${playlist.id})\n`; });
+  invalidIDs.forEach(playlist => { text += `"${playlist.title}" (ID: ${playlist.filename})\n`; });
   text += '\n';
   text += `Playlists with duplicate IDs (${Object.keys(dupes).length}):\n`;
   for (let id in dupes) {
-    text += `ID: "${id}" | Playlists (${dupes[id].length}): ${dupes[id].map(playlist => `${playlist.id}`).join(', ')}\n`;
+    text += `ID: "${id}" | Playlists (${dupes[id].length}): ${dupes[id].map(playlist => `${playlist.filename}`).join(', ')}\n`;
   }
   text += '\n';
   text += `Playlists with game entry issues (${reports.length}):\n`;
   reports.forEach(({ playlist, duplicateGames, missingGameIDs, invalidGameIDs }) => {
-    text += `  "${playlist.title}" (ID: ${playlist.id}):\n`;
+    text += `  "${playlist.title}" (ID: ${playlist.filename}):\n`;
     // Log duplicate game entry IDs
     if (Object.keys(duplicateGames).length > 0) {
       text += `    Game entries with duplicate IDs (${Object.keys(duplicateGames).length}):\n`;

@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { wrapSearchTerm } from '../../../shared/game/GameFilter';
+import { GamePlaylist } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { PlatformInfo } from '../../../shared/platform/interfaces';
 import { formatString } from '../../../shared/utils/StringFormatter';
@@ -10,7 +11,6 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { CentralState, UpgradeStageState } from '../../interfaces';
 import { Paths } from '../../Paths';
-import { GamePlaylist } from '../../playlist/types';
 import { UpgradeStage } from '../../upgrade/types';
 import { joinLibraryRoute } from '../../Util';
 import { LangContext } from '../../util/lang';
@@ -20,10 +20,10 @@ import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
   platforms: PlatformInfo[];
-  launchGame: (gameId: string) => void;
+  playlists: GamePlaylist[];
   /** Semi-global prop. */
   central: CentralState;
-  onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
+  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
@@ -168,7 +168,6 @@ export class HomePage extends React.Component<HomePageProps> {
               <div className='home-page__random-games__inner'>
                 <p className='home-page__random-games__title'>{strings.randomPicks}</p>
                 <RandomGames
-                  onLaunchGame={this.onLaunchGame}
                   showExtreme={!disableExtremeGames && browsePageShowExtreme}
                   showBroken={showBrokenGames} />
               </div>
@@ -213,42 +212,40 @@ export class HomePage extends React.Component<HomePageProps> {
     );
   }
 
-  onLaunchGame = (gameId: string): void => {
-    this.props.launchGame(gameId);
-  }
-
   onHelpClick = () => {
     const fullFlashpointPath = window.External.config.fullFlashpointPath;
     remote.shell.openItem(path.join(fullFlashpointPath, 'readme.txt'));
   }
 
   private onHallOfFameClick = () => {
-    const { central, clearSearch, onSelectPlaylist, preferencesData } = this.props;
+    const { clearSearch, onSelectPlaylist, playlists, preferencesData } = this.props;
     // Find the hall of fame playlist and select it
-    const playlist = findHallOfFamePlaylist(central.playlists.playlists);
+    const playlist = findHallOfFamePlaylist(playlists);
     const library = playlist && (playlist.library ? playlist.library : preferencesData.defaultLibrary );
-    onSelectPlaylist(playlist, library);
-    // Clear the current search
-    clearSearch();
+    if (playlist && library !== undefined) {
+      onSelectPlaylist(library, playlist && playlist.filename);
+      clearSearch();
+    }
   }
 
   onFavoriteClick = () => {
-    const { central, clearSearch, onSelectPlaylist, preferencesData } = this.props;
+    const { clearSearch, onSelectPlaylist, playlists, preferencesData } = this.props;
     // Find the favorites playlist and select it
-    const playlist = findFavoritePlaylist(central.playlists.playlists);
+    const playlist = findFavoritePlaylist(playlists);
     const library = playlist && (playlist.library ? playlist.library : preferencesData.defaultLibrary );
-    onSelectPlaylist(playlist, library);
-    // Clear the current search
-    clearSearch();
+    if (playlist && library !== undefined) {
+      onSelectPlaylist(library, playlist && playlist.filename);
+      clearSearch();
+    }
   }
 
   onAllGamesClick = () => {
-    this.props.onSelectPlaylist(undefined, 'arcade');
+    this.props.onSelectPlaylist('arcade', undefined);
     this.props.clearSearch();
   }
 
   onAllAnimationsClick = () => {
-    this.props.onSelectPlaylist(undefined, 'theatre');
+    this.props.onSelectPlaylist('theatre', undefined);
     this.props.clearSearch();
   }
 
@@ -257,13 +254,13 @@ export class HomePage extends React.Component<HomePageProps> {
     // Search to filter out all other platforms
     this.props.onSearch('!' + wrapSearchTerm(platform));
     // Deselect the curret playlist
-    this.props.onSelectPlaylist(undefined, 'arcade');
+    this.props.onSelectPlaylist('arcade', undefined);
   }
 
   getHallOfFameBrowseRoute = (): string => {
     const defaultLibrary = this.props.preferencesData.defaultLibrary;
     const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary) : Paths.BROWSE;
-    let hof = findHallOfFamePlaylist(this.props.central.playlists.playlists);
+    let hof = findHallOfFamePlaylist(this.props.playlists);
     if (hof && hof.library) { return joinLibraryRoute(hof.library); }
     else                    { return defaultRoute;                  }
   }
@@ -271,7 +268,7 @@ export class HomePage extends React.Component<HomePageProps> {
   getFavoriteBrowseRoute = (): string => {
     const defaultLibrary = this.props.preferencesData.defaultLibrary;
     const defaultRoute = defaultLibrary ? joinLibraryRoute(defaultLibrary) : Paths.BROWSE;
-    let fav = findFavoritePlaylist(this.props.central.playlists.playlists);
+    let fav = findFavoritePlaylist(this.props.playlists);
     if (fav && fav.library) { return joinLibraryRoute(fav.library); }
     else                    { return defaultRoute;                  }
   }

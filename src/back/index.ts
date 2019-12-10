@@ -6,12 +6,12 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, SaveGameData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
-import { FilterGameOpts, filterGames, orderGames } from '../shared/game/GameFilter';
+import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
-import { DeepPartial, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '../shared/interfaces';
+import { DeepPartial, GamePlaylist, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '../shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile, LangFileContent } from '../shared/lang';
 import { ILogEntry, ILogPreEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
@@ -22,13 +22,16 @@ import { createErrorProxy, deepCopy, isErrorProxy, recursiveReplace, removeFileE
 import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
+import { PlaylistFile } from './PlaylistFile';
 import { ServicesFile } from './ServicesFile';
 import { BackQuery, BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { getContentType } from './util/misc';
+import { sanitizeFilename } from './util/sanitizeFilename';
 
 const readFile = promisify(fs.readFile);
+const unlink = promisify(fs.unlink);
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -64,6 +67,9 @@ const state: BackState = {
   themeWatcher: new FolderWatcher(),
   themeQueue: new EventQueue(),
   themeFiles: [],
+  playlistWatcher: new FolderWatcher(),
+  playlistQueue: new EventQueue(),
+  playlists: [],
 };
 
 const preferencesFilename = 'preferences.json';
@@ -276,6 +282,94 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       }
     });
 
+    // Init playlists
+    state.playlistWatcher.on('ready', () => {
+      // Add event listeners
+      state.playlistWatcher.on('add', onPlaylistAddOrChange);
+      state.playlistWatcher.on('change', onPlaylistAddOrChange);
+      state.playlistWatcher.on('remove', (filename: string, offsetPath: string) => {
+        state.playlistQueue.push(async () => {
+          const index = state.playlists.findIndex(p => p.filename === filename);
+          if (index >= 0) {
+            const id = state.playlists[index].filename;
+            state.playlists.splice(index, 1);
+            // Clear all query caches that uses this playlist
+            const hashes = Object.keys(state.queries);
+            for (let hash of hashes) {
+              const cache = state.queries[hash];
+              if (cache.query.playlistId === id) {
+                delete state.queries[hash]; // Clear query from cache
+              }
+            }
+            broadcast<PlaylistRemoveData>({
+              id: '',
+              type: BackOut.PLAYLIST_REMOVE,
+              data: id,
+            });
+          } else {
+            log({ source: 'Playlist', content: `Failed to remove playlist. Playlist is not registered (Filename: ${filename})` });
+          }
+        });
+      });
+      // Add initial files
+      for (let filename of state.playlistWatcher.filenames) {
+        onPlaylistAddOrChange(filename, '', false);
+      }
+      // Functions
+      function onPlaylistAddOrChange(filename: string, offsetPath: string, doBroadcast: boolean = true) {
+        state.playlistQueue.push(async () => {
+          // Load and parse playlist
+          const filePath = path.join(state.playlistWatcher.getFolder() || '', filename);
+          let playlist: GamePlaylist | undefined;
+          try {
+            const data = await PlaylistFile.readFile(filePath, error => log({ source: 'Playlist', content: `Error while parsing playlist "${filePath}". ${error}` }));
+            playlist = {
+              ...data,
+              filename,
+            };
+          } catch (error) {
+            log({ source: 'Playlist', content: `Failed to load playlist "${filePath}". ${error}` });
+          }
+          // Add or update playlist
+          if (playlist) {
+            const index = state.playlists.findIndex(p => p.filename === filename);
+            if (index >= 0) {
+              state.playlists[index] = playlist;
+              // Clear all query caches that uses this playlist
+              const hashes = Object.keys(state.queries);
+              for (let hash of hashes) {
+                const cache = state.queries[hash];
+                if (cache.query.playlistId === playlist.filename) {
+                  delete state.queries[hash]; // Clear query from cache
+                }
+              }
+            } else {
+              state.playlists.push(playlist);
+            }
+            if (doBroadcast) {
+              broadcast<PlaylistUpdateData>({
+                id: '',
+                type: BackOut.PLAYLIST_UPDATE,
+                data: playlist,
+              });
+            }
+          }
+        });
+      }
+    });
+    const playlistFolder = path.join(state.config.flashpointPath, state.config.playlistFolderPath);
+    fs.stat(playlistFolder, (error) => {
+      if (!error) { state.playlistWatcher.watch(playlistFolder); }
+      else {
+        log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        if (error.code === 'ENOENT') {
+          log({ source: 'Back', content: `Failed to watch playlist folder. Folder does not exist (Path: "${playlistFolder}")` });
+        } else {
+          log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        }
+      }
+    });
+
     // Init Game manager
     state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
     .catch(error => { console.error(error); })
@@ -416,6 +510,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
             state.countryCode,
             state.preferences.fallbackLanguage),
           themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
+          playlists: state.playlists,
         },
       });
     } break;
@@ -625,12 +720,15 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         search: reqData.query.search,
         orderBy: reqData.query.orderBy as GameOrderBy,
         orderReverse: reqData.query.orderReverse as GameOrderReverse,
+        playlistId: reqData.query.playlistId,
       };
 
       const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
       let cache = state.queries[hash];
       if (!cache) {
         // @TODO Start clearing the cache if it gets too full
+
+        const playlist = state.playlists.find(p => p.filename === query.playlistId);
 
         const results = searchGames({
           extreme: query.extreme,
@@ -639,6 +737,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           orderBy: query.orderBy,
           orderReverse: query.orderReverse,
           library: query.library,
+          playlist: playlist,
         });
 
         const viewGames: ViewGame[] = [];
@@ -726,6 +825,84 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
             console.warn('Unhandled Process Action');
         }
       }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+      });
+    } break;
+
+    case BackIn.SAVE_PLAYLIST: {
+      const reqData: SavePlaylistData = req.data;
+
+      const folder = state.playlistWatcher.getFolder();
+      const filename = sanitizeFilename(reqData.playlist.filename || `${reqData.playlist.title}.json`);
+      if (folder && filename) {
+        if (reqData.prevFilename === filename) { // (Existing playlist)
+          await PlaylistFile.saveFile(path.join(folder, filename), reqData.playlist);
+        } else {
+          let coolFilename = filename;
+
+          // Attempt to find an available filename
+          if (await pathExists(path.join(folder, filename))) {
+            const parts: string[] = [];
+
+            // Split filename into "name" and "extension"
+            const dotIndex = filename.lastIndexOf('.');
+            if (dotIndex >= 0) {
+              parts.push(coolFilename.substr(0, dotIndex));
+              parts.push(coolFilename.substr(dotIndex));
+            } else {
+              parts.push(coolFilename);
+            }
+
+            // Attempt extracting a "number" from the "name"
+            let n = 2;
+            const match = parts[parts.length - 1].match(/ \d+$/);
+            if (match) {
+              n = parseInt(match[0]) + 1;
+              parts[parts.length - 1] = parts[parts.length - 1].replace(/ \d+$/, '');
+            }
+
+            // Add space between "name" and "number"
+            if (parts.length > 1 && parts[0].length > 0 && !parts[0].endsWith(' ')) { parts[0] += ' '; }
+
+            // Increment the "number" and try again a few times
+            let foundName = false;
+            while (n < 100) {
+              const str = `${parts[0] || ''}${n++}${parts[1] || ''}`;
+              if (!(await pathExists(path.join(folder, str)))) {
+                foundName = true;
+                coolFilename = str;
+                break;
+              }
+            }
+
+            if (!foundName) { coolFilename = ''; } // Abort save
+          }
+
+          if (coolFilename) {
+            await PlaylistFile.saveFile(path.join(folder, coolFilename), reqData.playlist);
+
+            // Delete old playlist (if renaming it)
+            if (reqData.prevFilename) {
+              await deletePlaylist(reqData.prevFilename, folder, state.playlists);
+            }
+          }
+        }
+      }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+      });
+    } break;
+
+    case BackIn.DELETE_PLAYLIST: {
+      const reqData: DeletePlaylistData = req.data;
+
+      const folder = state.playlistWatcher.getFolder();
+      if (folder) { await deletePlaylist(reqData, folder, state.playlists); }
 
       respond(event.target, {
         id: req.id,
@@ -837,12 +1014,12 @@ function exit() {
 }
 
 function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
-  // console.log('RESPOND', response);
+  console.log('RESPOND', response);
   target.send(JSON.stringify(response));
 }
 
 function broadcast<T>(response: WrappedResponse<T>): void {
-  // console.log('BROADCAST', response);
+  console.log('BROADCAST', response);
   if (!isErrorProxy(state.server)) {
     const message = JSON.stringify(response);
     state.server.clients.forEach(socket => {
@@ -903,6 +1080,7 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
 type SearchGamesOpts = {
   extreme: boolean;
   broken: boolean;
+  playlist?: GamePlaylist;
   /** String to use as a search query */
   query: string;
   /** The field to order the games by. */
@@ -919,6 +1097,7 @@ function searchGames(opts: SearchGamesOpts): IGameInfo[] {
     search: opts.query,
     extreme: opts.extreme,
     broken: opts.broken,
+    playlist: opts.playlist,
   };
 
   // Filter games
@@ -932,7 +1111,11 @@ function searchGames(opts: SearchGamesOpts): IGameInfo[] {
   }
 
   // Order games
-  orderGames(foundGames, { orderBy: opts.orderBy, orderReverse: opts.orderReverse });
+  if (opts.playlist) {
+    orderGamesInPlaylist(foundGames, opts.playlist);
+  } else {
+    orderGames(foundGames, { orderBy: opts.orderBy, orderReverse: opts.orderReverse });
+  }
 
   return foundGames;
 }
@@ -1011,4 +1194,27 @@ function getFileExtension(filename: string): string {
     }
   }
   return '';
+}
+
+async function deletePlaylist(id: string, folder: string, playlists: GamePlaylist[]): Promise<void> {
+  if (id && folder !== undefined) { // (Check if id is not empty and if the folder watcher is set up)
+    const playlist = playlists.find(p => p.filename === id);
+    if (playlist) {
+      const filepath = path.join(folder, playlist.filename);
+      if (filepath.length > folder.length && filepath.startsWith(folder)) { // (Ensure that the filepath doesnt climb out of the platylist folder)
+        await unlink(filepath);
+      }
+    }
+  }
+}
+
+function pathExists(filePath: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    fs.stat(filePath, (error, stats) => {
+      if (error) {
+        if (error.code === 'ENOENT') { resolve(false); }
+        else { reject(error); }
+      } else { resolve(true); }
+    });
+  });
 }

@@ -4,12 +4,12 @@ import * as WebSocket from 'ws';
 import { BackInit, ViewGame } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IGameInfo } from '../shared/game/interfaces';
-import { IBackProcessInfo } from '../shared/interfaces';
+import { GamePlaylist, IBackProcessInfo } from '../shared/interfaces';
 import { LangFile } from '../shared/lang';
 import { ILogEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
-import { Theme, ThemeMeta } from '../shared/ThemeFile';
+import { Theme } from '../shared/ThemeFile';
 import { GameManager } from './game/GameManager';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { EventQueue } from './util/EventQueue';
@@ -41,6 +41,9 @@ export type BackState = {
   themeWatcher: FolderWatcher;
   themeQueue: EventQueue;
   themeFiles: ThemeListItem[];
+  playlistWatcher: FolderWatcher;
+  playlistQueue: EventQueue;
+  playlists: GamePlaylist[];
 }
 
 export type BackQueryChache = {
@@ -56,6 +59,7 @@ export type BackQuery = {
   search: string;
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
+  playlistId?: string;
 }
 
 type InitEmitter = (

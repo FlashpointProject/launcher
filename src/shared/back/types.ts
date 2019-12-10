@@ -1,6 +1,6 @@
 import { IAppConfigData } from '../config/interfaces';
 import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
-import { IService, ProcessAction } from '../interfaces';
+import { GamePlaylist, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
@@ -16,6 +16,8 @@ export enum BackIn {
   LAUNCH_ADDAPP,
   ADD_LOG,
   SERVICE_ACTION,
+  SAVE_PLAYLIST,
+  DELETE_PLAYLIST,
   QUIT,
   /** Get all library names. */
   GET_LIBRARIES,
@@ -58,6 +60,8 @@ export enum BackOut {
   LANGUAGE_LIST_CHANGE,
   THEME_CHANGE,
   THEME_LIST_CHANGE,
+  PLAYLIST_UPDATE,
+  PLAYLIST_REMOVE,
   QUIT,
 }
 
@@ -112,6 +116,7 @@ export type GetRendererInitDataResponse = {
   languages: LangFile[];
   language: LangContainer;
   themes: Theme[];
+  playlists: GamePlaylist[];
 }
 
 export type LaunchGameData = {
@@ -168,6 +173,7 @@ export type BrowseViewPageData = {
     broken: boolean;
     library: string;
     search: string;
+    playlistId?: string;
     orderBy: string;
     orderReverse: string;
   }
@@ -212,3 +218,15 @@ export type LanguageListChangeData = LangFile[];
 export type ThemeChangeData = string;
 
 export type ThemeListChangeData = Theme[];
+
+export type PlaylistUpdateData = GamePlaylist;
+
+export type PlaylistRemoveData = string;
+
+export type SavePlaylistData = {
+  prevFilename?: string;
+  playlist: GamePlaylist;
+};
+
+export type DeletePlaylistData = string;
+

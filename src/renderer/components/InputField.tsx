@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 /** Input element types used by this component. */
-type InputElement = HTMLInputElement | HTMLTextAreaElement;
+export type InputElement = HTMLInputElement | HTMLTextAreaElement;
 
 export type InputFieldProps = {
   /** Displayed text. */
