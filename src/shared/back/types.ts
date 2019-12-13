@@ -139,7 +139,7 @@ export type ExportGameData = {
 }
 
 export type GetGameData = {
-  id?: string;
+  id: string;
 }
 
 export type GetGameResponseData = {

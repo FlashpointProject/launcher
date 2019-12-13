@@ -10,6 +10,8 @@ import { IAppPreferencesData } from '../../shared/preferences/interfaces';
 import { EventQueue } from '../util/EventQueue';
 import { LoadPlatformError, SearchCache, SearchCacheQuery } from './interfaces';
 
+const LOG = false;
+
 const UNIMPLEMENTED_RESPONSE: ServerResponse = {
   success: false,
   error: new Error('Unimplemented Function'),
@@ -66,7 +68,7 @@ export class GameManager {
       };
     });
     for (let platform of res) {
-      console.log(platform);
+      if (LOG) { console.log(platform); }
     }
     // Return successfully
     return {
@@ -204,14 +206,14 @@ export class GameManager {
     gameUpdateLoop:
     for (let game of request.games) {
       // Make sure the library and platform exist, replacing with unknown defaults if not
-      const newLibrary = game.library.length > 0 ? game.library : UNKNOWN_LIBRARY;
-      const newPlatform = game.platform.length > 0 ? game.platform : UNKNOWN_PLATFORM;
+      const newLibrary = game.library || UNKNOWN_LIBRARY;
+      const newPlatform = game.platform || UNKNOWN_PLATFORM;
       // Find existing platform and library to update if exists
       const gamePlatform = this.platforms.find(p => p.name === newPlatform && p.library === newLibrary);
       if (gamePlatform) {
         // Attempt to update game in existing platform
         if (this.updateGame(game, gamePlatform)) {
-          console.log('updated ' + game.id);
+          if (LOG) { console.log('updated ' + game.id); }
           if (request.saveToDisk) { this.savePlatformToFile(gamePlatform); }
           continue gameUpdateLoop;
         }
@@ -378,7 +380,7 @@ export class GameManager {
   /** Remove a game in a platform */
   public static removeGame(id: string, platform: GamePlatform): IGameInfo | undefined {
     // Find and remove from platform games if exists
-    console.log('finding ' + id +  ' ' + id.length);
+    if (LOG) { console.log('finding ' + id +  ' ' + id.length); }
     const gameIndex = platform.collection.games.findIndex(g => g.id === id);
     if (gameIndex !== -1) {
       // Found game in platform, store return and remove
@@ -389,12 +391,12 @@ export class GameManager {
         // Array of raw games, find game
         if (Array.isArray(games)) {
           for (let game of games) {
-            console.log('ID ' + game.ID + ' ' + game.ID.length);
+            if (LOG) { console.log('ID ' + game.ID + ' ' + game.ID.length); }
           }
           const rawIndex = games.findIndex(g => g.ID === id);
-          console.log(rawIndex);
+          if (LOG) { console.log(rawIndex); }
           if (rawIndex !== -1) {
-            console.log('found ' + id + ' at ' + rawIndex);
+            if (LOG) { console.log('found ' + id + ' at ' + rawIndex); }
             games.splice(rawIndex, 1);
           }
         } else {
@@ -402,7 +404,7 @@ export class GameManager {
           if (games.ID === id) { platform.data.LaunchBox.Game = undefined; }
         }
       }
-      console.log(`deleted ${id} from ${platform.name}`);
+      if (LOG) { console.log(`deleted ${id} from ${platform.name}`); }
       return returnGame;
     }
   }

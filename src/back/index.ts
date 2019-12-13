@@ -6,7 +6,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse, InitEventData, ThemeChangeData } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { stringifyCurationFormat } from '../shared/curate/format/stringifier';
@@ -180,6 +180,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         });
       }
     });
+    state.languageWatcher.on('error', console.error);
     const langFolder = path.join(content.isDev ? process.cwd() : content.configFolder, 'lang');
     fs.stat(langFolder, (error) => {
       if (!error) { state.languageWatcher.watch(langFolder); }
@@ -201,7 +202,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         state.themeQueue.push(() => {
           const item = findOwner(filename, offsetPath);
           if (item) {
-            // A FILE HAS BEEN CHANGED IN A THEME
+            // A file in a theme has been changed
+            broadcast<ThemeChangeData>({
+              id: '',
+              type: BackOut.THEME_CHANGE,
+              data: item.entryPath,
+            });
           } else {
             console.warn('A file has been changed in a theme that is not registered '+
                          `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
@@ -214,9 +220,19 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
           if (item) {
             if (item.entryPath === path.join(offsetPath, filename)) { // (Entry file was removed)
               state.themeFiles.splice(state.themeFiles.indexOf(item), 1);
-              // A THEME HAS BEEN REMOVED
+              // A theme has been removed
+              broadcast<ThemeListChangeData>({
+                id: '',
+                type: BackOut.THEME_LIST_CHANGE,
+                data: state.themeFiles,
+              });
             } else { // (Non-entry file was removed)
-              // A FILE HAS BEEN REMOVED IN A THEME
+              // A file in a theme has been removed
+              broadcast<ThemeChangeData>({
+                id: '',
+                type: BackOut.THEME_CHANGE,
+                data: item.entryPath,
+              });
             }
           } else {
             console.warn('A file has been removed from a theme that is not registered '+
@@ -233,7 +249,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         state.themeQueue.push(async () => {
           const item = findOwner(filename, offsetPath);
           if (item) {
-            // THIS THEME HAS BEEN UPDATED (a file has been added to it)
+            // A file has been added to this theme
+            broadcast<ThemeChangeData>({
+              id: '',
+              type: BackOut.THEME_CHANGE,
+              data: item.entryPath,
+            });
           } else {
             // Check if it is a potential entry file
             // (Entry files are either directly inside the "Theme Folder", or one folder below that and named "theme.css")
@@ -267,15 +288,16 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         });
       }
       function findOwner(filename: string, offsetPath: string) {
-        const index = offsetPath.indexOf(path.sep);
-        if (index >= 0) { // (Sub-folder)
-          const folderName = offsetPath.substr(0, index);
+        if (offsetPath) { // (Sub-folder)
+          const index = offsetPath.indexOf(path.sep);
+          const folderName = (index >= 0) ? offsetPath.substr(0, index) : offsetPath;
           return state.themeFiles.find(item => item.basename === folderName);
         } else { // (Theme folder)
-          return state.themeFiles.find(item => item.entryPath === filename);
+          return state.themeFiles.find(item => item.entryPath === filename || item.basename === filename);
         }
       }
     });
+    state.themeWatcher.on('error', console.error);
     const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
     fs.stat(themeFolder, (error) => {
       if (!error) { state.themeWatcher.watch(themeFolder, { recursionDepth: -1 }); }
@@ -494,14 +516,13 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     } break;
 
     case BackIn.GET_MAIN_INIT_DATA: {
-      const data: GetMainInitDataResponse = {
-        preferences: state.preferences,
-        config: state.config,
-      };
-      respond(event.target, {
+      respond<GetMainInitDataResponse>(event.target, {
         id: req.id,
         type: BackOut.GET_MAIN_INIT_DATA,
-        data,
+        data: {
+          preferences: state.preferences,
+          config: state.config,
+        },
       });
     } break;
 
@@ -539,7 +560,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           done.push(init);
         } else {
           state.initEmitter.once(init, () => {
-            respond(event.target, {
+            respond<InitEventData>(event.target, {
               id: '',
               type: BackOut.INIT_EVENT,
               data: { done: [ init ] },
@@ -548,7 +569,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         }
       }
 
-      respond(event.target, {
+      respond<InitEventData>(event.target, {
         id: req.id,
         type: BackOut.INIT_EVENT,
         data: { done },
@@ -573,19 +594,13 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.LAUNCH_ADDAPP: {
       const reqData: LaunchAddAppData = req.data;
 
-      let addApp: IAdditionalApplicationInfo | undefined;
-
       const platforms = state.gameManager.platforms;
       for (let i = 0; i < platforms.length; i++) {
-        const aa = platforms[i].collection.additionalApplications.find(item => item.id === reqData.id);
-        if (aa) {
-          addApp = aa;
+        const addApp = platforms[i].collection.additionalApplications.find(item => item.id === reqData.id);
+        if (addApp) {
+          GameLauncher.launchAdditionalApplication(addApp, path.resolve(state.config.flashpointPath), state.preferences.useWine, log);
           break;
         }
-      }
-
-      if (addApp) {
-        GameLauncher.launchAdditionalApplication(addApp, path.resolve(state.config.flashpointPath), state.preferences.useWine, log);
       }
 
       respond(event.target, {
@@ -598,25 +613,8 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.LAUNCH_GAME: {
       const reqData: LaunchGameData = req.data;
 
-      let addApps: IAdditionalApplicationInfo[] | undefined;
-      let game: IGameInfo | undefined;
-
-      const platforms = state.gameManager.platforms;
-      for (let i = 0; i < platforms.length; i++) {
-        const g = platforms[i].collection.games.find(game => game.id === reqData.id);
-        if (g) {
-          // Find add apps
-          for (let i = 0; i < platforms.length; i++) {
-            const aa = platforms[i].collection.additionalApplications.filter(addApp => addApp.gameId === reqData.id);
-            if (aa.length > 0) {
-              addApps = aa;
-              break;
-            }
-          }
-          game = g;
-          break;
-        }
-      }
+      const game = findGame(reqData.id);
+      const addApps = findAddApps(reqData.id);
 
       if (game) {
         GameLauncher.launchGame(game, addApps, path.resolve(state.config.flashpointPath), state.preferences.useWine, log);
@@ -635,7 +633,6 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       state.gameManager.updateMetas({
         games: [reqData.game],
         addApps: reqData.addApps || [],
-        library: reqData.library,
         saveToDisk: reqData.saveToFile,
       });
 
@@ -700,7 +697,6 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         state.gameManager.updateMetas({
           games: [newGame],
           addApps: newAddApps,
-          library: newGame.library,
           saveToDisk: true,
         });
 
@@ -783,32 +779,13 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.GET_GAME: {
       const reqData: GetGameData = req.data;
 
-      let addApps: IAdditionalApplicationInfo[] | undefined;
-      let game: IGameInfo | undefined;
-
-      if (reqData.id !== undefined) {
-        const platforms = state.gameManager.platforms;
-        for (let i = 0; i < platforms.length; i++) {
-          const g = platforms[i].collection.games.find(game => game.id === reqData.id);
-          if (g) {
-            // Find add apps
-            for (let i = 0; i < platforms.length; i++) {
-              const aa = platforms[i].collection.additionalApplications.filter(addApp => addApp.gameId === reqData.id);
-              if (aa.length > 0) {
-                addApps = aa;
-                break;
-              }
-            }
-            game = g;
-            break;
-          }
-        }
-      }
-
       respond<GetGameResponseData>(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
-        data: { game, addApps }
+        data: {
+          game: findGame(reqData.id),
+          addApps: findAddApps(reqData.id),
+        }
       });
     } break;
 
@@ -1164,12 +1141,12 @@ function exit() {
 }
 
 function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
-  console.log('RESPOND', response);
+  // console.log('RESPOND', response);
   target.send(JSON.stringify(response));
 }
 
 function broadcast<T>(response: WrappedResponse<T>): void {
-  console.log('BROADCAST', response);
+  // console.log('BROADCAST', response);
   if (!isErrorProxy(state.server)) {
     const message = JSON.stringify(response);
     state.server.clients.forEach(socket => {

@@ -167,8 +167,6 @@ export type MetaUpdate = {
   games: IGameInfo[];
   /** Any add app entries to update */
   addApps: IAdditionalApplicationInfo[];
-  /** Library to move games and add apps to */
-  library? : string;
   /** Save to disk immediately after updating the entries */
   saveToDisk: boolean;
 }

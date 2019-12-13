@@ -221,7 +221,7 @@ export class App extends React.Component<AppProps, AppState> {
     });
 
     window.External.back.on('message', res => {
-      console.log('IN', res);
+      // console.log('IN', res);
       switch (res.type) {
         case BackOut.INIT_EVENT: {
           const resData: InitEventData = res.data;
@@ -338,7 +338,7 @@ export class App extends React.Component<AppProps, AppState> {
 
         case BackOut.THEME_CHANGE: {
           const resData: ThemeChangeData = res.data;
-          setTheme(resData);
+          if (resData === this.props.preferencesData.currentTheme) { setTheme(resData); }
         } break;
 
         case BackOut.THEME_LIST_CHANGE: {
