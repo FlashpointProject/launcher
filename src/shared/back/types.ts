@@ -14,7 +14,10 @@ export enum BackIn {
   RANDOM_GAMES,
   LAUNCH_GAME,
   DELETE_GAME,
+  DUPLICATE_GAME,
+  EXPORT_GAME,
   LAUNCH_ADDAPP,
+  QUICK_SEARCH,
   ADD_LOG,
   SERVICE_ACTION,
   GET_PLAYLISTS,
@@ -122,7 +125,18 @@ export type SaveGameData = {
 
 export type DeleteGameData = {
   id: string;
-};
+}
+
+export type DuplicateGameData = {
+  id: string;
+  dupeImages: boolean;
+}
+
+export type ExportGameData = {
+  id: string;
+  location: string;
+  metaOnly: boolean;
+}
 
 export type GetGameData = {
   id?: string;
@@ -164,21 +178,33 @@ export type BrowseViewResponseData = {
 export type BrowseViewPageData = {
   offset: number;
   limit: number;
-  query: {
-    extreme: boolean;
-    broken: boolean;
-    library: string;
-    search: string;
-    playlistId?: string;
-    orderBy: string;
-    orderReverse: string;
-  }
+  query: GameQuery;
 }
 
 export type BrowseViewPageResponseData = {
   games: ViewGame[];
   offset: number;
   total?: number;
+}
+
+export type QuickSearchData = {
+  query: GameQuery;
+  search: string;
+}
+
+export type QuickSearchResponseData = {
+  id?: string;
+  index?: number;
+}
+
+type GameQuery = {
+  extreme: boolean;
+  broken: boolean;
+  library: string;
+  search: string;
+  playlistId?: string;
+  orderBy: string;
+  orderReverse: string;
 }
 
 export type ViewGame = {

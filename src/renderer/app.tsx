@@ -3,7 +3,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
 import { GamePlaylist, ProcessState, WindowIPC } from '../shared/interfaces';
@@ -32,6 +32,8 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { joinLibraryRoute } from './Util';
 import { LangContext } from './util/lang';
 import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
+
+const VIEW_PAGE_SIZE = 250;
 
 type Views = Record<string, View | undefined>; // views[id] = view
 type View = {
@@ -620,6 +622,7 @@ export class App extends React.Component<AppProps, AppState> {
       onSaveGame: this.onSaveGame,
       onLaunchGame: this.onLaunchGame,
       onRequestGames: this.onRequestGames,
+      onQuickSearch: this.onQuickSearch,
 
       central: this.state.central,
       creditsData: this.state.creditsData,
@@ -831,7 +834,6 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   onRequestGames = (offset: number, limit: number): void => {
-    const VIEW_PAGE_SIZE = 250;
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
 
@@ -889,6 +891,47 @@ export class App extends React.Component<AppProps, AppState> {
         }
       });
     }
+  }
+
+  onQuickSearch = (search: string): void => {
+    const library = getBrowseSubPath(this.props.location.pathname);
+    const view = this.state.views[library];
+
+    if (!view) {
+      log(`Failed to quick search. Current view is missing (Library: "${library}", View: "${view}").`);
+      return;
+    }
+
+    window.External.back.send<QuickSearchResponseData, QuickSearchData>(BackIn.QUICK_SEARCH, {
+      search: search,
+      query: {
+        extreme: this.props.preferencesData.browsePageShowExtreme,
+        broken: false, // @TODO Add an option for this or something
+        library: library,
+        search: this.props.search.text, // view.query.search,
+        playlistId: view && view.selectedPlaylistId,
+        orderBy: this.state.order.orderBy, // view.query.orderBy,
+        orderReverse: this.state.order.orderReverse, // view.query.orderReverse,
+      },
+    }, res => {
+      const view = this.state.views[library];
+      if (res.data && view) {
+        // Fetch the page that the game is on
+        if (res.data.index !== undefined && !view.pages[(res.data.index / VIEW_PAGE_SIZE) | 0]) {
+          this.onRequestGames(res.data.index, res.data.index);
+        }
+
+        this.setState({
+          views: {
+            ...this.state.views,
+            [library]: {
+              ...view,
+              selectedGameId: res.data.id
+            },
+          }
+        });
+      }
+    });
   }
 
   cachePlaylistIcons(playlists: GamePlaylist[]): void {

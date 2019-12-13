@@ -4,7 +4,6 @@ import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { GamePlaylist } from '../shared/interfaces';
 import { LangFile } from '../shared/lang';
-import { PlatformInfo } from '../shared/platform/interfaces';
 import { Theme } from '../shared/ThemeFile';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
@@ -28,6 +27,7 @@ export type AppRouterProps = {
   onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
   onLaunchGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
+  onQuickSearch: (search: string) => void;
   playlistIconCache: Record<string, string>;
 
   /** Semi-global prop. */
@@ -68,6 +68,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       playlistIconCache: this.props.playlistIconCache,
       onSaveGame: this.props.onSaveGame,
       onRequestGames: this.props.onRequestGames,
+      onQuickSearch: this.props.onQuickSearch,
 
       order: this.props.order,
       gameScale: this.props.gameScale,

@@ -1,4 +1,4 @@
-import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
 
 /**
  * Convert game and its additional applications into a raw object representation in the curation format.

@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as stream from 'stream';
 import { promisify } from 'util';
 import * as yauzl from 'yauzl';
-import { stripBOM } from '../../shared/Util';
+import { stripBOM } from '../Util';
 import { parseCurationMeta, ParsedCurationMeta } from './parse';
 
 const fsReadFile = promisify(fs.readFile);

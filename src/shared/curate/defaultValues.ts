@@ -1,4 +1,4 @@
-import { IGameInfo } from '../../shared/game/interfaces';
+import { IGameInfo } from '../game/interfaces';
 
 /** Generic associative array with strings as keys and values. */
 type StringMap = {

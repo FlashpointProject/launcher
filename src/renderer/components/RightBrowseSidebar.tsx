@@ -11,7 +11,7 @@ import { WithSearchProps } from '../containers/withSearch';
 import { SUGGESTIONS } from '../interfaces';
 import { getGameImagePath, getGameImageURL } from '../Util';
 import { LangContext } from '../util/lang';
-import { uuid } from '../uuid';
+import { uuid } from '../util/uuid';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';

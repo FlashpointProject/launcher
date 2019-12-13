@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import { CurationIndexImage } from '../curate/indexCuration';
+import { CurationIndexImage } from '../../shared/curate/indexCuration';
 import { ImagePreview } from './ImagePreview';
 
 type CurateBoxImageProps = {

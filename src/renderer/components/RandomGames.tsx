@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { IGameInfo } from 'src/shared/game/interfaces';
 import { BackIn, LaunchGameData, RandomGamesData, RandomGamesResponseData } from '../../shared/back/types';
+import { IGameInfo } from '../../shared/game/interfaces';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';

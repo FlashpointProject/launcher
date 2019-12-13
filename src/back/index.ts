@@ -6,9 +6,11 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
+import { stringifyCurationFormat } from '../shared/curate/format/stringifier';
+import { convertToCurationMeta } from '../shared/curate/metaToMeta';
 import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { DeepPartial, GamePlaylist, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '../shared/interfaces';
@@ -24,14 +26,18 @@ import { GameLauncher } from './GameLauncher';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { PlaylistFile } from './PlaylistFile';
 import { ServicesFile } from './ServicesFile';
-import { BackQuery, BackState } from './types';
+import { BackQuery, BackQueryChache, BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { getContentType } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
+import { uuid } from './util/uuid';
 
 const readFile = promisify(fs.readFile);
 const unlink = promisify(fs.unlink);
+const mkdir = promisify(fs.mkdir);
+const copyFile = promisify(fs.copyFile);
+const writeFile = promisify(fs.writeFile);
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -674,6 +680,106 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       });
     } break;
 
+    case BackIn.DUPLICATE_GAME: {
+      const reqData: DuplicateGameData = req.data;
+
+      const game = findGame(reqData.id);
+      if (game) {
+        const addApps = findAddApps(reqData.id);
+
+        // Copy and apply new IDs
+        const newGame = deepCopy(game);
+        const newAddApps = addApps.map(addApp => deepCopy(addApp));
+        newGame.id = uuid();
+        for (let j = 0; j < newAddApps.length; j++) {
+          newAddApps[j].id = uuid();
+          newAddApps[j].gameId = newGame.id;
+        }
+
+        // Add copies
+        state.gameManager.updateMetas({
+          games: [newGame],
+          addApps: newAddApps,
+          library: newGame.library,
+          saveToDisk: true,
+        });
+
+        // Copy images
+        if (reqData.dupeImages) {
+          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+          const oldLast = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
+          const newLast = path.join(newGame.id.substr(0, 2), newGame.id.substr(2, 2), newGame.id+'.png');
+
+          const oldLogoPath = path.join(imageFolder, 'Logos', oldLast);
+          const newLogoPath = path.join(imageFolder, 'Logos', newLast);
+          try {
+            if (await pathExists(oldLogoPath)) {
+              await ensurePath(path.dirname(newLogoPath));
+              await copyFile(oldLogoPath, newLogoPath);
+            }
+          } catch (e) { console.error(e); }
+
+          const oldScreenshotPath = path.join(imageFolder, 'Screenshots', oldLast);
+          const newScreenshotPath = path.join(imageFolder, 'Screenshots', newLast);
+          try {
+            if (await pathExists(oldScreenshotPath)) {
+              await ensurePath(path.dirname(newScreenshotPath));
+              await copyFile(oldScreenshotPath, newScreenshotPath);
+            }
+          } catch (e) { console.error(e); }
+        }
+
+        state.queries = {}; // Clear entire cache
+      }
+
+      respond<BrowseChangeData>(event.target, {
+        id: req.id,
+        type: BackOut.BROWSE_CHANGE,
+        data: { library: undefined }
+      });
+    } break;
+
+    case BackIn.EXPORT_GAME: {
+      const reqData: ExportGameData = req.data;
+
+      if (await pathExists(reqData.metaOnly ? path.dirname(reqData.location) : reqData.location)) {
+        const game = findGame(reqData.id);
+        if (game) {
+          const addApps = findAddApps(reqData.id);
+
+          // Save to file
+          try {
+            await writeFile(
+              reqData.metaOnly ? reqData.location : path.join(reqData.location, 'meta.txt'),
+              stringifyCurationFormat(convertToCurationMeta(game, addApps)));
+          } catch (e) { console.error(e); }
+
+          // Copy images
+          if (!reqData.metaOnly) {
+            const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+            const last = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
+
+            const oldLogoPath = path.join(imageFolder, 'Logos', last);
+            const newLogoPath = path.join(reqData.location, 'logo.png');
+            try {
+              if (await pathExists(oldLogoPath)) { await copyFile(oldLogoPath, newLogoPath); }
+            } catch (e) { console.error(e); }
+
+            const oldScreenshotPath = path.join(imageFolder, 'Screenshots', last);
+            const newScreenshotPath = path.join(reqData.location, 'ss.png');
+            try {
+              if (await pathExists(oldScreenshotPath)) { await copyFile(oldScreenshotPath, newScreenshotPath); }
+            } catch (e) { console.error(e); }
+          }
+        }
+      }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE
+      });
+    } break;
+
     case BackIn.GET_GAME: {
       const reqData: GetGameData = req.data;
 
@@ -746,8 +852,8 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       const reqData: BrowseViewPageData = req.data;
 
       const query: BackQuery = {
-        extreme: false,
-        broken: false,
+        extreme: reqData.query.extreme,
+        broken: reqData.query.broken,
         library: reqData.query.library,
         search: reqData.query.search,
         orderBy: reqData.query.orderBy as GameOrderBy,
@@ -757,40 +863,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
       const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
       let cache = state.queries[hash];
-      if (!cache) {
-        // @TODO Start clearing the cache if it gets too full
-
-        const playlist = state.playlists.find(p => p.filename === query.playlistId);
-
-        const results = searchGames({
-          extreme: query.extreme,
-          broken: query.broken,
-          query: query.search,
-          orderBy: query.orderBy,
-          orderReverse: query.orderReverse,
-          library: query.library,
-          playlist: playlist,
-        });
-
-        const viewGames: ViewGame[] = [];
-        for (let i = 0; i < results.length; i++) {
-          const g = results[i];
-          viewGames[i] = {
-            id: g.id,
-            title: g.title,
-            platform: g.platform,
-            genre: g.genre,
-            developer: g.developer,
-            publisher: g.publisher,
-          };
-        }
-
-        state.queries[hash] = cache = {
-          query: query,
-          games: results,
-          viewGames: viewGames,
-        };
-      }
+      if (!cache) { state.queries[hash] = cache = queryGames(query); } // @TODO Start clearing the cache if it gets too full
 
       respond<BrowseViewPageResponseData>(event.target, {
         id: req.id,
@@ -799,6 +872,43 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           games: cache.viewGames.slice(reqData.offset, reqData.offset + reqData.limit),
           offset: reqData.offset,
           total: cache.games.length,
+        },
+      });
+    } break;
+
+    case BackIn.QUICK_SEARCH: {
+      const reqData: QuickSearchData = req.data;
+
+      const query: BackQuery = {
+        extreme: reqData.query.extreme,
+        broken: reqData.query.broken,
+        library: reqData.query.library,
+        search: reqData.query.search,
+        orderBy: reqData.query.orderBy as GameOrderBy,
+        orderReverse: reqData.query.orderReverse as GameOrderReverse,
+        playlistId: reqData.query.playlistId,
+      };
+
+      const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
+      let cache = state.queries[hash];
+      if (!cache) { state.queries[hash] = cache = queryGames(query); }
+
+      let result: string | undefined;
+      let index: number | undefined;
+      for (let i = 0; i < cache.games.length; i++) {
+        if (cache.games[i].title.toLowerCase().startsWith(reqData.search)) {
+          index = i;
+          result = cache.games[i].id;
+          break;
+        }
+      }
+
+      respond<QuickSearchResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: {
+          id: result,
+          index: index,
         },
       });
     } break;
@@ -1250,11 +1360,89 @@ async function deletePlaylist(id: string, folder: string, playlists: GamePlaylis
 
 function pathExists(filePath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
-    fs.stat(filePath, (error, stats) => {
+    fs.stat(filePath, error => {
       if (error) {
         if (error.code === 'ENOENT') { resolve(false); }
         else { reject(error); }
       } else { resolve(true); }
     });
   });
+}
+
+function queryGames(query: BackQuery): BackQueryChache {
+  const playlist = state.playlists.find(p => p.filename === query.playlistId);
+
+  const results = searchGames({
+    extreme: query.extreme,
+    broken: query.broken,
+    query: query.search,
+    orderBy: query.orderBy,
+    orderReverse: query.orderReverse,
+    library: query.library,
+    playlist: playlist,
+  });
+
+  const viewGames: ViewGame[] = [];
+  for (let i = 0; i < results.length; i++) {
+    const g = results[i];
+    viewGames[i] = {
+      id: g.id,
+      title: g.title,
+      platform: g.platform,
+      genre: g.genre,
+      developer: g.developer,
+      publisher: g.publisher,
+    };
+  }
+
+  return {
+    query: query,
+    games: results,
+    viewGames: viewGames,
+  };
+}
+
+async function ensurePath(filePath: string): Promise<void> {
+  // Find the closest existing folder
+  let top = filePath;
+  let c = 0; // (Just adds a safety limit)
+  while (true) {
+    if (await pathExists(top)) { break; }
+    else { top = path.dirname(filePath); }
+    if (c++ > 255) { throw new Error('Check for existing folders got stuck.'); } // Give up
+  }
+
+  // Create folders from the top, one at a time
+  if (top !== filePath) {
+    const dif = path.relative(top, filePath).split(path.sep);
+    let paff = top;
+    for (let i = 0; i < dif.length; i++) {
+      paff = path.join(paff, dif[i]);
+      await mkdir(paff);
+    }
+  }
+}
+
+/** Find the game with the specified ID. */
+function findGame(gameId: string): IGameInfo | undefined {
+  const platforms = state.gameManager.platforms;
+  for (let i = 0; i < platforms.length; i++) {
+    const games = platforms[i].collection.games;
+    for (let j = 0; j < games.length; j++) {
+      if (games[j].id === gameId) { return games[j]; }
+    }
+  }
+}
+
+/** Find all add apps with the specified game ID. */
+function findAddApps(gameId: string): IAdditionalApplicationInfo[] {
+  const result: IAdditionalApplicationInfo[] = [];
+  const platforms = state.gameManager.platforms;
+  for (let i = 0; i < platforms.length; i++) {
+    const addApps = platforms[i].collection.additionalApplications;
+    for (let j = 0; j < addApps.length; j++) {
+      if (addApps[j].gameId === gameId) { result.push(addApps[j]); }
+    }
+  }
+  return result;
 }

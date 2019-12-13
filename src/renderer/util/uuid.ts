@@ -1,5 +1,3 @@
-import { randomBytes as nodeCryptoGetRandomBytes } from 'crypto';
-
 // Work around synchronously seeding of random buffer in the v1
 // version of uuid by explicitly only requiring v4. As far as I'm
 // aware we cannot use an import statement here without causing webpack
@@ -21,12 +19,9 @@ const guid = require('uuid/v4') as (options?: { random?: Buffer }) => string;
  *  https://github.com/kelektiv/node-uuid/issues/189
  */
 function getRandomBytes(count: number): Buffer {
-  if (window.crypto) {
-    const rndBuf = new Uint8Array(count);
-    crypto.getRandomValues(rndBuf);
-    return Buffer.from(rndBuf.buffer);
-  }
-  return nodeCryptoGetRandomBytes(count);
+  const rndBuf = new Uint8Array(count);
+  crypto.getRandomValues(rndBuf);
+  return Buffer.from(rndBuf.buffer);
 }
 
 /**

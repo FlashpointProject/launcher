@@ -1,4 +1,4 @@
-import { deepCopy } from '../../../shared/Util';
+import { deepCopy } from '../../Util';
 
 export namespace CFTokenizer {
   /** Type identifiers for all tokens. */

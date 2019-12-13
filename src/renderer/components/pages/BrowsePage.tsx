@@ -1,8 +1,8 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
+import * as fs from 'fs';
 import * as React from 'react';
-import { BackIn, DeleteGameData, DeletePlaylistData, GetGameData, GetGameResponseData, LaunchGameData, SavePlaylistData } from '../../../shared/back/types';
+import { BackIn, DeleteGameData, DeletePlaylistData, GetGameData, GetGameResponseData, LaunchGameData, SavePlaylistData, DuplicateGameData, ExportGameData } from '../../../shared/back/types';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
-import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { GamePlaylist, GamePlaylistEntry } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
@@ -15,9 +15,9 @@ import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrow
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { GAMES, SUGGESTIONS } from '../../interfaces';
 import { SearchQuery } from '../../store/search';
-import { gameIdDataType, gameScaleSpan } from '../../Util';
+import { gameIdDataType, gameScaleSpan, getGamePath } from '../../Util';
 import { LangContext } from '../../util/lang';
-import { uuid } from '../../uuid';
+import { uuid } from '../../util/uuid';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
@@ -36,6 +36,7 @@ type OwnProps = {
   playlistIconCache: Record<string, string>;
   onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
   onRequestGames: (start: number, end: number) => void;
+  onQuickSearch: (search: string) => void;
 
   /** Most recent search query. */
   search: SearchQuery;
@@ -150,16 +151,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
     // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== quickSearch && quickSearch !== '') {
-      // @FIXTHIS Quick search will require its own API perhaps
-      /*
-      for (let index = 0; index < this.props.games.length; index++) {
-        const game: IGameInfo = this.props.games[index];
-        if (game.title.toLowerCase().startsWith(quickSearch)) {
-          if (onSelectGame) { onSelectGame(game); }
-          break;
-        }
-      }
-      */
+      this.props.onQuickSearch(quickSearch);
     }
     // Create a new game if the "New Game" button is pushed
     this.createNewGameIfClicked(prevProps.wasNewGameClicked);
@@ -235,7 +227,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenuMemo(strings.menu)}
+                  onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   onRequestGames={this.props.onRequestGames}
@@ -256,7 +248,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenuMemo(strings.menu)}
+                  onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   onRequestGames={this.props.onRequestGames}
@@ -324,30 +316,83 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     );
   });
 
-  private onGameContextMenuMemo = memoizeOne((strings: LangContainer['menu']) => {
+  private onGameContextMenuMemo = memoizeOne((strings: LangContainer) => {
     return (gameId: string) => {
       return (
         openContextMenu([{
-          label: strings.openFileLocation,
-          // @TODO Open the file location
-        }, {
-          type: 'separator'
-        }, {
-          label: strings.duplicateMetaOnly,
-          // @TODO Duplicate the game
+          /* File Location */
+          label: strings.menu.openFileLocation,
+          click: () => {
+            window.External.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
+              if (res.data && res.data.game) {
+                const gamePath = getGamePath(res.data.game, window.External.config.fullFlashpointPath);
+                if (gamePath) {
+                  fs.stat(gamePath, error => {
+                    if (!error) { remote.shell.showItemInFolder(gamePath); }
+                    else {
+                      const opts: Electron.MessageBoxOptions = {
+                        type: 'warning',
+                        message: '',
+                        buttons: ['Ok'],
+                      };
+                      if (error.code === 'ENOENT') {
+                        opts.title = this.context.dialog.fileNotFound;
+                        opts.message = (
+                          'Failed to find the game file.\n'+
+                          'If you are using Flashpoint Infinity, make sure you download the game first.\n'
+                        );
+                      } else {
+                        opts.title = 'Unexpected error';
+                        opts.message = (
+                          'Failed to check the game file.\n'+
+                          'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
+                          `Error: ${error}\n`
+                        );
+                      }
+                      opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
+                      remote.dialog.showMessageBox(opts);
+                    }
+                  });
+                }
+              }
+            });
+          },
+        }, {  type: 'separator' }, {
+          /* Duplicate Meta */
+          label: strings.menu.duplicateMetaOnly,
           enabled: this.props.preferencesData.enableEditing,
+          click: () => { window.External.back.send<any, DuplicateGameData>(BackIn.DUPLICATE_GAME, { id: gameId, dupeImages: false }); },
         }, {
-          label: strings.duplicateMetaAndImages, // ("&&" will be shown as "&")
-          // @TODO Duplicate the game and images
+          /* Duplicate Meta & Images */
+          label: strings.menu.duplicateMetaAndImages, // ("&&" will be shown as "&")
           enabled: this.props.preferencesData.enableEditing,
+          click: () => { window.External.back.send<any, DuplicateGameData>(BackIn.DUPLICATE_GAME, { id: gameId, dupeImages: true }); },
+        }, { type: 'separator' }, {
+          /* Export Meta */
+          label: strings.menu.exportMetaOnly,
+          click: () => {
+            const filePath = remote.dialog.showSaveDialogSync({
+              title: strings.dialog.selectFileToExportMeta,
+              defaultPath: 'meta',
+              filters: [{
+                name: 'Meta file',
+                extensions: ['txt'],
+              }]
+            });
+            if (filePath) { window.External.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePath, metaOnly: true }); }
+          },
         }, {
-          type: 'separator'
-        }, {
-          label: strings.exportMetaOnly,
-          // @TODO Export meta
-        }, {
-          label: strings.exportMetaAndImages, // ("&&" will be shown as "&")
-          // @TODO Export meta and images
+          /* Export Meta & Images */
+          label: strings.menu.exportMetaAndImages, // ("&&" will be shown as "&")
+          click: () => {
+            const filePaths = window.External.showOpenDialogSync({
+              title: strings.dialog.selectFolderToExportMetaAndImages,
+              properties: ['promptToCreate', 'openDirectory']
+            });
+            if (filePaths && filePaths.length > 0) {
+              window.External.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePaths[0], metaOnly: false });
+            }
+          },
         }])
       );
     };
@@ -528,23 +573,21 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onDiscardEditClick = (): void => {
-    const { currentAddApps, currentGame, isNewGame } = this.state;
     this.setState({
       isEditingGame: false,
       isNewGame: false,
-      currentGame:    isNewGame ? undefined : currentGame,
-      currentAddApps: isNewGame ? undefined : currentAddApps,
+      currentGame:    this.state.isNewGame ? undefined : this.state.currentGame,
+      currentAddApps: this.state.isNewGame ? undefined : this.state.currentAddApps,
     });
     this.focusGameGridOrList();
   }
 
   onSaveEditClick = (): void => {
-    const { currentGame, currentAddApps, currentPlaylistNotes } = this.state;
-    if (!currentGame) {
+    if (!this.state.currentGame) {
       console.error('Can\'t save game. "currentGame" is missing.');
       return;
     }
-    this.props.onSaveGame(currentGame, currentAddApps, currentPlaylistNotes, true);
+    this.props.onSaveGame(this.state.currentGame, this.state.currentAddApps, this.state.currentPlaylistNotes, true);
     this.setState({
       isEditingGame: false,
       isNewGame: false
@@ -557,11 +600,32 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const { wasNewGameClicked } = this.props;
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
-      const newGame = GameInfo.create();
-      newGame.id = uuid();
-      newGame.dateAdded = formatDate(new Date());
       cb({
-        currentGame: newGame,
+        currentGame: {
+          id: uuid(),
+          title: '',
+          series: '',
+          developer: '',
+          publisher: '',
+          platform: '',
+          dateAdded: formatDate(new Date()),
+          broken: false,
+          extreme: false,
+          playMode: '',
+          status: '',
+          notes: '',
+          genre: '',
+          source: '',
+          applicationPath: '',
+          launchCommand: '',
+          releaseDate: '',
+          version: '',
+          originalDescription: '',
+          language: '',
+          library: '',
+          orderTitle: '',
+          placeholder: false,
+        },
         currentAddApps: [],
         isEditingGame: true,
         isNewGame: true,
