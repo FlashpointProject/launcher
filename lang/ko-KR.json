@@ -20,7 +20,7 @@
     "browse": "탐색",
     "redirector": "Redirector",
     "redirectorFiddler": "Fiddler",
-    "redirectorDesc": "Which software to use for redirecting the game traffic to the local web server. Neither is used on Linux.",
+    "redirectorDesc": "로컬 웹서버로 게임 네트워크 데이터를 우회해주는 소프트웨어입니다. 리눅스에서는 둘다 사용되지 않습니다.",
     "platforms": "플랫폼",
     "nativePlatforms": "네이티브 플랫폼",
     "nativePlatformsDesc": "이 플랫폼들의 네이티브 버전들을 사용하세요. (없다면 와인을 사용합니다)",
@@ -91,7 +91,7 @@
     "total": "합계",
     "newGame": "새 게임",
     "list": "목록",
-    "grid": "Grid"
+    "grid": "그리드뷰"
   },
   "filter": {
     "dateAdded": "추가된 날짜",
@@ -113,7 +113,7 @@
     "checkGameIdsDesc": "중복되거나 확인 불가능한 ID를 가진 모든 게임 목록",
     "checkGameTitles": "게임 제목 확인",
     "checkGameTitlesDesc": "같은 플랫폼내에서 중복된 제목을 가진 게임 목록을 확인합니다",
-    "checkGameFields": "Check Game Fields",
+    "checkGameFields": "게임 상세정보 확인",
     "checkGameFieldsDesc": "(비어있으면 안되는 항목이) 비어있는 게임 목록 표시",
     "checkPlaylists": "플레이리스트 확인",
     "checkPlaylistsDesc": "List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs",
@@ -217,9 +217,9 @@
     "newPlaylist": "새 플레이리스트",
     "emptyPlaylist": "빈 플레이리스트",
     "noGamesFound": "게임을 찾을 수 없습니다!",
-    "dropGameOnLeft": "Drop a game on this playlist in the {0} to add it.",
+    "dropGameOnLeft": "게임을 이 플레이리스트에 더하려면 {0} 에 게임을 끌어 넣으세요.",
     "leftSidebar": "좌측 사이드바",
-    "setFlashpointPathQuestion": "Have you set the path to the {0} at the {1} page?",
+    "setFlashpointPathQuestion": "{0} 로의 경로를 {1} 페이지에서 지정하셨나요?",
     "flashpointPath": "Flashpoint 파일 경로",
     "config": "설정",
     "noteSaveAndRestart": "참고사항: 변경사항을 적용하기 위해선 {0} 을 눌러야 합니다.",
@@ -236,7 +236,7 @@
     "deleteAllDesc": "현재 로딩된 모든 큐레이션을 삭제합니다",
     "saveImportedCurations": "가져온 큐레이션 저장",
     "openCurationsFolder": "큐레이션 폴더",
-    "openCurationsFolderDesc": "Open the Curations folder in explorer",
+    "openCurationsFolderDesc": "탐색기에서 큐레이션 폴더 열기",
     "openExportsFolder": "Exported Curations",
     "openExportsFolderDesc": "Open the default Exports folder containing your exported curations.",
     "openImportedFolder": "가져온 큐레이션",
@@ -253,7 +253,7 @@
     "id": "큐레이션 폴더",
     "heading": "제목",
     "noHeading": "제목 없음",
-    "folderName": "Extras Folder",
+    "folderName": "추가기능 폴더",
     "noFolderName": "폴더이름 없음",
     "message": "런치 메세지",
     "noMessage": "메시지 없음",
@@ -305,7 +305,7 @@
     "yes": "네",
     "no": "아니오",
     "downloading": "다운로드중",
-    "extracting": "Extracting",
+    "extracting": "압축 해제 중",
     "installingFiles": "파일 설치 중...",
     "complete": "완료"
   },
@@ -335,7 +335,7 @@
     "selectThumbnail": "추가할 썸네일을 선택하세요",
     "selectThemeFile": "테마파일 선택",
     "selectCurationFolder": "큐레이션 폴더(들) 선택",
-    "selectCurationArchive": "Select Curation Archive(s)",
+    "selectCurationArchive": "큐레이션 보존기록(들) 선택",
     "selectCurationMeta": "큐레이션 메타(들) 선택",
     "errorParsingPlatforms": "플렛폼 파싱 실패!",
     "errorParsingPlatformsMessage": "플렛폼 XML을 파싱중 {0} 가지 문제가 발생했습니다.\n세부사항은 로그에서 확인하세요.",
@@ -357,6 +357,6 @@
     "tech": "다른 플렛폼들",
     "techDesc": "다른 모든 플렛폼들을 추가합니다 - 쇼크웨이브, 유니티, 자바, HTML5, 기타 등등",
     "screenshots": "로고 & 스크인샷",
-    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+    "screenshotsDesc": "그리드뷰 로고들과 게임 스크린샷들을 더합니다."
   }
 }
