@@ -333,19 +333,19 @@
     "selectFolder": "폴더 선택",
     "selectScreenshot": "추가할 스크린샷을 선택하세요",
     "selectThumbnail": "추가할 썸네일을 선택하세요",
-    "selectThemeFile": "테마파일 선택",
+    "selectThemeFile": "테마 파일 선택",
     "selectCurationFolder": "큐레이션 폴더(들) 선택",
     "selectCurationArchive": "큐레이션 보존기록(들) 선택",
     "selectCurationMeta": "큐레이션 메타(들) 선택",
     "errorParsingPlatforms": "플랫폼 파싱 실패!",
-    "errorParsingPlatformsMessage": "플랫폼 XML을 파싱중 {0} 가지 문제가 발생했습니다.\n세부사항은 로그에서 확인하세요.",
+    "errorParsingPlatformsMessage": "플랫폼 XML을 파싱중 {0} 개의 문제가 발생했습니다.\n세부사항은 로그에서 확인하세요.",
     "dataRequired": "추가 데이터 필요함",
     "dataRequiredDesc": "런처를 사용할수 있기 전에 홈화면에서 업그레이드를 설치하셔야 합니다.\n\n지금 하시겠습니까?",
     "upgradeWillInstallTo": "{0} 가 설치될 곳은:",
     "verifyPathSelection": "미래 업그레이드도 이곳에 설치됩니다. 맞습니까?",
     "restartNow": "지금 재시작하겠습니까?",
     "restartToApplyUpgrade": "이 업그레이드는 재시작하기 전에는 적용되지 않습니다.\n그래도 지금 하시겠습니까?",
-    "areYouSure": "확실하세요?"
+    "areYouSure": "확실하십니까?"
   },
   "libraries": {
     "arcade": "게임",
@@ -353,9 +353,9 @@
   },
   "upgrades": {
     "infinity": "플래시포인트 인피니티",
-    "infinityDesc": "필수 파일들입니다. 플래시 게임지원을 추가합니다.",
+    "infinityDesc": "필수 파일들입니다. 플래시 게임 지원을 추가합니다.",
     "tech": "다른 플랫폼들",
-    "techDesc": "다른 모든 플랫폼들을 추가합니다 - 쇼크웨이브, 유니티, 자바, HTML5, 기타 등등",
+    "techDesc": "다른 플랫폼들을 모두 추가합니다 - 쇼크웨이브, 유니티, 자바, HTML5 등",
     "screenshots": "로고 & 스크인샷",
     "screenshotsDesc": "그리드뷰 로고들과 게임 스크린샷들을 더합니다."
   }
