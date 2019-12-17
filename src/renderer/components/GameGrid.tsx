@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, ScrollParams } from 'react-virtualized/dist/es/Grid';
-import { ViewGame } from '../../shared/back/types';
+import { BackOut, ImageChangeData, ViewGame, WrappedResponse } from '../../shared/back/types';
+import { LOGOS } from '../../shared/constants';
 import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
 import { GAMES } from '../interfaces';
 import { findElementAncestor, getGameImageURL } from '../Util';
@@ -67,6 +68,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   currentGamesCount: number = 0;
 
   componentDidMount(): void {
+    window.External.back.on('message', this.onResponse);
     this.updateCssVars();
     this.updatePropRefs();
   }
@@ -74,6 +76,10 @@ export class GameGrid extends React.Component<GameGridProps> {
   componentDidUpdate(): void {
     this.updateCssVars();
     this.updatePropRefs();
+  }
+
+  componentWillUnmount(): void {
+    window.External.back.off('message', this.onResponse);
   }
 
   render() {
@@ -169,11 +175,37 @@ export class GameGrid extends React.Component<GameGridProps> {
         id={game.id}
         title={game.title}
         platform={game.platform}
-        thumbnail={getGameImageURL('Logos', game.id)}
+        thumbnail={getGameImageURL(LOGOS, game.id)}
         isDraggable={true}
         isSelected={game.id === selectedGameId}
         isDragged={game.id === draggedGameId} />
     ) : <div key={props.key} style={props.style} />;
+  }
+
+  onResponse = (res: WrappedResponse) => {
+    if (res.type === BackOut.IMAGE_CHANGE) {
+      const resData: ImageChangeData = res.data;
+
+      // Update the image in the browsers cache
+      if (resData.folder === LOGOS) {
+        fetch(getGameImageURL(resData.folder, resData.id))
+        .then(() => {
+          // Refresh the image for the game(s) that uses it
+          const elements = document.getElementsByClassName('game-grid-item');
+          for (let i = 0; i < elements.length; i++) {
+            const item = elements.item(i);
+            if (item && GameGridItem.getId(item) === resData.id) {
+              const img: HTMLElement | null = item.querySelector('.game-grid-item__thumb__image') as any;
+              if (img) {
+                const val = img.style.backgroundImage;
+                img.style.backgroundImage = null;
+                img.style.backgroundImage = val;
+              }
+            }
+          }
+        });
+      }
+    }
   }
 
   onScroll = (params: ScrollParams) => {
@@ -301,13 +333,4 @@ function findGameIndex(games: GAMES | undefined, gameId: string | undefined): nu
     }
   }
   return -1;
-}
-
-function findGame(games: GAMES | undefined, gameId: string | undefined): ViewGame | undefined {
-  if (gameId !== undefined && games) {
-    for (let index in games) {
-      const game = games[index];
-      if (game && game.id === gameId) { return game; }
-    }
-  }
 }

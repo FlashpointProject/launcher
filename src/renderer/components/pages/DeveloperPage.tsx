@@ -5,6 +5,7 @@ import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { getGamePath } from '../../../renderer/Util';
 import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedResponse } from '../../../shared/back/types';
+import { LOGOS, SCREENSHOTS } from '../../../shared/constants';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { GamePlaylist, GamePlaylistEntry } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
@@ -448,10 +449,10 @@ async function createMissingFolders(): Promise<string> {
     fullFlashpointPath, {
       'Data': {
         'Images': [
-          'Logos',
-          'Screenshots'
+          LOGOS,
+          SCREENSHOTS
         ],
-        'Logos': [],
+        [LOGOS]: [],
         'Platforms': [],
         'Playlists': [],
         'Themes': [],

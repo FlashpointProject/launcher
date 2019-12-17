@@ -17,6 +17,8 @@ export enum BackIn {
   DUPLICATE_GAME,
   EXPORT_GAME,
   LAUNCH_ADDAPP,
+  SAVE_IMAGE,
+  DELETE_IMAGE,
   QUICK_SEARCH,
   ADD_LOG,
   SERVICE_ACTION,
@@ -45,6 +47,7 @@ export enum BackOut {
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
   BROWSE_CHANGE,
+  IMAGE_CHANGE,
   LOG_ENTRY_ADDED,
   SERVICE_CHANGE,
   LANGUAGE_CHANGE,
@@ -187,6 +190,17 @@ export type BrowseViewPageResponseData = {
   total?: number;
 }
 
+export type SaveImageData = {
+  folder: string;
+  id: string;
+  content: string;
+}
+
+export type DeleteImageData = {
+  folder: string;
+  id: string;
+}
+
 export type QuickSearchData = {
   query: GameQuery;
   search: string;
@@ -219,6 +233,11 @@ export type ViewGame = {
 
 export type BrowseChangeData = {
   library?: string;
+}
+
+export type ImageChangeData = {
+  folder: string;
+  id: string;
 }
 
 export type LogEntryAddedData = {

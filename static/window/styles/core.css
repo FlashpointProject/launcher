@@ -1135,7 +1135,7 @@ body {
 .browse-right-sidebar__row__screenshot {
   width: 100%;
 }
-.browse-right-sidebar__row__screenshot img {
+.browse-right-sidebar__row__screenshot-image {
   width: 100%;
   cursor: zoom-in;
 }
@@ -1168,10 +1168,6 @@ body {
 .browse-right-sidebar__row__screenshot__placeholder p {
   font-size: 0.9rem;
   font-style: italic;
-}
-.browse-right-sidebar__row__screenshot img {
-  width: 100%;
-  cursor: zoom-in;
 }
 /* GameImageSplit */
 .game-image-split {

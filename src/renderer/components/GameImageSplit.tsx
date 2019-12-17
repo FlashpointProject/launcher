@@ -68,7 +68,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             <SimpleButton
               value={formatString(strings.addBlank, text)}
               onClick={onAddClick}
-              disabled={disabled}/>
+              disabled={disabled} />
           </div>
         ) : (
           <div className='game-image-split__buttons'>
@@ -76,7 +76,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             <ConfirmElement
               onConfirm={onRemoveClick}
               children={renderDeleteImageButton}
-              extra={[strings, text]}/>
+              extra={[strings, text]} />
           </div>
         ) }
       </div>
@@ -84,23 +84,34 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
   }
 
   onDragOver = (event: React.DragEvent): void => {
-    if (this.props.imgSrc === undefined) {
-      const types = event.dataTransfer.types;
-      if (types.length === 1 && types[0] === 'Files') {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
-        if (!this.state.hover) { this.setState({ hover: true }); }
-      }
+    const types = event.dataTransfer.types;
+    if (types.length === 1 && types[0] === 'Files') {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+      if (!this.state.hover) { this.setState({ hover: true }); }
     }
   }
 
   onDrop = (event: React.DragEvent): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
-    if (this.props.imgSrc === undefined) { this.props.onDrop(event, this.props.type); }
+    this.props.onDrop(event, this.props.type);
   }
 
   onDragLeave = (event: React.DragEvent): void => {
     if (this.state.hover) { this.setState({ hover: false }); }
+  }
+
+  /** Refresh all images of all game image splits. */
+  static refreshImages() {
+    const elements = document.getElementsByClassName('game-image-split');
+    for (let i = 0; i < elements.length; i++) {
+      const item: HTMLElement | null = elements.item(i) as any;
+      if (item) {
+        const val = item.style.backgroundImage;
+        item.style.backgroundImage = null;
+        item.style.backgroundImage = val;
+      }
+    }
   }
 
   static contextType = LangContext;

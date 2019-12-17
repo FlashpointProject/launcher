@@ -6,9 +6,10 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistData, ServiceActionData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse, InitEventData, ThemeChangeData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
+import { LOGOS, SCREENSHOTS } from '../shared/constants';
 import { stringifyCurationFormat } from '../shared/curate/format/stringifier';
 import { convertToCurationMeta } from '../shared/curate/metaToMeta';
 import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '../shared/game/GameFilter';
@@ -33,10 +34,11 @@ import { getContentType } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
-const readFile = promisify(fs.readFile);
-const unlink = promisify(fs.unlink);
-const mkdir = promisify(fs.mkdir);
 const copyFile = promisify(fs.copyFile);
+const mkdir = promisify(fs.mkdir);
+const readFile = promisify(fs.readFile);
+const stat = promisify(fs.stat);
+const unlink = promisify(fs.unlink);
 const writeFile = promisify(fs.writeFile);
 
 // Make sure the process.send function is available
@@ -706,8 +708,8 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           const oldLast = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
           const newLast = path.join(newGame.id.substr(0, 2), newGame.id.substr(2, 2), newGame.id+'.png');
 
-          const oldLogoPath = path.join(imageFolder, 'Logos', oldLast);
-          const newLogoPath = path.join(imageFolder, 'Logos', newLast);
+          const oldLogoPath = path.join(imageFolder, LOGOS, oldLast);
+          const newLogoPath = path.join(imageFolder, LOGOS, newLast);
           try {
             if (await pathExists(oldLogoPath)) {
               await ensurePath(path.dirname(newLogoPath));
@@ -715,8 +717,8 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
             }
           } catch (e) { console.error(e); }
 
-          const oldScreenshotPath = path.join(imageFolder, 'Screenshots', oldLast);
-          const newScreenshotPath = path.join(imageFolder, 'Screenshots', newLast);
+          const oldScreenshotPath = path.join(imageFolder, SCREENSHOTS, oldLast);
+          const newScreenshotPath = path.join(imageFolder, SCREENSHOTS, newLast);
           try {
             if (await pathExists(oldScreenshotPath)) {
               await ensurePath(path.dirname(newScreenshotPath));
@@ -755,13 +757,13 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
             const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
             const last = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
 
-            const oldLogoPath = path.join(imageFolder, 'Logos', last);
+            const oldLogoPath = path.join(imageFolder, LOGOS, last);
             const newLogoPath = path.join(reqData.location, 'logo.png');
             try {
               if (await pathExists(oldLogoPath)) { await copyFile(oldLogoPath, newLogoPath); }
             } catch (e) { console.error(e); }
 
-            const oldScreenshotPath = path.join(imageFolder, 'Screenshots', last);
+            const oldScreenshotPath = path.join(imageFolder, SCREENSHOTS, last);
             const newScreenshotPath = path.join(reqData.location, 'ss.png');
             try {
               if (await pathExists(oldScreenshotPath)) { await copyFile(oldScreenshotPath, newScreenshotPath); }
@@ -849,6 +851,65 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           games: cache.viewGames.slice(reqData.offset, reqData.offset + reqData.limit),
           offset: reqData.offset,
           total: cache.games.length,
+        },
+      });
+    } break;
+
+    case BackIn.SAVE_IMAGE: {
+      const reqData: SaveImageData = req.data;
+
+      const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+      const folder = sanitizeFilename(reqData.folder);
+      const id = sanitizeFilename(reqData.id);
+      const fullPath = path.join(imageFolder, folder, id.substr(0, 2), id.substr(2, 2), id + '.png');
+
+      if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
+        try {
+          await ensurePath(path.dirname(fullPath));
+          await writeFile(fullPath, Buffer.from(reqData.content, 'base64'));
+        } catch (e) {
+          log({
+            source: 'Launcher',
+            content: e,
+          });
+        }
+      }
+
+      respond<ImageChangeData>(event.target, {
+        id: req.id,
+        type: BackOut.IMAGE_CHANGE,
+        data: {
+          id: id,
+          folder: folder,
+        },
+      });
+    } break;
+
+    case BackIn.DELETE_IMAGE: {
+      const reqData: DeleteImageData = req.data;
+
+      const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+      const folder = sanitizeFilename(reqData.folder);
+      const id = sanitizeFilename(reqData.id);
+      const fullPath = path.join(imageFolder, folder, id.substr(0, 2), id.substr(2, 2), id + '.png');
+
+      if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
+        try {
+          if ((await stat(fullPath)).isFile()) {
+            await unlink(fullPath);
+            // @TODO Remove the two top folders if they are empty (so no empty folders are left hanging)
+          }
+        } catch (error) {
+          if (error.code !== 'ENOENT') { console.error(error); }
+        }
+      }
+
+      respond<ImageChangeData>(event.target, {
+        id: req.id,
+        type: BackOut.IMAGE_CHANGE,
+        data: {
+          id: id,
+          folder: folder,
         },
       });
     } break;
@@ -1067,40 +1128,69 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
 function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
   try {
-    let url = req.url || '';
-    for (let i = 0; i < url.length; i++) { // (Remove all leading slashes)
-      if (url[i] !== '/') {
-        url = url.substr(i);
+    let urlPath = req.url || '';
+
+    // Remove the get parameters
+    const qIndex = urlPath.indexOf('?');
+    if (qIndex >= 0) { urlPath = urlPath.substr(0, qIndex); }
+
+    // Remove all leading slashes
+    for (let i = 0; i < urlPath.length; i++) {
+      if (urlPath[i] !== '/') {
+        urlPath = urlPath.substr(i);
         break;
       }
     }
-    const index = url.indexOf('/');
+
+    const index = urlPath.indexOf('/');
     if (index >= 0) {
-      switch (url.substr(0, index).toLowerCase()) {
-        case 'logos':
-        case 'screenshots': {
+      switch (urlPath.substr(0, index).toLowerCase()) {
+        // Image folder
+        case LOGOS.toLowerCase():
+        case SCREENSHOTS.toLowerCase(): {
           const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-          const filePath = path.join(imageFolder, url);
+          const filePath = path.join(imageFolder, urlPath);
           if (filePath.startsWith(imageFolder)) {
-            fs.readFile(filePath, (error, data) => {
-              if (error) {
-                res.writeHead(404);
-                res.end();
-              } else {
-                res.writeHead(200, {
-                  'Content-Type': 'image/png',
-                  'Content-Length': data.length,
+            switch (req.method) {
+              default: { res.end(); } break;
+
+              case 'GET': {
+                fs.readFile(filePath, (error, data) => {
+                  if (error) {
+                    res.writeHead(404);
+                    res.end();
+                  } else {
+                    res.writeHead(200, {
+                      'Content-Type': 'image/png',
+                      'Content-Length': data.length,
+                    });
+                    res.end(data);
+                  }
                 });
-                res.end(data);
-              }
-            });
+              } break;
+
+              case 'HEAD': {
+                fs.stat(filePath, (error, stats) => {
+                  if (error || stats && !stats.isFile()) {
+                    res.writeHead(404);
+                  } else {
+                    res.writeHead(200, {
+                      'Content-Type': 'image/png',
+                      'Content-Length': stats.size,
+                    });
+                  }
+                  res.end();
+                });
+              } break;
+            }
           }
         } break;
 
+        // Theme folder
         case 'themes': {
           const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-          const index = url.indexOf('/');
-          const relativeUrl = (index >= 0) ? url.substr(index + 1) : url;
+          const index = urlPath.indexOf('/');
+          const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
           const filePath = path.join(themeFolder, relativeUrl);
           if (filePath.startsWith(themeFolder)) {
             fs.readFile(filePath, (error, data) => {

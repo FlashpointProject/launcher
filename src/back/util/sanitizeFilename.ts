@@ -94,3 +94,15 @@ export function sanitizeFilename(input: string, replacement = '') {
     .replace(windowsTrailingRe, replacement);
   return truncate(sanitized, 255);
 }
+
+export function sanitizeFoldername(input: string, replacement = '') {
+  if (typeof input !== 'string') {
+    throw new Error('Input must be string');
+  }
+  var sanitized = input
+    .replace(illegalRe, replacement)
+    .replace(controlRe, replacement)
+    .replace(reservedRe, replacement)
+    .replace(windowsTrailingRe, replacement);
+  return truncate(sanitized, 255);
+}
