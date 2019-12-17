@@ -1,7 +1,7 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs';
 import * as React from 'react';
-import { BackIn, DeleteGameData, DeletePlaylistData, GetGameData, GetGameResponseData, LaunchGameData, SavePlaylistData, DuplicateGameData, ExportGameData } from '../../../shared/back/types';
+import { BackIn, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetGameData, GetGameResponseData, LaunchGameData, SavePlaylistData } from '../../../shared/back/types';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
 import { GamePlaylist, GamePlaylistEntry } from '../../../shared/interfaces';
@@ -26,7 +26,6 @@ import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isEditingGame'|'isNewGame'|'currentPlaylistNotes'>;
-type StateCallback2 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isNewGame'|'currentPlaylistNotes'>;
 
 type OwnProps = {
   games: GAMES | undefined;
@@ -116,7 +115,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       isNewPlaylist: false,
     };
     const assignToState = <T extends keyof BrowsePageState>(state: Pick<BrowsePageState, T>) => { Object.assign(initialState, state); };
-    this.updateCurrentGameAndAddApps(assignToState);
+    this.updateCurrentGameAndAddApps();
     this.createNewGameIfClicked(false, assignToState);
     this.state = initialState;
   }
@@ -539,7 +538,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances) */
-  async updateCurrentGameAndAddApps(cb: (state: StateCallback2) => void = this.boundSetState): Promise<void> {
+  async updateCurrentGameAndAddApps(): Promise<void> {
     const gameId = this.props.selectedGameId;
     if (gameId !== undefined) {
       // Find the selected game in the selected playlist
@@ -556,7 +555,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       window.External.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
         if (res.data) {
           if (res.data.game) {
-            cb({
+            this.setState({
               currentGame: res.data.game,
               currentAddApps: res.data.addApps || [],
               currentPlaylistNotes: notes,
