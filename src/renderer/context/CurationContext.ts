@@ -1,6 +1,7 @@
+import { EditAddAppCurationMeta, EditCurationMeta } from '../../shared/context/types';
+import { createCurationIndexImage, CurationIndexContent, CurationIndexImage } from '../../shared/curate/indexCuration';
 import { createContextReducer } from '../context-reducer/contextReducer';
 import { ReducerAction } from '../context-reducer/interfaces';
-import { createCurationIndexImage, CurationIndexContent, CurationIndexImage } from '../../shared/curate/indexCuration';
 
 const curationDefaultState: CurationsState = {
   curations: [],
@@ -195,43 +196,12 @@ export type EditCuration = {
   locked: boolean;
 };
 
-/** Meta data of a curation. */
-export type EditCurationMeta = {
-  // Game fields
-  title?: string;
-  series?: string;
-  developer?: string;
-  publisher?: string;
-  status?: string;
-  extreme?: string;
-  genre?: string;
-  source?: string;
-  launchCommand?: string;
-  library?: string;
-  notes?: string;
-  authorNotes?: string;
-  platform?: string;
-  applicationPath?: string;
-  playMode?: string;
-  releaseDate?: string;
-  version?: string;
-  originalDescription?: string;
-  language?: string;
-}
-
 /** Data of an additional application curation in the curation importer. */
 export type EditAddAppCuration = {
   /** Unique key of the curation (UUIDv4). Generated when loaded. */
   key: string;
   /** Meta data of the curation. */
   meta: EditAddAppCurationMeta;
-};
-
-/** Meta data of an additional application curation. */
-export type EditAddAppCurationMeta = {
-  heading?: string;
-  applicationPath?: string;
-  launchCommand?: string;
 };
 
 /** Types of sources for a loaded curation. */

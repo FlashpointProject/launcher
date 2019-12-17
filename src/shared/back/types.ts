@@ -221,6 +221,8 @@ type GameQuery = {
   orderReverse: string;
 }
 
+export type UpdateConfigData = Partial<IAppConfigData>;
+
 export type ViewGame = {
   id: string;
   title: string;

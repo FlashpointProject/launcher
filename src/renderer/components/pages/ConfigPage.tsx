@@ -3,8 +3,7 @@ import * as path from 'path';
 import * as React from 'react';
 import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
-import { AddLogData, BackIn } from '../../../shared/back/types';
-import { isFlashpointValidCheck } from '../../../shared/checkSanity';
+import { AddLogData, BackIn, UpdateConfigData } from '../../../shared/back/types';
 import { autoCode, LangContainer, LangFile } from '../../../shared/lang';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
@@ -14,6 +13,7 @@ import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { DropdownInputField } from '../DropdownInputField';
+import * as fs from 'fs';
 
 type OwnProps = {
   /** Filenames of all files in the themes folder. */
@@ -413,7 +413,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
     // Save new config to file, then restart the app
-    window.External.back.send(BackIn.UPDATE_CONFIG, {
+    window.External.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
       useFiddler: this.state.useFiddler,
@@ -433,4 +433,8 @@ function log(content: string): void {
     source: 'Game Launcher',
     content: content,
   });
+}
+
+function isFlashpointValidCheck(flashpointPath: string): Promise<boolean> {
+  return new Promise(resolve => fs.stat(path.join(flashpointPath, 'Data/Platforms'), error => resolve(!error)));
 }

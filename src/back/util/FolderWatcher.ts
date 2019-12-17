@@ -94,14 +94,13 @@ export class FolderWatcher extends WrappedEventEmitter {
 
   /**
    * Set the folder this should watch.
-   * If this is already watching a folder, it will immediately fail.
+   * If this is already watching a folder, it will immediately abort.
    * @param folderPath Path of the folder to watch.
    * @param recursionDepth Options.
-   * @returns If it successfully initiated watching the folder.
    */
-  watch(folderPath: string, opts?: FolderWatcherOptions): boolean {
+  watch(folderPath: string, opts?: FolderWatcherOptions): void {
     // Abort if already watching a folder.
-    if (this._isWatching) { return false; }
+    if (this._isWatching) { return; }
     this._isWatching = true;
     // Set values
     this._folderPath = folderPath;
@@ -110,27 +109,28 @@ export class FolderWatcher extends WrappedEventEmitter {
     }
     // Check if the folder exists
     fs.stat(folderPath, (error, stats) => {
-      if (error) { throw error; }
-      // Make sure folder path is not invalid
-      if (this._folderPath === undefined) { throw new Error('Failed to setFolder. "folderPath" was unexpectedly set to undefined.'); }
-      // Load the filenames of all files in the folder
-      fs.readdir(this._folderPath, (error, files) => {
-        if (error) { throw error; }
-        this.onWatchedFolderRead(files);
-      });
-      // Watch folder for changes
-      this._watcher = fs.watch(
-        this._folderPath, { persistent: false },
-        debounce(this.onWatcherChange.bind(this), { time: 25 })
-      );
-      fixFsWatcher(this._watcher); // (Fix a bug with node/electron)
-      // Relay errors
-      this._watcher.on('error', (error: Error) => {
+      if (error) {
         this.emit('error', error);
-      });
+      } else if (this._folderPath === undefined) {
+        this.emit('error', new Error('Failed to setFolder. "folderPath" was unexpectedly set to undefined.'));
+      } else {
+        // Load the filenames of all files in the folder
+        fs.readdir(this._folderPath, (error, files) => {
+          if (error) { this.emit('error', error); }
+          else { this.onWatchedFolderRead(files); }
+        });
+        // Watch folder for changes
+        this._watcher = fs.watch(
+          this._folderPath, { persistent: false },
+          debounce(this.onWatcherChange.bind(this), { time: 25 })
+        );
+        fixFsWatcher(this._watcher); // (Fix a bug with node/electron)
+        // Relay errors
+        this._watcher.on('error', (error: Error) => {
+          this.emit('error', error);
+        });
+      }
     });
-    // Success
-    return true;
   }
 
   /**

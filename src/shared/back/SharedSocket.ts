@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import * as uuid from 'uuid';
+import * as uuid from 'uuid/v4';
 import { BackIn, WrappedRequest, WrappedResponse } from './types';
 
 export interface SharedSocket {

@@ -2,7 +2,7 @@ import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { EditAddAppCurationMeta, EditCurationMeta } from '../../renderer/context/CurationContext';
+import { EditAddAppCurationMeta, EditCurationMeta } from '../../shared/context/types';
 
 const { str } = Coerce;
 

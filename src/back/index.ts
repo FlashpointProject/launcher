@@ -6,7 +6,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse, UpdateConfigData } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
@@ -418,39 +418,82 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     });
 
     // Find the first available port in the range
-    let serverPort: number = -1;
-    for (let port = state.config.backPortMin; port <= state.config.backPortMax; port++) {
-      try {
-        state.server = new WebSocket.Server({
-          host: 'localhost',
-          port,
-        });
-        serverPort = port;
-        break;
-      } catch (error) { /* Do nothing. */ }
-    }
-    if (state.server) { state.server.on('connection', onConnect); }
-
-    // Find the first available port in the range
-    state.imageServerPort = await new Promise((resolve) => {
-      let port = state.config.imagesPortMin - 1;
-      state.fileServer.once('listening', onListening);
-      state.fileServer.on('error', onError);
+    const serverPort = await new Promise<number>(resolve => {
+      let port: number = state.config.backPortMin - 1;
+      let server: WebSocket.Server | undefined;
       tryListen();
 
       function tryListen() {
-        if (port <= state.config.imagesPortMax) {
+        if (server) {
+          server.off('error', onError);
+          server.off('listening', onceListening);
+        }
+
+        if (port++ < state.config.backPortMax) {
+          server = new WebSocket.Server({
+            host: 'localhost',
+            port: port,
+          });
+          server.on('error', onError);
+          server.on('listening', onceListening);
+        } else { done(false); }
+      }
+
+      function onError(error: Error): void {
+        if ((error as any).code === 'EADDRINUSE') {
+          tryListen();
+        } else {
+          done(false);
+        }
+      }
+      function onceListening() {
+        done(true);
+      }
+      function done(success: boolean) {
+        if (server) {
+          server.off('error', onError);
+          server.off('listening', onceListening);
+          state.server = server;
+          state.server.on('connection', onConnect);
+        }
+        resolve(success ? port : -1);
+      }
+    });
+
+    // Find the first available port in the range
+    state.imageServerPort = await new Promise(resolve => {
+      let port = state.config.imagesPortMin - 1;
+      state.fileServer.once('listening', onceListening);
+      state.fileServer.on('error', onError);
+      tryListen();
+
+      function onceListening() { done(true); }
+      function onError(error: Error) {
+        if ((error as any).code === 'EADDRINUSE') {
+          tryListen();
+        } else {
+          done(false);
+        }
+      }
+      function tryListen() {
+        if (port < state.config.imagesPortMax) {
           port += 1;
           state.fileServer.listen(port, 'localhost');
         } else {
-          state.fileServer.off('listening', onListening);
-          state.fileServer.off('error', onError);
-          resolve(-1);
+          done(false);
         }
       }
-      function onListening() { resolve(port); }
-      function onError() { tryListen(); }
+      function done(success: boolean) {
+        state.fileServer.off('listening', onceListening);
+        state.fileServer.off('error', onError);
+        resolve(success ? port : -1);
+      }
     });
+
+    // Exit if it failed to open the server
+    if (serverPort < 0) {
+      setImmediate(exit);
+    }
 
     // Respond
     send(serverPort);
@@ -511,6 +554,7 @@ async function onMessageWrap(event: WebSocket.MessageEvent) {
 
 async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
   const req: WrappedRequest = JSON.parse(event.data.toString());
+  // console.log('IN', req);
   switch (req.type) {
     case BackIn.ADD_LOG: {
       const reqData: AddLogData = req.data;
@@ -816,8 +860,11 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       const pickedGames: IGameInfo[] = [];
       for (let i = 0; i < reqData.count; i++) {
         const index = (Math.random() * allGames.length) | 0;
-        pickedGames.push(allGames[index]);
-        allGames.splice(index, 1);
+        const game = allGames[index];
+        if (game) {
+          pickedGames.push(game);
+          allGames.splice(index, 1);
+        }
       }
 
       respond<RandomGamesResponseData>(event.target, {
@@ -952,9 +999,14 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     } break;
 
     case BackIn.UPDATE_CONFIG: {
+      const reqData: UpdateConfigData = req.data;
+
       const newConfig = deepCopy(state.config);
-      overwriteConfigData(newConfig, req.data);
-      await ConfigFile.saveFile(path.join(state.configFolder, configFilename), newConfig);
+      overwriteConfigData(newConfig, reqData);
+
+      try { await ConfigFile.saveFile(path.join(state.configFolder, configFilename), newConfig); }
+      catch (error) { log({ source: 'Launcher', content: error }); }
+
       respond(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
@@ -1116,12 +1168,14 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         for (let i = 0; i < state.serviceInfo.stop.length; i++) {
           execProcess(state.serviceInfo.stop[i], true);
         }
-        respond(event.target, {
-          id: req.id,
-          type: BackOut.QUIT,
-        });
-        exit();
       }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.QUIT,
+      });
+
+      exit();
     } break;
   }
 }
@@ -1218,12 +1272,12 @@ function exit() {
     state.languageWatcher.abort();
     state.themeWatcher.abort();
     Promise.all([
-      new Promise(resolve => state.server.close(error => {
-        if (error) { console.log('An error occurred whie closing the WebSocket server.', error); }
+      isErrorProxy(state.server) ? undefined : new Promise(resolve => state.server.close(error => {
+        if (error) { console.warn('An error occurred whie closing the WebSocket server.', error); }
         resolve();
       })),
       new Promise(resolve => state.fileServer.close(error => {
-        if (error) { console.log('An error occurred whie closing the file server.', error); }
+        if (error) { console.warn('An error occurred whie closing the file server.', error); }
         resolve();
       })),
     ]).then(() => { process.exit(); });

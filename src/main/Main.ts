@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
 import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
-import checkSanity from '../shared/checkSanity';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IMiscData, MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
@@ -112,10 +111,6 @@ export class Main {
     }))
     .then(() => {
       if (!this.config) { throw new Error('config is undefined'); }
-      // Check if we are ready to launch or not.
-      // @TODO Launch the setup wizard when a check failed.
-      checkSanity(this.config)
-      .then(console.log, console.error);
       // Create main window when ready
       Util.waitUntilReady()
       .then(() => {
@@ -124,7 +119,7 @@ export class Main {
       });
     })
     .catch((error) => {
-      console.log(error);
+      console.error(error);
       app.quit();
     });
   }
@@ -190,7 +185,7 @@ export class Main {
     if (this.socket) {
       event.preventDefault();
       const req: WrappedRequest = {
-        id: 'bye',
+        id: '',
         type: BackIn.QUIT,
       };
       this.socket.send(JSON.stringify(req));

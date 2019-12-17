@@ -24,10 +24,10 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   useFiddler: false,
   disableExtremeGames: false,
   showBrokenGames: false,
-  backPortMin: 10001,
-  backPortMax: 10100,
-  imagesPortMin: 10101,
-  imagesPortMax: 10200,
+  backPortMin: 12001,
+  backPortMax: 12100,
+  imagesPortMin: 12101,
+  imagesPortMax: 12200,
 });
 
 /**

@@ -96,7 +96,7 @@ gulp.task('pack', (done) => {
         // Save file to the temporary folder (that gets moved or packed into the release)
         fs.writeFileSync(path.join(buildPath, 'package.json'), minifyPackage(fs.readFileSync('package.json')));
         // Copy dependencies of the Node processes
-        const deps = ['ws', 'async-limiter'];
+        const deps = ['ws', 'async-limiter', 'uuid'];
         for (let dep of deps) {
           const depPath = 'node_modules/'+dep;
           const packagePath = path.join(buildPath, depPath, 'package.json');

@@ -37,7 +37,11 @@ export class GameManager {
     if (this.loaded) { return; }
     // Update own platforms path to match given one
     this.platformsPath = platformsPath;
-    this.platforms = await PlatformParser.fetchPlatforms(platformsPath);
+    try {
+      this.platforms = await PlatformParser.fetchPlatforms(platformsPath);
+    } catch (error) {
+      console.error('Failed to load platforms.\n', error);
+    }
     // Hold *all* platform loading errors, can check after they're all finished.
     const errors: LoadPlatformError[] = [];
     // Wait for all platforms to (try and) finish loading
