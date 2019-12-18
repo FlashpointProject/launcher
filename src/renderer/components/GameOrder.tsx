@@ -37,7 +37,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
           value={this.props.orderBy}
           onChange={this.onOrderByChange}>
           <option value='dateAdded'>{strings.dateAdded}</option>
-          <option value='genre'>{strings.genre}</option>
+          <option value='genre'>{strings.tags}</option>
           <option value='platform'>{strings.platform}</option>
           <option value='series'>{strings.series}</option>
           <option value='title'>{strings.title}</option>
