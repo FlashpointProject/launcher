@@ -1,8 +1,11 @@
-import * as fs from 'fs-extra';
-import { GamePlaylistEntry, GamePlaylistContent } from '../shared/interfaces';
+import * as fs from 'fs';
+import { promisify } from 'util';
+import { GamePlaylistContent, GamePlaylistEntry } from '../shared/interfaces';
 import { stringifyJsonDataFile } from '../shared/Util';
 import { Coerce } from '../shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../shared/utils/ObjectParser';
+
+const writeFile = promisify(fs.writeFile);
 
 const { str } = Coerce;
 
@@ -41,7 +44,7 @@ export namespace PlaylistFile {
       icon: data.icon,
       library: data.library,
     };
-    return fs.writeFile(filePath, stringifyJsonDataFile(obj));
+    return writeFile(filePath, stringifyJsonDataFile(obj));
   }
 
   function parseGamePlaylist(data: any, onError?: (error: string) => void): GamePlaylistContent {

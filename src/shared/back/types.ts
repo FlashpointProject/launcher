@@ -5,8 +5,10 @@ import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
+import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 
 export enum BackIn {
+  GENERIC_RESPONSE,
   INIT_LISTEN,
   SAVE_GAME,
   GET_GAME,
@@ -43,6 +45,8 @@ export enum BackIn {
 export enum BackOut {
   GENERIC_RESPONSE,
   INIT_EVENT,
+  OPEN_DIALOG,
+  OPEN_EXTERNAL,
   BROWSE_VIEW_PAGE_RESPONSE,
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
@@ -113,6 +117,19 @@ export type GetRendererInitDataResponse = {
   themes: Theme[];
   playlists?: GamePlaylist[];
   platformNames: string[]
+}
+
+export type OpenDialogData = MessageBoxOptions;
+
+export type OpenDialogResponseData = number;
+
+export type OpenExternalData = {
+  url: string;
+  options?: OpenExternalOptions;
+}
+
+export type OpenExternalResponseData = {
+  error?: Error;
 }
 
 export type LaunchGameData = {

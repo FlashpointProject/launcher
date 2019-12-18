@@ -1,5 +1,5 @@
 import { ChildProcess, exec, ExecOptions } from 'child_process';
-import { dialog, shell } from 'electron';
+import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
@@ -7,26 +7,47 @@ import { ILogPreEntry } from '../shared/Log/interface';
 import { padStart, stringifyArray } from '../shared/Util';
 
 type LogFunc = (entry: ILogPreEntry) => void;
+type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
+type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
+
+type LaunchAddAppOpts = {
+  addApp: IAdditionalApplicationInfo;
+  fpPath: string;
+  useWine: boolean;
+  log: LogFunc;
+  openDialog: OpenDialogFunc;
+  openExternal: OpenExternalFunc;
+}
+
+type LaunchGameOpts = {
+  game: IGameInfo;
+  addApps?: IAdditionalApplicationInfo[];
+  fpPath: string;
+  useWine: boolean;
+  log: LogFunc;
+  openDialog: OpenDialogFunc;
+  openExternal: OpenExternalFunc;
+}
 
 export namespace GameLauncher {
   const logSource = 'Game Launcher';
 
-  export function launchAdditionalApplication(addApp: IAdditionalApplicationInfo, fpPath: string, useWine: boolean, log: LogFunc): Promise<void> {
+  export function launchAdditionalApplication(opts: LaunchAddAppOpts): Promise<void> {
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
-    switch (addApp.applicationPath) {
+    switch (opts.addApp.applicationPath) {
       case ':message:':
-        return dialog.showMessageBox({
+        return opts.openDialog({
           type: 'info',
           title: 'About This Game',
-          message: addApp.launchCommand,
+          message: opts.addApp.launchCommand,
           buttons: ['Ok'],
         }).then();
       case ':extras:':
-        const folderPath = fixSlashes(path.join(fpPath, path.posix.join('Extras', addApp.launchCommand)));
-        const promise = shell.openExternal(folderPath, { activate: true });
-        promise.catch(error => {
+        const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.addApp.launchCommand)));
+        return opts.openExternal(folderPath, { activate: true })
+        .catch(error => {
           if (error) {
-            dialog.showMessageBox({
+            opts.openDialog({
               type: 'error',
               title: 'Failed to Open Extras',
               message: `${error.toString()}\n`+
@@ -35,18 +56,17 @@ export namespace GameLauncher {
             });
           }
         });
-        return promise;
       default:
-        const appPath: string = fixSlashes(path.join(fpPath, addApp.applicationPath));
-        const appArgs: string = addApp.launchCommand;
+        const appPath: string = fixSlashes(path.join(opts.fpPath, opts.addApp.applicationPath));
+        const appArgs: string = opts.addApp.launchCommand;
         const proc = launch(
-          createCommand(appPath, appArgs, useWine),
-          { env: getEnvironment(fpPath, useWine) },
-          log
+          createCommand(appPath, appArgs, opts.useWine),
+          { env: getEnvironment(opts.fpPath, opts.useWine) },
+          opts.log
         );
-        log({
+        opts.log({
           source: logSource,
-          content: `Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.launchCommand}" ]`,
+          content: `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,
         });
         return new Promise(resolve => {
           if (proc.killed) { resolve(); }
@@ -59,33 +79,40 @@ export namespace GameLauncher {
    * Launch a game
    * @param game Game to launch
    */
-  export async function launchGame(game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, fpPath: string, useWine: boolean, log: LogFunc): Promise<void> {
+  export async function launchGame(opts: LaunchGameOpts): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
-    if (game.placeholder) { return; }
+    if (opts.game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
-    if (addApps) {
-      for (let addApp of addApps) {
+    if (opts.addApps) {
+      const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
+        fpPath: opts.fpPath,
+        useWine: opts.useWine,
+        log: opts.log,
+        openDialog: opts.openDialog,
+        openExternal: opts.openExternal,
+      };
+      for (let addApp of opts.addApps) {
         if (addApp.autoRunBefore) {
-          const promise = launchAdditionalApplication(addApp, fpPath, useWine, log);
+          const promise = launchAdditionalApplication({ ...addAppOpts, addApp });
           if (addApp.waitForExit) { await promise; }
         }
       }
     }
     // Launch game
-    const gamePath: string = fixSlashes(path.join(fpPath, getApplicationPath(game)));
-    const gameArgs: string = game.launchCommand;
-    const command: string = createCommand(gamePath, gameArgs, useWine);
-    const proc = launch(command, { env: getEnvironment(fpPath, useWine) }, log);
-    log({
+    const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game)));
+    const gameArgs: string = opts.game.launchCommand;
+    const command: string = createCommand(gamePath, gameArgs, opts.useWine);
+    const proc = launch(command, { env: getEnvironment(opts.fpPath, opts.useWine) }, opts.log);
+    opts.log({
       source: logSource,
-      content: `Launch Game "${game.title}" (PID: ${proc.pid}) [\n`+
-               `    applicationPath: "${game.applicationPath}",\n`+
-               `    launchCommand:   "${game.launchCommand}",\n`+
+      content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+               `    applicationPath: "${opts.game.applicationPath}",\n`+
+               `    launchCommand:   "${opts.game.launchCommand}",\n`+
                `    command:         "${command}" ]`
     });
     // Show popups for Unity games
     // (This is written specifically for the "startUnity.bat" batch file)
-    if (game.platform === 'Unity' && proc.stdout) {
+    if (opts.game.platform === 'Unity' && proc.stdout) {
       let textBuffer: string = ''; // (Buffer of text, if its multi-line)
       proc.stdout.on('data', function(text: string): void {
         // Add text to buffer
@@ -93,7 +120,7 @@ export namespace GameLauncher {
         // Check for exact messages and show the appropriate popup
         for (let response of unityOutputResponses) {
           if (textBuffer.endsWith(response.text)) {
-            response.func(proc);
+            response.fn(proc, opts.openDialog);
             textBuffer = '';
             break;
           }
@@ -253,12 +280,17 @@ function escapeLinuxArgs(str: string): string {
   return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
 }
 
-const unityOutputResponses = [
+type UnityOutputResponse = {
+  text: string;
+  fn: (proc: ChildProcess, openDialog: OpenDialogFunc) => void;
+}
+
+const unityOutputResponses: UnityOutputResponse[] = [
   {
     text: 'Failed to set registry keys!\r\n'+
           'Retry? (Y/n): ',
-    func(proc: ChildProcess) {
-      dialog.showMessageBox({
+    fn(proc, openDialog) {
+      openDialog({
         type: 'warning',
         title: 'Start Unity - Registry Key Warning',
         message: 'Failed to set registry keys!\n'+
@@ -266,7 +298,7 @@ const unityOutputResponses = [
         buttons: ['Yes', 'No'],
         defaultId: 0,
         cancelId: 1,
-      }).then(({ response }) => {
+      }).then((response) => {
         if (!proc.stdin) { throw new Error('Failed to signal to Unity starter. Can not access its "standard in".'); }
         if (response === 0) { proc.stdin.write('Y'); }
         else                { proc.stdin.write('n'); }
@@ -277,8 +309,8 @@ const unityOutputResponses = [
           'Correct usage: startUnity [2.x|5.x] URL\r\n'+
           'If you need to undo registry changes made by this script, run unityRestoreRegistry.bat. \r\n'+
           'Press any key to continue . . . ',
-    func(proc: ChildProcess) {
-      dialog.showMessageBox({
+    fn(proc, openDialog) {
+      openDialog({
         type: 'warning',
         title: 'Start Unity - Invalid Parameters',
         message: 'Invalid parameters!\n'+
@@ -292,8 +324,8 @@ const unityOutputResponses = [
   }, {
     text: 'You must close the Basilisk browser to continue.\r\n'+
           'If you have already closed Basilisk, please wait a moment...\r\n',
-    func(proc: ChildProcess) {
-      dialog.showMessageBox({
+    fn(proc, openDialog) {
+      openDialog({
         type: 'info',
         title: 'Start Unity - Browser Already Open',
         message: 'You must close the Basilisk browser to continue.\n'+
@@ -302,7 +334,7 @@ const unityOutputResponses = [
         defaultId: 0,
         cancelId: 1,
       })
-      .then(({ response }) => {
+      .then((response) => {
         if (response === 1) { proc.kill(); }
       });
     }

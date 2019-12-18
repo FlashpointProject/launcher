@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { Server } from 'http';
 import * as WebSocket from 'ws';
-import { BackInit, ViewGame } from '../shared/back/types';
+import { BackInit, ViewGame, WrappedRequest } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IGameInfo } from '../shared/game/interfaces';
 import { GamePlaylist, IBackProcessInfo } from '../shared/interfaces';
@@ -29,6 +29,7 @@ export type BackState = {
   gameManager: GameManager;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;
+  messageEmitter: MessageEmitter;
   init: { [key in BackInit]: boolean; };
   initEmitter: InitEmitter;
   queries: Record<string, BackQueryChache>;
@@ -61,6 +62,10 @@ export type BackQuery = {
   orderReverse: GameOrderReverse;
   playlistId?: string;
 }
+
+type MessageEmitter = (
+  EmitterPart<string, (request: WrappedRequest) => void>
+) & EventEmitter
 
 type InitEmitter = (
   EmitterPart<BackInit, () => void>

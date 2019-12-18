@@ -1,12 +1,13 @@
 import * as child_process from 'child_process';
 import { createHash } from 'crypto';
+import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, ViewGame, WrappedRequest, WrappedResponse, UpdateConfigData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
@@ -30,7 +31,7 @@ import { ServicesFile } from './ServicesFile';
 import { BackQuery, BackQueryChache, BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { getContentType } from './util/misc';
+import { ensurePath, getContentType, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -61,6 +62,7 @@ const state: BackState = {
   gameManager: new GameManager(),
   messageQueue: [],
   isHandling: false,
+  messageEmitter: new EventEmitter() as any,
   init: {
     0: false,
     1: false,
@@ -555,6 +557,9 @@ async function onMessageWrap(event: WebSocket.MessageEvent) {
 async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
   const req: WrappedRequest = JSON.parse(event.data.toString());
   // console.log('IN', req);
+
+  state.messageEmitter.emit(req.id, req);
+
   switch (req.type) {
     case BackIn.ADD_LOG: {
       const reqData: AddLogData = req.data;
@@ -644,7 +649,14 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       for (let i = 0; i < platforms.length; i++) {
         const addApp = platforms[i].collection.additionalApplications.find(item => item.id === reqData.id);
         if (addApp) {
-          GameLauncher.launchAdditionalApplication(addApp, path.resolve(state.config.flashpointPath), state.preferences.useWine, log);
+          GameLauncher.launchAdditionalApplication({
+            addApp,
+            fpPath: path.resolve(state.config.flashpointPath),
+            useWine: state.preferences.useWine,
+            log: log,
+            openDialog: openDialog(event.target),
+            openExternal: openExternal(event.target),
+          });
           break;
         }
       }
@@ -663,7 +675,15 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       const addApps = findAddApps(reqData.id);
 
       if (game) {
-        GameLauncher.launchGame(game, addApps, path.resolve(state.config.flashpointPath), state.preferences.useWine, log);
+        GameLauncher.launchGame({
+          game,
+          addApps,
+          fpPath: path.resolve(state.config.flashpointPath),
+          useWine: state.preferences.useWine,
+          log,
+          openDialog: openDialog(event.target),
+          openExternal: openExternal(event.target),
+        });
       }
 
       respond(event.target, {
@@ -1289,16 +1309,19 @@ function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
   target.send(JSON.stringify(response));
 }
 
-function broadcast<T>(response: WrappedResponse<T>): void {
+function broadcast<T>(response: WrappedResponse<T>): number {
   // console.log('BROADCAST', response);
+  let count = 0;
   if (!isErrorProxy(state.server)) {
     const message = JSON.stringify(response);
     state.server.clients.forEach(socket => {
       if (socket.onmessage === onMessageWrap) { // (Check if authorized)
         socket.send(message);
+        count += 1;
       }
     });
   }
+  return count;
 }
 
 function log(preEntry: ILogPreEntry, id?: string): void {
@@ -1479,17 +1502,6 @@ async function deletePlaylist(id: string, folder: string, playlists: GamePlaylis
   }
 }
 
-function pathExists(filePath: string): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    fs.stat(filePath, error => {
-      if (error) {
-        if (error.code === 'ENOENT') { resolve(false); }
-        else { reject(error); }
-      } else { resolve(true); }
-    });
-  });
-}
-
 function queryGames(query: BackQuery): BackQueryChache {
   const playlist = state.playlists.find(p => p.filename === query.playlistId);
 
@@ -1523,27 +1535,6 @@ function queryGames(query: BackQuery): BackQueryChache {
   };
 }
 
-async function ensurePath(filePath: string): Promise<void> {
-  // Find the closest existing folder
-  let top = filePath;
-  let c = 0; // (Just adds a safety limit)
-  while (true) {
-    if (await pathExists(top)) { break; }
-    else { top = path.dirname(filePath); }
-    if (c++ > 255) { throw new Error('Check for existing folders got stuck.'); } // Give up
-  }
-
-  // Create folders from the top, one at a time
-  if (top !== filePath) {
-    const dif = path.relative(top, filePath).split(path.sep);
-    let paff = top;
-    for (let i = 0; i < dif.length; i++) {
-      paff = path.join(paff, dif[i]);
-      await mkdir(paff);
-    }
-  }
-}
-
 /** Find the game with the specified ID. */
 function findGame(gameId: string): IGameInfo | undefined {
   const platforms = state.gameManager.platforms;
@@ -1566,4 +1557,50 @@ function findAddApps(gameId: string): IAdditionalApplicationInfo[] {
     }
   }
   return result;
+}
+
+function openDialog(target: WebSocket) {
+  return (options: MessageBoxOptions) => {
+    return new Promise<number>((resolve, reject) => {
+      const id = uuid();
+
+      state.messageEmitter.once(id, (req: WrappedRequest) => {
+        const reqData: OpenDialogResponseData = req.data;
+        resolve(reqData);
+      });
+
+      respond<OpenDialogData>(target, {
+        id,
+        data: options,
+        type: BackOut.OPEN_DIALOG,
+      });
+    });
+  };
+}
+
+function openExternal(target: WebSocket) {
+  return (url: string, options?: OpenExternalOptions) => {
+    return new Promise<void>((resolve, reject) => {
+      const id = uuid();
+
+      state.messageEmitter.once(id, (req: WrappedRequest<OpenExternalResponseData>) => {
+        if (req.data && req.data.error) {
+          const error = new Error();
+          error.name = req.data.error.name;
+          error.message = req.data.error.message;
+          error.stack = req.data.error.stack;
+
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+
+      respond<OpenExternalData>(target, {
+        id,
+        data: { url, options },
+        type: BackOut.OPEN_EXTERNAL,
+      });
+    });
+  };
 }

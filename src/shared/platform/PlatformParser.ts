@@ -1,8 +1,13 @@
 import * as fastXmlParser from 'fast-xml-parser';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as path from 'path';
+import { promisify } from 'util';
 import { GameParser } from '../game/GameParser';
 import { GamePlatform, IRawPlatformFile } from './interfaces';
+
+const readdir = promisify(fs.readdir);
+const readFile = promisify(fs.readFile);
+const stat = promisify(fs.stat);
 
 export class PlatformParser {
   /**
@@ -11,19 +16,19 @@ export class PlatformParser {
    */
   public static async fetchPlatforms(folderPath: string): Promise<GamePlatform[]> {
     const platforms: GamePlatform[] = [];
-    const libraryFiles = await fs.readdir(folderPath);
+    const libraryFiles = await readdir(folderPath);
     for (let libraryFile of libraryFiles) {
       // Check each library for platforms
       const library = libraryFile;
       const libraryPath = path.join(folderPath, libraryFile);
-      const libraryStats = await fs.stat(libraryPath);
+      const libraryStats = await stat(libraryPath);
       if (libraryStats.isDirectory()) {
         // Library file was a directory, read files inside
-        const platformFiles = await fs.readdir(libraryPath);
+        const platformFiles = await readdir(libraryPath);
         for (let platformFile of platformFiles) {
           // Find each platform file
           const platformPath = path.join(libraryPath, platformFile);
-          const platformStats = await fs.stat(platformPath);
+          const platformStats = await stat(platformPath);
           const platformFileExt = path.extname(platformFile);
           if (platformStats.isFile() && platformFileExt.toLowerCase().endsWith('.xml')) {
             // Valid platform file, store
@@ -43,7 +48,7 @@ export class PlatformParser {
 
   public static loadPlatformFile(platform: GamePlatform): Promise<void> {
     return new Promise((resolve, reject) => {
-      fs.readFile(platform.filePath)
+      readFile(platform.filePath)
       .then((data) => {
         const platformData: IRawPlatformFile|undefined = fastXmlParser.parse(data.toString(), {
           ignoreAttributes: true,

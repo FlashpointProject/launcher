@@ -2,7 +2,7 @@ import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
 import * as path from 'path';
 import { SharedSocket } from '../shared/back/SharedSocket';
-import { BackIn, BackOut, GetRendererInitDataResponse, WrappedResponse } from '../shared/back/types';
+import { BackIn, BackOut, GetRendererInitDataResponse, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, WrappedResponse } from '../shared/back/types';
 import { MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
 import { setTheme } from '../shared/Theme';
@@ -123,8 +123,41 @@ const onInit = (async () => {
 
 function onMessage(this: WebSocket, res: WrappedResponse): void {
   switch (res.type) {
-    case BackOut.UPDATE_PREFERENCES_RESPONSE:
+    case BackOut.UPDATE_PREFERENCES_RESPONSE: {
       window.External.preferences.data = res.data;
-      break;
+    } break;
+
+    case BackOut.OPEN_DIALOG: {
+      const resData: OpenDialogData = res.data;
+
+      electron.remote.dialog.showMessageBox(resData)
+      .then(r => {
+        window.External.back.sendReq<any, OpenDialogResponseData>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: r.response,
+        });
+      });
+    } break;
+
+    case BackOut.OPEN_EXTERNAL: {
+      const resData: OpenExternalData = res.data;
+
+      electron.remote.shell.openExternal(resData.url, resData.options)
+      .then(() => {
+        window.External.back.sendReq<OpenExternalResponseData>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: {},
+        });
+      })
+      .catch(error => {
+        window.External.back.sendReq<OpenExternalResponseData>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: { error },
+        });
+      });
+    } break;
   }
 }

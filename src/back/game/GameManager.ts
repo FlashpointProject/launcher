@@ -1,6 +1,7 @@
 import * as fastXmlParser from 'fast-xml-parser';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
 import * as path from 'path';
+import { promisify } from 'util';
 import { FilterGameOpts, filterGames, orderGames } from '../../shared/game/GameFilter';
 import { GameParser } from '../../shared/game/GameParser';
 import { FetchGameRequest, FetchGameResponse, GameAppDeleteRequest, IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate, SearchRequest, SearchResults, ServerResponse } from '../../shared/game/interfaces';
@@ -8,7 +9,10 @@ import { GamePlatform, IRawPlatformFile, PlatformInfo } from '../../shared/platf
 import { PlatformParser } from '../../shared/platform/PlatformParser';
 import { IAppPreferencesData } from '../../shared/preferences/interfaces';
 import { EventQueue } from '../util/EventQueue';
+import { ensurePath } from '../util/misc';
 import { LoadPlatformError, SearchCache, SearchCacheQuery } from './interfaces';
+
+const writeFile = promisify(fs.writeFile);
 
 const LOG = false;
 
@@ -466,8 +470,8 @@ export class GameManager {
     // Add save to the queue
     return this.saveQueue.push(async () => {
       // Save data to the platform's file
-      await fs.ensureDir(path.dirname(platform.filePath));
-      await fs.writeFile(platform.filePath, parsedData);
+      await ensurePath(path.dirname(platform.filePath));
+      await writeFile(platform.filePath, parsedData);
     }, true);
   }
 }

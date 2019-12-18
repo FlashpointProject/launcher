@@ -1,4 +1,4 @@
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer, remote, MessageBoxOptions, OpenExternalOptions } from 'electron';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
@@ -1017,6 +1017,14 @@ async function cacheIcon(icon: string): Promise<string> {
   const r = await fetch(icon);
   const blob = await r.blob();
   return `url(${URL.createObjectURL(blob)})`;
+}
+
+function openDialog(options: MessageBoxOptions) {
+  return remote.dialog.showMessageBox(options).then(r => r.response);
+}
+
+function openExternal(url: string, options?: OpenExternalOptions) {
+  return remote.shell.openExternal(url, options);
 }
 
 function log(content: string): void {
