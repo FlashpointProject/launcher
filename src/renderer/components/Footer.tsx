@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
 import { LangContainer } from '../../shared/lang';
+import { formatString } from '../../shared/utils/StringFormatter';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameScaleSpan } from '../Util';
 import { LangContext } from '../util/lang';
@@ -56,7 +57,10 @@ export class Footer extends React.Component<FooterProps> {
           <div className='footer__game-count'>
             <p>{`${strings.total}: ${totalCount}`}</p>
             { currentLabel ? (
-              <p>{`${currentLabel}: ${currentCount}`}</p>
+              <>
+                <p>|</p>
+                <p>{`${strings.searchResults}: ${currentCount}`}</p>
+              </>
             ) : undefined }
           </div>
         </div>

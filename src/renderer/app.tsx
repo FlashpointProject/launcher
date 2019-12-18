@@ -3,7 +3,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, GetGamesTotalResponseData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
 import { GamePlaylist, ProcessState, WindowIPC } from '../shared/interfaces';
@@ -69,6 +69,7 @@ export type AppState = {
   platforms: string[];
   loaded: { [key in BackInit]: boolean; };
   themeList: Theme[];
+  gamesTotal: number;
 
   /** Semi-global prop. */
   central: CentralState;
@@ -106,6 +107,7 @@ export class App extends React.Component<AppProps, AppState> {
         1: false,
       },
       themeList: window.External.initialThemes,
+      gamesTotal: -1,
 
       central: {
         upgrade: {
@@ -230,13 +232,23 @@ export class App extends React.Component<AppProps, AppState> {
           for (let index of resData.done) {
             loaded[index] = true;
 
-            if (index+'' === BackInit.PLAYLISTS+'') {
-              window.External.back.send<GetPlaylistResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
-                if (res.data) {
-                  this.setState({ playlists: res.data });
-                  this.cachePlaylistIcons(res.data);
-                }
-              });
+            switch (parseInt(index+'')) { // (It is a string, even though TS thinks it is a number)
+              case BackInit.PLAYLISTS:
+                window.External.back.send<GetPlaylistResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
+                  if (res.data) {
+                    this.setState({ playlists: res.data });
+                    this.cachePlaylistIcons(res.data);
+                  }
+                });
+                break;
+
+              case BackInit.GAMES:
+                window.External.back.send<GetGamesTotalResponseData>(BackIn.GET_GAMES_TOTAL, undefined, res => {
+                  if (res.data) {
+                    this.setState({ gamesTotal: res.data });
+                  }
+                });
+                break;
             }
           }
 
@@ -273,19 +285,20 @@ export class App extends React.Component<AppProps, AppState> {
 
         case BackOut.BROWSE_CHANGE: {
           const resData: BrowseChangeData = res.data;
+          const newState: Partial<AppState> = {
+            gamesTotal: resData.gamesTotal,
+          };
 
           if (resData.library) { // (Clear specific cache)
             const view = this.state.views[resData.library];
             if (view) {
-              this.setState({
-                views: {
-                  ...this.state.views,
-                  [resData.library]: {
-                    ...view,
-                    dirtyCache: true,
-                  }
+              newState.views = {
+                ...this.state.views,
+                [resData.library]: {
+                  ...view,
+                  dirtyCache: true,
                 }
-              }, () => { this.onRequestGames(0, 1); });
+              };
             }
           } else { // (Clear all caches)
             const newViews = { ...this.state.views };
@@ -298,8 +311,10 @@ export class App extends React.Component<AppProps, AppState> {
                 };
               }
             }
-            this.setState({ views: newViews }, () => { this.onRequestGames(0, 1); });
+            newState.views = newViews;
           }
+
+          this.setState(newState as any, () => { this.onRequestGames(0, 1); });
         } break;
 
         case BackOut.SERVICE_CHANGE: {
@@ -675,7 +690,7 @@ export class App extends React.Component<AppProps, AppState> {
             </div>
             {/* Footer */}
             <ConnectedFooter
-              totalCount={-1}
+              totalCount={this.state.gamesTotal}
               currentLabel={libraryPath && getLibraryItemTitle(libraryPath, this.state.lang.libraries)}
               currentCount={view ? view.total : 0}
               onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}

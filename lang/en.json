@@ -82,7 +82,8 @@
     "total": "Total",
     "newGame": "New Game",
     "list": "List",
-    "grid": "Grid"
+    "grid": "Grid",
+    "searchResults": "Search Results"
   },
   "filter": {
     "dateAdded": "Date Added",

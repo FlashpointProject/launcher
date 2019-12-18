@@ -10,6 +10,7 @@ import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 export enum BackIn {
   GENERIC_RESPONSE,
   INIT_LISTEN,
+  GET_GAMES_TOTAL,
   SAVE_GAME,
   GET_GAME,
   GET_ALL_GAMES,
@@ -118,6 +119,8 @@ export type GetRendererInitDataResponse = {
   playlists?: GamePlaylist[];
   platformNames: string[]
 }
+
+export type GetGamesTotalResponseData = number;
 
 export type OpenDialogData = MessageBoxOptions;
 
@@ -252,6 +255,7 @@ export type ViewGame = {
 
 export type BrowseChangeData = {
   library?: string;
+  gamesTotal: number;
 }
 
 export type ImageChangeData = {

@@ -7,7 +7,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse, GetGamesTotalResponseData } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
@@ -627,6 +627,14 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       });
     } break;
 
+    case BackIn.GET_GAMES_TOTAL: {
+      respond<GetGamesTotalResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: countGames(),
+      });
+    } break;
+
     case BackIn.GET_LIBRARIES: {
       const platforms = state.gameManager.platforms;
       const libraries: string[] = [];
@@ -707,7 +715,10 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       respond<BrowseChangeData>(event.target, {
         id: req.id,
         type: BackOut.BROWSE_CHANGE,
-        data: { library: reqData.library }
+        data: {
+          library: reqData.library,
+          gamesTotal: countGames(),
+        }
       });
     } break;
 
@@ -739,7 +750,10 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       respond<BrowseChangeData>(event.target, {
         id: req.id,
         type: BackOut.BROWSE_CHANGE,
-        data: { library: undefined }
+        data: {
+          library: undefined,
+          gamesTotal: countGames(),
+        }
       });
     } break;
 
@@ -797,7 +811,10 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       respond<BrowseChangeData>(event.target, {
         id: req.id,
         type: BackOut.BROWSE_CHANGE,
-        data: { library: undefined }
+        data: {
+          library: undefined,
+          gamesTotal: countGames(),
+        }
       });
     } break;
 
@@ -1603,4 +1620,13 @@ function openExternal(target: WebSocket) {
       });
     });
   };
+}
+
+function countGames(): number {
+  let count = 0;
+  const platforms = state.gameManager.platforms;
+  for (let i = 0; i < platforms.length; i++) {
+    count += platforms[i].collection.games.length;
+  }
+  return count;
 }
