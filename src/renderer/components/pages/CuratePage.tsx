@@ -8,7 +8,7 @@ import * as YAML from 'yaml';
 import { BackIn, ImportCurationData, ImportCurationResponseData } from '../../../shared/back/types';
 import { GameMetaDefaults } from '../../../shared/curate/defaultValues';
 import { convertEditToCurationMeta, convertParsedToCurationMeta } from '../../../shared/curate/metaToMeta';
-import { EditCuration, EditCurationMeta } from '../../../shared/curate/types';
+import { CurationIndex, EditCuration, EditCurationMeta } from '../../../shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '../../../shared/curate/util';
 import { GamePropSuggestions } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
@@ -59,7 +59,7 @@ export function CuratePage(props: CuratePageProps) {
       platform: 'Flash',
       playMode: 'Single Player',
       status:   'Playable',
-      library:  'Arcade'.toLowerCase() // must be lower case
+      library:  'Arcade',
     };
   }, [props.appPaths]);
 
@@ -183,7 +183,7 @@ export function CuratePage(props: CuratePageProps) {
                   .catch((error) => {
                     // File doesn't exist yet, make an empty one
                     return fs.createFile(newMetaPath);
-                  })
+                  });
                 // Leave errored meta.txt intact
               });
             break;
@@ -278,7 +278,7 @@ export function CuratePage(props: CuratePageProps) {
         indexedCurations.push(curation.key);
         // Don't attempt to index a deleted curation
         if (!curation.delete) {
-          indexContentFolder(getContentFolderByKey(curation.key), curationLog)
+          indexContentFolder(getContentFolderByKey2(curation.key), curationLog)
           .then(content => {
             dispatch({
               type: 'set-curation-content',
@@ -304,12 +304,12 @@ export function CuratePage(props: CuratePageProps) {
       for (let curation of state.curations) {
         // Delete if marked
         if (curation.delete) {
-          const curationPath = getCurationFolder(curation);
+          const curationPath = getCurationFolder2(curation);
           // Use sync methods to block tab switching before done
           fs.removeSync(curationPath);
         // Save if not marked
         } else {
-          const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+          const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
           const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
           try {
             fs.writeFileSync(metaPath, meta);
@@ -331,7 +331,13 @@ export function CuratePage(props: CuratePageProps) {
         date: date,
         saveCuration: props.preferencesData.saveImportedCurations,
       }
-    ).then(() => { /* Eat the return value */ });
+    ).then<void>(res => new Promise((resolve, reject) => {
+      if (res.data && res.data.error) {
+        reject(res.data.error);
+      } else {
+        resolve();
+      }
+    }));
   }, [props.libraries, props.preferencesData.saveImportedCurations]);
 
   // Import All Curations Callback
@@ -402,7 +408,7 @@ export function CuratePage(props: CuratePageProps) {
             .catch(async (error) => {
               curationLog(`Curation failed to import! (title: ${curation.meta.title} id: ${curation.key}) - ` + error.message);
               console.error(error);
-              const content = await indexContentFolder(getContentFolderByKey(curation.key), curationLog);
+              const content = await indexContentFolder(getContentFolderByKey2(curation.key), curationLog);
               // Update curation content. It may have been changed before error thrown.
               dispatch({
                 type: 'set-curation-content',
@@ -505,7 +511,7 @@ export function CuratePage(props: CuratePageProps) {
         // Extract files to curation folder
         await importCurationArchive(archivePath, key, newProgress(progressKey, progressDispatch))
         .then(async key => {
-          const content = await indexContentFolder(getContentFolderByKey(key), curationLog);
+          const content = await indexContentFolder(getContentFolderByKey2(key), curationLog);
           dispatch({
             type: 'set-curation-content',
             payload: {
@@ -547,7 +553,7 @@ export function CuratePage(props: CuratePageProps) {
           // Copy files to curation folder
           return importCurationFolder(dirPath, key, newProgress(progressKey, progressDispatch))
           .then(async key => {
-            const content = await indexContentFolder(getContentFolderByKey(key), curationLog);
+            const content = await indexContentFolder(getContentFolderByKey2(key), curationLog);
             dispatch({
               type: 'set-curation-content',
               payload: {
@@ -848,4 +854,12 @@ function getDivWidth(ref: React.RefObject<HTMLDivElement>) {
   if (!document.defaultView) { throw new Error('"document.defaultView" missing.'); }
   if (!ref.current) { throw new Error('div is missing.'); }
   return parseInt(document.defaultView.getComputedStyle(ref.current).width || '', 10);
+}
+
+function getContentFolderByKey2(key: string) {
+  return getContentFolderByKey(key, window.External.config.fullFlashpointPath);
+}
+
+function getCurationFolder2(curation: EditCuration | CurationIndex) {
+  return getCurationFolder(curation, window.External.config.fullFlashpointPath);
 }

@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as YAML from 'yaml';
 import { BackIn, LaunchCurationData } from '../../shared/back/types';
 import { convertEditToCurationMeta } from '../../shared/curate/metaToMeta';
-import { EditCuration, EditCurationMeta, IndexedContent } from '../../shared/curate/types';
+import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '../../shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '../../shared/curate/util';
 import { GamePropSuggestions } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
@@ -162,7 +162,7 @@ export function CurateBox(props: CurateBoxProps) {
           },
         });
         // Failed or cancelled, reindex content
-        const content = await indexContentFolder(getContentFolderByKey(curation.key), curationLog);
+        const content = await indexContentFolder(getContentFolderByKey2(curation.key), curationLog);
         props.dispatch({
           type: 'set-curation-content',
           payload: {
@@ -191,7 +191,9 @@ export function CurateBox(props: CurateBoxProps) {
       ProgressDispatch.setText(statusProgress, 'Launching Curation...');
       ProgressDispatch.setUsePercentDone(statusProgress, false);
       await window.External.back.sendP<any, LaunchCurationData>(BackIn.LAUNCH_CURATION, {
-        curation: props.curation,
+        key: props.curation.key,
+        meta: props.curation.meta,
+        addApps: props.curation.addApps.map(addApp => addApp.meta),
       });
       ProgressDispatch.finished(statusProgress);
       // Unlock the curation
@@ -207,7 +209,7 @@ export function CurateBox(props: CurateBoxProps) {
   // Callback for when the index content button is clicked
   const onIndexContent = useCallback(async () => {
     if (props.curation) {
-      const content = await indexContentFolder(getContentFolderByKey(props.curation.key), curationLog);
+      const content = await indexContentFolder(getContentFolderByKey2(props.curation.key), curationLog);
       props.dispatch({
         type: 'set-curation-content',
         payload: {
@@ -220,7 +222,7 @@ export function CurateBox(props: CurateBoxProps) {
   // Callback for when the open folder button is clicked
   const onOpenFolder = useCallback(() => {
     if (props.curation) {
-      remote.shell.openItem(getCurationFolder(props.curation));
+      remote.shell.openItem(getCurationFolder2(props.curation));
     }
   }, [props.curation && props.curation.key]);
   // Callback for when the remove button is clicked
@@ -321,7 +323,7 @@ export function CurateBox(props: CurateBoxProps) {
           })
           .catch((error) => { /* No file is okay, ignore error */ });
         // Save working meta
-        const metaPath = path.join(getCurationFolder(curation), 'meta.yaml');
+        const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
         const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
         const statusProgress = newProgress(props.curation.key, progressDispatch);
         ProgressDispatch.setText(statusProgress, 'Exporting Curation...');
@@ -330,7 +332,7 @@ export function CurateBox(props: CurateBoxProps) {
         .then(() => {
           // Zip it all up
           return new Promise<void>((resolve) => {
-            return add(filePath, getCurationFolder(curation), { recursive: true, $bin: pathTo7z })
+            return add(filePath, getCurationFolder2(curation), { recursive: true, $bin: pathTo7z })
             .on('end', () => { resolve(); })
             .on('error', (error) => {
               curationLog(error.message);
@@ -868,7 +870,7 @@ function useAddImageCallback(filename: string, strings: LangContainer, curation:
       filters: [{ extensions: ['png', 'PNG'], name: 'Image File' }]
     });
     if (curation && filePaths && filePaths[0].toLowerCase().endsWith('.png')) {
-      fs.copyFile(filePaths[0], path.join(getCurationFolder(curation), filename));
+      fs.copyFile(filePaths[0], path.join(getCurationFolder2(curation), filename));
     }
   }, [curation && curation.key]);
 }
@@ -881,7 +883,7 @@ function useAddImageCallback(filename: string, strings: LangContainer, curation:
 function useRemoveImageCallback(filename: string, curation: EditCuration | undefined): () => Promise<void> {
   return useCallback(async () => {
     if (curation) {
-      const filePath = path.join(getCurationFolder(curation), filename);
+      const filePath = path.join(getCurationFolder2(curation), filename);
       try {
         await fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK);
         await fs.unlink(filePath);
@@ -897,7 +899,7 @@ function useDropImageCallback(filename: string, curation: EditCuration | undefin
   return useCallback((event: React.DragEvent<Element>) => {
     const files = event.dataTransfer.files;
     if (curation && files && files[0].name.toLowerCase().endsWith('.png')) {
-      fs.copyFile(files[0].path, path.join(getCurationFolder(curation), filename));
+      fs.copyFile(files[0].path, path.join(getCurationFolder2(curation), filename));
     }
   }, [curation && curation.key]);
 }
@@ -1058,7 +1060,7 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   warns.noLaunchCommand = launchCommand === '';
   // Check launch command is valid (if exists)
   if (!warns.noLaunchCommand) {
-    warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey(curation.key), launchCommand, strings);
+    warns.invalidLaunchCommand = invalidLaunchCommandWarnings(getContentFolderByKey2(curation.key), launchCommand, strings);
   }
   // Validate release date
   const releaseDate = curation.meta.releaseDate;
@@ -1072,4 +1074,12 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   const curLibrary = curation.meta.library;
   warns.nonExistingLibrary = (libraries.findIndex(l => l === curLibrary) === -1);
   return warns;
+}
+
+function getContentFolderByKey2(key: string) {
+  return getContentFolderByKey(key, window.External.config.fullFlashpointPath);
+}
+
+function getCurationFolder2(curation: EditCuration | CurationIndex) {
+  return getCurationFolder(curation, window.External.config.fullFlashpointPath);
 }

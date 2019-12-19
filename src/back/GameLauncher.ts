@@ -1,16 +1,11 @@
 import { ChildProcess, exec, ExecOptions } from 'child_process';
-import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
 import { ExecMapping } from '../shared/interfaces';
 import { LangContainer } from '../shared/lang';
-import { ILogPreEntry } from '../shared/Log/interface';
 import { fixSlashes, padStart, stringifyArray } from '../shared/Util';
-
-type LogFunc = (entry: ILogPreEntry) => void;
-type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
-type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
+import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: IAdditionalApplicationInfo;

@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
-import { promisify } from 'util';
+import * as util from 'util';
 import * as WebSocket from 'ws';
 import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
@@ -41,11 +41,11 @@ import { uuid } from './util/uuid';
 // * Make the back generate and send suggestions to the renderer
 //
 
-const copyFile = promisify(fs.copyFile);
-const readFile = promisify(fs.readFile);
-const stat = promisify(fs.stat);
-const unlink = promisify(fs.unlink);
-const writeFile = promisify(fs.writeFile);
+const copyFile  = util.promisify(fs.copyFile);
+const readFile  = util.promisify(fs.readFile);
+const stat      = util.promisify(fs.stat);
+const unlink    = util.promisify(fs.unlink);
+const writeFile = util.promisify(fs.writeFile);
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -568,15 +568,22 @@ function onConnect(this: WebSocket, socket: WebSocket, request: http.IncomingMes
 }
 
 async function onMessageWrap(event: WebSocket.MessageEvent) {
-  state.messageQueue.push(event);
+  const req: WrappedRequest = JSON.parse(event.data.toString()); // (Kinda wasteful to parse it twice)
 
-  if (!state.isHandling) {
-    state.isHandling = true;
-    while (state.messageQueue.length > 0) {
-      const message = state.messageQueue.shift();
-      if (message) { await onMessage(message); }
+  // Responses are handled instantly - requests and handled in queue
+  // (The back could otherwise "soft lock" if it makes a request to the renderer while it is itself handling a request)
+  if (req.type === BackIn.GENERIC_RESPONSE) {
+    state.messageEmitter.emit(req.id, req);
+  } else {
+    state.messageQueue.push(event);
+    if (!state.isHandling) {
+      state.isHandling = true;
+      while (state.messageQueue.length > 0) {
+        const message = state.messageQueue.shift();
+        if (message) { await onMessage(message); }
+      }
+      state.isHandling = false;
     }
-    state.isHandling = false;
   }
 }
 
@@ -1237,25 +1244,31 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           saveCuration: reqData.saveCuration,
           fpPath: state.config.flashpointPath,
           imageFolderPath: state.config.imageFolderPath,
+          openDialog: openDialog(event.target),
+          openExternal: openExternal(event.target),
         });
       } catch (e) {
-        error = e;
+        if (util.types.isNativeError(e)) {
+          error = copyError(e);
+        } else {
+          error = e;
+        }
       }
 
       respond<ImportCurationResponseData>(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
-        data: { error },
+        data: { error: error || undefined },
       });
-    }
+    } break;
 
     case BackIn.LAUNCH_CURATION: {
       const reqData: LaunchCurationData = req.data;
 
       try {
-        await launchCuration(reqData.curation, {
+        await launchCuration(reqData.key, reqData.meta, reqData.addApps, {
           fpPath: path.resolve(state.config.flashpointPath),
-          native: state.config.nativePlatforms.some(p => p === reqData.curation.meta.platform),
+          native: state.config.nativePlatforms.some(p => p === reqData.meta.platform),
           execMappings: state.execMappings,
           lang: state.languageContainer,
           log,
@@ -1274,7 +1287,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.GENERIC_RESPONSE,
         data: undefined,
       });
-    }
+    } break;
 
     case BackIn.LAUNCH_CURATION_ADDAPP: {
       const reqData: LaunchCurationAddAppData = req.data;
@@ -1301,7 +1314,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.GENERIC_RESPONSE,
         data: undefined,
       });
-    }
+    } break;
 
     case BackIn.QUIT: {
       if (state.serviceInfo) {
@@ -1463,6 +1476,16 @@ function log(preEntry: ILogPreEntry, id?: string): void {
     content: preEntry.content,
     timestamp: Date.now(),
   };
+
+  if (typeof entry.source !== 'string') {
+    console.warn(`Type Warning! A log entry has a source of an incorrect type!\n  Type: "${typeof entry.source}"\n  Value: "${entry.source}"`);
+    entry.source = entry.source+'';
+  }
+  if (typeof entry.content !== 'string') {
+    console.warn(`Type Warning! A log entry has content of an incorrect type!\n  Type: "${typeof entry.content}"\n  Value: "${entry.content}"`);
+    entry.content = entry.content+'';
+  }
+
   state.log.push(entry);
 
   broadcast({
@@ -1755,4 +1778,28 @@ function getLibraries(): string[] {
     if (libraries.indexOf(library) === -1) { libraries.push(library); }
   }
   return libraries;
+}
+
+type ErrorCopy = {
+  columnNumber?: number;
+  fileName?: string;
+  lineNumber?: number;
+  message: string;
+  name: string;
+  stack?: string;
+}
+
+/** Copy properties from an error to a new object. */
+function copyError(error: any): ErrorCopy {
+  const copy: ErrorCopy = {
+    message: error.message+'',
+    name: error.name+'',
+  };
+  // @TODO These properties are not standard, and perhaps they have different types in different environments.
+  //       So do some testing and add some extra checks mby?
+  if (typeof error.columnNumber === 'number') { copy.columnNumber = error.columnNumber; }
+  if (typeof error.fileName     === 'string') { copy.fileName     = error.fileName;     }
+  if (typeof error.lineNumber   === 'number') { copy.lineNumber   = error.lineNumber;   }
+  if (typeof error.stack        === 'string') { copy.stack        = error.stack;        }
+  return copy;
 }

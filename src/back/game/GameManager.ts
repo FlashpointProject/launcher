@@ -189,7 +189,7 @@ export class GameManager {
     return createFailureResponse(new Error('Requested ID did not match any games or additional applications'));
   }
 
-  public updateMetas(request: MetaUpdate): ServerResponse {
+  public async updateMetas(request: MetaUpdate): Promise<void> {
     // Meta will change, clear cache
     this.searchCaches = [];
     gameUpdateLoop:
@@ -230,7 +230,7 @@ export class GameManager {
         for (let addApp of oldAddApps) {
           this.addAddApp(addApp, gamePlatform);
         }
-        if (request.saveToDisk) { this.savePlatformToFile(gamePlatform); }
+        if (request.saveToDisk) { await this.savePlatformToFile(gamePlatform); }
       } else {
         // No platform found, make a new one
         const newCollection: IGameCollection = {
@@ -246,7 +246,7 @@ export class GameManager {
         };
         // Add to working array
         this.platforms.push(platform);
-        if (request.saveToDisk) { this.savePlatformToFile(platform); }
+        if (request.saveToDisk) { await this.savePlatformToFile(platform); }
       }
     }
     addAppLoop:
@@ -255,7 +255,7 @@ export class GameManager {
       for (let platform of this.platforms) {
         if (this.updateAddApp(addApp, platform)) {
           // App found and updated, move onto the next one
-          if (request.saveToDisk) { this.savePlatformToFile(platform); }
+          if (request.saveToDisk) { await this.savePlatformToFile(platform); }
           continue addAppLoop;
         }
       }
@@ -266,15 +266,12 @@ export class GameManager {
         if (gameIndex !== -1) {
           // Game platform found, add in here then continue
           this.addAddApp(addApp, platform);
-          if (request.saveToDisk) { this.savePlatformToFile(platform); }
+          if (request.saveToDisk) { await this.savePlatformToFile(platform); }
           continue addAppLoop;
         }
       }
       // No parent game found, and no add app entry found. This shouldn't be reachable.
     }
-    return {
-      success: true
-    };
   }
 
   /** Update a game in a platform */

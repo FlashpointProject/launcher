@@ -1,6 +1,6 @@
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditCuration } from '../curate/types';
+import { EditAddAppCuration, EditCuration, EditCurationMeta, EditAddAppCurationMeta } from '../curate/types';
 import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
 import { GamePlaylist, IService, ProcessAction, ExecMapping } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
@@ -317,7 +317,9 @@ export type ImportCurationResponseData = {
 }
 
 export type LaunchCurationData = {
-  curation: EditCuration;
+  key: string;
+  meta: EditCurationMeta;
+  addApps: EditAddAppCurationMeta[];
 }
 
 export type LaunchCurationAddAppData = {

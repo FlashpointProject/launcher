@@ -1,12 +1,13 @@
+import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { EventEmitter } from 'events';
 import { Server } from 'http';
 import * as WebSocket from 'ws';
 import { BackInit, ViewGame, WrappedRequest } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IGameInfo } from '../shared/game/interfaces';
-import { GamePlaylist, IBackProcessInfo, ExecMapping } from '../shared/interfaces';
-import { LangFile, LangContainer } from '../shared/lang';
-import { ILogEntry } from '../shared/Log/interface';
+import { ExecMapping, GamePlaylist, IBackProcessInfo } from '../shared/interfaces';
+import { LangContainer, LangFile } from '../shared/lang';
+import { ILogEntry, ILogPreEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { Theme } from '../shared/ThemeFile';
@@ -97,3 +98,7 @@ export type ThemeListItem = Theme & {
    */
   basename: string;
 }
+
+export type LogFunc = (entry: ILogPreEntry) => void;
+export type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
+export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
