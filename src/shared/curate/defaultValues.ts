@@ -20,6 +20,7 @@ export type GameMetaDefaults = {
   platform: string;
   playMode: string;
   status: string;
+  library: string;
 };
 
 /**
@@ -34,6 +35,7 @@ export function getDefaultMetaValues(games: IGameInfo[]): GameMetaDefaults {
     platform: 'Flash',
     playMode: 'Single Player',
     status:   'Playable',
+    library:  'Arcade'.toLowerCase() // must be lower case
   };
 }
 

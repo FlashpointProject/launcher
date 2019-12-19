@@ -1,16 +1,18 @@
+import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
+import { EditAddAppCuration, EditCuration } from '../curate/types';
 import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
-import { GamePlaylist, IService, ProcessAction } from '../interfaces';
+import { GamePlaylist, IService, ProcessAction, ExecMapping } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
-import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 
 export enum BackIn {
   GENERIC_RESPONSE,
   INIT_LISTEN,
   GET_GAMES_TOTAL,
+  GET_EXEC,
   SAVE_GAME,
   GET_GAME,
   GET_ALL_GAMES,
@@ -28,6 +30,9 @@ export enum BackIn {
   GET_PLAYLISTS,
   SAVE_PLAYLIST,
   DELETE_PLAYLIST,
+  IMPORT_CURATION,
+  LAUNCH_CURATION,
+  LAUNCH_CURATION_ADDAPP,
   QUIT,
   /** Get all library names. */
   GET_LIBRARIES,
@@ -61,6 +66,7 @@ export enum BackOut {
   THEME_LIST_CHANGE,
   PLAYLIST_UPDATE,
   PLAYLIST_REMOVE,
+  IMPORT_CURATION_RESPONSE,
   QUIT,
 }
 
@@ -94,6 +100,7 @@ export type BackInitArgs = {
 export enum BackInit {
   GAMES,
   PLAYLISTS,
+  EXEC,
 }
 
 export type AddLogData = ILogPreEntry;
@@ -121,6 +128,8 @@ export type GetRendererInitDataResponse = {
 }
 
 export type GetGamesTotalResponseData = number;
+
+export type GetExecData = ExecMapping[];
 
 export type OpenDialogData = MessageBoxOptions;
 
@@ -295,3 +304,24 @@ export type SavePlaylistData = {
 };
 
 export type DeletePlaylistData = string;
+
+export type ImportCurationData = {
+  curation: EditCuration;
+  log?: boolean;
+  date?: Date;
+  saveCuration: boolean;
+}
+
+export type ImportCurationResponseData = {
+  error?: any;
+}
+
+export type LaunchCurationData = {
+  curation: EditCuration;
+}
+
+export type LaunchCurationAddAppData = {
+  curationKey: string;
+  curation: EditAddAppCuration;
+  platform?: string;
+}

@@ -1,6 +1,10 @@
+import { remote } from 'electron';
+import * as fs from 'fs';
 import * as path from 'path';
 import { AddLogData, BackIn } from '../shared/back/types';
+import { htdocsPath } from '../shared/constants';
 import { IGameInfo } from '../shared/game/interfaces';
+import { fixSlashes } from '../shared/Util';
 import { Paths } from './Paths';
 
 export const gameIdDataType: string = 'text/game-id';
@@ -13,7 +17,7 @@ export const gameScaleSpan = 0.6;
  * @param platform Platform to get icon of (case sensitive)
  */
 export function getPlatformIconPath(platform: string): string {
-  return path.join(getLogosFolderPath(window.External.config.fullFlashpointPath), platform+'.png').replace(/\\/g, '/');
+  return fixSlashes(path.join(getLogosFolderPath(window.External.config.fullFlashpointPath), platform+'.png'));
 }
 
 function getLogosFolderPath(flashpointPath: string, logosFolderPath?: string) {
@@ -106,18 +110,6 @@ export function checkIfAncestor(start: Element | null, target: Element | null): 
   return false;
 }
 
-/**
- * Convert a size (in bytes) to a more human readable format.
- * @param size Size in bytes.
- * @returns Size, but in a more human readable format.
- */
-export function sizeToString(size: number, precision: number = 3): string {
-  if (size < 1000)       { return `${size}B`; }
-  if (size < 1000000)    { return `${(size / 1000).toPrecision(precision)}KB`; }
-  if (size < 1000000000) { return `${(size / 1000000).toPrecision(precision)}MB`; }
-  return `${(size / 1000000000).toPrecision(precision)}GB`;
-}
-
 /** Get the file extension of a file (including the dot). Returns an empty string if none. */
 export function getFileExtension(filename: string): string {
   const firstDot = filename.lastIndexOf('.');
@@ -137,9 +129,6 @@ export function getGameImagePath(folderName: string, gameId: string): string {
     `${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`
   );
 }
-
-/** Path of the "htdocs" folder (relative to the Flashpoint folder) */
-const htdocsPath = 'Server/htdocs';
 
 type IGamePathInfo = Pick<IGameInfo, 'platform' | 'launchCommand'>;
 
@@ -256,4 +245,22 @@ function toForcedURL(str: string): URL | undefined {
 function toURL(str: string): URL | undefined {
   try { return new URL(str); }
   catch { return undefined; }
+}
+/** Open a confirmation box, returning true if Yes, false if No, throwing if Cancelled. */
+export async function openConfirmDialog(title: string, message: string, cancel: boolean = false): Promise<boolean> {
+  const buttons = ['Yes', 'No'];
+  if (cancel) { buttons.push('Cancel'); }
+  const res = await remote.dialog.showMessageBox({
+    title: title,
+    message: message,
+    buttons: buttons
+  });
+  if (res.response === 0) { return true; }
+  if (res.response === 1) { return false; }
+  else { throw 'Cancelled'; }
+}
+
+// @TODO Move this to the back process
+export function isFlashpointValidCheck(flashpointPath: string): Promise<boolean> {
+  return new Promise(resolve => fs.stat(path.join(flashpointPath, 'Data/Platforms'), error => resolve(!error)));
 }

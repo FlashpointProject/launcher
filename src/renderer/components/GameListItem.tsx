@@ -6,7 +6,7 @@ export type GameListItemProps = ListRowProps & {
   id: string;
   title: string;
   platform: string;
-  genre: string;
+  tags: string;
   developer: string;
   publisher: string;
   /** If the row can be dragged (defaults to false). */
@@ -18,7 +18,7 @@ export type GameListItemProps = ListRowProps & {
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, genre, developer, publisher, isDraggable, isSelected, isDragged, index, style } = props;
+  const { id, title, platform, tags: tags, developer, publisher, isDraggable, isSelected, isDragged, index, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
     getPlatformIconPath(platform)
@@ -53,9 +53,9 @@ export function GameListItem(props: GameListItemProps) {
             {title}
           </div>
           <div
-            className='game-list-item__field game-list-item__field--genre'
-            title={genre}>
-            {genre}
+            className='game-list-item__field game-list-item__field--tags'
+            title={tags}>
+            {tags}
           </div>
           <div
             className='game-list-item__field game-list-item__field--developer'
@@ -70,7 +70,7 @@ export function GameListItem(props: GameListItemProps) {
         </div>
       </li>
     );
-  }, [style, className, isDraggable, id, genre, title, platformIcon]);
+  }, [style, className, isDraggable, id, tags, title, platformIcon]);
 }
 
 export namespace GameListItem { // eslint-disable-line no-redeclare

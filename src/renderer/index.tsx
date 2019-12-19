@@ -9,6 +9,7 @@ import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { CurationContext } from './context/CurationContext';
 import { PreferencesContextProvider } from './context/PreferencesContext';
+import { ProgressContext } from './context/ProgressContext';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -29,9 +30,11 @@ import { PreferencesContextProvider } from './context/PreferencesContext';
       <Provider store={store}>
         <PreferencesContextProvider>
           <ContextReducerProvider context={CurationContext}>
-            <ConnectedRouter history={history}>
-              <ConnectedApp />
-            </ConnectedRouter>
+            <ContextReducerProvider context={ProgressContext}>
+              <ConnectedRouter history={history}>
+                <ConnectedApp />
+              </ConnectedRouter>
+            </ContextReducerProvider>
           </ContextReducerProvider>
         </PreferencesContextProvider>
       </Provider>

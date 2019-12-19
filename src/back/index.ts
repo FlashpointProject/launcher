@@ -7,7 +7,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetGameData, GetGameResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse, GetGamesTotalResponseData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
@@ -23,8 +23,10 @@ import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
 import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '../shared/ThemeFile';
 import { createErrorProxy, deepCopy, isErrorProxy, recursiveReplace, removeFileExtension, stringifyArray } from '../shared/Util';
+import { loadExecMappingsFile } from './Execs';
 import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
+import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { PlaylistFile } from './PlaylistFile';
 import { ServicesFile } from './ServicesFile';
@@ -35,8 +37,11 @@ import { ensurePath, getContentType, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
+// @TODO
+// * Make the back generate and send suggestions to the renderer
+//
+
 const copyFile = promisify(fs.copyFile);
-const mkdir = promisify(fs.mkdir);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
@@ -66,6 +71,7 @@ const state: BackState = {
   init: {
     0: false,
     1: false,
+    2: false,
   },
   initEmitter: new EventEmitter() as any,
   queries: {},
@@ -75,12 +81,14 @@ const state: BackState = {
   languageWatcher: new FolderWatcher(),
   languageQueue: new EventQueue(),
   languages: [],
+  languageContainer: getDefaultLocalization(), // Cache of the latest lang container - used by back when it needs lang strings
   themeWatcher: new FolderWatcher(),
   themeQueue: new EventQueue(),
   themeFiles: [],
   playlistWatcher: new FolderWatcher(),
   playlistQueue: new EventQueue(),
   playlists: [],
+  execMappings: [],
 };
 
 const preferencesFilename = 'preferences.json';
@@ -92,414 +100,432 @@ process.on('message', onProcessMessage);
 process.on('disconnect', () => { exit(); }); // (Exit when the main process does)
 
 async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
-  if (!state.isInit) {
-    state.isInit = true;
-    const content: BackInitArgs = JSON.parse(message);
-    state.secret = content.secret;
-    state.configFolder = content.configFolder;
-    state.countryCode = content.countryCode;
+  if (state.isInit) { return; }
+  state.isInit = true;
 
-    // Read configs & preferences
-    const [pref, conf] = await (Promise.all([
-      PreferencesFile.readOrCreateFile(path.join(state.configFolder, preferencesFilename)),
-      ConfigFile.readOrCreateFile(path.join(state.configFolder, configFilename))
-    ]));
-    state.preferences = pref;
-    state.config = conf;
+  const content: BackInitArgs = JSON.parse(message);
+  state.secret = content.secret;
+  state.configFolder = content.configFolder;
+  state.countryCode = content.countryCode;
 
-    // Init services
-    try {
-      state.serviceInfo = await ServicesFile.readFile(
-        path.join(state.config.flashpointPath, state.config.jsonFolderPath),
-        error => { log({ source: servicesSource, content: error.toString() }); }
-      );
-    } catch (error) { /* @TODO Do something about this error */ }
-    if (state.serviceInfo) {
-      // Run start commands
-      for (let i = 0; i < state.serviceInfo.start.length; i++) {
-        await execProcess(state.serviceInfo.start[i]);
-      }
-      // Run processes
-      if (state.serviceInfo.server) {
-        state.services.server = runService('server', 'Server', state.serviceInfo.server, false);
-      }
-      if (state.config.startRedirector && process.platform !== 'linux') {
-        const redirectorInfo = state.config.useFiddler ? state.serviceInfo.fiddler : state.serviceInfo.redirector;
-        if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${state.config.useFiddler ? 'Fiddler' : 'Redirector'})`); }
-        state.services.redirector = runService('redirector', 'Redirector', redirectorInfo, false);
+  // Read configs & preferences
+  const [pref, conf] = await (Promise.all([
+    PreferencesFile.readOrCreateFile(path.join(state.configFolder, preferencesFilename)),
+    ConfigFile.readOrCreateFile(path.join(state.configFolder, configFilename))
+  ]));
+  state.preferences = pref;
+  state.config = conf;
+
+  // Init services
+  try {
+    state.serviceInfo = await ServicesFile.readFile(
+      path.join(state.config.flashpointPath, state.config.jsonFolderPath),
+      error => { log({ source: servicesSource, content: error.toString() }); }
+    );
+  } catch (error) { /* @TODO Do something about this error */ }
+  if (state.serviceInfo) {
+    // Run start commands
+    for (let i = 0; i < state.serviceInfo.start.length; i++) {
+      await execProcess(state.serviceInfo.start[i]);
+    }
+    // Run processes
+    if (state.serviceInfo.server) {
+      state.services.server = runService('server', 'Server', state.serviceInfo.server, false);
+    }
+    if (state.config.startRedirector && process.platform !== 'linux') {
+      const redirectorInfo = state.config.useFiddler ? state.serviceInfo.fiddler : state.serviceInfo.redirector;
+      if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${state.config.useFiddler ? 'Fiddler' : 'Redirector'})`); }
+      state.services.redirector = runService('redirector', 'Redirector', redirectorInfo, false);
+    }
+  }
+
+  // Init language
+  state.languageWatcher.on('ready', () => {
+    // Add event listeners
+    state.languageWatcher.on('add', onLangAddOrChange);
+    state.languageWatcher.on('change', onLangAddOrChange);
+    state.languageWatcher.on('remove', (filename: string, offsetPath: string) => {
+      state.languageQueue.push(() => {
+        const filePath = path.join(state.languageWatcher.getFolder() || '', offsetPath, filename);
+        const index = state.languages.findIndex(l => l.filename === filePath);
+        if (index >= 0) { state.languages.splice(index, 1); }
+      });
+    });
+    // Add initial files
+    for (let filename of state.languageWatcher.filenames) {
+      onLangAddOrChange(filename, '');
+    }
+    // Functions
+    function onLangAddOrChange(filename: string, offsetPath: string) {
+      state.languageQueue.push(async () => {
+        const filePath = path.join(state.languageWatcher.getFolder() || '', offsetPath, filename);
+        const langFile = await readLangFile(filePath);
+        let lang = state.languages.find(l => l.filename === filePath);
+        if (lang) {
+          lang.data = langFile;
+        } else {
+          lang = {
+            filename: filePath,
+            code: removeFileExtension(filename),
+            data: langFile,
+          };
+          state.languages.push(lang);
+        }
+
+        broadcast<LanguageListChangeData>({
+          id: '',
+          type: BackOut.LANGUAGE_LIST_CHANGE,
+          data: state.languages,
+        });
+
+        if (lang.code === state.preferences.currentLanguage ||
+            lang.code === state.countryCode ||
+            lang.code === state.preferences.fallbackLanguage) {
+          state.languageContainer = createContainer(
+            state.preferences.currentLanguage,
+            state.countryCode,
+            state.preferences.fallbackLanguage
+          );
+          broadcast<LanguageChangeData>({
+            id: '',
+            type: BackOut.LANGUAGE_CHANGE,
+            data: state.languageContainer,
+          });
+        }
+      });
+    }
+  });
+  state.languageWatcher.on('error', console.error);
+  const langFolder = path.join(content.isDev ? process.cwd() : content.configFolder, 'lang');
+  fs.stat(langFolder, (error) => {
+    if (!error) { state.languageWatcher.watch(langFolder); }
+    else {
+      log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+      if (error.code === 'ENOENT') {
+        log({ source: 'Back', content: `Failed to watch language folder. Folder does not exist (Path: "${langFolder}")` });
+      } else {
+        log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
       }
     }
+  });
 
-    // Init language
-    state.languageWatcher.on('ready', () => {
-      // Add event listeners
-      state.languageWatcher.on('add', onLangAddOrChange);
-      state.languageWatcher.on('change', onLangAddOrChange);
-      state.languageWatcher.on('remove', (filename: string, offsetPath: string) => {
-        state.languageQueue.push(() => {
-          const filePath = path.join(state.languageWatcher.getFolder() || '', offsetPath, filename);
-          const index = state.languages.findIndex(l => l.filename === filePath);
-          if (index >= 0) { state.languages.splice(index, 1); }
-        });
-      });
-      // Add initial files
-      for (let filename of state.languageWatcher.filenames) {
-        onLangAddOrChange(filename, '');
-      }
-      // Functions
-      function onLangAddOrChange(filename: string, offsetPath: string) {
-        state.languageQueue.push(async () => {
-          const filePath = path.join(state.languageWatcher.getFolder() || '', offsetPath, filename);
-          const langFile = await readLangFile(filePath);
-          let lang = state.languages.find(l => l.filename === filePath);
-          if (lang) {
-            lang.data = langFile;
-          } else {
-            lang = {
-              filename: filePath,
-              code: removeFileExtension(filename),
-              data: langFile,
-            };
-            state.languages.push(lang);
-          }
-
-          broadcast<LanguageListChangeData>({
+  // Init themes
+  state.themeWatcher.on('ready', () => {
+    // Add event listeners
+    state.themeWatcher.on('add', onThemeAdd);
+    state.themeWatcher.on('change', (filename: string, offsetPath: string) => {
+      state.themeQueue.push(() => {
+        const item = findOwner(filename, offsetPath);
+        if (item) {
+          // A file in a theme has been changed
+          broadcast<ThemeChangeData>({
             id: '',
-            type: BackOut.LANGUAGE_LIST_CHANGE,
-            data: state.languages,
+            type: BackOut.THEME_CHANGE,
+            data: item.entryPath,
           });
-
-          if (lang.code === state.preferences.currentLanguage ||
-              lang.code === state.countryCode ||
-              lang.code === state.preferences.fallbackLanguage) {
-            broadcast<LanguageChangeData>({
-              id: '',
-              type: BackOut.LANGUAGE_CHANGE,
-              data: createContainer(
-                state.preferences.currentLanguage,
-                state.countryCode,
-                state.preferences.fallbackLanguage)
-            });
-          }
-        });
-      }
-    });
-    state.languageWatcher.on('error', console.error);
-    const langFolder = path.join(content.isDev ? process.cwd() : content.configFolder, 'lang');
-    fs.stat(langFolder, (error) => {
-      if (!error) { state.languageWatcher.watch(langFolder); }
-      else {
-        log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
-        if (error.code === 'ENOENT') {
-          log({ source: 'Back', content: `Failed to watch language folder. Folder does not exist (Path: "${langFolder}")` });
         } else {
-          log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+          console.warn('A file has been changed in a theme that is not registered '+
+                        `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
         }
-      }
+      });
     });
-
-    // Init themes
-    state.themeWatcher.on('ready', () => {
-      // Add event listeners
-      state.themeWatcher.on('add', onThemeAdd);
-      state.themeWatcher.on('change', (filename: string, offsetPath: string) => {
-        state.themeQueue.push(() => {
-          const item = findOwner(filename, offsetPath);
-          if (item) {
-            // A file in a theme has been changed
+    state.themeWatcher.on('remove', (filename: string, offsetPath: string) => {
+      state.themeQueue.push(() => {
+        const item = findOwner(filename, offsetPath);
+        if (item) {
+          if (item.entryPath === path.join(offsetPath, filename)) { // (Entry file was removed)
+            state.themeFiles.splice(state.themeFiles.indexOf(item), 1);
+            // A theme has been removed
+            broadcast<ThemeListChangeData>({
+              id: '',
+              type: BackOut.THEME_LIST_CHANGE,
+              data: state.themeFiles,
+            });
+          } else { // (Non-entry file was removed)
+            // A file in a theme has been removed
             broadcast<ThemeChangeData>({
               id: '',
               type: BackOut.THEME_CHANGE,
               data: item.entryPath,
             });
-          } else {
-            console.warn('A file has been changed in a theme that is not registered '+
-                         `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
           }
-        });
+        } else {
+          console.warn('A file has been removed from a theme that is not registered '+
+                        `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
+        }
       });
-      state.themeWatcher.on('remove', (filename: string, offsetPath: string) => {
-        state.themeQueue.push(() => {
-          const item = findOwner(filename, offsetPath);
-          if (item) {
-            if (item.entryPath === path.join(offsetPath, filename)) { // (Entry file was removed)
-              state.themeFiles.splice(state.themeFiles.indexOf(item), 1);
-              // A theme has been removed
-              broadcast<ThemeListChangeData>({
-                id: '',
-                type: BackOut.THEME_LIST_CHANGE,
-                data: state.themeFiles,
+    });
+    // Add initial files
+    for (let filename of state.themeWatcher.filenames) {
+      onThemeAdd(filename, '', false);
+    }
+    // Functions
+    function onThemeAdd(filename: string, offsetPath: string, doBroadcast: boolean = true) {
+      state.themeQueue.push(async () => {
+        const item = findOwner(filename, offsetPath);
+        if (item) {
+          // A file has been added to this theme
+          broadcast<ThemeChangeData>({
+            id: '',
+            type: BackOut.THEME_CHANGE,
+            data: item.entryPath,
+          });
+        } else {
+          // Check if it is a potential entry file
+          // (Entry files are either directly inside the "Theme Folder", or one folder below that and named "theme.css")
+          const folders = offsetPath.split(path.sep);
+          const folderName = folders[0] || offsetPath;
+          const file = state.themeWatcher.getFile(folderName ? [...folders, filename] : [filename]);
+          if ((file && file.isFile()) && (offsetPath === '' || (offsetPath === folderName && filename === themeEntryFilename))) {
+            const themeFolder = state.themeWatcher.getFolder() || '';
+            const entryPath = path.join(themeFolder, folderName, filename);
+            let meta: Partial<ThemeMeta> | undefined;
+            try {
+              const data = await readFile(entryPath, 'utf8');
+              meta = parseThemeMetaData(data) || {};
+            } catch (error) { console.warn(`Failed to load theme entry file (File: "${entryPath}")`, error); }
+            if (meta) {
+              state.themeFiles.push({
+                basename: folderName || filename,
+                meta: meta,
+                entryPath: path.relative(themeFolder, entryPath),
               });
-            } else { // (Non-entry file was removed)
-              // A file in a theme has been removed
-              broadcast<ThemeChangeData>({
-                id: '',
-                type: BackOut.THEME_CHANGE,
-                data: item.entryPath,
-              });
-            }
-          } else {
-            console.warn('A file has been removed from a theme that is not registered '+
-                         `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
-          }
-        });
-      });
-      // Add initial files
-      for (let filename of state.themeWatcher.filenames) {
-        onThemeAdd(filename, '', false);
-      }
-      // Functions
-      function onThemeAdd(filename: string, offsetPath: string, doBroadcast: boolean = true) {
-        state.themeQueue.push(async () => {
-          const item = findOwner(filename, offsetPath);
-          if (item) {
-            // A file has been added to this theme
-            broadcast<ThemeChangeData>({
-              id: '',
-              type: BackOut.THEME_CHANGE,
-              data: item.entryPath,
-            });
-          } else {
-            // Check if it is a potential entry file
-            // (Entry files are either directly inside the "Theme Folder", or one folder below that and named "theme.css")
-            const folders = offsetPath.split(path.sep);
-            const folderName = folders[0] || offsetPath;
-            const file = state.themeWatcher.getFile(folderName ? [...folders, filename] : [filename]);
-            if ((file && file.isFile()) && (offsetPath === '' || (offsetPath === folderName && filename === themeEntryFilename))) {
-              const themeFolder = state.themeWatcher.getFolder() || '';
-              const entryPath = path.join(themeFolder, folderName, filename);
-              let meta: Partial<ThemeMeta> | undefined;
-              try {
-                const data = await readFile(entryPath, 'utf8');
-                meta = parseThemeMetaData(data) || {};
-              } catch (error) { console.warn(`Failed to load theme entry file (File: "${entryPath}")`, error); }
-              if (meta) {
-                state.themeFiles.push({
-                  basename: folderName || filename,
-                  meta: meta,
-                  entryPath: path.relative(themeFolder, entryPath),
+              if (doBroadcast) {
+                broadcast<ThemeListChangeData>({
+                  id: '',
+                  type: BackOut.THEME_LIST_CHANGE,
+                  data: state.themeFiles,
                 });
-                if (doBroadcast) {
-                  broadcast<ThemeListChangeData>({
-                    id: '',
-                    type: BackOut.THEME_LIST_CHANGE,
-                    data: state.themeFiles,
-                  });
-                }
               }
             }
           }
-        });
-      }
-      function findOwner(filename: string, offsetPath: string) {
-        if (offsetPath) { // (Sub-folder)
-          const index = offsetPath.indexOf(path.sep);
-          const folderName = (index >= 0) ? offsetPath.substr(0, index) : offsetPath;
-          return state.themeFiles.find(item => item.basename === folderName);
-        } else { // (Theme folder)
-          return state.themeFiles.find(item => item.entryPath === filename || item.basename === filename);
         }
+      });
+    }
+    function findOwner(filename: string, offsetPath: string) {
+      if (offsetPath) { // (Sub-folder)
+        const index = offsetPath.indexOf(path.sep);
+        const folderName = (index >= 0) ? offsetPath.substr(0, index) : offsetPath;
+        return state.themeFiles.find(item => item.basename === folderName);
+      } else { // (Theme folder)
+        return state.themeFiles.find(item => item.entryPath === filename || item.basename === filename);
       }
-    });
-    state.themeWatcher.on('error', console.error);
-    const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-    fs.stat(themeFolder, (error) => {
-      if (!error) { state.themeWatcher.watch(themeFolder, { recursionDepth: -1 }); }
-      else {
+    }
+  });
+  state.themeWatcher.on('error', console.error);
+  const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+  fs.stat(themeFolder, (error) => {
+    if (!error) { state.themeWatcher.watch(themeFolder, { recursionDepth: -1 }); }
+    else {
+      log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+      if (error.code === 'ENOENT') {
+        log({ source: 'Back', content: `Failed to watch theme folder. Folder does not exist (Path: "${themeFolder}")` });
+      } else {
         log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
-        if (error.code === 'ENOENT') {
-          log({ source: 'Back', content: `Failed to watch theme folder. Folder does not exist (Path: "${themeFolder}")` });
-        } else {
-          log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
-        }
       }
-    });
+    }
+  });
 
-    // Init playlists
-    state.playlistWatcher.on('ready', () => {
-      // Add event listeners
-      state.playlistWatcher.on('add', onPlaylistAddOrChange);
-      state.playlistWatcher.on('change', onPlaylistAddOrChange);
-      state.playlistWatcher.on('remove', (filename: string, offsetPath: string) => {
-        state.playlistQueue.push(async () => {
+  // Init playlists
+  state.playlistWatcher.on('ready', () => {
+    // Add event listeners
+    state.playlistWatcher.on('add', onPlaylistAddOrChange);
+    state.playlistWatcher.on('change', onPlaylistAddOrChange);
+    state.playlistWatcher.on('remove', (filename: string, offsetPath: string) => {
+      state.playlistQueue.push(async () => {
+        const index = state.playlists.findIndex(p => p.filename === filename);
+        if (index >= 0) {
+          const id = state.playlists[index].filename;
+          state.playlists.splice(index, 1);
+          // Clear all query caches that uses this playlist
+          const hashes = Object.keys(state.queries);
+          for (let hash of hashes) {
+            const cache = state.queries[hash];
+            if (cache.query.playlistId === id) {
+              delete state.queries[hash]; // Clear query from cache
+            }
+          }
+          broadcast<PlaylistRemoveData>({
+            id: '',
+            type: BackOut.PLAYLIST_REMOVE,
+            data: id,
+          });
+        } else {
+          log({ source: 'Playlist', content: `Failed to remove playlist. Playlist is not registered (Filename: ${filename})` });
+        }
+      });
+    });
+    // Add initial files
+    for (let filename of state.playlistWatcher.filenames) {
+      onPlaylistAddOrChange(filename, '', false);
+    }
+    // Track when all playlist are done loading
+    state.playlistQueue.push(async () => {
+      state.init[BackInit.PLAYLISTS] = true;
+      state.initEmitter.emit(BackInit.PLAYLISTS);
+    });
+    // Functions
+    function onPlaylistAddOrChange(filename: string, offsetPath: string, doBroadcast: boolean = true) {
+      state.playlistQueue.push(async () => {
+        // Load and parse playlist
+        const filePath = path.join(state.playlistWatcher.getFolder() || '', filename);
+        let playlist: GamePlaylist | undefined;
+        try {
+          const data = await PlaylistFile.readFile(filePath, error => log({ source: 'Playlist', content: `Error while parsing playlist "${filePath}". ${error}` }));
+          playlist = {
+            ...data,
+            filename,
+          };
+        } catch (error) {
+          log({ source: 'Playlist', content: `Failed to load playlist "${filePath}". ${error}` });
+        }
+        // Add or update playlist
+        if (playlist) {
           const index = state.playlists.findIndex(p => p.filename === filename);
           if (index >= 0) {
-            const id = state.playlists[index].filename;
-            state.playlists.splice(index, 1);
+            state.playlists[index] = playlist;
             // Clear all query caches that uses this playlist
             const hashes = Object.keys(state.queries);
             for (let hash of hashes) {
               const cache = state.queries[hash];
-              if (cache.query.playlistId === id) {
+              if (cache.query.playlistId === playlist.filename) {
                 delete state.queries[hash]; // Clear query from cache
               }
             }
-            broadcast<PlaylistRemoveData>({
-              id: '',
-              type: BackOut.PLAYLIST_REMOVE,
-              data: id,
-            });
           } else {
-            log({ source: 'Playlist', content: `Failed to remove playlist. Playlist is not registered (Filename: ${filename})` });
+            state.playlists.push(playlist);
           }
-        });
+          if (doBroadcast) {
+            broadcast<PlaylistUpdateData>({
+              id: '',
+              type: BackOut.PLAYLIST_UPDATE,
+              data: playlist,
+            });
+          }
+        }
       });
-      // Add initial files
-      for (let filename of state.playlistWatcher.filenames) {
-        onPlaylistAddOrChange(filename, '', false);
-      }
-      // Track when all playlist are done loading
-      state.playlistQueue.push(async () => {
-        state.init[BackInit.PLAYLISTS] = true;
-        state.initEmitter.emit(BackInit.PLAYLISTS);
-      });
-      // Functions
-      function onPlaylistAddOrChange(filename: string, offsetPath: string, doBroadcast: boolean = true) {
-        state.playlistQueue.push(async () => {
-          // Load and parse playlist
-          const filePath = path.join(state.playlistWatcher.getFolder() || '', filename);
-          let playlist: GamePlaylist | undefined;
-          try {
-            const data = await PlaylistFile.readFile(filePath, error => log({ source: 'Playlist', content: `Error while parsing playlist "${filePath}". ${error}` }));
-            playlist = {
-              ...data,
-              filename,
-            };
-          } catch (error) {
-            log({ source: 'Playlist', content: `Failed to load playlist "${filePath}". ${error}` });
-          }
-          // Add or update playlist
-          if (playlist) {
-            const index = state.playlists.findIndex(p => p.filename === filename);
-            if (index >= 0) {
-              state.playlists[index] = playlist;
-              // Clear all query caches that uses this playlist
-              const hashes = Object.keys(state.queries);
-              for (let hash of hashes) {
-                const cache = state.queries[hash];
-                if (cache.query.playlistId === playlist.filename) {
-                  delete state.queries[hash]; // Clear query from cache
-                }
-              }
-            } else {
-              state.playlists.push(playlist);
-            }
-            if (doBroadcast) {
-              broadcast<PlaylistUpdateData>({
-                id: '',
-                type: BackOut.PLAYLIST_UPDATE,
-                data: playlist,
-              });
-            }
-          }
-        });
-      }
-    });
-    const playlistFolder = path.join(state.config.flashpointPath, state.config.playlistFolderPath);
-    fs.stat(playlistFolder, (error) => {
-      if (!error) { state.playlistWatcher.watch(playlistFolder); }
-      else {
+    }
+  });
+  const playlistFolder = path.join(state.config.flashpointPath, state.config.playlistFolderPath);
+  fs.stat(playlistFolder, (error) => {
+    if (!error) { state.playlistWatcher.watch(playlistFolder); }
+    else {
+      log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+      if (error.code === 'ENOENT') {
+        log({ source: 'Back', content: `Failed to watch playlist folder. Folder does not exist (Path: "${playlistFolder}")` });
+      } else {
         log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
-        if (error.code === 'ENOENT') {
-          log({ source: 'Back', content: `Failed to watch playlist folder. Folder does not exist (Path: "${playlistFolder}")` });
-        } else {
-          log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
-        }
-
-        state.init[BackInit.PLAYLISTS] = true;
-        state.initEmitter.emit(BackInit.PLAYLISTS);
       }
+
+      state.init[BackInit.PLAYLISTS] = true;
+      state.initEmitter.emit(BackInit.PLAYLISTS);
+    }
+  });
+
+  // Init Game manager
+  state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
+  .catch(error => { console.error(error); })
+  .finally(() => {
+    state.init[BackInit.GAMES] = true;
+    state.initEmitter.emit(BackInit.GAMES);
+  });
+
+  // Load Exec Mappings
+  loadExecMappingsFile(state.config.flashpointPath, content => log({ source: 'Launcher', content }))
+  .then(data => {
+    state.execMappings = data;
+  })
+  .catch(error => {
+    log({
+      source: 'Launcher',
+      content: `Failed to load exec mappings file. Ignore if on Windows. - ${error}`,
     });
+  })
+  .finally(() => {
+    state.init[BackInit.EXEC] = true;
+    state.initEmitter.emit(BackInit.EXEC);
+  });
 
-    // Init Game manager
-    state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
-    .catch(error => { console.error(error); })
-    .finally(() => {
-      state.init[BackInit.GAMES] = true;
-      state.initEmitter.emit(BackInit.GAMES);
-    });
+  // Find the first available port in the range
+  const serverPort = await new Promise<number>(resolve => {
+    let port: number = state.config.backPortMin - 1;
+    let server: WebSocket.Server | undefined;
+    tryListen();
 
-    // Find the first available port in the range
-    const serverPort = await new Promise<number>(resolve => {
-      let port: number = state.config.backPortMin - 1;
-      let server: WebSocket.Server | undefined;
-      tryListen();
-
-      function tryListen() {
-        if (server) {
-          server.off('error', onError);
-          server.off('listening', onceListening);
-        }
-
-        if (port++ < state.config.backPortMax) {
-          server = new WebSocket.Server({
-            host: 'localhost',
-            port: port,
-          });
-          server.on('error', onError);
-          server.on('listening', onceListening);
-        } else { done(false); }
+    function tryListen() {
+      if (server) {
+        server.off('error', onError);
+        server.off('listening', onceListening);
       }
 
-      function onError(error: Error): void {
-        if ((error as any).code === 'EADDRINUSE') {
-          tryListen();
-        } else {
-          done(false);
-        }
-      }
-      function onceListening() {
-        done(true);
-      }
-      function done(success: boolean) {
-        if (server) {
-          server.off('error', onError);
-          server.off('listening', onceListening);
-          state.server = server;
-          state.server.on('connection', onConnect);
-        }
-        resolve(success ? port : -1);
-      }
-    });
-
-    // Find the first available port in the range
-    state.imageServerPort = await new Promise(resolve => {
-      let port = state.config.imagesPortMin - 1;
-      state.fileServer.once('listening', onceListening);
-      state.fileServer.on('error', onError);
-      tryListen();
-
-      function onceListening() { done(true); }
-      function onError(error: Error) {
-        if ((error as any).code === 'EADDRINUSE') {
-          tryListen();
-        } else {
-          done(false);
-        }
-      }
-      function tryListen() {
-        if (port < state.config.imagesPortMax) {
-          port += 1;
-          state.fileServer.listen(port, 'localhost');
-        } else {
-          done(false);
-        }
-      }
-      function done(success: boolean) {
-        state.fileServer.off('listening', onceListening);
-        state.fileServer.off('error', onError);
-        resolve(success ? port : -1);
-      }
-    });
-
-    // Exit if it failed to open the server
-    if (serverPort < 0) {
-      setImmediate(exit);
+      if (port++ < state.config.backPortMax) {
+        server = new WebSocket.Server({
+          host: 'localhost',
+          port: port,
+        });
+        server.on('error', onError);
+        server.on('listening', onceListening);
+      } else { done(false); }
     }
 
-    // Respond
-    send(serverPort);
+    function onError(error: Error): void {
+      if ((error as any).code === 'EADDRINUSE') {
+        tryListen();
+      } else {
+        done(false);
+      }
+    }
+    function onceListening() {
+      done(true);
+    }
+    function done(success: boolean) {
+      if (server) {
+        server.off('error', onError);
+        server.off('listening', onceListening);
+        state.server = server;
+        state.server.on('connection', onConnect);
+      }
+      resolve(success ? port : -1);
+    }
+  });
+
+  // Find the first available port in the range
+  state.imageServerPort = await new Promise(resolve => {
+    let port = state.config.imagesPortMin - 1;
+    state.fileServer.once('listening', onceListening);
+    state.fileServer.on('error', onError);
+    tryListen();
+
+    function onceListening() { done(true); }
+    function onError(error: Error) {
+      if ((error as any).code === 'EADDRINUSE') {
+        tryListen();
+      } else {
+        done(false);
+      }
+    }
+    function tryListen() {
+      if (port < state.config.imagesPortMax) {
+        port += 1;
+        state.fileServer.listen(port, 'localhost');
+      } else {
+        done(false);
+      }
+    }
+    function done(success: boolean) {
+      state.fileServer.off('listening', onceListening);
+      state.fileServer.off('error', onError);
+      resolve(success ? port : -1);
+    }
+  });
+
+  // Exit if it failed to open the server
+  if (serverPort < 0) {
+    setImmediate(exit);
   }
+
+  // Respond
+  send(serverPort);
 
   function runService(id: string, name: string, info: IBackProcessInfo, detached: boolean): ManagedChildProcess {
     const proc = new ManagedChildProcess(
@@ -582,6 +608,12 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       if (state.services.server) { services.push(procToService(state.services.server)); }
       if (state.services.redirector) { services.push(procToService(state.services.redirector)); }
 
+      state.languageContainer = createContainer(
+        state.preferences.currentLanguage,
+        state.countryCode,
+        state.preferences.fallbackLanguage
+      );
+
       respond<GetRendererInitDataResponse>(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
@@ -592,10 +624,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           log: state.log,
           services: services,
           languages: state.languages,
-          language: createContainer(
-            state.preferences.currentLanguage,
-            state.countryCode,
-            state.preferences.fallbackLanguage),
+          language: state.languageContainer,
           themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
           playlists: state.init[BackInit.PLAYLISTS] ? state.playlists : undefined,
           platformNames: state.gameManager.platforms.map(p => p.name),
@@ -635,18 +664,19 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       });
     } break;
 
-    case BackIn.GET_LIBRARIES: {
-      const platforms = state.gameManager.platforms;
-      const libraries: string[] = [];
-      for (let i = 0; i < platforms.length; i++) {
-        const library = platforms[i].library;
-        if (libraries.indexOf(library) === -1) { libraries.push(library); }
-      }
+    case BackIn.GET_EXEC: {
+      respond<GetExecData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: state.execMappings,
+      });
+    } break;
 
+    case BackIn.GET_LIBRARIES: {
       respond<BrowseViewAllData>(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
-        data: { libraries: libraries, },
+        data: { libraries: getLibraries() },
       });
     } break;
 
@@ -657,10 +687,13 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       for (let i = 0; i < platforms.length; i++) {
         const addApp = platforms[i].collection.additionalApplications.find(item => item.id === reqData.id);
         if (addApp) {
+          const game = findGame(addApp.gameId);
           GameLauncher.launchAdditionalApplication({
             addApp,
             fpPath: path.resolve(state.config.flashpointPath),
-            useWine: state.preferences.useWine,
+            native: game && state.config.nativePlatforms.some(p => p === game.platform) || false,
+            execMappings: state.execMappings,
+            lang: state.languageContainer,
             log: log,
             openDialog: openDialog(event.target),
             openExternal: openExternal(event.target),
@@ -687,7 +720,9 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           game,
           addApps,
           fpPath: path.resolve(state.config.flashpointPath),
-          useWine: state.preferences.useWine,
+          native: state.config.nativePlatforms.some(p => p === game.platform),
+          execMappings: state.execMappings,
+          lang: state.languageContainer,
           log,
           openDialog: openDialog(event.target),
           openExternal: openExternal(event.target),
@@ -1055,13 +1090,15 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       if (dif) {
         if ((typeof dif.currentLanguage  !== 'undefined' && dif.currentLanguage  !== state.preferences.currentLanguage) ||
             (typeof dif.fallbackLanguage !== 'undefined' && dif.fallbackLanguage !== state.preferences.fallbackLanguage)) {
+          state.languageContainer = createContainer(
+            (typeof dif.currentLanguage !== 'undefined') ? dif.currentLanguage : state.preferences.currentLanguage,
+            state.countryCode,
+            (typeof dif.fallbackLanguage !== 'undefined') ? dif.fallbackLanguage : state.preferences.fallbackLanguage
+          );
           broadcast<LanguageChangeData>({
             id: '',
             type: BackOut.LANGUAGE_CHANGE,
-            data: createContainer(
-              (typeof dif.currentLanguage !== 'undefined') ? dif.currentLanguage : state.preferences.currentLanguage,
-              state.countryCode,
-              (typeof dif.fallbackLanguage !== 'undefined') ? dif.fallbackLanguage : state.preferences.fallbackLanguage)
+            data: state.languageContainer,
           });
         }
 
@@ -1186,6 +1223,85 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.GENERIC_RESPONSE,
       });
     } break;
+
+    case BackIn.IMPORT_CURATION: {
+      const reqData: ImportCurationData = req.data;
+
+      let error: any | undefined;
+      try {
+        await importCuration({
+          curation: reqData.curation,
+          games: state.gameManager,
+          log: reqData.log ? log : undefined,
+          date: reqData.date,
+          saveCuration: reqData.saveCuration,
+          fpPath: state.config.flashpointPath,
+          imageFolderPath: state.config.imageFolderPath,
+        });
+      } catch (e) {
+        error = e;
+      }
+
+      respond<ImportCurationResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: { error },
+      });
+    }
+
+    case BackIn.LAUNCH_CURATION: {
+      const reqData: LaunchCurationData = req.data;
+
+      try {
+        await launchCuration(reqData.curation, {
+          fpPath: path.resolve(state.config.flashpointPath),
+          native: state.config.nativePlatforms.some(p => p === reqData.curation.meta.platform),
+          execMappings: state.execMappings,
+          lang: state.languageContainer,
+          log,
+          openDialog: openDialog(event.target),
+          openExternal: openExternal(event.target),
+        });
+      } catch (e) {
+        log({
+          source: 'Launcher',
+          content: e,
+        });
+      }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: undefined,
+      });
+    }
+
+    case BackIn.LAUNCH_CURATION_ADDAPP: {
+      const reqData: LaunchCurationAddAppData = req.data;
+
+      try {
+        await launchAddAppCuration(reqData.curationKey, reqData.curation, {
+          fpPath: path.resolve(state.config.flashpointPath),
+          native: state.config.nativePlatforms.some(p => p === reqData.platform) || false,
+          execMappings: state.execMappings,
+          lang: state.languageContainer,
+          log,
+          openDialog: openDialog(event.target),
+          openExternal: openExternal(event.target),
+        });
+      } catch (e) {
+        log({
+          source: 'Launcher',
+          content: e,
+        });
+      }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: undefined,
+      });
+    }
 
     case BackIn.QUIT: {
       if (state.serviceInfo) {
@@ -1539,7 +1655,7 @@ function queryGames(query: BackQuery): BackQueryChache {
       id: g.id,
       title: g.title,
       platform: g.platform,
-      genre: g.genre,
+      genre: g.tags,
       developer: g.developer,
       publisher: g.publisher,
     };
@@ -1629,4 +1745,14 @@ function countGames(): number {
     count += platforms[i].collection.games.length;
   }
   return count;
+}
+
+function getLibraries(): string[] {
+  const platforms = state.gameManager.platforms;
+  const libraries: string[] = [];
+  for (let i = 0; i < platforms.length; i++) {
+    const library = platforms[i].library;
+    if (libraries.indexOf(library) === -1) { libraries.push(library); }
+  }
+  return libraries;
 }

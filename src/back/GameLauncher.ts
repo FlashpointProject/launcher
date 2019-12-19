@@ -3,27 +3,30 @@ import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
+import { ExecMapping } from '../shared/interfaces';
+import { LangContainer } from '../shared/lang';
 import { ILogPreEntry } from '../shared/Log/interface';
-import { padStart, stringifyArray } from '../shared/Util';
+import { fixSlashes, padStart, stringifyArray } from '../shared/Util';
 
 type LogFunc = (entry: ILogPreEntry) => void;
 type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
 type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
 
-type LaunchAddAppOpts = {
+export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: IAdditionalApplicationInfo;
-  fpPath: string;
-  useWine: boolean;
-  log: LogFunc;
-  openDialog: OpenDialogFunc;
-  openExternal: OpenExternalFunc;
+  native: boolean;
 }
 
-type LaunchGameOpts = {
+export type LaunchGameOpts = LaunchBaseOpts & {
   game: IGameInfo;
   addApps?: IAdditionalApplicationInfo[];
+  native: boolean;
+}
+
+type LaunchBaseOpts = {
   fpPath: string;
-  useWine: boolean;
+  execMappings: ExecMapping[];
+  lang: LangContainer;
   log: LogFunc;
   openDialog: OpenDialogFunc;
   openExternal: OpenExternalFunc;
@@ -42,6 +45,7 @@ export namespace GameLauncher {
           message: opts.addApp.launchCommand,
           buttons: ['Ok'],
         }).then();
+
       case ':extras:':
         const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.addApp.launchCommand)));
         return opts.openExternal(folderPath, { activate: true })
@@ -56,21 +60,25 @@ export namespace GameLauncher {
             });
           }
         });
+
       default:
-        const appPath: string = fixSlashes(path.join(opts.fpPath, opts.addApp.applicationPath));
+        const appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
         const appArgs: string = opts.addApp.launchCommand;
         const proc = launch(
-          createCommand(appPath, appArgs, opts.useWine),
-          { env: getEnvironment(opts.fpPath, opts.useWine) },
+          createCommand(appPath, appArgs),
+          { env: getEnvironment(opts.fpPath) },
           opts.log
         );
         opts.log({
           source: logSource,
           content: `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,
         });
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
           if (proc.killed) { resolve(); }
-          else { proc.once('exit', () => { resolve(); }); }
+          else {
+            proc.once('exit', () => { resolve(); });
+            proc.once('error', error => { reject(error); });
+          }
         });
     }
   }
@@ -86,7 +94,9 @@ export namespace GameLauncher {
     if (opts.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
         fpPath: opts.fpPath,
-        useWine: opts.useWine,
+        native: opts.native,
+        execMappings: opts.execMappings,
+        lang: opts.lang,
         log: opts.log,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
@@ -99,10 +109,10 @@ export namespace GameLauncher {
       }
     }
     // Launch game
-    const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game)));
+    const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
     const gameArgs: string = opts.game.launchCommand;
-    const command: string = createCommand(gamePath, gameArgs, opts.useWine);
-    const proc = launch(command, { env: getEnvironment(opts.fpPath, opts.useWine) }, opts.log);
+    const command: string = createCommand(gamePath, gameArgs);
+    const proc = launch(command, { env: getEnvironment(opts.fpPath) }, opts.log);
     opts.log({
       source: logSource,
       content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
@@ -133,59 +143,61 @@ export namespace GameLauncher {
    * The paths provided in the Game/AdditionalApplication XMLs are only accurate
    * on Windows. So we replace them with other hard-coded paths here.
    */
-  function getApplicationPath(game: IGameInfo): string {
-    // @TODO Let the user change these paths from a file or something (services.json?).
-    if (process.platform === 'linux')  {
-      if (game.platform === 'Java') {
-        return 'FPSoftware/startJava.sh';
-      }
-      if (game.platform === 'Unity') {
-        return 'FPSoftware/startUnity.sh';
+  function getApplicationPath(filePath: string, execMappings: ExecMapping[], native: boolean): string {
+    const platform = process.platform;
+
+    // Bat files won't work on Wine, force a .sh file on non-Windows platforms instead. Sh File may not exist.
+    if (platform !== 'win32' && filePath.endsWith('.bat')) {
+      return filePath.substr(0, filePath.length - 4) + '.sh';
+    }
+
+    // Skip mapping if on Windows or Native application was not requested
+    if (platform !== 'win32' && native) {
+      for (let i = 0; i < execMappings.length; i++) {
+        const mapping = execMappings[i];
+        if (mapping.win32 === filePath) {
+          switch (platform) {
+            case 'linux':
+              return mapping.linux || mapping.win32;
+            case 'darwin':
+              return mapping.darwin || mapping.win32;
+            default:
+              return filePath;
+          }
+        }
       }
     }
-    return game.applicationPath;
+
+    // No Native exec found, return Windows/XML application path
+    return filePath;
   }
 
-  /**
-   * Get an object containing the environment variables to use for the game / additional application.
-   * @param useWine If the application is launched using Wine.
-   */
-  function getEnvironment(fpPath: string, useWine: boolean): NodeJS.ProcessEnv {
+  /** Get an object containing the environment variables to use for the game / additional application. */
+  function getEnvironment(fpPath: string): NodeJS.ProcessEnv {
     // When using Linux, use the proxy created in BackgroundServices.ts
     // This is only needed on Linux because the proxy is installed on system
     // level entire system when using Windows.
     return {
       // Add proxy env vars if it's running on linux
       ...((process.platform === 'linux') ? { http_proxy: 'http://localhost:22500/' } : null),
-      // Add Wine related env vars if it's running through Wine
-      ...(useWine ? {
-        WINEPREFIX: path.join(fpPath, 'FPSoftware/wineprefix'),
-        WINEARCH: 'win32',
-        WINEDEBUG: '-all',
-      } : null),
       // Copy this processes environment variables
       ...process.env,
     };
   }
 
-  function createCommand(filename: string, args: string, useWine: boolean): string {
+  function createCommand(filename: string, args: string): string {
     // Escape filename and args
     let escFilename: string = filename;
     let escArgs: string = args;
-    if (useWine) {
-      escFilename = 'wine';
-      escArgs = `start /unix "${filename}" "${args}"`;
-    } else {
-      switch (process.platform) {
-        case 'win32':
-          escFilename = filename;
-          escArgs = escapeWin(args);
-          break;
-        case 'linux':
-          escFilename = filename;
-          escArgs = escapeLinuxArgs(args);
-          break;
-      }
+    switch (process.platform) {
+      case 'win32':
+        escFilename = filename;
+        escArgs = escapeWin(args);
+        break;
+      case 'linux':
+        escFilename = filename;
+        escArgs = escapeLinuxArgs(args);
+        break;
     }
     // Return
     return `"${escFilename}" ${escArgs}`;
@@ -221,11 +233,6 @@ function doStuffs(emitter: EventEmitter, events: string[], callback: (event: str
       callback(e, args);
     });
   }
-}
-
-/** Replace all back-slashes with forward slashes. */
-function fixSlashes(str: string): string {
-  return str.replace(/\\/g, '/');
 }
 
 /**

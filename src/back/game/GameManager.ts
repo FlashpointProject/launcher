@@ -85,31 +85,12 @@ export class GameManager {
     };
   }
 
-  /**
-   * Find and return a game with any owned additional application
-   * @param request Fetch game request to complete
-   * @returns ServerResponse with FetchGameResponse result if successful
-   */
-  public findGame(request: FetchGameRequest): ServerResponse {
-    // Find the game requested
+  /** (Similar to Array.find(), but it looks through all platforms) */
+  public findGame(predicate: (this: void, game: IGameInfo, index: number) => boolean): IGameInfo | undefined {
     for (let i = 0; i < this.platforms.length; i++) {
-      const game = this.platforms[i].collection.games.find(game => game.id === request.id);
-      if (game) {
-        // Game found, find attached add apps
-        const addApps = this.findAddAppsForGame(request.id);
-        // Return a successful response
-        const res: FetchGameResponse = {
-          game: game,
-          addApps: addApps
-        };
-        return {
-          success: true,
-          result: res
-        };
-      }
+      const game = this.platforms[i].collection.games.find(predicate);
+      if (game) { return game; }
     }
-    // No game found, return failure
-    return createFailureResponse(new Error(`No game found with the id ${request.id}`));
   }
 
   public searchGames(request: SearchRequest, preferences: IAppPreferencesData): ServerResponse {

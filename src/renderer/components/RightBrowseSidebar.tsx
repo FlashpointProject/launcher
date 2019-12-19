@@ -6,11 +6,10 @@ import { LOGOS, SCREENSHOTS } from '../../shared/constants';
 import { AdditionalApplicationInfo } from '../../shared/game/AdditionalApplicationInfo';
 import { wrapSearchTerm } from '../../shared/game/GameFilter';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../shared/game/interfaces';
-import { GamePlaylistEntry, PickType } from '../../shared/interfaces';
+import { GamePlaylistEntry, GamePropSuggestions, PickType } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
-import { SUGGESTIONS } from '../interfaces';
 import { getGameImagePath, getGameImageURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { uuid } from '../util/uuid';
@@ -47,7 +46,7 @@ type OwnProps = {
   /** If the selected game is a new game being created */
   isNewGame: boolean;
   /** ... */
-  suggestions?: SUGGESTIONS;
+  suggestions: Partial<GamePropSuggestions>;
 
   onEditClick: () => void;
   onDiscardClick: () => void;
@@ -71,8 +70,9 @@ export interface RightBrowseSidebar {
 export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps, RightBrowseSidebarState> {
   // Bound "on change" callbacks for game fields
   onTitleChange               = this.wrapOnTextChange((game, text) => { game.title               = text; });
+  onAlternateTitlesChange     = this.wrapOnTextChange((game, text) => { game.alternateTitles     = text; });
   onDeveloperChange           = this.wrapOnTextChange((game, text) => { game.developer           = text; });
-  onGenreChange               = this.wrapOnTextChange((game, text) => { game.genre               = text; });
+  onTagsChange                = this.wrapOnTextChange((game, text) => { game.tags                = text; });
   onSeriesChange              = this.wrapOnTextChange((game, text) => { game.series              = text; });
   onSourceChange              = this.wrapOnTextChange((game, text) => { game.source              = text; });
   onPublisherChange           = this.wrapOnTextChange((game, text) => { game.publisher           = text; });
@@ -91,7 +91,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   // Bound "on click" callbacks for game fields
   onTitleClick                = this.wrapOnTextClick('title');
   onDeveloperClick            = this.wrapOnTextClick('developer');
-  onGenreClick                = this.wrapOnTextClick('genre');
+  onTagsClick                 = this.wrapOnTextClick('tags');
   onSeriesClick               = this.wrapOnTextClick('series');
   onSourceClick               = this.wrapOnTextClick('source');
   onPublisherClick            = this.wrapOnTextClick('publisher');
@@ -236,16 +236,26 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             <>
               <div className='browse-right-sidebar__section'>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.alternateTitles}: </p>
+                  <InputField
+                    text={game.alternateTitles}
+                    placeholder={strings.noAlternateTitles}
+                    className='browse-right-sidebar__searchable'
+                    onChange={this.onAlternateTitlesChange}
+                    editable={editable}
+                    onKeyDown={this.onInputKeyDown} />
+                </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
                   <p>{strings.tags}: </p>
                   <DropdownInputField
-                    text={game.genre}
+                    text={game.tags}
                     placeholder={strings.noTags}
                     className='browse-right-sidebar__searchable'
-                    onChange={this.onGenreChange}
+                    onChange={this.onTagsChange}
                     editable={editable}
-                    items={suggestions && filterSuggestions(suggestions.genre) || []}
-                    onItemSelect={text => { game.genre = text; this.forceUpdate(); }}
-                    onClick={this.onGenreClick}
+                    items={suggestions && filterSuggestions(suggestions.tags) || []}
+                    onItemSelect={text => { game.tags = text; this.forceUpdate(); }}
+                    onClick={this.onTagsClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -496,19 +506,19 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <div className='browse-right-sidebar__row__screenshot__placeholder'>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__back'>
                       <GameImageSplit
-                        type='thumbnail'
                         text={strings.thumbnail}
                         imgSrc={this.state.thumbnailExists ? getGameImageURL(LOGOS, game.id) : undefined}
+                        showHeaders={true}
                         onAddClick={this.onAddThumbnailDialog}
                         onRemoveClick={this.onRemoveThumbnailClick}
-                        onDrop={this.onImageDrop} />
+                        onDrop={this.onThumbnailDrop} />
                       <GameImageSplit
-                        type='screenshot'
                         text={strings.screenshot}
                         imgSrc={this.state.screenshotExists ? screenshotSrc : undefined}
+                        showHeaders={true}
                         onAddClick={this.onAddScreenshotDialog}
                         onRemoveClick={this.onRemoveScreenshotClick}
-                        onDrop={this.onImageDrop} />
+                        onDrop={this.onScreenshotDrop} />
                     </div>
                     <div className='browse-right-sidebar__row__screenshot__placeholder__front'>
                       <p>{strings.dropImageHere}</p>
@@ -681,48 +691,50 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     }
   }
 
-  onImageDrop = (event: React.DragEvent, type: string): void => {
-    event.preventDefault();
-    const files = copyArrayLike(event.dataTransfer.files);
-    const { currentGame } = this.props;
-    if (!currentGame) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
-    if (files.length > 1) { // (Multiple files)
-      // @TODO Load both images and send them to the server (index 0 is logo, index 1 is screenshot)
-      saveImage(files[0], LOGOS, currentGame.id);
-      saveImage(files[1], SCREENSHOTS, currentGame.id);
-    } else { // (Single file)
-      let folder = '';
-      switch (type) {
-        case 'thumbnail':  folder = LOGOS;       break;
-        case 'screenshot': folder = SCREENSHOTS; break;
-        default:
-          console.warn('No "add-single-file" case for the "text" of the GameImageSplit the file was dropped on.');
-          return; // Abort
+  onThumbnailDrop = this.imageDrop(LOGOS);
+  onScreenshotDrop = this.imageDrop(SCREENSHOTS);
+
+  imageDrop(type: typeof LOGOS | typeof SCREENSHOTS): (event: React.DragEvent) => void {
+    return event => {
+      event.preventDefault();
+      const files = copyArrayLike(event.dataTransfer.files);
+      const { currentGame } = this.props;
+      if (!currentGame) { throw new Error('Can not add a new image, "currentGame" is missing.'); }
+      if (files.length > 1) { // (Multiple files)
+        saveImage(files[0], LOGOS, currentGame.id);
+        saveImage(files[1], SCREENSHOTS, currentGame.id);
+      } else { // (Single file)
+        saveImage(files[0], type, currentGame.id);
       }
 
-      saveImage(files[0], folder, currentGame.id);
-    }
-
-    function saveImage(file: Blob, folder: string, id: string) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result && typeof reader.result === 'object') {
-          window.External.back.send<any, SaveImageData>(BackIn.SAVE_IMAGE, {
-            folder: folder,
-            id: id,
-            content: Buffer.from(reader.result).toString('base64'),
-          });
+      function saveImage(file: Blob, folder: string, id: string) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (reader.result && typeof reader.result === 'object') {
+            window.External.back.send<any, SaveImageData>(BackIn.SAVE_IMAGE, {
+              folder: folder,
+              id: id,
+              content: Buffer.from(reader.result).toString('base64'),
+            });
+          }
+        };
+        reader.readAsArrayBuffer(file.slice(0, file.size - 1));
+      }
+      function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
+        const array: T[] = [];
+        for (let key in arrayLike) {
+          array[key] = arrayLike[key];
         }
-      };
-      reader.readAsArrayBuffer(file.slice(0, file.size - 1));
-    }
+        return array;
+      }
+    };
   }
 
   onDeleteGameClick = (): void => {
     this.props.onDeleteSelectedGame();
   }
 
-  onAddAppLaunch = (addAppId: string): void => {
+  onAddAppLaunch(addAppId: string): void {
     window.External.back.send<any, LaunchAddAppData>(BackIn.LAUNCH_ADDAPP, { id: addAppId });
   }
 
@@ -814,17 +826,4 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   const menu = remote.Menu.buildFromTemplate(template);
   menu.popup({ window: remote.getCurrentWindow() });
   return menu;
-}
-
-/**
- * Create a new array and populate it with the properties and values from another array or array like object.
- * @param arrayLike Array or array like object to copy properties and values from.
- * @returns New array with the same properties and values as the argument.
- */
-function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
-  const array: T[] = [];
-  for (let key in arrayLike) {
-    array[key] = arrayLike[key];
-  }
-  return array;
 }

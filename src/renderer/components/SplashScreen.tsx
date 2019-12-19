@@ -3,13 +3,14 @@ import * as React from 'react';
 export type SplashScreenProps = {
   gamesLoaded: boolean;
   playlistsLoaded: boolean;
-  creditsLoaded: boolean;
   upgradesLoaded: boolean;
+  creditsLoaded: boolean;
+  miscLoaded: boolean;
 }
 
 export function SplashScreen(props: SplashScreenProps) {
-  const { gamesLoaded, playlistsLoaded, creditsLoaded, upgradesLoaded } = props;
-  const extraClass = (gamesLoaded && playlistsLoaded && creditsLoaded && upgradesLoaded)
+  const { gamesLoaded, playlistsLoaded, upgradesLoaded, creditsLoaded, miscLoaded } = props;
+  const extraClass = (gamesLoaded && playlistsLoaded && upgradesLoaded && creditsLoaded && miscLoaded)
     ? ' splash-screen--fade-out'
     : '';
   return (
@@ -31,14 +32,19 @@ export function SplashScreen(props: SplashScreenProps) {
             Playlists
           </div>
         : undefined}
+        {!upgradesLoaded ?
+          <div className='splash-screen__status'>
+            Upgrades
+          </div>
+        : undefined}
         {!creditsLoaded ?
           <div className='splash-screen__status'>
             Credits
           </div>
         : undefined}
-        {!upgradesLoaded ?
+        {!miscLoaded ?
           <div className='splash-screen__status'>
-              Upgrades
+            Misc
           </div>
         : undefined}
       </div>

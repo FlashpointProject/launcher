@@ -1,21 +1,27 @@
 import { remote } from 'electron';
+import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { wrapSearchTerm } from '../../../shared/game/GameFilter';
+import { IGameInfo } from '../../../shared/game/interfaces';
 import { GamePlaylist } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
-import { PlatformInfo } from '../../../shared/platform/interfaces';
+import { getUpgradeString } from '../../../shared/upgrade/util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
-import { CentralState, UpgradeStageState } from '../../interfaces';
+import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
+import { GameLauncher } from '../../GameLauncher';
+import { CentralState } from '../../interfaces';
 import { Paths } from '../../Paths';
 import { UpgradeStage } from '../../upgrade/types';
 import { joinLibraryRoute } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
+import { AutoProgressComponent } from '../ProgressComponents';
 import { RandomGames } from '../RandomGames';
+import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
 
 const ARCADE = 'Arcade';
@@ -30,9 +36,11 @@ type OwnProps = {
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
-  onDownloadTechUpgradeClick: () => void;
-  /** Called when the "download screenshots" button is clicked. */
-  onDownloadScreenshotsUpgradeClick: () => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
+  /** Whether an update is available to the Launcher */
+  updateInfo: UpdateInfo | undefined;
+  /** Callback to initiate the update */
+  autoUpdater: AppUpdater;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -41,218 +49,281 @@ export interface HomePage {
   context: LangContainer;
 }
 
-/** Page shown as soon as the application starts up. */
-export class HomePage extends React.Component<HomePageProps> {
-  /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
-  logoDelay = (Date.now() * -0.001) + 's';
+const updateProgressKey = 'home-page__update-progress';
+export const homePageProgressKey = 'home-page__upgrade-progress';
 
-  render() {
-    const strings = this.context.home;
-    const {
-      onDownloadTechUpgradeClick,
-      onDownloadScreenshotsUpgradeClick,
-      central: {
-        upgrade: {
-          techState,
-          screenshotsState
-        }
-      },
-      preferencesData: {
-        browsePageShowExtreme
-      }
-    } = this.props;
-    const upgradeData = this.props.central.upgrade.data;
-    const { showBrokenGames } = window.External.config.data;
-    const { disableExtremeGames } = window.External.config.data;
-    // Grabs a dynamic list of supported platforms and pre-formats them as Links
-    const numOfPlatforms = this.props.platforms.length;
-    const formatPlatforms = this.props.platforms.map((platform, index) =>
+export function HomePage(props: HomePageProps) {
+  const { onDownloadUpgradeClick, preferencesData: { browsePageShowExtreme } } = props;
+
+  /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
+  const logoDelay = React.useMemo(() => (Date.now() * -0.001) + 's', []);
+
+  const allStrings = React.useContext(LangContext);
+  const strings = allStrings.home;
+  const dialogStrings = allStrings.dialog;
+  const upgradeStages = props.central.upgrades;
+
+  const { showBrokenGames } = window.External.config.data;
+  const { disableExtremeGames } = window.External.config.data;
+
+  /** Whether the Update Available button has been pressed */
+  const [updateStarted, setUpdateStarted] = React.useState(false);
+  const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
+
+  const onLaunchGame = React.useCallback((game: IGameInfo) => {
+    GameLauncher.launchGame(game, dialogStrings);
+  }, [dialogStrings]);
+
+  const onHelpClick = React.useCallback(() => {
+    remote.shell.openItem(path.join(window.External.config.fullFlashpointPath, 'readme.txt'));
+  }, [window.External.config.fullFlashpointPath]);
+
+  const onHallOfFameClick = React.useCallback(() => {
+    const playlist = props.playlists.find(p => p.title === 'Flashpoint Hall of Fame');
+    if (playlist) {
+      props.onSelectPlaylist(ARCADE, playlist.filename);
+      props.clearSearch();
+    }
+  }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
+
+  const onFavoriteClick = React.useCallback(() => {
+    const playlist = props.playlists.find(p => p.title === '*Favorites*');
+    if (playlist) {
+      props.onSelectPlaylist(ARCADE, playlist.filename);
+      props.clearSearch();
+    }
+  }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
+
+  const onAllGamesClick = React.useCallback(() => {
+    props.onSelectPlaylist(ARCADE, undefined);
+    props.clearSearch();
+  }, [props.onSelectPlaylist, props.clearSearch]);
+
+  const onAllAnimationsClick = React.useCallback(() => {
+    props.onSelectPlaylist(THEATRE, undefined);
+    props.clearSearch();
+  }, [props.onSelectPlaylist, props.clearSearch]);
+
+  const platformList = React.useMemo(() => {
+    const lastIndex = props.platforms.length - 1;
+    return props.platforms.map((platform, index) =>
       <span key={index}>
         <Link
           to={joinLibraryRoute(ARCADE)}
-          onClick={this.onPlatformClick(platform)}>
+          onClick={() => {
+            props.onSearch('!' + wrapSearchTerm(platform));
+            props.onSelectPlaylist(ARCADE, undefined);
+          }}>
           {platform}
         </Link>
-        { (index < numOfPlatforms - 1) ? ', ' : undefined }
+        { (index < lastIndex) ? ', ' : undefined }
       </span>
     );
-    // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-    const height: number = 140;
-    const width: number = (height * 0.666) | 0;
-    return (
-      <div className='home-page simple-scroll'>
-        <div className='home-page__inner'>
-          {/* Logo */}
-          <div className='home-page__logo fp-logo-box'>
-            <div
-              className='fp-logo fp-logo--animated'
-              style={{ animationDelay: this.logoDelay }} />
+  }, [props.platforms]);
+
+  // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
+  const height: number = 140;
+  const width: number = (height * 0.666) | 0;
+
+  // Render all owned ProgressData as components
+  const updateProgressComponent = React.useMemo(() => {
+    const progressArray = progressState[updateProgressKey];
+    if (progressArray) {
+      return progressArray.map((data, index) => {
+        return (
+          <AutoProgressComponent
+            key={index}
+            progressData={data}
+            wrapperClass={'home-page__progress-wrapper'} />
+        );
+      });
+    }
+  }, [progressState[updateProgressKey]]);
+
+  /** Render for each box */
+
+  const renderUpdate = React.useMemo(() => {
+    if (window.External.misc.installed) {
+      return (
+        <div className='home-page__box'>
+          <div className='home-page__box-head'>{strings.updateHeader}</div>
+          <ul className='home-page__box-body home-page__update-box'>
+            {strings.currentVersion} - {remote.app.getVersion()}
+            <br/>
+            {props.updateInfo != undefined ?
+            <>
+              <p>
+                {strings.nextVersion} - {props.updateInfo.version}
+              </p>
+              {updateStarted ? undefined :
+                <SimpleButton
+                  value={strings.updateAvailable}
+                  onClick={() => {
+                    if (props.updateInfo) {
+                      const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
+                      if (updateNow) {
+                        const updateProgressState = newProgress(updateProgressKey, progressDispatch);
+                        ProgressDispatch.setText(updateProgressState, strings.downloadingUpdate);
+                        props.autoUpdater.on('download-progress', (progress) => {
+                          ProgressDispatch.setPercentDone(updateProgressState, Math.floor(progress.percent));
+                        });
+                        props.autoUpdater.once('update-downloaded', (info) => {
+                          ProgressDispatch.finished(updateProgressState);
+                        });
+                        props.autoUpdater.downloadUpdate();
+                        setUpdateStarted(true);
+                      }
+                    }
+                  }}>
+                </SimpleButton>
+              }
+              { updateProgressComponent }
+            </>
+            : strings.upToDate}
+          </ul>
+        </div>
+      );
+    } else {
+      return (
+        <></>
+      );
+    }
+  }, [strings, props.autoUpdater, props.updateInfo, updateStarted, setUpdateStarted, updateProgressComponent]);
+
+  const renderQuickStart = React.useMemo(() =>
+    <div className='home-page__box'>
+      <div className='home-page__box-head'>{strings.quickStartHeader}</div>
+      <ul className='home-page__box-body'>
+        <QuickStartItem icon='badge'>
+          {formatString(strings.hallOfFameInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={onHallOfFameClick}>{strings.hallOfFame}</Link>)}
+        </QuickStartItem>
+        <QuickStartItem icon='play-circle'>
+          {formatString(strings.allGamesInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={onAllGamesClick}>{strings.allGames}</Link>)}
+        </QuickStartItem>
+        <QuickStartItem icon='video'>
+          {formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute(THEATRE)} onClick={onAllAnimationsClick}>{strings.allAnimations}</Link>)}
+        </QuickStartItem>
+        <QuickStartItem icon='wrench'>
+          {formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)}
+        </QuickStartItem>
+        <QuickStartItem icon='info'>
+          {formatString(strings.helpInfo, <Link to='#' onClick={onHelpClick}>{strings.help}</Link>)}
+        </QuickStartItem>
+      </ul>
+    </div>
+  , [strings, onHallOfFameClick, onAllGamesClick,
+     onAllAnimationsClick, onHelpClick]);
+
+  const renderExtras = React.useMemo(() => <div className='home-page__box home-page__box--extras'>
+    <div className='home-page__box-head'>{strings.extrasHeader}</div>
+      <ul className='home-page__box-body'>
+        <QuickStartItem icon='heart'>
+          <Link
+            to={joinLibraryRoute(ARCADE)}
+            onClick={onFavoriteClick}>
+            {strings.favoritesPlaylist}
+          </Link>
+        </QuickStartItem>
+        <QuickStartItem icon='list'>
+          <a
+            href='http://bluemaxima.org/flashpoint/datahub/Genres'
+            target='_top'>
+            {strings.tagList}
+          </a>
+        </QuickStartItem>
+        <br />
+        <QuickStartItem icon='tag'>
+          {strings.filterByPlatform}:
+        </QuickStartItem>
+        <QuickStartItem className='home-page__box-item--platforms'>
+          { platformList }
+        </QuickStartItem>
+        <br />
+        <QuickStartItem icon='code'>
+          <a
+            href='https://trello.com/b/Tu9E5GLk/launcher'
+            target='_top'>
+            {strings.plannedFeatures}
+          </a>
+        </QuickStartItem>
+      </ul>
+    </div>
+  , [strings, onFavoriteClick, platformList]);
+
+  const renderUpgrades = React.useMemo(() => {
+    if (upgradeStages.length > 0) {
+      const renderedStages: JSX.Element[] = [];
+      for (let i = 0; i < upgradeStages.length; i++) {
+        renderedStages.push(
+          <div key={i*2}>
+            {renderStageSection(allStrings, upgradeStages[i], (stage) => onDownloadUpgradeClick(stage, allStrings))}
           </div>
-          {/* Quick Start */}
-          <div className='home-page__box'>
-            <div className='home-page__box-head'>{strings.quickStartHeader}</div>
-            <ul className='home-page__box-body'>
-              <QuickStartItem icon='badge'>
-                {formatString(strings.hallOfFameInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={this.onHallOfFameClick}>{strings.hallOfFame}</Link>)}
-              </QuickStartItem>
-              <QuickStartItem icon='play-circle'>
-                {formatString(strings.allGamesInfo, <Link to={joinLibraryRoute(ARCADE)} onClick={this.onAllGamesClick}>{strings.allGames}</Link>)}
-              </QuickStartItem>
-              <QuickStartItem icon='video'>
-                {formatString(strings.allAnimationsInfo, <Link to={joinLibraryRoute(THEATRE)} onClick={this.onAllAnimationsClick}>{strings.allAnimations}</Link>)}
-              </QuickStartItem>
-              <QuickStartItem icon='wrench'>
-                {formatString(strings.configInfo, <Link to={Paths.CONFIG}>{strings.config}</Link>)}
-              </QuickStartItem>
-              <QuickStartItem icon='info'>
-                {formatString(strings.helpInfo, <Link to='#' onClick={this.onHelpClick}>{strings.help}</Link>)}
-              </QuickStartItem>
-            </ul>
-          </div>
-          {/* Upgrades */}
-          { upgradeData ? (
-              <div className='home-page__box home-page__box--upgrades'>
-                <div className='home-page__box-head'>{strings.upgradesHeader}</div>
-                <ul className='home-page__box-body'>
-                  { this.renderStageSection(strings, upgradeData.tech, techState, onDownloadTechUpgradeClick) }
-                  <br/>
-                  { this.renderStageSection(strings, upgradeData.screenshots, screenshotsState, onDownloadScreenshotsUpgradeClick) }
-                </ul>
-              </div>
-            ) : undefined
-          }
-          {/* Extras */}
-          <div className='home-page__box home-page__box--extras'>
-            <div className='home-page__box-head'>{strings.extrasHeader}</div>
-            <ul className='home-page__box-body'>
-              <QuickStartItem icon='heart'>
-                <Link
-                  to={joinLibraryRoute(ARCADE)}
-                  onClick={this.onFavoriteClick}>
-                  {strings.favoritesPlaylist}
-                </Link>
-              </QuickStartItem>
-              <QuickStartItem icon='list'>
-                <a
-                  href='http://bluemaxima.org/flashpoint/datahub/Genres'
-                  target='_top'>
-                  {strings.tagList}
-                </a>
-              </QuickStartItem>
-              <br />
-              <QuickStartItem icon='tag'>
-                {strings.filterByPlatform}:
-              </QuickStartItem>
-              <QuickStartItem className='home-page__box-item--platforms'>
-                { formatPlatforms }
-              </QuickStartItem>
-              <br />
-              <QuickStartItem icon='code'>
-                <a
-                  href='https://trello.com/b/Tu9E5GLk/launcher'
-                  target='_top'>
-                  {strings.plannedFeatures}
-                </a>
-              </QuickStartItem>
-            </ul>
-          </div>
-          {/* Notes */}
-          <div className='home-page__box'>
-            <div className='home-page__box-head'>{strings.notesHeader}</div>
-            <ul className='home-page__box-body'>
-              <QuickStartItem>
-                {strings.notes}
-              </QuickStartItem>
-            </ul>
-          </div>
-          {/* Random Games */}
-          <SizeProvider width={width} height={height}>
-            <div className='home-page__random-games'>
-              <div className='home-page__random-games__inner'>
-                <p className='home-page__random-games__title'>{strings.randomPicks}</p>
-                <RandomGames
-                  showExtreme={!disableExtremeGames && browsePageShowExtreme}
-                  showBroken={showBrokenGames} />
-              </div>
-            </div>
-          </SizeProvider>
+        );
+        renderedStages.push(
+          <br key={(i*2)+1}/>
+        );
+      }
+      // Remove trailing <br/>
+      if (renderedStages.length > 0) { renderedStages.pop(); }
+      return (
+        <div className='home-page__box home-page__box--upgrades'>
+          <div className='home-page__box-head'>{strings.upgradesHeader}</div>
+          <ul className='home-page__box-body'>
+            { renderedStages }
+          </ul>
+        </div>
+      );
+    }
+  }, [allStrings, upgradeStages, onDownloadUpgradeClick]);
+
+  const renderNotes = React.useMemo(() =>
+    <div className='home-page__box'>
+      <div className='home-page__box-head'>{strings.notesHeader}</div>
+      <ul className='home-page__box-body'>
+        <QuickStartItem>
+          {strings.notes}
+        </QuickStartItem>
+      </ul>
+    </div>
+  , [strings]);
+
+  const renderRandomGames = React.useMemo(() =>
+    <SizeProvider width={width} height={height}>
+      <div className='home-page__random-games'>
+        <div className='home-page__random-games__inner'>
+          <p className='home-page__random-games__title'>{strings.randomPicks}</p>
+            <RandomGames
+              showExtreme={!disableExtremeGames && browsePageShowExtreme}
+              showBroken={showBrokenGames} />
         </div>
       </div>
-    );
-  }
+    </SizeProvider>
+  , [strings, onLaunchGame]);
 
-  renderStageSection(strings: LangContainer['home'], stageData: UpgradeStage | undefined, stageState: UpgradeStageState, onClick: () => void) {
-    return (
-      <>
-        <QuickStartItem><b>{stageData && stageData.title || '...'}</b></QuickStartItem>
-        <QuickStartItem><i>{stageData && stageData.description || '...'}</i></QuickStartItem>
-        <QuickStartItem>{ this.renderStageButton(strings, stageState, onClick) }</QuickStartItem>
-      </>
-    );
-  }
-
-  renderStageButton(strings: LangContainer['home'], stageState: UpgradeStageState, onClick: () => void) {
-    return (
-      stageState.checksDone ? (
-        stageState.alreadyInstalled ? (
-          <p className='home-page__grayed-out'>{strings.alreadyInstalled}</p>
-        ) : (
-          stageState.isInstallationComplete ? (
-            strings.installComplete
-          ) : (
-            stageState.isInstalling ? (
-              <p>{stageState.installProgressNote}</p>
-            ) : (
-              <a
-                className='simple-button'
-                onClick={onClick}>
-                {strings.download}
-              </a>
-            )
-          )
-        )
-      ) : '...'
-    );
-  }
-
-  onHelpClick = () => {
-    const fullFlashpointPath = window.External.config.fullFlashpointPath;
-    remote.shell.openItem(path.join(fullFlashpointPath, 'readme.txt'));
-  }
-
-  private onHallOfFameClick = () => {
-    const playlist = this.props.playlists.find(p => p.title === 'Flashpoint Hall of Fame');
-    if (playlist) {
-      this.props.onSelectPlaylist(ARCADE, playlist.filename);
-      this.props.clearSearch();
-    }
-  }
-
-  onFavoriteClick = () => {
-    const playlist = this.props.playlists.find(p => p.title === '*Favorites*');
-    if (playlist) {
-      this.props.onSelectPlaylist(ARCADE, playlist.filename);
-      this.props.clearSearch();
-    }
-  }
-
-  onAllGamesClick = () => {
-    this.props.onSelectPlaylist(ARCADE, undefined);
-    this.props.clearSearch();
-  }
-
-  onAllAnimationsClick = () => {
-    this.props.onSelectPlaylist(THEATRE, undefined);
-    this.props.clearSearch();
-  }
-
-  /** Gets the platform as a string and performs a search dynamically for each platform generated. */
-  onPlatformClick = (platform: string) => (event: any) => {
-    this.props.onSearch('!' + wrapSearchTerm(platform));
-    this.props.onSelectPlaylist(ARCADE, undefined);
-  }
-
-  static contextType = LangContext;
+  return React.useMemo(() => (
+    <div className='home-page simple-scroll'>
+      <div className='home-page__inner'>
+        {/* Logo */}
+        <div className='home-page__logo fp-logo-box'>
+          <div
+            className='fp-logo fp-logo--animated'
+            style={{ animationDelay: logoDelay }} />
+        </div>
+        {/* Updates */}
+        { renderUpdate }
+        {/* Quick Start */}
+        { renderQuickStart }
+        {/* Upgrades */}
+        { renderUpgrades }
+        {/* Extras */}
+        { renderExtras }
+        {/* Notes */}
+        { renderNotes }
+        {/* Random Games */}
+        { renderRandomGames }
+      </div>
+    </div>
+  ), [renderUpdate, renderQuickStart, renderExtras, renderNotes, renderRandomGames]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {
@@ -270,3 +341,60 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   );
 }
 
+function renderStageSection(strings: LangContainer, stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
+  return (
+    <>
+      <QuickStartItem><b>{getUpgradeString(stage.title, strings.upgrades)}</b></QuickStartItem>
+      <QuickStartItem><i>{getUpgradeString(stage.description, strings.upgrades)}</i></QuickStartItem>
+      <QuickStartItem>{ renderStageButton(strings.home, stage, onDownload) }</QuickStartItem>
+    </>
+  );
+}
+
+function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, onDownload: (stage: UpgradeStage) => void) {
+  const stageState = stage.state;
+  return (
+    stageState.checksDone ? (
+      stageState.alreadyInstalled && stageState.upToDate ? (
+        <p className='home-page__grayed-out'>{strings.alreadyInstalled}</p>
+      ) : (
+        stageState.isInstallationComplete ? (
+          strings.installComplete
+        ) : (
+          stageState.isInstalling ? (
+            <p>{stageState.installProgressNote}</p>
+          ) : (
+            <a
+              className='simple-button'
+              onClick={() => { onDownload(stage); }}>
+              {stageState.alreadyInstalled ? strings.update : strings.download}
+            </a>
+          )
+        )
+      )
+    ) : strings.checkingUpgradeState
+  );
+}
+
+function findHallOfFamePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
+  return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
+}
+
+function findFavoritePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
+  return playlists.find(playlist => playlist.title === '*Favorites*');
+}
+
+function onUpdateDownload(updateInfo: UpdateInfo, downloadFunc: () => void): boolean {
+  const message = (updateInfo.releaseName ? `${updateInfo.releaseName}\n\n` : '')
+              + (updateInfo.releaseNotes ? `Release Notes:\n${updateInfo.releaseNotes}\n\n` : 'No Release Notes Available.\n\n')
+              + 'Download and Install now?';
+  const res = remote.dialog.showMessageBoxSync({
+    title: 'Update Available',
+    message: message,
+    buttons: ['Yes', 'No']
+  });
+  if (res === 0) {
+    return true;
+  }
+  return false;
+}

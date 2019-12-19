@@ -4,7 +4,7 @@ import * as React from 'react';
 import { BackIn, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetGameData, GetGameResponseData, LaunchGameData, SavePlaylistData } from '../../../shared/back/types';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
-import { GamePlaylist, GamePlaylistEntry } from '../../../shared/interfaces';
+import { GamePlaylist, GamePlaylistEntry, GamePropSuggestions } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
@@ -13,7 +13,7 @@ import { formatString } from '../../../shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { GAMES, SUGGESTIONS } from '../../interfaces';
+import { GAMES } from '../../interfaces';
 import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getGamePath } from '../../Util';
 import { LangContext } from '../../util/lang';
@@ -31,7 +31,7 @@ type OwnProps = {
   games: GAMES | undefined;
   gamesTotal: number;
   playlists: GamePlaylist[];
-  suggestions: SUGGESTIONS;
+  suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
   onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
   onRequestGames: (start: number, end: number) => void;
@@ -408,7 +408,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {
-    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth;
+    const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
     updatePreferencesData({
       browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
@@ -416,7 +416,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onRightSidebarResize = (event: SidebarResizeEvent): void => {
-    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth;
+    const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.startX - event.event.clientX;
     updatePreferencesData({
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
@@ -603,6 +603,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         currentGame: {
           id: uuid(),
           title: '',
+          alternateTitles: '',
           series: '',
           developer: '',
           publisher: '',
@@ -613,7 +614,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           playMode: '',
           status: '',
           notes: '',
-          genre: '',
+          tags: '',
           source: '',
           applicationPath: '',
           launchCommand: '',

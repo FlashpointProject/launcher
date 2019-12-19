@@ -1,7 +1,5 @@
 import { remote } from 'electron';
-import * as path from 'path';
 import * as React from 'react';
-import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
 import { AddLogData, BackIn, UpdateConfigData } from '../../../shared/back/types';
 import { autoCode, LangContainer, LangFile } from '../../../shared/lang';
@@ -9,13 +7,16 @@ import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
 import { Theme } from '../../../shared/ThemeFile';
 import { formatString } from '../../../shared/utils/StringFormatter';
+import { isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
+import { Dropdown } from '../Dropdown';
 import { DropdownInputField } from '../DropdownInputField';
-import * as fs from 'fs';
 
 type OwnProps = {
+  /** List of all platforms */
+  platforms: string[];
   /** Filenames of all files in the themes folder. */
   themeList: Theme[];
   /** List of available languages. */
@@ -33,6 +34,8 @@ type ConfigPageState = {
   useCustomTitlebar: boolean;
   /** If the "use fiddler" checkbox is checked. */
   useFiddler: boolean;
+  /** Array of native platforms */
+  nativePlatforms: string[];
 };
 
 export interface ConfigPage {
@@ -59,11 +62,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       useFiddler: configData.useFiddler,
+      nativePlatforms: configData.nativePlatforms
     };
   }
 
   render() {
     const strings = this.context.config;
+    const { platforms: platformList } = this.props;
+    const { nativePlatforms } = this.state;
     const autoString = formatString(strings.auto, this.countryCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     return (
@@ -186,24 +192,43 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <p>{strings.redirectorDesc}</p>
                 </div>
               </div>
-              {/* Wine */}
+              {/* Native Platforms */}
+              { process.platform != 'win32' ?
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>{strings.useWine}</p>
+                    <p>{strings.nativePlatforms}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox
-                        checked={this.props.preferencesData.useWine}
-                        onToggle={this.useWineChange} />
+                      <Dropdown text={strings.platforms}>
+                        { platformList.map((platform, index) => (
+                          <label
+                            key={index}
+                            className='log-page__dropdown-item'>
+                            <div className='simple-center'>
+                              <input
+                                type='checkbox'
+                                checked={nativePlatforms.findIndex((item) => item === platform) != -1}
+                                onChange={() => { this.onNativeCheckboxChange(platform); }}
+                                className='simple-center__vertical-inner' />
+                            </div>
+                            <div className='simple-center'>
+                              <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
+                                {platform}
+                              </p>
+                            </div>
+                          </label>
+                        )) }
+                      </Dropdown>
                     </div>
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>{strings.useWineDesc}</p>
+                  <p>{strings.nativePlatformsDesc}</p>
                 </div>
               </div>
+              : undefined }
             </div>
           </div>
 
@@ -345,6 +370,18 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ fallbackLanguage: event.target.value });
   }
 
+  onNativeCheckboxChange = (platform: string): void => {
+    const { nativePlatforms } = this.state;
+    const index = nativePlatforms.findIndex(item => item === platform);
+
+    if (index != -1) {
+      nativePlatforms.splice(index, 1);
+    } else {
+      nativePlatforms.push(platform);
+    }
+    this.setState({ nativePlatforms: nativePlatforms });
+  }
+
   onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ useFiddler: !event.target.checked });
   }
@@ -358,25 +395,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     // Check if the file-path points at a valid FlashPoint folder
     const isValid = await isFlashpointValidCheck(filePath);
     this.setState({ isFlashpointPathValid: isValid });
-  }
-
-  useWineChange = (isChecked: boolean): void => {
-    updatePreferencesData({ useWine: isChecked });
-    this.forceUpdate();
-
-    if (isChecked && process.platform === 'linux') {
-      which('wine', (err) => {
-        if (err) {
-          log('Warning: Wine was enabled but it was not found on the path.');
-          remote.dialog.showMessageBox({
-            type: 'error',
-            title: this.context.dialog.programNotFound,
-            message: this.context.dialog.wineNotFound,
-            buttons: ['Ok'],
-          });
-        }
-      });
-    }
   }
 
   onUseCustomTitlebarChange = (isChecked: boolean): void => {
@@ -433,8 +451,4 @@ function log(content: string): void {
     source: 'Game Launcher',
     content: content,
   });
-}
-
-function isFlashpointValidCheck(flashpointPath: string): Promise<boolean> {
-  return new Promise(resolve => fs.stat(path.join(flashpointPath, 'Data/Platforms'), error => resolve(!error)));
 }

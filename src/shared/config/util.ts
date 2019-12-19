@@ -1,5 +1,5 @@
 import { IAppConfigData } from '../../shared/config/interfaces';
-import { deepCopy, parseVarStr } from '../../shared/Util';
+import { deepCopy, parseVarStr, fixSlashes } from '../../shared/Util';
 import { Coerce } from '../../shared/utils/Coerce';
 import { ObjectParser } from '../../shared/utils/ObjectParser';
 
@@ -28,6 +28,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   backPortMax: 12100,
   imagesPortMin: 12101,
   imagesPortMax: 12200,
+  nativePlatforms: [],
 });
 
 /**
@@ -83,12 +84,19 @@ export function overwriteConfigData(
   parser.prop('useFiddler',          v => source.useFiddler          = !!v);
   parser.prop('disableExtremeGames', v => source.disableExtremeGames = !!v);
   parser.prop('showBrokenGames',     v => source.showBrokenGames     = !!v);
+  parser.prop('nativePlatforms',     v => source.nativePlatforms     = strArray(v));
   parser.prop('backPortMin',         v => source.backPortMin         = num(v));
   parser.prop('backPortMax',         v => source.backPortMax         = num(v));
   parser.prop('imagesPortMin',       v => source.imagesPortMin       = num(v));
   parser.prop('imagesPortMax',       v => source.imagesPortMax       = num(v));
   // Do some alterations
-  source.flashpointPath = source.flashpointPath.replace(/\\/g, '/'); // (Clean path)
+  source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)
   // Return
   return source;
+}
+
+function strArray(array: any): string[] {
+  return Array.isArray(array)
+    ? Array.prototype.map.call(array, v => str(v)) as string[]
+    : [];
 }

@@ -1,12 +1,15 @@
-import { ipcRenderer, remote, MessageBoxOptions, OpenExternalOptions } from 'electron';
+import { ipcRenderer, remote } from 'electron';
+import { AppUpdater, UpdateInfo } from 'electron-updater';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, GetGamesTotalResponseData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
-import { GamePlaylist, ProcessState, WindowIPC } from '../shared/interfaces';
+import { GamePlaylist, GamePropSuggestions, ProcessState, WindowIPC } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
 import { getLibraryItemTitle } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
@@ -14,7 +17,9 @@ import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { updatePreferencesData } from '../shared/preferences/util';
 import { setTheme } from '../shared/Theme';
 import { Theme } from '../shared/ThemeFile';
-import { deepCopy, recursiveReplace, versionNumberToText } from '../shared/Util';
+import { getUpgradeString } from '../shared/upgrade/util';
+import { deepCopy, recursiveReplace } from '../shared/Util';
+import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
@@ -23,15 +28,17 @@ import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
-import { CentralState, GAMES, SUGGESTIONS, UpgradeStageState, UpgradeState } from './interfaces';
+import { CentralState, GAMES, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
 import { UpgradeFile } from './upgrade/UpgradeFile';
-import { joinLibraryRoute } from './Util';
+import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
-import { downloadAndInstallUpgrade, performUpgradeStageChecks } from './util/upgrade';
+import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
+
+const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
 const VIEW_PAGE_SIZE = 250;
 
@@ -65,7 +72,8 @@ export type AppState = {
   libraries: string[];
   playlists: GamePlaylist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
-  suggestions: SUGGESTIONS;
+  suggestions: Partial<GamePropSuggestions>;
+  appPaths: Record<string, string>;
   platforms: string[];
   loaded: { [key in BackInit]: boolean; };
   themeList: Theme[];
@@ -88,6 +96,8 @@ export type AppState = {
   lang: LangContainer;
   /** Current list of available language files. */
   langList: LangFile[];
+  /** Info of the update, if one was found */
+  updateInfo: UpdateInfo | undefined;
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -101,32 +111,20 @@ export class App extends React.Component<AppProps, AppState> {
       playlists: window.External.initialPlaylists || [],
       playlistIconCache: {},
       suggestions: {},
+      appPaths: {},
       platforms: window.External.initialPlatformNames,
       loaded: {
         0: false,
         1: false,
+        2: false,
       },
       themeList: window.External.initialThemes,
       gamesTotal: -1,
 
       central: {
-        upgrade: {
-          doneLoading: false,
-          techState: {
-            alreadyInstalled: false,
-            checksDone: false,
-            isInstalling: false,
-            isInstallationComplete: false,
-            installProgressNote: '',
-          },
-          screenshotsState: {
-            alreadyInstalled: false,
-            checksDone: false,
-            isInstalling: false,
-            isInstallationComplete: false,
-            installProgressNote: '',
-          },
-        },
+        upgrades: [],
+        upgradesDoneLoading: false,
+        stopRender: false,
       },
       creditsData: undefined,
       creditsDoneLoading: false,
@@ -135,6 +133,7 @@ export class App extends React.Component<AppProps, AppState> {
       lang: window.External.initialLang,
       langList: window.External.initialLangList,
       wasNewGameClicked: false,
+      updateInfo: undefined,
       order: {
         orderBy: preferencesData.gamesOrderBy,
         orderReverse: preferencesData.gamesOrder
@@ -153,7 +152,14 @@ export class App extends React.Component<AppProps, AppState> {
       let askBeforeClosing = true;
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
         const { central } = this.state;
-        if (askBeforeClosing && (central.upgrade.screenshotsState.isInstalling || central.upgrade.techState.isInstalling)) {
+        let stillDownloading = false;
+        for (let stage of central.upgrades) {
+          if (stage.state.isInstalling) {
+            stillDownloading = true;
+            break;
+          }
+        }
+        if (askBeforeClosing && stillDownloading) {
           event.returnValue = 1; // (Prevent closing the window)
           remote.dialog.showMessageBox({
             type: 'warning',
@@ -167,9 +173,11 @@ export class App extends React.Component<AppProps, AppState> {
           .then(({ response }) => {
             if (response === 0) {
               askBeforeClosing = false;
-              remote.getCurrentWindow().close();
+              this.unmountBeforeClose();
             }
           });
+        } else {
+          this.unmountBeforeClose();
         }
       };
     })();
@@ -440,31 +448,58 @@ export class App extends React.Component<AppProps, AppState> {
 
     // -- Stuff that should probably be moved to the back --
 
-    //
-    UpgradeFile.readFile(fullJsonFolderPath, log)
-    .then((data) => {
-      this.setUpgradeState({
-        data: data,
-        doneLoading: true,
+    // Load Upgrades
+    const folderPath = window.External.isDev
+        ? process.cwd()
+        : path.dirname(remote.app.getPath('exe'));
+    const upgradeCatch = (error: Error) => { console.warn(error); };
+    Promise.all([UpgradeFile.readFile(folderPath, log), UpgradeFile.readFile(fullJsonFolderPath, log)].map(p => p.catch(upgradeCatch)))
+    .then(async (fileData) => {
+      // Combine all file data
+      let allData: UpgradeStage[] = [];
+      for (let data of fileData) {
+        if (data) {
+          allData = allData.concat(data);
+        }
+      }
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          upgrades: allData,
+          upgradesDoneLoading: true,
+        })
       });
-      performUpgradeStageChecks(data.screenshots, fullFlashpointPath)
-      .then(results => {
-        this.setScreenshotsUpgradeState({
-          alreadyInstalled: results.indexOf(false) === -1,
-          checksDone: true,
+      const isValid = await isFlashpointValidCheck(window.External.config.data.flashpointPath);
+      // Notify of downloading initial data (if available)
+      if (!isValid && allData.length > 0) {
+        remote.dialog.showMessageBox({
+          type: 'info',
+          title: strings.dialog.dataRequired,
+          message: strings.dialog.dataRequiredDesc,
+          buttons: [strings.misc.yes, strings.misc.no]
+        })
+        .then((res) => {
+          if (res.response === 0) {
+            this.onDownloadUpgradeClick(allData[0], strings);
+          }
         });
-      });
-      performUpgradeStageChecks(data.tech, fullFlashpointPath)
-      .then(results => {
-        this.setTechUpgradeState({
-          alreadyInstalled: results.indexOf(false) === -1,
-          checksDone: true,
+      }
+      // Do existance checks on all upgrades
+      await Promise.all(allData.map(async upgrade => {
+        const baseFolder = fullFlashpointPath;
+        // Perform install checks
+        const installed = await checkUpgradeStateInstalled(upgrade, baseFolder);
+        this.setUpgradeStageState(upgrade.id, {
+          alreadyInstalled: installed,
+          checksDone: true
         });
-      });
-    })
-    .catch((error) => {
-      console.warn(error);
-      this.setUpgradeState({ doneLoading: true });
+        // If installed, check for updates
+        if (installed) {
+          const upToDate = await checkUpgradeStateUpdated(upgrade, baseFolder);
+          this.setUpgradeStageState(upgrade.id, {
+            upToDate: upToDate
+          });
+        }
+      }));
     });
     // Load Credits
     CreditsFile.readFile(fullJsonFolderPath, log)
@@ -479,8 +514,28 @@ export class App extends React.Component<AppProps, AppState> {
       log(`Failed to load credits.\n${error}`);
       this.setState({ creditsDoneLoading: true });
     });
-    // Check for Wine and PHP on Linux
-    if (process.platform === 'linux') {
+
+    // Updater code - DO NOT run in development environment!
+    if (!window.External.isDev) {
+      autoUpdater.autoDownload = false;
+      autoUpdater.on('error', (error: Error) => {
+        console.log(error);
+      });
+      autoUpdater.on('update-available', (info) => {
+        log(`Update Available - ${info.version}`);
+        console.log(info);
+        this.setState({
+          updateInfo: info
+        });
+      });
+      autoUpdater.on('update-downloaded', onUpdateDownloaded);
+      autoUpdater.checkForUpdates()
+      .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
+      console.log('Checking for updates...');
+    }
+
+    // Check for Wine and PHP on Linux/Mac
+    if (process.platform != 'win32') {
       which('php', function(err: Error | null) {
         if (err) {
           log('Warning: PHP not found in path, may cause unexpected behaviour.');
@@ -490,19 +545,6 @@ export class App extends React.Component<AppProps, AppState> {
             message: strings.dialog.phpNotFound,
             buttons: ['Ok']
           } );
-        }
-      });
-      which('wine', function(err: Error | null) {
-        if (err) {
-          if (window.External.preferences.data.useWine) {
-            log('Warning: Wine is enabled but it was not found on the path.');
-            remote.dialog.showMessageBox({
-              type: 'error',
-              title: strings.dialog.programNotFound,
-              message: strings.dialog.wineNotFound,
-              buttons: ['Ok']
-            } );
-          }
         }
       });
     }
@@ -582,10 +624,10 @@ export class App extends React.Component<AppProps, AppState> {
       }
     }
     // Update preference "lastSelectedLibrary"
-    const gameLibraryRoute = getBrowseSubPath(location.pathname);
+    const gameLibrary = getBrowseSubPath(location.pathname);
     if (location.pathname.startsWith(Paths.BROWSE) &&
-        preferencesData.lastSelectedLibrary !== gameLibraryRoute) {
-      updatePreferencesData({ lastSelectedLibrary: gameLibraryRoute });
+        preferencesData.lastSelectedLibrary !== gameLibrary) {
+      updatePreferencesData({ lastSelectedLibrary: gameLibrary });
     }
     // Create a new game
     if (this.state.wasNewGameClicked) {
@@ -620,8 +662,9 @@ export class App extends React.Component<AppProps, AppState> {
     const loaded = (
       this.state.loaded[BackInit.GAMES] &&
       this.state.loaded[BackInit.PLAYLISTS] &&
-      this.state.central.upgrade.doneLoading &&
-      this.state.creditsDoneLoading
+      this.state.central.upgradesDoneLoading &&
+      this.state.creditsDoneLoading &&
+      this.state.loaded[BackInit.EXEC]
     );
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[libraryPath];
@@ -632,12 +675,14 @@ export class App extends React.Component<AppProps, AppState> {
       gamesTotal: view ? view.total : 0,
       playlists: playlists,
       suggestions: this.state.suggestions,
+      appPaths: this.state.appPaths,
       platforms: this.state.platforms,
       playlistIconCache: this.state.playlistIconCache,
       onSaveGame: this.onSaveGame,
       onLaunchGame: this.onLaunchGame,
       onRequestGames: this.onRequestGames,
       onQuickSearch: this.onQuickSearch,
+      libraries: this.state.libraries,
 
       central: this.state.central,
       creditsData: this.state.creditsData,
@@ -650,54 +695,60 @@ export class App extends React.Component<AppProps, AppState> {
       onSelectGame: this.onSelectGame,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.state.wasNewGameClicked,
-      onDownloadTechUpgradeClick: this.onDownloadTechUpgradeClick,
-      onDownloadScreenshotsUpgradeClick: this.onDownloadScreenshotsUpgradeClick,
+      onDownloadUpgradeClick: this.onDownloadUpgradeClick,
       gameLibrary: libraryPath,
       themeList: this.state.themeList,
       languages: this.state.langList,
+      updateInfo: this.state.updateInfo,
+      autoUpdater: autoUpdater,
     };
     // Render
     return (
       <LangContext.Provider value={this.state.lang}>
-        {/* Splash screen */}
-        <SplashScreen
-          gamesLoaded={this.state.loaded[BackInit.GAMES]}
-          playlistsLoaded={this.state.loaded[BackInit.PLAYLISTS]}
-          upgradesLoaded={this.state.central.upgrade.doneLoading}
-          creditsLoaded={this.state.creditsDoneLoading} />
-        {/* Title-bar (if enabled) */}
-        { window.External.config.data.useCustomTitlebar ? (
-          <TitleBar title={`${AppConstants.appTitle} (${versionNumberToText(window.External.misc.version)})`} />
-        ) : undefined }
-        {/* "Content" */}
-        {loaded ? (
+        { !this.state.central.stopRender ? (
           <>
-            {/* Header */}
-            <HeaderContainer
-              libraries={this.state.libraries}
-              onOrderChange={this.onOrderChange}
-              onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
-              onToggleRightSidebarClick={this.onToggleRightSidebarClick}
-              order={this.state.order} />
-            {/* Main */}
-            <div className='main'>
-              <AppRouter { ...routerProps } />
-              <noscript className='nojs'>
-                <div style={{textAlign:'center'}}>
-                  This website requires JavaScript to be enabled.
+            {/* Splash screen */}
+            <SplashScreen
+              gamesLoaded={this.state.loaded[BackInit.GAMES]}
+              playlistsLoaded={this.state.loaded[BackInit.PLAYLISTS]}
+              upgradesLoaded={this.state.central.upgradesDoneLoading}
+              creditsLoaded={this.state.creditsDoneLoading}
+              miscLoaded={this.state.loaded[BackInit.EXEC]} />
+            {/* Title-bar (if enabled) */}
+            { window.External.config.data.useCustomTitlebar ? (
+              <TitleBar title={`${AppConstants.appTitle} (${remote.app.getVersion()})`} />
+            ) : undefined }
+            {/* "Content" */}
+            { loaded ? (
+              <>
+                {/* Header */}
+                <HeaderContainer
+                  libraries={this.state.libraries}
+                  onOrderChange={this.onOrderChange}
+                  onToggleLeftSidebarClick={this.onToggleLeftSidebarClick}
+                  onToggleRightSidebarClick={this.onToggleRightSidebarClick}
+                  order={this.state.order} />
+                {/* Main */}
+                <div className='main'>
+                  <AppRouter { ...routerProps } />
+                  <noscript className='nojs'>
+                    <div style={{textAlign:'center'}}>
+                      This website requires JavaScript to be enabled.
+                    </div>
+                  </noscript>
                 </div>
-              </noscript>
-            </div>
-            {/* Footer */}
-            <ConnectedFooter
-              totalCount={this.state.gamesTotal}
-              currentLabel={libraryPath && getLibraryItemTitle(libraryPath, this.state.lang.libraries)}
-              currentCount={view ? view.total : 0}
-              onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
-              onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
-              onNewGameClick={this.onNewGameClick} />
+                {/* Footer */}
+                <ConnectedFooter
+                  totalCount={this.state.gamesTotal}
+                  currentLabel={libraryPath && getLibraryItemTitle(libraryPath, this.state.lang.libraries)}
+                  currentCount={view ? view.total : 0}
+                  onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
+                  onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
+                  onNewGameClick={this.onNewGameClick} />
+              </>
+            ) : undefined }
           </>
-        ) : undefined}
+        ) : undefined }
       </LangContext.Provider>
     );
   }
@@ -790,38 +841,23 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  private onDownloadTechUpgradeClick = () => {
-    const upgradeData = this.state.central.upgrade.data;
-    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.tech, 'flashpoint_stage_tech.zip', this.setTechUpgradeState);
+  private onDownloadUpgradeClick = (stage: UpgradeStage, strings: LangContainer) => {
+    downloadAndInstallStage(stage, this.setUpgradeStageState, strings);
   }
 
-  private onDownloadScreenshotsUpgradeClick = () => {
-    const upgradeData = this.state.central.upgrade.data;
-    if (!upgradeData) { throw new Error('Upgrade data not found?'); }
-    downloadAndInstallStage(upgradeData.screenshots, 'flashpoint_stage_screenshots.zip', this.setScreenshotsUpgradeState);
-  }
-
-  private setUpgradeState(state: Partial<UpgradeState>) {
-    this.setState({
-      central: Object.assign({}, this.state.central, {
-        upgrade: Object.assign({}, this.state.central.upgrade, state),
-      })
-    });
-  }
-
-  private setTechUpgradeState = (state: Partial<UpgradeStageState>): void => {
-    const { central: { upgrade: { techState } } } = this.state;
-    this.setUpgradeState({
-      techState: Object.assign({}, techState, state),
-    });
-  }
-
-  private setScreenshotsUpgradeState = (state: Partial<UpgradeStageState>):void => {
-    const { central: { upgrade: { screenshotsState } } } = this.state;
-    this.setUpgradeState({
-      screenshotsState: Object.assign({}, screenshotsState, state),
-    });
+  private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
+    const { upgrades } = this.state.central;
+    const index = upgrades.findIndex(u => u.id === id);
+    if (index != -1) {
+      const newUpgrades = deepCopy(upgrades);
+      const newStageState = Object.assign({}, upgrades[index].state, data);
+      newUpgrades[index].state = newStageState;
+      this.setState({
+        central: Object.assign({}, this.state.central, {
+          upgrades: newUpgrades,
+        })
+      });
+    }
   }
 
   onSaveGame = (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean): void => {
@@ -976,46 +1012,104 @@ export class App extends React.Component<AppProps, AppState> {
       })
     );
   });
+
+  private unmountBeforeClose = (): void => {
+    const { central } = this.state;
+    central.stopRender = true;
+    this.setState({ central });
+    setTimeout(() => { window.close(); }, 100);
+  }
 }
 
-function downloadAndInstallStage(stage: UpgradeStage, filename: string, setStageState: (stage: Partial<UpgradeStageState>) => void) {
+async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void, strings: LangContainer) {
+  // Check data folder is set
+  let flashpointPath = window.External.config.data.flashpointPath;
+  const isValid = await isFlashpointValidCheck(flashpointPath);
+  if (!isValid) {
+    let verifiedPath = false;
+    let chosenPath: (string | undefined);
+    while (verifiedPath != true) {
+      // If folder isn't set, ask to set now
+      const res = await openConfirmDialog(strings.dialog.flashpointPathInvalid, strings.dialog.flashpointPathNotFound);
+      if (!res) { return; }
+      // Set folder now
+      const chosenPaths = window.External.showOpenDialogSync({
+        title: strings.dialog.selectFolder,
+        properties: ['openDirectory', 'promptToCreate', 'createDirectory']
+      });
+      if (chosenPaths && chosenPaths.length > 0) {
+        // Verify the path chosen
+        chosenPath = chosenPaths[0];
+        const topString = formatString(strings.dialog.upgradeWillInstallTo, getUpgradeString(stage.title, strings.upgrades));
+        const choiceVerify = await openConfirmDialog(strings.dialog.areYouSure, `${topString}:\n\n${chosenPath}\n\n${strings.dialog.verifyPathSelection}`);
+        if (choiceVerify) {
+          verifiedPath = true;
+        }
+      } else {
+        // Window closed, cancel the upgrade
+        return;
+      }
+    }
+    // Make sure folder given exists
+    if (chosenPath) {
+      flashpointPath = chosenPath;
+      fs.ensureDirSync(flashpointPath);
+      // Save picked folder to config
+      window.External.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
+        flashpointPath: flashpointPath,
+      }, () => { /*window.External.restart();*/ });
+    }
+  }
   // Flag as installing
-  setStageState({
+  setStageState(stage.id, {
     isInstalling: true,
     installProgressNote: '...',
   });
-  // Start download and installation
-  let prevProgressUpdate = Date.now();
-  const state = (
-    downloadAndInstallUpgrade(stage, {
-      installPath: window.External.config.fullFlashpointPath,
+  // Grab filename from url
+
+  for (let source of stage.sources) {
+    const filename = stage.id + '__' + source.split('/').pop() || 'unknown';
+    let lastUpdateType = '';
+    // Start download and installation
+    let prevProgressUpdate = Date.now();
+    const state = downloadAndInstallUpgrade(stage, {
+      installPath: path.join(flashpointPath),
       downloadFilename: filename
     })
     .on('progress', () => {
       const now = Date.now();
-      if (now - prevProgressUpdate > 100) {
+      if (now - prevProgressUpdate > 100 || lastUpdateType != state.currentTask) {
         prevProgressUpdate = now;
+        lastUpdateType = state.currentTask;
         switch (state.currentTask) {
-          case 'downloading': setStageState({ installProgressNote: `Downloading: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
-          case 'extracting':  setStageState({ installProgressNote: `Extracting: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
-          default:            setStageState({ installProgressNote: '...' });                                                        break;
+          case 'downloading': setStageState(stage.id, { installProgressNote: `${strings.misc.downloading}: ${(state.downloadProgress * 100).toFixed(1)}%` }); break;
+          case 'extracting':  setStageState(stage.id, { installProgressNote: `${strings.misc.extracting}: ${(state.extractProgress * 100).toFixed(1)}%` });   break;
+          case 'installing':  setStageState(stage.id, { installProgressNote: `${strings.misc.installingFiles}`});                                         break;
+          default:            setStageState(stage.id, { installProgressNote: '...' });                                                        break;
         }
       }
     })
-    .once('done', () => {
+    .once('done', async () => {
       // Flag as done installing
-      setStageState({
+      setStageState(stage.id, {
         isInstalling: false,
         isInstallationComplete: true,
       });
+      const res = await openConfirmDialog(strings.dialog.restartNow, strings.dialog.restartToApplyUpgrade);
+      if (res) {
+        window.External.restart();
+      }
     })
     .once('error', (error) => {
       // Flag as not installing (so the user can retry if they want to)
-      setStageState({ isInstalling: false });
+      setStageState(stage.id, {
+        isInstalling: false,
+      });
+      log(`Error installing '${stage.title}' - ${error.message}`);
       console.error(error);
     })
-    .on('warn', console.warn)
-  );
+    .on('warn', console.warn);
+  }
 }
 
 /** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
@@ -1034,12 +1128,15 @@ async function cacheIcon(icon: string): Promise<string> {
   return `url(${URL.createObjectURL(blob)})`;
 }
 
-function openDialog(options: MessageBoxOptions) {
-  return remote.dialog.showMessageBox(options).then(r => r.response);
-}
-
-function openExternal(url: string, options?: OpenExternalOptions) {
-  return remote.shell.openExternal(url, options);
+function onUpdateDownloaded() {
+  remote.dialog.showMessageBox({
+    title: 'Installing Update',
+    message: 'The Launcher will restart to install the update now.',
+    buttons: ['OK']
+  })
+  .then(() => {
+    setImmediate(() => autoUpdater.quitAndInstall());
+  });
 }
 
 function log(content: string): void {

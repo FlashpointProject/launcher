@@ -1,34 +1,38 @@
+import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
-import { GamePlaylist } from '../shared/interfaces';
-import { LangFile } from '../shared/lang';
+import { GamePlaylist, GamePropSuggestions } from '../shared/interfaces';
+import { LangContainer, LangFile } from '../shared/lang';
 import { Theme } from '../shared/ThemeFile';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
-import { CuratePage, CuratePageProps } from './components/pages/CuratePage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
+import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { CreditsData } from './credits/types';
-import { CentralState, GAMES, SUGGESTIONS } from './interfaces';
+import { CentralState, GAMES } from './interfaces';
 import { Paths } from './Paths';
+import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
   games: GAMES | undefined;
   gamesTotal: number;
   playlists: GamePlaylist[];
-  suggestions: SUGGESTIONS;
+  suggestions: Partial<GamePropSuggestions>;
+  appPaths: Record<string, string>;
   platforms: string[];
   onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
   onLaunchGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
   onQuickSearch: (search: string) => void;
   playlistIconCache: Record<string, string>;
+  libraries: string[];
 
   /** Semi-global prop. */
   central: CentralState;
@@ -43,11 +47,12 @@ export type AppRouterProps = {
   onSelectGame: (gameId?: string) => void;
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   wasNewGameClicked: boolean;
-  onDownloadTechUpgradeClick: () => void;
-  onDownloadScreenshotsUpgradeClick: () => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   gameLibrary: string;
   themeList: Theme[];
   languages: LangFile[];
+  updateInfo: UpdateInfo | undefined,
+  autoUpdater: AppUpdater
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -57,8 +62,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       playlists: this.props.playlists,
       central: this.props.central,
       onSelectPlaylist: this.props.onSelectPlaylist,
-      onDownloadTechUpgradeClick: this.props.onDownloadTechUpgradeClick,
-      onDownloadScreenshotsUpgradeClick: this.props.onDownloadScreenshotsUpgradeClick,
+      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
+      updateInfo: this.props.updateInfo,
+      autoUpdater: this.props.autoUpdater
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
@@ -83,13 +89,16 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
       availableLangs: this.props.languages,
+      platforms: this.props.platforms
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,
       creditsDoneLoading: this.props.creditsDoneLoading
     };
-    const curateProps: CuratePageProps = {
-      games: this.props.games,
+    const curateProps: ConnectedCuratePageProps = {
+      suggestions: this.props.suggestions,
+      appPaths: this.props.appPaths,
+      libraries: this.props.libraries,
     };
     const developerProps: DeveloperPageProps = {
       platforms: this.props.platforms,
@@ -120,7 +129,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
           { ...aboutProps } />
         <PropsRoute
           path={Paths.CURATE}
-          component={CuratePage}
+          component={ConnectedCuratePage}
           { ...curateProps } />
         <PropsRoute
           path={Paths.DEVELOPER}

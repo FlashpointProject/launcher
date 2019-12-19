@@ -4,10 +4,10 @@ import * as React from 'react';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
 import { getGamePath } from '../../../renderer/Util';
-import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedResponse } from '../../../shared/back/types';
+import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedResponse, GetExecData } from '../../../shared/back/types';
 import { LOGOS, SCREENSHOTS } from '../../../shared/constants';
 import { IGameInfo } from '../../../shared/game/interfaces';
-import { GamePlaylist, GamePlaylistEntry } from '../../../shared/interfaces';
+import { ExecMapping, GamePlaylist, GamePlaylistEntry } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { CentralState } from '../../interfaces';
 import { LangContext } from '../../util/lang';
@@ -92,6 +92,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.checkGameFileLocation}
               title={strings.checkGameFileLocationDesc}
               onClick={this.onCheckFileLocation} />
+            <SimpleButton
+              value={strings.checkMissingExecMappings}
+              title={strings.checkMissingExecMappingsDesc}
+              onClick={this.onCheckMissingExecMappings} />
             {/* Log */}
             <LogData
               className='developer-page__log'
@@ -149,6 +153,15 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onCheckFileLocation = async (): Promise<void> => {
     const res = await fetchAllGames();
     this.setState({ text: checkFileLocation(res) });
+  }
+
+  onCheckMissingExecMappings = async (): Promise<void> => {
+    const [games, execMappings] = await Promise.all([
+      fetchAllGames(),
+      window.External.back.sendP<GetExecData>(BackIn.GET_EXEC, undefined).then(r => r.data),
+    ]);
+    if (!execMappings) { throw new Error('Failed to get exec mappings - response contained no data'); }
+    this.setState({ text: checkMissingExecMappings(games, execMappings) });
   }
 
   onCreateMissingFoldersClick = (): void => {
@@ -224,7 +237,7 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
     const game = games[i];
     // Check if any game field (that should not be empty) is empty
     checkField(game, empty, 'developer');
-    checkField(game, empty, 'genre');
+    checkField(game, empty, 'tags');
     checkField(game, empty, 'source');
     checkField(game, empty, 'platform');
     checkField(game, empty, 'playMode');
@@ -348,6 +361,46 @@ function checkPlaylists(playlists: GamePlaylist[], games: IGameInfo[]): string {
     }
   });
   text += '\n';
+  return text;
+}
+
+// Find and list any used executables missing an entry in the exec mapping file
+function checkMissingExecMappings(games: IGameInfo[], execMappings: ExecMapping[]): string {
+  let allExecs: string[] = [];
+  let text = '';
+  // Gather list of all unique execs
+  for (let i = 0; i < games.length; i++) {
+    const game = games[i];
+    if (allExecs.findIndex((exec) => { return exec === game.applicationPath; }) === -1) {
+      allExecs.push(game.applicationPath);
+    }
+  }
+  // Report missing win32 exec mappings
+  text += 'Missing "win32" Exec Mappings:\n';
+  for (let i = 0; i < allExecs.length; i++) {
+    const exec = allExecs[i];
+    if (execMappings.findIndex((mapping) => { return mapping.win32 === exec; }) === -1) {
+      text += `    ${exec}\n`;
+    }
+  }
+  text += '\n';
+  // Report missing linux exec mappings
+  text += 'Missing "linux" Exec Mappings:\n';
+  for (let i = 0; i < allExecs.length; i++) {
+    const exec = allExecs[i];
+    if (execMappings.findIndex((mapping) => { return mapping.win32 === exec && mapping.linux; }) === -1) {
+      text += `    ${exec}\n`;
+    }
+  }
+  text += '\n';
+  // Report missing darwin exec mappings
+  text += 'Missing "darwin" Exec Mappings:\n';
+  for (let i = 0; i < allExecs.length; i++) {
+    const exec = allExecs[i];
+    if (execMappings.findIndex((mapping) => { return mapping.win32 === exec && mapping.darwin; }) === -1) {
+      text += `    ${exec}\n`;
+    }
+  }
   return text;
 }
 

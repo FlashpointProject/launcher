@@ -19,6 +19,8 @@ export interface IPureGameInfo {
   id: string;
   /** Full title of the game */
   title: string;
+  /** Any alternate titles to match against search */
+  alternateTitles: string;
   /** Game series the game belongs to (empty string if none) */
   series: string;
   /** Name of the developer(s) of the game (developer names are separated by ',') */
@@ -39,8 +41,8 @@ export interface IPureGameInfo {
   status: string;
   /** Information that could be useful for the player (of varying importance) */
   notes: string;
-  /** Main genre of the game */
-  genre: string;
+  /** Tags of the game (seperated by semi-colon) */
+  tags: string;
   /** Source if the game files, either full URL or the name of the website */
   source: string;
   /** Path to the application that runs the game */

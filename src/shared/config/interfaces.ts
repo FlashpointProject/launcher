@@ -32,6 +32,8 @@ export type IAppConfigData = {
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
+  /** Array of native locked platforms */
+  nativePlatforms: string[];
   /** Lower limit of the range of ports that the back should listen on. */
   backPortMin: number;
   /** Upper limit of the range of ports that the back should listen on. */

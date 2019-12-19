@@ -359,7 +359,7 @@ export function parseVarStr(str: string) {
   return parseVariableString(str, (name) => {
     switch (name) {
       default: return '';
-      case 'cwd': return process.cwd().replace(/\\/g, '/');
+      case 'cwd': return fixSlashes(process.cwd());
     }
   });
 }
@@ -383,4 +383,21 @@ export function createErrorProxy(title: string): any {
 
 export function isErrorProxy(object: any) {
   return (object[errorProxySymbol] === errorProxyValue);
+}
+
+/**
+ * Convert a size (in bytes) to a more human readable format.
+ * @param size Size in bytes.
+ * @returns Size, but in a more human readable format.
+ */
+export function sizeToString(size: number, precision: number = 3): string {
+  if (size < 1000)       { return `${size}B`; }
+  if (size < 1000000)    { return `${(size / 1000).toPrecision(precision)}KB`; }
+  if (size < 1000000000) { return `${(size / 1000000).toPrecision(precision)}MB`; }
+  return `${(size / 1000000000).toPrecision(precision)}GB`;
+}
+
+/** Replace all back-slashes with forward-slashes. */
+export function fixSlashes(str: string): string {
+  return str.replace(/\\/g, '/');
 }

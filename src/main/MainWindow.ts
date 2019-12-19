@@ -39,6 +39,7 @@ export default class MainWindow {
       width: width,
       height: height,
       frame: !this._main.config.useCustomTitlebar,
+      icon: path.join(__dirname, '../window/images/icon.png'),
       webPreferences: {
         preload: path.resolve(__dirname, './MainWindowPreload.js'),
         nodeIntegration: true,
@@ -48,8 +49,8 @@ export default class MainWindow {
     this._window.setMenu(null);
     // and load the index.html of the app.
     this._window.loadFile(path.join(__dirname, '../window/index.html'));
-    // Open the DevTools.
-    if (Util.isDev) {
+    // Open the DevTools. Don't open if using a remote debugger (like vscode)
+    if (Util.isDev && !process.env.REMOTE_DEBUG) {
       this._window.webContents.openDevTools();
     }
     // Maximize window

@@ -51,6 +51,16 @@ export class SharedSocket extends EventEmitter {
     }, callback);
   }
 
+  public sendP<T, U = any>(type: BackIn, data: U): Promise<WrappedResponse<T>> {
+    return new Promise(resolve => {
+      this.sendReq<T, U>({
+        id: uuid(),
+        type: type,
+        data: data
+      }, res => { resolve(res); });
+    });
+  }
+
   public sendReq<T, U = any>(request: WrappedRequest<U>, callback?: (res: WrappedResponse<T>) => void): void {
     // console.log('OUT', request);
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
@@ -63,6 +73,7 @@ export class SharedSocket extends EventEmitter {
 
   /** Open a new socket and try to connect again. */
   private reconnect(): void {
+    console.log('Reconnecting...');
     SharedSocket.connect(this.url, this.secret)
     .then(socket => { window.External.back.setSocket(socket); })
     .catch(error => {

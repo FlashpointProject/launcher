@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { useCallback } from 'react';
-import { EditAddAppCurationMeta } from 'src/shared/context/types';
-import { CurationAction, EditAddAppCuration } from '../context/CurationContext';
+import { BackIn, LaunchCurationAddAppData } from '../../shared/back/types';
+import { EditAddAppCuration, EditAddAppCurationMeta } from '../../shared/curate/types';
+import { CurationAction } from '../context/CurationContext';
 import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
 import { InputField } from './InputField';
+import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxAddAppProps = {
   /** Key of the curation the displayed additional application belongs to. */
@@ -15,6 +17,8 @@ export type CurateBoxAddAppProps = {
   disabled?: boolean;
   /** Dispatcher for the curate page state reducer. */
   dispatch: React.Dispatch<CurationAction>;
+  /** Platform of the game this belongs to. */
+  platform?: string;
   /** Callback for the "onKeyDown" event for all input fields. */
   onInputKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
 };
@@ -31,37 +35,81 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
   const disabled = props.disabled;
   // Localized strings
   const strings = React.useContext(LangContext);
+  const specialType = props.curation.meta.applicationPath === ':extras:' || props.curation.meta.applicationPath === ':message:';
+  let lcString = strings.browse.launchCommand;
+  let lcPlaceholderString = strings.browse.noLaunchCommand;
+  // Change Launch Command strings depending on add app type
+  switch (props.curation.meta.applicationPath) {
+    case ':message:':
+      lcString = strings.curate.message;
+      lcPlaceholderString = strings.curate.noMessage;
+      break;
+    case ':extras:':
+      lcString = strings.curate.folderName;
+      lcPlaceholderString = strings.curate.noFolderName;
+      break;
+  }
+  // Callback for the "remove" button
+  const onRemove = useCallback(() => {
+    props.dispatch({
+      type: 'remove-addapp',
+      payload: {
+        curationKey: props.curationKey,
+        key: props.curation.key
+      }
+    });
+  }, [props.curationKey, props.curation.key, props.dispatch]);
+  // Callback for the "run" button
+  const onRun = useCallback(() => {
+    return window.External.back.sendP<any, LaunchCurationAddAppData>(BackIn.LAUNCH_CURATION_ADDAPP, {
+      curationKey: props.curationKey,
+      curation: props.curation,
+      platform: props.platform,
+    });
+  }, [props.curation && props.curation.meta && props.curationKey]);
   // Render
   return (
-    <div className='curate-box-add-app'>
-      <CurateBoxRow title={strings.curate.heading + ':'}>
-        <InputField
-          text={props.curation && props.curation.meta.heading || ''}
-          placeholder={strings.curate.noHeading}
-          onChange={onHeadingChange}
-          editable={editable}
+    <tr className='curate-box-add-app'>
+        <CurateBoxRow title={strings.curate.heading + ':'}>
+          <InputField
+            text={props.curation && props.curation.meta.heading || ''}
+            placeholder={strings.curate.noHeading}
+            onChange={onHeadingChange}
+            editable={editable}
+            disabled={disabled}
+            onKeyDown={props.onInputKeyDown} />
+        </CurateBoxRow>
+        {specialType ? undefined :
+        <CurateBoxRow title={strings.browse.applicationPath + ':'}>
+          <InputField
+            text={props.curation && props.curation.meta.applicationPath || ''}
+            placeholder={strings.browse.noApplicationPath}
+            onChange={onApplicationPathChange}
+            editable={editable}
+            disabled={disabled}
+            onKeyDown={props.onInputKeyDown} />
+        </CurateBoxRow>
+        }
+        <CurateBoxRow title={lcString + ':'}>
+          <InputField
+            text={props.curation && props.curation.meta.launchCommand || ''}
+            placeholder={lcPlaceholderString}
+            onChange={onLaunchCommandChange}
+            editable={editable}
+            disabled={disabled}
+            onKeyDown={props.onInputKeyDown} />
+        </CurateBoxRow>
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.removeAddApp}
           disabled={disabled}
-          onKeyDown={props.onInputKeyDown} />
-      </CurateBoxRow>
-      <CurateBoxRow title={strings.browse.applicationPath + ':'}>
-        <InputField
-          text={props.curation && props.curation.meta.applicationPath || ''}
-          placeholder={strings.browse.noApplicationPath}
-          onChange={onApplicationPathChange}
-          editable={editable}
+          onClick={onRemove} />
+        <SimpleButton
+          className='curate-box-buttons__button'
+          value={strings.curate.run}
           disabled={disabled}
-          onKeyDown={props.onInputKeyDown} />
-      </CurateBoxRow>
-      <CurateBoxRow title={strings.browse.launchCommand + ':'}>
-        <InputField
-          text={props.curation && props.curation.meta.launchCommand || ''}
-          placeholder={strings.browse.noLaunchCommand}
-          onChange={onLaunchCommandChange}
-          editable={editable}
-          disabled={disabled}
-          onKeyDown={props.onInputKeyDown} />
-      </CurateBoxRow>
-    </div>
+          onClick={onRun} />
+  </tr>
   );
 }
 
