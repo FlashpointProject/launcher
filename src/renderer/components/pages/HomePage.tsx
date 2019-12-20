@@ -3,6 +3,7 @@ import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import { ARCADE, THEATRE } from '../../../shared/constants';
 import { wrapSearchTerm } from '../../../shared/game/GameFilter';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { GamePlaylist } from '../../../shared/interfaces';
@@ -23,9 +24,6 @@ import { AutoProgressComponent } from '../ProgressComponents';
 import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
-
-const ARCADE = 'Arcade';
-const THEATRE = 'Theatre';
 
 type OwnProps = {
   platforms: string[];

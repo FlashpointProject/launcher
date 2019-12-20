@@ -6,7 +6,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, GetSuggestionsResponseData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
 import { GamePlaylist, GamePropSuggestions, ProcessState, WindowIPC } from '../shared/interfaces';
@@ -254,6 +254,14 @@ export class App extends React.Component<AppProps, AppState> {
                 window.External.back.send<GetGamesTotalResponseData>(BackIn.GET_GAMES_TOTAL, undefined, res => {
                   if (res.data) {
                     this.setState({ gamesTotal: res.data });
+                  }
+                });
+                window.External.back.send<GetSuggestionsResponseData>(BackIn.GET_SUGGESTIONS, undefined, res => {
+                  if (res.data) {
+                    this.setState({
+                      suggestions: res.data.suggestions,
+                      appPaths: res.data.appPaths,
+                    });
                   }
                 });
                 break;

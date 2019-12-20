@@ -1,5 +1,6 @@
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
+import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { autoCode } from '../lang';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
@@ -41,7 +42,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   lastSelectedLibrary: '',
   gamesOrderBy: 'title',
   gamesOrder: 'ascending',
-  defaultLibrary: 'Arcade',
+  defaultLibrary: ARCADE,
   mainWindow: Object.freeze({
     x: undefined,
     y: undefined,

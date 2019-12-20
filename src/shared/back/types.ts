@@ -2,7 +2,7 @@ import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditCuration, EditCurationMeta, EditAddAppCurationMeta } from '../curate/types';
 import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
-import { GamePlaylist, IService, ProcessAction, ExecMapping } from '../interfaces';
+import { GamePlaylist, IService, ProcessAction, ExecMapping, GamePropSuggestions } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
@@ -11,6 +11,7 @@ import { Theme } from '../ThemeFile';
 export enum BackIn {
   GENERIC_RESPONSE,
   INIT_LISTEN,
+  GET_SUGGESTIONS,
   GET_GAMES_TOTAL,
   GET_EXEC,
   SAVE_GAME,
@@ -125,6 +126,11 @@ export type GetRendererInitDataResponse = {
   themes: Theme[];
   playlists?: GamePlaylist[];
   platformNames: string[]
+}
+
+export type GetSuggestionsResponseData = {
+  suggestions: Partial<GamePropSuggestions>;
+  appPaths: { [platform: string]: string; };
 }
 
 export type GetGamesTotalResponseData = number;
@@ -308,6 +314,10 @@ export type DeletePlaylistData = string;
 export type ImportCurationData = {
   curation: EditCuration;
   log?: boolean;
+  /**
+   * Note: This will have the incorrect prototype after being sent.
+   * Wrapping it new a new date object seems to work ("new Date(date)").
+   */
   date?: Date;
   saveCuration: boolean;
 }

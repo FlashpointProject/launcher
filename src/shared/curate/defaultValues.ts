@@ -44,7 +44,7 @@ export function getDefaultMetaValues(games: IGameInfo[]): GameMetaDefaults {
  * @param games Games to search through.
  * @returns Format: map["platform"] => "most used application path"
  */
-function findMostUsedApplicationPaths(games: IGameInfo[]): StringMap {
+export function findMostUsedApplicationPaths(games: IGameInfo[]): StringMap {
   // Count how often each "application path" is used on each "platform"
   const count = countAppPathsPerPlatform(games);
   // Create an object that only has the most used "application paths" per "platform"

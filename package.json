@@ -41,7 +41,6 @@
   "dependencies": {
     "chokidar": "3.2.1",
     "connected-react-router": "6.5.2",
-    "electron": "6.1.5",
     "electron-updater": "4.2.0",
     "fast-xml-parser": "3.12.19",
     "follow-redirects": "1.7.0",
@@ -80,7 +79,7 @@
     "@typescript-eslint/eslint-plugin": "1.13.0",
     "@typescript-eslint/parser": "1.13.0",
     "cross-env": "5.2.0",
-    "electron": "6.0.0",
+    "electron": "6.1.5",
     "electron-builder": "^21.2.0",
     "eslint": "6.1.0",
     "eslint-plugin-react": "7.16.0",

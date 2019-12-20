@@ -6,6 +6,7 @@ import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import * as YAML from 'yaml';
 import { BackIn, ImportCurationData, ImportCurationResponseData } from '../../../shared/back/types';
+import { ARCADE } from '../../../shared/constants';
 import { GameMetaDefaults } from '../../../shared/curate/defaultValues';
 import { convertEditToCurationMeta, convertParsedToCurationMeta } from '../../../shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta } from '../../../shared/curate/types';
@@ -59,7 +60,7 @@ export function CuratePage(props: CuratePageProps) {
       platform: 'Flash',
       playMode: 'Single Player',
       status:   'Playable',
-      library:  'Arcade',
+      library:  ARCADE,
     };
   }, [props.appPaths]);
 

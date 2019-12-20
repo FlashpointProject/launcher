@@ -7,10 +7,11 @@ import * as http from 'http';
 import * as path from 'path';
 import * as util from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
+import { findMostUsedApplicationPaths } from '../shared/curate/defaultValues';
 import { stringifyCurationFormat } from '../shared/curate/format/stringifier';
 import { convertToCurationMeta } from '../shared/curate/metaToMeta';
 import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '../shared/game/GameFilter';
@@ -30,6 +31,7 @@ import { importCuration, launchAddAppCuration, launchCuration } from './importGa
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { PlaylistFile } from './PlaylistFile';
 import { ServicesFile } from './ServicesFile';
+import { getSuggestions } from './suggestions';
 import { BackQuery, BackQueryChache, BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
@@ -663,6 +665,18 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       });
     } break;
 
+    case BackIn.GET_SUGGESTIONS: {
+      const games = allGames();
+      respond<GetSuggestionsResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: {
+          suggestions: getSuggestions(games, getLibraries()),
+          appPaths: findMostUsedApplicationPaths(games),
+        },
+      });
+    } break;
+
     case BackIn.GET_GAMES_TOTAL: {
       respond<GetGamesTotalResponseData>(event.target, {
         id: req.id,
@@ -1240,7 +1254,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           curation: reqData.curation,
           games: state.gameManager,
           log: reqData.log ? log : undefined,
-          date: reqData.date,
+          date: (reqData.date !== undefined) ? new Date(reqData.date) : undefined,
           saveCuration: reqData.saveCuration,
           fpPath: state.config.flashpointPath,
           imageFolderPath: state.config.imageFolderPath,
@@ -1778,6 +1792,16 @@ function getLibraries(): string[] {
     if (libraries.indexOf(library) === -1) { libraries.push(library); }
   }
   return libraries;
+}
+
+/** Create an array with all games in the game manager. */
+function allGames(): IGameInfo[] {
+  const games: IGameInfo[] = [];
+  const platforms = state.gameManager.platforms;
+  for (let i = 0; i < platforms.length; i++) {
+    Array.prototype.push.apply(games, platforms[i].collection.games);
+  }
+  return games;
 }
 
 type ErrorCopy = {
