@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import { promisify } from 'util';
 
 const mkdir = promisify(fs.mkdir);
@@ -119,25 +118,4 @@ export function pathExists(filePath: string): Promise<boolean> {
       } else { resolve(true); }
     });
   });
-}
-
-export async function ensurePath(filePath: string): Promise<void> {
-  // Find the closest existing folder
-  let top = filePath;
-  let c = 0; // (Just adds a safety limit)
-  while (true) {
-    if (await pathExists(top)) { break; }
-    else { top = path.dirname(filePath); }
-    if (c++ > 255) { throw new Error('Check for existing folders got stuck.'); } // Give up
-  }
-
-  // Create folders from the top, one at a time
-  if (top !== filePath) {
-    const dif = path.relative(top, filePath).split(path.sep);
-    let paff = top;
-    for (let i = 0; i < dif.length; i++) {
-      paff = path.join(paff, dif[i]);
-      await mkdir(paff);
-    }
-  }
 }

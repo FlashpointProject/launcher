@@ -35,7 +35,7 @@ import { getSuggestions } from './suggestions';
 import { BackQuery, BackQueryChache, BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { ensurePath, getContentType, pathExists } from './util/misc';
+import { getContentType, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -65,6 +65,7 @@ const state: BackState = {
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
   configFolder: createErrorProxy('configFolder'),
+  exePath: createErrorProxy('exePath'),
   countryCode: createErrorProxy('countryCode'),
   gameManager: new GameManager(),
   messageQueue: [],
@@ -109,6 +110,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.secret = content.secret;
   state.configFolder = content.configFolder;
   state.countryCode = content.countryCode;
+  state.exePath = content.exePath;
 
   // Read configs & preferences
   const [pref, conf] = await (Promise.all([
@@ -198,7 +200,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
   state.languageWatcher.on('error', console.error);
-  const langFolder = path.join(content.isDev ? process.cwd() : content.configFolder, 'lang');
+  const langFolder = path.join(content.isDev ? process.cwd() : content.exePath, 'lang');
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
@@ -846,7 +848,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           const newLogoPath = path.join(imageFolder, LOGOS, newLast);
           try {
             if (await pathExists(oldLogoPath)) {
-              await ensurePath(path.dirname(newLogoPath));
+              await fs.promises.mkdir(path.dirname(newLogoPath), { recursive: true });
               await copyFile(oldLogoPath, newLogoPath);
             }
           } catch (e) { console.error(e); }
@@ -855,7 +857,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           const newScreenshotPath = path.join(imageFolder, SCREENSHOTS, newLast);
           try {
             if (await pathExists(oldScreenshotPath)) {
-              await ensurePath(path.dirname(newScreenshotPath));
+              await fs.promises.mkdir(path.dirname(newScreenshotPath), { recursive: true });
               await copyFile(oldScreenshotPath, newScreenshotPath);
             }
           } catch (e) { console.error(e); }
@@ -1005,7 +1007,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
       if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
         try {
-          await ensurePath(path.dirname(fullPath));
+          await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
           await writeFile(fullPath, Buffer.from(reqData.content, 'base64'));
         } catch (e) {
           log({

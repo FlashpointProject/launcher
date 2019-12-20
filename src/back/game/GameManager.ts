@@ -9,7 +9,6 @@ import { GamePlatform, IRawPlatformFile, PlatformInfo } from '../../shared/platf
 import { PlatformParser } from '../../shared/platform/PlatformParser';
 import { IAppPreferencesData } from '../../shared/preferences/interfaces';
 import { EventQueue } from '../util/EventQueue';
-import { ensurePath } from '../util/misc';
 import { LoadPlatformError, SearchCache, SearchCacheQuery } from './interfaces';
 
 const writeFile = promisify(fs.writeFile);
@@ -448,7 +447,7 @@ export class GameManager {
     // Add save to the queue
     return this.saveQueue.push(async () => {
       // Save data to the platform's file
-      await ensurePath(path.dirname(platform.filePath));
+      await fs.promises.mkdir(path.dirname(platform.filePath), { recursive: true });
       await writeFile(platform.filePath, parsedData);
     }, true);
   }

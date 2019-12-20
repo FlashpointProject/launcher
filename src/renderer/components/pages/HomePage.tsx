@@ -14,7 +14,6 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { GameLauncher } from '../../GameLauncher';
-import { CentralState } from '../../interfaces';
 import { Paths } from '../../Paths';
 import { UpgradeStage } from '../../upgrade/types';
 import { joinLibraryRoute } from '../../Util';
@@ -28,8 +27,8 @@ import { SizeProvider } from '../SizeProvider';
 type OwnProps = {
   platforms: string[];
   playlists: GamePlaylist[];
-  /** Semi-global prop. */
-  central: CentralState;
+  /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
+  upgrades: UpgradeStage[];
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
@@ -59,7 +58,7 @@ export function HomePage(props: HomePageProps) {
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
   const dialogStrings = allStrings.dialog;
-  const upgradeStages = props.central.upgrades;
+  const upgradeStages = props.upgrades;
 
   const { showBrokenGames } = window.External.config.data;
   const { disableExtremeGames } = window.External.config.data;
@@ -321,7 +320,7 @@ export function HomePage(props: HomePageProps) {
         { renderRandomGames }
       </div>
     </div>
-  ), [renderUpdate, renderQuickStart, renderExtras, renderNotes, renderRandomGames]);
+  ), [renderUpdate, renderQuickStart, renderUpgrades, renderExtras, renderNotes, renderRandomGames]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {
@@ -372,14 +371,6 @@ function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, 
       )
     ) : strings.checkingUpgradeState
   );
-}
-
-function findHallOfFamePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
-  return playlists.find(playlist => playlist.title === 'Flashpoint Hall of Fame');
-}
-
-function findFavoritePlaylist(playlists: GamePlaylist[]): GamePlaylist | undefined {
-  return playlists.find(playlist => playlist.title === '*Favorites*');
 }
 
 function onUpdateDownload(updateInfo: UpdateInfo, downloadFunc: () => void): boolean {

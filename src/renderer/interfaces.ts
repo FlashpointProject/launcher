@@ -3,19 +3,6 @@ import { UpgradeStage } from './upgrade/types';
 
 export type GAMES = Record<number, ViewGame | undefined>
 
-/**
- * An object created and managed by the "root" component (App) and is passed down deep into many different components.
- * This is sort of a hacky and temporary solution. It should be phased out.
- */
-export type CentralState = {
-  /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
-  upgrades: UpgradeStage[];
-  /** If upgrades files have loaded */
-  upgradesDoneLoading: boolean;
-  /** Stop rendering to force component unmounts */
-  stopRender: boolean;
-}
-
 /** State of a single "stage" in the upgrade system (each individual downloadable upgrade is called a "stage"). */
 export type UpgradeStageState = {
   /** If the stage was already installed when the launcher started up (this value is only meaningful if the stage checks are done). */

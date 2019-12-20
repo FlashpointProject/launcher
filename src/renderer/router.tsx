@@ -16,7 +16,7 @@ import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/Conn
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { CreditsData } from './credits/types';
-import { CentralState, GAMES } from './interfaces';
+import { GAMES } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
 
@@ -34,9 +34,7 @@ export type AppRouterProps = {
   playlistIconCache: Record<string, string>;
   libraries: string[];
 
-  /** Semi-global prop. */
-  central: CentralState;
-  /** Credits data (if any). */
+  upgrades: UpgradeStage[];
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   order?: GameOrderChangeEvent;
@@ -60,7 +58,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const homeProps: ConnectedHomePageProps = {
       platforms: this.props.platforms,
       playlists: this.props.playlists,
-      central: this.props.central,
+      upgrades: this.props.upgrades,
       onSelectPlaylist: this.props.onSelectPlaylist,
       onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
       updateInfo: this.props.updateInfo,
@@ -103,7 +101,6 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const developerProps: DeveloperPageProps = {
       platforms: this.props.platforms,
       playlists: this.props.playlists,
-      central: this.props.central,
     };
     return (
       <Switch>

@@ -401,3 +401,23 @@ export function sizeToString(size: number, precision: number = 3): string {
 export function fixSlashes(str: string): string {
   return str.replace(/\\/g, '/');
 }
+
+/**
+ * Checks whether we can write and read to a folder
+ * @param folder folder to check
+ */
+export function canReadWrite(folder: string): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const testPath = path.join(folder, 'test');
+    fs.open(testPath, 'w', (err, fd) => {
+      if (err) {
+        resolve(false);
+      }
+      // Cleanup file after testing
+      fs.close(fd, () => {
+        fs.unlink(testPath, () => {});
+      });
+      resolve(true);
+    });
+  });
+}

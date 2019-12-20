@@ -359,6 +359,8 @@ const langTemplate = {
     'dataRequiredDesc',
     'upgradeWillInstallTo',
     'verifyPathSelection',
+    'badFolderPerms',
+    'pickAnotherFolder',
     'restartNow',
     'restartToApplyUpgrade',
     'areYouSure'

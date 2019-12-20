@@ -18,7 +18,7 @@ import { updatePreferencesData } from '../shared/preferences/util';
 import { setTheme } from '../shared/Theme';
 import { Theme } from '../shared/ThemeFile';
 import { getUpgradeString } from '../shared/upgrade/util';
-import { deepCopy, recursiveReplace } from '../shared/Util';
+import { deepCopy, recursiveReplace, canReadWrite } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -28,7 +28,7 @@ import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
-import { CentralState, GAMES, UpgradeStageState } from './interfaces';
+import { GAMES, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
@@ -79,8 +79,12 @@ export type AppState = {
   themeList: Theme[];
   gamesTotal: number;
 
-  /** Semi-global prop. */
-  central: CentralState;
+  /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
+  upgrades: UpgradeStage[];
+  /** If upgrades files have loaded */
+  upgradesDoneLoading: boolean;
+  /** Stop rendering to force component unmounts */
+  stopRender: boolean;
   /** Credits data (if any). */
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
@@ -120,12 +124,9 @@ export class App extends React.Component<AppProps, AppState> {
       },
       themeList: window.External.initialThemes,
       gamesTotal: -1,
-
-      central: {
-        upgrades: [],
-        upgradesDoneLoading: false,
-        stopRender: false,
-      },
+      upgrades: [],
+      upgradesDoneLoading: false,
+      stopRender: false,
       creditsData: undefined,
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
@@ -151,9 +152,9 @@ export class App extends React.Component<AppProps, AppState> {
     (() => {
       let askBeforeClosing = true;
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
-        const { central } = this.state;
+        const { upgrades } = this.state;
         let stillDownloading = false;
-        for (let stage of central.upgrades) {
+        for (let stage of upgrades) {
           if (stage.state.isInstalling) {
             stillDownloading = true;
             break;
@@ -471,10 +472,8 @@ export class App extends React.Component<AppProps, AppState> {
         }
       }
       this.setState({
-        central: Object.assign({}, this.state.central, {
-          upgrades: allData,
-          upgradesDoneLoading: true,
-        })
+        upgrades: allData,
+        upgradesDoneLoading: true,
       });
       const isValid = await isFlashpointValidCheck(window.External.config.data.flashpointPath);
       // Notify of downloading initial data (if available)
@@ -670,7 +669,7 @@ export class App extends React.Component<AppProps, AppState> {
     const loaded = (
       this.state.loaded[BackInit.GAMES] &&
       this.state.loaded[BackInit.PLAYLISTS] &&
-      this.state.central.upgradesDoneLoading &&
+      this.state.upgradesDoneLoading &&
       this.state.creditsDoneLoading &&
       this.state.loaded[BackInit.EXEC]
     );
@@ -691,8 +690,7 @@ export class App extends React.Component<AppProps, AppState> {
       onRequestGames: this.onRequestGames,
       onQuickSearch: this.onQuickSearch,
       libraries: this.state.libraries,
-
-      central: this.state.central,
+      upgrades: this.state.upgrades,
       creditsData: this.state.creditsData,
       creditsDoneLoading: this.state.creditsDoneLoading,
       order: this.state.order,
@@ -713,13 +711,13 @@ export class App extends React.Component<AppProps, AppState> {
     // Render
     return (
       <LangContext.Provider value={this.state.lang}>
-        { !this.state.central.stopRender ? (
+        { !this.state.stopRender ? (
           <>
             {/* Splash screen */}
             <SplashScreen
               gamesLoaded={this.state.loaded[BackInit.GAMES]}
               playlistsLoaded={this.state.loaded[BackInit.PLAYLISTS]}
-              upgradesLoaded={this.state.central.upgradesDoneLoading}
+              upgradesLoaded={this.state.upgradesDoneLoading}
               creditsLoaded={this.state.creditsDoneLoading}
               miscLoaded={this.state.loaded[BackInit.EXEC]} />
             {/* Title-bar (if enabled) */}
@@ -854,16 +852,15 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
-    const { upgrades } = this.state.central;
+    const { upgrades } = this.state;
     const index = upgrades.findIndex(u => u.id === id);
     if (index != -1) {
       const newUpgrades = deepCopy(upgrades);
       const newStageState = Object.assign({}, upgrades[index].state, data);
+      console.log(newStageState);
       newUpgrades[index].state = newStageState;
       this.setState({
-        central: Object.assign({}, this.state.central, {
-          upgrades: newUpgrades,
-        })
+        upgrades: newUpgrades,
       });
     }
   }
@@ -1022,9 +1019,7 @@ export class App extends React.Component<AppProps, AppState> {
   });
 
   private unmountBeforeClose = (): void => {
-    const { central } = this.state;
-    central.stopRender = true;
-    this.setState({ central });
+    this.setState({ stopRender: true });
     setTimeout(() => { window.close(); }, 100);
   }
 }
@@ -1046,12 +1041,23 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
         properties: ['openDirectory', 'promptToCreate', 'createDirectory']
       });
       if (chosenPaths && chosenPaths.length > 0) {
-        // Verify the path chosen
+        // Take first selected folder (Should only be able to select 1 anyway!)
         chosenPath = chosenPaths[0];
-        const topString = formatString(strings.dialog.upgradeWillInstallTo, getUpgradeString(stage.title, strings.upgrades));
-        const choiceVerify = await openConfirmDialog(strings.dialog.areYouSure, `${topString}:\n\n${chosenPath}\n\n${strings.dialog.verifyPathSelection}`);
-        if (choiceVerify) {
-          verifiedPath = true;
+        // Make sure we can write to this path
+        const havePerms = await canReadWrite(chosenPath);
+        if (!havePerms) {
+          remote.dialog.showMessageBoxSync({
+            title: strings.dialog.badFolderPerms,
+            type: 'error',
+            message: strings.dialog.pickAnotherFolder
+          });
+        } else {
+          // Verify the path chosen is the one desired
+          const topString = formatString(strings.dialog.upgradeWillInstallTo, getUpgradeString(stage.title, strings.upgrades));
+          const choiceVerify = await openConfirmDialog(strings.dialog.areYouSure, `${topString}:\n\n${chosenPath}\n\n${strings.dialog.verifyPathSelection}`);
+          if (choiceVerify) {
+            verifiedPath = true;
+          }
         }
       } else {
         // Window closed, cancel the upgrade
@@ -1065,7 +1071,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       // Save picked folder to config
       window.External.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
         flashpointPath: flashpointPath,
-      }, () => { /*window.External.restart();*/ });
+      }, () => { /* window.External.restart(); */ });
     }
   }
   // Flag as installing

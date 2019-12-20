@@ -9,7 +9,6 @@ import { LOGOS, SCREENSHOTS } from '../../../shared/constants';
 import { IGameInfo } from '../../../shared/game/interfaces';
 import { ExecMapping, GamePlaylist, GamePlaylistEntry } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
-import { CentralState } from '../../interfaces';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../util/uuid';
 import { LogData } from '../LogData';
@@ -23,8 +22,6 @@ type Map<K extends string, V> = { [key in K]: V };
 export type DeveloperPageProps = {
   platforms: string[];
   playlists: GamePlaylist[];
-  /** Semi-global prop. */
-  central: CentralState;
 };
 
 type DeveloperPageState = {

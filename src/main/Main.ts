@@ -70,6 +70,7 @@ export class Main {
         secret: this._secret,
         isDev: Util.isDev,
         countryCode: app.getLocaleCountryCode().toLowerCase() || '',
+        exePath: path.dirname(app.getPath('exe')),
       };
       this.backProc.send(JSON.stringify(msg));
     }))

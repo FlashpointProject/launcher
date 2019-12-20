@@ -96,6 +96,7 @@ export type BackInitArgs = {
   secret: string;
   isDev: boolean;
   countryCode: string;
+  exePath: string;
 }
 
 export enum BackInit {

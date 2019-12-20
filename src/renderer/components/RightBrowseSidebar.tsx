@@ -89,7 +89,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   onBrokenChange              = this.wrapOnCheckBoxChange(game => { game.broken  = !game.broken;  });
   onExtremeChange             = this.wrapOnCheckBoxChange(game => { game.extreme = !game.extreme; });
   // Bound "on click" callbacks for game fields
-  onTitleClick                = this.wrapOnTextClick('title');
   onDeveloperClick            = this.wrapOnTextClick('developer');
   onTagsClick                 = this.wrapOnTextClick('tags');
   onSeriesClick               = this.wrapOnTextClick('series');
@@ -159,10 +158,8 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <InputField
                     text={game.title}
                     placeholder={strings.noTitle}
-                    className='browse-right-sidebar__searchable'
                     editable={editable}
                     onChange={this.onTitleChange}
-                    onClick={this.onTitleClick}
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>

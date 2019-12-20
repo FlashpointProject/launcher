@@ -13,7 +13,6 @@ import { Coerce } from '../shared/utils/Coerce';
 import { GameManager } from './game/GameManager';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
-import { ensurePath } from './util/misc';
 import { uuid } from './util/uuid';
 
 const { strToBool } = Coerce;
@@ -127,8 +126,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         // Date in form 'YYYY-MM-DD' for folder sorting
         const date = new Date();
         const dateStr = date.getFullYear().toString() + '-' +
-                        date.getUTCMonth().toString().padStart(2, '0') + '-' +
-                        date.getUTCDay().toString().padStart(2, '0');
+                        (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
+                        date.getUTCDate().toString().padStart(2, '0');
         const backupPath = path.join(fpPath, 'Curations', '_Imported', `${dateStr}__${curation.key}`);
         await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog, log);
       }
@@ -244,7 +243,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
     if (imagePath.startsWith(fullImagePath)) { // (Make sure the image path does not climb out of the image folder)
       // Check if the image is its own file
       if (image.filePath !== undefined) {
-        await ensurePath(path.dirname(imagePath));
+        await fs.promises.mkdir(path.dirname(imagePath), { recursive: true });
         await copyOrMoveFile(image.filePath, imagePath, false, log);
       }
       // Check if the image is extracted
@@ -309,7 +308,7 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
       const source = path.join(inFolder, content.filePath);
       const dest = path.join(outFolder, content.filePath);
       // Ensure that the folders leading up to the file exists
-      await ensurePath(path.dirname(dest));
+      await fs.promises.mkdir(path.dirname(dest), { recursive: true });
       await access(dest, fs.constants.F_OK)
       .then(async () => {
         // Ask to overwrite if file already exists
