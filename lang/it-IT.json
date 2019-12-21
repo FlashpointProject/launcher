@@ -91,7 +91,8 @@
     "total": "Total",
     "newGame": "New Game",
     "list": "List",
-    "grid": "Grid"
+    "grid": "Grid",
+    "searchResults": "Search Results"
   },
   "filter": {
     "dateAdded": "Date Added",
@@ -296,7 +297,8 @@
     "noTitle": "Nessun titolo",
     "titlePlaceholder": "Titolo...",
     "noAuthor": "Nessun autore",
-    "authorPlaceholder": "Autore..."
+    "authorPlaceholder": "Autore...",
+    "by": "by"
   },
   "misc": {
     "noBlankFound": "No {0} Found",
