@@ -54,6 +54,7 @@ type View = {
   /** The most recent query used for this view. */
   query: {
     search: string;
+    extreme: boolean;
     orderBy: GameOrderBy;
     orderReverse: GameOrderReverse;
   };
@@ -221,6 +222,7 @@ export class App extends React.Component<AppProps, AppState> {
           total: 0,
           query: {
             search: this.props.search.text,
+            extreme: this.props.preferencesData.browsePageShowExtreme,
             orderBy: this.state.order.orderBy,
             orderReverse: this.state.order.orderReverse,
           }
@@ -594,6 +596,7 @@ export class App extends React.Component<AppProps, AppState> {
       // Update search options (if they have changed)
       if (view) {
         if (view.query.search       !== this.props.search.text ||
+            view.query.extreme      !== this.props.preferencesData.browsePageShowExtreme ||
             view.query.orderBy      !== this.state.order.orderBy ||
             view.query.orderReverse !== this.state.order.orderReverse) {
           this.setState({
@@ -605,6 +608,7 @@ export class App extends React.Component<AppProps, AppState> {
                 query: {
                   ...view.query,
                   search: this.props.search.text,
+                  extreme: this.props.preferencesData.browsePageShowExtreme,
                   orderBy: this.state.order.orderBy,
                   orderReverse: this.state.order.orderReverse,
                 },
@@ -927,13 +931,13 @@ export class App extends React.Component<AppProps, AppState> {
           offset: pageMin * VIEW_PAGE_SIZE,
           limit: (pageMax - pageMin + 1) * VIEW_PAGE_SIZE,
           query: {
-            extreme: this.props.preferencesData.browsePageShowExtreme,
+            extreme: view.query.extreme,
             broken: false, // @TODO Add an option for this or something
             library: library,
-            search: this.props.search.text, // view.query.search,
+            search: view.query.search,
             playlistId: view && view.selectedPlaylistId,
-            orderBy: this.state.order.orderBy, // view.query.orderBy,
-            orderReverse: this.state.order.orderReverse, // view.query.orderReverse,
+            orderBy: view.query.orderBy,
+            orderReverse: view.query.orderReverse,
           },
         }
       });
