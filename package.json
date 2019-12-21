@@ -1,6 +1,6 @@
 {
   "name": "flashpoint-launcher",
-  "version": "7.0.0-snapshot",
+  "version": "7.0.0",
   "description": "A desktop application used to browse, manage and play games from BlueMaxima's Flashpoint",
   "main": "build/main/index.js",
   "scripts": {
@@ -80,7 +80,7 @@
     "@typescript-eslint/parser": "1.13.0",
     "cross-env": "5.2.0",
     "electron": "6.1.5",
-    "electron-builder": "^21.2.0",
+    "electron-builder": "21.2.0",
     "eslint": "6.1.0",
     "eslint-plugin-react": "7.16.0",
     "gulp": "4.0.2",
