@@ -330,10 +330,10 @@
     "pathNotFound": "Chemin introuvable !",
     "selectFileToExportMeta": "Select file to save meta to",
     "selectFolderToExportMetaAndImages": "Select folder to save meta and images to",
-    "replaceFilesQuestion": "Remplacer les fichiers?",
+    "replaceFilesQuestion": "Replace files?",
     "exportedAlreadyExistsYesNo": "Un ou plusieurs des fichiers exportés existent déjà.\n Voulez-vous les remplacer?",
     "selectFolder": "Select Folder",
-    "selectScreenshot": "Sélectionnez une Capture d'Écran",
+    "selectScreenshot": "Select Screenshot",
     "selectThumbnail": "Sélectionnez une Miniature",
     "selectThemeFile": "Sélectionnez un Fichier de Thème",
     "selectCurationFolder": "Sélectionnez un ou des Dossier(s) de Conservation",
@@ -350,7 +350,7 @@
     "areYouSure": "Are you sure?"
   },
   "libraries": {
-    "arcade": "Games",
+    "arcade": "Jeux",
     "theatre": "Animations"
   },
   "upgrades": {
