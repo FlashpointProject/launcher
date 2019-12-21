@@ -92,7 +92,7 @@
     "newGame": "Neues Spiel",
     "list": "Liste",
     "grid": "Raster",
-    "searchResults": "Search Results"
+    "searchResults": "Suchergebnisse"
   },
   "filter": {
     "dateAdded": "Hinzugefügt am",
@@ -298,7 +298,7 @@
     "titlePlaceholder": "Titel...",
     "noAuthor": "Kein Autor",
     "authorPlaceholder": "Autor...",
-    "by": "by"
+    "by": "nach"
   },
   "misc": {
     "noBlankFound": "Kein {0} gefunden",
