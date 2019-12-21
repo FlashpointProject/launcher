@@ -304,25 +304,25 @@
     "noBlankFound": "No {0} Found",
     "addBlank": "Add {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
-    "yes": "Yes",
-    "no": "No",
+    "yes": "Oui",
+    "no": "Non",
     "downloading": "Downloading",
     "extracting": "Extracting",
     "installingFiles": "Installing Files...",
     "complete": "Complete"
   },
   "menu": {
-    "viewThumbnailInFolder": "View Thumbnail in Folder",
-    "viewScreenshotInFolder": "View Screenshot in Folder",
+    "viewThumbnailInFolder": "Voir la miniature dans le dossier",
+    "viewScreenshotInFolder": "Voir la capture d'écran dans le dossier",
     "openFileLocation": "Open File Location",
     "duplicateMetaOnly": "Duplicate (Meta Only)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
-    "exportMetaOnly": "Export (Meta Only)",
-    "exportMetaAndImages": "Export (Meta && Images)"
+    "exportMetaOnly": "Exporter (Méta Seulement)",
+    "exportMetaAndImages": "Exporter (Méta && Images)"
   },
   "dialog": {
     "programNotFound": "Program not found!",
-    "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
+    "phpNotFound": "PHP n'as pas été trouvé sur le chemin. Est-il installé?\nVous pouvez rencontrer des comportements inattendus et brisés sans lui.",
     "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "File not found!",
