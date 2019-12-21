@@ -91,7 +91,8 @@
     "total": "Всего игр и анимаций",
     "newGame": "Новая игра",
     "list": "Список",
-    "grid": "Плитка"
+    "grid": "Плитка",
+    "searchResults": "Search Results"
   },
   "filter": {
     "dateAdded": "Дата добавления",
@@ -296,7 +297,8 @@
     "noTitle": "Нет названия",
     "titlePlaceholder": "Название...",
     "noAuthor": "Нет автора",
-    "authorPlaceholder": "Автор..."
+    "authorPlaceholder": "Автор...",
+    "by": "by"
   },
   "misc": {
     "noBlankFound": "{0} не найден",
