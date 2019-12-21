@@ -27,7 +27,7 @@ export type BackState = {
   config: IAppConfigData;
   configFolder: string;
   exePath: string;
-  countryCode: string;
+  localeCode: string;
   gameManager: GameManager;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;

@@ -4,7 +4,7 @@ import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
-import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, WrappedRequest, WrappedResponse, SetLocaleData } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { IMiscData, MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
@@ -24,6 +24,7 @@ export class Main {
   public config?: IAppConfigData;
   public socket?: WebSocket;
   public backProc: ChildProcess | undefined;
+  private _sentLocaleCode: boolean = false;
 
   constructor() {
     // Add app event listeners
@@ -64,12 +65,21 @@ export class Main {
           reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
         }
       });
+      // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+      let localeCode: string = 'en';
+      if (process.platform === 'win32' && !app.isReady()) {
+        localeCode = 'en';
+      } else {
+        localeCode = app.getLocale().toLowerCase();
+        this._sentLocaleCode = true;
+      }
       // Send initialize message
       const msg: BackInitArgs = {
         configFolder: Util.getConfigFolderPath(!!this._installed),
         secret: this._secret,
         isDev: Util.isDev,
-        countryCode: app.getLocaleCountryCode().toLowerCase() || '',
+        // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+        localeCode: localeCode,
         exePath: path.dirname(app.getPath('exe')),
       };
       this.backProc.send(JSON.stringify(msg));
@@ -140,6 +150,15 @@ export class Main {
     if (!session.defaultSession) {
       throw new Error('Default session is missing!');
     }
+    // Send locale code (if it has no been sent already)
+    if (process.platform === 'win32' && !this._sentLocaleCode && this.socket) {
+      this._sentLocaleCode = true;
+      this.sendReq<SetLocaleData>({
+        id: '',
+        type: BackIn.SET_LOCALE,
+        data: app.getLocale().toLowerCase(),
+      });
+    }
     // Reject all permission requests since we don't need any permissions.
     session.defaultSession.setPermissionRequestHandler(
       (webContents, permission, callback) => callback(false)
@@ -185,11 +204,10 @@ export class Main {
   private onAppWillQuit(event: Event): void {
     if (this.socket) {
       event.preventDefault();
-      const req: WrappedRequest = {
+      this.sendReq<undefined>({
         id: '',
         type: BackIn.QUIT,
-      };
-      this.socket.send(JSON.stringify(req));
+      });
     }
   }
 
@@ -217,6 +235,12 @@ export class Main {
       secret: this._secret,
     };
     event.returnValue = data;
+  }
+
+  private sendReq<U = any>(request: WrappedRequest<U>): void {
+    if (this.socket) {
+      this.socket.send(JSON.stringify(request));
+    }
   }
 }
 

@@ -6,7 +6,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, GetSuggestionsResponseData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, GetSuggestionsResponseData, LocaleUpdateData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
 import { GamePlaylist, GamePropSuggestions, ProcessState, WindowIPC } from '../shared/interfaces';
@@ -78,6 +78,7 @@ export type AppState = {
   loaded: { [key in BackInit]: boolean; };
   themeList: Theme[];
   gamesTotal: number;
+  localeCode: string;
 
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
@@ -124,6 +125,7 @@ export class App extends React.Component<AppProps, AppState> {
       },
       themeList: window.External.initialThemes,
       gamesTotal: -1,
+      localeCode: window.External.initialLocaleCode,
       upgrades: [],
       upgradesDoneLoading: false,
       stopRender: false,
@@ -275,6 +277,12 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.LOG_ENTRY_ADDED: {
           const resData: LogEntryAddedData = res.data;
           window.External.log.entries[resData.index - window.External.log.offset] = resData.entry;
+        } break;
+
+        case BackOut.LOCALE_UPDATE: {
+          const resData: LocaleUpdateData = res.data;
+          this.setState({ localeCode: resData });
+          console.log(resData)
         } break;
 
         case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
@@ -690,6 +698,7 @@ export class App extends React.Component<AppProps, AppState> {
       onRequestGames: this.onRequestGames,
       onQuickSearch: this.onQuickSearch,
       libraries: this.state.libraries,
+      localeCode: this.state.localeCode,
       upgrades: this.state.upgrades,
       creditsData: this.state.creditsData,
       creditsDoneLoading: this.state.creditsDoneLoading,
@@ -857,7 +866,6 @@ export class App extends React.Component<AppProps, AppState> {
     if (index != -1) {
       const newUpgrades = deepCopy(upgrades);
       const newStageState = Object.assign({}, upgrades[index].state, data);
-      console.log(newStageState);
       newUpgrades[index].state = newStageState;
       this.setState({
         upgrades: newUpgrades,

@@ -7,7 +7,7 @@ import * as http from 'http';
 import * as path from 'path';
 import * as util from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
@@ -66,7 +66,7 @@ const state: BackState = {
   config: createErrorProxy('config'),
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
-  countryCode: createErrorProxy('countryCode'),
+  localeCode: createErrorProxy('countryCode'),
   gameManager: new GameManager(),
   messageQueue: [],
   isHandling: false,
@@ -109,7 +109,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   const content: BackInitArgs = JSON.parse(message);
   state.secret = content.secret;
   state.configFolder = content.configFolder;
-  state.countryCode = content.countryCode;
+  state.localeCode = content.localeCode;
   state.exePath = content.exePath;
 
   // Read configs & preferences
@@ -183,11 +183,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         });
 
         if (lang.code === state.preferences.currentLanguage ||
-            lang.code === state.countryCode ||
+            lang.code === state.localeCode ||
             lang.code === state.preferences.fallbackLanguage) {
           state.languageContainer = createContainer(
             state.preferences.currentLanguage,
-            state.countryCode,
+            state.localeCode,
             state.preferences.fallbackLanguage
           );
           broadcast<LanguageChangeData>({
@@ -621,7 +621,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
       state.languageContainer = createContainer(
         state.preferences.currentLanguage,
-        state.countryCode,
+        state.localeCode,
         state.preferences.fallbackLanguage
       );
 
@@ -639,6 +639,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
           playlists: state.init[BackInit.PLAYLISTS] ? state.playlists : undefined,
           platformNames: state.gameManager.platforms.map(p => p.name),
+          localeCode: state.localeCode,
         },
       });
     } break;
@@ -684,6 +685,20 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
         data: countGames(),
+      });
+    } break;
+
+    case BackIn.SET_LOCALE: {
+      const reqData: SetLocaleData = req.data;
+
+      state.localeCode = reqData;
+
+      // @TODO Update the language container if the locale changes
+
+      respond<LocaleUpdateData>(event.target, {
+        id: req.id,
+        type: BackOut.LOCALE_UPDATE,
+        data: reqData,
       });
     } break;
 
@@ -1115,7 +1130,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
             (typeof dif.fallbackLanguage !== 'undefined' && dif.fallbackLanguage !== state.preferences.fallbackLanguage)) {
           state.languageContainer = createContainer(
             (typeof dif.currentLanguage !== 'undefined') ? dif.currentLanguage : state.preferences.currentLanguage,
-            state.countryCode,
+            state.localeCode,
             (typeof dif.fallbackLanguage !== 'undefined') ? dif.fallbackLanguage : state.preferences.fallbackLanguage
           );
           broadcast<LanguageChangeData>({
@@ -1637,9 +1652,13 @@ function createContainer(currentCode: string, autoLangCode: string, fallbackCode
   }
   if (!current) { // (Auto language)
     current = state.languages.find(item => item.code === autoLangCode);
+    if (!current) { current = state.languages.find(item => item.code.startsWith(autoLangCode.substr(0, 2))); }
   }
   // Get fallback language
-  const fallback = state.languages.find(item => item.code === fallbackCode);
+  const fallback = (
+    state.languages.find(item => item.code === fallbackCode) || // (Exact match)
+    state.languages.find(item => item.code.startsWith(fallbackCode.substr(0, 2))) // (Same language)
+  );
   // Combine all language container objects (by overwriting the default with the fallback and the current)
   const data = recursiveReplace(recursiveReplace(deepCopy(defaultLang), fallback && fallback.data), current && current.data);
   data.libraries = { // Allow libraries to add new properties (and not just overwrite the default)

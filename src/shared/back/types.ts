@@ -13,6 +13,7 @@ export enum BackIn {
   INIT_LISTEN,
   GET_SUGGESTIONS,
   GET_GAMES_TOTAL,
+  SET_LOCALE,
   GET_EXEC,
   SAVE_GAME,
   GET_GAME,
@@ -54,6 +55,7 @@ export enum BackOut {
   INIT_EVENT,
   OPEN_DIALOG,
   OPEN_EXTERNAL,
+  LOCALE_UPDATE,
   BROWSE_VIEW_PAGE_RESPONSE,
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
@@ -95,7 +97,7 @@ export type BackInitArgs = {
   /** Secret string used for authentication. */
   secret: string;
   isDev: boolean;
-  countryCode: string;
+  localeCode: string;
   exePath: string;
 }
 
@@ -126,7 +128,8 @@ export type GetRendererInitDataResponse = {
   language: LangContainer;
   themes: Theme[];
   playlists?: GamePlaylist[];
-  platformNames: string[]
+  platformNames: string[];
+  localeCode: string;
 }
 
 export type GetSuggestionsResponseData = {
@@ -135,6 +138,10 @@ export type GetSuggestionsResponseData = {
 }
 
 export type GetGamesTotalResponseData = number;
+
+export type SetLocaleData = string;
+
+export type LocaleUpdateData = string;
 
 export type GetExecData = ExecMapping[];
 

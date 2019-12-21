@@ -33,6 +33,7 @@ export type AppRouterProps = {
   onQuickSearch: (search: string) => void;
   playlistIconCache: Record<string, string>;
   libraries: string[];
+  localeCode: string;
 
   upgrades: UpgradeStage[];
   creditsData?: CreditsData;
@@ -87,7 +88,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
       availableLangs: this.props.languages,
-      platforms: this.props.platforms
+      platforms: this.props.platforms,
+      localeCode: this.props.localeCode,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,
