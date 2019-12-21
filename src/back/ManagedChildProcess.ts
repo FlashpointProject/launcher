@@ -2,8 +2,11 @@ import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { IBackProcessInfo, ProcessState } from '../shared/interfaces';
 import { ILogPreEntry } from '../shared/Log/interface';
+import { Coerce } from '../shared/utils/Coerce';
 
-export declare interface ManagedChildProcess {
+const { str } = Coerce;
+
+export interface ManagedChildProcess {
   /**
    * Fires when any background service prints to std{out,err}. Every line is
    * prefixed with the name of the process and the output is guaranteed to end
@@ -72,12 +75,10 @@ export class ManagedChildProcess extends EventEmitter {
       this.logContent(this.name + ' has been started');
       // Setup listeners
       if (this.process.stdout) {
-        this.process.stdout.on('data', this.logContent);
+        this.process.stdout.on('data', this.logContentAny);
       }
       if (this.process.stderr) {
-        this.process.stderr.on('data', (data: Buffer) => {
-          this.logContent(data.toString('utf8'));
-        });
+        this.process.stderr.on('data', this.logContentAny);
       }
       // Update state
       this.setState(ProcessState.RUNNING);
@@ -145,6 +146,19 @@ export class ManagedChildProcess extends EventEmitter {
       source: this.name,
       content: removeTrailingNewlines(content),
     });
+  }
+
+  private logContentAny = (content: Buffer | any): void => {
+    try {
+      if (Buffer.isBuffer(content)) {
+        this.logContent(content.toString());
+      } else {
+        this.logContent(str(content));
+      }
+      this.logContent(content.toString());
+    } catch (e) {
+      console.warn(`ManagedChildProcess failed to log content: "${content}" (type: ${typeof content})`);
+    }
   }
 }
 
