@@ -92,7 +92,7 @@
     "newGame": "새 게임",
     "list": "목록",
     "grid": "그리드뷰",
-    "searchResults": "Search Results"
+    "searchResults": "검색 결과"
   },
   "filter": {
     "dateAdded": "추가된 날짜",
@@ -298,7 +298,7 @@
     "titlePlaceholder": "제목을 입력하세요...",
     "noAuthor": "저자 없음",
     "authorPlaceholder": "저자 쓰기...",
-    "by": "by"
+    "by": "-"
   },
   "misc": {
     "noBlankFound": "{0} 을 찾을 수 없습니다",
