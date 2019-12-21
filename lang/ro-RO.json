@@ -91,7 +91,8 @@
     "total": "Total",
     "newGame": "Adăugare joc",
     "list": "Listă",
-    "grid": "Tabel"
+    "grid": "Tabel",
+    "searchResults": "Search Results"
   },
   "filter": {
     "dateAdded": "Data adăugării",
@@ -296,7 +297,8 @@
     "noTitle": "Fără titlu",
     "titlePlaceholder": "Introduceți un titlu...",
     "noAuthor": "Nu este precizat autorul",
-    "authorPlaceholder": "Introduceți numele autorului..."
+    "authorPlaceholder": "Introduceți numele autorului...",
+    "by": "by"
   },
   "misc": {
     "noBlankFound": "Nu s-a găsit {0}",
