@@ -92,7 +92,7 @@
     "newGame": "New Game",
     "list": "List",
     "grid": "Grid",
-    "searchResults": "Search Results"
+    "searchResults": "Kết quả tìm kiếm"
   },
   "filter": {
     "dateAdded": "Date Added",
@@ -304,8 +304,8 @@
     "noBlankFound": "No {0} Found",
     "addBlank": "Add {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
-    "yes": "Yes",
-    "no": "No",
+    "yes": "Vâng",
+    "no": "Không",
     "downloading": "Downloading",
     "extracting": "Extracting",
     "installingFiles": "Installing Files...",
