@@ -1666,6 +1666,11 @@ function createContainer(currentCode: string, autoLangCode: string, fallbackCode
     ...(fallback && fallback.data && fallback.data.libraries),
     ...(current && current.data && current.data.libraries)
   };
+  data.upgrades = { // Allow upgrades to add new properties (and not just overwrite the default)
+    ...data.upgrades,
+    ...(fallback && fallback.data && fallback.data.upgrades),
+    ...(current && current.data && current.data.upgrades)
+  }
   return data;
 }
 
