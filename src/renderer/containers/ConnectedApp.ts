@@ -3,7 +3,6 @@ import { withRouter } from 'react-router';
 import { bindActionCreators, Dispatch } from 'redux';
 import { App } from '../app';
 import { ApplicationState } from '../store';
-import { withLibrary } from './withLibrary';
 import { withPreferences } from './withPreferences';
 
 const mapStateToProps = ({ search }: ApplicationState) => ({
@@ -14,7 +13,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
   // ...
 }, dispatch);
 
-export default withRouter(withLibrary(withPreferences(connect(
+export default withRouter(withPreferences(connect(
   mapStateToProps,
   mapDispatchToProps
-)(App))));
+)(App)));

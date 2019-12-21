@@ -4,44 +4,27 @@ import { app, ipcMain, IpcMainEvent, session, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
-import { BackIn, BackInitArgs, BackOut } from '../shared/back/types';
-import checkSanity from '../shared/checkSanity';
+import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, WrappedRequest, WrappedResponse, SetLocaleData } from '../shared/back/types';
+import { IAppConfigData } from '../shared/config/interfaces';
 import { IMiscData, MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
-import { ILogPreEntry } from '../shared/Log/interface';
-import { LogMainApi } from '../shared/Log/LogMainApi';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
-import { AppConfigMain } from './config/AppConfigMain';
 import MainWindow from './MainWindow';
-import { ServicesMainApi } from './service/ServicesMainApi';
 import * as Util from './Util';
 
 export class Main {
   private _mainWindow: MainWindow = new MainWindow(this);
-  private _services?: ServicesMainApi;
-  private _config: AppConfigMain = new AppConfigMain();
-  private _installed: boolean = fs.existsSync('./.installed');
+  private _installed?: boolean;
   /** The port that the back is listening on. */
   private _backPort: number = -1;
   private _secret: string = randomBytes(2048).toString('hex');
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   private _version: number = -2;
-  private _log: LogMainApi = new LogMainApi(this.sendToMainWindowRenderer.bind(this));
   public preferences?: IAppPreferencesData;
+  public config?: IAppConfigData;
   public socket?: WebSocket;
   public backProc: ChildProcess | undefined;
-
-  public get config(): AppConfigMain {
-    return this._config;
-  }
-
-  public get installed(): boolean {
-    return this._installed;
-  }
-
-  public get version(): number {
-    return this._version;
-  }
+  private _sentLocaleCode: boolean = false;
 
   constructor() {
     // Add app event listeners
@@ -49,113 +32,153 @@ export class Main {
     app.once('window-all-closed', this.onAppWindowAllClosed.bind(this));
     app.once('will-quit', this.onAppWillQuit.bind(this));
     app.once('web-contents-created', this.onAppWebContentsCreated.bind(this));
+
     // Add IPC event listeners
-    this._log.bindListeners();
     ipcMain.on(MiscIPC.REQUEST_MISC_SYNC, this.onRequestMisc.bind(this));
     ipcMain.on(InitRendererChannel, this.onInit.bind(this));
-    // Load various files and prepare the back
-    Promise.all([
-      this._config.load(this.installed),
-      this.loadVersion(),
-    ])
+
+    // ---- Initialize ----
+    // Check if installed
+    exists('./.installed')
+    .then(exists => { this._installed = exists; })
+    // Load version number
     .then(() => new Promise((resolve, reject) => {
-      this.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, {
-        detached: false,
+      const folderPath = (Util.isDev)
+        ? process.cwd()
+        : path.dirname(app.getPath('exe'));
+      fs.readFile(path.join(folderPath, '.version'), (error, data) => {
+        this._version = (data)
+          ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
+          : -1; // (Version not found error code)
+        resolve();
       });
+    }))
+    // Start back process
+    .then(() => new Promise((resolve, reject) => {
+      this.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
       // Wait for process to initialize
       this.backProc.once('message', (port) => {
         if (port >= 0) {
           this._backPort = port;
           resolve();
         } else {
-          reject(new Error(`Failed to start server in back process. Perhaps because it could not find an available port (range: [${msg.portMin}, ${msg.portMax}]).`));
+          reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
         }
       });
+      // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+      let localeCode: string = 'en';
+      if (process.platform === 'win32' && !app.isReady()) {
+        localeCode = 'en';
+      } else {
+        localeCode = app.getLocale().toLowerCase();
+        this._sentLocaleCode = true;
+      }
       // Send initialize message
       const msg: BackInitArgs = {
-        portMin: this._config.data.backPortMin,
-        portMax: this._config.data.backPortMax,
-        preferencesPath: Util.getPreferencesFilePath(this.installed),
+        configFolder: Util.getConfigFolderPath(!!this._installed),
         secret: this._secret,
+        isDev: Util.isDev,
+        // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+        localeCode: localeCode,
+        exePath: path.dirname(app.getPath('exe')),
       };
       this.backProc.send(JSON.stringify(msg));
     }))
-    .then(() => new Promise((resolve, reject) => {
+    // Connect to back process
+    .then<WebSocket>(() => new Promise((resolve, reject) => {
       const url = new URL('ws://localhost');
       url.host = 'localhost';
       url.port = this._backPort+'';
-      // Connect and authenticate
       const ws = new WebSocket(url.href);
-      this.socket = ws;
       ws.onclose = () => { reject(new Error('Failed to authenticate to the back.')); };
       ws.onerror = (event) => { reject(event.error); };
-      ws.onopen  = (event) => {
+      ws.onopen  = () => {
         ws.onmessage = () => {
           ws.onclose = (event) => { console.log('socket closed', event.code, event.reason); };
           ws.onerror = (event) => { console.log('socket error', event.error); };
-          resolve();
+          resolve(ws);
         };
         ws.send(this._secret);
       };
     }))
-    .then(() => new Promise((resolve, reject) => {
-      if (!this.socket) { throw new Error('socket is undefined'); }
-      const socket = this.socket;
-      socket.onmessage = (event) => {
-        const msg = JSON.parse(event.data.toString());
-        if (msg[0] === BackOut.LOAD_PREFERENCES_RESPONSE) {
-          this.preferences = msg[1];
-          socket.onmessage = this.onMessage;
+    // Send init message
+    .then(ws => new Promise((resolve, reject) => {
+      ws.onmessage = (event) => {
+        const res: WrappedResponse = JSON.parse(event.data.toString());
+        if (res.type === BackOut.GET_MAIN_INIT_DATA) {
+          const data: GetMainInitDataResponse = res.data;
+          this.preferences = data.preferences;
+          this.config = data.config;
+          this.socket = ws;
+          this.socket.onmessage = this.onMessage;
           resolve();
-        } else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[msg[0]]}".`)); }
+        }// else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[res.type]}".`)); }
       };
-      socket.send(JSON.stringify([
-        BackIn.LOAD_PREFERENCES,
-        Util.getPreferencesFilePath(this._installed)
-      ]));
+      const req: WrappedRequest = {
+        id: 'init',
+        type: BackIn.GET_MAIN_INIT_DATA,
+      };
+      ws.send(JSON.stringify(req));
     }))
     .then(() => {
-      // Check if we are ready to launch or not.
-      // @TODO Launch the setup wizard when a check failed.
-      checkSanity(this._config.data)
-      .then(console.log, console.error);
-      // Start background services
-      this._services = new ServicesMainApi(this.sendToMainWindowRenderer.bind(this));
-      this._services.on('output', this.pushLogData.bind(this));
-      this._services.start(this._config.data);
+      if (!this.config) { throw new Error('config is undefined'); }
       // Create main window when ready
-      this._services.waitUntilDoneStarting()
-      .then(Util.waitUntilReady)
+      Util.waitUntilReady()
       .then(() => {
         if (!this.preferences) { throw new Error('preferences is undefined'); }
         this._mainWindow.createWindow(this.preferences.mainWindow);
       });
     })
     .catch((error) => {
-      console.log(error);
+      console.error(error);
       app.quit();
     });
+  }
+
+  onMessage = (message: WebSocket.MessageEvent): void => {
+    const res: WrappedResponse = JSON.parse(message.data.toString());
+    switch (res.type) {
+      case BackOut.QUIT: {
+        this.socket = undefined;
+        this.backProc = undefined;
+        app.quit();
+      } break;
+    }
   }
 
   private onAppReady(): void {
     if (!session.defaultSession) {
       throw new Error('Default session is missing!');
     }
+    // Send locale code (if it has no been sent already)
+    if (process.platform === 'win32' && !this._sentLocaleCode && this.socket) {
+      this._sentLocaleCode = true;
+      this.sendReq<SetLocaleData>({
+        id: '',
+        type: BackIn.SET_LOCALE,
+        data: app.getLocale().toLowerCase(),
+      });
+    }
     // Reject all permission requests since we don't need any permissions.
     session.defaultSession.setPermissionRequestHandler(
       (webContents, permission, callback) => callback(false)
     );
+    // Ignore proxy settings with chromium APIs (makes WebSockets not close when the Redirector changes proxy settings)
+    session.defaultSession.setProxy({
+      pacScript: '',
+      proxyRules: '',
+      proxyBypassRules: '',
+    });
     // Stop non-local resources from being fetched (as long as their response has at least one header?)
     // Only allow local scripts to execute (Not sure what this allows? "file://"? "localhost"?)
     // (TypeScript type information is missing, check the link below for the type info)
     // https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-      // Parse URL
       let url: URL | undefined;
       try { url = new URL(details.url); }
       catch (e) { /* Do nothing. */ }
-      // Don't accept any connections other than WebSocket to localhost
-      if (url && url.protocol === 'ws:' && url.hostname === 'localhost') {
+      // Don't accept any connections other than to localhost
+      if (url && url.hostname === 'localhost') {
         callback({
           ...details.responseHeaders,
           responseHeaders: 'script-src \'self\'',
@@ -178,12 +201,13 @@ export class Main {
     }
   }
 
-  private onAppWillQuit(): void {
-    if (this._services) {
-      this._services.stopAll();
-      if (this.backProc) {
-        this.backProc.kill();
-      }
+  private onAppWillQuit(event: Event): void {
+    if (this.socket) {
+      event.preventDefault();
+      this.sendReq<undefined>({
+        id: '',
+        type: BackIn.QUIT,
+      });
     }
   }
 
@@ -196,27 +220,8 @@ export class Main {
     });
   }
 
-  /** Fetch and store the value of the version file. */
-  private loadVersion(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Select which folder to load the version from
-      // (depending on if this is running in a build, or in "development mode")
-      const folderPath = Util.isDev
-        ? process.cwd()
-        : path.dirname(app.getPath('exe'));
-      // Try reading the version from the file
-      fs.readFile(path.join(folderPath, '.version'), (error, data) => {
-        this._version = data
-          // (Remove all non-numerical characters, then parse it as a string)
-          ? parseInt(data.toString().replace(/[^\d]/g, ''), 10)
-          // (Version not found error code)
-          : -1;
-        resolve();
-      });
-    });
-  }
-
   private onRequestMisc = (event: IpcMainEvent) => {
+    if (this._installed === undefined) { throw new Error('installed is undefined.'); }
     const misc: IMiscData = {
       installed: this._installed,
       version: this._version,
@@ -232,30 +237,18 @@ export class Main {
     event.returnValue = data;
   }
 
-  private onMessage = (message: any) => {
-    const msg = JSON.parse(message);
-    switch (msg[0]) {
-      case BackOut.UPDATE_PREFERENCES_RESPONSE:
-        this.preferences = msg[1];
-        break;
+  private sendReq<U = any>(request: WrappedRequest<U>): void {
+    if (this.socket) {
+      this.socket.send(JSON.stringify(request));
     }
   }
+}
 
-  /**
-   * Append the output to the internal log data object and tell the main window
-   * about the updated log data. The main window will display the log data in
-   * the "Logs" tab. Also print the output to stdout.
-   * @param output The log entry to be added. Must end with a new line.
-   */
-  private pushLogData(output: ILogPreEntry): void {
-    // process.stdout.write(output);
-    this._log.addEntry(output);
-  }
-
-  /** Send a message to the main windows renderer */
-  private sendToMainWindowRenderer(channel: string , ...rest: any[]): boolean {
-    if (!this._mainWindow.window) { return false; }
-    this._mainWindow.window.webContents.send(channel, ...rest);
-    return true;
-  }
+function exists(filePath: string): Promise<boolean> {
+  return new Promise(resolve => {
+    fs.stat(filePath, (error, stats) => {
+      if (error) { resolve(false); }
+      else { resolve(stats.isFile()); }
+    });
+  });
 }

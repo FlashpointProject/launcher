@@ -13,7 +13,7 @@ export function GameListHeader(props: GameListHeaderProps) {
       <Column modifier='icon' hideDivider={true} />
       <div className='game-list-header__right'>
         <Column title='Title'     modifier='title'     hideDivider={true} />
-        <Column title='Genre'     modifier='genre'                        />
+        <Column title='Tags'      modifier='tags'                         />
         <Column title='Developer' modifier='developer'                    />
         <Column title='Publisher' modifier='publisher'                    />
       </div>

@@ -1,11 +1,16 @@
+import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 import * as fs from 'fs-extra';
 import { IncomingMessage } from 'http';
+import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
+import { AddLogData, BackIn } from '../../shared/back/types';
+import { indexContentFolder } from '../../shared/curate/util';
+import { curationLog } from '../curate/util';
 import { UpgradeStage } from '../upgrade/types';
-import { unzipAll } from '../util/unzip';
+import { pathTo7z } from './SevenZip';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -31,7 +36,7 @@ export interface UpgradeStatus {
   emit(event: 'done'): boolean;
 }
 
-export type UpgradeStatusTask = 'downloading' | 'extracting' | 'none';
+export type UpgradeStatusTask = 'downloading' | 'extracting' | 'installing' | 'none';
 
 export class UpgradeStatus extends EventEmitter {
   public currentTask: UpgradeStatusTask = 'none';
@@ -74,27 +79,59 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
         status.emit('progress');
       }
     })
-    .once('done', (zipPath) => {
+    .once('done', async (zipPath) => {
+      // Start extraction
+      const extractionPath = path.join(opts.installPath, 'Upgrade Data', upgrade.id);
+      await fs.ensureDir(extractionPath);
       status.currentTask = 'extracting';
       log(`Download of the "${upgrade.title}" upgrade complete!`);
-      log(`Installation of the "${upgrade.title}" upgrade started.`);
-      const unzipStatus = (
-        unzipAll(zipPath, opts.installPath)
-        .on('warn', warning => { log(warning); })
-        .on('progress', () => {
-          status.extractProgress =  unzipStatus.extractedSize / unzipStatus.totalSize;
-          status.emit('progress');
-        })
-        .once('done', () => {
-          log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
-              'Restart the launcher for the upgrade to take effect.');
-          status.emit('done');
-        })
-        .once('error', (error) => {
-          log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
-          status.emit('error', error);
-        })
-      );
+      log(`Extraction of the "${upgrade.title}" upgrade started.`);
+      extractFull(zipPath, extractionPath, { $bin: pathTo7z, $progress: true })
+      .on('progress', (progress) => {
+        status.extractProgress = progress.percent / 100;
+        status.emit('progress');
+      })
+      .once('end', async () => {
+        status.currentTask = 'installing';
+        status.emit('progress');
+        // Delete paths if required by Upgrade
+        for (let p of upgrade.deletePaths) {
+          try {
+            const realPath = path.join(opts.installPath, p);
+            await fs.remove(realPath);
+          } catch (error) { /* Path not present */ }
+        }
+        // Move extracted files to the install location, with filter
+        const allFiles = await indexContentFolder(extractionPath, curationLog);
+        // Move all folders into install path
+        await Promise.all(allFiles.map(async file => {
+          const source = path.join(extractionPath, file.filePath);
+          const dest = path.join(opts.installPath, file.filePath);
+          if (upgrade.keepPaths.findIndex(s => path.normalize(s).startsWith(path.normalize(file.filePath))) === -1) {
+            // Only passes paths not in keepPaths.
+            await fs.ensureDir(path.dirname(dest));
+            await fs.move(source, dest, { overwrite: true });
+          } else {
+            // Requested to keep, copy if not present
+            await fs.access(dest, fs.constants.F_OK)
+            .then(() => { /* File found, don't copy */ })
+            .catch(async (error) => { await fs.move(source, dest); });
+          }
+        }))
+        .catch((errors) => {
+          console.log(errors);
+        });
+        // Clean up extraction folder
+        await fs.remove(extractionPath);
+        // Install complete
+        log(`Installation of the "${upgrade.title}" upgrade complete!\n`+
+            'Restart the launcher for the upgrade to take effect.');
+        status.emit('done');
+      })
+      .once('error', (error) => {
+        log(`Installation of the "${upgrade.title}" upgrade failed!\n${error}`);
+        status.emit('error', error);
+      });
     })
     .once('error', (error) => {
       log(`Download of the "${upgrade.title}" upgrade failed!\n${error}`);
@@ -146,21 +183,77 @@ function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offse
 }
 
 /**
- * Check if all files in the stage's "checks" array exists.
- * This aborts as soon as it encounters a "check" that does not exist.
+ * Check if all files in the stage's "verify_files" array exists.
+ * This aborts as soon as it encounters a file that does not exist.
+ * @param stage Stage to check the verification files of.
+ * @param flashpointFolder Path of the Flashpoint folder root.
+ */
+export async function checkUpgradeStateInstalled(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
+  const success = await Promise.all(stage.verify_files.map(check => (
+    new Promise<boolean>((resolve) => {
+      fs.access(path.join(baseFolder, check), fs.constants.F_OK)
+      // File exists
+      .then(() => resolve(true))
+      // File does not exist
+      .catch((error) => resolve(false));
+    })
+  )));
+  return success.indexOf(false) === -1;
+}
+
+/**
+ * Check if all files in the stage's "verify_files" array match their SHA256 counterparts from "verify_sha256".
+ * This aborts as soon as it encounters a file that does not match its SHA256.
  * @param stage Stage to check the "checks" of.
  * @param flashpointFolder Path of the Flashpoint folder root.
  */
-export async function performUpgradeStageChecks(stage: UpgradeStage, flashpointFolder: string): Promise<boolean[]> {
-  const success: boolean[] = [];
-  await Promise.all(stage.checks.map(check => (
-    fs.pathExists(path.join(flashpointFolder, check))
-  )));
-  return success;
+export async function checkUpgradeStateUpdated(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
+  const success = await Promise.all(stage.verify_files.map((check, index) => {
+    if (index < stage.verify_sha256.length && stage.verify_sha256[index] != 'SKIP') {
+      return new Promise<boolean>((resolve) => {
+        // SHA256 present, perform check
+        const shaToCheck = stage.verify_sha256[index].toLowerCase();
+        const fullPath = path.join(baseFolder, check);
+        return getSha256FromFile(fullPath)
+        .then((shaSum) => {
+          if (shaSum === shaToCheck) {
+            resolve(true);
+          }
+          return (false);
+        })
+        .catch((error) => {
+          log(`Error calculating SHA256 sum of upgrade. - ${error.message}`);
+          console.error(error);
+          resolve(true);
+        });
+      });
+    } else {
+      // SHA256 not present or skipped, do not check.
+      return true;
+    }
+  }));
+  return success.indexOf(false) === -1;
+}
+
+async function getSha256FromFile(filePath: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const readStream = fs.createReadStream(filePath);
+    const shaHash = crypto.createHash('sha256');
+    shaHash.setEncoding('hex');
+    shaHash.on('finish', () => {
+      shaHash.end();
+      readStream.close();
+      resolve(shaHash.read());
+    });
+    shaHash.on('error', (error) => {
+      reject(error);
+    });
+    readStream.pipe(shaHash);
+  });
 }
 
 function log(content: string): void {
-  window.External.log.addEntry({
+  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Upgrade',
     content: content
   });

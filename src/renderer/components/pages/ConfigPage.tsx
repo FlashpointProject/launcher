@@ -1,29 +1,27 @@
 import { remote } from 'electron';
-import * as path from 'path';
 import * as React from 'react';
-import * as which from 'which';
 import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
-import { isFlashpointValidCheck } from '../../../shared/checkSanity';
+import { AddLogData, BackIn, UpdateConfigData } from '../../../shared/back/types';
 import { autoCode, LangContainer, LangFile } from '../../../shared/lang';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
-import { deepCopy, recursiveReplace } from '../../../shared/Util';
+import { Theme } from '../../../shared/ThemeFile';
 import { formatString } from '../../../shared/utils/StringFormatter';
-import { IThemeListItem } from '../../theme/ThemeManager';
+import { isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
+import { Dropdown } from '../Dropdown';
 import { DropdownInputField } from '../DropdownInputField';
 
 type OwnProps = {
+  /** List of all platforms */
+  platforms: string[];
   /** Filenames of all files in the themes folder. */
-  themeItems: IThemeListItem[];
-  /** Load and apply a theme. */
-  reloadTheme(themePath: string | undefined): void;
+  themeList: Theme[];
   /** List of available languages. */
   availableLangs: LangFile[];
-  /** Method to update localization */
-  updateLocalization: () => void;
+  localeCode: string;
 };
 
 export type ConfigPageProps = OwnProps & WithPreferencesProps;
@@ -37,6 +35,8 @@ type ConfigPageState = {
   useCustomTitlebar: boolean;
   /** If the "use fiddler" checkbox is checked. */
   useFiddler: boolean;
+  /** Array of native platforms */
+  nativePlatforms: string[];
 };
 
 export interface ConfigPage {
@@ -52,8 +52,6 @@ export interface ConfigPage {
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
   currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
-  /** Country code if the local machine (used to detect which language to use for "auto"). */
-  countryCode: string = remote.app.getLocaleCountryCode().toLowerCase();
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -63,12 +61,15 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       useCustomTitlebar: configData.useCustomTitlebar,
       useFiddler: configData.useFiddler,
+      nativePlatforms: configData.nativePlatforms
     };
   }
 
   render() {
     const strings = this.context.config;
-    const autoString = formatString(strings.auto, this.countryCode);
+    const { platforms: platformList } = this.props;
+    const { nativePlatforms } = this.state;
+    const autoString = formatString(strings.auto, this.props.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     return (
       <div className='config-page simple-scroll'>
@@ -190,24 +191,43 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <p>{strings.redirectorDesc}</p>
                 </div>
               </div>
-              {/* Wine */}
+              {/* Native Platforms */}
+              { process.platform != 'win32' ?
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
-                    <p>{strings.useWine}</p>
+                    <p>{strings.nativePlatforms}</p>
                   </div>
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
-                      <CheckBox
-                        checked={this.props.preferencesData.useWine}
-                        onToggle={this.useWineChange} />
+                      <Dropdown text={strings.platforms}>
+                        { platformList.map((platform, index) => (
+                          <label
+                            key={index}
+                            className='log-page__dropdown-item'>
+                            <div className='simple-center'>
+                              <input
+                                type='checkbox'
+                                checked={nativePlatforms.findIndex((item) => item === platform) != -1}
+                                onChange={() => { this.onNativeCheckboxChange(platform); }}
+                                className='simple-center__vertical-inner' />
+                            </div>
+                            <div className='simple-center'>
+                              <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
+                                {platform}
+                              </p>
+                            </div>
+                          </label>
+                        )) }
+                      </Dropdown>
                     </div>
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
-                  <p>{strings.useWineDesc}</p>
+                  <p>{strings.nativePlatformsDesc}</p>
                 </div>
               </div>
+              : undefined }
             </div>
           </div>
 
@@ -245,16 +265,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       placeholder={strings.noTheme}
                       onChange={this.onCurrentThemeChange}
                       editable={true}
-                      onKeyDown={this.onCurrentThemeKeyDown}
-                      items={[ ...this.props.themeItems.map(formatThemeItemName), 'No Theme' ]}
+                      items={[ ...this.props.themeList.map(formatThemeItemName), 'No Theme' ]}
                       onItemSelect={this.onCurrentThemeItemSelect}
                       inputRef={this.currentThemeInputRefFunc}
                       />
-                    <input
-                      type='button'
-                      value={strings.browse}
-                      className='simple-button'
-                      onClick={this.onCurrentThemeBrowseClick} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
@@ -348,15 +362,23 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const code = event.target.value;
-    updatePreferencesData({ currentLanguage: code });
-    this.props.updateLocalization();
+    updatePreferencesData({ currentLanguage: event.target.value });
   }
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const code = event.target.value;
-    updatePreferencesData({ fallbackLanguage: code });
-    this.props.updateLocalization();
+    updatePreferencesData({ fallbackLanguage: event.target.value });
+  }
+
+  onNativeCheckboxChange = (platform: string): void => {
+    const { nativePlatforms } = this.state;
+    const index = nativePlatforms.findIndex(item => item === platform);
+
+    if (index != -1) {
+      nativePlatforms.splice(index, 1);
+    } else {
+      nativePlatforms.push(platform);
+    }
+    this.setState({ nativePlatforms: nativePlatforms });
   }
 
   onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -374,25 +396,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.setState({ isFlashpointPathValid: isValid });
   }
 
-  useWineChange = (isChecked: boolean): void => {
-    updatePreferencesData({ useWine: isChecked });
-    this.forceUpdate();
-
-    if (isChecked && process.platform === 'linux') {
-      which('wine', (err) => {
-        if (err) {
-          log('Warning: Wine was enabled but it was not found on the path.');
-          remote.dialog.showMessageBox({
-            type: 'error',
-            title: this.context.dialog.programNotFound,
-            message: this.context.dialog.wineNotFound,
-            buttons: ['Ok'],
-          });
-        }
-      });
-    }
-  }
-
   onUseCustomTitlebarChange = (isChecked: boolean): void => {
     this.setState({ useCustomTitlebar: isChecked });
   }
@@ -406,46 +409,17 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ currentTheme: event.currentTarget.value });
   }
 
-  onCurrentThemeKeyDown = (event: React.KeyboardEvent): void => {
-    if (event.key === 'Enter') {
-      // Load the entered theme
-      this.props.reloadTheme(this.props.preferencesData.currentTheme);
-    }
-  }
-
   onCurrentThemeItemSelect = (text: string, index: number): void => {
     // Note: Suggestions with index 0 to "length - 1" are filenames of themes.
     //       Directly after that comes the "No Theme" suggestion.
     let theme: string | undefined;
-    if (index < this.props.themeItems.length) { // (Select a Theme)
-      theme = this.props.themeItems[index].entryPath;
+    if (index < this.props.themeList.length) { // (Select a Theme)
+      theme = this.props.themeList[index].entryPath;
     } else { theme = undefined; } // (Deselect the current theme)
     updatePreferencesData({ currentTheme: theme });
-    this.props.reloadTheme(theme);
     // Select the input field
     if (this.currentThemeInputRef) {
       this.currentThemeInputRef.focus();
-    }
-  }
-
-  onCurrentThemeBrowseClick = (event: React.MouseEvent): void => {
-    // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-    const filePaths = window.External.showOpenDialogSync({
-      title: this.context.dialog.selectThemeFile,
-      properties: ['openFile'],
-    });
-    if (filePaths) {
-      // Get the selected files path relative to the themes folder
-      const filePath = filePaths[0] || '';
-      const themeFolderPath = path.join(
-        window.External.config.fullFlashpointPath,
-        window.External.config.data.themeFolderPath
-      );
-      const relativePath = path.relative(themeFolderPath, filePath);
-      // Update current theme
-      updatePreferencesData({ currentTheme: relativePath });
-      // Reload theme
-      this.props.reloadTheme(relativePath);
     }
   }
 
@@ -455,29 +429,25 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
-    // Create new config
-    let newConfig = recursiveReplace(deepCopy(window.External.config.data), {
+    // Save new config to file, then restart the app
+    window.External.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
       useFiddler: this.state.useFiddler,
-    });
-    // Save new config to file, then restart the app
-    window.External.config.save(newConfig)
-    .then(() => { window.External.restart(); })
-    .catch((error: Error) => { console.log(error); });
+    }, () => { window.External.restart(); });
   }
 
   static contextType = LangContext;
 }
 
 /** Format a theme item into a displayable name for the themes drop-down. */
-function formatThemeItemName(item: IThemeListItem): string {
-  return `${item.metaData.name} (${item.basename})`;
+function formatThemeItemName(item: Theme): string {
+  return `${item.meta.name} (${item.entryPath})`;
 }
 
-function log(str: string): void {
-  window.External.log.addEntry({
-    source: 'Config',
-    content: str,
+function log(content: string): void {
+  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+    source: 'Game Launcher',
+    content: content,
   });
 }

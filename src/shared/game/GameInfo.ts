@@ -6,6 +6,7 @@ export class GameInfo {
     return {
       id: '',
       title: '',
+      alternateTitles: '',
       series: '',
       developer: '',
       publisher: '',
@@ -16,7 +17,7 @@ export class GameInfo {
       playMode: '',
       status: '',
       notes: '',
-      genre: '',
+      tags: '',
       source: '',
       applicationPath: '',
       launchCommand: '',

@@ -25,11 +25,12 @@ export class GameParser {
   }
 
 
-  public static parseRawGame(data: Partial<IRawGameInfo>, filename: string): IGameInfo {
+  public static parseRawGame(data: Partial<IRawGameInfo>, library: string): IGameInfo {
     const title: string = unescapeHTML(data.Title);
     return {
       id: unescapeHTML(data.ID),
       title: title,
+      alternateTitles: unescapeHTML(data.AlternateTitles),
       series: unescapeHTML(data.Series),
       developer: unescapeHTML(data.Developer),
       publisher: unescapeHTML(data.Publisher),
@@ -40,7 +41,7 @@ export class GameParser {
       playMode: unescapeHTML(data.PlayMode),
       status: unescapeHTML(data.Status),
       notes: unescapeHTML(data.Notes),
-      genre: unescapeHTML(data.Genre),
+      tags: unescapeHTML(data.Genre),
       source: unescapeHTML(data.Source),
       applicationPath: unescapeHTML(data.ApplicationPath),
       launchCommand: unescapeHTML(data.CommandLine),
@@ -48,7 +49,7 @@ export class GameParser {
       version: unescapeHTML(data.Version),
       originalDescription: unescapeHTML(data.OriginalDescription),
       language: unescapeHTML(data.Language),
-      filename: filename,
+      library: library,
       orderTitle: generateGameOrderTitle(title),
       placeholder: false, // (No loaded game is a placeholder)
     };
@@ -70,6 +71,7 @@ export class GameParser {
     return {
       ID: escapeHTML(game.id),
       Title: escapeHTML(game.title),
+      AlternateTitles: escapeHTML(game.alternateTitles),
       Series: escapeHTML(game.series),
       Developer: escapeHTML(game.developer),
       Publisher: escapeHTML(game.publisher),
@@ -80,7 +82,7 @@ export class GameParser {
       PlayMode: escapeHTML(game.playMode),
       Status: escapeHTML(game.status),
       Notes: escapeHTML(game.notes),
-      Genre: escapeHTML(game.genre),
+      Genre: escapeHTML(game.tags),
       Source: escapeHTML(game.source),
       ApplicationPath: escapeHTML(game.applicationPath),
       CommandLine: escapeHTML(game.launchCommand),
@@ -91,7 +93,7 @@ export class GameParser {
     };
   }
 
-  public static reverseParseAdditionalApplication(addapp: IAdditionalApplicationInfo): Partial<IRawAdditionalApplicationInfo> {
+  public static reverseParseAdditionalApplication(addapp: IAdditionalApplicationInfo): IRawAdditionalApplicationInfo {
     return {
       Id: escapeHTML(addapp.id),
       GameID: escapeHTML(addapp.gameId),

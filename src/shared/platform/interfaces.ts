@@ -1,3 +1,19 @@
+import { IGameCollection } from '../game/interfaces';
+
+export type PlatformInfo = {
+  name: string;
+  library: string;
+  size: number;
+}
+
+export type GamePlatform = {
+  filePath: string;
+  name: string;
+  library: string;
+  data: IRawPlatformFile;
+  collection: IGameCollection;
+}
+
 export type IRawPlatformFile = {
   LaunchBox: IRawPlatform
 }
@@ -17,6 +33,7 @@ export type IRawPlatform = {
 export type IRawGameInfo = {
   ID: string;                   // (String)
   Title?: string;               // (String)
+  AlternateTitles?: string;     // (String)
   Series?: string;              // (String)
   Developer?: string;           // (String)
   Publisher?: string;           // (String)

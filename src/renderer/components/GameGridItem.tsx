@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { GridCellProps } from 'react-virtualized';
-import { IGameInfo } from '../../shared/game/interfaces';
 import { getPlatformIconPath } from '../Util';
 
 export type GameGridItemProps = Partial<GridCellProps> & {
-  /** Game to display. */
-  game: IGameInfo;
+  id: string;
+  title: string;
+  platform: string;
   /** Path to the game's thumbnail. */
   thumbnail: string;
   /** If the cell can be dragged (defaults to false). */
@@ -18,11 +18,11 @@ export type GameGridItemProps = Partial<GridCellProps> & {
 
 /** Displays a single game. Meant to be rendered inside a grid. */
 export function GameGridItem(props: GameGridItemProps) {
-  const { game, thumbnail, isDraggable, isSelected, isDragged, style } = props;
+  const { id, title, platform, thumbnail, isDraggable, isSelected, isDragged, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
-    getPlatformIconPath(game.platform)
-  ), [game.platform]);
+    getPlatformIconPath(platform)
+  ), [platform]);
   // Pick class names
   const className = React.useMemo(() => {
     let className: string = 'game-grid-item';
@@ -34,7 +34,7 @@ export function GameGridItem(props: GameGridItemProps) {
   return React.useMemo(() => {
     // Set element attributes
     const attributes: any = {};
-    attributes[GameGridItem.idAttribute] = game.id;
+    attributes[GameGridItem.idAttribute] = id;
     // Render
     return (
       <li
@@ -55,12 +55,12 @@ export function GameGridItem(props: GameGridItemProps) {
             </div>
           </div>
         </div>
-        <div className='game-grid-item__title' title={game.title}>
-          <p className='game-grid-item__title__text'>{game.title}</p>
+        <div className='game-grid-item__title' title={title}>
+          <p className='game-grid-item__title__text'>{title}</p>
         </div>
       </li>
     );
-  }, [style, className, isDraggable, game.id, game.genre, game.title, platformIcon, thumbnail]);
+  }, [style, className, isDraggable, id, title, platformIcon, thumbnail]);
 }
 
 export namespace GameGridItem { // eslint-disable-line no-redeclare

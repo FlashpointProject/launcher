@@ -1,25 +1,13 @@
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
-import { BackIn, BackOut } from '../shared/back/types';
-import { AppConfigApi } from '../shared/config/AppConfigApi';
+import * as path from 'path';
+import { SharedSocket } from '../shared/back/SharedSocket';
+import { BackIn, BackOut, GetRendererInitDataResponse, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, WrappedResponse } from '../shared/back/types';
 import { MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
-import { LogRendererApi } from '../shared/Log/LogRendererApi';
-import { IAppPreferencesData } from '../shared/preferences/interfaces';
-import { ServicesApi } from '../shared/service/ServicesApi';
+import { setTheme } from '../shared/Theme';
+import { createErrorProxy } from '../shared/Util';
 import { isDev } from './Util';
-
-// Set up Config API
-const config = new AppConfigApi();
-config.initialize();
-
-// Set up Services API
-const services = new ServicesApi();
-services.initialize();
-
-//
-const log = new LogRendererApi();
-log.bindListeners();
 
 /**
  * Object with functions that bridge between this and the Main processes
@@ -69,15 +57,27 @@ window.External = {
     onUpdate: undefined,
   },
 
-  config,
+  config: createErrorProxy('config'),
 
-  services,
+  log: {
+    entries: [],
+    offset: 0,
+  },
 
-  log,
+  services: createErrorProxy('services'),
 
   isDev,
 
-  backSocket: createErrorProxy('backSocket'),
+  back: new SharedSocket(),
+
+  imageServerPort: -1,
+
+  initialLang: createErrorProxy('initialLang'),
+  initialLangList: createErrorProxy('initialLangList'),
+  initialThemes: createErrorProxy('initialThemes'),
+  initialPlaylists: createErrorProxy('initialPlaylists'),
+  initialPlatformNames: createErrorProxy('initialPlatformNames'),
+  initialLocaleCode: createErrorProxy('initialLocaleCode'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -85,57 +85,81 @@ window.External = {
 };
 
 let isInitDone: boolean = false;
-const onInit = new Promise<WebSocket>((resolve, reject) => {
+const onInit = (async () => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
-
-  // Connect to the back API
-  const url = new URL('ws://localhost');
-  url.port = data.port+'';
-
-  const ws = new WebSocket(url.href);
-  window.External.backSocket = ws;
-  ws.onopen = (event) => {
-    ws.onmessage = () => { resolve(ws); };
-    ws.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
-    ws.send(data.secret);
-  };
-})
-.then((ws) => new Promise((resolve, reject) => {
-  window.External.backSocket = ws;
-  // Fetch the preferences
-  ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data.toString());
-    if (msg[0] === BackOut.GET_PREFERENCES_RESPONSE) {
-      window.External.preferences.data = msg[1];
-      ws.onmessage = onMessage;
+  // Connect to the back
+  const url = `ws://localhost:${data.port}`;
+  const socket = await SharedSocket.connect(url, data.secret);
+  window.External.back.url = url;
+  window.External.back.secret = data.secret;
+  window.External.back.setSocket(socket);
+})()
+.then(() => new Promise((resolve, reject) => {
+  window.External.back.on('message', onMessage);
+  // Fetch the config and preferences
+  window.External.back.send<GetRendererInitDataResponse>(BackIn.GET_RENDERER_INIT_DATA, undefined, response => {
+    if (response.data) {
+      window.External.preferences.data = response.data.preferences;
+      window.External.config = {
+        data: response.data.config,
+        // @FIXTHIS This should take if this is installed into account
+        fullFlashpointPath: path.resolve(response.data.config.flashpointPath),
+        fullJsonFolderPath: path.resolve(response.data.config.flashpointPath, response.data.config.jsonFolderPath),
+      };
+      window.External.imageServerPort = response.data.imageServerPort;
+      window.External.log.entries = response.data.log;
+      window.External.services = response.data.services;
+      window.External.initialLang = response.data.language;
+      window.External.initialLangList = response.data.languages;
+      window.External.initialThemes = response.data.themes;
+      window.External.initialPlaylists = response.data.playlists;
+      window.External.initialPlatformNames = response.data.platformNames;
+      window.External.initialLocaleCode = response.data.localeCode;
+      if (window.External.preferences.data.currentTheme) { setTheme(window.External.preferences.data.currentTheme); }
       resolve();
-    } else { reject(new Error(`Failed to initialize. Did not expect messge type "${BackOut[msg[0]]}".`)); }
-  };
-  window.External.backSocket.send(JSON.stringify([BackIn.GET_PREFERENCES]));
+    } else { reject(new Error('"Get Renderer Init Data" response does not contain any data.')); }
+  });
 }))
 .then(() => { isInitDone = true; });
 
-function createErrorProxy(title: string): any {
-  return new Proxy({}, {
-    get: (target, p, receiver) => {
-      throw new Error(`You must not get a value from ${title} before it is initialzed (property: "${p.toString()}").`);
-    },
-    set: (target, p, value, receiver) => {
-      throw new Error(`You must not set a value from ${title} before it is initialzed (property: "${p.toString()}").`);
-    },
-  });
-}
+function onMessage(this: WebSocket, res: WrappedResponse): void {
+  switch (res.type) {
+    case BackOut.UPDATE_PREFERENCES_RESPONSE: {
+      window.External.preferences.data = res.data;
+    } break;
 
-function onMessage(this: WebSocket, event: MessageEvent): void {
-  const msg: ParsedMessage = JSON.parse(event.data);
-  switch (msg[0]) {
-    case BackOut.UPDATE_PREFERENCES_RESPONSE:
-      window.External.preferences.data = msg[1];
-      break;
+    case BackOut.OPEN_DIALOG: {
+      const resData: OpenDialogData = res.data;
+
+      electron.remote.dialog.showMessageBox(resData)
+      .then(r => {
+        window.External.back.sendReq<any, OpenDialogResponseData>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: r.response,
+        });
+      });
+    } break;
+
+    case BackOut.OPEN_EXTERNAL: {
+      const resData: OpenExternalData = res.data;
+
+      electron.remote.shell.openExternal(resData.url, resData.options)
+      .then(() => {
+        window.External.back.sendReq<OpenExternalResponseData>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: {},
+        });
+      })
+      .catch(error => {
+        window.External.back.sendReq<OpenExternalResponseData>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: { error },
+        });
+      });
+    } break;
   }
 }
-
-type ParsedMessage = (
-  [BackOut.UPDATE_PREFERENCES_RESPONSE, IAppPreferencesData]
-);

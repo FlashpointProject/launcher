@@ -32,16 +32,14 @@ export type IAppConfigData = {
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
+  /** Array of native locked platforms */
+  nativePlatforms: string[];
   /** Lower limit of the range of ports that the back should listen on. */
   backPortMin: number;
   /** Upper limit of the range of ports that the back should listen on. */
   backPortMax: number;
-};
-
-/** Data fetched from the Main by the Renderer */
-export type IAppConfigApiFetchData = {
-  /** Raw config data from the config file. */
-  data: IAppConfigData;
-  /** Full path to the flashpoint folder. */
-  fullFlashpointPath: string;
+  /** Lower limit of the range of ports that the back image server should listen on. */
+  imagesPortMin: number;
+  /** Upper limit of the range of ports that the back image server should listen on. */
+  imagesPortMax: number;
 };

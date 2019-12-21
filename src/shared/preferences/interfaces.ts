@@ -22,14 +22,14 @@ export type IAppPreferencesData = {
   browsePageShowLeftSidebar: boolean;
   /** If the right sidebar at the BrowsePage should be visible. */
   browsePageShowRightSidebar: boolean;
-  /** Width of the left sidebar. */
+  /** Width of the left sidebar. (Browse Page) */
   browsePageLeftSidebarWidth: number;
-  /** Width of the right sidebar. */
+  /** Width of the right sidebar. (Browse Page) */
   browsePageRightSidebarWidth: number;
+  /** Width of the left sidebar. (Curate Page) */
+  curatePageLeftSidebarWidth: number;
   /** If the "Developer" tab should be visible in the header. */
   showDeveloperTab: boolean;
-  /** If Wine should be used to launch game applications. */
-  useWine: boolean;
   /** Filename of the current theme. */
   currentTheme: string | undefined;
   /** The "route" of the last selected library (empty string selects the default). */
@@ -40,6 +40,10 @@ export type IAppPreferencesData = {
   gamesOrder: GameOrderReverse;
   /** Position and size of the main window. */
   mainWindow: IAppPreferencesDataMainWindow;
+  /** Default Library for new games etc. */
+  defaultLibrary: string;
+  /** Save curations after importing */
+  saveImportedCurations: boolean;
   /** Sources to show/hide in the log page. */
   showLogSource: {
     [key: string]: boolean;

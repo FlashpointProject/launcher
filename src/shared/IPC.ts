@@ -1,4 +1,3 @@
-
 /** Channel to send the "intialize renderer" message over. */
 export const InitRendererChannel = 'renderer-init';
 

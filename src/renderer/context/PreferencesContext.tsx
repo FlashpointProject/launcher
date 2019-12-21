@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { IAppPreferencesData } from '../../shared/preferences/interfaces';
+import { deepCopy } from '../../shared/Util';
 
 export const PreferencesContext = React.createContext<IAppPreferencesData>({} as any);
 
@@ -9,7 +10,7 @@ type PreferencesContextProviderProps = {
 
 export function PreferencesContextProvider(props: PreferencesContextProviderProps) {
   // Note: This assumes that the preferences has been loaded before this is created.
-  const [state, setState] = React.useState(window.External.preferences.data);
+  const [state, setState] = React.useState(() => deepCopy(window.External.preferences.data));
 
   // Update when preferences change
   React.useEffect(() => {

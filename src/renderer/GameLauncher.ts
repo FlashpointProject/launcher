@@ -2,14 +2,39 @@ import { ChildProcess, exec, ExecOptions } from 'child_process';
 import { remote } from 'electron';
 import { EventEmitter } from 'events';
 import * as path from 'path';
+import * as which from 'which';
 import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
-import { padStart, stringifyArray } from '../shared/Util';
+import { ExecMapping } from '../shared/interfaces';
+import { LangContainer } from '../shared/lang';
+import { fixSlashes, padStart, stringifyArray } from '../shared/Util';
 
 type IGamePathInfo = Pick<IGameInfo, 'platform' | 'launchCommand'>;
 
 export class GameLauncher {
   /** Path of the "htdocs" folder (relative to the Flashpoint folder) */
   private static htdocsPath = 'Server/htdocs';
+  /** Exec mappings between platforms */
+  private static execMappings: ExecMapping[] = [];
+
+  /**
+   * Replaces the current exec mappings object
+   * @param data Exec mappings object
+   */
+  public static setExecMappings(data: ExecMapping[]): void {
+    this.execMappings = data;
+  }
+
+  public static getExecMappings(): ExecMapping[] {
+    return this.execMappings;
+  }
+
+  /**
+   * Checks whether the platform is native locked
+   * @param platform Platform name
+   */
+  public static isPlatformNativeLocked(platform: string) {
+    return window.External.config.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
+  }
 
   /**
    * Try to get the ("entry"/"main") file path of a game.
@@ -136,65 +161,95 @@ export class GameLauncher {
     if (urlObj) { return path.join(GameLauncher.getHtdocsPath(flashpointPath), urlToFilePath(urlObj)); }
   }
 
-  public static launchAdditionalApplication(addApp: IAdditionalApplicationInfo): void {
-    switch (addApp.applicationPath) {
-      case ':message:':
-        remote.dialog.showMessageBox({
-          type: 'info',
-          title: 'About This Game',
-          message: addApp.launchCommand,
-          buttons: ['Ok'],
-        });
-        break;
-      case ':extras:':
-        const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.launchCommand)));
-        remote.shell.openExternal(folderPath, { activate: true })
-        .catch(error => {
-          if (error) {
-            remote.dialog.showMessageBox({
-              type: 'error',
-              title: 'Failed to Open Extras',
-              message: `${error.toString()}\n`+
-                       `Path: ${folderPath}`,
-              buttons: ['Ok'],
-            });
+  public static async launchAdditionalApplication(addApp: IAdditionalApplicationInfo, native: boolean, waitForExit: boolean = false): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      switch (addApp.applicationPath) {
+        case ':message:':
+          remote.dialog.showMessageBoxSync({
+            type: 'info',
+            title: 'About This Game',
+            message: addApp.launchCommand,
+            buttons: ['Ok'],
+          });
+          break;
+        case ':extras:':
+          const folderPath = fixSlashes(relativeToFlashpoint(path.posix.join('Extras', addApp.launchCommand)));
+          remote.shell.openExternal(folderPath, { activate: true })
+          .catch(error => {
+            if (error) {
+              remote.dialog.showMessageBoxSync({
+                type: 'error',
+                title: 'Failed to Open Extras',
+                message: `${error.toString()}\n`+
+                        `Path: ${folderPath}`,
+                buttons: ['Ok'],
+              });
+            }
+          });
+          break;
+        default:
+          const appArgs: string = addApp.launchCommand;
+          const appPath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(addApp.applicationPath, native)));
+          const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
+          const proc = GameLauncher.launch(
+            GameLauncher.createCommand(appPath, appArgs, useWine),
+            { env: GameLauncher.getEnvironment(useWine) }
+          );
+          log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.launchCommand}" ]`);
+          if (waitForExit) {
+            proc.on('exit', () => { resolve(); });
+            proc.on('error', (error) => { reject(error); });
+          } else {
+            resolve();
           }
-        });
-        break;
-      default:
-        const appPath: string = fixSlashes(relativeToFlashpoint(addApp.applicationPath));
-        const appArgs: string = addApp.launchCommand;
-        const useWine = window.External.preferences.data.useWine;
-        const proc = GameLauncher.launch(
-          GameLauncher.createCommand(appPath, appArgs, useWine),
-          { env: GameLauncher.getEnvironment(useWine) }
-        );
-        log(`Launch Add-App "${addApp.name}" (PID: ${proc.pid}) [ path: "${addApp.applicationPath}", arg: "${addApp.launchCommand}" ]`);
-        break;
-    }
+          break;
+      }
+    });
   }
 
   /**
    * Launch a game
    * @param game Game to launch
+   * @param addApps Additional applications to launch first
+   * @param lang String to use for Wine warning. Static functions don't have a context to use.
    */
-  public static launchGame(game: IGameInfo, addApps?: IAdditionalApplicationInfo[]): void {
+  public static launchGame(game: IGameInfo, lang: LangContainer['dialog'], addApps?: IAdditionalApplicationInfo[]): void {
     // Abort if placeholder (placeholders are not "actual" games)
     if (game.placeholder) { return; }
+    const native = this.isPlatformNativeLocked(game.platform);
     // Run all provided additional applications with "AutoRunBefore" enabled
     addApps && addApps.forEach((addApp) => {
       if (addApp.autoRunBefore) {
-        GameLauncher.launchAdditionalApplication(addApp);
+        GameLauncher.launchAdditionalApplication(addApp, native, addApp.waitForExit);
       }
     });
     // Launch game
-    const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game)));
-    const gameArgs: string = game.launchCommand;
-    const useWine: boolean = window.External.preferences.data.useWine;
+    const gameArgs: string = getLaunchCommand(game);
+    const gamePath: string = fixSlashes(relativeToFlashpoint(GameLauncher.getApplicationPath(game.applicationPath, native)));
+    // Force Wine usage if application path resolves to an .exe file (and not on Windows)
+    const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+    // Warn when Wine isn't on the PATH, but is going to be used
+    if (useWine) {
+      which('wine', (err) => {
+        if (err) {
+          log('Warning : Wine is required but was not found. Is it installed?' +
+              'Installation instructions may be found on your distro\'s website, or through the Flashpoint Wiki');
+          const response = remote.dialog.showMessageBoxSync({
+            type: 'error',
+            title: lang.programNotFound,
+            message: lang.wineNotFound,
+            buttons: ['Ok', 'Open Wiki'],
+          });
+          // Open wiki in default browser (Some Linux distro's might no support xdg-open, but any sane distro will, best bet)
+          if (response === 1) { exec('xdg-open https://bluemaxima.org/flashpoint/datahub/Linux_Support#Wine'); }
+        }
+      });
+    }
     const command: string = GameLauncher.createCommand(gamePath, gameArgs, useWine);
     const proc = GameLauncher.launch(command, { env: GameLauncher.getEnvironment(useWine) });
     log(`Launch Game "${game.title}" (PID: ${proc.pid}) [\n`+
         `    applicationPath: "${game.applicationPath}",\n`+
+        `    gamePath:        "${gamePath}",\n` +
         `    launchCommand:   "${game.launchCommand}",\n`+
         `    command:         "${command}" ]`);
     // Show popups for Unity games
@@ -217,20 +272,37 @@ export class GameLauncher {
   }
 
   /**
-   * The paths provided in the Game/AdditionalApplication XMLs are only accurate
-   * on Windows. So we replace them with other hard-coded paths here.
+   * Returns either a Windows or Native path (if available and requested)
+   * @param path Windows/XML application path
+   * @param native Prefer native execs
    */
-  private static getApplicationPath(game: IGameInfo): string {
-    // @TODO Let the user change these paths from a file or something (services.json?).
-    if (window.External.platform === 'linux')  {
-      if (game.platform === 'Java') {
-        return 'FPSoftware/startJava.sh';
-      }
-      if (game.platform === 'Unity') {
-        return 'FPSoftware/startUnity.sh';
+  private static getApplicationPath(path: string, native: boolean): string {
+    const platform = process.platform;
+
+    // Bat files won't work on Wine, force a .sh file on non-Windows platforms instead. Sh File may not exist.
+    if (platform != 'win32' && path.endsWith('.bat')) {
+      return path.substr(0, path.length - 4) + '.sh';
+    }
+
+    // Skip mapping if on Windows or Native application was not requested
+    if (platform != 'win32' && native) {
+      for (let i = 0; i < this.execMappings.length; i++) {
+        const mapping = this.execMappings[i];
+        if (mapping.win32 === path) {
+          switch (platform) {
+            case 'linux':
+              return mapping.linux || mapping.win32;
+            case 'darwin':
+              return mapping.darwin || mapping.win32;
+            default:
+              return path;
+          }
+        }
       }
     }
-    return game.applicationPath;
+
+    // No Native exec found, return Windows/XML application path
+    return path;
   }
 
   /**
@@ -247,7 +319,7 @@ export class GameLauncher {
       // Add Wine related env vars if it's running through Wine
       ...(useWine ? {
         WINEPREFIX: path.join(window.External.config.fullFlashpointPath, 'FPSoftware/wineprefix'),
-        WINEARCH: 'win32',
+        // WINEARCH: 'win32',
         WINEDEBUG: '-all',
       } : null),
       // Copy this processes environment variables
@@ -259,15 +331,17 @@ export class GameLauncher {
     // Escape filename and args
     let escFilename: string = filename;
     let escArgs: string = args;
+    // Use wine for any exe files (unless on Windows)
     if (useWine) {
       escFilename = 'wine';
-      escArgs = `start /unix "${filename}" "${args}"`;
+      escArgs = `start /unix "${filename}" ${escapeLinuxArgs(args)}`;
     } else {
       switch (window.External.platform) {
         case 'win32':
           escFilename = filename;
           escArgs = escapeWin(args);
           break;
+        case 'darwin':
         case 'linux':
           escFilename = filename;
           escArgs = escapeLinuxArgs(args);
@@ -341,17 +415,7 @@ function doStuffs(emitter: EventEmitter, events: string[], callback: (event: str
   }
 }
 
-function log(str: string): void {
-  window.External.log.addEntry({
-    source: 'Game Launcher',
-    content: str,
-  });
-}
-
-/** Replace all back-slashes with forward slashes. */
-function fixSlashes(str: string): string {
-  return str.replace(/\\/g, '/');
-}
+function log(str: string): void {}
 
 /**
  * Escape a string that will be used in a Windows shell (command line)
@@ -402,7 +466,13 @@ function splitQuotes(str: string): string[] {
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
  */
 function escapeLinuxArgs(str: string): string {
-  return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
+  return (
+    splitQuotes(str)
+    .reduce((acc, val, i) => acc + ((i % 2 === 0)
+      ? val.replace(/[~`#$&*()\\|[\]{};<>?!]/g, '\\$&')
+      : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
+    ), '')
+  );
 }
 
 const unityOutputResponses = [
@@ -460,3 +530,29 @@ const unityOutputResponses = [
     }
   }
 ];
+
+/** Returns a correctly formed Launch Command for a game (Important for cross-platform string forming)
+ * E.G Adobe Flash joins parameters on Windows, but not on Linux
+ */
+function getLaunchCommand(game: IGameInfo) {
+  if (game.platform.toLowerCase() === 'flash') {
+    // Special checks for Flash
+    let match = game.launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+    if (match && !match[1]) {
+      // Extracted first string from launch command via regex, was outside quotes
+      console.log(match);
+      // Match 1 - Inside quotes, Match 0 - No Quotes Found
+      if (match[0].length != game.launchCommand.length) {
+        // Unquoted launch command with spaces, check for a protocol at the start
+        let protocol = match[0].match(/(.+):\/\//);
+        if (protocol) {
+          console.log('Improper');
+          // Protocol found, must be an unquoted url!
+          return `"${game.launchCommand}"`;
+        }
+      }
+    }
+  }
+  // No launch command found, return it as is
+  return game.launchCommand;
+}

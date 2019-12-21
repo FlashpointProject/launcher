@@ -1,22 +1,24 @@
+import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
+import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
 import { autoCode } from '../lang';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
+import { deepCopy } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
-import { BackIn } from '../back/types';
 
 export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send: boolean = true) {
   const preferences = window.External.preferences;
   // @TODO Figure out the delta change of the object tree, and only send the changes
-  overwritePreferenceData(preferences.data, data);
+  preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
   if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
-    window.External.backSocket.send(JSON.stringify([
+    window.External.back.send(
       BackIn.UPDATE_PREFERENCES,
       preferences.data
-    ]));
+    );
   }
 }
 
@@ -34,12 +36,13 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   browsePageShowRightSidebar: true,
   browsePageLeftSidebarWidth: 320,
   browsePageRightSidebarWidth: 320,
+  curatePageLeftSidebarWidth: 320,
   showDeveloperTab: false,
-  useWine: false,
   currentTheme: undefined,
   lastSelectedLibrary: '',
   gamesOrderBy: 'title',
   gamesOrder: 'ascending',
+  defaultLibrary: ARCADE,
   mainWindow: Object.freeze({
     x: undefined,
     y: undefined,
@@ -47,6 +50,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
     height: undefined,
     maximized: false,
   }),
+  saveImportedCurations: true,
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
@@ -78,12 +82,14 @@ export function overwritePreferenceData(
   parser.prop('browsePageShowRightSidebar',  v => source.browsePageShowRightSidebar  = !!v);
   parser.prop('browsePageLeftSidebarWidth',  v => source.browsePageLeftSidebarWidth  = num(v));
   parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
+  parser.prop('curatePageLeftSidebarWidth',  v => source.curatePageLeftSidebarWidth = num(v));
   parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
-  parser.prop('useWine',                     v => source.useWine                     = !!v);
   parser.prop('currentTheme',                v => source.currentTheme                = str(v), true);
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
   parser.prop('gamesOrderBy',                v => source.gamesOrderBy                = strOpt(v, gameOrderByOptions,      'title'    ));
   parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ascending'));
+  parser.prop('defaultLibrary',              v => source.defaultLibrary              = str(v));
+  parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);

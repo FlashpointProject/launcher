@@ -6,7 +6,6 @@ import { Header, HeaderProps } from '../components/Header';
 import { ApplicationState } from '../store';
 import * as searchActions from '../store/search/actions';
 import { joinLibraryRoute } from '../Util';
-import { withLibrary, WithLibraryProps } from './withLibrary';
 import { withPreferences } from './withPreferences';
 import { withSearch, WithSearchProps } from './withSearch';
 
@@ -14,7 +13,7 @@ type StateToProps = {};
 
 type DispatchToProps = {};
 
-type HeaderContainerProps = HeaderProps & StateToProps & DispatchToProps & WithSearchProps & WithLibraryProps;
+type HeaderContainerProps = HeaderProps & StateToProps & DispatchToProps & WithSearchProps;
 
 const HeaderContainer: React.FunctionComponent<HeaderContainerProps> = (props: HeaderContainerProps) => {
   const { onSearch, ...rest } = props;
@@ -37,7 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchToProps => bindActionCr
   onSearch: (text: string) => searchActions.setQuery({ text }),
 }, dispatch);
 
-export default withRouter(withLibrary(withPreferences(withSearch(connect(
+export default withRouter(withPreferences(withSearch(connect(
   mapStateToProps,
   mapDispatchToProps
-)(HeaderContainer)))));
+)(HeaderContainer))));

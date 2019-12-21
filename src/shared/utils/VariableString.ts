@@ -15,11 +15,14 @@ export type VariableStringOptions = {
  * @param getValue Function the provide variable values.
  */
 export function parseVariableString(str: string, getValue: GetVariableStringValue, options: VariableStringOptions = defaultOptions): string {
-  return splitVariableString(str, options).reduce((acc, val, index) => acc + (
-    (index % 2 === 1)
-      ? getValue(val)
-      : val
-  ));
+  const arr = splitVariableString(str, options);
+  return (arr.length > 0)
+    ? arr.reduce((acc, val, index) => acc + (
+      (index % 2 === 1)
+        ? getValue(val)
+        : val
+    ))
+    : '';
 }
 
 /**

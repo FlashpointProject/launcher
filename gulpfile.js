@@ -1,8 +1,7 @@
-const path = require('path');
 const fs = require('fs-extra');
 const gulp = require('gulp');
-const packager = require('electron-packager');
-const serialHooks = require('electron-packager/src/hooks').serialHooks;
+const builder = require('electron-builder');
+const { Platform, archFromString } = require('electron-builder');
 const { exec } = require('child_process');
 
 const config = {
@@ -16,6 +15,7 @@ const config = {
   main: {
     src: './src/main',
   },
+  sevenZip: './extern/7zip-bin',
   back: {
     src: './src/back',
   }
@@ -75,70 +75,82 @@ gulp.task('config-version', (done) => {
 /* ------ Pack ------ */
 
 gulp.task('pack', (done) => {
-  packager({
-    dir: './build/',
-    out: './dist/',
-    // ...
-    prune: true,
-    packageManager: 'npm',
-    tmpdir: './temp/',
-    overwrite: true,
-    icon: './icons/icon.ico',
-    // Build settings
-    executableName: 'FlashpointLauncher',
-    platform: process.env.PACK_PLATFORM,
-    arch: process.env.PACK_ARCH,
-    asar: config.isRelease,
-    // "afterCopy" in the docs:
-    // "An array of functions to be called after your app directory has been copied to a temporary directory."
-    afterCopy: [serialHooks([
-      function(buildPath, electronVersion, platform, arch) {
-        // Save file to the temporary folder (that gets moved or packed into the release)
-        fs.writeFileSync(path.join(buildPath, 'package.json'), minifyPackage(fs.readFileSync('package.json')));
-        // Copy dependencies of the Node processes
-        const deps = ['ws', 'async-limiter'];
-        for (let dep of deps) {
-          const depPath = 'node_modules/'+dep;
-          const packagePath = path.join(buildPath, depPath, 'package.json');
-          fs.copySync(depPath, path.join(buildPath, depPath));
-          fs.writeFileSync(packagePath, minifyPackage(fs.readFileSync(packagePath)));
-        }
-        /** Copy only some fields (I'm not really sure which are required or serves any purpose - but these have been enough so far) */
-        function minifyPackage(package) {
-          const p = JSON.parse(package);
-          return JSON.stringify({
-            name: p.name,
-            version: p.version,
-            description: p.description,
-            main: p.main,
-            author: p.author,
-            license: p.license,
-            dependencies: p.dependencies
-          }, undefined, 2);
-        }
+  if (!fs.existsSync('.installed')) {
+    fs.createFileSync('.installed');
+  }
+  const targets = createBuildTargets(process.env.PACK_PLATFORM, process.env.PACK_ARCH);
+  const publish = process.env.PUBLISH ? createPublishInfo() : [];
+  console.log(publish);
+  builder.build({
+    config: {
+      appId: 'com.bluemaxima.flashpoint-launcher',
+      productName: 'Flashpoint',
+      directories: {
+        buildResources: './static/',
+        output: './dist/'
       },
-    ])],
-    // "afterExtract" in the docs:
-    // "An array of functions to be called after Electron has been extracted to a temporary directory."
-    afterExtract: [serialHooks([
-      function(buildPath, electronVersion, platform, arch) {
-        // Create "installed" file (this tells the launcher that it is installed, and not portable)
-        if (config.isStaticInstall) {
-          fs.createFileSync(path.join(buildPath, '.installed'));
+      files: [
+        './build',
+        './static'
+      ],
+      extraFiles: [
+        { // Only copy 7zip execs for packed platform
+          from: './extern/7zip-bin',
+          to: './extern/7zip-bin',
+          filter: ['${os}/**/*']
+        },
+        './lang',
+        './licenses',
+        '.installed',
+        'upgrade.json',
+        {
+          from: './LICENSE',
+          to: './licenses/LICENSE'
         }
-        // Copy Language folder
-        fs.copySync('./lang', path.join(buildPath, 'lang/'));
-        // Create build version file
-        fs.writeFileSync(path.join(buildPath, '.version'), config.buildVersion, done);
-        // Copy licenses folder and the LICENSE file
-        fs.copySync('./licenses', path.join(buildPath, 'licenses/'));
-        fs.copySync('./LICENSE',  path.join(buildPath, 'licenses/LICENSE'));
-        // Move electron license into the licenses folder
-        fs.moveSync(path.join(buildPath, 'LICENSE'), path.join(buildPath, 'licenses/electron/LICENSE'));
+      ],
+      compression: 'store', // Only used if a compressed target (like 7z, nsis, dmg etc)
+      target: 'dir', // Keep unpacked versions of every pack
+      asar: config.isRelease,
+      publish: publish,
+      win: {
+        icon: './icons/icon.ico',
       },
-    ])],
+      mac: {
+        icon: './icons/icon.icns'
+      }
+    },
+    targets: targets
+    // // "afterCopy" in the docs:
+    // // "An array of functions to be called after your app directory has been copied to a temporary directory."
+    // afterCopy: [[
+    //   function(buildPath, electronVersion, platform, arch) {
+    //     // Save file to the temporary folder (that gets moved or packed into the release)
+    //     fs.writeFileSync(path.join(buildPath, 'package.json'), minifyPackage(fs.readFileSync('package.json')));
+    //     // Copy dependencies of the Node processes
+    //     const deps = ['ws', 'async-limiter'];
+    //     for (let dep of deps) {
+    //       const depPath = 'node_modules/'+dep;
+    //       const packagePath = path.join(buildPath, depPath, 'package.json');
+    //       fs.copySync(depPath, path.join(buildPath, depPath));
+    //       fs.writeFileSync(packagePath, minifyPackage(fs.readFileSync(packagePath)));
+    //     }
+    //     /** Copy only some fields (I'm not really sure which are required or serves any purpose - but these have been enough so far) */
+    //     function minifyPackage(package) {
+    //       const p = JSON.parse(package);
+    //       return JSON.stringify({
+    //         name: p.name,
+    //         version: p.version,
+    //         description: p.description,
+    //         main: p.main,
+    //         author: p.author,
+    //         license: p.license,
+    //         dependencies: p.dependencies
+    //       }, undefined, 2);
+    //     }
+    //   },
+    // ]],
   })
-  .then((appPaths) => { console.log('Pack - Done!');         })
+  .then(()         => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); })
   .then(done);
 });
@@ -158,4 +170,24 @@ function execute(command, callback) {
   if (callback) {
     child.once('exit', () => { callback(); });
   }
+}
+
+function createBuildTargets(os, arch) {
+  switch (os) {
+    case 'win32':
+      return Platform.WINDOWS.createTarget('nsis', archFromString(arch));
+    case 'darwin':
+      return Platform.MAC.createTarget('dmg');
+    case 'linux':
+      return Platform.LINUX.createTarget('appimage', archFromString(arch));
+  }
+}
+
+function createPublishInfo() {
+  return [
+    {
+      provider: 'generic',
+      url: 'https://download.unstable.life/${name}/${os}/${arch}/${channel}/'
+    }
+  ];
 }

@@ -18,6 +18,7 @@
   --layout__warning-dark-color:   #5a1010;
   --layout__warning-medium-color: #731919;
   --layout__warning-bright-color: #a22020;
+  --layout__warning-shallow:      #c0ce00;
   /* Valid / Invalid */
   --layout__valid-color:   #009600;
   --layout__invalid-color: #840000;
@@ -68,7 +69,6 @@
   --layout__playlist-list-item-drag-over-border:               #818181;
   --layout__playlist-list-item-editing-odd-background:         #151f14;
   --layout__playlist-list-item-editing-even-background:        #192519;
-  --layout__playlist-list-item-editing-drag-over-background:   #20301f;
   --layout__playlist-list-item-editing-content-background:     #1c291b;
   --layout__playlist-list-item-editing-description-background: #3a5637;
   /* Game Image Split */
@@ -77,14 +77,20 @@
   /* Home Page */
   --layout__home-page-box-border:     #3f3f3f;
   --layout__home-page-box-background: #252525;
+  /* Curate Page */
+  --layout__curate-page-box-background: var(--layout__tertiary-background);
+  --layout__curate-page-box-border: var(--layout__primary-outline-color);
+  --layout__curate-page-floating-box-background: var(--layout__quaternary-background);
+  --layout__curate-page-floating-box-border: var(--layout__tertiary-background);
   /* Log (at the Log Page) */
   --layout__log-time-stamp:                 #857df3;
   --layout__log-source:                     #d4d4d4;
   --layout__log-source-background-services: #8d8d8d;
-  --layout__log-source-game-launcher:       #ffd900;
+  --layout__log-source-game-launcher:       #e67e22;
   --layout__log-source-language:            #b157ec;
   --layout__log-source-redirector:          #00ffff;
   --layout__log-source-router:              #00ff00;
+  --layout__log-source-curation:            #efff00;
   /* Credits */
   --layout__credits-tooltip-border:           #000000;
   --layout__credits-tooltip-background:       #000000DD;
@@ -192,8 +198,12 @@ body {
   color: var(--layout__disabled-text-color);
 }
 /* Input Field */
-.input-field--warn {
+.input-field--info {
   background-color: var(--layout__warning-medium-color);
+}
+.input-field--warn {
+  background-color: var(--layout__warning-shallow);
+  color: var(--layout__primary-background);
 }
 /* Checkbox Dropdown */
 .simple-dropdown {
@@ -258,6 +268,9 @@ body {
 }
 .log__source--router {
   color: var(--layout__log-source-router);
+}
+.log__source--curation {
+  color: var(--layout__log-source-curation);
 }
 
 
@@ -414,14 +427,29 @@ body {
 
 /* ------ Curate ------ */
 /* Curate Page Top */
-.curate-page-top {
-  border-color: var(--layout__tertiary-background);
-  background-color: var(--layout__quaternary-background);
+.curate-page__floating-box {
+  border-color: var(--layout__curate-page-floating-box-border);
+  background-color: var(--layout__curate-page-floating-box-background);
+}
+/* Curate Page Left Sidebar Items */
+.curate-page__left-sidebar-item {
+  background-color: var(--layout__playlist-list-fake-even-background);
+  color: var(--layout__secondary-text-color);
+}
+.curate-page__left-sidebar-item:nth-child(2n) {
+  background-color: var(--layout__playlist-list-item-even-background);
+}
+.curate-page__left-sidebar-item:hover {
+  background-color: var(--layout__playlist-list-item-drag-over-background);
 }
 /* Curate Box */
 .curate-box {
-  background-color: var(--layout__tertiary-background);
-  border-color: var(--layout__primary-outline-color);
+  background-color: var(--layout__curate-page-box-background);
+  border-color: var(--layout__curate-page-box-border);
+}
+.curate-box input[type="checkbox"] {
+  vertical-align: middle;
+  transform: scale(1rem);
 }
 /* Curate Box Divider */
 .curate-box-divider {
@@ -444,11 +472,22 @@ body {
   cursor: zoom-in;
 }
 .curate-box-images__image--placeholder {
-  cursor: default;
+  background-color: var(--layout__browse-right-sidebar-screenshot-placeholder-background);
+  border-color: var(--layout__browse-right-sidebar-screenshot-placeholder-border);
+}
+.curate-box-images__image--placeholder p {
+  color: var(--layout__disabled-text-color);
 }
 /* Curate Box Buttons */
 .curate-box-buttons__button--active:hover { /* ":hover" to get higher specificity */
   background-color: var(--layout__warning-medium-color);
+}
+/* Curate Box Select Dropdowns */
+.curate-box-select--warn select {
+  background-color: var(--layout__warning-medium-color);
+}
+.curate-box-select--warn select option:not(.curate-box-select__invalid-option) {
+  background-color: var(--layout__secondary-background);
 }
 
 
@@ -551,6 +590,9 @@ body {
 .game-image-split__buttons__remove-image--active:hover .icon__use {
   fill: var(--layout__warning-medium-color);
 }
+.game-image-split__buttons__remove-image--disabled .icon__use {
+  fill: var(--layout__disabled-text-color);
+}
 
 
 /* GameList Item */
@@ -615,7 +657,8 @@ body {
   image-rendering: var(--layout__game-item-thumb-image-rendering);
 }
 
-/* Playlist-List-Item */
+
+/* Playlist Item */
 .playlist-list-item {
   background-color: var(--layout__primary-background);
   color: var(--layout__secondary-text-color);
@@ -627,15 +670,12 @@ body {
 .playlist-list-item.playlist-list-item--drag-over {
   background-color: var(--layout__playlist-list-item-drag-over-background);
 }
-.playlist-list-item--editing {
+.playlist-list-item--editing,
+.playlist-list-item--editing:hover {
   background-color: var(--layout__playlist-list-item-editing-odd-background);
 }
 .playlist-list-item--editing:nth-child(2n) {
   background-color: var(--layout__playlist-list-item-editing-even-background);
-}
-.playlist-list-item--editing:hover,
-.playlist-list-item--editing.playlist-list-item--drag-over {
-  background-color: var(--layout__playlist-list-item-editing-drag-over-background);
 }
 .playlist-list-item--drag-over .playlist-list-item__drag-overlay {
   border-color: var(--layout__playlist-list-item-drag-over-border);
@@ -649,20 +689,44 @@ body {
 .playlist-list-item--drag-over .playlist-list-item__head {
   --color: var(--layout__playlist-list-item-hover-color);
 }
-.playlist-list-item__head__icon__no-image__icon .icon__use {
+.playlist-list-item--editing .playlist-list-item__head:hover {
+  --color: var(--layout__secondary-text-color);
+}
+.playlist-list-item__icon-placeholder-inner .icon__use {
   fill: var(--color);
 }
-/* Playlist-List-Item Content */
-.playlist-list-item__content {
+.playlist-list-item__text-field {
+  color: var(--color);
+}
+
+
+/* PlaylistContent */
+.playlist-list-content {
   background-color: var(--layout__playlist-list-item-content-background);
 }
-.playlist-list-item--editing .playlist-list-item__content {
+.playlist-list-content--edit {
   background-color: var(--layout__playlist-list-item-editing-content-background);
   color: var(--layout__highlighted-text-color);
 }
-.playlist-list-item__content__description-edit {
-  background-color: var(--layout__playlist-list-item-editing-description-background);
+.playlist-list-content__description {
+  color: var(--layout__secondary-text-color);
 }
+.playlist-list-content--edit .playlist-list-content__description {
+  background-color: var(--layout__playlist-list-item-editing-description-background);
+  color: var(--layout__primary-text-color);
+}
+/* Playlist-List-Content Buttons */
+.playlist-list-content__button--confirm:hover .icon__use {
+  fill: var(--layout__confirm-color);
+}
+.playlist-list-content__button--warning:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.playlist-list-content__button--warning.playlist-list-content__button--active:hover .icon__use {
+  fill: var(--layout__warning-medium-color);
+}
+
+
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
   background-color: var(--layout__playlist-list-fake-even-background);
@@ -731,6 +795,28 @@ body {
 .setting__row__content--theme-input-field label:last-child {
   /* Change the color of the "No Theme" suggestion in the drop-down list. */
   color: var(--layout__no-theme-suggestion-color);
+}
+
+/** ------ Progress Components ------ **/
+/* Status Bar */
+.status-bar__top-text {
+  color: var(--layout__primary-text-color);
+}
+.status-bar__bottom-text {
+  color: var(--layout__primary-text-color);
+}
+/* Progress Bar */
+.progress-bar__top-text {
+  color: var(--layout__primary-text-color);
+}
+.progress-bar__bottom-text {
+  color: var(--layout__primary-text-color);
+}
+.progress-bar__bar {
+  background-color: var(--layout__secondary-background);
+}
+.progress-bar__bar__inner {
+  background-color: var(--layout__confirm-color);
 }
 
 /* ------ FP Logo ------ */

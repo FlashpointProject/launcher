@@ -21,8 +21,6 @@
     "redirector": "Redirecionador",
     "redirectorFiddler": "Fiddler",
     "redirectorDesc": "Que software utilizar para redirecionar o tráfego de jogo para o web server local. Nenhum é usado no Linux.",
-    "useWine": "Usar Wine",
-    "useWineDesc": "Iniciar aplicações com Wine. So ative isto se Wine estiver instalado.",
     "visualsHeader": "Visuais",
     "useCustomTitleBar": "Customizar a Barra de Título",
     "useCustomTitleBarDesc": "Usar uma Barra de Título customizada no topo desta janela.",
@@ -231,8 +229,7 @@
     "releaseDateInvalid": "'Data de Lançamento' deve seguir YYYY-MM-DD (mês e dia são opcionais).",
     "unusedApplicationPath": "'Caminho da Aplicação' tem um valor não utilizado. Certifique-se que está bem escrito!",
     "unusedGenre": "'Gênero' tem um valor não utilizado. Certifique-se que está bem escrito!",
-    "unusedPlatform": "'Plataforma' tem um valor não utilizado. Certifique-se que está bem escrito!",
-    "noContent": "Conteúdo não encontrado! Certifique-se que a pasta tem o nome e o sítio certo!"
+    "unusedPlatform": "'Plataforma' tem um valor não utilizado. Certifique-se que está bem escrito!"
   },
   "playlist": {
     "enterDescriptionHere": "Escrever uma Descrição aqui...",

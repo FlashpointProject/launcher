@@ -1,54 +1,44 @@
 import * as React from 'react';
-import { useCallback, useMemo } from 'react';
-import { filterBroken, filterExtreme } from '../../shared/game/GameFilter';
+import { useState } from 'react';
+import { BackIn, LaunchGameData, RandomGamesData, RandomGamesResponseData } from '../../shared/back/types';
+import { LOGOS } from '../../shared/constants';
 import { IGameInfo } from '../../shared/game/interfaces';
-import { GameImageCollection } from '../image/GameImageCollection';
-import { findElementAncestor, shuffle } from '../Util';
+import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
 type RandomGamesProps = {
-  /** Games to randomly pick from. */
-  games: IGameInfo[];
-  /** Game image collection to get the images from. */
-  gameImages: GameImageCollection;
-  /** Called when the user attempts to launch a game. */
-  onLaunchGame: (game: IGameInfo) => void;
   /** If extreme games could be picked and displayed. */
   showExtreme: boolean;
   /** If broken games could be picked and displayed. */
   showBroken: boolean;
 };
 
-/** The number of games shown in the RandomGames component. */
-const numberOfGames = 6;
-
 /** A small "grid" of randomly selected games. */
 export function RandomGames(props: RandomGamesProps) {
-  // Select random games to display
-  const randomGames = useMemo(() => {
-    const filteredGames = filterBroken(props.showBroken, filterExtreme(props.showExtreme, props.games));
-    const shuffledGames = shuffle(filteredGames);
-    const randomGames = shuffledGames.slice(0, Math.min(numberOfGames, props.games.length));
-    return randomGames;
-  }, [/* Only pick games on the first render. */]);
-  // Launch Callback
-  const onGameLaunch = useCallback((event: React.MouseEvent, gameId: string) => {
-    const game = randomGames.find(game => game.id === gameId);
-    if (game) { props.onLaunchGame(game); }
+  const [games, setGames] = useState<IGameInfo[]>([]);
+
+  React.useEffect(() => {
+    window.External.back.send<RandomGamesResponseData, RandomGamesData>(
+      BackIn.RANDOM_GAMES,
+      { count: 6, },
+      res => { if (res.data) { setGames(res.data); } }
+    );
   }, []);
-  // Render games
+
   const gameItems = React.useMemo(() => (
-    randomGames.map(game => (
+    games.map(game => (
       <GameGridItem
         key={game.id}
-        game={game}
-        thumbnail={props.gameImages.getThumbnailPath(game) || ''}
+        id={game.id}
+        title={game.title}
+        platform={game.platform}
+        thumbnail={getGameImageURL(LOGOS, game.id)}
         isSelected={false}
         isDragged={false} />
     ))
-  ), [randomGames, props.gameImages]);
-  // Render
+  ), [games]);
+
   return (
     <GameItemContainer
       className='random-games'
@@ -57,6 +47,10 @@ export function RandomGames(props: RandomGamesProps) {
       { gameItems }
     </GameItemContainer>
   );
+}
+
+function onGameLaunch(event: React.MouseEvent, gameId: string): void {
+  window.External.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
 }
 
 /**

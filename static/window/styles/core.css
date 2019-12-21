@@ -182,6 +182,7 @@ body {
   border: 1px solid;
 }
 .simple-dropdown__content {
+  z-index: 10;
   width: var(--width);
   display: block;
   position: absolute;
@@ -632,6 +633,15 @@ body {
   padding: 0 1rem;
   text-align: center;
 }
+/* HomePage Progress Components */
+.home-page__progress-wrapper {
+  font-size: 0.8em !important;
+  margin: 0 5%;
+}
+/* Update */
+.home-page__update-box {
+  text-align: center;
+}
 /* Random Games */
 .home-page__random-games {
   text-align: center;
@@ -775,15 +785,25 @@ body {
   display: inline;
 }
 
+
 /* ------ Curate ------ */
 .curate-page {
   width: 100%;
   height: 100%;
-  overflow: auto;
+  display: flex;
 }
 .curate-page__inner {
-  width: 40rem;
+  width: 100%;
+  display: flex;
   margin: 0 auto;
+  overflow: auto;
+}
+.curate-page__center {
+  width: 40em;
+}
+.curate-page input[type="checkbox"] {
+  width: 2rem;
+  height: 2rem;
 }
 /* (Edit how other classes appear in this page) */
 .curate-page .input-dropdown__content {
@@ -792,25 +812,55 @@ body {
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;
 }
-/* Curate Page Top */
-.curate-page-top {
+/* Curate Page Floating Box */
+.curate-page__floating-box {
+  position: fixed;
   display: flex;
-  margin-top: 0.5rem;
-  padding: 0.25rem;
+  flex-direction: column;
+  margin: 1.5rem;
+  padding: 0.5rem;
   /* Border */
   border-radius: 0.2em;
   border: 1px solid;
 }
-.curate-page-top__left {
-  flex: 1 0;
-  white-space: nowrap;
+.curate-page__floating-box > * {
+  margin: 0.1rem 0;
 }
-.curate-page-top__right {
-  flex: 0 0;
-  white-space: nowrap;
+.curate-page__floating-box__divider {
+  height: 1rem;
 }
-.curate-page-top__right > * {
-  margin-left: 0.5rem;
+/* Curate Page right panel checkbox item */
+.curate-page__checkbox {
+  display: flex;
+  align-items: center;
+}
+.curate-page__checkbox-text {
+  text-align: center;
+  margin: 0 0.2rem;
+}
+/* Curate Page Left Sidebar */
+.curate-page__left-sidebar-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.2rem 0.2rem;
+  font-weight: bold;
+  --image-size: 1.45rem;
+}
+.curate-page__left-sidebar-item__icon {
+  width: var(--image-size);
+  height: var(--image-size);
+  margin: 0 0.2rem;
+  flex: none;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.curate-page__left {
+  flex-grow: 0.5;
+}
+.curate-page__right {
+  flex: auto;
 }
 /* Curate Box */
 .curate-box {
@@ -818,6 +868,11 @@ body {
   padding: 0.5rem;
   border: 1px solid;
   border-radius: 0.4rem;
+}
+.curate-box__placeholder {
+  text-align: center;
+  font-weight: bold;
+  font-size: 3em;
 }
 .curate-box__image {
   width: 100px;
@@ -835,11 +890,21 @@ body {
   display: inline-block;
   flex: 1 1 auto;
 }
+/* Curate Box Image Footer */
+.curate-box-images-footer {
+  color: var(--layout__disabled-text-color);
+  font-style: italic;
+  text-align: center;
+}
 /* Curate Box Images */
 .curate-box-images {
+  position: relative;
   display: flex;
-  height: 8rem;
+  height: 10rem;
   margin: 0.35rem 0;
+}
+.curate-box-images__placeholder {
+  display: flex;
 }
 .curate-box-images__image {
   flex: 1 1 auto;
@@ -847,22 +912,32 @@ body {
   background-repeat: no-repeat;
   background-position: center;
 }
+.curate-box-images__footer {
+  position: absolute;
+}
 /* Curate Box Divider */
 .curate-box-divider {
   margin: 0.4rem 0;
   border-width: 1px;
 }
+/* Curate Box Table */
+.curate-box-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.2rem;
+}
 /* Curate Box Row */
 .curate-box-row {
-  display: flex;
-  margin-bottom: 0.2rem;
+
 }
 .curate-box-row__title {
   padding-right: 0.4em;
   user-select: none;
+  text-align: right;
+  white-space: nowrap;
 }
 .curate-box-row__content {
-  flex: 1 1;
+  width: 100%
 }
 /* Curate Box Add-App */
 .curate-box-add-app {
@@ -892,10 +967,18 @@ body {
 }
 /* Curate Box Buttons */
 .curate-box-buttons {
-  text-align: right;
+  justify-content: space-between;
+  display: flex;
 }
 .curate-box-buttons__button {
   margin: 0 0.2rem;
+}
+.curate-box-buttons__left {
+  text-align: left;
+}
+.curate-box-buttons__right {
+
+  text-align: right;
 }
 .curate-box-buttons__button:last-child {
   margin-right: 0;
@@ -1135,7 +1218,7 @@ body {
 .browse-right-sidebar__row__screenshot {
   width: 100%;
 }
-.browse-right-sidebar__row__screenshot img {
+.browse-right-sidebar__row__screenshot-image {
   width: 100%;
   cursor: zoom-in;
 }
@@ -1169,10 +1252,6 @@ body {
   font-size: 0.9rem;
   font-style: italic;
 }
-.browse-right-sidebar__row__screenshot img {
-  width: 100%;
-  cursor: zoom-in;
-}
 /* GameImageSplit */
 .game-image-split {
   flex: 1 1 auto;
@@ -1181,6 +1260,10 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+}
+.game-image-split p {
+  color: var(--layout__disabled-text-color);
+  font-style: italic;
 }
 .game-image-split:first-child {
   border-right: 1px dashed;
@@ -1192,13 +1275,17 @@ body {
 }
 .game-image-split__buttons {
   top: 0;
-  padding: 0.5rem;
 }
 .game-image-split__buttons > * {
   float: right;
 }
 .game-image-split__buttons > p {
   float: left;
+  padding: 0.5rem;
+  pointer-events: none;
+}
+.game-image-split__buttons__remove-image {
+  padding: 0.5rem;
 }
 .game-image-split__not-found {
   display: inline-block;
@@ -1310,8 +1397,8 @@ body {
 .game-list-item__field--title {
   max-width: 40%;
 }
-.game-list-header-column--genre,
-.game-list-item__field--genre {
+.game-list-header-column--tags,
+.game-list-item__field--tags {
   max-width: 15%;
 }
 .game-list-header-column--developer,
@@ -1443,80 +1530,75 @@ body {
   cursor: default;
 }
 .playlist-list-item__head > * {
-  flex: 0 0 auto;
   user-select: none;
 }
-.playlist-list-item__head__icon {
+.playlist-list-item__icon {
+  flex: 0 0 auto;
   width: var(--image-size);
   height: var(--image-size);
 }
-.playlist-list-item__head__icon__image {
+.playlist-list-item__icon-image {
   width: 100%;
   height: 100%;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 }
-.playlist-list-item__head__icon__no-image {
+.playlist-list-item__icon-placeholder {
   height: 65%;
 }
-.playlist-list-item__head__icon__no-image__icon {
+.playlist-list-item__icon-placeholder-inner {
   width: 100%;
   height: 100%;
 }
-.playlist-list-item__head__title {
+.playlist-list-item__title {
   flex: 0 1 auto;
   min-width: 0;
   font-weight: bold;
   padding-left: 0.5rem;
 }
-.playlist-list-item__head__divider {
+.playlist-list-item__divider {
+  flex: 0 0 auto;
   padding: 0 0.2rem;
   font-size: 0.9em;
 }
-.playlist-list-item__head__author {
+.playlist-list-item__author {
   flex: 0 1 auto;
   min-width: 0;
   font-size: 0.9em;
   font-style: italic;
 }
-.playlist-list-item__head__author > p {
+.playlist-list-item__author > p {
   padding-right: 0.2em; /* Give it some extra space since its in italics */
 }
-.playlist-list-item__head__title > *,
-.playlist-list-item__head__author > * {
+.playlist-list-item__text-field {
   /* Truncates the overflowing text */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.playlist-list-item--editing .playlist-list-item__head__title input,
-.playlist-list-item--editing .playlist-list-item__head__author input {
-  width: 8rem;
+.playlist-list-item--editing .playlist-list-item__title,
+.playlist-list-item--editing .playlist-list-item__author {
+  flex: 1 1 auto;
 }
-.playlist-list-item--editing .playlist-list-item__head__title,
-.playlist-list-item--editing .playlist-list-item__head__author,
-.playlist-list-item--editing .playlist-list-item__head__icon {
+.playlist-list-item--editing .playlist-list-item__title,
+.playlist-list-item--editing .playlist-list-item__author,
+.playlist-list-item--editing .playlist-list-item__icon {
   cursor: pointer;
 }
 /* Playlist-List-Item Content */
-.playlist-list-item__content {
-  max-height: 0; /* Overridden with JavaScript when expanded. */
+.playlist-list-content {
   overflow: hidden;
-  transition: max-height 0.2s ease-in-out;
 }
-.playlist-list-item--editing .playlist-list-item__content {
-  transition: max-height 0.15s;
-}
-.playlist-list-item__content__inner {
+.playlist-list-content__inner {
   padding: 0.4rem;
 }
-.playlist-list-item__content__edit {
+.playlist-list-content__edit {
   display: flex;
   width: 100%;
   margin-bottom: 0.15rem;
 }
-.playlist-list-item__content__id {
+.playlist-list-content__id {
   display: flex;
   flex: 1 1 auto;
   overflow: hidden;
@@ -1524,39 +1606,32 @@ body {
   opacity: 0.3;
   white-space: pre;
 }
-.playlist-list-item__content__id__pre {
+.playlist-list-content__id-pre {
   flex: 0 0 auto;
   user-select: none;
 }
-.playlist-list-item__content__id__text {
+.playlist-list-content__id-text {
   flex: 1 1 auto;
   overflow: hidden;
 }
-.playlist-list-item__content__id__text p {
+.playlist-list-content__id-text p {
   user-select: text;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.playlist-list-item__content__buttons {
+.playlist-list-content__buttons {
   flex: 0 0 auto;
+  display: flex;
   font-size: 0.85rem;
 }
-.playlist-list-item__content__buttons > * {
+.playlist-list-content__button {
   margin-left: 0.3rem;
 }
-.playlist-list-item__content__description-edit {
+.playlist-list-content__description {
   width: 100%;
   min-height: 5rem;
   resize: vertical;
-}
-.playlist-list-item__content__description-text {
   white-space: pre-wrap;
-}
-.playlist-list-item__editable-text {
-  font-size: inherit;
-  font-family: inherit;
-  font-style: inherit;
-  font-weight: inherit;
 }
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
@@ -1781,6 +1856,47 @@ body {
 .setting__row__content--input-field .input-dropdown__input-field,
 .setting__row__content--input-field .input-dropdown__content {
   border: 1px solid;
+}
+
+/** ----- Progress Components ------ **/
+/* Wrapper (all components) */
+.progress-component__wrapper {
+  position: relative;
+  height: 100%;
+  top: 0;
+  left: 0;
+  /* Font Size acts to scale child component */
+  font-size: 1rem;
+}
+/* Status Bar */
+.status-bar__top-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 3em;
+}
+.status-bar__bottom-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 2em;
+}
+/* Progress Bar */
+.progress-bar__top-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 2em;
+}
+.progress-bar__bottom-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+.progress-bar__bar {
+  align-self: center;
+  height: 5em;
+  padding: 0.5rem;
+}
+.progress-bar__bar__inner {
+  height: 100%;
 }
 
 /* ------ FP Logo ------ */

@@ -1,52 +1,42 @@
-import * as electron from 'electron';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as fs from 'fs';
 import * as React from 'react';
-import { promisify } from 'util';
+import { BackIn, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetGameData, GetGameResponseData, LaunchGameData, SavePlaylistData } from '../../../shared/back/types';
 import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
-import { AdditionalApplicationInfo } from '../../../shared/game/AdditionalApplicationInfo';
-import { filterAndOrderGames, FilterAndOrderGamesOpts } from '../../../shared/game/GameFilter';
-import { GameInfo } from '../../../shared/game/GameInfo';
 import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
+import { GamePlaylist, GamePlaylistEntry, GamePropSuggestions } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
-import { GameLibraryFileItem } from '../../../shared/library/types';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
 import { formatDate } from '../../../shared/Util';
 import { formatString } from '../../../shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
-import { WithLibraryProps } from '../../containers/withLibrary';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { stringifyCurationFormat } from '../../curate/format/stringifier';
-import { convertToCurationMeta } from '../../curate/metaToMeta';
-import GameManagerPlatform from '../../game/GameManagerPlatform';
-import { GameLauncher } from '../../GameLauncher';
-import { GameImageCollection } from '../../image/GameImageCollection';
-import { getImageFolderName } from '../../image/util';
-import { CentralState } from '../../interfaces';
-import { GamePlaylist, GamePlaylistEntry } from '../../playlist/types';
+import { GAMES } from '../../interfaces';
 import { SearchQuery } from '../../store/search';
-import { gameIdDataType, gameScaleSpan, getFileExtension } from '../../Util';
-import { copyGameImageFile } from '../../util/game';
+import { gameIdDataType, gameScaleSpan, getGamePath } from '../../Util';
 import { LangContext } from '../../util/lang';
-import { GamePropSuggestions, getSuggestions } from '../../util/suggestions';
-import { uuid } from '../../uuid';
+import { uuid } from '../../util/uuid';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
+import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
-const writeFile = promisify(fs.writeFile);
-
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
-type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isEditing'|'isNewGame'>;
-type StateCallback2 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isNewGame'>;
+type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'currentAddApps'|'isEditingGame'|'isNewGame'|'currentPlaylistNotes'>;
 
 type OwnProps = {
-  /** Semi-global prop. */
-  central: CentralState;
+  games: GAMES | undefined;
+  gamesTotal: number;
+  playlists: GamePlaylist[];
+  suggestions: Partial<GamePropSuggestions>;
+  playlistIconCache: Record<string, string>;
+  onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
+  onRequestGames: (start: number, end: number) => void;
+  onQuickSearch: (search: string) => void;
+
   /** Most recent search query. */
   search: SearchQuery;
   /** Current parameters for ordering games. */
@@ -55,44 +45,46 @@ type OwnProps = {
   gameScale: number;
   /** Layout of the games. */
   gameLayout: BrowsePageLayout;
-  /** Collection to get game images from, and save game images to. */
-  gameImages: GameImageCollection;
   /** Currently selected game (if any). */
-  selectedGame?: IGameInfo;
+  selectedGameId?: string;
   /** Currently selected playlist (if any). */
-  selectedPlaylist?: GamePlaylist;
+  selectedPlaylistId?: string;
   /** Called when a game is selected. */
-  onSelectGame?: (game?: IGameInfo) => void;
+  onSelectGame: (gameId?: string) => void;
   /** Called when a playlist is selected. */
-  onSelectPlaylist?: (playlist?: GamePlaylist) => void;
+  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
   /** "Route" of the currently selected library (empty string means no library). */
-  gameLibraryRoute: string;
+  gameLibrary: string;
 };
 
-export type BrowsePageProps = OwnProps & WithPreferencesProps & WithLibraryProps;
+export type BrowsePageProps = OwnProps & WithPreferencesProps;
 
 export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */
   quickSearch: string;
   /** Currently dragged game (if any). */
-  draggedGame?: IGameInfo;
+  draggedGameId?: string;
+
   /** Buffer for the selected game (all changes are made to the game until saved). */
   currentGame?: IGameInfo;
   /** Buffer for the selected games additional applications (all changes are made to this until saved). */
   currentAddApps?: IAdditionalApplicationInfo[];
+  /** Buffer for the playlist notes of the selected game/playlist (all changes are made to the game until saved). */
+  currentPlaylistNotes?: string;
   /** If the "edit mode" is currently enabled. */
-  isEditing: boolean;
+  isEditingGame: boolean;
   /** If the selected game is a new game being created. */
   isNewGame: boolean;
-  /**
-   * Suggestions for the different properties of a game (displayed while editing).
-   * @TODO This should probably be memoized instead of being state.
-   */
-  suggestions?: Partial<GamePropSuggestions>;
+
+  /** Buffer for the selected playlist (all changes are made to this until saved). */
+  currentPlaylist?: GamePlaylist;
+  currentPlaylistFilename?: string;
+  isEditingPlaylist: boolean;
+  isNewPlaylist: boolean;
 };
 
 export interface BrowsePage {
@@ -117,93 +109,72 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Set initial state (this is set up to remove all "setState" calls)
     const initialState: BrowsePageState = {
       quickSearch: '',
-      isEditing: false,
-      isNewGame: false
+      isEditingGame: false,
+      isNewGame: false,
+      isEditingPlaylist: false,
+      isNewPlaylist: false,
     };
     const assignToState = <T extends keyof BrowsePageState>(state: Pick<BrowsePageState, T>) => { Object.assign(initialState, state); };
-    this.orderGames(true);
-    this.updateCurrentGameAndAddApps(assignToState);
+    this.updateCurrentGameAndAddApps();
     this.createNewGameIfClicked(false, assignToState);
     this.state = initialState;
   }
 
-  componentDidMount() {
-    this.props.central.games.on('change', this.onGamesCollectionChange);
-  }
-
-  componentWillUnmount() {
-    this.props.central.games.removeListener('change', this.onGamesCollectionChange);
-  }
-
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
-    const { central, gameLibraryRoute, libraryData, onSelectGame, selectedGame, selectedPlaylist } = this.props;
-    const { isEditing, quickSearch } = this.state;
+    const { gameLibrary, selectedGameId, selectedPlaylistId } = this.props;
+    const { isEditingGame: isEditing, quickSearch } = this.state;
     // Check if it ended editing
-    if (!isEditing && prevState.isEditing) {
+    if (!isEditing && prevState.isEditingGame) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ suggestions: undefined });
+      // this.setState({ suggestions: undefined });
     }
     // Check if it started editing
-    if (isEditing && !prevState.isEditing) {
+    if (isEditing && !prevState.isEditingGame) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) });
+      // this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) }); @FIXTHIS
     }
     // Update current game and add-apps if the selected game changes
-    if (selectedGame && selectedGame !== prevProps.selectedGame) {
+    if (selectedGameId && selectedGameId !== prevProps.selectedGameId) {
       this.updateCurrentGameAndAddApps();
-      this.setState({ isEditing: false });
+      this.setState({ isEditingGame: false });
     }
     // Update current game and add-apps if the selected game changes
-    if (gameLibraryRoute === prevProps.gameLibraryRoute &&
-        selectedPlaylist !== prevProps.selectedPlaylist) {
+    if (gameLibrary === prevProps.gameLibrary &&
+        selectedPlaylistId !== prevProps.selectedPlaylistId) {
       this.setState({
         currentGame: undefined,
         currentAddApps: undefined,
         isNewGame: false,
-        isEditing: false
+        isEditingGame: false
       });
     }
     // Check if quick search string changed, and if it isn't empty
     if (prevState.quickSearch !== quickSearch && quickSearch !== '') {
-      const games: IGameInfo[] = this.orderGames();
-      for (let index = 0; index < games.length; index++) {
-        const game: IGameInfo = games[index];
-        if (game.title.toLowerCase().startsWith(quickSearch)) {
-          if (onSelectGame) { onSelectGame(game); }
-          break;
-        }
-      }
+      this.props.onQuickSearch(quickSearch);
     }
     // Create a new game if the "New Game" button is pushed
     this.createNewGameIfClicked(prevProps.wasNewGameClicked);
     // Check the library selection changed (and no game is selected)
-    if (!selectedGame && gameLibraryRoute !== prevProps.gameLibraryRoute) {
+    if (!selectedGameId && gameLibrary !== prevProps.gameLibrary) {
       this.setState({
         currentGame: undefined,
         currentAddApps: undefined,
         isNewGame: false,
-        isEditing: false
+        isEditingGame: false
       });
     }
   }
 
   render() {
     const strings = this.context;
-    const { selectedGame, selectedPlaylist } = this.props;
-    const { draggedGame } = this.state;
-    const currentLibrary = this.getCurrentLibrary();
+    const { games, playlists, selectedGameId, selectedPlaylistId } = this.props;
+    const { draggedGameId } = this.state;
     const order = this.props.order || BrowsePage.defaultOrder;
-    const showSidebars: boolean = this.props.central.gamesDoneLoading;
-    const orderedGames = this.orderGames();
-    // Find the selected game in the selected playlist (if both are selected)
+    // Find the selected game in the selected playlist
     let gamePlaylistEntry: GamePlaylistEntry | undefined;
-    if (selectedPlaylist && selectedGame) {
-      for (let gameEntry of selectedPlaylist.games) {
-        if (gameEntry.id === selectedGame.id) {
-          gamePlaylistEntry = gameEntry;
-          break;
-        }
-      }
+    if (selectedPlaylistId && selectedGameId) {
+      const playlist = playlists.find(p => p.filename === selectedPlaylistId);
+      if (playlist) { gamePlaylistEntry = playlist.games.find(g => g.id === selectedGameId); }
     }
     // Render
     return (
@@ -211,17 +182,31 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         className='game-browser'
         ref={this.gameBrowserRef}>
         <ResizableSidebar
-          hide={this.props.preferencesData.browsePageShowLeftSidebar && showSidebars}
+          hide={this.props.preferencesData.browsePageShowLeftSidebar}
           divider='after'
           width={this.props.preferencesData.browsePageLeftSidebarWidth}
           onResize={this.onLeftSidebarResize}>
           <ConnectedLeftBrowseSidebar
-            central={this.props.central}
-            currentLibrary={currentLibrary}
-            selectedPlaylistID={selectedPlaylist ? selectedPlaylist.id : ''}
-            onSelectPlaylist={this.onLeftSidebarSelectPlaylist}
-            onDeselectPlaylist={this.onLeftSidebarDeselectPlaylist}
-            onPlaylistChanged={this.onLeftSidebarPlaylistChanged}
+            playlists={this.props.playlists}
+            selectedPlaylistID={selectedPlaylistId || ''}
+            isEditing={this.state.isEditingPlaylist}
+            isNewPlaylist={this.state.isNewPlaylist}
+            currentPlaylist={this.state.currentPlaylist}
+            currentPlaylistFilename={this.state.currentPlaylistFilename}
+            playlistIconCache={this.props.playlistIconCache}
+            onDelete={this.onDeletePlaylist}
+            onSave={this.onSavePlaylist}
+            onCreate={this.onCreatePlaylistClick}
+            onDiscard={this.onDiscardPlaylistClick}
+            onEditClick={this.onEditPlaylistClick}
+            onDrop={this.onPlaylistDrop}
+            onItemClick={this.onPlaylistClick}
+            onSetIcon={this.onPlaylistSetIcon}
+            onTitleChange={this.onPlaylistTitleChange}
+            onAuthorChange={this.onPlaylistAuthorChange}
+            onDescriptionChange={this.onPlaylistDescriptionChange}
+            onFilenameChange={this.onPlaylistFilenameChange}
+            onKeyDown={this.onPlaylistKeyDown}
             onShowAllClick={this.onLeftSidebarShowAllClick} />
         </ResizableSidebar>
         <div
@@ -234,16 +219,17 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid
-                  games={orderedGames}
-                  selectedGame={selectedGame}
-                  draggedGame={draggedGame}
-                  gameImages={this.props.gameImages}
+                  games={games}
+                  gamesTotal={this.props.gamesTotal}
+                  selectedGameId={selectedGameId}
+                  draggedGameId={draggedGameId}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenuMemo(strings.menu)}
+                  onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
+                  onRequestGames={this.props.onRequestGames}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   cellWidth={width}
@@ -254,16 +240,17 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               const height: number = calcScale(30, this.props.gameScale);
               return (
                 <GameList
-                  games={orderedGames}
-                  selectedGame={selectedGame}
-                  draggedGame={draggedGame}
-                  gameImages={this.props.gameImages}
+                  games={games}
+                  gamesTotal={this.props.gamesTotal}
+                  selectedGameId={selectedGameId}
+                  draggedGameId={draggedGameId}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
-                  onContextMenu={this.onGameContextMenuMemo(strings.menu)}
+                  onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
+                  onRequestGames={this.props.onRequestGames}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   rowHeight={height}
@@ -273,27 +260,26 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           })()}
         </div>
         <ResizableSidebar
-          hide={this.props.preferencesData.browsePageShowRightSidebar && showSidebars}
+          hide={this.props.preferencesData.browsePageShowRightSidebar}
           divider='before'
           width={this.props.preferencesData.browsePageRightSidebarWidth}
           onResize={this.onRightSidebarResize}>
           <ConnectedRightBrowseSidebar
             currentGame={this.state.currentGame}
             currentAddApps={this.state.currentAddApps}
-            currentLibrary={currentLibrary}
-            gameImages={this.props.gameImages}
-            games={this.props.central.games}
+            currentPlaylistNotes={this.state.currentPlaylistNotes}
+            currentLibrary={this.props.gameLibrary}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
             onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
             onEditPlaylistNotes={this.onEditPlaylistNotes}
             gamePlaylistEntry={gamePlaylistEntry}
-            isEditing={this.state.isEditing}
+            isEditing={this.state.isEditingGame}
             isNewGame={this.state.isNewGame}
             onEditClick={this.onStartEditClick}
             onDiscardClick={this.onDiscardEditClick}
             onSaveGame={this.onSaveEditClick}
-            suggestions={this.state.suggestions} />
+            suggestions={this.props.suggestions} />
         </ResizableSidebar>
       </div>
     );
@@ -302,8 +288,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   private noRowsRendererMemo = memoizeOne((strings: LangContainer['browse']) => {
     return () => (
       <div className='game-list__no-games'>
-      { this.props.central.gamesDoneLoading ? (
-        this.props.selectedPlaylist ? (
+        { this.props.selectedPlaylistId ? (
           /* Empty Playlist */
           <>
             <h2 className='game-list__no-games__title'>{strings.emptyPlaylist}</h2>
@@ -315,97 +300,115 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           <>
             <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
             <br/>
-            {(this.props.central.gamesFailedLoading) ? (
+            { (this.props.gamesTotal > 0) ? (
               <>
-                {formatString(strings.setFlashpointPathQuestion, <b>{strings.flashpointPath}</b>, <i>{strings.config}</i>)}
+                {strings.noGameMatchedDesc}
                 <br/>
-                {formatString(strings.noteSaveAndRestart, <b>'{strings.saveAndRestart}'</b>)}
+                {strings.noGameMatchedSearch}
               </>
             ) : (
-              (this.props.central.games.collection.games.length > 0) ? (
-                <>
-                  {strings.noGameMatchedDesc}
-                  <br/>
-                  {strings.noGameMatchedSearch}
-                </>
-              ) : (
-                <>{strings.thereAreNoGames}</>
-              )
-            )}
+              <>{strings.thereAreNoGames}</>
+            ) }
           </>
-        )
-      ) : (
-        <p>{strings.loadingGames}</p>
-      ) }
+        ) }
       </div>
     );
   });
 
-  private onGameContextMenuMemo = memoizeOne((strings: LangContainer['menu']) => {
-    return (game: IGameInfo) => {
+  private onGameContextMenuMemo = memoizeOne((strings: LangContainer) => {
+    return (gameId: string) => {
       return (
         openContextMenu([{
-          label: strings.openFileLocation,
-          click: this.openFileLocationCallback(game)
-        }, {
-          type: 'separator'
-        }, {
-          label: strings.duplicateMetaOnly,
-          click: this.duplicateCallback(game, false),
+          /* File Location */
+          label: strings.menu.openFileLocation,
+          click: () => {
+            window.External.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
+              if (res.data && res.data.game) {
+                const gamePath = getGamePath(res.data.game, window.External.config.fullFlashpointPath);
+                if (gamePath) {
+                  fs.stat(gamePath, error => {
+                    if (!error) { remote.shell.showItemInFolder(gamePath); }
+                    else {
+                      const opts: Electron.MessageBoxOptions = {
+                        type: 'warning',
+                        message: '',
+                        buttons: ['Ok'],
+                      };
+                      if (error.code === 'ENOENT') {
+                        opts.title = this.context.dialog.fileNotFound;
+                        opts.message = (
+                          'Failed to find the game file.\n'+
+                          'If you are using Flashpoint Infinity, make sure you download the game first.\n'
+                        );
+                      } else {
+                        opts.title = 'Unexpected error';
+                        opts.message = (
+                          'Failed to check the game file.\n'+
+                          'If you see this, please report it back to us (a screenshot would be great)!\n\n'+
+                          `Error: ${error}\n`
+                        );
+                      }
+                      opts.message += `Path: "${gamePath}"\n\nNote: If the path is too long, some portion will be replaced with three dots ("...").`;
+                      remote.dialog.showMessageBox(opts);
+                    }
+                  });
+                }
+              }
+            });
+          },
+        }, {  type: 'separator' }, {
+          /* Duplicate Meta */
+          label: strings.menu.duplicateMetaOnly,
           enabled: this.props.preferencesData.enableEditing,
+          click: () => { window.External.back.send<any, DuplicateGameData>(BackIn.DUPLICATE_GAME, { id: gameId, dupeImages: false }); },
         }, {
-          label: strings.duplicateMetaAndImages, // ("&&" will be shown as "&")
-          click: this.duplicateCallback(game, true),
+          /* Duplicate Meta & Images */
+          label: strings.menu.duplicateMetaAndImages, // ("&&" will be shown as "&")
           enabled: this.props.preferencesData.enableEditing,
+          click: () => { window.External.back.send<any, DuplicateGameData>(BackIn.DUPLICATE_GAME, { id: gameId, dupeImages: true }); },
+        }, { type: 'separator' }, {
+          /* Export Meta */
+          label: strings.menu.exportMetaOnly,
+          click: () => {
+            const filePath = remote.dialog.showSaveDialogSync({
+              title: strings.dialog.selectFileToExportMeta,
+              defaultPath: 'meta',
+              filters: [{
+                name: 'Meta file',
+                extensions: ['txt'],
+              }]
+            });
+            if (filePath) { window.External.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePath, metaOnly: true }); }
+          },
         }, {
-          type: 'separator'
-        }, {
-          label: strings.exportMetaOnly,
-          click: this.exportMetaCallback(game)
-        }, {
-          label: strings.exportMetaAndImages, // ("&&" will be shown as "&")
-          click: this.exportMetaAndImagesCallback(game)
+          /* Export Meta & Images */
+          label: strings.menu.exportMetaAndImages, // ("&&" will be shown as "&")
+          click: () => {
+            const filePaths = window.External.showOpenDialogSync({
+              title: strings.dialog.selectFolderToExportMetaAndImages,
+              properties: ['promptToCreate', 'openDirectory']
+            });
+            if (filePaths && filePaths.length > 0) {
+              window.External.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePaths[0], metaOnly: false });
+            }
+          },
         }])
       );
     };
   });
 
-  onLeftSidebarSelectPlaylist = (playlist: GamePlaylist): void => {
-    const { clearSearch, onSelectPlaylist } = this.props;
-    if (clearSearch)      { clearSearch();              }
-    if (onSelectPlaylist) { onSelectPlaylist(playlist); }
-  }
-
-  onLeftSidebarDeselectPlaylist = (): void => {
-    const { clearSearch, onSelectPlaylist } = this.props;
-    if (clearSearch)      { clearSearch();               }
-    if (onSelectPlaylist) { onSelectPlaylist(undefined); }
-  }
-
   /** Deselect without clearing search (Right sidebar will search itself) */
   onRightSidebarDeselectPlaylist = (): void => {
     const { onSelectPlaylist } = this.props;
-    if (onSelectPlaylist) { onSelectPlaylist(undefined); }
+    if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, undefined); }
   }
 
   onLeftSidebarPlaylistChanged = (): void => {
     this.forceUpdate();
   }
 
-  onLeftSidebarShowAllClick = (): void => {
-    const { clearSearch, onSelectPlaylist } = this.props;
-    if (clearSearch)      { clearSearch();               }
-    if (onSelectPlaylist) { onSelectPlaylist(undefined); }
-    this.setState({
-      isEditing: false,
-      isNewGame: false,
-      currentGame: undefined,
-      currentAddApps: undefined
-    });
-  }
-
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {
-    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth;
+    const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
     updatePreferencesData({
       browsePageLeftSidebarWidth: Math.min(targetWidth, maxWidth)
@@ -413,7 +416,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onRightSidebarResize = (event: SidebarResizeEvent): void => {
-    const maxWidth = this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth;
+    const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageLeftSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.startX - event.event.clientX;
     updatePreferencesData({
       browsePageRightSidebarWidth: Math.min(targetWidth, maxWidth)
@@ -426,168 +429,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     return parseInt(document.defaultView.getComputedStyle(this.gameBrowserRef.current).width || '', 10);
   }
 
-  onGameSelect = (game?: IGameInfo): void => {
-    if (this.props.selectedGame !== game) {
-      if (this.props.onSelectGame) { this.props.onSelectGame(game); }
+  onGameSelect = (gameId?: string): void => {
+    if (this.props.selectedGameId !== gameId) {
+      this.props.onSelectGame(gameId);
     }
   }
 
-  onGameLaunch = (game: IGameInfo): void => {
-    const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
-    GameLauncher.launchGame(game, addApps);
-  }
-
-  /** Create a callback for opening the file location of a game. */
-  openFileLocationCallback(game: IGameInfo) {
-    return () => {
-      // Extract the game's "entry"/"main" file path
-      const gamePath = GameLauncher.getGamePath(game);
-      if (gamePath !== undefined) {
-        // Check if the file exists
-        fs.exists(gamePath, exists => {
-          if (exists) { remote.shell.showItemInFolder(gamePath); }
-          else {
-            remote.dialog.showMessageBox({
-              type: 'warning',
-              title: this.context.dialog.fileNotFound,
-              message: 'Failed to find the game file.\n'+
-                        'If you are using Flashpoint Infinity, make sure you download the game first.\n'+
-                        '\n'+
-                        `Path: "${gamePath}"\n`+
-                        '\n'+
-                        'Note: If the path is too long, some portion will be replaced with three dots ("...").',
-              buttons: ['Ok'],
-            });
-          }
-        });
-      } else {
-        remote.dialog.showMessageBox({
-          type: 'warning',
-          title: this.context.dialog.pathNotFound,
-          message: 'Failed to find a file path in the game\'s "launchCommand" field.\n'+
-                    `Game: "${game.title}"`,
-          buttons: ['Ok'],
-        });
-      }
-    };
-  }
-
-  /**
-   * Create a callback for duplicating a game and its additional applications.
-   * @param game Game to duplicate.
-   * @param copyImages If the games images should also be copied.
-   */
-  duplicateCallback(game: IGameInfo, copyImages: boolean = false) {
-    return () => {
-      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
-      const library = this.getCurrentLibrary();
-      // Duplicate game and add-apps
-      const newGame = GameInfo.duplicate(game);
-      const newAddApps = addApps.map(addApp => AdditionalApplicationInfo.duplicate(addApp));
-      // Generate new IDs for the game and add-apps
-      newGame.id = uuid();
-      for (let addApp of newAddApps) {
-        addApp.id = uuid();
-        addApp.gameId = newGame.id;
-      }
-      // Copy images
-      if (copyImages) {
-        const imageFolder = getImageFolderName(game, library && library.prefix || '', true);
-        // Copy screenshot
-        const screenshotPath = this.props.gameImages.getScreenshotPath(game);
-        if (screenshotPath) {
-          const cache = this.props.gameImages.getScreenshotCache(imageFolder);
-          if (cache) { copyGameImageFile(screenshotPath, newGame, cache); }
-        }
-        // Copy thumbnail
-        const thumbnailPath = this.props.gameImages.getThumbnailPath(game);
-        if (thumbnailPath) {
-          const cache = this.props.gameImages.getThumbnailCache(imageFolder);
-          if (cache) { copyGameImageFile(thumbnailPath, newGame, cache); }
-        }
-      }
-      // Add game and add-apps
-      this.props.central.games.addOrUpdateGame({
-        game: newGame,
-        addApps: newAddApps,
-        library: library,
-        saveToFile: true,
-      });
-    };
-  }
-
-  /** Create a callback for exporting the meta of a game (as a curation format meta file). */
-  exportMetaCallback(game: IGameInfo) {
-    return () => {
-      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
-      // Choose where to save the file
-      const filePath = electron.remote.dialog.showSaveDialogSync({
-        title: this.context.dialog.selectFileToExportMeta,
-        defaultPath: 'meta',
-        filters: [{
-          name: 'Meta file',
-          extensions: ['txt'],
-        }]
-      });
-      if (filePath) {
-        fs.ensureDir(path.dirname(filePath))
-        .then(() => {
-          const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
-          writeFile(filePath, meta);
-        });
-      }
-    };
-  }
-
-  /** Create a callback for exporting the meta and images of a game (as a curation format meta file and image files). */
-  exportMetaAndImagesCallback(game: IGameInfo) {
-    const strings = this.context.dialog;
-    return () => {
-      const addApps = this.props.central.games.collection.findAdditionalApplicationsByGameId(game.id);
-      // Choose where to save the file
-      const filePaths = window.External.showOpenDialogSync({
-        title: strings.selectFolderToExportMetaAndImages,
-        properties: ['promptToCreate', 'openDirectory']
-      });
-      if (filePaths && filePaths.length > 0) {
-        const filePath = filePaths[0];
-        // Get image paths
-        const screenPath = this.props.gameImages.getScreenshotPath(game);
-        const thumbPath = this.props.gameImages.getThumbnailPath(game);
-        // Create dest paths
-        const metaPath = path.join(filePath,'meta.txt');
-        const ssPath   = path.join(filePath,'ss'   + getFileExtension(screenPath || ''));
-        const logoPath = path.join(filePath,'logo' + getFileExtension(thumbPath  || ''));
-        // Check if files already exists
-        const exists = [
-          fs.pathExistsSync(metaPath),
-          screenPath ? fs.pathExistsSync(ssPath)   : false,
-          thumbPath  ? fs.pathExistsSync(logoPath) : false,
-        ];
-        if (exists.some(val => val)) { // (One or more of the files already exists)
-          const result = electron.remote.dialog.showMessageBoxSync({
-            type: 'warning',
-            title: strings.replaceFilesQuestion,
-            message: strings.exportedAlreadyExistsYesNo,
-            buttons: ['Yes', 'No'],
-            defaultId: 0,
-          });
-          if (result !== 0) { return; } // (Abort)
-        }
-        // Export files
-        fs.ensureDir(filePath)
-        .then(() => {
-          Promise.all([
-            (async () => {
-              const meta = stringifyCurationFormat(convertToCurationMeta(game, addApps));
-              await writeFile(metaPath, meta);
-            })(),
-            screenPath ? fs.copyFile(screenPath, ssPath)   : undefined,
-            thumbPath  ? fs.copyFile(thumbPath,  logoPath) : undefined,
-          ]);
-        });
-      }
-    };
+  onGameLaunch = (gameId: string): void => {
+    window.External.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
   }
 
   onCenterKeyDown = (event: React.KeyboardEvent): void => {
@@ -614,219 +463,135 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
-  onGameDragStart = (event: React.DragEvent, game: IGameInfo): void => {
-    this.setState({ draggedGame: game });
-    event.dataTransfer.setData(gameIdDataType, game.id);
+  onGameDragStart = (event: React.DragEvent, gameId: string): void => {
+    this.setState({ draggedGameId: gameId });
+    event.dataTransfer.setData(gameIdDataType, gameId);
   }
 
-  onGameDragEnd = (event: React.DragEvent, game: IGameInfo): void => {
-    this.setState({ draggedGame: undefined });
+  onGameDragEnd = (event: React.DragEvent, gameId: string): void => {
+    this.setState({ draggedGameId: undefined });
     event.dataTransfer.clearData(gameIdDataType);
   }
 
   onDeleteSelectedGame = (): void => {
+    // Delete the game
+    if (this.props.selectedGameId) {
+      window.External.back.send<any, DeleteGameData>(BackIn.DELETE_GAME, { id: this.props.selectedGameId });
+    }
     // Deselect the game
-    if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
+    this.props.onSelectGame(undefined);
     // Reset the state related to the selected game
     this.setState({
       currentGame: undefined,
       currentAddApps: undefined,
+      currentPlaylistNotes: undefined,
       isNewGame: false,
-      isEditing: false
+      isEditingGame: false
     });
     // Focus the game grid/list
     this.focusGameGridOrList();
   }
 
   onRemoveSelectedGameFromPlaylist = (): void => {
-    const playlist = this.props.selectedPlaylist;
-    const game = this.props.selectedGame;
-    if (!playlist) { throw new Error('Unable to remove game from selected playlist - No playlist is selected'); }
-    if (!game)     { throw new Error('Unable to remove game from selected playlist - No game is selected'); }
-    // Find the game entry (of the selected game) in the playlist
-    const gameId = game.id;
-    let index: number = -1;
-    playlist.games.every((gameEntry, i) => {
-      if (gameEntry.id === gameId) {
-        index = i;
-        return false;
-      }
-      return true;
-    });
-    if (index === -1) { throw new Error('Unable to remove game from selected playlist - Game is not in playlist'); }
-    // Remove the game from the playlist and save the change
-    playlist.games.splice(index, 1); // Remove game entry
-    this.props.central.playlists.save(playlist);
-    // Re-order games (to include the new game)
-    this.orderGames(true);
+    const { selectedGameId, selectedPlaylistId } = this.props;
+
+    // Remove game from playlist
+    if (selectedPlaylistId) {
+      if (selectedGameId) {
+        const playlist = this.props.playlists.find(p => p.filename === selectedPlaylistId);
+        if (playlist) {
+          const index = playlist.games.findIndex(g => g.id === selectedGameId);
+          if (index >= 0) {
+            const games = [ ...playlist.games ];
+            games.splice(index, 1);
+
+            window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, {
+              playlist: {
+                ...playlist,
+                games: games,
+              }
+            });
+          } else { logError('Selected game is missing from the selected playlist'); }
+        } else { logError('Selected playlist is missing'); }
+      } else { logError('No game is selected'); }
+    } else { logError('No playlist is selected'); }
+
     // Deselect the game
-    if (this.props.onSelectGame) { this.props.onSelectGame(undefined); }
+    this.props.onSelectGame(undefined);
+
     // Reset the state related to the selected game
     this.setState({
       currentGame: undefined,
       currentAddApps: undefined,
+      currentPlaylistNotes: undefined,
       isNewGame: false,
-      isEditing: false
+      isEditingGame: false
     });
+
+    function logError(text: string) {
+      console.error('Unable to remove game from selected playlist - ' + text);
+    }
   }
 
   onEditPlaylistNotes = (text: string): void => {
-    const playlist = this.props.selectedPlaylist;
-    const game = this.props.selectedGame;
-    if (!playlist) { throw new Error('Unable to remove game from selected playlist - No playlist is selected'); }
-    if (!game)     { throw new Error('Unable to remove game from selected playlist - No game is selected'); }
-    // Find the game entry (of the selected game) in the playlist
-    const gameId = game.id;
-    let index: number = -1;
-    playlist.games.every((gameEntry, i) => {
-      if (gameEntry.id === gameId) {
-        index = i;
-        return false;
-      }
-      return true;
-    });
-    if (index === -1) { throw new Error('Unable to remove game from selected playlist - Game is not in playlist'); }
-    // Set game specific playlist notes
-    playlist.games[index].notes = text;
-    this.props.central.playlists.save(playlist);
-    this.forceUpdate();
+    this.setState({ currentPlaylistNotes: text });
   }
 
   /** Replace the "current game" with the selected game (in the appropriate circumstances) */
-  updateCurrentGameAndAddApps(cb: (state: StateCallback2) => void = this.boundSetState): void {
-    const { central, selectedGame } = this.props;
-    if (selectedGame) { // (If the selected game changes, discard the current game and use that instead)
-      // Find additional applications for the selected game (if any)
-      let addApps = central.games.collection.findAdditionalApplicationsByGameId(selectedGame.id);
-      // Update State
-      cb({
-        currentGame: selectedGame && GameInfo.duplicate(selectedGame),
-        currentAddApps: addApps && addApps.map(AdditionalApplicationInfo.duplicate),
-        isNewGame: false,
+  async updateCurrentGameAndAddApps(): Promise<void> {
+    const gameId = this.props.selectedGameId;
+    if (gameId !== undefined) {
+      // Find the selected game in the selected playlist
+      const playlistId = this.props.selectedPlaylistId;
+      let notes: string | undefined;
+      if (playlistId && gameId) {
+        const playlist = this.props.playlists.find(p => p.filename === playlistId);
+        if (playlist) {
+          const entry = playlist.games.find(g => g.id === gameId);
+          notes = entry && entry.notes;
+        }
+      }
+
+      window.External.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
+        if (res.data) {
+          if (res.data.game) {
+            this.setState({
+              currentGame: res.data.game,
+              currentAddApps: res.data.addApps || [],
+              currentPlaylistNotes: notes,
+              isNewGame: false,
+            });
+          } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }
+        } else { console.log(`Failed to get game. Empty data in response (GameID: "${gameId}").`); }
       });
     }
   }
 
   onStartEditClick = (): void => {
-    this.setState({ isEditing: true });
+    this.setState({ isEditingGame: true });
   }
 
   onDiscardEditClick = (): void => {
-    const { currentAddApps, currentGame, isNewGame } = this.state;
     this.setState({
-      isEditing: false,
+      isEditingGame: false,
       isNewGame: false,
-      currentGame:    isNewGame ? undefined : currentGame,
-      currentAddApps: isNewGame ? undefined : currentAddApps,
+      currentGame:    this.state.isNewGame ? undefined : this.state.currentGame,
+      currentAddApps: this.state.isNewGame ? undefined : this.state.currentAddApps,
     });
     this.focusGameGridOrList();
   }
 
   onSaveEditClick = (): void => {
-    this.saveGameAndAddApps();
-    this.setState({
-      isEditing: false,
-      isNewGame: false
-    });
-    this.focusGameGridOrList();
-  }
-
-  saveGameAndAddApps(): void {
-    const { selectedGame, central: { games } } = this.props;
-    const { currentGame, currentAddApps } = this.state;
-    if (!currentGame) {
+    if (!this.state.currentGame) {
       console.error('Can\'t save game. "currentGame" is missing.');
       return;
     }
-    // Get the current library
-    const library = this.getCurrentLibrary();
-    // Add or update game
-    console.time('save');
-    games.addOrUpdateGame({
-      game: currentGame,
-      addApps: currentAddApps,
-      library: library,
-      saveToFile: true,
-    })
-    .then(() => { console.timeEnd('save'); });
-    // If a new game was created, select the new game
-    if ((selectedGame && selectedGame.id) !== currentGame.id) {
-      // Get the platform the game is added to or updated
-      const libraryPrefix = (library && library.prefix) ? library.prefix : '';
-      const platform = games.getPlatformOfGame(currentGame, libraryPrefix) ||
-                       games.createOrGetUnknownPlatform(libraryPrefix);
-      // Try selecting the new game
-      if (!platform.collection) { throw new Error('Platform collection is missing.'); }
-      if (this.props.onSelectGame) { this.props.onSelectGame(platform.collection.findGame(currentGame.id)); }
-    }
-  }
-
-  /** Get the current library (or undefined if there is none). */
-  getCurrentLibrary(): GameLibraryFileItem | undefined {
-    if (this.props.libraryData) {
-      const route = this.props.gameLibraryRoute;
-      return this.props.libraryData.libraries.find(item => item.route === route);
-    }
-    return undefined;
-  }
-
-  /**
-   * Memoized wrapper around the "getLibraryGames" function, with an additional argument
-   * that decides if the memoized value should be refreshed (even if the arguments are "equal").
-   */
-  getCurrentLibraryGames = memoizeOne(
-    (args: GetLibraryGamesArgs, force?: boolean) => {
-      return getLibraryGames(args);
-    },
-    (args1, args2) => {
-      const [a, force] = args1;
-      const [b]        = args2;
-      // Check if this is "forced" to be updated
-      if (force) { return false; }
-      // Check if the argument objects are equal
-      return (
-        a.library === b.library &&
-        checkIfArraysAreEqual(a.platforms, b.platforms) &&
-        checkIfArraysAreEqual(a.libraries, b.libraries)
-      );
-    }
-  );
-
-  /** Memoized wrapper around the order games function. */
-  orderGamesMemo = memoizeOne((games: IGameInfo[], opts: FilterAndOrderGamesOpts, force?: boolean): IGameInfo[] => {
-    return filterAndOrderGames(games, opts);
-  }, checkOrderGamesArgsEqual);
-
-  /**
-   * Order and filter the games according to the current settings.
-   * @param force If the game should be re-ordered even if they seem to not have changed.
-   */
-  orderGames(force: boolean = false): IGameInfo[] {
-    // Get the games to display for the current library
-    const games = this.getCurrentLibraryGames({
-      library: this.getCurrentLibrary(),
-      platforms: this.props.central.games.listPlatforms(),
-      libraries: this.props.libraryData.libraries
-    }, force) || this.props.central.games.collection.games;
-    // Get the order
-    const order = this.props.order || BrowsePage.defaultOrder;
-    // Order (and filter) the games according to the current settings
-    return this.orderGamesMemo(games, {
-      search: this.props.search ? this.props.search.text : '',
-      extreme: !window.External.config.data.disableExtremeGames &&
-               this.props.preferencesData.browsePageShowExtreme,
-      broken: window.External.config.data.showBrokenGames,
-      playlist: this.props.selectedPlaylist,
-      platforms: undefined,
-      orderBy: order.orderBy,
-      orderReverse: order.orderReverse,
-    }, force);
-  }
-
-  onGamesCollectionChange = (): void => {
-    // Re-order games if a game was changed
-    this.orderGames(true);
-    this.forceUpdate();
+    this.props.onSaveGame(this.state.currentGame, this.state.currentAddApps, this.state.currentPlaylistNotes, true);
+    this.setState({
+      isEditingGame: false,
+      isNewGame: false
+    });
+    this.focusGameGridOrList();
   }
 
   /** Create a new game if the "New Game" button was clicked */
@@ -834,16 +599,223 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const { wasNewGameClicked } = this.props;
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
-      const newGame = GameInfo.create();
-      newGame.id = uuid();
-      newGame.dateAdded = formatDate(new Date());
       cb({
-        currentGame: newGame,
+        currentGame: {
+          id: uuid(),
+          title: '',
+          alternateTitles: '',
+          series: '',
+          developer: '',
+          publisher: '',
+          platform: '',
+          dateAdded: formatDate(new Date()),
+          broken: false,
+          extreme: false,
+          playMode: '',
+          status: '',
+          notes: '',
+          tags: '',
+          source: '',
+          applicationPath: '',
+          launchCommand: '',
+          releaseDate: '',
+          version: '',
+          originalDescription: '',
+          language: '',
+          library: this.props.gameLibrary,
+          orderTitle: '',
+          placeholder: false,
+        },
         currentAddApps: [],
-        isEditing: true,
+        isEditingGame: true,
         isNewGame: true,
       });
     }
+  }
+
+  // -- Left Sidebar --
+
+  onSavePlaylist = (): void => {
+    if (this.state.currentPlaylist) {
+      window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, {
+        prevFilename: this.state.currentPlaylistFilename,
+        playlist: this.state.currentPlaylist,
+      });
+      this.setState({
+        currentPlaylist: undefined,
+        currentPlaylistFilename: undefined,
+        isEditingPlaylist: false,
+        isNewPlaylist: false,
+      });
+    }
+  }
+
+  onCreatePlaylistClick = (): void => {
+    this.setState({
+      currentPlaylist: {
+        filename: '',
+        games: [],
+        title: '',
+        description: '',
+        author: '',
+        icon: undefined,
+        library: this.props.gameLibrary || undefined,
+      },
+      currentPlaylistFilename: undefined,
+      isEditingPlaylist: true,
+      isNewPlaylist: true,
+    });
+    if (this.props.selectedPlaylistId !== undefined) {
+      this.props.onSelectPlaylist(this.props.gameLibrary, undefined);
+    }
+  }
+
+  onDiscardPlaylistClick = (): void => {
+    this.setState({
+      currentPlaylist: undefined,
+      currentPlaylistFilename: undefined,
+      isEditingPlaylist: false,
+      isNewPlaylist: false,
+    });
+  }
+
+  onDeletePlaylist = (): void => {
+    if (this.props.selectedPlaylistId) {
+      window.External.back.send<any, DeletePlaylistData>(BackIn.DELETE_PLAYLIST, this.props.selectedPlaylistId);
+      this.props.onSelectPlaylist(this.props.gameLibrary, undefined);
+    }
+  }
+
+  onEditPlaylistClick = () => {
+    if (this.props.selectedPlaylistId) {
+      const playlist = this.props.playlists.find(p => p.filename === this.props.selectedPlaylistId);
+      if (playlist) {
+        this.setState({
+          currentPlaylist: playlist,
+          currentPlaylistFilename: playlist.filename,
+          isEditingPlaylist: true,
+          isNewPlaylist: false,
+        });
+      }
+    }
+  }
+
+  onPlaylistDrop = (event: React.DragEvent, playlistId: string) => {
+    if (!this.state.isEditingPlaylist) {
+      const gameId = event.dataTransfer.getData(gameIdDataType);
+      if (gameId) {
+        const playlist = this.props.playlists.find(p => p.filename === playlistId);
+        if (playlist && !playlist.games.find(g => g.id === gameId)) {
+          window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, {
+            playlist: {
+              ...playlist,
+              games: [...playlist.games, { id: gameId }],
+            }
+          });
+        }
+      }
+    }
+  }
+
+  onPlaylistClick = (playlistId: string, selected: boolean): void => {
+    if (!this.state.isEditingPlaylist || !selected) {
+      this.setState({
+        currentPlaylist: undefined,
+        currentPlaylistFilename: undefined,
+        isEditingPlaylist: false,
+        isNewPlaylist: false,
+      });
+      this.props.clearSearch();
+      this.props.onSelectPlaylist(this.props.gameLibrary, (this.props.selectedPlaylistId !== playlistId) ? playlistId : undefined);
+    }
+  }
+
+  onPlaylistSetIcon = () => {
+    if (this.state.currentPlaylist) {
+      // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
+      const filePaths = window.External.showOpenDialogSync({
+        title: 'Select the FlashPoint root directory',
+        properties: ['openFile'],
+      });
+      if (filePaths && filePaths.length > 0) {
+        toDataURL(filePaths[0])
+        .then(dataUrl => {
+          if (this.state.currentPlaylist) {
+            this.setState({
+              currentPlaylist: {
+                ...this.state.currentPlaylist,
+                icon: dataUrl+''
+              }
+            });
+          }
+        });
+      }
+    }
+  }
+
+  onPlaylistTitleChange = (event: React.ChangeEvent<InputElement>) => {
+    if (this.state.currentPlaylist) {
+      this.setState({
+        currentPlaylist: {
+          ...this.state.currentPlaylist,
+          title: event.target.value,
+        }
+      });
+    }
+  }
+
+  onPlaylistAuthorChange = (event: React.ChangeEvent<InputElement>) => {
+    if (this.state.currentPlaylist) {
+      this.setState({
+        currentPlaylist: {
+          ...this.state.currentPlaylist,
+          author: event.target.value,
+        }
+      });
+    }
+  }
+
+  onPlaylistDescriptionChange = (event: React.ChangeEvent<InputElement>) => {
+    if (this.state.currentPlaylist) {
+      this.setState({
+        currentPlaylist: {
+          ...this.state.currentPlaylist,
+          description: event.target.value,
+        }
+      });
+    }
+  }
+
+  onPlaylistFilenameChange = (event: React.ChangeEvent<InputElement>) => {
+    if (this.state.currentPlaylist) {
+      this.setState({
+        currentPlaylist: {
+          ...this.state.currentPlaylist,
+          filename: event.target.value,
+        }
+      });
+    }
+  }
+
+  onPlaylistKeyDown = (event: React.KeyboardEvent): void => {
+    if (event.key === 'Enter') { this.onSavePlaylist(); }
+  }
+
+  onLeftSidebarShowAllClick = (): void => {
+    const { clearSearch, onSelectPlaylist } = this.props;
+    if (clearSearch)      { clearSearch(); }
+    if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, undefined); }
+    this.setState({
+      isEditingPlaylist: false,
+      isNewPlaylist: false,
+      currentPlaylist: undefined,
+      currentPlaylistFilename: undefined,
+      isEditingGame: false,
+      isNewGame: false,
+      currentGame: undefined,
+      currentAddApps: undefined,
+      currentPlaylistNotes: undefined,
+    });
   }
 
   /** Focus the game grid/list (if this has a reference to one). */
@@ -876,101 +848,20 @@ function openContextMenu(template: MenuItemConstructorOptions[]): Menu {
   return menu;
 }
 
-type GetLibraryGamesArgs = {
-  /** Library that the games belong to (if undefined, all games should be shown). */
-  library?: GameLibraryFileItem;
-  /** All platforms (to get the games from). */
-  platforms: GameManagerPlatform[];
-  /** All libraries. */
-  libraries: GameLibraryFileItem[];
-};
-
-/** Find all the games for the current library - undefined if no library is selected */
-function getLibraryGames({ library, platforms, libraries }: GetLibraryGamesArgs): IGameInfo[] | undefined {
-  // Check if there is a library to filter the games from
-  if (library) {
-    let games: IGameInfo[] = [];
-    if (library.default) { // (Default library)
-      // Find all platforms "used" by other libraries
-      const usedPlatforms: GameManagerPlatform[] = [];
-      libraries.forEach(lib => {
-        if (lib === library) { return; }
-        if (lib.prefix) {
-          const prefix = lib.prefix;
-          platforms.forEach(platform => {
-            if (platform.filename.startsWith(prefix)) { usedPlatforms.push(platform); }
-          });
-        }
-      });
-      // Get all games from all platforms that are not "used" by other libraries
-      const unusedPlatforms = platforms.filter(platform => usedPlatforms.indexOf(platform) === -1);
-      unusedPlatforms.forEach(platform => {
-        if (platform.collection) {
-          Array.prototype.push.apply(games, platform.collection.games);
-        }
-      });
-    } else if (library.prefix) { // (Normal library)
-      // Find all platforms with this platform's prefix, and add all their games
-      const prefix = library.prefix;
-      platforms
-        .filter(platform => platform.filename.startsWith(prefix))
-        .forEach(platform => {
-          if (platform.collection) {
-            Array.prototype.push.apply(games, platform.collection.games);
-          }
-        });
-    }
-    return games;
-  }
-}
+type FileReaderResult = typeof FileReader['prototype']['result'];
 
 /**
- * Check if two sets of arguments for the function that orders games are equal (it is
- * guaranteed that they will return the games in the same order).
- * @param args1 New arguments.
- *              If the "force" value of this is true, the check will fail no matter what.
- * @param args2 Old arguments.
+ * Convert the body of a URL to a data URL.
+ * This will reject if the request or conversion fails.
+ * @param url URL of content to convert.
  */
-function checkOrderGamesArgsEqual(args1: OrderGamesForceArgs, args2: OrderGamesForceArgs): boolean {
-  const [gamesA, optsA, force] = args1;
-  const [gamesB, optsB]        = args2 || [undefined, undefined];
-  // Check if this is "forced" to be updated
-  if (force) { return false; }
-  // Check if the second argument array is missing
-  if (!optsB) { return false; }
-  // Compare each value
-  if (optsA.search        !== optsB.search)                     { return false; }
-  if (optsA.extreme       !== optsB.extreme)                    { return false; }
-  if (optsA.broken        !== optsB.broken)                     { return false; }
-  if (optsA.playlist      !== optsB.playlist)                   { return false; }
-  if (optsA.orderBy       !== optsB.orderBy)                    { return false; }
-  if (optsA.orderReverse  !== optsB.orderReverse)               { return false; }
-  if (!checkIfArraysAreEqual(optsA.platforms, optsB.platforms)) { return false; }
-  if (!checkIfArraysAreEqual(gamesA, gamesB))                   { return false; }
-  return true;
+function toDataURL(url: string): Promise<FileReaderResult> {
+  return fetch(url)
+  .then(response => response.blob())
+  .then(blob => new Promise<FileReaderResult>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => { resolve(reader.result); };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  }));
 }
-
-/* Check if two arrays are have strictly equal items (or if both are undefined). */
-function checkIfArraysAreEqual(a: any[] | undefined, b: any[] | undefined): boolean {
-  // Check if both arguments point to the same array (or if both are undefined)
-  if (a === b) { return true; }
-  // Check if either array is undefined
-  if (!a || !b) { return false; }
-  // Check if the arrays are of different lengths
-  if (a.length !== b.length) { return false; }
-  // Check if any of the items (with the same indices) in the arrays are not strictly equal
-  for (let i = a.length; i >= 0; i--) {
-    if (a[i] !== b[i]) { return false; }
-  }
-  // The arrays are equal
-  return true;
-}
-
-/** Arguments used by the filter & order games function wrapper. */
-type OrderGamesForceArgs = [
-  // Arguments passed to the order function
-  IGameInfo[],
-  FilterAndOrderGamesOpts,
-  // If it should force it to filter and order (even if the arguments are identical)
-  boolean?
-];

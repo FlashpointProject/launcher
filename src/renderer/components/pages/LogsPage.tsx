@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { BackOut, WrappedResponse } from '../../../shared/back/types';
 import { ArgumentTypesOf } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
-import { LogRendererApi } from '../../../shared/Log/LogRendererApi';
 import { memoizeOne } from '../../../shared/memoize';
 import { updatePreferencesData } from '../../../shared/preferences/util';
 import { shallowStrictEquals } from '../../../shared/Util';
@@ -21,6 +21,7 @@ const labels = [
   'Language',
   'Redirector',
   'Router',
+  'Curation',
 ];
 
 export interface LogsPage {
@@ -32,17 +33,17 @@ export class LogsPage extends React.Component<LogsPageProps> {
   stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
 
   getLogString() {
-    const logEntries = Object.assign([], window.External.log.entries);
-    const filter = Object.assign({}, this.props.preferencesData.showLogSource);
+    const logEntries = [ ...window.External.log.entries ];
+    const filter = { ...this.props.preferencesData.showLogSource };
     return this.stringifyLogEntriesMemo(logEntries, filter);
   }
 
   componentDidMount() {
-    window.External.log.on('change', this.onLogDataUpdate);
+    window.External.back.on('message', this.onMessage);
   }
 
   componentWillUnmount() {
-    window.External.log.removeListener('change', this.onLogDataUpdate);
+    window.External.back.off('message', this.onMessage);
   }
 
   render() {
@@ -121,7 +122,9 @@ export class LogsPage extends React.Component<LogsPageProps> {
   }
 
   onClearClick = (): void => {
-    window.External.log.clearEntries();
+    window.External.log.offset += window.External.log.entries.length;
+    window.External.log.entries = [];
+    this.forceUpdate();
   }
 
   onCheckboxClick = (index: number): void => {
@@ -136,8 +139,10 @@ export class LogsPage extends React.Component<LogsPageProps> {
     });
   }
 
-  onLogDataUpdate = (log: LogRendererApi): void => {
-    this.forceUpdate();
+  onMessage = (response: WrappedResponse): void => {
+    if (response.type === BackOut.LOG_ENTRY_ADDED) {
+      this.forceUpdate();
+    }
   }
 
   static contextType = LangContext;

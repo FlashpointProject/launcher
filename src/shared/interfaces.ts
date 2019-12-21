@@ -1,8 +1,10 @@
 import { OpenDialogOptions } from 'electron';
-import { AppConfigApi } from './config/AppConfigApi';
-import { LogRendererApi } from './Log/LogRendererApi';
+import { SharedSocket } from './back/SharedSocket';
+import { IAppConfigData } from './config/interfaces';
+import { LangContainer, LangFile } from './lang';
+import { ILogEntry } from './Log/interface';
 import { IAppPreferencesData } from './preferences/interfaces';
-import { ServicesApi } from './service/ServicesApi';
+import { Theme } from './ThemeFile';
 
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
@@ -45,19 +47,38 @@ export interface IMainWindowExternal {
   };
 
   /** Renderers interface for the Config data */
-  config: AppConfigApi;
+  config: {
+    data: IAppConfigData;
+    /** Full path of the Flashpoint folder. */
+    fullFlashpointPath: string;
+    /** Full path of the JSON folder. */
+    fullJsonFolderPath: string;
+  };
 
-  /** Renderers interface for Service data */
-  services: ServicesApi;
+  /** Log entries fetched from the back process. */
+  log: {
+    entries: ILogEntry[];
+    offset: number;
+  }
 
-  /** Renderers interface for the Log data */
-  log: LogRendererApi;
+  /** Current status of the services. */
+  services: IService[];
 
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;
 
   /** Socket to the back API. */
-  backSocket: WebSocket;
+  back: SharedSocket;
+
+  /** Port of the image server. */
+  imageServerPort: number;
+
+  initialLang: LangContainer;
+  initialLangList: LangFile[];
+  initialThemes: Theme[];
+  initialPlaylists?: GamePlaylist[];
+  initialPlatformNames: string[];
+  initialLocaleCode: string;
 
   /**
    * Wait for the preload to initialize.
@@ -102,6 +123,8 @@ export enum WindowIPC {
   WINDOW_RESIZE   = 'window-resize',
 }
 
+/** IPC channels used to relay game manager events from  */
+
 /** Object of miscellaneous data to send from main to renderer on startup. */
 export type IMiscData = {
   /** If the launcher is installed (instead of being portable). */
@@ -114,4 +137,110 @@ export type IMiscData = {
 export enum MiscIPC {
   /** Request misc data synchronously (renderer -> main). */
   REQUEST_MISC_SYNC = 'misc-request-data',
+}
+export type IBackProcessInfo = {
+  /** Path of the file (relative to the Flashpoint root) */
+  path: string;
+  /** Name of the file to execute */
+  filename: string;
+  /** Arguments to pass to the process */
+  arguments: string[];
+  /**
+   * If the process should be "killed" when shutting down
+   * (This does not do anything for "start" and "stop" processes)
+   */
+  kill: boolean;
+};
+
+/** State of a managed process. */
+export enum ProcessState {
+  /** The process is not running. */
+  STOPPED,
+  /** The process is running. */
+  RUNNING,
+  /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
+  KILLING
+}
+
+/** Actions that can be performed on a service. */
+export enum ProcessAction {
+  /** Start the process if it is stopped */
+  START,
+  /** Stop the process if it is running */
+  STOP,
+  /** Stop the process if it is running, then start the process */
+  RESTART
+}
+
+/** Object describing the state of a service. */
+export type IService = {
+  id: string;
+  name: string;
+  state: ProcessState;
+  pid: number;
+  startTime: number;
+  info: IBackProcessInfo;
+}
+
+export type GamePlaylist = GamePlaylistContent & {
+  /** Filename of the playlist (unique for each playlist). */
+  filename: string;
+}
+
+/** Data contained inside a Playlist file. */
+export type GamePlaylistContent = {
+  /** Game entries in the playlist. */
+  games: GamePlaylistEntry[];
+  /** Title of the playlist. */
+  title: string;
+  /** Description of the playlist. */
+  description: string;
+  /** Author of the playlist. */
+  author: string;
+  /** Icon of the playlist (Base64 encoded image). */
+  icon?: string;
+  /** Route of the library this playlist is for. */
+  library?: string;
+}
+
+/** An entry inside a Playlist file. */
+export type GamePlaylistEntry = {
+  /* GameID of game. */
+  id: string;
+  /* Optional notes related to the game (probably about why the game is in the playlist). */
+  notes?: string;
+}
+
+export type ExecMapping = {
+  /** Windows path */
+  win32: string;
+  /** Linux path (if exists) */
+  linux?: string;
+  /** Mac path (if exists) */
+  darwin?: string;
+}
+
+
+/** Game properties that will have suggestions gathered and displayed. */
+export type SuggestionProps = (
+    'tags'
+  | 'platform'
+  | 'playMode'
+  | 'status'
+  | 'applicationPath'
+  | 'library'
+)
+
+/** Temporarily used to store the suggestions for performance reasons. */
+export type GamePropSuggestionsMap = {
+  /** A map of suggestions for a single game property. */
+  [P in SuggestionProps]: {
+    /** The key is the suggestion value. */
+    [key: string]: true; // (Some arbitrary true-y value, it is only used to confirm that the key exists)
+  }
+}
+
+/** Suggestions for game properties organized by property. */
+export type GamePropSuggestions = {
+  [P in SuggestionProps]: string[];
 }

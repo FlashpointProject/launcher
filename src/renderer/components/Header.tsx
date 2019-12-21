@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { LangContainer } from '../../shared/lang';
-import { GameLibraryFileItem } from '../../shared/library/types';
 import { getLibraryItemTitle } from '../../shared/library/util';
-import { WithLibraryProps } from '../containers/withLibrary';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
 import { SearchQuery } from '../store/search';
@@ -17,6 +15,8 @@ type OwnProps = {
   searchQuery: SearchQuery;
   /** The current parameters for ordering games. */
   order: GameOrderChangeEvent;
+  /** Array of library routes */
+  libraries: string[];
   /** Called when a search is made. */
   onSearch: (text: string, redirect: boolean) => void;
   /** Called when any of the ordering parameters are changed (by the header or a sub-component). */
@@ -27,7 +27,7 @@ type OwnProps = {
   onToggleRightSidebarClick?: () => void;
 };
 
-export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithLibraryProps;
+export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps;
 
 type HeaderState = {
   /** Current text in the search field. */
@@ -70,8 +70,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     const strings = this.context.app;
     const {
       preferencesData: { browsePageShowLeftSidebar, browsePageShowRightSidebar, enableEditing, showDeveloperTab },
-      libraryData: { libraries },
-      onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick
+      onOrderChange, onToggleLeftSidebarClick, onToggleRightSidebarClick, libraries
     } = this.props;
     const { searchText } = this.state;
     return (
@@ -81,11 +80,11 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
           <ul className='header__menu'>
             <MenuItem title={strings.home} link={Paths.HOME} />
             { libraries.length > 0 ? (
-              libraries.map(item => (
+              libraries.map(library => (
                 <MenuItem
-                  key={item.route}
-                  title={getLibraryItemTitle(item, this.context.libraries)}
-                  link={joinLibraryRoute(item.route)} />
+                  key={library}
+                  title={getLibraryItemTitle(library, this.context.libraries)}
+                  link={joinLibraryRoute(library)} />
               ))
             ) : (
               <MenuItem
@@ -211,8 +210,4 @@ function MenuItem({ title, link }: { title: string, link: string }) {
       <Link to={link} className='header__menu__item__link'>{title}</Link>
     </li>
   );
-}
-
-function getItemTitle(item: GameLibraryFileItem, lang: LangContainer['libraries']): string {
-  return lang[item.route] || item.title;
 }

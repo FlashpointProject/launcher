@@ -1,83 +1,108 @@
+import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { IGameInfo } from '../shared/game/interfaces';
-import { LangFile } from '../shared/lang';
+import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
+import { GamePlaylist, GamePropSuggestions } from '../shared/interfaces';
+import { LangContainer, LangFile } from '../shared/lang';
+import { Theme } from '../shared/ThemeFile';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
+import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
 import { NotFoundPage } from './components/pages/NotFoundPage';
 import ConnectedBrowsePage, { ConnectedBrowsePageProps } from './containers/ConnectedBrowsePage';
 import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/ConnectedConfigPage';
 import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
-import { ConnectedDeveloperPage } from './containers/ConnectedDeveloperPage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { CreditsData } from './credits/types';
-import { GameImageCollection } from './image/GameImageCollection';
-import { CentralState } from './interfaces';
+import { GAMES } from './interfaces';
 import { Paths } from './Paths';
-import { GamePlaylist } from './playlist/types';
-import { IThemeListItem } from './theme/ThemeManager';
+import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
-  /** Semi-global prop. */
-  central: CentralState;
-  /** Credits data (if any). */
+  games: GAMES | undefined;
+  gamesTotal: number;
+  playlists: GamePlaylist[];
+  suggestions: Partial<GamePropSuggestions>;
+  appPaths: Record<string, string>;
+  platforms: string[];
+  onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
+  onLaunchGame: (gameId: string) => void;
+  onRequestGames: (start: number, end: number) => void;
+  onQuickSearch: (search: string) => void;
+  playlistIconCache: Record<string, string>;
+  libraries: string[];
+  localeCode: string;
+
+  upgrades: UpgradeStage[];
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   order?: GameOrderChangeEvent;
   gameScale: number;
   gameLayout: BrowsePageLayout;
-  gameImages: GameImageCollection;
-  selectedGame?: IGameInfo;
-  selectedPlaylist?: GamePlaylist;
-  onSelectGame?: (game?: IGameInfo) => void;
-  onSelectPlaylist: (playlist?: GamePlaylist, route?: string) => void;
+  selectedGameId?: string;
+  selectedPlaylistId?: string;
+  onSelectGame: (gameId?: string) => void;
+  onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   wasNewGameClicked: boolean;
-  onDownloadTechUpgradeClick: () => void;
-  onDownloadScreenshotsUpgradeClick: () => void;
-  gameLibraryRoute: string;
-  themeItems: IThemeListItem[];
-  reloadTheme: (themePath: string | undefined) => void;
+  onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
+  gameLibrary: string;
+  themeList: Theme[];
   languages: LangFile[];
-  updateLocalization: () => void;
+  updateInfo: UpdateInfo | undefined,
+  autoUpdater: AppUpdater
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
   render() {
     const homeProps: ConnectedHomePageProps = {
-      central: this.props.central,
+      platforms: this.props.platforms,
+      playlists: this.props.playlists,
+      upgrades: this.props.upgrades,
       onSelectPlaylist: this.props.onSelectPlaylist,
-      gameImages: this.props.gameImages,
-      onDownloadTechUpgradeClick: this.props.onDownloadTechUpgradeClick,
-      onDownloadScreenshotsUpgradeClick: this.props.onDownloadScreenshotsUpgradeClick,
+      onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
+      updateInfo: this.props.updateInfo,
+      autoUpdater: this.props.autoUpdater
     };
     const browseProps: ConnectedBrowsePageProps = {
-      central: this.props.central,
+      games: this.props.games,
+      gamesTotal: this.props.gamesTotal,
+      playlists: this.props.playlists,
+      suggestions: this.props.suggestions,
+      playlistIconCache: this.props.playlistIconCache,
+      onSaveGame: this.props.onSaveGame,
+      onRequestGames: this.props.onRequestGames,
+      onQuickSearch: this.props.onQuickSearch,
+
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
-      gameImages: this.props.gameImages,
-      selectedGame: this.props.selectedGame,
-      selectedPlaylist: this.props.selectedPlaylist,
+      selectedGameId: this.props.selectedGameId,
+      selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
-      gameLibraryRoute: this.props.gameLibraryRoute,
+      gameLibrary: this.props.gameLibrary,
     };
     const configProps: ConnectedConfigPageProps = {
-      themeItems: this.props.themeItems,
-      reloadTheme: this.props.reloadTheme,
+      themeList: this.props.themeList,
       availableLangs: this.props.languages,
-      updateLocalization: this.props.updateLocalization,
+      platforms: this.props.platforms,
+      localeCode: this.props.localeCode,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,
       creditsDoneLoading: this.props.creditsDoneLoading
     };
     const curateProps: ConnectedCuratePageProps = {
-      games: this.props.central.games,
-      gameImages: this.props.gameImages
+      suggestions: this.props.suggestions,
+      appPaths: this.props.appPaths,
+      libraries: this.props.libraries,
+    };
+    const developerProps: DeveloperPageProps = {
+      platforms: this.props.platforms,
+      playlists: this.props.playlists,
     };
     return (
       <Switch>
@@ -107,9 +132,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
           { ...curateProps } />
         <PropsRoute
           path={Paths.DEVELOPER}
-          component={ConnectedDeveloperPage}
-          central={this.props.central}
-          gameImages={this.props.gameImages} />
+          component={DeveloperPage}
+          { ...developerProps } />
         <Route component={NotFoundPage} />
       </Switch>
     );

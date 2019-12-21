@@ -1,178 +1,145 @@
 import * as React from 'react';
+import { GamePlaylist } from '../../shared/interfaces';
 import { LangContainer } from '../../shared/lang';
-import { GameLibraryFileItem } from '../../shared/library/types';
+import { memoizeOne } from '../../shared/memoize';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { CentralState } from '../interfaces';
-import { GamePlaylist } from '../playlist/types';
 import { gameIdDataType } from '../Util';
 import { LangContext } from '../util/lang';
+import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { PlaylistItemContent } from './PlaylistContent';
 import { PlaylistItem } from './PlaylistItem';
 
 type OwnProps = {
-  /** Semi-global prop. */
-  central: CentralState;
-  /** The current library. */
-  currentLibrary?: GameLibraryFileItem;
+  playlists: GamePlaylist[];
   /** ID of the playlist that is selected (empty string if none). */
   selectedPlaylistID: string;
-  /** Called when a playlist is selected. */
-  onSelectPlaylist?: (playlist: GamePlaylist) => void;
-  /** Called when a the current playlist is deselected (and no playlist is selected in its place). */
-  onDeselectPlaylist?: () => void;
-  /** Called when a displayed playlist has been changed (by means that doesn't already re-render). */
-  onPlaylistChanged?: (playlist: GamePlaylist) => void;
-  /** Called when the "Show All" button is clicked. */
+  isEditing: boolean;
+  isNewPlaylist: boolean;
+  currentPlaylist?: GamePlaylist;
+  currentPlaylistFilename?: string;
+  playlistIconCache: Record<string, string>;
+  onDelete: () => void;
+  onSave: () => void;
+  onCreate: () => void;
+  onDiscard: () => void;
+  onEditClick: () => void;
+  onDrop: (event: React.DragEvent, playlistId: string) => void;
+  onItemClick: (playlistId: string, selected: boolean) => void;
+  onSetIcon: () => void;
+  onTitleChange: (event: React.ChangeEvent<InputElement>) => void;
+  onAuthorChange: (event: React.ChangeEvent<InputElement>) => void;
+  onDescriptionChange: (event: React.ChangeEvent<InputElement>) => void;
+  onFilenameChange: (event: React.ChangeEvent<InputElement>) => void;
+  onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
   onShowAllClick?: () => void;
 };
 
 export type LeftBrowseSidebarProps = OwnProps & WithPreferencesProps;
-
-type LeftBrowseSidebarState = {
-  /** If the selected playlist is being edited. */
-  isEditing: boolean;
-};
 
 export interface LeftBrowseSidebar {
   context: LangContainer;
 }
 
 /** Sidebar on the left side of BrowsePage. */
-export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, LeftBrowseSidebarState> {
-  constructor(props: LeftBrowseSidebarProps) {
-    super(props);
-    this.state = {
-      isEditing: false,
-    };
-  }
-
-  private filterAndSortPlaylists(): GamePlaylist[] {
-    const { central, currentLibrary } = this.props;
-    let playlists = central.playlists.playlists.slice();
-    if (currentLibrary) { // (Filter out all playlists that "belong" to other libraries than the current one)
-      const route = currentLibrary.route;
-      if (currentLibrary.default) {
-        playlists = playlists.filter(playlist => !playlist.library || playlist.library === route);
-      } else if (route) {
-        playlists = playlists.filter(playlist => playlist.library === route);
-      }
-    }
-    playlists.sort((a, b) => a.title.localeCompare(b.title));
-    return playlists;
-  }
-
+export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
   render() {
     const strings = this.context.browse;
-    const { central, onShowAllClick, preferencesData, selectedPlaylistID } = this.props;
-    const { isEditing } = this.state;
+    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, preferencesData, selectedPlaylistID } = this.props;
     const editingDisabled = !preferencesData.enableEditing;
-    const playlists = this.filterAndSortPlaylists();
     return (
       <div className='browse-left-sidebar'>
-          {central.playlistsDoneLoading ? (
-            !central.playlistsFailedLoading ? (
-              <div className='playlist-list'>
-                {/* All games */}
-                <div
-                  className='playlist-list-fake-item'
-                  onClick={onShowAllClick}>
-                  <div className='playlist-list-fake-item__inner'>
-                    <OpenIcon icon='eye' />
-                  </div>
-                  <div className='playlist-list-fake-item__inner'>
-                    <p className='playlist-list-fake-item__inner__title'>{strings.allGames}</p>
-                  </div>
-                </div>
-                {/* List all playlists */}
-                {playlists.map((playlist) => {
-                  const isSelected = playlist.id === selectedPlaylistID;
-                  return (
-                    <PlaylistItem
-                      key={playlist.id}
-                      playlist={playlist}
-                      expanded={isSelected}
-                      editingDisabled={editingDisabled}
-                      editing={isSelected && isEditing}
-                      central={central}
-                      onHeadClick={this.onPlaylistItemHeadClick}
-                      onEditClick={this.onPlaylistItemEditClick}
-                      onDeleteClick={this.onPlaylistItemDeleteClick}
-                      onSaveClick={this.onPlaylistItemSaveClick}
-                      onDrop={this.onPlaylistItemDrop}
-                      onDragOver={this.onPlaylistItemDragOver} />
-                  );
-                })}
-                {/* Create New Playlist */}
-                { editingDisabled ? undefined : (
-                  <div
-                    className='playlist-list-fake-item'
-                    onClick={this.onCreatePlaylistClick}>
-                    <div className='playlist-list-fake-item__inner'>
-                      <OpenIcon icon='plus' />
-                    </div>
-                    <div className='playlist-list-fake-item__inner'>
-                      <p className='playlist-list-fake-item__inner__title'>{strings.newPlaylist}</p>
-                    </div>
-                  </div>
-                ) }
+        <div className='playlist-list'>
+          {/* All games */}
+          <div
+            className='playlist-list-fake-item'
+            onClick={onShowAllClick}>
+            <div className='playlist-list-fake-item__inner'>
+              <OpenIcon icon='eye' />
+            </div>
+            <div className='playlist-list-fake-item__inner'>
+              <p className='playlist-list-fake-item__inner__title'>{strings.allGames}</p>
+            </div>
+          </div>
+          {/* List all playlists */}
+          {this.renderPlaylistsMemo(playlists, playlistIconCache, currentPlaylist, selectedPlaylistID, editingDisabled, isEditing, isEditingNew)}
+          {/* Create New Playlist */}
+          { editingDisabled ? undefined : (
+            <div
+              className='playlist-list-fake-item'
+              onClick={this.props.onCreate}>
+              <div className='playlist-list-fake-item__inner'>
+                <OpenIcon icon='plus' />
               </div>
-            ) : ( // Failed to load
-              <div className='playlist-list__message'>
-                <h2>{strings.failedToLoadPlaylistFolder}</h2>
-                <p>{strings.checkLogForInfo}</p>
+              <div className='playlist-list-fake-item__inner'>
+                <p className='playlist-list-fake-item__inner__title'>{strings.newPlaylist}</p>
               </div>
-            )
-          ) : ( // Loading
-            <div className='playlist-list__message'>
-              <p>{strings.loadingPlaylists}</p>
             </div>
           ) }
+        </div>
       </div>
     );
   }
 
-  private onPlaylistItemHeadClick = (playlist: GamePlaylist): void => {
-    if (this.props.selectedPlaylistID === playlist.id) {
-      this.props.onDeselectPlaylist && this.props.onDeselectPlaylist();
-    } else {
-      this.props.onSelectPlaylist && this.props.onSelectPlaylist(playlist);
+  renderPlaylistsMemo = memoizeOne((
+    playlists: GamePlaylist[],
+    playlistIconCache: Record<string, string>,
+    currentPlaylist: GamePlaylist | undefined,
+    selectedPlaylistID: string,
+    editingDisabled: boolean,
+    isEditing: boolean,
+    isEditingNew: boolean,
+  ) => {
+    const renderItem = (playlist: GamePlaylist, isNew: boolean): void => {
+      const isSelected = isNew || playlist.filename === selectedPlaylistID;
+      const p = (isSelected && currentPlaylist) ? currentPlaylist : playlist;
+      const key = isNew ? '?new' : playlist.filename;
+      elements.push(
+        <PlaylistItem
+          key={key}
+          playlist={p}
+          iconFilename={isSelected ? this.props.currentPlaylistFilename : undefined}
+          selected={isSelected}
+          editing={isSelected && isEditing}
+          playlistIconCache={playlistIconCache}
+          onDrop={this.props.onDrop}
+          onDragOver={this.onPlaylistItemDragOver}
+          onHeadClick={this.props.onItemClick}
+          onSetIcon={this.props.onSetIcon}
+          onTitleChange={this.props.onTitleChange}
+          onAuthorChange={this.props.onAuthorChange}
+          onKeyDown={this.props.onKeyDown} />
+      );
+      if (isSelected) {
+        elements.push(
+          <PlaylistItemContent
+            key={key + '?content'} // Includes "?" because it's an invalid filename character
+            editingDisabled={editingDisabled}
+            editing={isSelected && isEditing}
+            playlist={p}
+            onDescriptionChange={this.props.onDescriptionChange}
+            OnFilenameChange={this.props.onFilenameChange}
+            onKeyDown={this.props.onKeyDown}
+            onSave={this.props.onSave}
+            onDiscard={this.props.onDiscard}
+            onEdit={this.props.onEditClick}
+            onDelete={this.props.onDelete} />
+        );
+      }
+    };
+
+    const elements: JSX.Element[] = [];
+    for (let i = 0; i < playlists.length; i++) {
+      renderItem(playlists[i], false);
     }
-    this.setState({ isEditing: false });
-  }
-
-  private onPlaylistItemEditClick = (playlist: GamePlaylist): void => {
-    if (this.props.selectedPlaylistID === playlist.id) {
-      this.setState({ isEditing: !this.state.isEditing });
+    if (isEditingNew) {
+      if (!this.props.currentPlaylist) { throw new Error('Failed to render new playlist. Playlist state is missing.'); }
+      renderItem(this.props.currentPlaylist, true);
     }
-  }
+    return elements;
+  })
 
-  private onPlaylistItemDeleteClick = (playlist: GamePlaylist): void => {
-    if (this.props.central.playlistsDoneLoading) {
-      // Delete playlist
-      this.props.central.playlists.delete(playlist.id);
-      this.props.central.playlists.remove(playlist.id);
-      // Deselect playlist
-      if (this.props.onDeselectPlaylist) { this.props.onDeselectPlaylist(); }
-    }
-  }
-
-  private onPlaylistItemSaveClick = (playlist: GamePlaylist, edit: GamePlaylist): void => {
-    // Overwrite the playlist with the new one
-    const arr = this.props.central.playlists.playlists;
-    arr.splice(arr.indexOf(playlist), 1, edit);
-    // Save playlist
-    this.props.central.playlists.save(edit);
-    // Stop editing
-    this.setState({ isEditing: false });
-  }
-
-  private onPlaylistItemDrop = (event: React.DragEvent, playlist: GamePlaylist): void => {
-    if (this.props.onPlaylistChanged) {
-      this.props.onPlaylistChanged(playlist);
-    }
-  }
-
-  private onPlaylistItemDragOver = (event: React.DragEvent, playlist: GamePlaylist): void => {
+  onPlaylistItemDragOver = (event: React.DragEvent): void => {
     if (this.props.preferencesData.enableEditing) {
       const types = event.dataTransfer.types;
       if (types.length === 1 && types[0] === gameIdDataType) {
@@ -180,22 +147,6 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps, L
         event.dataTransfer.dropEffect = 'copy';
         event.preventDefault();
       }
-    }
-  }
-
-  private onCreatePlaylistClick = (): void => {
-    const { central, currentLibrary, onSelectPlaylist } = this.props;
-    if (central.playlistsDoneLoading) {
-      // Create and save a new playlist
-      const playlist = central.playlists.create();
-      if (currentLibrary) { playlist.library = currentLibrary.route; }
-      central.playlists.save(playlist);
-      // Select the new playlist
-      this.forceUpdate();
-      setTimeout(() => { // (Give the playlist list item some time to be created before selecting it)
-        onSelectPlaylist && onSelectPlaylist(playlist);
-        this.setState({ isEditing: false });
-      }, 1);
     }
   }
 

@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { parseVariableString } from './utils/VariableString';
 
 type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | undefined | null;
 
@@ -205,7 +206,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
  * @param source Object to copy from
  * @returns New copy of source
  */
-export function deepCopy<T = any>(source: T): T {
+export function deepCopy<T>(source: T): T {
   const copy: any = Array.isArray(source) ? [] : {};
   for (let key in source) {
     let val = source[key];
@@ -348,4 +349,75 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
     if (val !== undefined) { clear.push(val); }
   }
   return clear;
+}
+
+/**
+ * Parse a variable string using a generic get variable value function.
+ * @param str String to parse.
+ */
+export function parseVarStr(str: string) {
+  return parseVariableString(str, (name) => {
+    switch (name) {
+      default: return '';
+      case 'cwd': return fixSlashes(process.cwd());
+    }
+  });
+}
+
+const errorProxySymbol = Symbol('Error Proxy');
+const errorProxyValue = {}; // Unique pointer
+
+/** Create a proxy that throws an error when you try to use it. */
+export function createErrorProxy(title: string): any {
+  return new Proxy({}, {
+    // @TODO Make it throw errors for all(?) cases (delete, construct etc.)
+    get: (target, p, receiver) => {
+      if (p === errorProxySymbol) { return errorProxyValue; }
+      throw new Error(`You must not get a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+    },
+    set: (target, p, value, receiver) => {
+      throw new Error(`You must not set a value from ${title} before it is initialzed (property: "${p.toString()}").`);
+    },
+  });
+}
+
+export function isErrorProxy(object: any) {
+  return (object[errorProxySymbol] === errorProxyValue);
+}
+
+/**
+ * Convert a size (in bytes) to a more human readable format.
+ * @param size Size in bytes.
+ * @returns Size, but in a more human readable format.
+ */
+export function sizeToString(size: number, precision: number = 3): string {
+  if (size < 1000)       { return `${size}B`; }
+  if (size < 1000000)    { return `${(size / 1000).toPrecision(precision)}KB`; }
+  if (size < 1000000000) { return `${(size / 1000000).toPrecision(precision)}MB`; }
+  return `${(size / 1000000000).toPrecision(precision)}GB`;
+}
+
+/** Replace all back-slashes with forward-slashes. */
+export function fixSlashes(str: string): string {
+  return str.replace(/\\/g, '/');
+}
+
+/**
+ * Checks whether we can write and read to a folder
+ * @param folder folder to check
+ */
+export function canReadWrite(folder: string): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const testPath = path.join(folder, 'test');
+    fs.open(testPath, 'w', (err, fd) => {
+      if (err) {
+        resolve(false);
+      }
+      // Cleanup file after testing
+      fs.close(fd, () => {
+        fs.unlink(testPath, () => {});
+      });
+      resolve(true);
+    });
+  });
 }
