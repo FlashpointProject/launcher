@@ -4,7 +4,7 @@
     "configHeader": "Configuration",
     "configDesc": "(Vous devez appuyer sur 'Sauvegarder & redémarrer' afin que certains changements prennent effet)",
     "preferencesHeader": "Préférences",
-    "extremeGames": "Jeux extrêmes",
+    "extremeGames": "Jeux Extrêmes",
     "extremeGamesDesc": "Affiche les jeux à contenu sexuel, violent ou autre ne convenant pas aux enfants.",
     "enableEditing": "Activer le mode édition",
     "enableEditingDesc": "Permet l'édition de jeux, d'applications supplémentaires et de listes de lecture. Affiche également l'onglet 'Préserver'.",
@@ -281,7 +281,7 @@
     "unusedPlatform": "La plateforme contient une valeur inutilisée. Assure-toi qu'elle est orthographiée correctement!",
     "nonExistingLibrary": "La bibliothèque ne correspond à aucune bibliothèque existante ! (la bibliothèque par défaut sera utilisée)",
     "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?",
-    "ilc_notHttp": "Use HTTP.",
+    "ilc_notHttp": "Utiliser HTTP.",
     "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder."
   },
   "playlist": {
