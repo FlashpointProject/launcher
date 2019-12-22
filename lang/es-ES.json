@@ -91,8 +91,8 @@
     "total": "Total",
     "newGame": "Nuevo juego",
     "list": "Lista",
-    "grid": "Cuadr?cula",
-    "searchResults": "Search Results"
+    "grid": "Cuadricula",
+    "searchResults": "Resultados de la búsqueda\n"
   },
   "filter": {
     "dateAdded": "Fecha Agregada",
@@ -298,7 +298,7 @@
     "titlePlaceholder": "T?tulo...",
     "noAuthor": "Ning?n autor",
     "authorPlaceholder": "Autor...",
-    "by": "by"
+    "by": "por"
   },
   "misc": {
     "noBlankFound": "No {0} Encontr?",
