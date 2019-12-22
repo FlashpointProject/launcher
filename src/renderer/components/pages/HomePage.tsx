@@ -25,7 +25,7 @@ import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
-  platforms: string[];
+  platforms: Record<string, string[]>;
   playlists: GamePlaylist[];
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
@@ -102,20 +102,33 @@ export function HomePage(props: HomePageProps) {
   }, [props.onSelectPlaylist, props.clearSearch]);
 
   const platformList = React.useMemo(() => {
-    const lastIndex = props.platforms.length - 1;
-    return props.platforms.map((platform, index) =>
-      <span key={index}>
-        <Link
-          to={joinLibraryRoute(ARCADE)}
-          onClick={() => {
-            props.onSearch('!' + wrapSearchTerm(platform));
-            props.onSelectPlaylist(ARCADE, undefined);
-          }}>
-          {platform}
-        </Link>
-        { (index < lastIndex) ? ', ' : undefined }
-      </span>
-    );
+    const libraries = Object.keys(props.platforms);
+    const elements: JSX.Element[] = [];
+    let index = 0;
+    for (let i = 0; i < libraries.length; i++) {
+      const library = libraries[i];
+      const platforms = props.platforms[library];
+      // Add all libraries from the platform
+      elements.push(...platforms.map((platform, j) => (
+        <span key={index++}>
+          <Link
+            to={joinLibraryRoute(library)}
+            onClick={() => {
+              props.onSearch('!' + wrapSearchTerm(platform));
+              props.onSelectPlaylist(library, undefined);
+            }}>
+            {platform}
+          </Link>
+          { (j < platforms.length - 1) ? ', ' : undefined }
+        </span>
+      )));
+      // Add a space between library platforms
+      if (i !== libraries.length - 1) {
+        elements.push(<br key={index++} />);
+        elements.push(<br key={index++} />);
+      }
+    }
+    return elements;
   }, [props.platforms]);
 
   // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)

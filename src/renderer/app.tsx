@@ -75,7 +75,7 @@ export type AppState = {
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
-  platforms: string[];
+  platforms: Record<string, string[]>;
   loaded: { [key in BackInit]: boolean; };
   themeList: Theme[];
   gamesTotal: number;
@@ -118,7 +118,7 @@ export class App extends React.Component<AppProps, AppState> {
       playlistIconCache: {},
       suggestions: {},
       appPaths: {},
-      platforms: window.External.initialPlatformNames,
+      platforms: window.External.initialPlatforms,
       loaded: {
         0: false,
         1: false,
@@ -213,6 +213,9 @@ export class App extends React.Component<AppProps, AppState> {
       if (!res.data) { throw new Error('no boring data wtf'); }
       const libraries = res.data.libraries;
 
+      // Sort the libraries (so the order of the buttons in the header is predictable)
+      libraries.sort();
+
       const views: Record<string, View> = {};
       for (let library of libraries) {
         views[library] = {
@@ -284,7 +287,6 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.LOCALE_UPDATE: {
           const resData: LocaleUpdateData = res.data;
           this.setState({ localeCode: resData });
-          console.log(resData)
         } break;
 
         case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
@@ -696,6 +698,7 @@ export class App extends React.Component<AppProps, AppState> {
       suggestions: this.state.suggestions,
       appPaths: this.state.appPaths,
       platforms: this.state.platforms,
+      platformsFlat: this.flattenPlatformsMemo(this.state.platforms),
       playlistIconCache: this.state.playlistIconCache,
       onSaveGame: this.onSaveGame,
       onLaunchGame: this.onLaunchGame,
@@ -1034,6 +1037,19 @@ export class App extends React.Component<AppProps, AppState> {
     this.setState({ stopRender: true });
     setTimeout(() => { window.close(); }, 100);
   }
+
+  /** Convert the platforms object into a flat array of platform names (with all duplicates removed). */
+  private flattenPlatformsMemo = memoizeOne((platforms: Record<string, string[]>): string[] => {
+    const names: string[] = [];
+    const libraries = Object.keys(platforms);
+    for (let i = 0; i < libraries.length; i++) {
+      const p = platforms[libraries[i]];
+      for (let j = 0; j < p.length; j++) {
+        if (names.indexOf(p[j]) === -1) { names.push(p[j]); }
+      }
+    }
+    return names;
+  });
 }
 
 async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void, strings: LangContainer) {

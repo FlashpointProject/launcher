@@ -26,7 +26,8 @@ export type AppRouterProps = {
   playlists: GamePlaylist[];
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
-  platforms: string[];
+  platforms: Record<string, string[]>;
+  platformsFlat: string[];
   onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
   onLaunchGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
@@ -88,7 +89,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
       availableLangs: this.props.languages,
-      platforms: this.props.platforms,
+      platforms: this.props.platformsFlat,
       localeCode: this.props.localeCode,
     };
     const aboutProps: AboutPageProps = {
@@ -101,7 +102,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       libraries: this.props.libraries,
     };
     const developerProps: DeveloperPageProps = {
-      platforms: this.props.platforms,
+      platforms: this.props.platformsFlat,
       playlists: this.props.playlists,
     };
     return (

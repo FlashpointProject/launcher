@@ -128,7 +128,7 @@ export type GetRendererInitDataResponse = {
   language: LangContainer;
   themes: Theme[];
   playlists?: GamePlaylist[];
-  platformNames: string[];
+  platforms: Record<string, string[]>;
   localeCode: string;
 }
 

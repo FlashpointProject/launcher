@@ -67,7 +67,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   render() {
     const strings = this.context.config;
-    const { platforms: platformList } = this.props;
+    const { platforms } = this.props;
     const { nativePlatforms } = this.state;
     const autoString = formatString(strings.auto, this.props.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
@@ -192,7 +192,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
               </div>
               {/* Native Platforms */}
-              { process.platform != 'win32' ?
               <div className='setting__row'>
                 <div className='setting__row__top'>
                   <div className='setting__row__title'>
@@ -201,7 +200,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <div className='setting__row__content setting__row__content--toggle'>
                     <div>
                       <Dropdown text={strings.platforms}>
-                        { platformList.map((platform, index) => (
+                        { platforms.map((platform, index) => (
                           <label
                             key={index}
                             className='log-page__dropdown-item'>
@@ -227,7 +226,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <p>{strings.nativePlatformsDesc}</p>
                 </div>
               </div>
-              : undefined }
             </div>
           </div>
 

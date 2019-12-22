@@ -76,7 +76,7 @@ window.External = {
   initialLangList: createErrorProxy('initialLangList'),
   initialThemes: createErrorProxy('initialThemes'),
   initialPlaylists: createErrorProxy('initialPlaylists'),
-  initialPlatformNames: createErrorProxy('initialPlatformNames'),
+  initialPlatforms: createErrorProxy('initialPlatformNames'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
 
   waitUntilInitialized() {
@@ -114,7 +114,7 @@ const onInit = (async () => {
       window.External.initialLangList = response.data.languages;
       window.External.initialThemes = response.data.themes;
       window.External.initialPlaylists = response.data.playlists;
-      window.External.initialPlatformNames = response.data.platformNames;
+      window.External.initialPlatforms = response.data.platforms;
       window.External.initialLocaleCode = response.data.localeCode;
       if (window.External.preferences.data.currentTheme) { setTheme(window.External.preferences.data.currentTheme); }
       resolve();

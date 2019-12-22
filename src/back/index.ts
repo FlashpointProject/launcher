@@ -625,6 +625,13 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         state.preferences.fallbackLanguage
       );
 
+      const platforms: Record<string, string[]> = {}; // platforms[library] = [platform1, platform2 etc.]
+      for (let i = 0; i < state.gameManager.platforms.length; i++) {
+        const p = state.gameManager.platforms[i];
+        if (!platforms[p.library]) { platforms[p.library] = []; }
+        platforms[p.library].push(p.name);
+      }
+
       respond<GetRendererInitDataResponse>(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
@@ -638,7 +645,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           language: state.languageContainer,
           themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
           playlists: state.init[BackInit.PLAYLISTS] ? state.playlists : undefined,
-          platformNames: state.gameManager.platforms.map(p => p.name),
+          platforms: platforms,
           localeCode: state.localeCode,
         },
       });
@@ -1670,7 +1677,7 @@ function createContainer(currentCode: string, autoLangCode: string, fallbackCode
     ...data.upgrades,
     ...(fallback && fallback.data && fallback.data.upgrades),
     ...(current && current.data && current.data.upgrades)
-  }
+  };
   return data;
 }
 
