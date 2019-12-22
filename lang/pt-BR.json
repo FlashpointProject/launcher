@@ -92,7 +92,7 @@
     "newGame": "Novo Jogo",
     "list": "Lista",
     "grid": "Grade",
-    "searchResults": "Search Results"
+    "searchResults": "O limpador de spam foi executado por {name}"
   },
   "filter": {
     "dateAdded": "Data Adicionada",
@@ -298,7 +298,7 @@
     "titlePlaceholder": "Título...",
     "noAuthor": "Sem Autor",
     "authorPlaceholder": "Autor...",
-    "by": "by"
+    "by": "por"
   },
   "misc": {
     "noBlankFound": "{0} Não Foi Encontrada",
