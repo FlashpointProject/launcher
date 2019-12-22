@@ -108,6 +108,10 @@ export function HomePage(props: HomePageProps) {
     for (let i = 0; i < libraries.length; i++) {
       const library = libraries[i];
       const platforms = props.platforms[library];
+      // Add library name above clickables
+      elements.push(
+        <p>{allStrings.libraries[library] || library}</p>
+      );
       // Add all libraries from the platform
       elements.push(...platforms.map((platform, j) => (
         <span key={index++}>
