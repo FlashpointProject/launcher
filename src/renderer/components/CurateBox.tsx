@@ -6,6 +6,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as YAML from 'yaml';
 import { BackIn, LaunchCurationData } from '../../shared/back/types';
+import { htdocsPath } from '../../shared/constants';
 import { convertEditToCurationMeta } from '../../shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '../../shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '../../shared/curate/util';
@@ -17,7 +18,7 @@ import { ProgressData } from '../containers/withProgress';
 import { CurationAction } from '../context/CurationContext';
 import { newProgress, ProgressContext, ProgressDispatch } from '../context/ProgressContext';
 import { curationLog } from '../curate/util';
-import { GameLauncher } from '../GameLauncher';
+import { toForcedURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { pathTo7z } from '../util/SevenZip';
 import { CheckBox } from './CheckBox';
@@ -372,7 +373,7 @@ export function CurateBox(props: CurateBoxProps) {
   // Whether the platform used by the curation is native locked
   const native = useMemo(() => {
     if (props.curation && props.curation.meta.platform) {
-    GameLauncher.isPlatformNativeLocked(props.curation.meta.platform);
+      isPlatformNativeLocked(props.curation.meta.platform);
     }
     return false;
   }, [props.curation]);
@@ -666,7 +667,7 @@ export function CurateBox(props: CurateBoxProps) {
               text={props.curation && props.curation.meta.launchCommand || ''}
               placeholder={strings.browse.noLaunchCommand}
               onChange={onLaunchCommandChange}
-              className={(warnings.noLaunchCommand || (warnings.invalidLaunchCommand && warnings.invalidLaunchCommand.length != 0)) ? 'input-field--warn' : ''}
+              className={(warnings.noLaunchCommand || (warnings.invalidLaunchCommand && warnings.invalidLaunchCommand.length !== 0)) ? 'input-field--warn' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.notes + ':'}>
@@ -961,7 +962,7 @@ async function checkCollisions(content: IndexedContent[]) {
   const collisions: ContentCollision[] = [];
   for (let i = 0; i < content.length; i++) {
     const collision: ContentCollision = {
-      fileName: GameLauncher.getPathOfHtdocsUrl(content[i].filePath) || '',
+      fileName: getPathOfHtdocsUrl(content[i].filePath) || '',
       fileSize: 0,
       fileExists: false,
       isFolder: false,
@@ -1021,7 +1022,7 @@ function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string,
     console.log(protocol);
     if (protocol) {
       // Protocol found, must be URL
-      if (protocol[1] != 'http') {
+      if (protocol[1] !== 'http') {
         // Not using HTTP
         warns.push(strings.ilc_notHttp);
       }
@@ -1082,4 +1083,19 @@ function getContentFolderByKey2(key: string) {
 
 function getCurationFolder2(curation: EditCuration | CurationIndex) {
   return getCurationFolder(curation, window.External.config.fullFlashpointPath);
+}
+
+function isPlatformNativeLocked(platform: string) {
+  return window.External.config.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
+}
+
+function getPathOfHtdocsUrl(url: string): string | undefined {
+  const urlObj = toForcedURL(url);
+  if (urlObj) {
+    return path.join(
+      window.External.config.fullFlashpointPath,
+      htdocsPath,
+      decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname))
+    );
+  }
 }

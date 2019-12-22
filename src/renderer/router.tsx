@@ -62,6 +62,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       playlists: this.props.playlists,
       upgrades: this.props.upgrades,
       onSelectPlaylist: this.props.onSelectPlaylist,
+      onLaunchGame: this.props.onLaunchGame,
       onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
       updateInfo: this.props.updateInfo,
       autoUpdater: this.props.autoUpdater

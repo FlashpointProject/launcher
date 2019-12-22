@@ -7,10 +7,10 @@ export type GameItemContainerProps = HTMLDivProps & {
   /** Reference to the underlying DIV element. */
   realRef?: JSX.IntrinsicElements['div']['ref'];
   onGameSelect?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined) => void;
-  onGameLaunch?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string ) => void;
-  onGameContextMenu?: (event: React.MouseEvent<HTMLDivElement>, gameId: string ) => void;
-  onGameDragStart?:   (event: React.DragEvent<HTMLDivElement>,  gameId: string ) => void;
-  onGameDragEnd?:     (event: React.DragEvent<HTMLDivElement>,  gameId: string ) => void;
+  onGameLaunch?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
+  onGameContextMenu?: (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
+  onGameDragStart?:   (event: React.DragEvent<HTMLDivElement>,  gameId: string) => void;
+  onGameDragEnd?:     (event: React.DragEvent<HTMLDivElement>,  gameId: string) => void;
   /**
    * Find the game ID of an element (or sub-element) of a game.
    * @param element Element or sub-element of a game.

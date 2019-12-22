@@ -237,7 +237,7 @@ function urlToFilePath(url: URL): string {
 }
 
 /** Try to create a URL object (both with the unedited string and a protocol). */
-function toForcedURL(str: string): URL | undefined {
+export function toForcedURL(str: string): URL | undefined {
   return toURL(str) || toURL('http://'+str);
 }
 
@@ -246,6 +246,7 @@ function toURL(str: string): URL | undefined {
   try { return new URL(str); }
   catch { return undefined; }
 }
+
 /** Open a confirmation box, returning true if Yes, false if No, throwing if Cancelled. */
 export async function openConfirmDialog(title: string, message: string, cancel: boolean = false): Promise<boolean> {
   const buttons = ['Yes', 'No'];

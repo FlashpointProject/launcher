@@ -58,7 +58,7 @@ export namespace UpgradeFile {
     parser.prop('sources_sha256',  v => parsed.sources_sha256   = str(v), true);
     parser.prop('deletePaths',     v => parsed.deletePaths      = strArr(v), true);
     parser.prop('keepPaths',       v => parsed.keepPaths        = strArr(v), true);
-    if (parsed.sources_sha256.length != 64 && onError) {
+    if (parsed.sources_sha256.length !== 64 && onError) {
       // All SHA256 sums are 64 characters long
       onError(`IMPORTANT: No valid SHA256 sum given, risk of corrupted or malicious downloads. (stack: "${key}")`);
     }

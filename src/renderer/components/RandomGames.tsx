@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { BackIn, LaunchGameData, RandomGamesData, RandomGamesResponseData } from '../../shared/back/types';
+import { BackIn, RandomGamesData, RandomGamesResponseData } from '../../shared/back/types';
 import { LOGOS } from '../../shared/constants';
 import { IGameInfo } from '../../shared/game/interfaces';
 import { findElementAncestor, getGameImageURL } from '../Util';
@@ -8,10 +8,7 @@ import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
 type RandomGamesProps = {
-  /** If extreme games could be picked and displayed. */
-  showExtreme: boolean;
-  /** If broken games could be picked and displayed. */
-  showBroken: boolean;
+  onLaunchGame: (gameId: string) => void;
 };
 
 /** A small "grid" of randomly selected games. */
@@ -25,6 +22,10 @@ export function RandomGames(props: RandomGamesProps) {
       res => { if (res.data) { setGames(res.data); } }
     );
   }, []);
+
+  const onLaunchGame = React.useCallback((event: React.MouseEvent, gameId: string) => {
+    props.onLaunchGame(gameId);
+  }, [props.onLaunchGame]);
 
   const gameItems = React.useMemo(() => (
     games.map(game => (
@@ -42,15 +43,11 @@ export function RandomGames(props: RandomGamesProps) {
   return (
     <GameItemContainer
       className='random-games'
-      onGameLaunch={onGameLaunch}
+      onGameLaunch={onLaunchGame}
       findGameId={findGameId}>
       { gameItems }
     </GameItemContainer>
   );
-}
-
-function onGameLaunch(event: React.MouseEvent, gameId: string): void {
-  window.External.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
 }
 
 /**

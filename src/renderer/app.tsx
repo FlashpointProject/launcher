@@ -554,7 +554,7 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     // Check for Wine and PHP on Linux/Mac
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       which('php', function(err: Error | null) {
         if (err) {
           log('Warning: PHP not found in path, may cause unexpected behaviour.');
@@ -870,7 +870,7 @@ export class App extends React.Component<AppProps, AppState> {
   private setUpgradeStageState = (id: string, data: Partial<UpgradeStageState>) => {
     const { upgrades } = this.state;
     const index = upgrades.findIndex(u => u.id === id);
-    if (index != -1) {
+    if (index !== -1) {
       const newUpgrades = deepCopy(upgrades);
       const newStageState = Object.assign({}, upgrades[index].state, data);
       newUpgrades[index].state = newStageState;
@@ -1059,7 +1059,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
   if (!isValid) {
     let verifiedPath = false;
     let chosenPath: (string | undefined);
-    while (verifiedPath != true) {
+    while (verifiedPath !== true) {
       // If folder isn't set, ask to set now
       const res = await openConfirmDialog(strings.dialog.flashpointPathInvalid, strings.dialog.flashpointPathNotFound);
       if (!res) { return; }
@@ -1120,7 +1120,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
     })
     .on('progress', () => {
       const now = Date.now();
-      if (now - prevProgressUpdate > 100 || lastUpdateType != state.currentTask) {
+      if (now - prevProgressUpdate > 100 || lastUpdateType !== state.currentTask) {
         prevProgressUpdate = now;
         lastUpdateType = state.currentTask;
         switch (state.currentTask) {
@@ -1158,7 +1158,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
 function getBrowseSubPath(urlPath: string): string {
   if (urlPath.startsWith(Paths.BROWSE)) {
     let str = urlPath.substr(Paths.BROWSE.length);
-    if (str[0] == '/') { str = str.substring(1); }
+    if (str[0] === '/') { str = str.substring(1); }
     return str;
   }
   return '';

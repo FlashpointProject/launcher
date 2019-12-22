@@ -13,7 +13,6 @@ import { formatString } from '../../../shared/utils/StringFormatter';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
-import { GameLauncher } from '../../GameLauncher';
 import { Paths } from '../../Paths';
 import { UpgradeStage } from '../../upgrade/types';
 import { joinLibraryRoute } from '../../Util';
@@ -30,6 +29,7 @@ type OwnProps = {
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
+  onLaunchGame: (gameId: string) => void;
   /** Clear the current search query (resets the current search filters). */
   clearSearch: () => void;
   /** Called when the "download tech" button is clicked. */
@@ -50,26 +50,24 @@ const updateProgressKey = 'home-page__update-progress';
 export const homePageProgressKey = 'home-page__upgrade-progress';
 
 export function HomePage(props: HomePageProps) {
-  const { onDownloadUpgradeClick, preferencesData: { browsePageShowExtreme } } = props;
+  const { onDownloadUpgradeClick } = props;
 
   /** Offset of the starting point in the animated logo's animation (sync it with time of the machine). */
   const logoDelay = React.useMemo(() => (Date.now() * -0.001) + 's', []);
 
   const allStrings = React.useContext(LangContext);
   const strings = allStrings.home;
-  const dialogStrings = allStrings.dialog;
-  const upgradeStages = props.upgrades;
 
+  const upgradeStages = props.upgrades;
   const { showBrokenGames } = window.External.config.data;
-  const { disableExtremeGames } = window.External.config.data;
 
   /** Whether the Update Available button has been pressed */
   const [updateStarted, setUpdateStarted] = React.useState(false);
   const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
 
-  const onLaunchGame = React.useCallback((game: IGameInfo) => {
-    GameLauncher.launchGame(game, dialogStrings);
-  }, [dialogStrings]);
+  const onLaunchGame = React.useCallback((gameId: string) => {
+    props.onLaunchGame(gameId);
+  }, [props.onLaunchGame]);
 
   const onHelpClick = React.useCallback(() => {
     remote.shell.openItem(path.join(window.External.config.fullFlashpointPath, 'readme.txt'));
@@ -108,28 +106,28 @@ export function HomePage(props: HomePageProps) {
     for (let i = 0; i < libraries.length; i++) {
       const library = libraries[i];
       const platforms = props.platforms[library];
-      // Add library name above clickables
-      elements.push(
-        <p>{allStrings.libraries[library] || library}</p>
-      );
-      // Add all libraries from the platform
-      elements.push(...platforms.map((platform, j) => (
-        <span key={index++}>
-          <Link
-            to={joinLibraryRoute(library)}
-            onClick={() => {
-              props.onSearch('!' + wrapSearchTerm(platform));
-              props.onSelectPlaylist(library, undefined);
-            }}>
-            {platform}
-          </Link>
-          { (j < platforms.length - 1) ? ', ' : undefined }
-        </span>
-      )));
-      // Add a space between library platforms
-      if (i !== libraries.length - 1) {
-        elements.push(<br key={index++} />);
-        elements.push(<br key={index++} />);
+      if (platforms.length > 0) {
+        // Add a space between library platforms
+        if (i !== 0) {
+          elements.push(<br key={index++} />);
+          elements.push(<br key={index++} />);
+        }
+        // Add library name above links
+        elements.push(<p key={index++}>{allStrings.libraries[library] || library}</p>);
+        // Add all libraries from the platform
+        elements.push(...platforms.map((platform, j) => (
+          <span key={index++}>
+            <Link
+              to={joinLibraryRoute(library)}
+              onClick={() => {
+                props.onSearch('!' + wrapSearchTerm(platform));
+                props.onSelectPlaylist(library, undefined);
+              }}>
+              {platform}
+            </Link>
+            { (j < platforms.length - 1) ? ', ' : undefined }
+          </span>
+        )));
       }
     }
     return elements;
@@ -164,12 +162,12 @@ export function HomePage(props: HomePageProps) {
           <ul className='home-page__box-body home-page__update-box'>
             {strings.currentVersion} - {remote.app.getVersion()}
             <br/>
-            {props.updateInfo != undefined ?
+            { props.updateInfo !== undefined ?
             <>
               <p>
                 {strings.nextVersion} - {props.updateInfo.version}
               </p>
-              {updateStarted ? undefined :
+              { updateStarted ? undefined :
                 <SimpleButton
                   value={strings.updateAvailable}
                   onClick={() => {
@@ -193,7 +191,7 @@ export function HomePage(props: HomePageProps) {
               }
               { updateProgressComponent }
             </>
-            : strings.upToDate}
+            : strings.upToDate }
           </ul>
         </div>
       );
@@ -204,7 +202,7 @@ export function HomePage(props: HomePageProps) {
     }
   }, [strings, props.autoUpdater, props.updateInfo, updateStarted, setUpdateStarted, updateProgressComponent]);
 
-  const renderQuickStart = React.useMemo(() =>
+  const renderQuickStart = React.useMemo(() => (
     <div className='home-page__box'>
       <div className='home-page__box-head'>{strings.quickStartHeader}</div>
       <ul className='home-page__box-body'>
@@ -225,11 +223,11 @@ export function HomePage(props: HomePageProps) {
         </QuickStartItem>
       </ul>
     </div>
-  , [strings, onHallOfFameClick, onAllGamesClick,
-     onAllAnimationsClick, onHelpClick]);
+  ), [strings, onHallOfFameClick, onAllGamesClick, onAllAnimationsClick, onHelpClick]);
 
-  const renderExtras = React.useMemo(() => <div className='home-page__box home-page__box--extras'>
-    <div className='home-page__box-head'>{strings.extrasHeader}</div>
+  const renderExtras = React.useMemo(() => (
+    <div className='home-page__box home-page__box--extras'>
+      <div className='home-page__box-head'>{strings.extrasHeader}</div>
       <ul className='home-page__box-body'>
         <QuickStartItem icon='heart'>
           <Link
@@ -262,19 +260,19 @@ export function HomePage(props: HomePageProps) {
         </QuickStartItem>
       </ul>
     </div>
-  , [strings, onFavoriteClick, platformList]);
+  ), [strings, onFavoriteClick, platformList]);
 
   const renderUpgrades = React.useMemo(() => {
     if (upgradeStages.length > 0) {
       const renderedStages: JSX.Element[] = [];
       for (let i = 0; i < upgradeStages.length; i++) {
         renderedStages.push(
-          <div key={i*2}>
+          <div key={i * 2}>
             {renderStageSection(allStrings, upgradeStages[i], (stage) => onDownloadUpgradeClick(stage, allStrings))}
           </div>
         );
         renderedStages.push(
-          <br key={(i*2)+1}/>
+          <br key={(i * 2) + 1}/>
         );
       }
       // Remove trailing <br/>
@@ -301,18 +299,16 @@ export function HomePage(props: HomePageProps) {
     </div>
   , [strings]);
 
-  const renderRandomGames = React.useMemo(() =>
+  const renderRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
       <div className='home-page__random-games'>
         <div className='home-page__random-games__inner'>
           <p className='home-page__random-games__title'>{strings.randomPicks}</p>
-            <RandomGames
-              showExtreme={!disableExtremeGames && browsePageShowExtreme}
-              showBroken={showBrokenGames} />
+            <RandomGames onLaunchGame={onLaunchGame} />
         </div>
       </div>
     </SizeProvider>
-  , [strings, onLaunchGame]);
+  ), [strings, onLaunchGame]);
 
   return React.useMemo(() => (
     <div className='home-page simple-scroll'>

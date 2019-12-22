@@ -209,7 +209,7 @@ export async function checkUpgradeStateInstalled(stage: UpgradeStage, baseFolder
  */
 export async function checkUpgradeStateUpdated(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
   const success = await Promise.all(stage.verify_files.map((check, index) => {
-    if (index < stage.verify_sha256.length && stage.verify_sha256[index] != 'SKIP') {
+    if (index < stage.verify_sha256.length && stage.verify_sha256[index] !== 'SKIP') {
       return new Promise<boolean>((resolve) => {
         // SHA256 present, perform check
         const shaToCheck = stage.verify_sha256[index].toLowerCase();

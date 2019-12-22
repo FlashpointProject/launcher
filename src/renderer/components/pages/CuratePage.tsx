@@ -72,7 +72,7 @@ export function CuratePage(props: CuratePageProps) {
     const dirName = path.basename(fullPath);
     console.log(dirName);
     // Inside curation dir and is unused
-    if (splitPath.length > 1 && dirName != 'content' && dirName != 'Extras') {
+    if (splitPath.length > 1 && dirName !== 'content' && dirName !== 'Extras') {
       const key = splitPath.shift();
       console.log(key);
       // Forcefully re-render a curate box (Non-Content folder warnings)
@@ -219,14 +219,14 @@ export function CuratePage(props: CuratePageProps) {
     const dirName = path.basename(fullPath);
     console.log(dirName);
     // Dir inside curation folders and unused
-    if (splitPath.length > 1 && dirName != 'content' && dirName != 'Extras') {
+    if (splitPath.length > 1 && dirName !== 'content' && dirName !== 'Extras') {
       const key = splitPath.shift();
       console.log(key);
       // Forcefully re-render a curate box (Non-Content folder warnings)
       if (key) {
         // Verify it is actually a curation folder by searching for meta file
         const curationFiles = await fs.readdir(path.join(curationsPath, key));
-        if (curationFiles.findIndex(f => f.startsWith('meta.')) != -1) {
+        if (curationFiles.findIndex(f => f.startsWith('meta.')) !== -1) {
           dispatch({
             type: 'add-unused-dir',
             payload: {

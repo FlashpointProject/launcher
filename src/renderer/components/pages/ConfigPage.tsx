@@ -207,7 +207,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                             <div className='simple-center'>
                               <input
                                 type='checkbox'
-                                checked={nativePlatforms.findIndex((item) => item === platform) != -1}
+                                checked={nativePlatforms.findIndex((item) => item === platform) !== -1}
                                 onChange={() => { this.onNativeCheckboxChange(platform); }}
                                 className='simple-center__vertical-inner' />
                             </div>
@@ -371,7 +371,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const { nativePlatforms } = this.state;
     const index = nativePlatforms.findIndex(item => item === platform);
 
-    if (index != -1) {
+    if (index !== -1) {
       nativePlatforms.splice(index, 1);
     } else {
       nativePlatforms.push(platform);

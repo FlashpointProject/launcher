@@ -32,7 +32,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       // Find the curation
       const nextCurations = [ ...prevState.curations ];
       const index = nextCurations.findIndex(c => c.key === action.payload.key);
-      if (index != -1) {
+      if (index !== -1) {
         const prevCuration = nextCurations[index];
         const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
         // Mark curation for deletion
@@ -226,7 +226,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         const prevCuration = nextCurations[index];
         const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
         const existingDirIndex = nextCuration.unusedDirs.findIndex(d => d === action.payload.dir);
-        if (existingDirIndex != -1) {
+        if (existingDirIndex !== -1) {
           console.log('removed');
           nextCuration.unusedDirs.splice(existingDirIndex, 1);
           nextCurations[index] = nextCuration;
