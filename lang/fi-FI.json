@@ -298,7 +298,7 @@
     "titlePlaceholder": "Otsikko...",
     "noAuthor": "Ei kehittäjää",
     "authorPlaceholder": "Kehittäjä...",
-    "by": "by"
+    "by": "luonut"
   },
   "misc": {
     "noBlankFound": "{0} ei löydy",
