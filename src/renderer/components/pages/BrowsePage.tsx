@@ -707,6 +707,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         const playlist = this.props.playlists.find(p => p.filename === playlistId);
         if (playlist && !playlist.games.find(g => g.id === gameId)) {
           window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, {
+            prevFilename: playlist.filename,
             playlist: {
               ...playlist,
               games: [...playlist.games, { id: gameId }],
