@@ -11,7 +11,7 @@ import { ILogEntry, ILogPreEntry } from '../shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { Theme } from '../shared/ThemeFile';
-import { GameManager } from './game/GameManager';
+import { GameManagerState } from './game/types';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
@@ -28,7 +28,7 @@ export type BackState = {
   configFolder: string;
   exePath: string;
   localeCode: string;
-  gameManager: GameManager;
+  gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;
   messageEmitter: MessageEmitter;

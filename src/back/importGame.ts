@@ -11,6 +11,7 @@ import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces
 import { formatDate, sizeToString } from '../shared/Util';
 import { Coerce } from '../shared/utils/Coerce';
 import { GameManager } from './game/GameManager';
+import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
 import { uuid } from './util/uuid';
@@ -28,7 +29,7 @@ const writeFile = promisify(fs.writeFile);
 
 type ImportCurationOpts = {
   curation: EditCuration;
-  games: GameManager;
+  gameManager: GameManagerState;
   /** If the status should be logged to the console (for debugging purposes). */
   log?: LogFunc;
   date?: Date;
@@ -47,7 +48,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
     curation,
-    games,
+    gameManager,
     log,
     date,
     saveCuration,
@@ -59,7 +60,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
-  const existingGame = games.findGame(g => g.launchCommand === curation.meta.launchCommand);
+  const existingGame = GameManager.findGame(gameManager.platforms, g => g.launchCommand === curation.meta.launchCommand);
   if (existingGame) {
     // Warn user of possible duplicate
     const response = await opts.openDialog({
@@ -90,7 +91,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   const moveFiles = !saveCuration;
   curationLog(log, 'Importing Curation Meta');
   // Copy/extract content and image files
-  games.updateMetas({
+  GameManager.updateMetas(gameManager, {
     games: [game],
     addApps: addApps,
     saveToDisk: true,

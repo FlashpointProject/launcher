@@ -35,7 +35,7 @@ import { getSuggestions } from './suggestions';
 import { BackQuery, BackQueryChache, BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { getContentType, pathExists } from './util/misc';
+import { copyError, getContentType, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -67,7 +67,12 @@ const state: BackState = {
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
-  gameManager: new GameManager(),
+  gameManager: {
+    platforms: [],
+    platformsPath: 'Data/Platforms',
+    searchCaches: [],
+    saveQueue: new EventQueue(),
+  },
   messageQueue: [],
   isHandling: false,
   messageEmitter: new EventEmitter() as any,
@@ -426,8 +431,17 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
 
-  // Init Game manager
-  state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
+  // Init Game Manager
+  state.gameManager.platformsPath = path.join(state.config.flashpointPath, state.config.platformFolderPath);
+  GameManager.loadPlatforms(state.gameManager)
+  .then(errors => {
+    if (errors.length > 0) {
+      console.error(`${errors.length} platform(s) failed to load. Errors:`);
+      for (let error of errors) {
+        console.error(error);
+      }
+    }
+  })
   .catch(error => { console.error(error); })
   .finally(() => {
     state.init[BackInit.GAMES] = true;
@@ -784,7 +798,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.SAVE_GAME: {
       const reqData: SaveGameData = req.data;
 
-      state.gameManager.updateMetas({
+      GameManager.updateMetas(state.gameManager, {
         games: [reqData.game],
         addApps: reqData.addApps || [],
         saveToDisk: reqData.saveToFile,
@@ -819,7 +833,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
               }
             }
             // Save platform to disk
-            await state.gameManager.savePlatformToFile(platform);
+            await GameManager.savePlatformToFile(state.gameManager, platform);
             break;
           }
         }
@@ -854,7 +868,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         }
 
         // Add copies
-        state.gameManager.updateMetas({
+        GameManager.updateMetas(state.gameManager, {
           games: [newGame],
           addApps: newAddApps,
           saveToDisk: true,
@@ -1276,7 +1290,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       try {
         await importCuration({
           curation: reqData.curation,
-          games: state.gameManager,
+          gameManager: state.gameManager,
           log: reqData.log ? log : undefined,
           date: (reqData.date !== undefined) ? new Date(reqData.date) : undefined,
           saveCuration: reqData.saveCuration,
@@ -1835,28 +1849,4 @@ function allGames(): IGameInfo[] {
     Array.prototype.push.apply(games, platforms[i].collection.games);
   }
   return games;
-}
-
-type ErrorCopy = {
-  columnNumber?: number;
-  fileName?: string;
-  lineNumber?: number;
-  message: string;
-  name: string;
-  stack?: string;
-}
-
-/** Copy properties from an error to a new object. */
-function copyError(error: any): ErrorCopy {
-  const copy: ErrorCopy = {
-    message: error.message+'',
-    name: error.name+'',
-  };
-  // @TODO These properties are not standard, and perhaps they have different types in different environments.
-  //       So do some testing and add some extra checks mby?
-  if (typeof error.columnNumber === 'number') { copy.columnNumber = error.columnNumber; }
-  if (typeof error.fileName     === 'string') { copy.fileName     = error.fileName;     }
-  if (typeof error.lineNumber   === 'number') { copy.lineNumber   = error.lineNumber;   }
-  if (typeof error.stack        === 'string') { copy.stack        = error.stack;        }
-  return copy;
 }

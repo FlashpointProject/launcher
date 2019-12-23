@@ -1,6 +1,5 @@
-import { PlatformInfo } from '../platform/interfaces';
-import { OrderGamesOpts } from './GameFilter';
 import { GamePlaylist } from '../interfaces';
+import { OrderGamesOpts } from './GameFilter';
 
 export const UNKNOWN_LIBRARY = 'unknown';
 
@@ -99,12 +98,6 @@ export type ServerResponse = {
   error?: Error;
   /** Response (if any) empty if unsuccessful */
   result?: any;
-}
-
-/** Server Response - Return all platforms info */
-export type FetchPlatformInfoResponse = {
-  /** Info for all platforms */
-  platforms: PlatformInfo[];
 }
 
 /** Client Request - Fetch a game */
