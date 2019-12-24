@@ -112,6 +112,14 @@ gulp.task('pack', (done) => {
       target: 'dir', // Keep unpacked versions of every pack
       asar: config.isRelease,
       publish: publish,
+      nsis: {
+        deleteAppDataOnUninstall: true,
+        uninstallDisplayName: 'Bluemaxima\'s Flashpoint'
+      },
+      nsisWeb: {
+        deleteAppDataOnUninstall: true,
+        uninstallDisplayName: 'Bluemaxima\'s Flashpoint'
+      },
       win: {
         icon: './icons/icon.ico',
       },
