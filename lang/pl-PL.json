@@ -277,7 +277,7 @@
     "invalidLaunchCommand": "'Launch Command' does not fit these URL requirements:",
     "releaseDateInvalid": "'Data Wydania' musi być podana w formacie RRRR-MM-DD (miesiąc i dzień są opcjonalne).",
     "unusedApplicationPath": "'Ścieżka do Aplikacji' ma niewykorzystywaną wartość. Upewnij się że jest poprawnie wpisana!",
-    "unusedTags": "The following tags are not present on any other game. Are they correct?",
+    "unusedTags": "Następujące tagi nie są obecne w żadnej innej grze. Czy są poprawne?",
     "unusedPlatform": "'Platforma' ma niewykorzystywaną wartość. Upewnij się że jest poprawnie wpisana!",
     "nonExistingLibrary": "'Biblioteka' nie jest nazwą istniejącej biblioteki! (Zostanie użyta domyślna wartość)",
     "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?",
@@ -355,10 +355,10 @@
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
+    "infinityDesc": "Wymagane pliki. Dodaje wsparcie dla gier Flash.",
     "tech": "Inne Technologie",
     "techDesc": "Dodaje wsparcie dla wszystkich innych technologii - Shockwave, Unity, Java, HTML5, itp.",
-    "screenshots": "Logos & Screenshots",
-    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+    "screenshots": "Logo i zrzuty ekranu",
+    "screenshotsDesc": "Dodaje logo dla widoku siatki i zrzutów ekranu dla wszystkich gier."
   }
 }
