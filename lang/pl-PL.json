@@ -341,11 +341,11 @@
     "selectCurationMeta": "Wybierz Plik(i) Metadanych Archiwizowanych Gier",
     "errorParsingPlatforms": "Błąd czytania platformy!",
     "errorParsingPlatformsMessage": "{0} błąd/błędy powstałe podczas czytania plików XML platforms\nPrzeczytaj logi by poznać szczegóły.",
-    "dataRequired": "Wymagane dodatkowe dane",
+    "dataRequired": "Wymagane Dodatkowe Dane",
     "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
     "upgradeWillInstallTo": "{0} zostanie zainstalowane w",
     "verifyPathSelection": "Tutaj również zostaną zainstalowane przyszłe aktualizacje. Czy to jest poprawne?",
-    "restartNow": "Zrestartować teraz?",
+    "restartNow": "Zrestartować Teraz?",
     "restartToApplyUpgrade": "Ta aktualizacja nie zostanie zastosowana dopóki nie zrestartujesz.\nCzy chcesz to zrobić teraz?",
     "areYouSure": "Czy na pewno?"
   },
@@ -358,7 +358,7 @@
     "infinityDesc": "Wymagane pliki. Dodaje wsparcie dla gier Flash.",
     "tech": "Inne Technologie",
     "techDesc": "Dodaje wsparcie dla wszystkich innych technologii - Shockwave, Unity, Java, HTML5, itp.",
-    "screenshots": "Logo i zrzuty ekranu",
+    "screenshots": "Logo i Zrzuty Ekranu",
     "screenshotsDesc": "Dodaje logo dla widoku siatki i zrzutów ekranu dla wszystkich gier."
   }
 }
