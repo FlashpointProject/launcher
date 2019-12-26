@@ -40,6 +40,7 @@ export enum BackIn {
   GET_LIBRARIES,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
+  BROWSE_VIEW_INDEX,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
   /** Get all data needed on init (by the renderer). */
@@ -231,6 +232,15 @@ export type BrowseViewPageResponseData = {
   games: ViewGame[];
   offset: number;
   total?: number;
+}
+
+export type BrowseViewIndexData = {
+  gameId: string;
+  query: GameQuery;
+}
+
+export type BrowseViewIndexResponseData = {
+  index: number;
 }
 
 export type SaveImageData = {

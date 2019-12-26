@@ -6,7 +6,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import * as AppConstants from '../shared/AppConstants';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, GetSuggestionsResponseData, LocaleUpdateData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, BrowseViewIndexData, BrowseViewIndexResponseData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
 import { GamePlaylist, GamePropSuggestions, ProcessState, WindowIPC } from '../shared/interfaces';
@@ -18,7 +18,7 @@ import { updatePreferencesData } from '../shared/preferences/util';
 import { setTheme } from '../shared/Theme';
 import { Theme } from '../shared/ThemeFile';
 import { getUpgradeString } from '../shared/upgrade/util';
-import { deepCopy, recursiveReplace, canReadWrite } from '../shared/Util';
+import { canReadWrite, deepCopy, recursiveReplace } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -343,7 +343,9 @@ export class App extends React.Component<AppProps, AppState> {
             newState.views = newViews;
           }
 
-          this.setState(newState as any, () => { this.onRequestGames(0, 1); });
+          this.setState(newState as any, () => {
+            if (resData.library !== undefined) { this.requestSelectedGame(resData.library); }
+          });
         } break;
 
         case BackOut.SERVICE_CHANGE: {
@@ -436,7 +438,7 @@ export class App extends React.Component<AppProps, AppState> {
 
             this.setState(
               state as any, // (This is very annoying to make typesafe)
-              () => { if (state.views) { this.onRequestGames(0, 1); } }
+              () => { if (state.views && resData.library !== undefined) { this.requestSelectedGame(resData.library); } }
             );
           } else {
             this.setState({ playlists: [...this.state.playlists, resData] });
@@ -589,12 +591,12 @@ export class App extends React.Component<AppProps, AppState> {
             dirtyCache: true,
           }
         }
-      }, () => { this.onRequestGames(0, 1); });
+      }, () => { this.requestSelectedGame(library); });
     }
     // Check if the library changed
     if (library && prevLibrary && library !== prevLibrary) {
       // Fetch first games when switching browse page view
-      this.onRequestGames(0, 1);
+      this.requestSelectedGame(library);
       // Update search options (if they have changed)
       if (view) {
         if (view.query.search       !== this.props.search.text ||
@@ -616,7 +618,7 @@ export class App extends React.Component<AppProps, AppState> {
                 },
               }
             }
-          }, () => { this.onRequestGames(0, 1); });
+          }, () => { this.requestSelectedGame(library); });
         }
       }
     }
@@ -639,7 +641,7 @@ export class App extends React.Component<AppProps, AppState> {
           }, () => {
             // @TODO This requets some games just to update the state with some fresh values
             //       from the back. It's kinda cheesy and probably adds an unnecessary delay.
-            this.onRequestGames(0, 1);
+            this.requestSelectedGame(library);
           });
         }
       }
@@ -795,7 +797,7 @@ export class App extends React.Component<AppProps, AppState> {
             },
           }
         }
-      }, () => { this.onRequestGames(0, 1); });
+      }, () => { this.requestSelectedGame(library); });
     }
     // Update Preferences Data (this is to make it get saved on disk)
     updatePreferencesData({
@@ -904,6 +906,48 @@ export class App extends React.Component<AppProps, AppState> {
     window.External.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
   }
 
+  /** Fetch the selected game of the specified library (or the first page if no game is selected). */
+  requestSelectedGame(library: string): void {
+    const view = this.state.views[library];
+
+    if (!view) {
+      log(`Failed to request game index. Current view is missing (Library: "${library}", View: "${view}").`);
+      return;
+    }
+
+    if (view.selectedGameId === undefined) {
+      this.onRequestGames(0, 1);
+    } else {
+      window.External.back.send<any, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
+        gameId: view.selectedGameId,
+        query: {
+          extreme: view.query.extreme,
+          broken: false, // @TODO Add an option for this or something
+          library: library,
+          search: view.query.search,
+          playlistId: view && view.selectedPlaylistId,
+          orderBy: view.query.orderBy,
+          orderReverse: view.query.orderReverse,
+        }
+      }, res => {
+        const resData: BrowseViewIndexResponseData = res.data;
+        if (resData.index >= 0) { // (Game found)
+          this.onRequestGames(resData.index, 1);
+        } else { // (Game not found)
+          this.setState({
+            views: {
+              ...this.state.views,
+              [library]: {
+                ...view,
+                selectedGameId: undefined,
+              }
+            }
+          }, () => { this.onRequestGames(0, 1); });
+        }
+      });
+    }
+  }
+
   onRequestGames = (offset: number, limit: number): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
@@ -928,7 +972,7 @@ export class App extends React.Component<AppProps, AppState> {
     if (pages.length > 0) {
       // console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
       window.External.back.sendReq<any, BrowseViewPageData>({
-        id: library,
+        id: library, // @TODO Add this as an optional property of the data instead of misusing the id
         type: BackIn.BROWSE_VIEW_PAGE,
         data: {
           offset: pageMin * VIEW_PAGE_SIZE,

@@ -7,7 +7,7 @@ import * as http from 'http';
 import * as path from 'path';
 import * as util from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
@@ -1030,6 +1030,38 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           offset: reqData.offset,
           total: cache.games.length,
         },
+      });
+    } break;
+
+    case BackIn.BROWSE_VIEW_INDEX: {
+      const reqData: BrowseViewIndexData = req.data;
+
+      const query: BackQuery = {
+        extreme: reqData.query.extreme,
+        broken: reqData.query.broken,
+        library: reqData.query.library,
+        search: reqData.query.search,
+        orderBy: reqData.query.orderBy as GameOrderBy,
+        orderReverse: reqData.query.orderReverse as GameOrderReverse,
+        playlistId: reqData.query.playlistId,
+      };
+
+      const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
+      let cache = state.queries[hash];
+      if (!cache) { state.queries[hash] = cache = queryGames(query); } // @TODO Start clearing the cache if it gets too full
+
+      let index = -1;
+      for (let i = 0; i < cache.viewGames.length; i++) {
+        if (cache.viewGames[i].id === reqData.gameId) {
+          index = i;
+          break;
+        }
+      }
+
+      respond<BrowseViewIndexResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: { index },
       });
     } break;
 

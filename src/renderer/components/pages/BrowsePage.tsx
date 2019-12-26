@@ -122,14 +122,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
     const { gameLibrary, selectedGameId, selectedPlaylistId } = this.props;
-    const { isEditingGame: isEditing, quickSearch } = this.state;
+    const { isEditingGame, quickSearch } = this.state;
     // Check if it ended editing
-    if (!isEditing && prevState.isEditingGame) {
+    if (!isEditingGame && prevState.isEditingGame) {
       this.updateCurrentGameAndAddApps();
       // this.setState({ suggestions: undefined });
     }
     // Check if it started editing
-    if (isEditing && !prevState.isEditingGame) {
+    if (isEditingGame && !prevState.isEditingGame) {
       this.updateCurrentGameAndAddApps();
       // this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) }); @FIXTHIS
     }
@@ -137,6 +137,16 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (selectedGameId && selectedGameId !== prevProps.selectedGameId) {
       this.updateCurrentGameAndAddApps();
       this.setState({ isEditingGame: false });
+    }
+    // Deselect the current game ad add-apps if the game has been deselected (from outside this component most likely)
+    if (selectedGameId === undefined && (this.state.currentGame || this.state.currentAddApps)) {
+      this.setState({
+        currentGame: undefined,
+        currentAddApps: undefined,
+        currentPlaylistNotes: undefined,
+        isNewGame: false,
+        isEditingGame: false
+      });
     }
     // Update current game and add-apps if the selected game changes
     if (gameLibrary === prevProps.gameLibrary &&
