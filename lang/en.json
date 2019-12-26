@@ -349,6 +349,19 @@
     "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
     "areYouSure": "Are you sure?"
   },
+  "setup": {
+    "title": "First Time Setup",
+    "additionalDataRequired": "Additional Data must be installed to use Flashpoint.",
+    "selectInstallPath": "Select a folder where you'd like to store your Flashpoint data,",
+    "flashpointPath": "Flashpoint Folder",
+    "existingFolderAllowed": "Or select an existing Flashpoint folder to load it.",
+    "warnExistingInstall": "Existing Flashpoint Data Detected.",
+    "warnInvalidPath": "This folder is invalid or you do not have permission to write to it.",
+    "warnNotEmpty": "Selected folder is not empty.",
+    "install": "Download & Install",
+    "startFlashpoint": "Start Flashpoint",
+    "selectinstallDirectory": "Select Flashpoint Folder"
+  },
   "libraries": {
     "arcade": "Games",
     "theatre": "Animations"

@@ -1,15 +1,19 @@
 import { ConnectedRouter } from 'connected-react-router';
-import { createMemoryHistory } from 'history';
+import { createMemoryHistory, MemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { AddLogData, BackIn } from '../shared/back/types';
+import { AddLogData, BackIn, CheckSetupData, SetupUpgradeData } from '../shared/back/types';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { CurationContext } from './context/CurationContext';
 import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
+import { isFlashpointValidCheck } from './Util';
+import { Store } from 'redux';
+import { JSXElement } from '@babel/types';
+import { SetupPage } from './components/pages/SetupPage';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -25,23 +29,55 @@ import { ProgressContext } from './context/ProgressContext';
   const history = createMemoryHistory();
   // Create Redux store
   const store = configureStore(history);
+  // Check if setup is finished
+  window.External.back.send<CheckSetupData>(BackIn.CHECK_SETUP, undefined, async (res) => {
+    if (!res.data) {
+      // Setup not finished, check for path validity
+      const valid = await isFlashpointValidCheck(window.External.config.fullFlashpointPath);
+      if (!valid) {
+        // Path isn't valid, check for setup upgrade to install
+        window.External.back.send<SetupUpgradeData>(BackIn.SETUP_UPGRADE, undefined, async (res) => {
+          console.log('Checking upgrade');
+          if (res.data) {
+            // Upgrade present, continue with setup
+            render(store, history, <SetupPage upgrade={res.data}/>)
+          } else {
+            // Upgrade not present, mark setup as finished and move on
+            window.External.back.send<any>(BackIn.FINISH_SETUP, undefined);
+            render(store, history, <ConnectedApp />);
+          }
+        });
+      } else {
+        // Path valid, mark setup as finished and move on
+        window.External.back.send<any>(BackIn.FINISH_SETUP, undefined);
+        render(store, history, <ConnectedApp />);
+      }
+    } else {
+      // Setup already finished, move on
+      render(store, history, <ConnectedApp />);
+    }
+  });
+})();
+
+function render(store: Store, history: MemoryHistory, pageRender: JSX.Element) {
+  console.log('render');
   // Render the application
   ReactDOM.render((
-      <Provider store={store}>
-        <PreferencesContextProvider>
-          <ContextReducerProvider context={CurationContext}>
-            <ContextReducerProvider context={ProgressContext}>
-              <ConnectedRouter history={history}>
-                <ConnectedApp />
-              </ConnectedRouter>
-            </ContextReducerProvider>
+    <Provider store={store}>
+      <PreferencesContextProvider>
+        <ContextReducerProvider context={CurationContext}>
+          <ContextReducerProvider context={ProgressContext}>
+            <ConnectedRouter history={history}>
+              {pageRender}
+            </ConnectedRouter>
           </ContextReducerProvider>
-        </PreferencesContextProvider>
-      </Provider>
-    ),
-    document.getElementById('root')
+        </ContextReducerProvider>
+      </PreferencesContextProvider>
+    </Provider>
+  ),
+  document.getElementById('root')
   );
-})();
+}
 
 function log(content: string): void {
   window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {

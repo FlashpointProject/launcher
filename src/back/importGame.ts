@@ -309,16 +309,17 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
       const dest = path.join(outFolder, content.filePath);
       // Ensure that the folders leading up to the file exists
       await fs.promises.mkdir(path.dirname(dest), { recursive: true });
+      if (yesToAll) {
+        // Yes to all, just copy the file and return
+        await copyOrMoveFile(source, dest, move, log);
+        return;
+      }
       await access(dest, fs.constants.F_OK)
       .then(async () => {
         // Ask to overwrite if file already exists
         const filesDifferent = !(await equalFileHashes(source, dest));
         // Only ask when files don't match
         if (filesDifferent) {
-          if (!yesToAll) {
-            await copyOrMoveFile(source, dest, move, log);
-            return;
-          }
           const newStats = await lstat(source);
           const currentStats = await lstat(dest);
           const response = await openDialog({

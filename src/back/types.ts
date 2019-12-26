@@ -15,6 +15,7 @@ import { GameManager } from './game/GameManager';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { UpgradeStage } from '../shared/upgrade/types'
 
 export type BackState = {
   isInit: boolean;
@@ -49,6 +50,8 @@ export type BackState = {
   playlistQueue: EventQueue;
   playlists: GamePlaylist[];
   execMappings: ExecMapping[];
+  setupFinished: boolean;
+  setupUpgrade: UpgradeStage | undefined
 }
 
 export type BackQueryChache = {

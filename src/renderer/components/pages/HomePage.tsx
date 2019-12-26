@@ -15,7 +15,7 @@ import { WithSearchProps } from '../../containers/withSearch';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { GameLauncher } from '../../GameLauncher';
 import { Paths } from '../../Paths';
-import { UpgradeStage } from '../../upgrade/types';
+import { UpgradeStage } from '../../../shared/upgrade/types';
 import { joinLibraryRoute } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { OpenIcon, OpenIconType } from '../OpenIcon';
@@ -172,6 +172,7 @@ export function HomePage(props: HomePageProps) {
               {updateStarted ? undefined :
                 <SimpleButton
                   value={strings.updateAvailable}
+                  className='simple-button simple-button--red'
                   onClick={() => {
                     if (props.updateInfo) {
                       const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
@@ -379,7 +380,7 @@ function renderStageButton(strings: LangContainer['home'], stage: UpgradeStage, 
             <p>{stageState.installProgressNote}</p>
           ) : (
             <a
-              className='simple-button'
+              className={'simple-button ' + (stageState.alreadyInstalled ? 'simple-button--red' : '')}
               onClick={() => { onDownload(stage); }}>
               {stageState.alreadyInstalled ? strings.update : strings.download}
             </a>

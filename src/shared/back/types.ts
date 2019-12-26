@@ -1,8 +1,9 @@
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
+import { UpgradeStage } from '../upgrade/types';
 import { IAppConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditCuration, EditCurationMeta, EditAddAppCurationMeta } from '../curate/types';
+import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
-import { GamePlaylist, IService, ProcessAction, ExecMapping, GamePropSuggestions } from '../interfaces';
+import { ExecMapping, GamePlaylist, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
@@ -35,7 +36,12 @@ export enum BackIn {
   IMPORT_CURATION,
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
+  CHECK_SETUP,
+  SETUP_UPGRADE,
+  FINISH_SETUP,
   QUIT,
+  /** Fetches just the language data */
+  GET_LANGUAGE_DATA,
   /** Get all library names. */
   GET_LIBRARIES,
   /** Get a page of a browse view. */
@@ -70,6 +76,8 @@ export enum BackOut {
   PLAYLIST_UPDATE,
   PLAYLIST_REMOVE,
   IMPORT_CURATION_RESPONSE,
+  CHECK_SETUP,
+  SETUP_UPGRADE,
   QUIT,
 }
 
@@ -345,3 +353,9 @@ export type LaunchCurationAddAppData = {
   curation: EditAddAppCuration;
   platform?: string;
 }
+
+export type CheckSetupData = boolean;
+
+export type SetupUpgradeData = UpgradeStage | undefined;
+
+export type GetLanguageData = LangContainer;

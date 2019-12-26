@@ -6,11 +6,11 @@ import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
-import { AddLogData, BackIn } from '../../shared/back/types';
-import { indexContentFolder } from '../../shared/curate/util';
-import { curationLog } from '../curate/util';
+import { AddLogData, BackIn } from '../back/types';
+import { indexContentFolder } from '../curate/util';
+import { curationLog } from '../../renderer/curate/util';
 import { UpgradeStage } from '../upgrade/types';
-import { pathTo7z } from './SevenZip';
+import { pathTo7z } from '../../renderer/util/SevenZip';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 

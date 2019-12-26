@@ -363,7 +363,20 @@ const langTemplate = {
     'pickAnotherFolder',
     'restartNow',
     'restartToApplyUpgrade',
+    'selectInstallDirectory',
     'areYouSure'
+  ] as const,
+  setup: [
+    'title',
+    'additionalDataRequired',
+    'selectInstallPath',
+    'flashpointPath',
+    'existingFolderAllowed',
+    'warnExistingInstall',
+    'warnInvalidPath',
+    'startFlashpoint',
+    'warnNotEmpty',
+    'install'
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

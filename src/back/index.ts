@@ -7,7 +7,7 @@ import * as http from 'http';
 import * as path from 'path';
 import * as util from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse, GetLanguageData } from '../shared/back/types';
 import { ConfigFile } from '../shared/config/ConfigFile';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
@@ -38,6 +38,7 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { getContentType, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
+import { UpgradeFile } from '../shared/upgrade/UpgradeFile';
 
 // @TODO
 // * Make the back generate and send suggestions to the renderer
@@ -92,6 +93,8 @@ const state: BackState = {
   playlistQueue: new EventQueue(),
   playlists: [],
   execMappings: [],
+  setupFinished: createErrorProxy('setupFinished'),
+  setupUpgrade: createErrorProxy('setupUpgrade')
 };
 
 const preferencesFilename = 'preferences.json';
@@ -112,6 +115,17 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
 
+  console.log('YESY');
+
+  // Check setup state - Find setupFinished file in config folder
+  const setupFile = path.join(state.configFolder, 'setupFinished');
+  try {
+    await fs.promises.access(setupFile, fs.constants.F_OK);
+    state.setupFinished = true;
+  } catch {
+    state.setupFinished = false;
+  }
+
   // Read configs & preferences
   const [pref, conf] = await (Promise.all([
     PreferencesFile.readOrCreateFile(path.join(state.configFolder, preferencesFilename)),
@@ -119,6 +133,27 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   ]));
   state.preferences = pref;
   state.config = conf;
+
+  // Read launcher folder upgrade for setup
+  const folderPath = content.isDev
+        ? process.cwd()
+        : state.exePath;
+  try {
+    const baseUpgrades = await UpgradeFile.readFile(folderPath, (err) => { 
+      log({
+        source: 'Back',
+        content: err
+      }) 
+    });
+    if (baseUpgrades[0]) {
+      state.setupUpgrade = baseUpgrades[0];
+    } else {
+      state.setupUpgrade = undefined;
+    }
+  } catch {
+    state.setupUpgrade = undefined;
+  }
+
 
   // Init services
   try {
@@ -611,6 +646,20 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           preferences: state.preferences,
           config: state.config,
         },
+      });
+    } break;
+
+    case BackIn.GET_LANGUAGE_DATA: {
+      state.languageContainer = createContainer(
+        state.preferences.currentLanguage,
+        state.localeCode,
+        state.preferences.fallbackLanguage
+      );
+
+      respond<GetLanguageData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: state.languageContainer
       });
     } break;
 
@@ -1352,6 +1401,38 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.GENERIC_RESPONSE,
         data: undefined,
       });
+    } break;
+
+    case BackIn.CHECK_SETUP: {
+      console.log('checking setup');
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: state.setupFinished
+      })
+    }
+
+    case BackIn.SETUP_UPGRADE: {
+      console.log('checking upgrade');
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: state.setupUpgrade
+      })
+    } break;
+
+    case BackIn.FINISH_SETUP: {
+      console.log('finishing setup');
+      if (!state.setupFinished) {
+        const setupFile = path.join(state.configFolder, 'setupFinished');
+        fs.open(setupFile, 'w', (err, fd) => {});
+        state.setupFinished = true;
+      }
+
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE
+      })
     } break;
 
     case BackIn.QUIT: {

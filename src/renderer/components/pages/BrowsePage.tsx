@@ -504,8 +504,8 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           if (index >= 0) {
             const games = [ ...playlist.games ];
             games.splice(index, 1);
-
             window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, {
+              prevFilename: playlist.filename,
               playlist: {
                 ...playlist,
                 games: games,

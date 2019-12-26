@@ -18,7 +18,7 @@ import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { CreditsData } from './credits/types';
 import { GAMES } from './interfaces';
 import { Paths } from './Paths';
-import { UpgradeStage } from './upgrade/types';
+import { UpgradeStage } from '../shared/upgrade/types';
 
 export type AppRouterProps = {
   games: GAMES | undefined;

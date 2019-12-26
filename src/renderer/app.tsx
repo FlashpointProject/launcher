@@ -9,7 +9,7 @@ import * as AppConstants from '../shared/AppConstants';
 import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, GetSuggestionsResponseData, LocaleUpdateData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
-import { GamePlaylist, GamePropSuggestions, ProcessState, WindowIPC } from '../shared/interfaces';
+import { GamePlaylist, GamePropSuggestions, ProcessState, WindowIPC, UpgradeStageState } from '../shared/interfaces';
 import { LangContainer, LangFile } from '../shared/lang';
 import { getLibraryItemTitle } from '../shared/library/util';
 import { memoizeOne } from '../shared/memoize';
@@ -28,15 +28,15 @@ import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
-import { GAMES, UpgradeStageState } from './interfaces';
+import { GAMES } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
-import { UpgradeStage } from './upgrade/types';
-import { UpgradeFile } from './upgrade/UpgradeFile';
+import { UpgradeFile } from '../shared/upgrade/UpgradeFile';
 import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
-import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
+import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from '../shared/utils/upgrade';
+import { UpgradeStage } from '../shared/upgrade/types' 
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -487,21 +487,6 @@ export class App extends React.Component<AppProps, AppState> {
         upgrades: allData,
         upgradesDoneLoading: true,
       });
-      const isValid = await isFlashpointValidCheck(window.External.config.data.flashpointPath);
-      // Notify of downloading initial data (if available)
-      if (!isValid && allData.length > 0) {
-        remote.dialog.showMessageBox({
-          type: 'info',
-          title: strings.dialog.dataRequired,
-          message: strings.dialog.dataRequiredDesc,
-          buttons: [strings.misc.yes, strings.misc.no]
-        })
-        .then((res) => {
-          if (res.response === 0) {
-            this.onDownloadUpgradeClick(allData[0], strings);
-          }
-        });
-      }
       // Do existance checks on all upgrades
       await Promise.all(allData.map(async upgrade => {
         const baseFolder = fullFlashpointPath;
@@ -894,7 +879,7 @@ export class App extends React.Component<AppProps, AppState> {
           // Save playlist
           const newPlaylist = deepCopy(playlist); // @PERF This should only copy the objects that are modified instead of the whole thing
           newPlaylist.games[entryIndex].notes = playlistNotes;
-          window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, { playlist: newPlaylist });
+          window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, { prevFilename: newPlaylist.filename, playlist: newPlaylist });
         }
       }
     }
@@ -935,7 +920,7 @@ export class App extends React.Component<AppProps, AppState> {
           limit: (pageMax - pageMin + 1) * VIEW_PAGE_SIZE,
           query: {
             extreme: view.query.extreme,
-            broken: false, // @TODO Add an option for this or something
+            broken: window.External.config.data.showBrokenGames,
             library: library,
             search: view.query.search,
             playlistId: view && view.selectedPlaylistId,
@@ -977,7 +962,7 @@ export class App extends React.Component<AppProps, AppState> {
       search: search,
       query: {
         extreme: this.props.preferencesData.browsePageShowExtreme,
-        broken: false, // @TODO Add an option for this or something
+        broken: window.External.config.data.showBrokenGames,
         library: library,
         search: this.props.search.text, // view.query.search,
         playlistId: view && view.selectedPlaylistId,
