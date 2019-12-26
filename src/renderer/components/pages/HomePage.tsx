@@ -5,7 +5,6 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { ARCADE, THEATRE } from '../../../shared/constants';
 import { wrapSearchTerm } from '../../../shared/game/GameFilter';
-import { IGameInfo } from '../../../shared/game/interfaces';
 import { GamePlaylist } from '../../../shared/interfaces';
 import { LangContainer } from '../../../shared/lang';
 import { getUpgradeString } from '../../../shared/upgrade/util';
@@ -42,12 +41,7 @@ type OwnProps = {
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
 
-export interface HomePage {
-  context: LangContainer;
-}
-
 const updateProgressKey = 'home-page__update-progress';
-export const homePageProgressKey = 'home-page__upgrade-progress';
 
 export function HomePage(props: HomePageProps) {
   const { onDownloadUpgradeClick } = props;
@@ -59,7 +53,6 @@ export function HomePage(props: HomePageProps) {
   const strings = allStrings.home;
 
   const upgradeStages = props.upgrades;
-  const { showBrokenGames } = window.External.config.data;
 
   /** Whether the Update Available button has been pressed */
   const [updateStarted, setUpdateStarted] = React.useState(false);
@@ -141,20 +134,18 @@ export function HomePage(props: HomePageProps) {
   const updateProgressComponent = React.useMemo(() => {
     const progressArray = progressState[updateProgressKey];
     if (progressArray) {
-      return progressArray.map((data, index) => {
-        return (
-          <AutoProgressComponent
-            key={index}
-            progressData={data}
-            wrapperClass={'home-page__progress-wrapper'} />
-        );
-      });
+      return progressArray.map((data, index) => (
+        <AutoProgressComponent
+          key={index}
+          progressData={data}
+          wrapperClass={'home-page__progress-wrapper'} />
+      ));
     }
   }, [progressState[updateProgressKey]]);
 
-  /** Render for each box */
+  // -- Render the boxes --
 
-  const renderUpdate = React.useMemo(() => {
+  const renderedUpdates = React.useMemo(() => {
     if (window.External.misc.installed) {
       return (
         <div className='home-page__box'>
@@ -164,9 +155,7 @@ export function HomePage(props: HomePageProps) {
             <br/>
             { props.updateInfo !== undefined ?
             <>
-              <p>
-                {strings.nextVersion} - {props.updateInfo.version}
-              </p>
+              <p>{strings.nextVersion} - {props.updateInfo.version}</p>
               { updateStarted ? undefined :
                 <SimpleButton
                   value={strings.updateAvailable}
@@ -202,7 +191,7 @@ export function HomePage(props: HomePageProps) {
     }
   }, [strings, props.autoUpdater, props.updateInfo, updateStarted, setUpdateStarted, updateProgressComponent]);
 
-  const renderQuickStart = React.useMemo(() => (
+  const renderedQuickStart = React.useMemo(() => (
     <div className='home-page__box'>
       <div className='home-page__box-head'>{strings.quickStartHeader}</div>
       <ul className='home-page__box-body'>
@@ -225,7 +214,7 @@ export function HomePage(props: HomePageProps) {
     </div>
   ), [strings, onHallOfFameClick, onAllGamesClick, onAllAnimationsClick, onHelpClick]);
 
-  const renderExtras = React.useMemo(() => (
+  const renderedExtras = React.useMemo(() => (
     <div className='home-page__box home-page__box--extras'>
       <div className='home-page__box-head'>{strings.extrasHeader}</div>
       <ul className='home-page__box-body'>
@@ -262,7 +251,7 @@ export function HomePage(props: HomePageProps) {
     </div>
   ), [strings, onFavoriteClick, platformList]);
 
-  const renderUpgrades = React.useMemo(() => {
+  const renderedUpgrades = React.useMemo(() => {
     if (upgradeStages.length > 0) {
       const renderedStages: JSX.Element[] = [];
       for (let i = 0; i < upgradeStages.length; i++) {
@@ -288,7 +277,7 @@ export function HomePage(props: HomePageProps) {
     }
   }, [allStrings, upgradeStages, onDownloadUpgradeClick]);
 
-  const renderNotes = React.useMemo(() =>
+  const renderedNotes = React.useMemo(() => (
     <div className='home-page__box'>
       <div className='home-page__box-head'>{strings.notesHeader}</div>
       <ul className='home-page__box-body'>
@@ -297,9 +286,9 @@ export function HomePage(props: HomePageProps) {
         </QuickStartItem>
       </ul>
     </div>
-  , [strings]);
+  ), [strings]);
 
-  const renderRandomGames = React.useMemo(() => (
+  const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
       <div className='home-page__random-games'>
         <div className='home-page__random-games__inner'>
@@ -310,6 +299,7 @@ export function HomePage(props: HomePageProps) {
     </SizeProvider>
   ), [strings, onLaunchGame]);
 
+  // Render
   return React.useMemo(() => (
     <div className='home-page simple-scroll'>
       <div className='home-page__inner'>
@@ -320,20 +310,20 @@ export function HomePage(props: HomePageProps) {
             style={{ animationDelay: logoDelay }} />
         </div>
         {/* Updates */}
-        { renderUpdate }
+        { renderedUpdates }
         {/* Quick Start */}
-        { renderQuickStart }
+        { renderedQuickStart }
         {/* Upgrades */}
-        { renderUpgrades }
+        { renderedUpgrades }
         {/* Extras */}
-        { renderExtras }
+        { renderedExtras }
         {/* Notes */}
-        { renderNotes }
+        { renderedNotes }
         {/* Random Games */}
-        { renderRandomGames }
+        { renderedRandomGames }
       </div>
     </div>
-  ), [renderUpdate, renderQuickStart, renderUpgrades, renderExtras, renderNotes, renderRandomGames]);
+  ), [renderedUpdates, renderedQuickStart, renderedUpgrades, renderedExtras, renderedNotes, renderedRandomGames]);
 }
 
 function QuickStartItem(props: { icon?: OpenIconType, className?: string, children?: React.ReactNode }): JSX.Element {
