@@ -32,6 +32,7 @@ export class SharedSocket extends EventEmitter {
 
   private onError = (event: Event): void => {
     console.log('SharedSocket Error:', event);
+    this.reconnect();
   }
 
   private onClose = (event: CloseEvent): void => {
@@ -74,6 +75,12 @@ export class SharedSocket extends EventEmitter {
   /** Open a new socket and try to connect again. */
   private reconnect(): void {
     console.log('Reconnecting...');
+    // Disconnect
+    if (this.socket) {
+      this.socket.close();
+      this.socket = undefined;
+    }
+    // Connect
     SharedSocket.connect(this.url, this.secret)
     .then(socket => { window.External.back.setSocket(socket); })
     .catch(error => {
