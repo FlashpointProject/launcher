@@ -1080,7 +1080,7 @@ async function onMessage(event: WebSocket.MessageEvent, req: WrappedRequest<any>
         } catch (e) {
           log({
             source: 'Launcher',
-            content: e,
+            content: e + '',
           });
         }
       }
@@ -1362,7 +1362,7 @@ async function onMessage(event: WebSocket.MessageEvent, req: WrappedRequest<any>
       } catch (e) {
         log({
           source: 'Launcher',
-          content: e,
+          content: e + '',
         });
       }
 
@@ -1389,7 +1389,7 @@ async function onMessage(event: WebSocket.MessageEvent, req: WrappedRequest<any>
       } catch (e) {
         log({
           source: 'Launcher',
-          content: e,
+          content: e + '',
         });
       }
 
