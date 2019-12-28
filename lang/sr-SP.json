@@ -71,31 +71,31 @@
     "randomPicks": "Random Picks"
   },
   "logs": {
-    "filters": "Filters",
-    "copyText": "Copy Text",
-    "clearLog": "Clear Log"
+    "filters": "Филтери",
+    "copyText": "Копирај текст",
+    "clearLog": "Очисти евиденцију"
   },
   "app": {
-    "home": "Home",
-    "browse": "Browse",
+    "home": "Почетак",
+    "browse": "Тражи",
     "logs": "Logs",
-    "config": "Config",
-    "about": "About",
+    "config": "Подешавање",
+    "about": "О програму",
     "curate": "Curate",
-    "developer": "Developer",
-    "searchPlaceholder": "Search...",
+    "developer": "Програмер",
+    "searchPlaceholder": "Претражи...",
     "hideRightSidebar": "Hide right sidebar",
     "showRightSidebar": "Show right sidebar",
     "hideLeftSidebar": "Hide left sidebar",
     "showLeftSidebar": "Show left sidebar",
-    "total": "Total",
-    "newGame": "New Game",
-    "list": "List",
-    "grid": "Grid",
-    "searchResults": "Search Results"
+    "total": "Укупно",
+    "newGame": "Нова игра",
+    "list": "Листа",
+    "grid": "Решетка",
+    "searchResults": "Резултати претраге"
   },
   "filter": {
-    "dateAdded": "Date Added",
+    "dateAdded": "Датум додавања",
     "tags": "Tags",
     "platform": "Platform",
     "series": "Series",
