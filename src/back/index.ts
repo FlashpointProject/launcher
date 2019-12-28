@@ -24,6 +24,7 @@ import { PreferencesFile } from '../shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
 import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '../shared/ThemeFile';
 import { createErrorProxy, deepCopy, isErrorProxy, recursiveReplace, removeFileExtension, stringifyArray } from '../shared/Util';
+import { Coerce } from '../shared/utils/Coerce';
 import { loadExecMappingsFile } from './Execs';
 import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
@@ -38,10 +39,6 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { copyError, getContentType, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
-
-// @TODO
-// * Make the back generate and send suggestions to the renderer
-//
 
 const copyFile  = util.promisify(fs.copyFile);
 const readFile  = util.promisify(fs.readFile);
@@ -586,7 +583,11 @@ function onConnect(this: WebSocket, socket: WebSocket, request: http.IncomingMes
 }
 
 async function onMessageWrap(event: WebSocket.MessageEvent) {
-  const req: WrappedRequest = JSON.parse(event.data.toString()); // (Kinda wasteful to parse it twice)
+  const [req, error] = parseWrappedRequest(event.data);
+  if (error || !req) {
+    console.error('Failed to parse incoming WebSocket request (see error below):\n', error);
+    return;
+  }
 
   // Responses are handled instantly - requests and handled in queue
   // (The back could otherwise "soft lock" if it makes a request to the renderer while it is itself handling a request)
@@ -598,15 +599,14 @@ async function onMessageWrap(event: WebSocket.MessageEvent) {
       state.isHandling = true;
       while (state.messageQueue.length > 0) {
         const message = state.messageQueue.shift();
-        if (message) { await onMessage(message); }
+        if (message) { await onMessage(message, req); }
       }
       state.isHandling = false;
     }
   }
 }
 
-async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
-  const req: WrappedRequest = JSON.parse(event.data.toString());
+async function onMessage(event: WebSocket.MessageEvent, req: WrappedRequest<any>): Promise<void> {
   // console.log('IN', req);
 
   state.messageEmitter.emit(req.id, req);
@@ -1881,4 +1881,44 @@ function allGames(): IGameInfo[] {
     Array.prototype.push.apply(games, platforms[i].collection.games);
   }
   return games;
+}
+
+function parseWrappedRequest(data: string | Buffer | ArrayBuffer | Buffer[]): [WrappedRequest<any>, undefined] | [undefined, Error] {
+  // Parse data into string
+  let str: string | undefined;
+  if (typeof data === 'string') { // String
+    str = data;
+  } else if (typeof data === 'object') {
+    if (Buffer.isBuffer(data)) { // Buffer
+      str = data.toString();
+    } else if (Array.isArray(data)) { // Buffer[]
+      str = Buffer.concat(data).toString();
+    } else { // ArrayBuffer
+      str = Buffer.from(data).toString();
+    }
+  }
+
+  if (typeof str !== 'string') {
+    return [undefined, new Error('Failed to parse WrappedRequest. Failed to convert "data" into a string.')];
+  }
+
+  // Parse data string into object
+  let json: Record<string, any>;
+  try {
+    json = JSON.parse(str);
+  } catch (error) {
+    if (typeof error === 'object' && 'message' in error) {
+      error.message = 'Failed to parse WrappedRequest. Failed to convert "data" into an object.\n' + Coerce.str(error.message);
+    }
+    return [undefined, error];
+  }
+
+  // Create result (and ensure the types except for data)
+  const result: WrappedRequest<any> = {
+    id: Coerce.str(json.id),
+    type: Coerce.num(json.type),
+    data: json.data, // @TODO The types of the data should also be enforced somehow (probably really annoying to get right)
+  };
+
+  return [result, undefined];
 }
