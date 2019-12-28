@@ -13,6 +13,16 @@ export class SharedSocket extends EventEmitter {
   secret: string = '';
   socket: WebSocket | undefined;
 
+  constructor() {
+    super();
+    // Reconnect if disconnected (at an interval)
+    setInterval(() => {
+      if (this.url && (!this.socket || this.socket.readyState === WebSocket.CLOSED)) {
+        this.reconnect();
+      }
+    }, 500);
+  }
+
   setSocket(socket: WebSocket): void {
     this.socket = socket;
     this.socket.onmessage = this.onMessage;
