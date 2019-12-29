@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import * as fs from 'fs';
+import { copy } from 'fs-extra';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as YAML from 'yaml';
@@ -286,7 +287,7 @@ async function linkContentFolder(curationKey: string, fpPath: string) {
           } else {
             console.log('Copying...');
             try {
-              await copyFile(contentPath, htdocsContentPath);
+              await copy(contentPath, htdocsContentPath);
               console.log('Copied!');
               resolve();
             } catch (error) {
@@ -298,7 +299,7 @@ async function linkContentFolder(curationKey: string, fpPath: string) {
       });
     } else {
       console.log('Copying...');
-      await copyFile(contentPath, htdocsContentPath);
+      await copy(contentPath, htdocsContentPath);
       console.log('Copied!');
     }
   }
