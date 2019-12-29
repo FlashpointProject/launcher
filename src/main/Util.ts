@@ -28,25 +28,3 @@ export const isDev: boolean = (function() {
   const isEnvSet = 'ELECTRON_IS_DEV' in process.env;
   return isEnvSet ? getFromEnv : (process.defaultApp || /node_modules[\\/]electron[\\/]/.test(process.execPath));
 }());
-
-/** Wait until electron app is ready (doesn't wait if already ready) */
-export function waitUntilReady(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (app.isReady()) {
-      resolve();
-    } else {
-      app.once('ready', () => { resolve(); });
-    }
-  });
-}
-
-/** Get the path where the config and preference files should be located if this application is installed. */
-export function getInstalledConfigsPath() {
-  return path.join(app.getPath('appData'), 'flashpoint-launcher');
-}
-
-export function getConfigFolderPath(installed: boolean): string {
-  return (installed)
-    ? path.join(getInstalledConfigsPath())
-    : process.cwd();
-}

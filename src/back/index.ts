@@ -474,7 +474,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
       if (port++ < state.config.backPortMax) {
         server = new WebSocket.Server({
-          host: 'localhost',
+          host: content.isRemote ? undefined : 'localhost',
           port: port,
         });
         server.on('error', onError);

@@ -1,6 +1,6 @@
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
-import { app, BrowserWindow, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as WebSocket from 'ws';
@@ -10,7 +10,18 @@ import { APP_TITLE } from '../shared/constants';
 import { IMiscData, MiscIPC, WindowIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
+import { Coerce } from '../shared/utils/Coerce';
 import * as Util from './Util';
+import { promisify } from 'util';
+
+const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
+
+type InitArgs = Partial<typeof InitArgsTemplate>;
+const InitArgsTemplate = {
+  'connect-remote': '',
+  'host-remote': false,
+};
 
 type MainState = {
   window?: BrowserWindow;
@@ -27,12 +38,14 @@ type MainState = {
   _sentLocaleCode: boolean;
 }
 
+const initArgs = getArgs();
+
 const state: MainState = {
   window: undefined,
   _installed: undefined,
   /** The port that the back is listening on. */
   _backPort: -1,
-  _secret: randomBytes(2048).toString('hex'),
+  _secret: '',
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   _version: -2,
   preferences: undefined,
@@ -58,94 +71,128 @@ function main() {
 
   // ---- Initialize ----
   // Check if installed
-  exists('./.installed')
+  let p = exists('./.installed')
   .then(exists => { state._installed = exists; })
   // Load version number
   .then(() => new Promise(resolve => {
-    const folderPath = (Util.isDev)
-      ? process.cwd()
-      : path.dirname(app.getPath('exe'));
-    fs.readFile(path.join(folderPath, '.version'), (error, data) => {
+    fs.readFile(path.join(getMainFolderPath(), '.version'), (error, data) => {
       state._version = (data)
         ? parseInt(data.toString().replace(/[^\d]/g, ''), 10) // (Remove all non-numerical characters, then parse it as a string)
         : -1; // (Version not found error code)
       resolve();
     });
   }))
-  // Start back process
-  .then(() => new Promise((resolve, reject) => {
-    state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
-    // Wait for process to initialize
-    state.backProc.once('message', (port) => {
-      if (port >= 0) {
-        state._backPort = port;
-        resolve();
-      } else {
-        reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
+  // Load or generate secret
+  .then(async () => {
+    if (initArgs['connect-remote'] || initArgs['host-remote']) {
+      const secretFilePath = path.join(getMainFolderPath(), 'secret.txt');
+      try {
+        state._secret = await readFile(secretFilePath, { encoding: 'utf8' });
+      } catch (e) {
+        state._secret = randomBytes(2048).toString('hex');
+        try {
+          await writeFile(secretFilePath, state._secret, { encoding: 'utf8' });
+        } catch (e) {
+          console.warn(`Failed to save new secret to disk.\n${e}`);
+        }
       }
-    });
-    // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-    let localeCode: string = 'en';
-    if (process.platform === 'win32' && !app.isReady()) {
-      localeCode = 'en';
     } else {
-      localeCode = app.getLocale().toLowerCase();
-      state._sentLocaleCode = true;
+      state._secret = randomBytes(2048).toString('hex');
     }
-    // Send initialize message
-    const msg: BackInitArgs = {
-      configFolder: Util.getConfigFolderPath(!!state._installed),
-      secret: state._secret,
-      isDev: Util.isDev,
+  });
+  // Start back process
+  if (!initArgs['connect-remote']) {
+    p = p.then(() => new Promise((resolve, reject) => {
+      state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
+      // Wait for process to initialize
+      state.backProc.once('message', (port) => {
+        if (port >= 0) {
+          state._backPort = port;
+          resolve();
+        } else {
+          reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
+        }
+      });
       // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-      localeCode: localeCode,
-      exePath: path.dirname(app.getPath('exe')),
-    };
-    state.backProc.send(JSON.stringify(msg));
-  }))
-  // Connect to back process
-  .then<WebSocket>(() => new Promise((resolve, reject) => {
-    const url = new URL('ws://localhost');
-    url.host = 'localhost';
-    url.port = state._backPort+'';
-    const ws = new WebSocket(url.href);
-    ws.onclose = () => { reject(new Error('Failed to authenticate to the back.')); };
-    ws.onerror = (event) => { reject(event.error); };
-    ws.onopen  = () => {
-      ws.onmessage = () => {
-        ws.onclose = (event) => { console.log('socket closed', event.code, event.reason); };
-        ws.onerror = (event) => { console.log('socket error', event.error); };
-        resolve(ws);
+      let localeCode: string = 'en';
+      if (process.platform === 'win32' && !app.isReady()) {
+        localeCode = 'en';
+      } else {
+        localeCode = app.getLocale().toLowerCase();
+        state._sentLocaleCode = true;
+      }
+      // Send initialize message
+      const msg: BackInitArgs = {
+        configFolder: getMainFolderPath(),
+        secret: state._secret,
+        isDev: Util.isDev,
+        // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
+        localeCode: localeCode,
+        exePath: path.dirname(app.getPath('exe')),
+        isRemote: !!initArgs['host-remote'],
       };
-      ws.send(state._secret);
-    };
-  }))
-  // Send init message
-  .then(ws => new Promise((resolve, reject) => {
-    ws.onmessage = (event) => {
-      const res: WrappedResponse = JSON.parse(event.data.toString());
-      if (res.type === BackOut.GET_MAIN_INIT_DATA) {
-        const data: GetMainInitDataResponse = res.data;
-        state.preferences = data.preferences;
-        state.config = data.config;
-        state.socket = ws;
-        state.socket.onmessage = onMessage;
-        resolve();
-      }// else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[res.type]}".`)); }
-    };
-    const req: WrappedRequest = {
-      id: 'init',
-      type: BackIn.GET_MAIN_INIT_DATA,
-    };
-    ws.send(JSON.stringify(req));
-  }))
-  .then(() => {
-    // Create main window when ready
-    Util.waitUntilReady()
-    .then(() => { createMainWindow(); });
-  })
-  .catch((error) => {
+      state.backProc.send(JSON.stringify(msg));
+    }));
+  }
+  // Connect to back and start renderer
+  if (!initArgs['host-remote']) {
+    // Connect to back process
+    p = p.then<WebSocket>(() => new Promise((resolve, reject) => {
+      let url: URL;
+      if (initArgs['connect-remote']) {
+        url = new URL('ws://'+initArgs['connect-remote']);
+        state._backPort = parseInt(url.port, 10);
+      } else {
+        url = new URL('ws://localhost');
+        url.port = state._backPort+'';
+      }
+      const ws = new WebSocket(url.href);
+      ws.onclose = () => { reject(new Error('Failed to authenticate to the back.')); };
+      ws.onerror = (event) => { reject(event.error); };
+      ws.onopen  = () => {
+        ws.onmessage = () => {
+          ws.onclose = (event) => { console.log('socket closed', event.code, event.reason); };
+          ws.onerror = (event) => { console.log('socket error', event.error); };
+          resolve(ws);
+        };
+        ws.send(state._secret);
+      };
+    }))
+    // Send init message
+    .then(ws => new Promise((resolve, reject) => {
+      ws.onmessage = (event) => {
+        const res: WrappedResponse = JSON.parse(event.data.toString());
+        if (res.type === BackOut.GET_MAIN_INIT_DATA) {
+          const data: GetMainInitDataResponse = res.data;
+          state.preferences = data.preferences;
+          state.config = data.config;
+          state.socket = ws;
+          state.socket.onmessage = onMessage;
+          resolve();
+        }// else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[res.type]}".`)); }
+      };
+      const req: WrappedRequest = {
+        id: 'init',
+        type: BackIn.GET_MAIN_INIT_DATA,
+      };
+      ws.send(JSON.stringify(req));
+    }))
+    // Create main window
+    .then(() => {
+      app.whenReady()
+      .then(() => { createMainWindow(); });
+    });
+  }
+  // Catch errors
+  p.catch((error) => {
     console.error(error);
+    if (!Util.isDev) {
+      dialog.showMessageBoxSync({
+        title: 'Failed to start launcher!',
+        type: 'error',
+        message: 'Something went wrong while starting the launcher.\n\n' + error,
+      });
+    }
     app.quit();
   });
 }
@@ -192,8 +239,8 @@ function onAppReady(): void {
     let url: URL | undefined;
     try { url = new URL(details.url); }
     catch (e) { /* Do nothing. */ }
-    // Don't accept any connections other than to localhost
-    if (url && url.hostname === 'localhost') {
+    // Don't accept any connections other than to localhost or the remote back
+    if (url && (url.hostname === 'localhost' || (initArgs['connect-remote'] && url.hostname === initArgs['connect-remote']))) {
       callback({
         ...details.responseHeaders,
         responseHeaders: 'script-src \'self\'',
@@ -217,7 +264,7 @@ function onAppWindowAllClosed(): void {
 }
 
 function onAppWillQuit(event: Event): void {
-  if (state.socket) {
+  if (state.socket && !initArgs['connect-remote']) {
     event.preventDefault();
     sendReq<undefined>({
       id: '',
@@ -271,6 +318,14 @@ function exists(filePath: string): Promise<boolean> {
       else { resolve(stats.isFile()); }
     });
   });
+}
+
+function getMainFolderPath() {
+  return state._installed
+    ? path.join(app.getPath('appData'), 'flashpoint-launcher') // Installed
+    : Util.isDev
+      ? process.cwd() // Dev
+      : path.dirname(app.getPath('exe')); // Portable
 }
 
 function createMainWindow(): BrowserWindow {
@@ -346,4 +401,31 @@ function createMainWindow(): BrowserWindow {
 type BrowserWindowEvent = {
   preventDefault: () => void;
   sender: WebContents;
-};
+}
+
+function getArgs(): InitArgs {
+  const initArgs: InitArgs = {};
+
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    const eqIndex = arg.indexOf('=');
+    if (eqIndex >= 0) {
+      const name: keyof InitArgs | string = arg.substr(0, eqIndex);
+      const value = arg.substr(eqIndex + 1);
+      switch (name) {
+        // String value
+        case 'connect-remote':
+          initArgs[name] = value;
+          break;
+        // Boolean value
+        case 'host-remote':
+          initArgs[name] = Coerce.strToBool(value);
+          break;
+      }
+    }
+  }
+
+  console.log(initArgs); // @DEBUG
+  return initArgs;
+}
