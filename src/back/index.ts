@@ -139,11 +139,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         ? process.cwd()
         : state.exePath;
   try {
-    const baseUpgrades = await UpgradeFile.readFile(folderPath, (err) => { 
+    const baseUpgrades = await UpgradeFile.readFile(folderPath, (err) => {
       log({
         source: 'Back',
         content: err
-      }) 
+      });
     });
     if (baseUpgrades[0]) {
       state.setupUpgrade = baseUpgrades[0];
@@ -470,7 +470,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
 
   // Load Exec Mappings
-  loadExecMappingsFile(state.config.flashpointPath, content => log({ source: 'Launcher', content }))
+  loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log({ source: 'Launcher', content }))
   .then(data => {
     state.execMappings = data;
   })
@@ -1409,7 +1409,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
         data: state.setupFinished
-      })
+      });
     }
 
     case BackIn.SETUP_UPGRADE: {
@@ -1418,7 +1418,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
         data: state.setupUpgrade
-      })
+      });
     } break;
 
     case BackIn.FINISH_SETUP: {
@@ -1432,7 +1432,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       respond(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE
-      })
+      });
     } break;
 
     case BackIn.QUIT: {

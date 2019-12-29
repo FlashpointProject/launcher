@@ -59,8 +59,9 @@ export namespace GameLauncher {
       default:
         const appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
         const appArgs: string = opts.addApp.launchCommand;
+        const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
         const proc = launch(
-          createCommand(appPath, appArgs),
+          createCommand(appPath, appArgs, useWine),
           { env: getEnvironment(opts.fpPath) },
           opts.log
         );
@@ -106,7 +107,8 @@ export namespace GameLauncher {
     // Launch game
     const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
     const gameArgs: string = opts.game.launchCommand;
-    const command: string = createCommand(gamePath, gameArgs);
+    const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+    const command: string = createCommand(gamePath, gameArgs, useWine);
     const proc = launch(command, { env: getEnvironment(opts.fpPath) }, opts.log);
     opts.log({
       source: logSource,
@@ -180,19 +182,26 @@ export namespace GameLauncher {
     };
   }
 
-  function createCommand(filename: string, args: string): string {
+  function createCommand(filename: string, args: string, useWine: boolean): string {
     // Escape filename and args
     let escFilename: string = filename;
     let escArgs: string = args;
-    switch (process.platform) {
-      case 'win32':
-        escFilename = filename;
-        escArgs = escapeWin(args);
-        break;
-      case 'linux':
-        escFilename = filename;
-        escArgs = escapeLinuxArgs(args);
-        break;
+    // Use wine for any exe files (unless on Windows)
+    if (useWine) {
+      escFilename = 'wine';
+      escArgs = `start /unix "${filename}" ${escapeLinuxArgs(args)}`;
+    } else {
+      switch (process.platform) {
+        case 'win32':
+          escFilename = filename;
+          escArgs = escapeWin(args);
+          break;
+        case 'darwin':
+        case 'linux':
+          escFilename = filename;
+          escArgs = escapeLinuxArgs(args);
+          break;
+      }
     }
     // Return
     return `"${escFilename}" ${escArgs}`;
@@ -279,7 +288,13 @@ function splitQuotes(str: string): string[] {
  * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
  */
 function escapeLinuxArgs(str: string): string {
-  return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
+  return (
+    splitQuotes(str)
+    .reduce((acc, val, i) => acc + ((i % 2 === 0)
+      ? val.replace(/[~`#$&*()\\|[\]{};<>?!]/g, '\\$&')
+      : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
+    ), '')
+  );
 }
 
 type UnityOutputResponse = {

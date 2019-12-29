@@ -11,13 +11,12 @@ import { isFlashpointValidCheck } from '../../Util';
 import { TitleBar } from '../TitleBar';
 import { UpgradeStageState } from '../../../shared/interfaces';
 import { downloadAndInstallUpgrade } from '../../../shared/utils/upgrade';
+import { noop } from '@babel/types';
 
 type SetupPageProps = {
   /** Data and state for the setup upgrade */
   upgrade: UpgradeStage;
 };
-
-const updateProgressKey = 'setup-page__update-progress';
 
 export function SetupPage(props: SetupPageProps) {
   const [installPath, setInstallPath] = React.useState('');
@@ -101,10 +100,13 @@ export function SetupPage(props: SetupPageProps) {
     console.log(existingInstall);
     if (existingInstall) {
       // Don't install, just set path and restart
-      window.External.back.send<any>(BackIn.FINISH_SETUP, undefined); 
+      window.onbeforeunload = () => {};
+      window.External.back.send<any>(BackIn.FINISH_SETUP, undefined);
       window.External.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
         flashpointPath: installPath
       }, () => { window.External.restart(); });
+      // Return to prevent download from starting
+      return;
     }
     console.log('Starting Install');
     fs.mkdirSync(installPath, { recursive: true });
@@ -138,7 +140,7 @@ export function SetupPage(props: SetupPageProps) {
           isInstallationComplete: true,
         });
         window.onbeforeunload = () => {};
-        window.External.back.send<any>(BackIn.FINISH_SETUP, undefined); 
+        window.External.back.send<any>(BackIn.FINISH_SETUP, undefined);
         window.External.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
           flashpointPath: installPath
         }, () => { window.External.restart(); });
@@ -153,6 +155,17 @@ export function SetupPage(props: SetupPageProps) {
       .on('warn', console.warn);
     }
   }, [installPath, existingInstall]);
+
+  const warningStrs = React.useMemo(() => {
+    let warns = [];
+    // Existing warning
+    existingInstall ? warns.push(strings.setup.warnExistingInstall) : noop;
+    // Invalid warning (if path is given)
+    (!installPathValid && installPath != '') ? warns.push(strings.setup.warnInvalidPath) : noop;
+    // Not Empty warning (if not existing install)
+    (!installPathEmpty && !existingInstall) ? warns.push(strings.setup.warnNotEmpty) : noop;
+    return warns;
+  }, [existingInstall, installPathValid, installPathEmpty, installPath]);
 
   return React.useMemo(() => (
     <>
@@ -196,14 +209,9 @@ export function SetupPage(props: SetupPageProps) {
           </div>
         </div>
 
-        <p className='setting__title'>
-          { installPath === '' ? '' :
-              existingInstall ? strings.setup.warnExistingInstall :
-                !installPathValid ? strings.setup.warnInvalidPath :
-                  strings.setup.additionalDataRequired }
-          <br />
-          { installPathValid && !existingInstall && installPathEmpty ? strings.setup.warnNotEmpty : ''}
-        </p>
+        { warningStrs.map((warn, index) => (
+          <p className='setting__title' key={index}>{ warn }</p>
+        ))}
 
         { installPath != '' ?
           <div className='setup-page__buttons'>
@@ -220,7 +228,7 @@ export function SetupPage(props: SetupPageProps) {
       </div>
     </>
   ), [strings, installPath, installPathValid, stage, installing,
-      existingInstall, installPathEmpty]);
+      warningStrs]);
 }
 
 function setStageState(stage: UpgradeStage, setUpgradeStage: React.Dispatch<React.SetStateAction<UpgradeStage>>, data: Partial<UpgradeStageState>) {
@@ -233,31 +241,36 @@ async function isPathEmpty(installPath: string): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     fs.promises.access(installPath, fs.constants.F_OK)
     .then(() => {
-      // Folder doesn't exist, must be empty
-      resolve(true);
-    })
-    .catch((err) => {
       // Folder exists, check if empty
       fs.promises.readdir(installPath)
       .then((files) => resolve(!files.length))
-      .catch((err) => resolve(false))
+      .catch((err) => resolve(false));
     })
+    .catch((err) => {
+      // Folder doesn't exist, must be empty
+      resolve(true);
+    });
   });
 }
 
 async function isInstallPathValid(installPath: string): Promise<boolean> {
   // Check path exists
+  console.log(installPath);
   return await fs.lstat(installPath)
   .then((stats) => {
     if (stats.isDirectory()) {
       // Path exists, is dir, check if we have perms to write to it
       return canReadWrite(installPath);
     }
+    // Is file
     return false;
   })
   .catch((error) => {
-    // Path doesn't exist, just check validity
-    console.log(path.dirname(installPath));
-    return path.dirname(installPath) != '.';
+    // Path doesn't exist, try parent until we hit bottom dir
+    if (path.dirname(installPath) != '.') {
+      return isInstallPathValid(path.dirname(installPath));
+    } else {
+      return false;
+    }
   });
 }

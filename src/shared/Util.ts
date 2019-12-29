@@ -408,7 +408,7 @@ export function fixSlashes(str: string): string {
  */
 export function canReadWrite(folder: string): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
-    const testPath = path.join(folder, 'test');
+    const testPath = path.join(folder, '_fp_test_uiyh7655w878as_');
     fs.open(testPath, 'w', (err, fd) => {
       if (err) {
         resolve(false);
