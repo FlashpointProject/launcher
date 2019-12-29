@@ -36,8 +36,6 @@ export enum BackIn {
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
   QUIT,
-  /** Get all library names. */
-  GET_LIBRARIES,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   BROWSE_VIEW_INDEX,

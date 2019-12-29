@@ -731,14 +731,6 @@ async function onMessage(event: WebSocket.MessageEvent, req: WrappedRequest<any>
       });
     } break;
 
-    case BackIn.GET_LIBRARIES: {
-      respond<BrowseViewAllData>(event.target, {
-        id: req.id,
-        type: BackOut.GENERIC_RESPONSE,
-        data: { libraries: getLibraries() },
-      });
-    } break;
-
     case BackIn.LAUNCH_ADDAPP: {
       const reqData: LaunchAddAppData = req.data;
 
