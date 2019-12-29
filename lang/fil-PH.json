@@ -68,29 +68,29 @@
     "notes": "Huwag kalimutang basahin ang readme kapag ikaw ay may problema.",
     "linuxSupport": "May problema sa Linux? {0}",
     "linuxSupportLinkText": "Buksan ang FAQ",
-    "randomPicks": "Random Picks"
+    "randomPicks": "Random na mga Picks"
   },
   "logs": {
     "filters": "Filters",
-    "copyText": "Copy Text",
-    "clearLog": "Clear Log"
+    "copyText": "Kopyahin ang Text",
+    "clearLog": "Burahin ang Log"
   },
   "app": {
     "home": "Home",
-    "browse": "Browse",
-    "logs": "Logs",
+    "browse": "Hanapin",
+    "logs": "Mga Log",
     "config": "Config",
     "about": "About",
     "curate": "Curate",
     "developer": "Developer",
-    "searchPlaceholder": "Search...",
-    "hideRightSidebar": "Hide right sidebar",
-    "showRightSidebar": "Show right sidebar",
-    "hideLeftSidebar": "Hide left sidebar",
-    "showLeftSidebar": "Show left sidebar",
+    "searchPlaceholder": "Hanapin...",
+    "hideRightSidebar": "Itago ang right sidebar",
+    "showRightSidebar": "Ipakita ang right sidebar",
+    "hideLeftSidebar": "Itago ang left sidebar",
+    "showLeftSidebar": "Ibakita ang left sidebar",
     "total": "Total",
-    "newGame": "New Game",
-    "list": "List",
+    "newGame": "Bagong Laro",
+    "list": "Listahan",
     "grid": "Grid",
     "searchResults": "Search Results"
   },
