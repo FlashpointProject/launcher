@@ -241,7 +241,7 @@ export class App extends React.Component<AppProps, AppState> {
           for (let index of resData.done) {
             loaded[index] = true;
 
-            switch (parseInt(index+'')) { // (It is a string, even though TS thinks it is a number)
+            switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
               case BackInit.PLAYLISTS:
                 window.External.back.send<GetPlaylistResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
                   if (res.data) {

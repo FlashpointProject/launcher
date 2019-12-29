@@ -79,6 +79,13 @@ export class SharedSocket extends EventEmitter {
       if (callback) { this.once(request.id, callback); }
       // Send message
       this.socket.send(JSON.stringify(request));
+    } else {
+      console.warn(
+        'Failed to send message! ' +
+        this.socket
+          ? 'Socket is not open!'
+          : 'There is no socket!'
+        );
     }
   }
 

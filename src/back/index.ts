@@ -416,7 +416,6 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   fs.stat(playlistFolder, (error) => {
     if (!error) { state.playlistWatcher.watch(playlistFolder); }
     else {
-      log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
       if (error.code === 'ENOENT') {
         log({ source: 'Back', content: `Failed to watch playlist folder. Folder does not exist (Path: "${playlistFolder}")` });
       } else {
