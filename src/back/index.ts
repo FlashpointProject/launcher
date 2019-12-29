@@ -599,14 +599,20 @@ async function onMessageWrap(event: WebSocket.MessageEvent) {
       state.isHandling = true;
       while (state.messageQueue.length > 0) {
         const message = state.messageQueue.shift();
-        if (message) { await onMessage(message, req); }
+        if (message) { await onMessage(message); }
       }
       state.isHandling = false;
     }
   }
 }
 
-async function onMessage(event: WebSocket.MessageEvent, req: WrappedRequest<any>): Promise<void> {
+async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
+  const [req, error] = parseWrappedRequest(event.data);
+  if (error || !req) {
+    console.error('Failed to parse incoming WebSocket request (see error below):\n', error);
+    return;
+  }
+
   // console.log('IN', req);
 
   state.messageEmitter.emit(req.id, req);
