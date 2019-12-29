@@ -983,9 +983,17 @@ async function onMessage(event: WebSocket.MessageEvent, req: WrappedRequest<any>
     case BackIn.RANDOM_GAMES: {
       const reqData: RandomGamesData = req.data;
 
-      const allGames: IGameInfo[] = [];
+      let allGames: IGameInfo[] = [];
       for (let platform of state.gameManager.platforms) {
         Array.prototype.push.apply(allGames, platform.collection.games);
+      }
+
+      if (!reqData.extreme) {
+        allGames = allGames.filter(game => !game.extreme);
+      }
+
+      if (!reqData.broken) {
+        allGames = allGames.filter(game => !game.broken);
       }
 
       const pickedGames: IGameInfo[] = [];

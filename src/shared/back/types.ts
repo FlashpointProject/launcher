@@ -200,6 +200,8 @@ export type GetAllGamesResponseData = {
 
 export type RandomGamesData = {
   count: number;
+  broken: boolean;
+  extreme: boolean;
 }
 
 export type RandomGamesResponseData = IGameInfo[];

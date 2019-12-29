@@ -293,7 +293,10 @@ export function HomePage(props: HomePageProps) {
       <div className='home-page__random-games'>
         <div className='home-page__random-games__inner'>
           <p className='home-page__random-games__title'>{strings.randomPicks}</p>
-            <RandomGames onLaunchGame={onLaunchGame} />
+            <RandomGames
+              broken={window.External.config.data.showBrokenGames}
+              extreme={props.preferencesData.browsePageShowExtreme}
+              onLaunchGame={onLaunchGame} />
         </div>
       </div>
     </SizeProvider>

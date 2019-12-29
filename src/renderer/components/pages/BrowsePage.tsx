@@ -139,7 +139,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       this.setState({ isEditingGame: false });
     }
     // Deselect the current game ad add-apps if the game has been deselected (from outside this component most likely)
-    if (selectedGameId === undefined && (this.state.currentGame || this.state.currentAddApps)) {
+    if (selectedGameId === undefined && (this.state.currentGame || this.state.currentAddApps) && !this.state.isNewGame) {
       this.setState({
         currentGame: undefined,
         currentAddApps: undefined,
