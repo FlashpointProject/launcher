@@ -112,7 +112,7 @@
     "checkMissingImagesDesc": "Ilista lahat ng laro na walang thumbnail o screenshot",
     "checkGameIds": "Tingnan ang Game IDs",
     "checkGameIdsDesc": "Ilista lahat ng laro na may nadoble o maling IDs",
-    "checkGameTitles": "Check Game Titles",
+    "checkGameTitles": "Tingnan ang Game Titles",
     "checkGameTitlesDesc": "Ipakita lahat ng mga laro na nadoble sa iisang platform",
     "checkGameFields": "Tingnan ang Game Fields",
     "checkGameFieldsDesc": "Ipakita lahat ng mga laro na may walang nakasulat sa fields (fields na hindi dapat blanko)",
