@@ -92,26 +92,26 @@
     "newGame": "Bagong Laro",
     "list": "Listahan",
     "grid": "Grid",
-    "searchResults": "Search Results"
+    "searchResults": "Mga resulta sa paghahanap"
   },
   "filter": {
-    "dateAdded": "Date Added",
+    "dateAdded": "Petsa kung kailan idinagdag",
     "tags": "Tags",
     "platform": "Platform",
     "series": "Series",
     "title": "Title",
     "developer": "Developer",
     "publisher": "Publisher",
-    "ascending": "Ascending",
-    "descending": "Descending"
+    "ascending": "Ihanay pataas",
+    "descending": "Ihanay pababa"
   },
   "developer": {
     "developerHeader": "Developer",
-    "developerDesc": "This is where all the useful developer tools will go.",
-    "checkMissingImages": "Check Missing Images",
-    "checkMissingImagesDesc": "List all games without a thumbnail or screenshot",
-    "checkGameIds": "Check Game IDs",
-    "checkGameIdsDesc": "List all games with duplicate or invalid IDs",
+    "developerDesc": "Nandito lahat ng developer tools.",
+    "checkMissingImages": "Tingnan ang lahat ng Nawawalang Imahe",
+    "checkMissingImagesDesc": "Ilista lahat ng laro na walang thumbnail o screenshot",
+    "checkGameIds": "Tingnan ang Game IDs",
+    "checkGameIdsDesc": "Ilista lahat ng laro na may nadoble o maling IDs",
     "checkGameTitles": "Check Game Titles",
     "checkGameTitlesDesc": "Ipakita lahat ng mga laro na nadoble sa iisang platform",
     "checkGameFields": "Tingnan ang Game Fields",
