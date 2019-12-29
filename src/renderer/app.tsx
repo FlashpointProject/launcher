@@ -109,11 +109,35 @@ export type AppState = {
 export class App extends React.Component<AppProps, AppState> {
   constructor(props: AppProps) {
     super(props);
-    // Normal constructor stuff
+
     const preferencesData = this.props.preferencesData;
+    const order: GameOrderChangeEvent = {
+      orderBy: preferencesData.gamesOrderBy,
+      orderReverse: preferencesData.gamesOrder
+    };
+
+    // Prepare libraries and initial views
+    const libraries = Object.keys(window.External.initialPlatforms).sort();
+    const views: Record<string, View> = {};
+    for (let library of libraries) {
+      views[library] = {
+        dirtyCache: false,
+        games: {},
+        pages: {},
+        total: 0,
+        query: {
+          search: this.props.search.text,
+          extreme: this.props.preferencesData.browsePageShowExtreme,
+          orderBy: order.orderBy,
+          orderReverse: order.orderReverse,
+        }
+      };
+    }
+
+    // Set initial state
     this.state = {
-      views: {},
-      libraries: [],
+      views: views,
+      libraries: libraries,
       playlists: window.External.initialPlaylists || [],
       playlistIconCache: {},
       suggestions: {},
@@ -138,11 +162,9 @@ export class App extends React.Component<AppProps, AppState> {
       langList: window.External.initialLangList,
       wasNewGameClicked: false,
       updateInfo: undefined,
-      order: {
-        orderBy: preferencesData.gamesOrderBy,
-        orderReverse: preferencesData.gamesOrder
-      }
+      order,
     };
+
     // Initialize app
     this.init();
   }
@@ -209,35 +231,6 @@ export class App extends React.Component<AppProps, AppState> {
       this.setState({ loaded: nextLoaded });
     });
 
-    window.External.back.send<BrowseViewAllData>(BackIn.GET_LIBRARIES, undefined, res => {
-      if (!res.data) { throw new Error('no boring data wtf'); }
-      const libraries = res.data.libraries;
-
-      // Sort the libraries (so the order of the buttons in the header is predictable)
-      libraries.sort();
-
-      const views: Record<string, View> = {};
-      for (let library of libraries) {
-        views[library] = {
-          dirtyCache: false,
-          games: {},
-          pages: {},
-          total: 0,
-          query: {
-            search: this.props.search.text,
-            extreme: this.props.preferencesData.browsePageShowExtreme,
-            orderBy: this.state.order.orderBy,
-            orderReverse: this.state.order.orderReverse,
-          }
-        };
-      }
-
-      this.setState({
-        libraries,
-        views,
-      });
-    });
-
     window.External.back.on('message', res => {
       // console.log('IN', res);
       switch (res.type) {
@@ -248,7 +241,7 @@ export class App extends React.Component<AppProps, AppState> {
           for (let index of resData.done) {
             loaded[index] = true;
 
-            switch (parseInt(index+'')) { // (It is a string, even though TS thinks it is a number)
+            switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
               case BackInit.PLAYLISTS:
                 window.External.back.send<GetPlaylistResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
                   if (res.data) {

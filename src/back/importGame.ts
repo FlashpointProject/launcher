@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import * as fs from 'fs';
+import { copy } from 'fs-extra';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as YAML from 'yaml';
@@ -271,24 +272,34 @@ async function linkContentFolder(curationKey: string, fpPath: string) {
   if (fs.existsSync(contentPath)) {
     if (process.platform === 'win32') {
       // Use symlinks on windows if running as Admin - Much faster than copying
-      await new Promise((resolve) => {
-        exec('NET SESSION', async (err,so,se) => {
+      await new Promise((resolve, reject) => {
+        exec('NET SESSION', async (err, so, se) => {
           if (se.length === 0) {
             console.log('Linking...');
-            await symlink(contentPath, htdocsContentPath);
-            console.log('Linked!!');
-            resolve();
+            try {
+              await symlink(contentPath, htdocsContentPath);
+              console.log('Linked!!');
+              resolve();
+            } catch (error) {
+              console.log('Link failed!');
+              reject(error);
+            }
           } else {
             console.log('Copying...');
-            await copyFile(contentPath, htdocsContentPath);
-            console.log('Copied!');
-            resolve();
+            try {
+              await copy(contentPath, htdocsContentPath);
+              console.log('Copied!');
+              resolve();
+            } catch (error) {
+              console.log('Copy failed!');
+              reject(error);
+            }
           }
         });
       });
     } else {
       console.log('Copying...');
-      await copyFile(contentPath, htdocsContentPath);
+      await copy(contentPath, htdocsContentPath);
       console.log('Copied!');
     }
   }

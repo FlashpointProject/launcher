@@ -13,6 +13,16 @@ export class SharedSocket extends EventEmitter {
   secret: string = '';
   socket: WebSocket | undefined;
 
+  constructor() {
+    super();
+    // Reconnect if disconnected (at an interval)
+    setInterval(() => {
+      if (this.url && (!this.socket || this.socket.readyState === WebSocket.CLOSED)) {
+        this.reconnect();
+      }
+    }, 500);
+  }
+
   setSocket(socket: WebSocket): void {
     this.socket = socket;
     this.socket.onmessage = this.onMessage;
@@ -32,6 +42,7 @@ export class SharedSocket extends EventEmitter {
 
   private onError = (event: Event): void => {
     console.log('SharedSocket Error:', event);
+    this.reconnect();
   }
 
   private onClose = (event: CloseEvent): void => {
@@ -68,12 +79,25 @@ export class SharedSocket extends EventEmitter {
       if (callback) { this.once(request.id, callback); }
       // Send message
       this.socket.send(JSON.stringify(request));
+    } else {
+      console.warn(
+        'Failed to send message! ' +
+        this.socket
+          ? 'Socket is not open!'
+          : 'There is no socket!'
+        );
     }
   }
 
   /** Open a new socket and try to connect again. */
   private reconnect(): void {
     console.log('Reconnecting...');
+    // Disconnect
+    if (this.socket) {
+      this.socket.close();
+      this.socket = undefined;
+    }
+    // Connect
     SharedSocket.connect(this.url, this.secret)
     .then(socket => { window.External.back.setSocket(socket); })
     .catch(error => {

@@ -8,6 +8,8 @@ import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
 type RandomGamesProps = {
+  broken: boolean;
+  extreme: boolean;
   onLaunchGame: (gameId: string) => void;
 };
 
@@ -18,7 +20,11 @@ export function RandomGames(props: RandomGamesProps) {
   React.useEffect(() => {
     window.External.back.send<RandomGamesResponseData, RandomGamesData>(
       BackIn.RANDOM_GAMES,
-      { count: 6, },
+      {
+        count: 6,
+        broken: props.broken,
+        extreme: props.extreme,
+      },
       res => { if (res.data) { setGames(res.data); } }
     );
   }, []);
