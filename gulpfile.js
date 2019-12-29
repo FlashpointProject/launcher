@@ -4,10 +4,11 @@ const builder = require('electron-builder');
 const { Platform, archFromString } = require('electron-builder');
 const { exec } = require('child_process');
 
+const packageJson = JSON.parse(fs.readFileSync('./package.json'));
 const config = {
   buildVersion: Date.now().toString(),
   isRelease: process.env.NODE_ENV === 'production',
-  isStaticInstall: process.env.STATIC_INSTALL ? true : false,
+  isStaticInstall: packageJson.config.installed,
   static: {
     src: './static',
     dest: './build',
@@ -75,11 +76,9 @@ gulp.task('config-version', (done) => {
 /* ------ Pack ------ */
 
 gulp.task('pack', (done) => {
-  if (!fs.existsSync('.installed')) {
-    fs.createFileSync('.installed');
-  }
   const targets = createBuildTargets(process.env.PACK_PLATFORM, process.env.PACK_ARCH);
-  const publish = process.env.PUBLISH ? createPublishInfo() : [];
+  const publish = process.env.PUBLISH ? createPublishInfo() : []; // Uses Git repo for unpublished builds
+  const copyFiles = getCopyFiles();
   console.log(publish);
   builder.build({
     config: {
@@ -93,22 +92,8 @@ gulp.task('pack', (done) => {
         './build',
         './static'
       ],
-      extraFiles: [
-        { // Only copy 7zip execs for packed platform
-          from: './extern/7zip-bin',
-          to: './extern/7zip-bin',
-          filter: ['${os}/**/*']
-        },
-        './lang',
-        './licenses',
-        '.installed',
-        'upgrade.json',
-        {
-          from: './LICENSE',
-          to: './licenses/LICENSE'
-        }
-      ],
-      compression: 'store', // Only used if a compressed target (like 7z, nsis, dmg etc)
+      extraFiles: copyFiles, // Files to copy to the build folder
+      compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc)
       target: 'dir', // Keep unpacked versions of every pack
       asar: config.isRelease,
       publish: publish,
@@ -120,35 +105,6 @@ gulp.task('pack', (done) => {
       }
     },
     targets: targets
-    // // "afterCopy" in the docs:
-    // // "An array of functions to be called after your app directory has been copied to a temporary directory."
-    // afterCopy: [[
-    //   function(buildPath, electronVersion, platform, arch) {
-    //     // Save file to the temporary folder (that gets moved or packed into the release)
-    //     fs.writeFileSync(path.join(buildPath, 'package.json'), minifyPackage(fs.readFileSync('package.json')));
-    //     // Copy dependencies of the Node processes
-    //     const deps = ['ws', 'async-limiter'];
-    //     for (let dep of deps) {
-    //       const depPath = 'node_modules/'+dep;
-    //       const packagePath = path.join(buildPath, depPath, 'package.json');
-    //       fs.copySync(depPath, path.join(buildPath, depPath));
-    //       fs.writeFileSync(packagePath, minifyPackage(fs.readFileSync(packagePath)));
-    //     }
-    //     /** Copy only some fields (I'm not really sure which are required or serves any purpose - but these have been enough so far) */
-    //     function minifyPackage(package) {
-    //       const p = JSON.parse(package);
-    //       return JSON.stringify({
-    //         name: p.name,
-    //         version: p.version,
-    //         description: p.description,
-    //         main: p.main,
-    //         author: p.author,
-    //         license: p.license,
-    //         dependencies: p.dependencies
-    //       }, undefined, 2);
-    //     }
-    //   },
-    // ]],
   })
   .then(()         => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); })
@@ -181,6 +137,27 @@ function createBuildTargets(os, arch) {
     case 'linux':
       return Platform.LINUX.createTarget('appimage', archFromString(arch));
   }
+}
+
+function getCopyFiles() {
+  return [
+    { // Only copy 7zip execs for packed platform
+      from: './extern/7zip-bin',
+      to: './extern/7zip-bin',
+      filter: ['${os}/**/*']
+    },
+    './lang',
+    './licenses',
+    './.installed',
+    {
+      from: './LICENSE',
+      to: './licenses/LICENSE'
+    },
+    { // Copy the OS specific upgrade file
+      from: './upgrade/${os}.json',
+      to: './upgrade.json'
+    }
+  ];
 }
 
 function createPublishInfo() {
