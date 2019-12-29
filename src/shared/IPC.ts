@@ -3,6 +3,6 @@ export const InitRendererChannel = 'renderer-init';
 
 /** Message contents for the "initialze renderer" message. */
 export type InitRendererData = {
-  port: number;
+  host: string;
   secret: string;
 }

@@ -89,9 +89,8 @@ const onInit = (async () => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
   // Connect to the back
-  const url = `ws://localhost:${data.port}`;
-  const socket = await SharedSocket.connect(url, data.secret);
-  window.External.back.url = url;
+  const socket = await SharedSocket.connect(data.host, data.secret);
+  window.External.back.url = data.host;
   window.External.back.secret = data.secret;
   window.External.back.setSocket(socket);
 })()

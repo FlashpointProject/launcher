@@ -26,8 +26,7 @@ const InitArgsTemplate = {
 type MainState = {
   window?: BrowserWindow;
   _installed?: boolean;
-  /** The port that the back is listening on. */
-  _backPort: number;
+  backHost: URL;
   _secret: string;
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   _version: number;
@@ -43,8 +42,7 @@ const initArgs = getArgs();
 const state: MainState = {
   window: undefined,
   _installed: undefined,
-  /** The port that the back is listening on. */
-  _backPort: -1,
+  backHost: initArgs['connect-remote'] ? new URL('ws://'+initArgs['connect-remote']) : new URL('ws://localhost'),
   _secret: '',
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   _version: -2,
@@ -107,7 +105,7 @@ function main() {
       // Wait for process to initialize
       state.backProc.once('message', (port) => {
         if (port >= 0) {
-          state._backPort = port;
+          state.backHost.port = port;
           resolve();
         } else {
           reject(new Error('Failed to start server in back process. Perhaps because it could not find an available port.'));
@@ -138,15 +136,7 @@ function main() {
   if (!initArgs['host-remote']) {
     // Connect to back process
     p = p.then<WebSocket>(() => new Promise((resolve, reject) => {
-      let url: URL;
-      if (initArgs['connect-remote']) {
-        url = new URL('ws://'+initArgs['connect-remote']);
-        state._backPort = parseInt(url.port, 10);
-      } else {
-        url = new URL('ws://localhost');
-        url.port = state._backPort+'';
-      }
-      const ws = new WebSocket(url.href);
+      const ws = new WebSocket(state.backHost.href);
       ws.onclose = () => { reject(new Error('Failed to authenticate to the back.')); };
       ws.onerror = (event) => { reject(event.error); };
       ws.onopen  = () => {
@@ -240,7 +230,7 @@ function onAppReady(): void {
     try { url = new URL(details.url); }
     catch (e) { /* Do nothing. */ }
     // Don't accept any connections other than to localhost or the remote back
-    if (url && (url.hostname === 'localhost' || (initArgs['connect-remote'] && url.hostname === initArgs['connect-remote']))) {
+    if (url && url.hostname === state.backHost.hostname) {
       callback({
         ...details.responseHeaders,
         responseHeaders: 'script-src \'self\'',
@@ -299,7 +289,7 @@ function onRequestMisc(event: IpcMainEvent): void {
 
 function onInit(event: IpcMainEvent) {
   const data: InitRendererData = {
-    port: state._backPort,
+    host: state.backHost.href,
     secret: state._secret,
   };
   event.returnValue = data;
