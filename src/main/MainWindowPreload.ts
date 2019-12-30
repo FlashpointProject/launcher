@@ -72,6 +72,8 @@ window.External = {
 
   fileServerPort: -1,
 
+  backUrl: createErrorProxy('backUrl'),
+
   initialLang: createErrorProxy('initialLang'),
   initialLangList: createErrorProxy('initialLangList'),
   initialThemes: createErrorProxy('initialThemes'),
@@ -88,6 +90,8 @@ let isInitDone: boolean = false;
 const onInit = (async () => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
+  // Store value(s)
+  window.External.backUrl = new URL(data.host);
   // Connect to the back
   const socket = await SharedSocket.connect(data.host, data.secret);
   window.External.back.url = data.host;

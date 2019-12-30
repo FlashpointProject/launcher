@@ -118,7 +118,7 @@ export function getFileExtension(filename: string): string {
 }
 
 export function getGameImageURL(folderName: string, gameId: string): string {
-  return `http://localhost:${window.External.fileServerPort}/${folderName}/${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`;
+  return `http://${window.External.backUrl.hostname}:${window.External.fileServerPort}/${folderName}/${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`;
 }
 
 export function getGameImagePath(folderName: string, gameId: string): string {

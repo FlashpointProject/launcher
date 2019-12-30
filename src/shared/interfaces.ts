@@ -73,6 +73,9 @@ export interface IMainWindowExternal {
   /** Port of the back file server. */
   fileServerPort: number;
 
+  /** URL of the back websocket server. */
+  backUrl: URL;
+
   initialLang: LangContainer;
   initialLangList: LangFile[];
   initialThemes: Theme[];
