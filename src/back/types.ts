@@ -21,7 +21,7 @@ export type BackState = {
   isExit: boolean;
   server: WebSocket.Server;
   fileServer: Server;
-  imageServerPort: number;
+  fileServerPort: number;
   secret: string;
   preferences: IAppPreferencesData;
   config: IAppConfigData;

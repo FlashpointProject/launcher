@@ -122,7 +122,7 @@ export type GetMainInitDataResponse = {
 export type GetRendererInitDataResponse = {
   config: IAppConfigData;
   preferences: IAppPreferencesData;
-  imageServerPort: number;
+  fileServerPort: number;
   log: ILogEntry[];
   services: IService[];
   languages: LangFile[];

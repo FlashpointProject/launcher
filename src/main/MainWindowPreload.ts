@@ -70,7 +70,7 @@ window.External = {
 
   back: new SharedSocket(),
 
-  imageServerPort: -1,
+  fileServerPort: -1,
 
   initialLang: createErrorProxy('initialLang'),
   initialLangList: createErrorProxy('initialLangList'),
@@ -106,7 +106,7 @@ const onInit = (async () => {
         fullFlashpointPath: path.resolve(response.data.config.flashpointPath),
         fullJsonFolderPath: path.resolve(response.data.config.flashpointPath, response.data.config.jsonFolderPath),
       };
-      window.External.imageServerPort = response.data.imageServerPort;
+      window.External.fileServerPort = response.data.fileServerPort;
       window.External.log.entries = response.data.log;
       window.External.services = response.data.services;
       window.External.initialLang = response.data.language;
