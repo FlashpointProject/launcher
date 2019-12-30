@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { GridCellProps } from 'react-virtualized';
-import { getPlatformIconPath } from '../Util';
+import { getPlatformIconURL } from '../Util';
 
 export type GameGridItemProps = Partial<GridCellProps> & {
   id: string;
@@ -21,7 +21,7 @@ export function GameGridItem(props: GameGridItemProps) {
   const { id, title, platform, thumbnail, isDraggable, isSelected, isDragged, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
-    getPlatformIconPath(platform)
+    getPlatformIconURL(platform)
   ), [platform]);
   // Pick class names
   const className = React.useMemo(() => {

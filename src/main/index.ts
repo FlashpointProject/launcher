@@ -229,8 +229,12 @@ function onAppReady(): void {
     let url: URL | undefined;
     try { url = new URL(details.url); }
     catch (e) { /* Do nothing. */ }
-    // Don't accept any connections other than to localhost or the remote back
-    if (url && url.hostname === state.backHost.hostname) {
+    // Don't accept any connections other than to the back
+    const remoteHostname = state.backHost.hostname;
+    if (url && (
+        url.hostname === remoteHostname ||
+      ((url.hostname   === 'localhost' || url.hostname   === '127.0.0.1') && // Treat "localhost" and "127.0.0.1" as the same hostname
+       (remoteHostname === 'localhost' || remoteHostname === '127.0.0.1')))) {
       callback({
         ...details.responseHeaders,
         responseHeaders: 'script-src \'self\'',

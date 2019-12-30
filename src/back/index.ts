@@ -536,7 +536,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
     function tryListen() {
       if (port++ < maxPort) {
-        state.fileServer.listen(port, 'localhost');
+        state.fileServer.listen(port, content.isRemote ? undefined : 'localhost');
       } else {
         done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
       }
@@ -1460,7 +1460,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
 function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
   try {
-    let urlPath = req.url || '';
+    let urlPath = decodeURIComponent(req.url || '');
 
     // Remove the get parameters
     const qIndex = urlPath.indexOf('?');
@@ -1478,43 +1478,11 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
     if (index >= 0) {
       switch (urlPath.substr(0, index).toLowerCase()) {
         // Image folder
-        case LOGOS.toLowerCase():
-        case SCREENSHOTS.toLowerCase(): {
+        case 'images': {
           const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-          const filePath = path.join(imageFolder, urlPath);
+          const filePath = path.join(imageFolder, urlPath.substr(index + 1));
           if (filePath.startsWith(imageFolder)) {
-            switch (req.method) {
-              default: { res.end(); } break;
-
-              case 'GET': {
-                fs.readFile(filePath, (error, data) => {
-                  if (error) {
-                    res.writeHead(404);
-                    res.end();
-                  } else {
-                    res.writeHead(200, {
-                      'Content-Type': 'image/png',
-                      'Content-Length': data.length,
-                    });
-                    res.end(data);
-                  }
-                });
-              } break;
-
-              case 'HEAD': {
-                fs.stat(filePath, (error, stats) => {
-                  if (error || stats && !stats.isFile()) {
-                    res.writeHead(404);
-                  } else {
-                    res.writeHead(200, {
-                      'Content-Type': 'image/png',
-                      'Content-Length': stats.size,
-                    });
-                  }
-                  res.end();
-                });
-              } break;
-            }
+            respondWithImageFile(filePath);
           }
         } break;
 
@@ -1539,9 +1507,53 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
             });
           }
         } break;
+
+        // Logos folder
+        case 'logos': {
+          const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
+          const filePath = path.join(logoFolder, urlPath.substr(index + 1));
+          if (filePath.startsWith(logoFolder)) {
+            respondWithImageFile(filePath);
+          }
+        } break;
       }
     }
   } catch (error) { console.warn(error); }
+
+  function respondWithImageFile(filePath: string): void {
+    switch (req.method) {
+      default: { res.end(); } break;
+
+      case 'GET': {
+        fs.readFile(filePath, (error, data) => {
+          if (error) {
+            res.writeHead(404);
+            res.end();
+          } else {
+            res.writeHead(200, {
+              'Content-Type': 'image/png',
+              'Content-Length': data.length,
+            });
+            res.end(data);
+          }
+        });
+      } break;
+
+      case 'HEAD': {
+        fs.stat(filePath, (error, stats) => {
+          if (error || stats && !stats.isFile()) {
+            res.writeHead(404);
+          } else {
+            res.writeHead(200, {
+              'Content-Type': 'image/png',
+              'Content-Length': stats.size,
+            });
+          }
+          res.end();
+        });
+      } break;
+    }
+  }
 }
 
 function exit() {

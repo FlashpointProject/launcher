@@ -21,7 +21,7 @@ import { CurationContext } from '../../context/CurationContext';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { createCurationIndexImage, importCurationArchive, importCurationFolder, importCurationMeta } from '../../curate/importCuration';
 import { createCurationImage, curationLog, readCurationMeta, showWarningBox } from '../../curate/util';
-import { getPlatformIconPath } from '../../Util';
+import { getPlatformIconURL } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { uuid } from '../../util/uuid';
 import { CheckBox } from '../CheckBox';
@@ -688,7 +688,7 @@ export function CuratePage(props: CuratePageProps) {
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
     return state.curations.map((curation, index) => {
-      const platformIconPath = curation.meta.platform ? getPlatformIconPath(curation.meta.platform) : '';
+      const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform) : '';
       return (
         curation.delete ? undefined :
         <div
