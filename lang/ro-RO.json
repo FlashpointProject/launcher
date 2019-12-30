@@ -342,12 +342,12 @@
     "errorParsingPlatforms": "Nu s-au putut identifica platformele.",
     "errorParsingPlatformsMessage": "{0} eroare / erori au apărut la citirea fișierelor XML.\nVerificați fișierele de jurnal pentru detalii.",
     "dataRequired": "Additional Data Required",
-    "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
-    "upgradeWillInstallTo": "{0} will be installed to",
-    "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
-    "restartNow": "Restart Now?",
-    "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
-    "areYouSure": "Are you sure?"
+    "dataRequiredDesc": "Înainte de a putea folosi lansatorul trebuie să instalați actualizarea pe ecranul de pornire.\n\nDoriți să faceți asta acum?",
+    "upgradeWillInstallTo": "{0} va fi instalat în:",
+    "verifyPathSelection": "Actualizările viitoare se vor instala aici. Este corect?",
+    "restartNow": "Repornești Acum?",
+    "restartToApplyUpgrade": "Această actualizare nu va fi aplicată până când nu repornești programul. Dorești să faci asta acum?",
+    "areYouSure": "Ești sigur(ă)?"
   },
   "libraries": {
     "arcade": "Jocuri",
