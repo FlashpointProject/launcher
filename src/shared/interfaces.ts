@@ -70,8 +70,8 @@ export interface IMainWindowExternal {
   /** Socket to the back API. */
   back: SharedSocket;
 
-  /** Port of the image server. */
-  imageServerPort: number;
+  /** Port of the back file server. */
+  fileServerPort: number;
 
   initialLang: LangContainer;
   initialLangList: LangFile[];

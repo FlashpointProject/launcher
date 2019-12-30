@@ -57,7 +57,7 @@ const state: BackState = {
   isExit: false,
   server: createErrorProxy('server'),
   fileServer: new http.Server(onFileServerRequest),
-  imageServerPort: -1,
+  fileServerPort: -1,
   secret: createErrorProxy('secret'),
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
@@ -517,7 +517,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
 
   // Find the first available port in the range
-  state.imageServerPort = await new Promise(resolve => {
+  state.fileServerPort = await new Promise(resolve => {
     const minPort = state.config.imagesPortMin;
     const maxPort = state.config.imagesPortMax;
 
@@ -680,7 +680,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         data: {
           preferences: state.preferences,
           config: state.config,
-          imageServerPort: state.imageServerPort,
+          fileServerPort: state.fileServerPort,
           log: state.log,
           services: services,
           languages: state.languages,

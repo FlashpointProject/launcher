@@ -13,7 +13,7 @@ export function setTheme(entryPath: string | undefined): void {
     element.setAttribute(globalThemeAttribute, 'true');
     if (document.head) { document.head.appendChild(element); }
   }
-  if (entryPath) { element.setAttribute('href', `http://localhost:${window.External.imageServerPort}/Themes/${entryPath}`); }
+  if (entryPath) { element.setAttribute('href', `http://localhost:${window.External.fileServerPort}/Themes/${entryPath}`); }
   else { element.removeAttribute('href'); }
 }
 
