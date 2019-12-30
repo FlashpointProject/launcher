@@ -462,7 +462,10 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Find the first available port in the range
   const serverPort = await new Promise<number>(resolve => {
-    let port: number = state.config.backPortMin - 1;
+    const minPort = state.config.backPortMin;
+    const maxPort = state.config.backPortMax;
+
+    let port: number = minPort - 1;
     let server: WebSocket.Server | undefined;
     tryListen();
 
@@ -472,64 +475,84 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         server.off('listening', onceListening);
       }
 
-      if (port++ < state.config.backPortMax) {
+      if (port++ < maxPort) {
         server = new WebSocket.Server({
           host: 'localhost',
           port: port,
         });
         server.on('error', onError);
         server.on('listening', onceListening);
-      } else { done(false); }
+      } else {
+        done(new Error(`Failed to open server. All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
+      }
     }
 
     function onError(error: Error): void {
       if ((error as any).code === 'EADDRINUSE') {
         tryListen();
       } else {
-        done(false);
+        done(error);
       }
     }
     function onceListening() {
-      done(true);
+      done(undefined);
     }
-    function done(success: boolean) {
+    function done(error: Error | undefined) {
       if (server) {
         server.off('error', onError);
         server.off('listening', onceListening);
         state.server = server;
         state.server.on('connection', onConnect);
       }
-      resolve(success ? port : -1);
+      if (error) {
+        log({
+          source: 'Back',
+          content: 'Failed to open WebSocket server.\n'+error,
+        });
+        resolve(-1);
+      } else {
+        resolve(port);
+      }
     }
   });
 
   // Find the first available port in the range
   state.imageServerPort = await new Promise(resolve => {
-    let port = state.config.imagesPortMin - 1;
+    const minPort = state.config.imagesPortMin;
+    const maxPort = state.config.imagesPortMax;
+
+    let port = minPort - 1;
     state.fileServer.once('listening', onceListening);
     state.fileServer.on('error', onError);
     tryListen();
 
-    function onceListening() { done(true); }
+    function onceListening() { done(undefined); }
     function onError(error: Error) {
       if ((error as any).code === 'EADDRINUSE') {
         tryListen();
       } else {
-        done(false);
+        done(error);
       }
     }
     function tryListen() {
-      if (port < state.config.imagesPortMax) {
-        port += 1;
+      if (port++ < maxPort) {
         state.fileServer.listen(port, 'localhost');
       } else {
-        done(false);
+        done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
       }
     }
-    function done(success: boolean) {
+    function done(error: Error | undefined) {
       state.fileServer.off('listening', onceListening);
       state.fileServer.off('error', onError);
-      resolve(success ? port : -1);
+      if (error) {
+        log({
+          source: 'Back',
+          content: 'Failed to open HTTP server.\n'+error,
+        });
+        resolve(-1);
+      } else {
+        resolve(port);
+      }
     }
   });
 
