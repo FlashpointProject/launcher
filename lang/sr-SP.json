@@ -118,7 +118,7 @@
     "checkGameFieldsDesc": "Листај све игре са празним ставкама (од ставки које не треба да буду празне)",
     "checkPlaylists": "Провери плејлисте",
     "checkPlaylistsDesc": "Листај све плејлисте са дуплираним или неважећим ID, или које имају уносе са недостајућим, неважећим или дуплираним ID",
-    "checkGameFileLocation": "Check Game File Location",
+    "checkGameFileLocation": "Провери локацију фајла игре",
     "checkGameFileLocationDesc": "List all games with launch commands that can not be parsed into file paths (this is related to the 'Open File Location' function, not launching the game)",
     "checkMissingExecMappings": "Check Missing Exec Mappings",
     "checkMissingExecMappingsDesc": "List all unique execs for win32, linux and darwin which are missing an exec mapping",
