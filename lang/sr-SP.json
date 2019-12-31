@@ -20,7 +20,7 @@
     "browse": "Прегледај",
     "redirector": "Redirector",
     "redirectorFiddler": "Fiddler",
-    "redirectorDesc": "Koji software da se koristi da preusmeravanje saobracaj igre na lokalni web server. Nijedan nije koriscen na Linuxu.",
+    "redirectorDesc": "Који софтвер да се користи за преусмеравање саобраћаја игре ка локалном веб серверу. Ниједан се не користи на Линуксу.",
     "platforms": "Платформе",
     "nativePlatforms": "Domace Platforme",
     "nativePlatformsDesc": "Koristi domace verzija ovih platformi. (Ako nije dostupno koristice Wine)",
