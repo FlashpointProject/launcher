@@ -1,7 +1,7 @@
 {
-  "name": "енглески",
+  "name": "српски",
   "config": {
-    "configHeader": "Konfiguracija",
+    "configHeader": "Подешавања",
     "configDesc": "(Moras da pritisnes \"Sacuvaj I Restartuj\" da bi primenio neke promene)",
     "preferencesHeader": "Поставке",
     "extremeGames": "Екстремне игре",
@@ -340,24 +340,24 @@
     "selectCurationArchive": "Изабери архиву(е) галерије",
     "selectCurationMeta": "Изабери мета галерије",
     "errorParsingPlatforms": "Грешка у обради платформе!",
-    "errorParsingPlatformsMessage": "{0} Error(s) raised while parsing platform XMLs\nPlease check the logs for details.",
+    "errorParsingPlatformsMessage": "{0} грешке(и) се појавило у обради XML-а платформе\nМолим провери записе за детаље.",
     "dataRequired": "Additional Data Required",
-    "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
-    "upgradeWillInstallTo": "{0} will be installed to",
-    "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
-    "restartNow": "Restart Now?",
-    "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
-    "areYouSure": "Are you sure?"
+    "dataRequiredDesc": "Мораш да инсталираш Надоградњу на почетном екрану пре него што будеш у могућности да користиш покретач.\n\nДа ли желиш да то урадиш сада?",
+    "upgradeWillInstallTo": "{0} ће бити инсталирано у",
+    "verifyPathSelection": "Будуће надоградње ће такође бити инсталиране овде. Да ли је ово тачно?",
+    "restartNow": "Поново покренути одмах?",
+    "restartToApplyUpgrade": "Ова надоградња неће бити примењена док не будеш поново покренуо.\nДа ли желиш да то урадиш сада?",
+    "areYouSure": "Да ли си сигуран?"
   },
   "libraries": {
-    "arcade": "Games",
-    "theatre": "Animations"
+    "arcade": "Игре",
+    "theatre": "Анимације"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
-    "tech": "Other Technologies",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
+    "infinityDesc": "Неопходни фајлови. Додаје подршку за Flash игре.",
+    "tech": "Остале технологије",
+    "techDesc": "Додаје подршку за остале технологије - Shockwave, Unity, Java, HTML5, итд.",
     "screenshots": "Logos & Screenshots",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
   }
