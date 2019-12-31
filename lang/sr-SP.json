@@ -145,8 +145,8 @@
   "about": {
     "aboutHeader": "О програму",
     "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.",
-    "website": "Website",
+    "flashpointDesc": "Пројекат очувања због чега је направљен овај покретач, који тежи да буде архива, музеј и игрива збирка Интернет игара заснованих на вебу.",
+    "website": "Веб-сајт",
     "flashpointLauncher": "Flashpoint Launcher",
     "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint project.",
     "version": "Version",
