@@ -2,6 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parseVariableString } from './utils/VariableString';
 
+export function getFileServerURL() {
+  return `http://${window.External.backUrl.hostname}:${window.External.fileServerPort}`;
+}
+
 type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | undefined | null;
 
 /**

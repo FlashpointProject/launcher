@@ -4,7 +4,7 @@ import * as path from 'path';
 import { AddLogData, BackIn } from '../shared/back/types';
 import { htdocsPath } from '../shared/constants';
 import { IGameInfo } from '../shared/game/interfaces';
-import { fixSlashes } from '../shared/Util';
+import { getFileServerURL } from '../shared/Util';
 import { Paths } from './Paths';
 
 export const gameIdDataType: string = 'text/game-id';
@@ -110,10 +110,6 @@ export function getGameImageURL(folderName: string, gameId: string): string {
 
 export function getPlatformIconURL(platform: string): string {
   return `${getFileServerURL()}/logos/${platform}.png`;
-}
-
-function getFileServerURL() {
-  return `http://${window.External.backUrl.hostname}:${window.External.fileServerPort}`;
 }
 
 export function getGameImagePath(folderName: string, gameId: string): string {
