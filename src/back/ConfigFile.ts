@@ -1,7 +1,7 @@
 import * as fs from 'fs';
-import { IAppConfigData } from '../../shared/config/interfaces';
-import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../../shared/Util';
-import { getDefaultConfigData, overwriteConfigData } from './util';
+import { IAppConfigData } from '../shared/config/interfaces';
+import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../shared/Util';
+import { getDefaultConfigData, overwriteConfigData } from '../shared/config/util';
 
 export namespace ConfigFile {
   /** Get the config file path (or throw and error if it is not set). */

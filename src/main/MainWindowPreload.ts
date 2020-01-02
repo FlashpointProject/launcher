@@ -3,7 +3,6 @@ import { OpenDialogOptions } from 'electron';
 import * as path from 'path';
 import { SharedSocket } from '../shared/back/SharedSocket';
 import { BackIn, BackOut, GetRendererInitDataResponse, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, WrappedResponse } from '../shared/back/types';
-import { MiscIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
 import { setTheme } from '../shared/Theme';
 import { createErrorProxy } from '../shared/Util';
@@ -15,7 +14,9 @@ import { isDev } from './Util';
  *        It might be a good idea to move this to the Renderer?)
  */
 window.External = {
-  misc: electron.ipcRenderer.sendSync(MiscIPC.REQUEST_MISC_SYNC),
+  installed: createErrorProxy('installed'),
+
+  version: createErrorProxy('version'),
 
   platform: electron.remote.process.platform+'' as NodeJS.Platform, // (Coerce to string to make sure its not a remote object)
 
@@ -53,7 +54,7 @@ window.External = {
   },
 
   preferences: {
-    data: createErrorProxy('preferences'),
+    data: createErrorProxy('preferences.data'),
     onUpdate: undefined,
   },
 
@@ -67,6 +68,8 @@ window.External = {
   services: createErrorProxy('services'),
 
   isDev,
+
+  isBackRemote: createErrorProxy('isBackRemote'),
 
   back: new SharedSocket(),
 
@@ -91,6 +94,9 @@ const onInit = (async () => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);
   // Store value(s)
+  window.External.installed = data.installed;
+  window.External.version = data.version;
+  window.External.isBackRemote = data.isBackRemote;
   window.External.backUrl = new URL(data.host);
   // Connect to the back
   const socket = await SharedSocket.connect(data.host, data.secret);

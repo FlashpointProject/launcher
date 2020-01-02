@@ -15,10 +15,13 @@ export type DeepPartial<T> = {
 export type Subtract<T, U extends object> = Pick<T, Exclude<keyof T, keyof U>>;
 
 export interface IMainWindowExternal {
-  /** Miscellaneous data. */
-  misc: IMiscData;
+  /** If the launcher is installed (instead of being portable). */
+  installed: boolean;
 
-  /** Get the OS name */
+  /** Version of the current launcher build. */
+  version: number;
+
+  /** The type of OS this is running on. */
   platform: NodeJS.Platform;
 
   /** Minimize the window */
@@ -66,6 +69,9 @@ export interface IMainWindowExternal {
 
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;
+
+  /** If the "back" is running remotely. */
+  isBackRemote: boolean;
 
   /** Socket to the back API. */
   back: SharedSocket;
@@ -128,19 +134,6 @@ export enum WindowIPC {
 
 /** IPC channels used to relay game manager events from  */
 
-/** Object of miscellaneous data to send from main to renderer on startup. */
-export type IMiscData = {
-  /** If the launcher is installed (instead of being portable). */
-  installed: boolean;
-  /** Version of the current launcher build. */
-  version: number;
-};
-
-/** Miscellaneous IPC channels used between the main and renderer processes. */
-export enum MiscIPC {
-  /** Request misc data synchronously (renderer -> main). */
-  REQUEST_MISC_SYNC = 'misc-request-data',
-}
 export type IBackProcessInfo = {
   /** Path of the file (relative to the Flashpoint root) */
   path: string;

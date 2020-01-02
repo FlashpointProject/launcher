@@ -3,16 +3,16 @@ import { randomBytes } from 'crypto';
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { promisify } from 'util';
 import * as WebSocket from 'ws';
 import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, SetLocaleData, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { APP_TITLE } from '../shared/constants';
-import { IMiscData, MiscIPC, WindowIPC } from '../shared/interfaces';
+import { WindowIPC } from '../shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '../shared/IPC';
 import { IAppPreferencesData } from '../shared/preferences/interfaces';
 import { Coerce } from '../shared/utils/Coerce';
 import * as Util from './Util';
-import { promisify } from 'util';
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -56,15 +56,14 @@ const state: MainState = {
 main();
 
 function main() {
-  // Add app event listeners
+  // Add app event listener(s)
   app.once('ready', onAppReady);
   app.once('window-all-closed', onAppWindowAllClosed);
   app.once('will-quit', onAppWillQuit);
   app.once('web-contents-created', onAppWebContentsCreated);
   app.on('activate', onAppActivate);
 
-  // Add IPC event listeners
-  ipcMain.on(MiscIPC.REQUEST_MISC_SYNC, onRequestMisc);
+  // Add IPC event listener(s)
   ipcMain.on(InitRendererChannel, onInit);
 
   // ---- Initialize ----
@@ -282,17 +281,11 @@ function onAppActivate(): void {
   if (!state.window) { createMainWindow(); }
 }
 
-function onRequestMisc(event: IpcMainEvent): void {
-  if (state._installed === undefined) { throw new Error('installed is undefined.'); }
-  const misc: IMiscData = {
-    installed: state._installed,
-    version: state._version,
-  };
-  event.returnValue = misc;
-}
-
 function onInit(event: IpcMainEvent) {
   const data: InitRendererData = {
+    isBackRemote: !!initArgs['connect-remote'],
+    installed: !!state._installed,
+    version: state._version,
     host: state.backHost.href,
     secret: state._secret,
   };

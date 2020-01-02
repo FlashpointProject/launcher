@@ -331,6 +331,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         openContextMenu([{
           /* File Location */
           label: strings.menu.openFileLocation,
+          enabled: !window.External.isBackRemote, // (Local "back" only)
           click: () => {
             window.External.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
               if (res.data && res.data.game) {
@@ -379,6 +380,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }, { type: 'separator' }, {
           /* Export Meta */
           label: strings.menu.exportMetaOnly,
+          enabled: !window.External.isBackRemote, // (Local "back" only)
           click: () => {
             const filePath = remote.dialog.showSaveDialogSync({
               title: strings.dialog.selectFileToExportMeta,
@@ -393,6 +395,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }, {
           /* Export Meta & Images */
           label: strings.menu.exportMetaAndImages, // ("&&" will be shown as "&")
+          enabled: !window.External.isBackRemote, // (Local "back" only)
           click: () => {
             const filePaths = window.External.showOpenDialogSync({
               title: strings.dialog.selectFolderToExportMetaAndImages,

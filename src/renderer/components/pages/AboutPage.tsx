@@ -62,7 +62,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                     <p className='about-page__section__content__description'>
                       {strings.flashpointLauncherDesc}
                     </p>
-                    <p><b>{strings.version}:</b> {versionNumberToText(window.External.misc.version)} ({window.External.misc.version})</p>
+                    <p><b>{strings.version}:</b> {versionNumberToText(window.External.version)} ({window.External.version})</p>
                     <p><b>{strings.license}:</b> {strings.licenseInfo}</p>
                     <div className='about-page__section__links'>
                       {link('Github', 'https://github.com/FlashpointProject/launcher')}
