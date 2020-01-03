@@ -1482,7 +1482,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
           const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
           const filePath = path.join(imageFolder, urlPath.substr(index + 1));
           if (filePath.startsWith(imageFolder)) {
-            respondWithImageFile(filePath);
+            serveFile(req, res, filePath);
           }
         } break;
 
@@ -1493,18 +1493,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
           const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
           const filePath = path.join(themeFolder, relativeUrl);
           if (filePath.startsWith(themeFolder)) {
-            fs.readFile(filePath, (error, data) => {
-              if (error) {
-                res.writeHead(404);
-                res.end();
-              } else {
-                res.writeHead(200, {
-                  'Content-Type': getContentType(getFileExtension(filePath)),
-                  'Content-Length': data.length,
-                });
-                res.end(data);
-              }
-            });
+            serveFile(req, res, filePath);
           }
         } break;
 
@@ -1513,46 +1502,41 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
           const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
           const filePath = path.join(logoFolder, urlPath.substr(index + 1));
           if (filePath.startsWith(logoFolder)) {
-            respondWithImageFile(filePath);
+            serveFile(req, res, filePath);
           }
         } break;
       }
     }
   } catch (error) { console.warn(error); }
+}
 
-  function respondWithImageFile(filePath: string): void {
-    switch (req.method) {
-      default: { res.end(); } break;
-
-      case 'GET': {
-        fs.readFile(filePath, (error, data) => {
-          if (error) {
-            res.writeHead(404);
-            res.end();
-          } else {
-            res.writeHead(200, {
-              'Content-Type': 'image/png',
-              'Content-Length': data.length,
-            });
-            res.end(data);
-          }
+function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    fs.stat(filePath, (error, stats) => {
+      if (error || stats && !stats.isFile()) {
+        res.writeHead(404);
+        res.end();
+      } else {
+        res.writeHead(200, {
+          'Content-Type': getContentType(getFileExtension(filePath)),
+          'Content-Length': stats.size,
         });
-      } break;
-
-      case 'HEAD': {
-        fs.stat(filePath, (error, stats) => {
-          if (error || stats && !stats.isFile()) {
-            res.writeHead(404);
-          } else {
-            res.writeHead(200, {
-              'Content-Type': 'image/png',
-              'Content-Length': stats.size,
-            });
-          }
+        if (req.method === 'GET') {
+          const stream = fs.createReadStream(filePath);
+          stream.on('error', error => {
+            console.warn(`File server failed to stream file. ${error}`);
+            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+            if (!res.finished) { res.end(); }
+          });
+          stream.pipe(res);
+        } else {
           res.end();
-        });
-      } break;
-    }
+        }
+      }
+    });
+  } else {
+    res.writeHead(404);
+    res.end();
   }
 }
 
