@@ -74,7 +74,7 @@ export interface IMainWindowExternal {
   isBackRemote: boolean;
 
   /** Socket to the back API. */
-  back: SharedSocket;
+  back: SharedSocket<WebSocket>;
 
   /** Port of the back file server. */
   fileServerPort: number;

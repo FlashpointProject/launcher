@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as WebSocket from 'ws';
+import { SharedSocket } from '../shared/back/SharedSocket';
 import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, SetLocaleData, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { IAppConfigData } from '../shared/config/interfaces';
 import { APP_TITLE } from '../shared/constants';
@@ -32,9 +33,11 @@ type MainState = {
   _version: number;
   preferences?: IAppPreferencesData;
   config?: IAppConfigData;
-  socket?: WebSocket;
+  socket: SharedSocket<WebSocket>;
   backProc?: ChildProcess;
   _sentLocaleCode: boolean;
+  /** If the main is about to quit. */
+  isQuitting: boolean;
 }
 
 const initArgs = getArgs();
@@ -48,9 +51,10 @@ const state: MainState = {
   _version: -2,
   preferences: undefined,
   config: undefined,
-  socket: undefined,
+  socket: new SharedSocket(WebSocket),
   backProc: undefined,
   _sentLocaleCode: false,
+  isQuitting: false,
 };
 
 main();
@@ -65,6 +69,9 @@ function main() {
 
   // Add IPC event listener(s)
   ipcMain.on(InitRendererChannel, onInit);
+
+  // Add Socket event listener(s)
+  state.socket.on('message', onMessage);
 
   // ---- Initialize ----
   // Check if installed
@@ -150,13 +157,13 @@ function main() {
     // Send init message
     .then(ws => new Promise((resolve, reject) => {
       ws.onmessage = (event) => {
+        // @TODO Timeout after some time in case it never responds (30 sec?)
         const res: WrappedResponse = JSON.parse(event.data.toString());
         if (res.type === BackOut.GET_MAIN_INIT_DATA) {
           const data: GetMainInitDataResponse = res.data;
           state.preferences = data.preferences;
           state.config = data.config;
-          state.socket = ws;
-          state.socket.onmessage = onMessage;
+          state.socket.setSocket(ws);
           resolve();
         }// else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[res.type]}".`)); }
       };
@@ -186,11 +193,10 @@ function main() {
   });
 }
 
-function onMessage(message: WebSocket.MessageEvent): void {
-  const res: WrappedResponse = JSON.parse(message.data.toString());
+function onMessage(res: WrappedResponse): void {
   switch (res.type) {
     case BackOut.QUIT: {
-      state.socket = undefined;
+      state.isQuitting = true;
       state.backProc = undefined;
       app.quit();
     } break;
@@ -202,13 +208,9 @@ function onAppReady(): void {
     throw new Error('Default session is missing!');
   }
   // Send locale code (if it has no been sent already)
-  if (process.platform === 'win32' && !state._sentLocaleCode && state.socket) {
-    state._sentLocaleCode = true;
-    sendReq<SetLocaleData>({
-      id: '',
-      type: BackIn.SET_LOCALE,
-      data: app.getLocale().toLowerCase(),
-    });
+  if (process.platform === 'win32' && !state._sentLocaleCode) {
+    const didSend = state.socket.send<any, SetLocaleData>(BackIn.SET_LOCALE, app.getLocale().toLowerCase());
+    if (didSend) { state._sentLocaleCode = true; }
   }
   // Reject all permission requests since we don't need any permissions.
   session.defaultSession.setPermissionRequestHandler(
@@ -257,12 +259,9 @@ function onAppWindowAllClosed(): void {
 }
 
 function onAppWillQuit(event: Event): void {
-  if (state.socket && !initArgs['connect-remote']) {
+  if (!initArgs['connect-remote'] && !state.isQuitting) { // (Local back)
     event.preventDefault();
-    sendReq<undefined>({
-      id: '',
-      type: BackIn.QUIT,
-    });
+    state.socket.send(BackIn.QUIT, undefined);
   }
 }
 
@@ -290,12 +289,6 @@ function onInit(event: IpcMainEvent) {
     secret: state._secret,
   };
   event.returnValue = data;
-}
-
-function sendReq<U = any>(request: WrappedRequest<U>): void {
-  if (state.socket) {
-    state.socket.send(JSON.stringify(request));
-  }
 }
 
 function exists(filePath: string): Promise<boolean> {

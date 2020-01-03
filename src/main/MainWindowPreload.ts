@@ -71,7 +71,7 @@ window.External = {
 
   isBackRemote: createErrorProxy('isBackRemote'),
 
-  back: new SharedSocket(),
+  back: new SharedSocket(WebSocket),
 
   fileServerPort: -1,
 
@@ -99,7 +99,7 @@ const onInit = (async () => {
   window.External.isBackRemote = data.isBackRemote;
   window.External.backUrl = new URL(data.host);
   // Connect to the back
-  const socket = await SharedSocket.connect(data.host, data.secret);
+  const socket = await SharedSocket.connect(WebSocket, data.host, data.secret);
   window.External.back.url = data.host;
   window.External.back.secret = data.secret;
   window.External.back.setSocket(socket);
