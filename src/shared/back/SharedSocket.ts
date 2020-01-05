@@ -20,6 +20,8 @@ interface SocketConstructor<T> {
   readonly CLOSED: number;
 }
 
+type SocketCloseEvent = Pick<CloseEvent, 'reason' | 'code' | 'wasClean'>
+
 export interface SharedSocket<T extends Socket> {
   on(event: 'connect', listener: () => void): this;
   /** Fired when a message is received. */
@@ -38,12 +40,6 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
   constructor(socketCon: SocketConstructor<T>) {
     super();
     this.socketCon = socketCon;
-    // Reconnect if disconnected (at an interval)
-    setInterval(() => {
-      if (this.url && (!this.socket || this.socket.readyState === this.socketCon.CLOSED)) {
-        this.reconnect();
-      }
-    }, 500);
   }
 
   setSocket(socket: T): void {
@@ -53,6 +49,7 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
     this.socket.onerror = this.onError;
     this.socket.onclose = this.onClose;
     this.socket.onopen = this.onOpen;
+    this.ensureConnection();
   }
 
   private onMessage = (event: MessageEvent): void => {
@@ -69,8 +66,8 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
     this.reconnect();
   }
 
-  private onClose = (event: CloseEvent): void => {
-    console.log('SharedSocket Closed:', event);
+  private onClose = (event: SocketCloseEvent): void => {
+    console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
     this.reconnect();
   }
 
@@ -113,9 +110,8 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
     } else {
       console.warn(
         'Failed to send message! ' +
-        this.socket
-          ? 'Socket is not open!'
-          : 'There is no socket!'
+        (this.socket ? 'Socket is not open!' : 'There is no socket!') +
+        ` (ID: "${request.id}", Type: ${request.type} / "${BackIn[request.type]}")`
       );
       return false;
     }
@@ -130,10 +126,20 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
     }
   }
 
+  /** Ensure that the connection stays open (by checking its status at an interval and reconnect). */
+  private ensureConnection = () => {
+    if (this.keepOpen) {
+      if (this.url && (!this.socket || this.socket.readyState === this.socketCon.CLOSED)) {
+        this.reconnect();
+      }
+      setTimeout(this.ensureConnection, 500);
+    }
+  }
+
   /** Open a new socket and try to connect again. */
   private reconnect(): void {
-    console.log('Reconnecting...');
     if (this.keepOpen) {
+      console.log('Reconnecting...');
       // Disconnect
       if (this.socket) {
         this.socket.close();

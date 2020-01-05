@@ -18,6 +18,8 @@ import * as Util from './Util';
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
+const TIMEOUT_DELAY = 60_000;
+
 type InitArgs = Partial<typeof InitArgsTemplate>;
 const InitArgsTemplate = {
   'connect-remote': '',
@@ -141,23 +143,22 @@ function main() {
   // Connect to back and start renderer
   if (!initArgs['host-remote']) {
     // Connect to back process
-    p = p.then<WebSocket>(() => new Promise((resolve, reject) => {
+    p = p.then<WebSocket>(() => timeout(new Promise((resolve, reject) => {
       const ws = new WebSocket(state.backHost.href);
-      ws.onclose = () => { reject(new Error('Failed to authenticate to the back.')); };
+      ws.onclose = () => { reject(new Error('Failed to authenticate connection to back.')); };
       ws.onerror = (event) => { reject(event.error); };
       ws.onopen  = () => {
         ws.onmessage = () => {
-          ws.onclose = (event) => { console.log('socket closed', event.code, event.reason); };
-          ws.onerror = (event) => { console.log('socket error', event.error); };
+          ws.onclose = noop;
+          ws.onerror = noop;
           resolve(ws);
         };
         ws.send(state._secret);
       };
-    }))
+    }), TIMEOUT_DELAY))
     // Send init message
-    .then(ws => new Promise((resolve, reject) => {
+    .then(ws => timeout(new Promise((resolve, reject) => {
       ws.onmessage = (event) => {
-        // @TODO Timeout after some time in case it never responds (30 sec?)
         const res: WrappedResponse = JSON.parse(event.data.toString());
         if (res.type === BackOut.GET_MAIN_INIT_DATA) {
           const data: GetMainInitDataResponse = res.data;
@@ -165,19 +166,19 @@ function main() {
           state.config = data.config;
           state.socket.setSocket(ws);
           resolve();
-        }// else { reject(new Error(`Failed to initialize. Did not expect message type "${BackOut[res.type]}".`)); }
+        }
       };
       const req: WrappedRequest = {
         id: 'init',
         type: BackIn.GET_MAIN_INIT_DATA,
       };
       ws.send(JSON.stringify(req));
-    }))
+    }), TIMEOUT_DELAY))
     // Create main window
-    .then(() => {
+    .then(() => (
       app.whenReady()
-      .then(() => { createMainWindow(); });
-    });
+      .then(() => { createMainWindow(); })
+    ));
   }
   // Catch errors
   p.catch((error) => {
@@ -189,6 +190,7 @@ function main() {
         message: 'Something went wrong while starting the launcher.\n\n' + error,
       });
     }
+    state.socket.disconnect();
     app.quit();
   });
 }
@@ -197,7 +199,6 @@ function onMessage(res: WrappedResponse): void {
   switch (res.type) {
     case BackOut.QUIT: {
       state.isQuitting = true;
-      state.backProc = undefined;
       app.quit();
     } break;
   }
@@ -260,8 +261,8 @@ function onAppWindowAllClosed(): void {
 
 function onAppWillQuit(event: Event): void {
   if (!initArgs['connect-remote'] && !state.isQuitting) { // (Local back)
-    event.preventDefault();
-    state.socket.send(BackIn.QUIT, undefined);
+    const result = state.socket.send(BackIn.QUIT, undefined);
+    if (result) { event.preventDefault(); }
   }
 }
 
@@ -409,3 +410,25 @@ function getArgs(): InitArgs {
   console.log(initArgs); // @DEBUG
   return initArgs;
 }
+
+/**
+ * Resolves/Rejects when the wrapped promise does. Rejects if the timeout happens before that.
+ * @param promise Promise to wrap.
+ * @param ms Time to wait before timing out (in ms).
+ */
+function timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const handle = setTimeout(() => {
+      reject(new Error(`Timeout (${(ms / 1000).toFixed(1)} seconds).`));
+    }, ms);
+    promise.then(arg => {
+      clearTimeout(handle);
+      resolve(arg);
+    }).catch(error => {
+      clearTimeout(handle);
+      reject(error);
+    });
+  });
+}
+
+function noop() {}
