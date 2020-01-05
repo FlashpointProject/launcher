@@ -98,8 +98,8 @@ export type BackInitArgs = {
   isDev: boolean;
   localeCode: string;
   exePath: string;
-  /** If the back is used as a "remote back" and accepts remote connections. */
-  isRemote: boolean;
+  /** If the back should accept remote clients to connect (renderers from different machines). */
+  acceptRemote: boolean;
 }
 
 export enum BackInit {

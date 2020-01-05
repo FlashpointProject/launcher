@@ -477,7 +477,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
       if (port++ < maxPort) {
         server = new WebSocket.Server({
-          host: content.isRemote ? undefined : 'localhost',
+          host: content.acceptRemote ? undefined : 'localhost',
           port: port,
         });
         server.on('error', onError);
@@ -536,7 +536,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
     function tryListen() {
       if (port++ < maxPort) {
-        state.fileServer.listen(port, content.isRemote ? undefined : 'localhost');
+        state.fileServer.listen(port, content.acceptRemote ? undefined : 'localhost');
       } else {
         done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
       }

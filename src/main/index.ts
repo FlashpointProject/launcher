@@ -24,6 +24,7 @@ type InitArgs = Partial<typeof InitArgsTemplate>;
 const InitArgsTemplate = {
   'connect-remote': '',
   'host-remote': false,
+  'back-only': false,
 };
 
 type MainState = {
@@ -90,7 +91,7 @@ function main() {
   }))
   // Load or generate secret
   .then(async () => {
-    if (initArgs['connect-remote'] || initArgs['host-remote']) {
+    if (initArgs['connect-remote'] || initArgs['host-remote'] || initArgs['back-only']) {
       const secretFilePath = path.join(getMainFolderPath(), 'secret.txt');
       try {
         state._secret = await readFile(secretFilePath, { encoding: 'utf8' });
@@ -135,13 +136,13 @@ function main() {
         // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
         localeCode: localeCode,
         exePath: path.dirname(app.getPath('exe')),
-        isRemote: !!initArgs['host-remote'],
+        acceptRemote: !!initArgs['host-remote'],
       };
       state.backProc.send(JSON.stringify(msg));
     }));
   }
   // Connect to back and start renderer
-  if (!initArgs['host-remote']) {
+  if (!initArgs['back-only']) {
     // Connect to back process
     p = p.then<WebSocket>(() => timeout(new Promise((resolve, reject) => {
       const ws = new WebSocket(state.backHost.href);
@@ -401,7 +402,8 @@ function getArgs(): InitArgs {
           break;
         // Boolean value
         case 'host-remote':
-          initArgs[name] = Coerce.strToBool(value);
+        case 'back-only':
+          initArgs[name] = Coerce.strToBool2(value);
           break;
       }
     }
