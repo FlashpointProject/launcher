@@ -60,12 +60,12 @@
     "update": "Güncelle",
     "checkingUpgradeState": "Güncelleme Durumuna Bakılıyor...",
     "extrasHeader": "Ek Özellikler",
-    "favoritesPlaylist": "Favori Oynatma Listeleri",
+    "favoritesPlaylist": "Favori Oyun Listeleri",
     "tagList": "Etiket Listesi",
     "filterByPlatform": "Platforma göre filtrele",
     "plannedFeatures": "Gelecekte düşündüğümüz planlarımıza göz at!",
     "notesHeader": "Notlar",
-    "notes": "eğer sıkıntılarınız varsa benioku'yu okumayı unutmayın.",
+    "notes": "Eğer sıkıntılarınız varsa benioku'yu okumayı unutmayın.",
     "linuxSupport": "Linux'ta Sıkıntı? {0}",
     "linuxSupportLinkText": "SSS'i Aç",
     "randomPicks": "Rastgele Seçimler"
@@ -177,14 +177,14 @@
     "version": "Sürüm",
     "noVersion": "Sürüm Yok",
     "releaseDate": "Yayın Tarihi",
-    "noReleaseDate": "No Release Date",
-    "language": "Language",
-    "noLanguage": "No Language",
-    "dateAdded": "Date Added",
-    "brokenInInfinity": "Broken (in Infinity)",
-    "extreme": "Extreme",
-    "playlistNotes": "Playlist Notes",
-    "noPlaylistNotes": "No Playlist Notes",
+    "noReleaseDate": "Yayın Tarihi Yok",
+    "language": "Dil",
+    "noLanguage": "Dil Yok",
+    "dateAdded": "Eklenen Tarih",
+    "brokenInInfinity": "Bozuk (İnfinity'de)",
+    "extreme": "Ekstrem",
+    "playlistNotes": "Oyun Listesi Notları",
+    "noPlaylistNotes": "Oyun Listesi Notları Yok",
     "notes": "Notes",
     "noNotes": "No Notes",
     "originalDescription": "Original Description",
@@ -345,20 +345,20 @@
     "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
     "upgradeWillInstallTo": "{0} will be installed to",
     "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
-    "restartNow": "Restart Now?",
-    "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
-    "areYouSure": "Are you sure?"
+    "restartNow": "Şimdi Yeniden Başlat?",
+    "restartToApplyUpgrade": "Bu güncelleme yeniden başlatana kadar geçerli olmaz.\nŞimdi yapmak istiyor musun?",
+    "areYouSure": "Emin misin?"
   },
   "libraries": {
-    "arcade": "Games",
-    "theatre": "Animations"
+    "arcade": "Oyunlar",
+    "theatre": "Animasyonlar"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
-    "tech": "Other Technologies",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos & Screenshots",
+    "infinityDesc": "Gerekli dosyalar. Flash oyunları için destek ekler.",
+    "tech": "Diğer Teknolojiler",
+    "techDesc": "Diğer tüm teknolojiler için destek ekler - Shockwave, Unity, Java, HTML5 vs.",
+    "screenshots": "Logolar & Ekran Görüntüleri",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
   }
 }
