@@ -1475,37 +1475,47 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
     }
 
     const index = urlPath.indexOf('/');
-    if (index >= 0) {
-      switch (urlPath.substr(0, index).toLowerCase()) {
-        // Image folder
-        case 'images': {
-          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-          const filePath = path.join(imageFolder, urlPath.substr(index + 1));
-          if (filePath.startsWith(imageFolder)) {
-            serveFile(req, res, filePath);
-          }
-        } break;
+    const firstItem = (index >= 0 ? urlPath.substr(0, index) : urlPath).toLowerCase(); // First filename in the path string ("A/B/C" => "A" | "D" => "D")
+    switch (firstItem) {
+      // Image folder
+      case 'images': {
+        const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+        const filePath = path.join(imageFolder, urlPath.substr(index + 1));
+        if (filePath.startsWith(imageFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
 
-        // Theme folder
-        case 'themes': {
-          const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-          const index = urlPath.indexOf('/');
-          const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-          const filePath = path.join(themeFolder, relativeUrl);
-          if (filePath.startsWith(themeFolder)) {
-            serveFile(req, res, filePath);
-          }
-        } break;
+      // Theme folder
+      case 'themes': {
+        const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+        const index = urlPath.indexOf('/');
+        const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const filePath = path.join(themeFolder, relativeUrl);
+        if (filePath.startsWith(themeFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
 
-        // Logos folder
-        case 'logos': {
-          const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
-          const filePath = path.join(logoFolder, urlPath.substr(index + 1));
-          if (filePath.startsWith(logoFolder)) {
-            serveFile(req, res, filePath);
-          }
-        } break;
-      }
+      // Logos folder
+      case 'logos': {
+        const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
+        const filePath = path.join(logoFolder, urlPath.substr(index + 1));
+        if (filePath.startsWith(logoFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
+
+      // JSON file(s)
+      case 'credits.json': {
+        serveFile(req, res, path.join(state.config.flashpointPath, state.config.jsonFolderPath, 'credits.json'));
+      } break;
+
+      // Nothing
+      default: {
+        res.writeHead(404);
+        res.end();
+      } break;
     }
   } catch (error) { console.warn(error); }
 }

@@ -18,7 +18,7 @@ import { updatePreferencesData } from '../shared/preferences/util';
 import { setTheme } from '../shared/Theme';
 import { Theme } from '../shared/ThemeFile';
 import { getUpgradeString } from '../shared/upgrade/util';
-import { canReadWrite, deepCopy, recursiveReplace } from '../shared/Util';
+import { canReadWrite, deepCopy, recursiveReplace, getFileServerURL } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -34,7 +34,7 @@ import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
 import { UpgradeFile } from './upgrade/UpgradeFile';
-import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
+import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog, getGameImagePath, getGameImageURL } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
 
@@ -516,10 +516,11 @@ export class App extends React.Component<AppProps, AppState> {
       }));
     });
     // Load Credits
-    CreditsFile.readFile(fullJsonFolderPath, log)
-    .then((data) => {
+    fetch(`${getFileServerURL()}/credits.json`)
+    .then(res => res.json())
+    .then(async (data) => {
       this.setState({
-        creditsData: data,
+        creditsData: CreditsFile.parseCreditsData(data),
         creditsDoneLoading: true
       });
     })

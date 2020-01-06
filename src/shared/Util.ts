@@ -14,7 +14,7 @@ type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | u
  * @param path Path of the JSON file
  * @param options Options for reading the file
  */
-export function readJsonFile(path: string, options: ReadFileOptions): Promise<any> {
+export function readJsonFile(path: string, options?: ReadFileOptions): Promise<any> {
   return new Promise<any>((resolve, reject) => {
     fs.readFile(path, options, (error, data) => {
       // Check if reading file failed
