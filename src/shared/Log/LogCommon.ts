@@ -1,41 +1,8 @@
 import { padStart } from '../Util';
 import { ILogEntry } from './interface';
 
-/** Channel names used by the log api in the Electron IPC */
-export enum LogChannel {
-  /** Send an entry from the (renderer -> main) */
-  addEntry = 'log-add-entry',
-  /**
-   * Reply from the main, confirming that the entry was added
-   * (main -> renderer)
-   */
-  addEntryReply = 'log-add-entry-reply',
-
-  /**
-   * Send a request to get all entries after a specified index
-   * (renderer -> main)
-  */
-  refreshEntries = 'log-refresh-entries',
-  /**
-   * Reply from the main, contains a number entries and the index they all come after
-   * (main -> renderer)
-   */
-  refreshEntriesReply = 'log-refresh-entries-reply',
-
-  /**
-   * Send a request to remove a set of entries from the main and renderer logs
-   * (renderer -> main)
-  */
-  removeEntries = 'log-remove-entries',
-  /**
-   * Reply from the main, tells the renderer to also remove entries from its log
-   * (main -> renderer)
-   */
-  removeEntriesReply = 'log-remove-entries-reply',
-}
-
-export const timeChars = 11; /* "[HH:MM:SS] " */
-export const sourceChars = 19; /* "Background Services" (sometimes used with +2 to add the length of ": ") */
+export const timeChars = 11; // "[HH:MM:SS] "
+const sourceChars = 19; // "Background Services" (sometimes used with +2 to add the length of ": ")
 
 /** Create a HTML string of a number of entries */
 export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string]: boolean } = {}): string {
@@ -59,7 +26,7 @@ export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string
   return str;
 }
 
-/** Formats a date to a string in the format HH:MM:SS */
+/** Formats a date to a string in the format "HH:MM:SS" */
 export function formatTime(date: Date): string {
   return (
     ('0'+date.getHours()  ).slice(-2)+':'+

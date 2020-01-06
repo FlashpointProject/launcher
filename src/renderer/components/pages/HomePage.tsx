@@ -146,7 +146,7 @@ export function HomePage(props: HomePageProps) {
   // -- Render the boxes --
 
   const renderedUpdates = React.useMemo(() => {
-    if (window.External.misc.installed) {
+    if (window.External.installed) {
       return (
         <div className='home-page__box'>
           <div className='home-page__box-head'>{strings.updateHeader}</div>

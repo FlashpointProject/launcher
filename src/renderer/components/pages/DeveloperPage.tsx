@@ -15,6 +15,9 @@ import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
 
+// @TODO Move the developer tools to the back and "stream" the log messages back.
+//       This makes it work remotely AND should make it lag less + work between changing tabs.
+
 const exists = promisify(fs.exists);
 const mkdir  = promisify(fs.mkdir);
 type Map<K extends string, V> = { [key in K]: V };

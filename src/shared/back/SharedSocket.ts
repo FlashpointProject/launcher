@@ -2,33 +2,54 @@ import { EventEmitter } from 'events';
 import * as uuid from 'uuid/v4';
 import { BackIn, WrappedRequest, WrappedResponse } from './types';
 
-export interface SharedSocket {
+type CB = ((ev: any) => any) | null;
+
+interface Socket {
+  onclose:   CB;
+  onerror:   CB;
+  onmessage: CB;
+  onopen:    CB;
+  send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void;
+  close(code?: number, reason?: string): void;
+  readyState: number;
+}
+
+interface SocketConstructor<T> {
+  new(url: string): T;
+  readonly OPEN: number;
+  readonly CLOSED: number;
+}
+
+type SocketCloseEvent = Pick<CloseEvent, 'reason' | 'code' | 'wasClean'>
+
+export interface SharedSocket<T extends Socket> {
   on(event: 'connect', listener: () => void): this;
   /** Fired when a message is received. */
   on(event: 'message', listener: (event: WrappedResponse) => void): this;
 }
 
-export class SharedSocket extends EventEmitter {
+export class SharedSocket<T extends Socket> extends EventEmitter {
   url: string = '';
   secret: string = '';
-  socket: WebSocket | undefined;
+  socket: T | undefined;
+  /** Constructor of the socket used by this. */
+  socketCon: SocketConstructor<T>;
+  /** If the socket should be kept open. */
+  keepOpen: boolean = false;
 
-  constructor() {
+  constructor(socketCon: SocketConstructor<T>) {
     super();
-    // Reconnect if disconnected (at an interval)
-    setInterval(() => {
-      if (this.url && (!this.socket || this.socket.readyState === WebSocket.CLOSED)) {
-        this.reconnect();
-      }
-    }, 500);
+    this.socketCon = socketCon;
   }
 
-  setSocket(socket: WebSocket): void {
+  setSocket(socket: T): void {
+    this.keepOpen = true;
     this.socket = socket;
     this.socket.onmessage = this.onMessage;
     this.socket.onerror = this.onError;
     this.socket.onclose = this.onClose;
     this.socket.onopen = this.onOpen;
+    this.ensureConnection();
   }
 
   private onMessage = (event: MessageEvent): void => {
@@ -45,8 +66,8 @@ export class SharedSocket extends EventEmitter {
     this.reconnect();
   }
 
-  private onClose = (event: CloseEvent): void => {
-    console.log('SharedSocket Closed:', event);
+  private onClose = (event: SocketCloseEvent): void => {
+    console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
     this.reconnect();
   }
 
@@ -54,8 +75,8 @@ export class SharedSocket extends EventEmitter {
     console.log('SharedSocket Open:', event);
   }
 
-  public send<T, U = any>(type: BackIn, data: U, callback?: (res: WrappedResponse<T>) => void): void {
-    this.sendReq({
+  public send<T, U = any>(type: BackIn, data: U, callback?: (res: WrappedResponse<T>) => void): boolean {
+    return this.sendReq({
       id: uuid(),
       type: type,
       data: data
@@ -72,44 +93,72 @@ export class SharedSocket extends EventEmitter {
     });
   }
 
-  public sendReq<T, U = any>(request: WrappedRequest<U>, callback?: (res: WrappedResponse<T>) => void): void {
+  /**
+   * Send a request.
+   * @param request Request to send.
+   * @param callback Called when a response with the same ID is received.
+   * @returns If the request was successfully sent.
+   */
+  public sendReq<T, U = any>(request: WrappedRequest<U>, callback?: (res: WrappedResponse<T>) => void): boolean {
     // console.log('OUT', request);
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+    if (this.socket && this.socket.readyState === this.socketCon.OPEN) {
       // Register callback
       if (callback) { this.once(request.id, callback); }
       // Send message
       this.socket.send(JSON.stringify(request));
+      return true;
     } else {
       console.warn(
         'Failed to send message! ' +
-        this.socket
-          ? 'Socket is not open!'
-          : 'There is no socket!'
-        );
+        (this.socket ? 'Socket is not open!' : 'There is no socket!') +
+        ` (ID: "${request.id}", Type: ${request.type} / "${BackIn[request.type]}")`
+      );
+      return false;
+    }
+  }
+
+  /** Disconnect the socket (and do not reconnect to it). */
+  public disconnect() {
+    this.keepOpen = false;
+    if (this.socket) {
+      this.socket.close();
+      this.socket = undefined;
+    }
+  }
+
+  /** Ensure that the connection stays open (by checking its status at an interval and reconnect). */
+  private ensureConnection = () => {
+    if (this.keepOpen) {
+      if (this.url && (!this.socket || this.socket.readyState === this.socketCon.CLOSED)) {
+        this.reconnect();
+      }
+      setTimeout(this.ensureConnection, 500);
     }
   }
 
   /** Open a new socket and try to connect again. */
   private reconnect(): void {
-    console.log('Reconnecting...');
-    // Disconnect
-    if (this.socket) {
-      this.socket.close();
-      this.socket = undefined;
+    if (this.keepOpen) {
+      console.log('Reconnecting...');
+      // Disconnect
+      if (this.socket) {
+        this.socket.close();
+        this.socket = undefined;
+      }
+      // Connect
+      SharedSocket.connect(this.socketCon, this.url, this.secret)
+      .then(socket => { this.setSocket(socket); })
+      .catch(error => {
+        console.error(error);
+        setTimeout(() => this.reconnect(), 50);
+      });
     }
-    // Connect
-    SharedSocket.connect(this.url, this.secret)
-    .then(socket => { window.External.back.setSocket(socket); })
-    .catch(error => {
-      console.error(error);
-      setTimeout(() => this.reconnect(), 50);
-    });
   }
 
-  static connect(url: string, secret: string): Promise<WebSocket> {
-    return new Promise<WebSocket>((resolve, reject) => {
-      let socket: WebSocket;
-      try { socket = new WebSocket(url); }
+  static connect<T extends Socket>(constructor: SocketConstructor<T>, url: string, secret: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      let socket: T;
+      try { socket = new constructor(url); }
       catch (error) { reject(error); return; }
 
       socket.onopen = () => {

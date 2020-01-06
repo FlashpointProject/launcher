@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
-import { getPlatformIconPath } from '../Util';
+import { getPlatformIconURL } from '../Util';
 
 export type GameListItemProps = ListRowProps & {
   id: string;
@@ -21,7 +21,7 @@ export function GameListItem(props: GameListItemProps) {
   const { id, title, platform, tags: tags, developer, publisher, isDraggable, isSelected, isDragged, index, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
-    getPlatformIconPath(platform)
+    getPlatformIconURL(platform)
   ), [platform]);
   // Pick class names
   const className = React.useMemo(() => {

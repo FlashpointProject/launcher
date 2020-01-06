@@ -7,8 +7,7 @@ import * as http from 'http';
 import * as path from 'path';
 import * as util from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
-import { ConfigFile } from '../shared/config/ConfigFile';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '../shared/back/types';
 import { overwriteConfigData } from '../shared/config/util';
 import { LOGOS, SCREENSHOTS } from '../shared/constants';
 import { findMostUsedApplicationPaths } from '../shared/curate/defaultValues';
@@ -25,6 +24,7 @@ import { defaultPreferencesData, overwritePreferenceData } from '../shared/prefe
 import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '../shared/ThemeFile';
 import { createErrorProxy, deepCopy, isErrorProxy, recursiveReplace, removeFileExtension, stringifyArray } from '../shared/Util';
 import { Coerce } from '../shared/utils/Coerce';
+import { ConfigFile } from './ConfigFile';
 import { loadExecMappingsFile } from './Execs';
 import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
@@ -477,7 +477,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
       if (port++ < maxPort) {
         server = new WebSocket.Server({
-          host: 'localhost',
+          host: content.acceptRemote ? undefined : 'localhost',
           port: port,
         });
         server.on('error', onError);
@@ -536,7 +536,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
     function tryListen() {
       if (port++ < maxPort) {
-        state.fileServer.listen(port, 'localhost');
+        state.fileServer.listen(port, content.acceptRemote ? undefined : 'localhost');
       } else {
         done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
       }
@@ -1460,7 +1460,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
 function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
   try {
-    let urlPath = req.url || '';
+    let urlPath = decodeURIComponent(req.url || '');
 
     // Remove the get parameters
     const qIndex = urlPath.indexOf('?');
@@ -1475,73 +1475,79 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
     }
 
     const index = urlPath.indexOf('/');
-    if (index >= 0) {
-      switch (urlPath.substr(0, index).toLowerCase()) {
-        // Image folder
-        case LOGOS.toLowerCase():
-        case SCREENSHOTS.toLowerCase(): {
-          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-          const filePath = path.join(imageFolder, urlPath);
-          if (filePath.startsWith(imageFolder)) {
-            switch (req.method) {
-              default: { res.end(); } break;
+    const firstItem = (index >= 0 ? urlPath.substr(0, index) : urlPath).toLowerCase(); // First filename in the path string ("A/B/C" => "A" | "D" => "D")
+    switch (firstItem) {
+      // Image folder
+      case 'images': {
+        const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+        const filePath = path.join(imageFolder, urlPath.substr(index + 1));
+        if (filePath.startsWith(imageFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
 
-              case 'GET': {
-                fs.readFile(filePath, (error, data) => {
-                  if (error) {
-                    res.writeHead(404);
-                    res.end();
-                  } else {
-                    res.writeHead(200, {
-                      'Content-Type': 'image/png',
-                      'Content-Length': data.length,
-                    });
-                    res.end(data);
-                  }
-                });
-              } break;
+      // Theme folder
+      case 'themes': {
+        const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+        const index = urlPath.indexOf('/');
+        const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const filePath = path.join(themeFolder, relativeUrl);
+        if (filePath.startsWith(themeFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
 
-              case 'HEAD': {
-                fs.stat(filePath, (error, stats) => {
-                  if (error || stats && !stats.isFile()) {
-                    res.writeHead(404);
-                  } else {
-                    res.writeHead(200, {
-                      'Content-Type': 'image/png',
-                      'Content-Length': stats.size,
-                    });
-                  }
-                  res.end();
-                });
-              } break;
-            }
-          }
-        } break;
+      // Logos folder
+      case 'logos': {
+        const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
+        const filePath = path.join(logoFolder, urlPath.substr(index + 1));
+        if (filePath.startsWith(logoFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
 
-        // Theme folder
-        case 'themes': {
-          const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-          const index = urlPath.indexOf('/');
-          const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-          const filePath = path.join(themeFolder, relativeUrl);
-          if (filePath.startsWith(themeFolder)) {
-            fs.readFile(filePath, (error, data) => {
-              if (error) {
-                res.writeHead(404);
-                res.end();
-              } else {
-                res.writeHead(200, {
-                  'Content-Type': getContentType(getFileExtension(filePath)),
-                  'Content-Length': data.length,
-                });
-                res.end(data);
-              }
-            });
-          }
-        } break;
-      }
+      // JSON file(s)
+      case 'credits.json': {
+        serveFile(req, res, path.join(state.config.flashpointPath, state.config.jsonFolderPath, 'credits.json'));
+      } break;
+
+      // Nothing
+      default: {
+        res.writeHead(404);
+        res.end();
+      } break;
     }
   } catch (error) { console.warn(error); }
+}
+
+function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    fs.stat(filePath, (error, stats) => {
+      if (error || stats && !stats.isFile()) {
+        res.writeHead(404);
+        res.end();
+      } else {
+        res.writeHead(200, {
+          'Content-Type': getContentType(getFileExtension(filePath)),
+          'Content-Length': stats.size,
+        });
+        if (req.method === 'GET') {
+          const stream = fs.createReadStream(filePath);
+          stream.on('error', error => {
+            console.warn(`File server failed to stream file. ${error}`);
+            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+            if (!res.finished) { res.end(); }
+          });
+          stream.pipe(res);
+        } else {
+          res.end();
+        }
+      }
+    });
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
 }
 
 function exit() {

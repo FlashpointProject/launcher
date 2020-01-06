@@ -4,26 +4,13 @@ import * as path from 'path';
 import { AddLogData, BackIn } from '../shared/back/types';
 import { htdocsPath } from '../shared/constants';
 import { IGameInfo } from '../shared/game/interfaces';
-import { fixSlashes } from '../shared/Util';
+import { getFileServerURL } from '../shared/Util';
 import { Paths } from './Paths';
 
 export const gameIdDataType: string = 'text/game-id';
 
 /** How much the maximum/minimum game scale will scale the games up/down */
 export const gameScaleSpan = 0.6;
-
-/**
- * Get the path of the icon for a given platform (could point to a non-existing file)
- * @param platform Platform to get icon of (case sensitive)
- */
-export function getPlatformIconPath(platform: string): string {
-  return fixSlashes(path.join(getLogosFolderPath(window.External.config.fullFlashpointPath), platform+'.png'));
-}
-
-function getLogosFolderPath(flashpointPath: string, logosFolderPath?: string) {
-  if (logosFolderPath === undefined) { logosFolderPath = window.External.config.data.logoFolderPath; }
-  return path.join(flashpointPath, logosFolderPath);
-}
 
 export function easterEgg(search: string) {
   if (search === '\x44\x61\x72\x6b\x4d\x6f\x65') {
@@ -118,7 +105,11 @@ export function getFileExtension(filename: string): string {
 }
 
 export function getGameImageURL(folderName: string, gameId: string): string {
-  return `http://localhost:${window.External.fileServerPort}/${folderName}/${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`;
+  return `${getFileServerURL()}/images/${folderName}/${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`;
+}
+
+export function getPlatformIconURL(platform: string): string {
+  return `${getFileServerURL()}/logos/${platform}.png`;
 }
 
 export function getGameImagePath(folderName: string, gameId: string): string {

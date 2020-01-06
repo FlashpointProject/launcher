@@ -1,5 +1,3 @@
-import * as path from 'path';
-import { readJsonFile } from '../../shared/Util';
 import { Coerce } from '../../shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
 import { CreditsData, CreditsDataProfile } from './types';
@@ -7,23 +5,7 @@ import { CreditsData, CreditsDataProfile } from './types';
 const { str } = Coerce;
 
 export namespace CreditsFile {
-  const filePath: string = './credits.json';
-  const fileEncoding: string = 'utf8';
-
-  /**
-   * Read and parse the file asynchronously.
-   * @param jsonFolder Path of the JSON folder.
-   * @param onError Called for each error that occurs while parsing.
-   */
-  export function readFile(jsonFolder: string, onError?: (error: string) => void): Promise<CreditsData> {
-    return new Promise((resolve, reject) => {
-      readJsonFile(path.join(jsonFolder, filePath), fileEncoding)
-      .then(json => resolve(parseCreditsData(json, onError)))
-      .catch(reject);
-    });
-  }
-
-  function parseCreditsData(data: any, onError?: (error: string) => void): CreditsData {
+  export function parseCreditsData(data: any, onError?: (error: string) => void): CreditsData {
     const parsed: CreditsData = {
       profiles: []
     };
