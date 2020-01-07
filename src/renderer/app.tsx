@@ -916,7 +916,7 @@ export class App extends React.Component<AppProps, AppState> {
         gameId: view.selectedGameId,
         query: {
           extreme: view.query.extreme,
-          broken: false, // @TODO Add an option for this or something
+          broken: window.External.config.data.showBrokenGames,
           library: library,
           search: view.query.search,
           playlistId: view && view.selectedPlaylistId,
@@ -973,7 +973,7 @@ export class App extends React.Component<AppProps, AppState> {
           limit: (pageMax - pageMin + 1) * VIEW_PAGE_SIZE,
           query: {
             extreme: view.query.extreme,
-            broken: false, // @TODO Add an option for this or something
+            broken: window.External.config.data.showBrokenGames,
             library: library,
             search: view.query.search,
             playlistId: view && view.selectedPlaylistId,
@@ -1015,7 +1015,7 @@ export class App extends React.Component<AppProps, AppState> {
       search: search,
       query: {
         extreme: this.props.preferencesData.browsePageShowExtreme,
-        broken: false, // @TODO Add an option for this or something
+        broken: window.External.config.data.showBrokenGames,
         library: library,
         search: this.props.search.text, // view.query.search,
         playlistId: view && view.selectedPlaylistId,
