@@ -10,6 +10,7 @@ import { IAppPreferencesData } from '../../shared/preferences/interfaces';
 import { copyError } from '../util/misc';
 import { GameManagerState, LoadPlatformError, SearchCache, SearchCacheQuery } from './types';
 
+const mkdir = promisify(fs.mkdir);
 const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
@@ -172,7 +173,7 @@ export namespace GameManager {
         // Attempt to update game in existing platform
         if (updateGame(game, gamePlatform)) {
           if (LOG) { console.log('updated ' + game.id); }
-          if (request.saveToDisk) { savePlatformToFile(state, gamePlatform); }
+          if (request.saveToDisk) { await savePlatformToFile(state, gamePlatform); }
           continue gameUpdateLoop;
         }
         // Game not found in platform, follow process assuming it's a new game, or moved to another platform.
@@ -275,12 +276,11 @@ export namespace GameManager {
       format: true,           // Breaks XML into multiple lines and indents it
     });
     const parsedData = parser.parse(platform.data);
-    // Add save to the queue
-    return state.saveQueue.push(async () => {
-      // Save data to the platform's file
-      await fs.promises.mkdir(path.dirname(platform.filePath), { recursive: true });
-      await writeFile(platform.filePath, parsedData);
-    }, true);
+    // Save data to the platform's file
+    return state.saveQueue.push(
+      mkdir(path.dirname(platform.filePath), { recursive: true })
+      .then(() => writeFile(platform.filePath, parsedData))
+    , true).catch(console.error);
   }
 
   /** Update a game in a platform */

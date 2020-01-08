@@ -1429,30 +1429,10 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     } break;
 
     case BackIn.QUIT: {
-      if (state.serviceInfo) {
-        // Kill services
-        if (state.services.server && state.serviceInfo.server && state.serviceInfo.server.kill) {
-          state.services.server.kill();
-        }
-        if (state.services.redirector) {
-          const doKill: boolean = !!(
-            state.config.useFiddler
-              ? state.serviceInfo.fiddler    && state.serviceInfo.fiddler.kill
-              : state.serviceInfo.redirector && state.serviceInfo.redirector.kill
-          );
-          if (doKill) { state.services.redirector.kill(); }
-        }
-        // Run stop commands
-        for (let i = 0; i < state.serviceInfo.stop.length; i++) {
-          execProcess(state.serviceInfo.stop[i], true);
-        }
-      }
-
       respond(event.target, {
         id: req.id,
         type: BackOut.QUIT,
       });
-
       exit();
     } break;
   }
@@ -1550,20 +1530,46 @@ function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath
   }
 }
 
+/** Exit the process cleanly. */
 function exit() {
   if (!state.isExit) {
     state.isExit = true;
+
+    if (state.serviceInfo) {
+      // Kill services
+      if (state.services.server && state.serviceInfo.server && state.serviceInfo.server.kill) {
+        state.services.server.kill();
+      }
+      if (state.services.redirector) {
+        const doKill: boolean = !!(
+          state.config.useFiddler
+            ? state.serviceInfo.fiddler    && state.serviceInfo.fiddler.kill
+            : state.serviceInfo.redirector && state.serviceInfo.redirector.kill
+        );
+        if (doKill) { state.services.redirector.kill(); }
+      }
+      // Run stop commands
+      for (let i = 0; i < state.serviceInfo.stop.length; i++) {
+        execProcess(state.serviceInfo.stop[i], true);
+      }
+    }
+
     state.languageWatcher.abort();
     state.themeWatcher.abort();
+
     Promise.all([
+      // Close WebSocket server
       isErrorProxy(state.server) ? undefined : new Promise(resolve => state.server.close(error => {
         if (error) { console.warn('An error occurred whie closing the WebSocket server.', error); }
         resolve();
       })),
+      // Close file server
       new Promise(resolve => state.fileServer.close(error => {
         if (error) { console.warn('An error occurred whie closing the file server.', error); }
         resolve();
       })),
+      // Wait for game manager to complete all saves
+      state.gameManager.saveQueue.push(() => {}, true),
     ]).then(() => { process.exit(); });
   }
 }
