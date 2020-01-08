@@ -116,8 +116,10 @@ export class App extends React.Component<AppProps, AppState> {
       orderReverse: preferencesData.gamesOrder
     };
 
-    // Prepare libraries and initial views
+    // Prepare libraries
     const libraries = Object.keys(window.External.initialPlatforms).sort();
+
+    // Prepare initial views
     const views: Record<string, View> = {};
     for (let library of libraries) {
       views[library] = {
@@ -134,6 +136,12 @@ export class App extends React.Component<AppProps, AppState> {
       };
     }
 
+    // Prepare platforms
+    const platforms: Record<string, string[]> = {};
+    for (let library of libraries) {
+      platforms[library] = window.External.initialPlatforms[library].slice().sort();
+    }
+
     // Set initial state
     this.state = {
       views: views,
@@ -142,7 +150,7 @@ export class App extends React.Component<AppProps, AppState> {
       playlistIconCache: {},
       suggestions: {},
       appPaths: {},
-      platforms: window.External.initialPlatforms,
+      platforms: platforms,
       loaded: {
         0: false,
         1: false,
