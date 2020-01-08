@@ -67,7 +67,6 @@ const state: BackState = {
   gameManager: {
     platforms: [],
     platformsPath: 'Data/Platforms',
-    searchCaches: [],
     saveQueue: new EventQueue(),
   },
   messageQueue: [],

@@ -23,8 +23,6 @@ export type GameManagerState = {
   platforms: GamePlatform[];
   /** Platforms path, used to build new platforms later */
   platformsPath: string;
-  /** Cached previous searches */
-  searchCaches: SearchCache[];
   /** Event queue for saving to file (used to avoid collisions with saving to file). */
   saveQueue: EventQueue;
 }

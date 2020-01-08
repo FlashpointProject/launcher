@@ -2,13 +2,11 @@ import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { FilterGameOpts, filterGames, orderGames } from '../../shared/game/GameFilter';
 import { GameParser } from '../../shared/game/GameParser';
-import { IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate, SearchRequest, SearchResults, ServerResponse } from '../../shared/game/interfaces';
+import { IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate } from '../../shared/game/interfaces';
 import { GamePlatform, IRawPlatformFile } from '../../shared/platform/interfaces';
-import { IAppPreferencesData } from '../../shared/preferences/interfaces';
 import { copyError } from '../util/misc';
-import { GameManagerState, LoadPlatformError, SearchCache, SearchCacheQuery } from './types';
+import { GameManagerState, LoadPlatformError } from './types';
 
 const mkdir = promisify(fs.mkdir);
 const readdir = promisify(fs.readdir);
@@ -96,92 +94,33 @@ export namespace GameManager {
     }
   }
 
-  export function searchGames(state: GameManagerState, request: SearchRequest, preferences: IAppPreferencesData): ServerResponse {
-    // Find matching cached search if exists
-    let searchCache: SearchCache|undefined = undefined;
-    const query: SearchCacheQuery = {...request};
-    for (let cache of state.searchCaches) {
-      if (cache.query === query) {
-        searchCache = cache;
-      }
-    }
+  export function updateMetas(state: GameManagerState, request: MetaUpdate): Promise<void> {
+    const edited: GamePlatform[] = []; // All platforms that were edited and need to be saved
 
-    // Skip to limiting if search cache was found
-    if (!searchCache) {
-      // Build opts from preferences and query
-      const filterOpts: FilterGameOpts = {
-        search: request.query,
-        extreme: preferences.browsePageShowExtreme,
-        broken: false,
-        playlist: request.playlist
-      };
-
-      // Filter games
-      let foundGames: IGameInfo[] = [];
-      for (let i = 0; i < state.platforms.length; i++) {
-        // If library matches filter, or no library filter given, filter this platforms games
-        if (!request.library || state.platforms[i].library === request.library) {
-          foundGames = foundGames.concat(filterGames(state.platforms[i].collection.games, filterOpts));
-        }
-      }
-
-      // Order games
-      orderGames(foundGames, request.orderOpts);
-      // Build cache
-      searchCache = {
-        query: query,
-        total: foundGames.length,
-        results: foundGames
-      };
-      // Add to cache array, remove oldest if max length
-      if (state.searchCaches.length >= 10) { state.searchCaches.splice(0,1); }
-      state.searchCaches.push(searchCache);
-    }
-
-    // Apply limit and offset
-    if (request.offset < searchCache.total) {
-      // Don't go past end of array
-      const maxLimit = Math.min(request.offset + request.limit, searchCache.total);
-      const resGames = searchCache.results.slice(request.offset, maxLimit);
-      // Return results
-      const res: SearchResults = {
-        ...request,
-        total: searchCache.total,
-        results: resGames
-      };
-      return {
-        success: true,
-        result: res
-      };
-    } else {
-      // Offset out of bounds, return failure
-      return createFailureResponse(new Error(`Offset out of bounds => ${request.offset}`));
-    }
-  }
-
-  export async function updateMetas(state: GameManagerState, request: MetaUpdate): Promise<void> {
-    // Meta will change, clear cache
-    state.searchCaches = [];
+    // Games
     gameUpdateLoop:
     for (let game of request.games) {
       // Make sure the library and platform exist, replacing with unknown defaults if not
       const newLibrary = game.library || UNKNOWN_LIBRARY;
       const newPlatform = game.platform || UNKNOWN_PLATFORM;
+
       // Find existing platform and library to update if exists
       const gamePlatform = state.platforms.find(p => p.name === newPlatform && p.library === newLibrary);
       if (gamePlatform) {
         // Attempt to update game in existing platform
         if (updateGame(game, gamePlatform)) {
+          if (request.saveToDisk) { edited.push(gamePlatform); }
           if (LOG) { console.log('updated ' + game.id); }
-          if (request.saveToDisk) { await savePlatformToFile(state, gamePlatform); }
           continue gameUpdateLoop;
         }
         // Game not found in platform, follow process assuming it's a new game, or moved to another platform.
       }
+
       // Game has moved or is new
       const oldAddApps: IAdditionalApplicationInfo[] = [];
       for (let platform of state.platforms) {
         if (removeGame(game.id, platform)) {
+          if (request.saveToDisk) { edited.push(platform); }
           // Game removed from platform, store add apps to move later
           let addAppIndex = -1;
           while ((addAppIndex = platform.collection.additionalApplications.findIndex(a => a.gameId === game.id)) !== -1) {
@@ -194,13 +133,13 @@ export namespace GameManager {
       }
 
       if (gamePlatform) {
+        if (request.saveToDisk) { edited.push(gamePlatform); }
         // Platform matching found, add to it
         addGame(game, gamePlatform);
         // Add additional apps
         for (let addApp of oldAddApps) {
           addAddApp(addApp, gamePlatform);
         }
-        if (request.saveToDisk) { await savePlatformToFile(state, gamePlatform); }
       } else {
         // No platform found, make a new one
         const newCollection: IGameCollection = {
@@ -216,19 +155,22 @@ export namespace GameManager {
         };
         // Add to working array
         state.platforms.push(platform);
-        if (request.saveToDisk) { await savePlatformToFile(state, platform); }
+        if (request.saveToDisk) { edited.push(platform); }
       }
     }
+
+    // AddApps
     addAppLoop:
     for (let addApp of request.addApps) {
       // Find platform of parent game
       for (let platform of state.platforms) {
         if (updateAddApp(addApp, platform)) {
           // App found and updated, move onto the next one
-          if (request.saveToDisk) { await savePlatformToFile(state, platform); }
+          if (request.saveToDisk) { edited.push(platform); }
           continue addAppLoop;
         }
       }
+
       // Add App not found, create new entry in games platform
       for (let platform of state.platforms) {
         // Find parent games platform
@@ -236,12 +178,15 @@ export namespace GameManager {
         if (gameIndex !== -1) {
           // Game platform found, add in here then continue
           addAddApp(addApp, platform);
-          if (request.saveToDisk) { await savePlatformToFile(state, platform); }
+          if (request.saveToDisk) { edited.push(platform); }
           continue addAppLoop;
         }
       }
       // No parent game found, and no add app entry found. This shouldn't be reachable.
     }
+
+    // Save all edited platforms
+    return serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p)));
   }
 
   /** Remove an addapp in a platform */
@@ -413,12 +358,29 @@ export namespace GameManager {
       }
     };
   }
+}
 
-  function createFailureResponse(error: Error): ServerResponse {
-    return {
-      success: false,
-      error: error,
-      result: undefined
-    };
+/**
+ * Copy an array and remove all duplicates of values.
+ * All values that are strictly equal to another value will be removed, except for the one with the lowest index.
+ * Example: [1, 2, 3, 1] => [1, 2, 3]
+ */
+function removeDupes<T>(array: T[]): T[] {
+  const result = array.slice();
+  for (let i = 0; i < result.length; i++) {
+    const a = result[i];
+    let j = i + 1;
+    while (j < result.length) {
+      if (result[j] === a) { result.splice(j, 1); }
+      else { j++; }
+    }
+  }
+  return result;
+}
+
+/** Run a series of asynchronous functions one at a time. */
+async function serial(funcs: Array<() => void>): Promise<void> {
+  for (let i = 0; i < funcs.length; i++) {
+    await funcs[i]();
   }
 }
