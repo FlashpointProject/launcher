@@ -90,7 +90,6 @@ gulp.task('pack', (done) => {
       },
       files: [
         './build',
-        './static'
       ],
       extraFiles: copyFiles, // Files to copy to the build folder
       compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc)
