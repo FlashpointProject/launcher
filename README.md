@@ -9,6 +9,8 @@ The launcher for BlueMaxima's Flashpoint (the web preservation project).
 
 [![Flashpoint Launcher](https://github.com/FlashpointProject/launcher/workflows/Build%20Status/badge.svg)](https://github.com/FlashpointProject/launcher)
 
+[![Coverage Status](https://coveralls.io/repos/github/FlashpointProject/launcher/badge.svg?branch=master)](https://coveralls.io/github/FlashpointProject/launcher?branch=master)
+
 [![Crowdin](https://badges.crowdin.net/flashpoint-launcher/localized.svg)](https://crowdin.com/project/flashpoint-launcher)
 
 ### Links
