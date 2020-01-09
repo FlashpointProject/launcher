@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '../shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '../shared/back/types';
 import { BrowsePageLayout } from '../shared/BrowsePageLayout';
 import { APP_TITLE } from '../shared/constants';
 import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '../shared/game/interfaces';
@@ -18,7 +18,7 @@ import { updatePreferencesData } from '../shared/preferences/util';
 import { setTheme } from '../shared/Theme';
 import { Theme } from '../shared/ThemeFile';
 import { getUpgradeString } from '../shared/upgrade/util';
-import { canReadWrite, deepCopy, recursiveReplace, getFileServerURL } from '../shared/Util';
+import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace } from '../shared/Util';
 import { formatString } from '../shared/utils/StringFormatter';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
@@ -34,7 +34,7 @@ import { AppRouter, AppRouterProps } from './router';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
 import { UpgradeFile } from './upgrade/UpgradeFile';
-import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog, getGameImagePath, getGameImageURL } from './Util';
+import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
 
@@ -579,81 +579,62 @@ export class App extends React.Component<AppProps, AppState> {
     const prevLibrary = getBrowseSubPath(prevProps.location.pathname);
     const view = this.state.views[library];
     const prevView = prevState.views[prevLibrary];
+
     // Check if theme changed
     if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
       setTheme(preferencesData.currentTheme);
     }
-    // Check if the playlist changed
-    if (view && (view.selectedPlaylistId !== (prevView && prevView.selectedPlaylistId))) {
-      this.setState({
-        views: {
-          ...this.state.views,
-          [library]: {
-            ...view,
-            dirtyCache: true,
+
+    if (view) {
+      // Check if the playlist selection changed
+      if (view.selectedPlaylistId !== (prevView && prevView.selectedPlaylistId)) {
+        this.setState({
+          views: {
+            ...this.state.views,
+            [library]: {
+              ...view,
+              dirtyCache: true,
+            }
           }
-        }
-      }, () => { this.requestSelectedGame(library); });
+        }, () => { this.requestSelectedGame(library); });
+      }
+
+      // Check if the search query has changed
+      if (view.query.search       !== this.props.search.text ||
+          view.query.extreme      !== this.props.preferencesData.browsePageShowExtreme ||
+          view.query.orderBy      !== this.state.order.orderBy ||
+          view.query.orderReverse !== this.state.order.orderReverse) {
+        this.setState({
+          views: {
+            ...this.state.views,
+            [library]: {
+              ...view,
+              dirtyCache: true,
+              query: {
+                ...view.query,
+                search: this.props.search.text,
+                extreme: this.props.preferencesData.browsePageShowExtreme,
+                orderBy: this.state.order.orderBy,
+                orderReverse: this.state.order.orderReverse,
+              },
+            }
+          }
+        }, () => { this.requestSelectedGame(library); });
+      }
     }
-    // Check if the library changed
+
+    // Fetch games if a different library is selected
     if (library && prevLibrary && library !== prevLibrary) {
-      // Fetch first games when switching browse page view
       this.requestSelectedGame(library);
-      // Update search options (if they have changed)
-      if (view) {
-        if (view.query.search       !== this.props.search.text ||
-            view.query.extreme      !== this.props.preferencesData.browsePageShowExtreme ||
-            view.query.orderBy      !== this.state.order.orderBy ||
-            view.query.orderReverse !== this.state.order.orderReverse) {
-          this.setState({
-            views: {
-              ...this.state.views,
-              [library]: {
-                ...view,
-                dirtyCache: true,
-                query: {
-                  ...view.query,
-                  search: this.props.search.text,
-                  extreme: this.props.preferencesData.browsePageShowExtreme,
-                  orderBy: this.state.order.orderBy,
-                  orderReverse: this.state.order.orderReverse,
-                },
-              }
-            }
-          }, () => { this.requestSelectedGame(library); });
-        }
-      }
     }
-    // Update search text of current library
-    if (this.props.search.text !== prevProps.search.text) {
-      if (view) {
-        if (view.query.search !== this.props.search.text) {
-          this.setState({
-            views: {
-              ...this.state.views,
-              [library]: {
-                ...view,
-                dirtyCache: true,
-                query: {
-                  ...view.query,
-                  search: this.props.search.text,
-                },
-              }
-            }
-          }, () => {
-            // @TODO This requets some games just to update the state with some fresh values
-            //       from the back. It's kinda cheesy and probably adds an unnecessary delay.
-            this.requestSelectedGame(library);
-          });
-        }
-      }
-    }
+
     // Update preference "lastSelectedLibrary"
     const gameLibrary = getBrowseSubPath(location.pathname);
     if (location.pathname.startsWith(Paths.BROWSE) &&
         preferencesData.lastSelectedLibrary !== gameLibrary) {
       updatePreferencesData({ lastSelectedLibrary: gameLibrary });
     }
+
     // Create a new game
     if (this.state.wasNewGameClicked) {
       let route = '';
@@ -664,9 +645,7 @@ export class App extends React.Component<AppProps, AppState> {
         if (defaultLibrary) { route = defaultLibrary; }
         else                { route = UNKNOWN_LIBRARY; }
       }
-      if (!location.pathname.startsWith(Paths.BROWSE)) {
-        history.push(joinLibraryRoute(route));
-      }
+
       if (location.pathname.startsWith(Paths.BROWSE)) {
         this.setState({ wasNewGameClicked: false });
         // Deselect the current game
@@ -679,6 +658,8 @@ export class App extends React.Component<AppProps, AppState> {
           };
           this.setState({ views });
         }
+      } else {
+        history.push(joinLibraryRoute(route));
       }
     }
   }
