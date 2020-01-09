@@ -23,3 +23,5 @@ package-lock.json
 /upgrade.json
 /upgrade_launcher.json
 /secret.txt
+/.coveralls.yml
+/coverage
