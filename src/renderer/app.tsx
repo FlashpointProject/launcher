@@ -807,12 +807,10 @@ export class App extends React.Component<AppProps, AppState> {
 
   private onToggleLeftSidebarClick = (): void => {
     updatePreferencesData({ browsePageShowLeftSidebar: !this.props.preferencesData.browsePageShowLeftSidebar });
-    this.forceUpdate();
   }
 
   private onToggleRightSidebarClick = (): void => {
     updatePreferencesData({ browsePageShowRightSidebar: !this.props.preferencesData.browsePageShowRightSidebar });
-    this.forceUpdate();
   }
 
   private onSelectGame = (gameId?: string): void => {

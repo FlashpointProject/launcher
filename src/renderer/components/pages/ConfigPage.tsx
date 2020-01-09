@@ -351,12 +351,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
-    this.forceUpdate();
   }
 
   onEnableEditingChange = (isChecked: boolean): void => {
     updatePreferencesData({ enableEditing: isChecked });
-    this.forceUpdate();
   }
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -400,7 +398,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onShowDeveloperTab = (isChecked: boolean): void => {
     updatePreferencesData({ showDeveloperTab: isChecked });
-    this.forceUpdate();
   }
 
   onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {

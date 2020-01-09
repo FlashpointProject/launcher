@@ -416,10 +416,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, undefined); }
   }
 
-  onLeftSidebarPlaylistChanged = (): void => {
-    this.forceUpdate();
-  }
-
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {
     const maxWidth = (this.getGameBrowserDivWidth() - this.props.preferencesData.browsePageRightSidebarWidth) - 5;
     const targetWidth = event.startWidth + event.event.clientX - event.startX;
