@@ -107,8 +107,8 @@
   },
   "developer": {
     "developerHeader": "Geliştirici",
-    "developerDesc": "This is where all the useful developer tools will go.",
-    "checkMissingImages": "Check Missing Images",
+    "developerDesc": "Bu tüm kullanışlı geliştirici aletlerinin gideceği yerdir.",
+    "checkMissingImages": "Eksik Resimlere Bak",
     "checkMissingImagesDesc": "List all games without a thumbnail or screenshot",
     "checkGameIds": "Check Game IDs",
     "checkGameIdsDesc": "List all games with duplicate or invalid IDs",
