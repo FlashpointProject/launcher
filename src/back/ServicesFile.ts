@@ -1,8 +1,8 @@
 import * as path from 'path';
-import { IBackProcessInfo } from '../shared/interfaces';
-import { parseVarStr, readJsonFile } from '../shared/Util';
-import { Coerce } from '../shared/utils/Coerce';
-import { IObjectParserProp, ObjectParser } from '../shared/utils/ObjectParser';
+import { IBackProcessInfo } from '@shared/interfaces';
+import { parseVarStr, readJsonFile } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
+import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 
 const { str } = Coerce;
 

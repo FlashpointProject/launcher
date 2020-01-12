@@ -1,7 +1,7 @@
-import { OrderGamesOpts } from '../../shared/game/GameFilter';
-import { IGameInfo } from '../../shared/game/interfaces';
-import { GamePlaylist } from '../../shared/interfaces';
-import { GamePlatform } from '../../shared/platform/interfaces';
+import { OrderGamesOpts } from '@shared/game/GameFilter';
+import { IGameInfo } from '@shared/game/interfaces';
+import { GamePlaylist } from '@shared/interfaces';
+import { GamePlatform } from '@shared/platform/interfaces';
 import { EventQueue } from '../util/EventQueue';
 import { ErrorCopy } from '../util/misc';
 

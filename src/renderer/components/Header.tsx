@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
-import { LangContainer } from '../../shared/lang';
-import { getLibraryItemTitle } from '../../shared/library/util';
+import { LangContainer } from '@shared/lang';
+import { getLibraryItemTitle } from '@shared/library/util';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
 import { SearchQuery } from '../store/search';

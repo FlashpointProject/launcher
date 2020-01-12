@@ -2,11 +2,11 @@ import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { AddLogData, BackIn } from '../../shared/back/types';
-import { GameMetaDefaults } from '../../shared/curate/defaultValues';
-import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '../../shared/curate/parse';
-import { CurationIndexImage } from '../../shared/curate/types';
-import { stripBOM } from '../../shared/Util';
+import { AddLogData, BackIn } from '@shared/back/types';
+import { GameMetaDefaults } from '@shared/curate/defaultValues';
+import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '@shared/curate/parse';
+import { CurationIndexImage } from '@shared/curate/types';
+import { stripBOM } from '@shared/Util';
 import { setGameMetaDefaults } from '../components/pages/CuratePage';
 import { createCurationIndexImage } from './importCuration';
 

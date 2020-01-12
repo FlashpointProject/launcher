@@ -1,5 +1,5 @@
-import { Coerce } from '../../shared/utils/Coerce';
-import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
+import { Coerce } from '@shared/utils/Coerce';
+import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { CreditsData, CreditsDataProfile } from './types';
 
 const { str } = Coerce;

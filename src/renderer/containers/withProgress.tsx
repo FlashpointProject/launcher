@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
-import { Subtract } from '../../shared/interfaces';
+import { Subtract } from '@shared/interfaces';
 
 export type ProgressData = {
   /** Percent done. */

@@ -1,11 +1,11 @@
 import { remote } from 'electron';
 import * as React from 'react';
 import { setInterval } from 'timers';
-import { BackIn, ServiceActionData } from '../../shared/back/types';
-import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '../../shared/interfaces';
-import { LangContainer } from '../../shared/lang';
-import { ILogEntry } from '../../shared/Log/interface';
-import { escapeHTML, formatTime, padLines, timeChars } from '../../shared/Log/LogCommon';
+import { BackIn, ServiceActionData } from '@shared/back/types';
+import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
+import { ILogEntry } from '@shared/Log/interface';
+import { escapeHTML, formatTime, padLines, timeChars } from '@shared/Log/LogCommon';
 import { LangContext } from '../util/lang';
 import { LogData } from './LogData';
 import { SimpleButton } from './SimpleButton';

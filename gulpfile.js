@@ -24,12 +24,8 @@ const config = {
 
 /* ------ Watch ------ */
 
-gulp.task('watch-main', (done) => {
-  execute(`npx tsc --project "${config.main.src}" --pretty --watch`, done);
-});
-
 gulp.task('watch-back', (done) => {
-  execute(`npx tsc --project "${config.back.src}" --pretty --watch`, done);
+  execute('npx ttsc --project tsconfig.backend.json --pretty --watch', done);
 });
 
 gulp.task('watch-renderer', (done) => {
@@ -44,12 +40,8 @@ gulp.task('watch-static', () => {
 
 /* ------ Build ------ */
 
-gulp.task('build-main', (done) => {
-  execute(`npx tsc --project "${config.main.src}" --pretty`, done);
-});
-
 gulp.task('build-back', (done) => {
-  execute(`npx tsc --project "${config.back.src}" --pretty`, done);
+  execute('npx ttsc --project tsconfig.backend.json --pretty', done);
 });
 
 gulp.task('build-renderer', (done) => {
@@ -112,9 +104,9 @@ gulp.task('pack', (done) => {
 
 /* ------ Meta Tasks ------*/
 
-gulp.task('watch', gulp.parallel('watch-main', 'watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
+gulp.task('watch', gulp.parallel('watch-back', 'watch-renderer', 'watch-static', 'copy-static'));
 
-gulp.task('build', gulp.parallel('build-main', 'build-back', 'build-renderer', 'copy-static', 'config-install', 'config-version'));
+gulp.task('build', gulp.parallel('build-back', 'build-renderer', 'copy-static', 'config-install', 'config-version'));
 
 /* ------ Misc ------*/
 

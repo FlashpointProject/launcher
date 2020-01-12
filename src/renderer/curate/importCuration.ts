@@ -1,8 +1,8 @@
 import * as fs from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
-import { CurationIndexImage, IndexedContent } from '../../shared/curate/types';
-import { recursiveFolderIndex } from '../../shared/curate/util';
+import { CurationIndexImage, IndexedContent } from '@shared/curate/types';
+import { recursiveFolderIndex } from '@shared/curate/util';
 import { ProgressDispatch, ProgressHandle } from '../context/ProgressContext';
 import { pathTo7z } from '../util/SevenZip';
 import { uuid } from '../util/uuid';

@@ -1,7 +1,7 @@
 import * as path from 'path';
-import { readJsonFile } from '../../shared/Util';
-import { Coerce } from '../../shared/utils/Coerce';
-import { IObjectParserProp, ObjectParser } from '../../shared/utils/ObjectParser';
+import { readJsonFile } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
+import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { UpgradeStageState } from '../interfaces';
 import { uuid } from '../util/uuid';
 import { UpgradeStage } from './types';

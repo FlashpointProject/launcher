@@ -1,8 +1,8 @@
+import { autoCode } from '@shared/lang';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
 import { DeepPartial } from '../interfaces';
-import { autoCode } from '../lang';
 import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy } from '../Util';
 import { Coerce } from '../utils/Coerce';

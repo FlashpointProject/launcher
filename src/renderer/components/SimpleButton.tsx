@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Omit } from '../../shared/interfaces';
+import { Omit } from '@shared/interfaces';
 
 /** Props for an input element. */
 type InputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;

@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as YAML from 'yaml';
-import { convertMeta, ParsedCurationMeta } from '../../../../../src/renderer/curate/parse';
-import { stripBOM } from '../../../../../src/shared/Util';
+import { convertMeta, ParsedCurationMeta } from '@shared/curate/parse';
+import { stripBOM } from '@shared/Util';
 
 describe('convertMeta()',function () {
   test('Empty meta', () => {
@@ -31,7 +31,7 @@ const emptyMetaPath = './tests/static/curate/format/meta_empty.yaml';
 const emptyMeta: ParsedCurationMeta = {
   game: {},
   addApps: []
-}
+};
 
 const libraryCasePath = './tests/static/curate/format/meta_libraryCase.yaml';
 const libraryCase: ParsedCurationMeta = {
@@ -39,9 +39,9 @@ const libraryCase: ParsedCurationMeta = {
     library: 'arcade'
   },
   addApps: []
-}
+};
 
-const exampleMetaPath = './tests/static/curate/format/meta_example.yaml'
+const exampleMetaPath = './tests/static/curate/format/meta_example.yaml';
 const exampleMeta: ParsedCurationMeta = {
   game: {
     title: 'Test Curation',
@@ -70,4 +70,4 @@ const exampleMeta: ParsedCurationMeta = {
       launchCommand: 'http://example.com/index.html?lang=en'
     }
   ]
-}
+};

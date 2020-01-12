@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import { promisify } from 'util';
-import { GamePlaylistContent, GamePlaylistEntry } from '../shared/interfaces';
-import { stringifyJsonDataFile } from '../shared/Util';
-import { Coerce } from '../shared/utils/Coerce';
-import { IObjectParserProp, ObjectParser } from '../shared/utils/ObjectParser';
+import { GamePlaylistContent, GamePlaylistEntry } from '@shared/interfaces';
+import { stringifyJsonDataFile } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
+import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 
 const writeFile = promisify(fs.writeFile);
 

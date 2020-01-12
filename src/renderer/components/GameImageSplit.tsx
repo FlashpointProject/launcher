@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { LangContainer } from '../../shared/lang';
-import { formatString } from '../../shared/utils/StringFormatter';
+import { LangContainer } from '@shared/lang';
+import { formatString } from '@shared/utils/StringFormatter';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { ImagePreview } from './ImagePreview';

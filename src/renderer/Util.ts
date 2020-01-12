@@ -1,10 +1,10 @@
 import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
-import { AddLogData, BackIn } from '../shared/back/types';
-import { htdocsPath } from '../shared/constants';
-import { IGameInfo } from '../shared/game/interfaces';
-import { getFileServerURL } from '../shared/Util';
+import { AddLogData, BackIn } from '@shared/back/types';
+import { htdocsPath } from '@shared/constants';
+import { IGameInfo } from '@shared/game/interfaces';
+import { getFileServerURL } from '@shared/Util';
 import { Paths } from './Paths';
 
 export const gameIdDataType: string = 'text/game-id';

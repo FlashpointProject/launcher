@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCallback } from 'react';
-import { BackIn, LaunchCurationAddAppData } from '../../shared/back/types';
-import { EditAddAppCuration, EditAddAppCurationMeta } from '../../shared/curate/types';
+import { BackIn, LaunchCurationAddAppData } from '@shared/back/types';
+import { EditAddAppCuration, EditAddAppCurationMeta } from '@shared/curate/types';
 import { CurationAction } from '../context/CurationContext';
 import { LangContext } from '../util/lang';
 import { CurateBoxRow } from './CurateBoxRow';
