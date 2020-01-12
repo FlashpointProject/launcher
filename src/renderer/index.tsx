@@ -3,7 +3,7 @@ import { createMemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { AddLogData, BackIn } from '../shared/back/types';
+import { AddLogData, BackIn } from '@shared/back/types';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';

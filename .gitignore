@@ -20,8 +20,9 @@ package-lock.json
 /preferences.json
 /.installed
 /.version
-/upgrade.json
-/upgrade_launcher.json
 /secret.txt
+
+# Jest related files
 /.coveralls.yml
 /coverage
+/tests/result

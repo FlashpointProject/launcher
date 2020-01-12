@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { BackOut, WrappedResponse } from '../../../shared/back/types';
-import { ArgumentTypesOf } from '../../../shared/interfaces';
-import { LangContainer } from '../../../shared/lang';
-import { stringifyLogEntries } from '../../../shared/Log/LogCommon';
-import { memoizeOne } from '../../../shared/memoize';
-import { updatePreferencesData } from '../../../shared/preferences/util';
-import { shallowStrictEquals } from '../../../shared/Util';
+import { BackOut, WrappedResponse } from '@shared/back/types';
+import { ArgumentTypesOf } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
+import { stringifyLogEntries } from '@shared/Log/LogCommon';
+import { memoizeOne } from '@shared/memoize';
+import { updatePreferencesData } from '@shared/preferences/util';
+import { shallowStrictEquals } from '@shared/Util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';

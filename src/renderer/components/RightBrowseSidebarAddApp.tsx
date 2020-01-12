@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { IAdditionalApplicationInfo } from '../../shared/game/interfaces';
-import { LangContainer } from '../../shared/lang';
+import { IAdditionalApplicationInfo } from '@shared/game/interfaces';
+import { LangContainer } from '@shared/lang';
 import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';

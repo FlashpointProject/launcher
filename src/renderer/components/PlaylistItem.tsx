@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
-import { GamePlaylist } from '../../shared/interfaces';
+import { GamePlaylist } from '@shared/interfaces';
 import { LangContext } from '../util/lang';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';

@@ -3,18 +3,33 @@
     "module": "commonjs",
     "noImplicitAny": true,
     "sourceMap": true,
-    "outDir": "build/if_this_folder_exists_the_tsconfigs_are_improperly_set_up",
+    "outDir": "build",
     "baseUrl": ".",
     "target": "esnext",
     "lib": ["es6", "es2015", "dom"],
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@shared/*": [ "./src/shared/*" ],
+      "@main/*": [ "./src/main/*" ],
+      "@back/*": [ "./src/back/*" ],
+      "@renderer/*": [ "./src/renderer/*" ],
+      "@tests/*": [ "./tests/*" ]
+    },
+    "plugins": [
+      {
+          "transform": "ts-transform-paths",
+      }
+    ]
   },
   "exclude": [
     "node_modules",
     "dist",
-    "build"
+    "build",
+    "./src/shared",
   ],
   "include": [
-    "./typings/**/*"
-  ]
+    "./typings/**/*",
+    "./src",
+    "./tests"
+  ],
 }

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { LangContainer } from '../../shared/lang';
-import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
+import { LangContainer } from '@shared/lang';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { LangContext } from '../util/lang';
 
 export type GameOrderProps = {

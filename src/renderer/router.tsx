@@ -1,11 +1,11 @@
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { BrowsePageLayout } from '../shared/BrowsePageLayout';
-import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
-import { GamePlaylist, GamePropSuggestions } from '../shared/interfaces';
-import { LangContainer, LangFile } from '../shared/lang';
-import { Theme } from '../shared/ThemeFile';
+import { BrowsePageLayout } from '@shared/BrowsePageLayout';
+import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
+import { GamePlaylist, GamePropSuggestions } from '@shared/interfaces';
+import { LangContainer, LangFile } from '@shared/lang';
+import { Theme } from '@shared/ThemeFile';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';

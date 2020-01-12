@@ -2,9 +2,9 @@ import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { GameParser } from '../../shared/game/GameParser';
-import { IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate } from '../../shared/game/interfaces';
-import { GamePlatform, IRawPlatformFile } from '../../shared/platform/interfaces';
+import { GameParser } from '@shared/game/GameParser';
+import { IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate } from '@shared/game/interfaces';
+import { GamePlatform, IRawPlatformFile } from '@shared/platform/interfaces';
 import { copyError } from '../util/misc';
 import { GameManagerState, LoadPlatformError } from './types';
 

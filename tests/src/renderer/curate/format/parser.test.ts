@@ -1,5 +1,5 @@
-import { tokenizeCurationFormat } from '../../../../../src/renderer/curate/format/tokenizer';
-import { parseCurationFormat } from '../../../../../src/renderer/curate/format/parser';
+import { tokenizeCurationFormat } from '@shared/curate/format/tokenizer';
+import { parseCurationFormat } from '@shared/curate/format/parser';
 
 describe('parseCurationFormat()', function () {
   test('Empty string', () => {

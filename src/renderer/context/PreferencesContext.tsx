@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { IAppPreferencesData } from '../../shared/preferences/interfaces';
-import { deepCopy } from '../../shared/Util';
+import { IAppPreferencesData } from '@shared/preferences/interfaces';
+import { deepCopy } from '@shared/Util';
 
 export const PreferencesContext = React.createContext<IAppPreferencesData>({} as any);
 

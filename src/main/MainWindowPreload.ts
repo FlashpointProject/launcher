@@ -1,11 +1,11 @@
 import * as electron from 'electron';
 import { OpenDialogOptions } from 'electron';
 import * as path from 'path';
-import { SharedSocket } from '../shared/back/SharedSocket';
-import { BackIn, BackOut, GetRendererInitDataResponse, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, WrappedResponse } from '../shared/back/types';
-import { InitRendererChannel, InitRendererData } from '../shared/IPC';
-import { setTheme } from '../shared/Theme';
-import { createErrorProxy } from '../shared/Util';
+import { SharedSocket } from '@shared/back/SharedSocket';
+import { BackIn, BackOut, GetRendererInitDataResponse, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, WrappedResponse } from '@shared/back/types';
+import { InitRendererChannel, InitRendererData } from '@shared/IPC';
+import { setTheme } from '@shared/Theme';
+import { createErrorProxy } from '@shared/Util';
 import { isDev } from './Util';
 
 /**
