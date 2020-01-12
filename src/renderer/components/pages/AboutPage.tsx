@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { LangContainer } from '../../../shared/lang';
-import { versionNumberToText } from '../../../shared/Util';
+import { LangContainer } from '@shared/lang';
+import { versionNumberToText } from '@shared/Util';
 import { CreditsData, CreditsDataProfile } from '../../credits/types';
 import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';

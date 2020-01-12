@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, ScrollParams } from 'react-virtualized/dist/es/Grid';
-import { BackOut, ImageChangeData, ViewGame, WrappedResponse } from '../../shared/back/types';
-import { LOGOS } from '../../shared/constants';
-import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
+import { BackOut, ImageChangeData, ViewGame, WrappedResponse } from '@shared/back/types';
+import { LOGOS } from '@shared/constants';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { GAMES } from '../interfaces';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';

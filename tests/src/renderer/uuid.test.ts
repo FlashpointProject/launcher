@@ -1,5 +1,5 @@
 /* Tests for src/renderer/uuid.test.ts */
-import { validateSemiUUID, uuid } from '../../../src/renderer/uuid';
+import { validateSemiUUID, uuid } from '@renderer/util/uuid';
 
 describe('uuid.uuid()', function () {
   test('Returns string of proper length?', () => {

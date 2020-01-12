@@ -1,5 +1,5 @@
 /* Tests for src/main/renderer/Util.ts */
-import { shuffle, joinLibraryRoute } from '../../../src/renderer/Util';
+import { shuffle, joinLibraryRoute } from '@renderer/Util';
 
 // getPlatformIconPath() - to be tested (may need mocks)
 

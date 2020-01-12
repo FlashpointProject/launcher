@@ -1,0 +1,35 @@
+on:
+  pull_request:
+    branches: 
+      - master
+  push:
+    branches:
+      - master
+
+name: Test Coveralls
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v1
+
+    - name: Use Node.js 10.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+
+    - name: npm install
+      run: npm install
+    
+    - name: Run tests
+      run: npx jest --coverage --coverageReporters=lcov
+      continue-on-error: true
+
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}

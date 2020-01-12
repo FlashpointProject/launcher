@@ -1,4 +1,4 @@
-import { Subtract } from '../../shared/interfaces';
+import { Subtract } from '@shared/interfaces';
 import { CuratePage, CuratePageProps } from '../components/pages/CuratePage';
 import { withPreferences, WithPreferencesProps } from './withPreferences';
 

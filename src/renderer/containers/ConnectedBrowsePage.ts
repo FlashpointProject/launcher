@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
-import { Subtract } from '../../shared/interfaces';
+import { Subtract } from '@shared/interfaces';
 import { BrowsePage, BrowsePageProps } from '../components/pages/BrowsePage';
 import { ApplicationState } from '../store';
 import { SearchQuery } from '../store/search';

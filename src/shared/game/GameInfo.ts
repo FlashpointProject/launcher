@@ -25,7 +25,7 @@ export class GameInfo {
       version: '',
       originalDescription: '',
       language: '',
-      filename: '',
+      library: '',
       orderTitle: '',
       placeholder: false,
     };

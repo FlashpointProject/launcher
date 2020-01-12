@@ -1,7 +1,7 @@
-import { IAppConfigData } from '../../shared/config/interfaces';
-import { deepCopy, parseVarStr, fixSlashes } from '../../shared/Util';
-import { Coerce } from '../../shared/utils/Coerce';
-import { ObjectParser } from '../../shared/utils/ObjectParser';
+import { IAppConfigData } from '@shared/config/interfaces';
+import { deepCopy, parseVarStr, fixSlashes } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
+import { ObjectParser } from '@shared/utils/ObjectParser';
 
 const { num, str } = Coerce;
 
@@ -78,6 +78,7 @@ export function overwriteConfigData(
   parser.prop('playlistFolderPath',  v => source.playlistFolderPath  = parseVarStr(str(v)));
   parser.prop('jsonFolderPath',      v => source.jsonFolderPath      = parseVarStr(str(v)));
   parser.prop('platformFolderPath',  v => source.platformFolderPath  = parseVarStr(str(v)));
+  parser.prop('themeFolderPath',     v => source.themeFolderPath     = parseVarStr(str(v)));
   parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
   parser.prop('startServer',         v => source.startServer         = !!v);
   parser.prop('startRedirector',     v => source.startRedirector     = !!v);
