@@ -66,7 +66,7 @@ const state: BackState = {
   localeCode: createErrorProxy('countryCode'),
   gameManager: {
     platforms: [],
-    platformsPath: 'Data/Platforms',
+    platformsPath: '',
     saveQueue: new EventQueue(),
   },
   messageQueue: [],
@@ -818,8 +818,8 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       const reqData: SaveGameData = req.data;
 
       GameManager.updateMetas(state.gameManager, {
-        games: [reqData.game],
-        addApps: reqData.addApps || [],
+        game: reqData.game,
+        addApps: reqData.addApps,
         saveToDisk: reqData.saveToFile,
       });
 
@@ -838,25 +838,10 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.DELETE_GAME: {
       const reqData: DeleteGameData = req.data;
 
-      const platforms = state.gameManager.platforms;
-      for (let i = 0; i < platforms.length; i++) {
-        const platform = platforms[i];
-        if (GameManager.removeGame(reqData.id, platform)) {
-          // Game was found and removed, search for addApps
-          for (let j = 0; j < platforms.length; i++) {
-            const addApps = platforms[j].collection.additionalApplications.filter(addApp => addApp.gameId === reqData.id);
-            if (addApps.length > 0) {
-              // Add apps found, remove all
-              for (let addApp of addApps) {
-                GameManager.removeAddApp(addApp.id, platform);
-              }
-            }
-            // Save platform to disk
-            await GameManager.savePlatformToFile(state.gameManager, platform);
-            break;
-          }
-        }
-      }
+      await GameManager.removeGameAndAddApps(state.gameManager, {
+        gameId: reqData.id,
+        saveToDisk: true,
+      });
 
       state.queries = {}; // Clear entire cache
 
@@ -888,7 +873,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
         // Add copies
         GameManager.updateMetas(state.gameManager, {
-          games: [newGame],
+          game: newGame,
           addApps: newAddApps,
           saveToDisk: true,
         });

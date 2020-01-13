@@ -15,12 +15,12 @@ export type GamePlatform = {
 }
 
 export type IRawPlatformFile = {
-  LaunchBox: IRawPlatform
+  LaunchBox: IRawPlatform;
 }
 
 export type IRawPlatform = {
-  Game?: IRawGameInfo | IRawGameInfo[],
-  AdditionalApplication?: IRawAdditionalApplicationInfo | IRawAdditionalApplicationInfo[]
+  Game: IRawGameInfo[];
+  AdditionalApplication: IRawAdditionalApplicationInfo[];
 }
 
 /**

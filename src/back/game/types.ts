@@ -1,9 +1,40 @@
 import { OrderGamesOpts } from '@shared/game/GameFilter';
-import { IGameInfo } from '@shared/game/interfaces';
+import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
 import { GamePlaylist } from '@shared/interfaces';
 import { GamePlatform } from '@shared/platform/interfaces';
 import { EventQueue } from '../util/EventQueue';
 import { ErrorCopy } from '../util/misc';
+
+export type UpdateMetaOptions = {
+  /** Game entry to add or edit. */
+  game: IGameInfo;
+  /** All additional applications of that game entry (any missing ones will be deleted). */
+  addApps: IAdditionalApplicationInfo[];
+  /** Save to disk immediately after updating the entries. */
+  saveToDisk: boolean;
+}
+
+export type RemoveGameOptions = {
+  /** ID of the game to remove. */
+  gameId: string;
+  /** Save to disk immediately after removing the entries. */
+  saveToDisk: boolean;
+}
+
+export type RemoveGameResult = {
+  /** All platforms that were edited. */
+  edited: GamePlatform[];
+  /**
+   * Indices of all removed games.
+   * (gameIndices[platform_index] = [ game_index, ... ])
+   */
+  gameIndices: number[][];
+  /**
+   * Indices of all remove add-apps.
+   * (addAppIndices[platform_index] = { [addapp_id]: addapp_index })
+   */
+  addAppIndices: Record<string, number>[];
+}
 
 export type SearchCache = {
   query: SearchCacheQuery;

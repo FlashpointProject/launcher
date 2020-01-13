@@ -93,8 +93,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   curationLog(log, 'Importing Curation Meta');
   // Copy/extract content and image files
   GameManager.updateMetas(gameManager, {
-    games: [game],
-    addApps: addApps,
+    game,
+    addApps,
     saveToDisk: true,
   })
   .then(() => { if (log) { logMsg('Meta Added', curation); } }),
