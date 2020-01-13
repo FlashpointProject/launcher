@@ -68,6 +68,7 @@ const state: BackState = {
     platforms: [],
     platformsPath: '',
     saveQueue: new EventQueue(),
+    log: (content) => log({ source: 'GameManager', content }),
   },
   messageQueue: [],
   isHandling: false,

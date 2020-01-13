@@ -56,6 +56,8 @@ export type GameManagerState = {
   platformsPath: string;
   /** Event queue for saving to file (used to avoid collisions with saving to file). */
   saveQueue: EventQueue;
+  /** Log messages from the GameManager. */
+  log: (content: string) => void;
 }
 
 export type LoadPlatformError = ErrorCopy & {

@@ -128,7 +128,7 @@ export namespace GameManager {
         gameIndex = platform.collection.games.length;
       }
       // Insert game
-      debugLog(`Insert Game (ID: "${opts.game.id}", index: ${gameIndex}, platform: "${platform.name}", library: "${platform.library}")`);
+      state.log(`Insert Game (ID: "${opts.game.id}", index: ${gameIndex}, platform: "${platform.name}", library: "${platform.library}")`);
       platform.collection.games.splice(gameIndex, 0, opts.game);
       platform.data.LaunchBox.Game.splice(gameIndex, 0, GameParser.reverseParseGame(opts.game));
 
@@ -140,7 +140,7 @@ export namespace GameManager {
           index = platform.collection.additionalApplications.length;
         }
         // Insert app-app
-        debugLog(`Insert AddApp (ID: "${addApp.id}", index: ${index}, platform: "${platform.name}", library: "${platform.library}")`);
+        state.log(`Insert AddApp (ID: "${addApp.id}", index: ${index}, platform: "${platform.name}", library: "${platform.library}")`);
         platform.collection.additionalApplications.splice(index, 0, addApp);
         platform.data.LaunchBox.AdditionalApplication.splice(index, 0, GameParser.reverseParseAdditionalApplication(addApp));
       }
@@ -182,7 +182,7 @@ export namespace GameManager {
       const games = platform.collection.games;
       for (let i = games.length - 1; i >= 0; i--) {
         if (games[i].id === opts.gameId) {
-          debugLog(`Remove Game (ID: "${opts.gameId}", index: ${i}, platform: "${platform.name}", library: "${platform.library}")`);
+          state.log(`Remove Game (ID: "${opts.gameId}", index: ${i}, platform: "${platform.name}", library: "${platform.library}")`);
           changed = true;
           games.splice(i, 1);
         }
@@ -191,7 +191,7 @@ export namespace GameManager {
       const addApps = platform.collection.additionalApplications;
       for (let i = addApps.length - 1; i >= 0; i--) {
         if (addApps[i].gameId === opts.gameId) {
-          debugLog(`Remove AddApp (ID: "${addApps[i].id}", index: ${i}, platform: "${platform.name}", library: "${platform.library}")`);
+          state.log(`Remove AddApp (ID: "${addApps[i].id}", index: ${i}, platform: "${platform.name}", library: "${platform.library}")`);
           changed = true;
           addApps.splice(i, 1);
         }
@@ -230,10 +230,17 @@ export namespace GameManager {
     });
     const parsedData = parser.parse(platform.data);
     // Save data to the platform's file
-    return state.saveQueue.push(
-      mkdir(path.dirname(platform.filePath), { recursive: true })
-      .then(() => writeFile(platform.filePath, parsedData))
-    , true).catch(console.error);
+    return state.saveQueue.push(async () => {
+      const extra = `(platform: "${platform.name}", library: "${platform.library}", file: "${platform.filePath}")`;
+      try {
+        state.log(`Saving platform to file ${extra}`);
+        await mkdir(path.dirname(platform.filePath), { recursive: true });
+        await writeFile(platform.filePath, parsedData);
+        state.log(`Save successful ${extra}`);
+      } catch (error) {
+        state.log(`Save failed ${extra}\n${error}`);
+      }
+    }, true);
   }
 
   /** Create a new raw platform with the same data as a parsed platform */
@@ -345,8 +352,4 @@ async function serial(funcs: Array<() => void>): Promise<void> {
   for (let i = 0; i < funcs.length; i++) {
     await funcs[i]();
   }
-}
-
-function debugLog(...args: any[]): void {
-  console.log(...args);
 }

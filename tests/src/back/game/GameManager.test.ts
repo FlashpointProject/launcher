@@ -198,6 +198,7 @@ function createState(): GameManagerState {
     platforms: [],
     platformsPath: RESULT_PLATFORMS_PATH,
     saveQueue: new EventQueue(),
+    log: () => {}, // Don't log
   };
 }
 
