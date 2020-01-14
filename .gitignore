@@ -15,7 +15,7 @@ package-lock.json
 # Temp
 /temp
 
-# Config & Preferences (created during testing)
+# Launcher files (created during testing)
 /config.json
 /preferences.json
 /.installed
@@ -23,3 +23,9 @@ package-lock.json
 /upgrade.json
 /upgrade_launcher.json
 /setupFinished
+/secret.txt
+
+# Jest related files
+/.coveralls.yml
+/coverage
+/tests/result

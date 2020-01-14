@@ -1,12 +1,12 @@
 import { remote } from 'electron';
 import * as React from 'react';
-import { WithPreferencesProps } from '../../../renderer/containers/withPreferences';
-import { AddLogData, BackIn, UpdateConfigData } from '../../../shared/back/types';
-import { autoCode, LangContainer, LangFile } from '../../../shared/lang';
-import { memoizeOne } from '../../../shared/memoize';
-import { updatePreferencesData } from '../../../shared/preferences/util';
-import { Theme } from '../../../shared/ThemeFile';
-import { formatString } from '../../../shared/utils/StringFormatter';
+import { WithPreferencesProps } from '@renderer/containers/withPreferences';
+import { AddLogData, BackIn, UpdateConfigData } from '@shared/back/types';
+import { autoCode, LangContainer, LangFile } from '@shared/lang';
+import { memoizeOne } from '@shared/memoize';
+import { updatePreferencesData } from '@shared/preferences/util';
+import { Theme } from '@shared/ThemeFile';
+import { formatString } from '@shared/utils/StringFormatter';
 import { isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
@@ -207,7 +207,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                             <div className='simple-center'>
                               <input
                                 type='checkbox'
-                                checked={nativePlatforms.findIndex((item) => item === platform) != -1}
+                                checked={nativePlatforms.findIndex((item) => item === platform) !== -1}
                                 onChange={() => { this.onNativeCheckboxChange(platform); }}
                                 className='simple-center__vertical-inner' />
                             </div>
@@ -351,12 +351,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
-    this.forceUpdate();
   }
 
   onEnableEditingChange = (isChecked: boolean): void => {
     updatePreferencesData({ enableEditing: isChecked });
-    this.forceUpdate();
   }
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -371,7 +369,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const { nativePlatforms } = this.state;
     const index = nativePlatforms.findIndex(item => item === platform);
 
-    if (index != -1) {
+    if (index !== -1) {
       nativePlatforms.splice(index, 1);
     } else {
       nativePlatforms.push(platform);
@@ -400,7 +398,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onShowDeveloperTab = (isChecked: boolean): void => {
     updatePreferencesData({ showDeveloperTab: isChecked });
-    this.forceUpdate();
   }
 
   onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {

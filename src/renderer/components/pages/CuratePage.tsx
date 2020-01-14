@@ -5,23 +5,23 @@ import * as path from 'path';
 import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import * as YAML from 'yaml';
-import { BackIn, ImportCurationData, ImportCurationResponseData } from '../../../shared/back/types';
-import { ARCADE } from '../../../shared/constants';
-import { GameMetaDefaults } from '../../../shared/curate/defaultValues';
-import { convertEditToCurationMeta, convertParsedToCurationMeta } from '../../../shared/curate/metaToMeta';
-import { CurationIndex, EditCuration, EditCurationMeta } from '../../../shared/curate/types';
-import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '../../../shared/curate/util';
-import { GamePropSuggestions } from '../../../shared/interfaces';
-import { LangContainer } from '../../../shared/lang';
-import { getLibraryItemTitle } from '../../../shared/library/util';
-import { memoizeOne } from '../../../shared/memoize';
-import { updatePreferencesData } from '../../../shared/preferences/util';
+import { BackIn, ImportCurationData, ImportCurationResponseData } from '@shared/back/types';
+import { ARCADE } from '@shared/constants';
+import { GameMetaDefaults } from '@shared/curate/defaultValues';
+import { convertEditToCurationMeta, convertParsedToCurationMeta } from '@shared/curate/metaToMeta';
+import { CurationIndex, EditCuration, EditCurationMeta } from '@shared/curate/types';
+import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
+import { GamePropSuggestions } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
+import { getLibraryItemTitle } from '@shared/library/util';
+import { memoizeOne } from '@shared/memoize';
+import { updatePreferencesData } from '@shared/preferences/util';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { CurationContext } from '../../context/CurationContext';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { createCurationIndexImage, importCurationArchive, importCurationFolder, importCurationMeta } from '../../curate/importCuration';
 import { createCurationImage, curationLog, readCurationMeta, showWarningBox } from '../../curate/util';
-import { getPlatformIconPath } from '../../Util';
+import { getPlatformIconURL } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { uuid } from '../../util/uuid';
 import { CheckBox } from '../CheckBox';
@@ -72,7 +72,7 @@ export function CuratePage(props: CuratePageProps) {
     const dirName = path.basename(fullPath);
     console.log(dirName);
     // Inside curation dir and is unused
-    if (splitPath.length > 1 && dirName != 'content' && dirName != 'Extras') {
+    if (splitPath.length > 1 && dirName !== 'content' && dirName !== 'Extras') {
       const key = splitPath.shift();
       console.log(key);
       // Forcefully re-render a curate box (Non-Content folder warnings)
@@ -219,14 +219,14 @@ export function CuratePage(props: CuratePageProps) {
     const dirName = path.basename(fullPath);
     console.log(dirName);
     // Dir inside curation folders and unused
-    if (splitPath.length > 1 && dirName != 'content' && dirName != 'Extras') {
+    if (splitPath.length > 1 && dirName !== 'content' && dirName !== 'Extras') {
       const key = splitPath.shift();
       console.log(key);
       // Forcefully re-render a curate box (Non-Content folder warnings)
       if (key) {
         // Verify it is actually a curation folder by searching for meta file
         const curationFiles = await fs.readdir(path.join(curationsPath, key));
-        if (curationFiles.findIndex(f => f.startsWith('meta.')) != -1) {
+        if (curationFiles.findIndex(f => f.startsWith('meta.')) !== -1) {
           dispatch({
             type: 'add-unused-dir',
             payload: {
@@ -688,7 +688,7 @@ export function CuratePage(props: CuratePageProps) {
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
     return state.curations.map((curation, index) => {
-      const platformIconPath = curation.meta.platform ? getPlatformIconPath(curation.meta.platform) : '';
+      const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform) : '';
       return (
         curation.delete ? undefined :
         <div

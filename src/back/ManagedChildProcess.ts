@@ -1,8 +1,8 @@
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { IBackProcessInfo, ProcessState } from '../shared/interfaces';
-import { ILogPreEntry } from '../shared/Log/interface';
-import { Coerce } from '../shared/utils/Coerce';
+import { IBackProcessInfo, ProcessState } from '@shared/interfaces';
+import { ILogPreEntry } from '@shared/Log/interface';
+import { Coerce } from '@shared/utils/Coerce';
 
 const { str } = Coerce;
 

@@ -38,7 +38,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
     return Object.keys(warnings).map((key) => {
       const obj = warnings[key as keyof CurationWarnings];
       // Reason obj to a string[] or boolean, format differently for each
-      const listObj = obj && obj != true ? obj : undefined;
+      const listObj = obj && obj !== true ? obj : undefined;
       if (listObj && listObj.length > 0) {
         const suffix = '\t' + listObj.join('\n\t') + '\n';
         return `- ${strings[key as keyof CurationWarnings]}\n${suffix}`;

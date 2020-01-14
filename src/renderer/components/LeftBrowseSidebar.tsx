@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { GamePlaylist } from '../../shared/interfaces';
-import { LangContainer } from '../../shared/lang';
-import { memoizeOne } from '../../shared/memoize';
+import { GamePlaylist } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
+import { memoizeOne } from '@shared/memoize';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameIdDataType } from '../Util';
 import { LangContext } from '../util/lang';

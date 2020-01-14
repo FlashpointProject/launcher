@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { GamePlaylist } from '../../shared/interfaces';
-import { LangContainer } from '../../shared/lang';
+import { GamePlaylist } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputElement, InputField } from './InputField';

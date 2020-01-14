@@ -1,4 +1,4 @@
-import { Subtract } from '../../shared/interfaces';
+import { Subtract } from '@shared/interfaces';
 import { ConfigPage, ConfigPageProps } from '../components/pages/ConfigPage';
 import { withPreferences, WithPreferencesProps } from './withPreferences';
 

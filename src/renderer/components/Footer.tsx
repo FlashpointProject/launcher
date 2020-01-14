@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '../../shared/BrowsePageLayout';
-import { LangContainer } from '../../shared/lang';
-import { formatString } from '../../shared/utils/StringFormatter';
+import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '@shared/BrowsePageLayout';
+import { LangContainer } from '@shared/lang';
+import { formatString } from '@shared/utils/StringFormatter';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameScaleSpan } from '../Util';
 import { LangContext } from '../util/lang';

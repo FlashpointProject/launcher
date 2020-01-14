@@ -1,6 +1,5 @@
-import { PlatformInfo } from '../platform/interfaces';
-import { OrderGamesOpts } from './GameFilter';
 import { GamePlaylist } from '../interfaces';
+import { OrderGamesOpts } from './GameFilter';
 
 export const UNKNOWN_LIBRARY = 'unknown';
 
@@ -101,12 +100,6 @@ export type ServerResponse = {
   result?: any;
 }
 
-/** Server Response - Return all platforms info */
-export type FetchPlatformInfoResponse = {
-  /** Info for all platforms */
-  platforms: PlatformInfo[];
-}
-
 /** Client Request - Fetch a game */
 export type FetchGameRequest = {
   /** Id of the game */
@@ -161,14 +154,4 @@ export type SearchResults = SearchRequest & {
   total: number;
   /** Games returned from a search query */
   results: IGameInfo[];
-}
-
-/** Client Request - Metadata updates */
-export type MetaUpdate = {
-  /** Any game entries to update */
-  games: IGameInfo[];
-  /** Any add app entries to update */
-  addApps: IAdditionalApplicationInfo[];
-  /** Save to disk immediately after updating the entries */
-  saveToDisk: boolean;
 }

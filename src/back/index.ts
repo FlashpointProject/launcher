@@ -7,23 +7,24 @@ import * as http from 'http';
 import * as path from 'path';
 import * as util from 'util';
 import * as WebSocket from 'ws';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewAllData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse, GetLanguageData } from '../shared/back/types';
-import { ConfigFile } from '../shared/config/ConfigFile';
-import { overwriteConfigData } from '../shared/config/util';
-import { LOGOS, SCREENSHOTS } from '../shared/constants';
-import { findMostUsedApplicationPaths } from '../shared/curate/defaultValues';
-import { stringifyCurationFormat } from '../shared/curate/format/stringifier';
-import { convertToCurationMeta } from '../shared/curate/metaToMeta';
-import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '../shared/game/GameFilter';
-import { IAdditionalApplicationInfo, IGameInfo } from '../shared/game/interfaces';
-import { DeepPartial, GamePlaylist, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '../shared/interfaces';
-import { autoCode, getDefaultLocalization, LangContainer, LangFile, LangFileContent } from '../shared/lang';
-import { ILogEntry, ILogPreEntry } from '../shared/Log/interface';
-import { GameOrderBy, GameOrderReverse } from '../shared/order/interfaces';
-import { PreferencesFile } from '../shared/preferences/PreferencesFile';
-import { defaultPreferencesData, overwritePreferenceData } from '../shared/preferences/util';
-import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '../shared/ThemeFile';
-import { createErrorProxy, deepCopy, isErrorProxy, recursiveReplace, removeFileExtension, stringifyArray } from '../shared/Util';
+import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse, GetLanguageData } from '@shared/back/types';
+import { overwriteConfigData } from '@shared/config/util';
+import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { findMostUsedApplicationPaths } from '@shared/curate/defaultValues';
+import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
+import { convertToCurationMeta } from '@shared/curate/metaToMeta';
+import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '@shared/game/GameFilter';
+import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
+import { DeepPartial, GamePlaylist, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '@shared/interfaces';
+import { autoCode, getDefaultLocalization, LangContainer, LangFile, LangFileContent } from '@shared/lang';
+import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
+import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
+import { createErrorProxy, deepCopy, isErrorProxy, recursiveReplace, removeFileExtension, stringifyArray } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
+import { ConfigFile } from './ConfigFile';
 import { loadExecMappingsFile } from './Execs';
 import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
@@ -35,14 +36,10 @@ import { getSuggestions } from './suggestions';
 import { BackQuery, BackQueryChache, BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { getContentType, pathExists } from './util/misc';
+import { copyError, getContentType, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 import { UpgradeFile } from '../shared/upgrade/UpgradeFile';
-
-// @TODO
-// * Make the back generate and send suggestions to the renderer
-//
 
 const copyFile  = util.promisify(fs.copyFile);
 const readFile  = util.promisify(fs.readFile);
@@ -61,14 +58,19 @@ const state: BackState = {
   isExit: false,
   server: createErrorProxy('server'),
   fileServer: new http.Server(onFileServerRequest),
-  imageServerPort: -1,
+  fileServerPort: -1,
   secret: createErrorProxy('secret'),
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
-  gameManager: new GameManager(),
+  gameManager: {
+    platforms: [],
+    platformsPath: '',
+    saveQueue: new EventQueue(),
+    log: (content) => log({ source: 'GameManager', content }),
+  },
   messageQueue: [],
   isHandling: false,
   messageEmitter: new EventEmitter() as any,
@@ -449,7 +451,6 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   fs.stat(playlistFolder, (error) => {
     if (!error) { state.playlistWatcher.watch(playlistFolder); }
     else {
-      log({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
       if (error.code === 'ENOENT') {
         log({ source: 'Back', content: `Failed to watch playlist folder. Folder does not exist (Path: "${playlistFolder}")` });
       } else {
@@ -461,8 +462,17 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
 
-  // Init Game manager
-  state.gameManager.loadPlatforms(path.join(state.config.flashpointPath, state.config.platformFolderPath))
+  // Init Game Manager
+  state.gameManager.platformsPath = path.join(state.config.flashpointPath, state.config.platformFolderPath);
+  GameManager.loadPlatforms(state.gameManager)
+  .then(errors => {
+    if (errors.length > 0) {
+      console.error(`${errors.length} platform(s) failed to load. Errors:`);
+      for (let error of errors) {
+        console.error(error);
+      }
+    }
+  })
   .catch(error => { console.error(error); })
   .finally(() => {
     state.init[BackInit.GAMES] = true;
@@ -487,7 +497,10 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Find the first available port in the range
   const serverPort = await new Promise<number>(resolve => {
-    let port: number = state.config.backPortMin - 1;
+    const minPort = state.config.backPortMin;
+    const maxPort = state.config.backPortMax;
+
+    let port: number = minPort - 1;
     let server: WebSocket.Server | undefined;
     tryListen();
 
@@ -497,64 +510,84 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         server.off('listening', onceListening);
       }
 
-      if (port++ < state.config.backPortMax) {
+      if (port++ < maxPort) {
         server = new WebSocket.Server({
-          host: 'localhost',
+          host: content.acceptRemote ? undefined : 'localhost',
           port: port,
         });
         server.on('error', onError);
         server.on('listening', onceListening);
-      } else { done(false); }
+      } else {
+        done(new Error(`Failed to open server. All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
+      }
     }
 
     function onError(error: Error): void {
       if ((error as any).code === 'EADDRINUSE') {
         tryListen();
       } else {
-        done(false);
+        done(error);
       }
     }
     function onceListening() {
-      done(true);
+      done(undefined);
     }
-    function done(success: boolean) {
+    function done(error: Error | undefined) {
       if (server) {
         server.off('error', onError);
         server.off('listening', onceListening);
         state.server = server;
         state.server.on('connection', onConnect);
       }
-      resolve(success ? port : -1);
+      if (error) {
+        log({
+          source: 'Back',
+          content: 'Failed to open WebSocket server.\n'+error,
+        });
+        resolve(-1);
+      } else {
+        resolve(port);
+      }
     }
   });
 
   // Find the first available port in the range
-  state.imageServerPort = await new Promise(resolve => {
-    let port = state.config.imagesPortMin - 1;
+  state.fileServerPort = await new Promise(resolve => {
+    const minPort = state.config.imagesPortMin;
+    const maxPort = state.config.imagesPortMax;
+
+    let port = minPort - 1;
     state.fileServer.once('listening', onceListening);
     state.fileServer.on('error', onError);
     tryListen();
 
-    function onceListening() { done(true); }
+    function onceListening() { done(undefined); }
     function onError(error: Error) {
       if ((error as any).code === 'EADDRINUSE') {
         tryListen();
       } else {
-        done(false);
+        done(error);
       }
     }
     function tryListen() {
-      if (port < state.config.imagesPortMax) {
-        port += 1;
-        state.fileServer.listen(port, 'localhost');
+      if (port++ < maxPort) {
+        state.fileServer.listen(port, content.acceptRemote ? undefined : 'localhost');
       } else {
-        done(false);
+        done(new Error(`All attempted ports are already in use (Ports: ${minPort} - ${maxPort}).`));
       }
     }
-    function done(success: boolean) {
+    function done(error: Error | undefined) {
       state.fileServer.off('listening', onceListening);
       state.fileServer.off('error', onError);
-      resolve(success ? port : -1);
+      if (error) {
+        log({
+          source: 'Back',
+          content: 'Failed to open HTTP server.\n'+error,
+        });
+        resolve(-1);
+      } else {
+        resolve(port);
+      }
     }
   });
 
@@ -607,7 +640,11 @@ function onConnect(this: WebSocket, socket: WebSocket, request: http.IncomingMes
 }
 
 async function onMessageWrap(event: WebSocket.MessageEvent) {
-  const req: WrappedRequest = JSON.parse(event.data.toString()); // (Kinda wasteful to parse it twice)
+  const [req, error] = parseWrappedRequest(event.data);
+  if (error || !req) {
+    console.error('Failed to parse incoming WebSocket request (see error below):\n', error);
+    return;
+  }
 
   // Responses are handled instantly - requests and handled in queue
   // (The back could otherwise "soft lock" if it makes a request to the renderer while it is itself handling a request)
@@ -627,7 +664,12 @@ async function onMessageWrap(event: WebSocket.MessageEvent) {
 }
 
 async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
-  const req: WrappedRequest = JSON.parse(event.data.toString());
+  const [req, error] = parseWrappedRequest(event.data);
+  if (error || !req) {
+    console.error('Failed to parse incoming WebSocket request (see error below):\n', error);
+    return;
+  }
+
   // console.log('IN', req);
 
   state.messageEmitter.emit(req.id, req);
@@ -687,7 +729,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         data: {
           preferences: state.preferences,
           config: state.config,
-          imageServerPort: state.imageServerPort,
+          fileServerPort: state.fileServerPort,
           log: state.log,
           services: services,
           languages: state.languages,
@@ -766,14 +808,6 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       });
     } break;
 
-    case BackIn.GET_LIBRARIES: {
-      respond<BrowseViewAllData>(event.target, {
-        id: req.id,
-        type: BackOut.GENERIC_RESPONSE,
-        data: { libraries: getLibraries() },
-      });
-    } break;
-
     case BackIn.LAUNCH_ADDAPP: {
       const reqData: LaunchAddAppData = req.data;
 
@@ -833,11 +867,14 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.SAVE_GAME: {
       const reqData: SaveGameData = req.data;
 
-      state.gameManager.updateMetas({
-        games: [reqData.game],
-        addApps: reqData.addApps || [],
-        saveToDisk: reqData.saveToFile,
+      const result = GameManager.updateMeta(state.gameManager, {
+        game: reqData.game,
+        addApps: reqData.addApps,
       });
+
+      if (reqData.saveToFile) {
+        await GameManager.savePlatforms(state.gameManager, result.edited);
+      }
 
       state.queries = {}; // Clear entire cache
 
@@ -854,25 +891,9 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.DELETE_GAME: {
       const reqData: DeleteGameData = req.data;
 
-      const platforms = state.gameManager.platforms;
-      for (let i = 0; i < platforms.length; i++) {
-        const platform = platforms[i];
-        if (GameManager.removeGame(reqData.id, platform)) {
-          // Game was found and removed, search for addApps
-          for (let j = 0; j < platforms.length; i++) {
-            const addApps = platforms[j].collection.additionalApplications.filter(addApp => addApp.gameId === reqData.id);
-            if (addApps.length > 0) {
-              // Add apps found, remove all
-              for (let addApp of addApps) {
-                GameManager.removeAddApp(addApp.id, platform);
-              }
-            }
-            // Save platform to disk
-            await state.gameManager.savePlatformToFile(platform);
-            break;
-          }
-        }
-      }
+      const result = GameManager.removeGameAndAddApps(state.gameManager, reqData.id);
+
+      await GameManager.savePlatforms(state.gameManager, result.edited);
 
       state.queries = {}; // Clear entire cache
 
@@ -903,11 +924,11 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         }
 
         // Add copies
-        state.gameManager.updateMetas({
-          games: [newGame],
+        const result = GameManager.updateMeta(state.gameManager, {
+          game: newGame,
           addApps: newAddApps,
-          saveToDisk: true,
         });
+        await GameManager.savePlatforms(state.gameManager, result.edited);
 
         // Copy images
         if (reqData.dupeImages) {
@@ -1018,9 +1039,17 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.RANDOM_GAMES: {
       const reqData: RandomGamesData = req.data;
 
-      const allGames: IGameInfo[] = [];
+      let allGames: IGameInfo[] = [];
       for (let platform of state.gameManager.platforms) {
         Array.prototype.push.apply(allGames, platform.collection.games);
+      }
+
+      if (!reqData.extreme) {
+        allGames = allGames.filter(game => !game.extreme);
+      }
+
+      if (!reqData.broken) {
+        allGames = allGames.filter(game => !game.broken);
       }
 
       const pickedGames: IGameInfo[] = [];
@@ -1068,6 +1097,38 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       });
     } break;
 
+    case BackIn.BROWSE_VIEW_INDEX: {
+      const reqData: BrowseViewIndexData = req.data;
+
+      const query: BackQuery = {
+        extreme: reqData.query.extreme,
+        broken: reqData.query.broken,
+        library: reqData.query.library,
+        search: reqData.query.search,
+        orderBy: reqData.query.orderBy as GameOrderBy,
+        orderReverse: reqData.query.orderReverse as GameOrderReverse,
+        playlistId: reqData.query.playlistId,
+      };
+
+      const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
+      let cache = state.queries[hash];
+      if (!cache) { state.queries[hash] = cache = queryGames(query); } // @TODO Start clearing the cache if it gets too full
+
+      let index = -1;
+      for (let i = 0; i < cache.viewGames.length; i++) {
+        if (cache.viewGames[i].id === reqData.gameId) {
+          index = i;
+          break;
+        }
+      }
+
+      respond<BrowseViewIndexResponseData>(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE,
+        data: { index },
+      });
+    } break;
+
     case BackIn.SAVE_IMAGE: {
       const reqData: SaveImageData = req.data;
 
@@ -1083,7 +1144,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         } catch (e) {
           log({
             source: 'Launcher',
-            content: e,
+            content: e + '',
           });
         }
       }
@@ -1325,7 +1386,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       try {
         await importCuration({
           curation: reqData.curation,
-          games: state.gameManager,
+          gameManager: state.gameManager,
           log: reqData.log ? log : undefined,
           date: (reqData.date !== undefined) ? new Date(reqData.date) : undefined,
           saveCuration: reqData.saveCuration,
@@ -1365,7 +1426,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       } catch (e) {
         log({
           source: 'Launcher',
-          content: e,
+          content: e + '',
         });
       }
 
@@ -1392,7 +1453,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       } catch (e) {
         log({
           source: 'Launcher',
-          content: e,
+          content: e + '',
         });
       }
 
@@ -1436,30 +1497,10 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     } break;
 
     case BackIn.QUIT: {
-      if (state.serviceInfo) {
-        // Kill services
-        if (state.services.server && state.serviceInfo.server && state.serviceInfo.server.kill) {
-          state.services.server.kill();
-        }
-        if (state.services.redirector) {
-          const doKill: boolean = !!(
-            state.config.useFiddler
-              ? state.serviceInfo.fiddler    && state.serviceInfo.fiddler.kill
-              : state.serviceInfo.redirector && state.serviceInfo.redirector.kill
-          );
-          if (doKill) { state.services.redirector.kill(); }
-        }
-        // Run stop commands
-        for (let i = 0; i < state.serviceInfo.stop.length; i++) {
-          execProcess(state.serviceInfo.stop[i], true);
-        }
-      }
-
       respond(event.target, {
         id: req.id,
         type: BackOut.QUIT,
       });
-
       exit();
     } break;
   }
@@ -1467,7 +1508,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
 function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
   try {
-    let urlPath = req.url || '';
+    let urlPath = decodeURIComponent(req.url || '');
 
     // Remove the get parameters
     const qIndex = urlPath.indexOf('?');
@@ -1482,89 +1523,121 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
     }
 
     const index = urlPath.indexOf('/');
-    if (index >= 0) {
-      switch (urlPath.substr(0, index).toLowerCase()) {
-        // Image folder
-        case LOGOS.toLowerCase():
-        case SCREENSHOTS.toLowerCase(): {
-          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-          const filePath = path.join(imageFolder, urlPath);
-          if (filePath.startsWith(imageFolder)) {
-            switch (req.method) {
-              default: { res.end(); } break;
+    const firstItem = (index >= 0 ? urlPath.substr(0, index) : urlPath).toLowerCase(); // First filename in the path string ("A/B/C" => "A" | "D" => "D")
+    switch (firstItem) {
+      // Image folder
+      case 'images': {
+        const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+        const filePath = path.join(imageFolder, urlPath.substr(index + 1));
+        if (filePath.startsWith(imageFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
 
-              case 'GET': {
-                fs.readFile(filePath, (error, data) => {
-                  if (error) {
-                    res.writeHead(404);
-                    res.end();
-                  } else {
-                    res.writeHead(200, {
-                      'Content-Type': 'image/png',
-                      'Content-Length': data.length,
-                    });
-                    res.end(data);
-                  }
-                });
-              } break;
+      // Theme folder
+      case 'themes': {
+        const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+        const index = urlPath.indexOf('/');
+        const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const filePath = path.join(themeFolder, relativeUrl);
+        if (filePath.startsWith(themeFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
 
-              case 'HEAD': {
-                fs.stat(filePath, (error, stats) => {
-                  if (error || stats && !stats.isFile()) {
-                    res.writeHead(404);
-                  } else {
-                    res.writeHead(200, {
-                      'Content-Type': 'image/png',
-                      'Content-Length': stats.size,
-                    });
-                  }
-                  res.end();
-                });
-              } break;
-            }
-          }
-        } break;
+      // Logos folder
+      case 'logos': {
+        const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
+        const filePath = path.join(logoFolder, urlPath.substr(index + 1));
+        if (filePath.startsWith(logoFolder)) {
+          serveFile(req, res, filePath);
+        }
+      } break;
 
-        // Theme folder
-        case 'themes': {
-          const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-          const index = urlPath.indexOf('/');
-          const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-          const filePath = path.join(themeFolder, relativeUrl);
-          if (filePath.startsWith(themeFolder)) {
-            fs.readFile(filePath, (error, data) => {
-              if (error) {
-                res.writeHead(404);
-                res.end();
-              } else {
-                res.writeHead(200, {
-                  'Content-Type': getContentType(getFileExtension(filePath)),
-                  'Content-Length': data.length,
-                });
-                res.end(data);
-              }
-            });
-          }
-        } break;
-      }
+      // JSON file(s)
+      case 'credits.json': {
+        serveFile(req, res, path.join(state.config.flashpointPath, state.config.jsonFolderPath, 'credits.json'));
+      } break;
+
+      // Nothing
+      default: {
+        res.writeHead(404);
+        res.end();
+      } break;
     }
   } catch (error) { console.warn(error); }
 }
 
+function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath: string): void {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    fs.stat(filePath, (error, stats) => {
+      if (error || stats && !stats.isFile()) {
+        res.writeHead(404);
+        res.end();
+      } else {
+        res.writeHead(200, {
+          'Content-Type': getContentType(getFileExtension(filePath)),
+          'Content-Length': stats.size,
+        });
+        if (req.method === 'GET') {
+          const stream = fs.createReadStream(filePath);
+          stream.on('error', error => {
+            console.warn(`File server failed to stream file. ${error}`);
+            stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+            if (!res.finished) { res.end(); }
+          });
+          stream.pipe(res);
+        } else {
+          res.end();
+        }
+      }
+    });
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
+}
+
+/** Exit the process cleanly. */
 function exit() {
   if (!state.isExit) {
     state.isExit = true;
+
+    if (state.serviceInfo) {
+      // Kill services
+      if (state.services.server && state.serviceInfo.server && state.serviceInfo.server.kill) {
+        state.services.server.kill();
+      }
+      if (state.services.redirector) {
+        const doKill: boolean = !!(
+          state.config.useFiddler
+            ? state.serviceInfo.fiddler    && state.serviceInfo.fiddler.kill
+            : state.serviceInfo.redirector && state.serviceInfo.redirector.kill
+        );
+        if (doKill) { state.services.redirector.kill(); }
+      }
+      // Run stop commands
+      for (let i = 0; i < state.serviceInfo.stop.length; i++) {
+        execProcess(state.serviceInfo.stop[i], true);
+      }
+    }
+
     state.languageWatcher.abort();
     state.themeWatcher.abort();
+
     Promise.all([
+      // Close WebSocket server
       isErrorProxy(state.server) ? undefined : new Promise(resolve => state.server.close(error => {
         if (error) { console.warn('An error occurred whie closing the WebSocket server.', error); }
         resolve();
       })),
+      // Close file server
       new Promise(resolve => state.fileServer.close(error => {
         if (error) { console.warn('An error occurred whie closing the file server.', error); }
         resolve();
       })),
+      // Wait for game manager to complete all saves
+      state.gameManager.saveQueue.push(() => {}, true),
     ]).then(() => { process.exit(); });
   }
 }
@@ -1918,26 +1991,42 @@ function allGames(): IGameInfo[] {
   return games;
 }
 
-type ErrorCopy = {
-  columnNumber?: number;
-  fileName?: string;
-  lineNumber?: number;
-  message: string;
-  name: string;
-  stack?: string;
-}
+function parseWrappedRequest(data: string | Buffer | ArrayBuffer | Buffer[]): [WrappedRequest<any>, undefined] | [undefined, Error] {
+  // Parse data into string
+  let str: string | undefined;
+  if (typeof data === 'string') { // String
+    str = data;
+  } else if (typeof data === 'object') {
+    if (Buffer.isBuffer(data)) { // Buffer
+      str = data.toString();
+    } else if (Array.isArray(data)) { // Buffer[]
+      str = Buffer.concat(data).toString();
+    } else { // ArrayBuffer
+      str = Buffer.from(data).toString();
+    }
+  }
 
-/** Copy properties from an error to a new object. */
-function copyError(error: any): ErrorCopy {
-  const copy: ErrorCopy = {
-    message: error.message+'',
-    name: error.name+'',
+  if (typeof str !== 'string') {
+    return [undefined, new Error('Failed to parse WrappedRequest. Failed to convert "data" into a string.')];
+  }
+
+  // Parse data string into object
+  let json: Record<string, any>;
+  try {
+    json = JSON.parse(str);
+  } catch (error) {
+    if (typeof error === 'object' && 'message' in error) {
+      error.message = 'Failed to parse WrappedRequest. Failed to convert "data" into an object.\n' + Coerce.str(error.message);
+    }
+    return [undefined, error];
+  }
+
+  // Create result (and ensure the types except for data)
+  const result: WrappedRequest<any> = {
+    id: Coerce.str(json.id),
+    type: Coerce.num(json.type),
+    data: json.data, // @TODO The types of the data should also be enforced somehow (probably really annoying to get right)
   };
-  // @TODO These properties are not standard, and perhaps they have different types in different environments.
-  //       So do some testing and add some extra checks mby?
-  if (typeof error.columnNumber === 'number') { copy.columnNumber = error.columnNumber; }
-  if (typeof error.fileName     === 'string') { copy.fileName     = error.fileName;     }
-  if (typeof error.lineNumber   === 'number') { copy.lineNumber   = error.lineNumber;   }
-  if (typeof error.stack        === 'string') { copy.stack        = error.stack;        }
-  return copy;
+
+  return [result, undefined];
 }

@@ -1,15 +1,15 @@
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs';
 import * as React from 'react';
-import { BackIn, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetGameData, GetGameResponseData, LaunchGameData, SavePlaylistData } from '../../../shared/back/types';
-import { BrowsePageLayout } from '../../../shared/BrowsePageLayout';
-import { IAdditionalApplicationInfo, IGameInfo } from '../../../shared/game/interfaces';
-import { GamePlaylist, GamePlaylistEntry, GamePropSuggestions } from '../../../shared/interfaces';
-import { LangContainer } from '../../../shared/lang';
-import { memoizeOne } from '../../../shared/memoize';
-import { updatePreferencesData } from '../../../shared/preferences/util';
-import { formatDate } from '../../../shared/Util';
-import { formatString } from '../../../shared/utils/StringFormatter';
+import { BackIn, DeleteGameData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetGameData, GetGameResponseData, LaunchGameData, SavePlaylistData } from '@shared/back/types';
+import { BrowsePageLayout } from '@shared/BrowsePageLayout';
+import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
+import { GamePlaylist, GamePlaylistEntry, GamePropSuggestions } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
+import { memoizeOne } from '@shared/memoize';
+import { updatePreferencesData } from '@shared/preferences/util';
+import { formatDate } from '@shared/Util';
+import { formatString } from '@shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
@@ -122,14 +122,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
     const { gameLibrary, selectedGameId, selectedPlaylistId } = this.props;
-    const { isEditingGame: isEditing, quickSearch } = this.state;
+    const { isEditingGame, quickSearch } = this.state;
     // Check if it ended editing
-    if (!isEditing && prevState.isEditingGame) {
+    if (!isEditingGame && prevState.isEditingGame) {
       this.updateCurrentGameAndAddApps();
       // this.setState({ suggestions: undefined });
     }
     // Check if it started editing
-    if (isEditing && !prevState.isEditingGame) {
+    if (isEditingGame && !prevState.isEditingGame) {
       this.updateCurrentGameAndAddApps();
       // this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) }); @FIXTHIS
     }
@@ -137,6 +137,16 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (selectedGameId && selectedGameId !== prevProps.selectedGameId) {
       this.updateCurrentGameAndAddApps();
       this.setState({ isEditingGame: false });
+    }
+    // Deselect the current game ad add-apps if the game has been deselected (from outside this component most likely)
+    if (selectedGameId === undefined && (this.state.currentGame || this.state.currentAddApps) && !this.state.isNewGame) {
+      this.setState({
+        currentGame: undefined,
+        currentAddApps: undefined,
+        currentPlaylistNotes: undefined,
+        isNewGame: false,
+        isEditingGame: false
+      });
     }
     // Update current game and add-apps if the selected game changes
     if (gameLibrary === prevProps.gameLibrary &&
@@ -321,6 +331,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         openContextMenu([{
           /* File Location */
           label: strings.menu.openFileLocation,
+          enabled: !window.External.isBackRemote, // (Local "back" only)
           click: () => {
             window.External.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
               if (res.data && res.data.game) {
@@ -369,6 +380,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }, { type: 'separator' }, {
           /* Export Meta */
           label: strings.menu.exportMetaOnly,
+          enabled: !window.External.isBackRemote, // (Local "back" only)
           click: () => {
             const filePath = remote.dialog.showSaveDialogSync({
               title: strings.dialog.selectFileToExportMeta,
@@ -383,6 +395,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         }, {
           /* Export Meta & Images */
           label: strings.menu.exportMetaAndImages, // ("&&" will be shown as "&")
+          enabled: !window.External.isBackRemote, // (Local "back" only)
           click: () => {
             const filePaths = window.External.showOpenDialogSync({
               title: strings.dialog.selectFolderToExportMetaAndImages,
@@ -401,10 +414,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onRightSidebarDeselectPlaylist = (): void => {
     const { onSelectPlaylist } = this.props;
     if (onSelectPlaylist) { onSelectPlaylist(this.props.gameLibrary, undefined); }
-  }
-
-  onLeftSidebarPlaylistChanged = (): void => {
-    this.forceUpdate();
   }
 
   onLeftSidebarResize = (event: SidebarResizeEvent): void => {

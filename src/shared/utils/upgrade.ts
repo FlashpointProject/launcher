@@ -6,11 +6,11 @@ import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
-import { AddLogData, BackIn } from '../back/types';
-import { indexContentFolder } from '../curate/util';
-import { curationLog } from '../../renderer/curate/util';
+import { AddLogData, BackIn } from '@shared/back/types';
+import { indexContentFolder } from '@shared/curate/util';
 import { UpgradeStage } from '../upgrade/types';
 import { pathTo7z } from '../../renderer/util/SevenZip';
+import { curationLog } from '@renderer/curate/util';
 const http  = require('follow-redirects').http;
 const https = require('follow-redirects').https;
 
@@ -209,7 +209,7 @@ export async function checkUpgradeStateInstalled(stage: UpgradeStage, baseFolder
  */
 export async function checkUpgradeStateUpdated(stage: UpgradeStage, baseFolder: string): Promise<boolean> {
   const success = await Promise.all(stage.verify_files.map((check, index) => {
-    if (index < stage.verify_sha256.length && stage.verify_sha256[index] != 'SKIP') {
+    if (index < stage.verify_sha256.length && stage.verify_sha256[index] !== 'SKIP') {
       return new Promise<boolean>((resolve) => {
         // SHA256 present, perform check
         const shaToCheck = stage.verify_sha256[index].toLowerCase();

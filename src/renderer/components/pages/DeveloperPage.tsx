@@ -3,17 +3,20 @@ import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
-import { getGamePath } from '../../../renderer/Util';
-import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedResponse, GetExecData } from '../../../shared/back/types';
-import { LOGOS, SCREENSHOTS } from '../../../shared/constants';
-import { IGameInfo } from '../../../shared/game/interfaces';
-import { ExecMapping, GamePlaylist, GamePlaylistEntry } from '../../../shared/interfaces';
-import { LangContainer } from '../../../shared/lang';
+import { getGamePath } from '@renderer/Util';
+import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedResponse, GetExecData } from '@shared/back/types';
+import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { IGameInfo } from '@shared/game/interfaces';
+import { ExecMapping, GamePlaylist, GamePlaylistEntry } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../util/uuid';
 import { LogData } from '../LogData';
 import { ServiceBox } from '../ServiceBox';
 import { SimpleButton } from '../SimpleButton';
+
+// @TODO Move the developer tools to the back and "stream" the log messages back.
+//       This makes it work remotely AND should make it lag less + work between changing tabs.
 
 const exists = promisify(fs.exists);
 const mkdir  = promisify(fs.mkdir);

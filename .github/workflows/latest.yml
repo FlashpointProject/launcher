@@ -1,4 +1,4 @@
-name: Build and Release Latest
+name: Build and Release Status
 
 on:
   push:
@@ -8,14 +8,20 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     
     strategy:
       matrix:
-        arch: [win32, linux, darwin]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
     - name: Use Node.js 12.x
       uses: actions/setup-node@v1
       with:
@@ -25,7 +31,7 @@ jobs:
       env:
         CI: true
     - name: npm build
-      run: npm run build:${{ matrix.arch }} --if-present
+      run: npm run build --if-present
       env:
         CI: true
         
@@ -45,14 +51,20 @@ jobs:
   release:
     name: Release
     needs: generate-latest
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     
     strategy:
       matrix:
-        arch: [win32, linux, darwin]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
         
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
     - name: Use Node.js 12.x
       uses: actions/setup-node@v1
       with:
@@ -62,15 +74,33 @@ jobs:
       env:
         CI: true
     - name: npm release
-      run: npm run release:${{ matrix.arch }}
+      run: npm run release
     - name: Package releases
+      if: matrix.os != 'macOS-latest'
       run: |
-        7z a dist/flashpoint-launcher-${{ matrix.arch }}.zip ./dist/*/*
-    - name: Upload binaries to latest release
+        7z a dist/flashpoint-launcher_${{ matrix.os }}.zip ./dist/*/*
+    - name: Package releases (mac)
+      if: matrix.os == 'macOS-latest'
+      run: |
+        zip -r dist/flashpoint-launcher_${{ matrix.os }}.zip ./dist/*/*
+    - name: Package Setup
+      if: matrix.os == 'windows-latest'
+      run: |
+        mv dist/*.exe dist/FP_Win32_Setup.exe
+    - name: Upload dist zips to latest release
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: dist/flashpoint-launcher-${{ matrix.arch }}.zip
-        asset_name: flashpoint-launcher-${{ matrix.arch }}.zip
+        file: dist/flashpoint-launcher_${{ matrix.os }}.zip
+        asset_name: flashpoint-launcher_${{ matrix.os }}.zip
+        tag: latest
+        overwrite: true
+    - name: Upload setup to latest release
+      if: matrix.os == 'windows-latest'
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/FP_Win32_Setup.exe
+        asset_name: FP_Win32_Setup.exe
         tag: latest
         overwrite: true

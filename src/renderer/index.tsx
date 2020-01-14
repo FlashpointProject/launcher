@@ -3,7 +3,7 @@ import { createMemoryHistory, MemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { AddLogData, BackIn, CheckSetupData, SetupUpgradeData } from '../shared/back/types';
+import { AddLogData, BackIn, CheckSetupData, SetupUpgradeData } from '@shared/back/types';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
@@ -40,7 +40,7 @@ import { SetupPage } from './components/pages/SetupPage';
           console.log('Checking upgrade');
           if (res.data) {
             // Upgrade present, continue with setup
-            render(store, history, <SetupPage upgrade={res.data}/>)
+            render(store, history, <SetupPage upgrade={res.data}/>);
           } else {
             // Upgrade not present, mark setup as finished and move on
             window.External.back.send<any>(BackIn.FINISH_SETUP, undefined);

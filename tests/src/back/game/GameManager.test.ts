@@ -1,325 +1,323 @@
-import * as fs from 'fs-extra';
+import { GameManager } from '@back/game/GameManager';
+import { GameManagerState } from '@back/game/types';
+import { EventQueue } from '@back/util/EventQueue';
+import { uuid } from '@back/util/uuid';
+import { GameParser } from '@shared/game/GameParser';
+import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
+import { GamePlatform } from '@shared/platform/interfaces';
+import { deepCopy } from '@shared/Util';
+import { RESULT_PATH, STATIC_PATH } from '@tests/setup';
 import * as path from 'path';
-import { GameManager } from '../../../../src/back/game/GameManager';
-import { FetchGameRequest, FetchGameResponse, GameAppDeleteRequest, IAdditionalApplicationInfo, IGameInfo, MetaUpdate, SearchRequest, SearchResults } from '../../../../src/shared/game/interfaces';
-import { PlatformInfo } from '../../../../src/shared/platform/interfaces';
-import { defaultPreferencesData } from '../../../../src/shared/preferences/util';
 
-const STATIC_PATH = './tests/static/back/game/'
+const STATIC_PLATFORMS_PATH = path.join(STATIC_PATH, 'GameManager/platforms');
+const RESULT_PLATFORMS_PATH = path.join(RESULT_PATH, 'GameManager/platforms');
 
-describe('GameManager Fetching', () => {
-  const manager: GameManager = new GameManager();
-
-  beforeAll(async () => {
-    // Copy across starting xmls
-    deleteFolderRecursive(path.join(STATIC_PATH, 'platforms'));
-    await fs.copy(path.join(STATIC_PATH, 'starting_platforms'), path.join(STATIC_PATH, 'platforms'));
-    // Load test_platform.xml before starting tests
-    await manager.loadPlatforms(path.join(STATIC_PATH, 'platforms'));
+describe('GameManager', () => {
+  test('Load Platforms', async () => {
+    const state = createState();
+    state.platformsPath = STATIC_PLATFORMS_PATH;
+    const errors = await GameManager.loadPlatforms(state);
+    expect(state.platforms.length).toBe(3); // Total number of platforms loaded
+    expect(errors.length).toBe(0); // No platforms should fail to load
+    // @TODO Compare that parsed content to a "snapshot" to verify that it was parsed correctly
   });
 
-  afterAll(async () => {
-    await manager.saveAllPlatforms();
-  })
+  test('Add Games & AddApps (to the same and already existing platform)', () => {
+    // Setup
+    const state = createState();
+    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
+    state.platforms.push(platform);
+    for (let i = 0; i < 10; i++) {
+      const before = deepCopy(platform);
+      // Add Game & AddApps
+      const game = createGame(before.name, before.library);
+      const addApps = createAddApps(game.id, i % 3); // Try different numbers of add-apps
+      GameManager.updateMeta(state, {
+        game: game,
+        addApps: addApps,
+      });
+      // Compare
+      expect(platform).toEqual({ // Game & AddApps have been added to the end of the collections in the correct order
+        ...before,
+        data: {
+          LaunchBox: {
+            Game: [
+              ...before.data.LaunchBox.Game,
+              GameParser.reverseParseGame(game),
+            ],
+            AdditionalApplication: [
+              ...before.data.LaunchBox.AdditionalApplication,
+              ...addApps.map(GameParser.reverseParseAdditionalApplication),
+            ],
+          },
+        },
+        collection: {
+          games: [ ...before.collection.games, game, ],
+          additionalApplications: [ ...before.collection.additionalApplications, ...addApps ],
+        },
+      });
+    }
+  });
 
-  test('Get Platforms', () => {
-    const res = manager.fetchPlatformInfo();
-    expect(res.success).toBeTruthy();
-    const data: PlatformInfo[] = res.result;
-    expect(data.length).toEqual(1);
-    const testPlatform = data[0];
-    expect(testPlatform.name).toEqual('test_platform');
-    expect(testPlatform.library).toEqual('test_library');
-  })
+  test('Add Games & AddApps (to differnt and non-existing platforms)', () => {
+    // Setup
+    const state = createState();
+    for (let i = 0; i < 10; i++) {
+      // Add Game
+      const game = createGame(`platform_${i}`, 'some_library');
+      const addApps = createAddApps(game.id, i % 3); // Try different numbers of add-apps
+      GameManager.updateMeta(state, {
+        game: game,
+        addApps: addApps,
+      });
+      // Compare
+      const platform = state.platforms.find(p => (p.name === game.platform) && (p.library === game.library));
+      expect(platform).toEqual({ // Platform has been created and contains the game and add-apps
+        filePath: path.join(state.platformsPath, game.library, game.platform + '.xml'),
+        name: game.platform,
+        library: game.library,
+        data: {
+          LaunchBox: {
+            Game: [ GameParser.reverseParseGame(game) ],
+            AdditionalApplication: addApps.map(GameParser.reverseParseAdditionalApplication),
+          },
+        },
+        collection: {
+          games: [ game ],
+          additionalApplications: addApps,
+        },
+      });
+    }
+  });
 
-  test('Find Game', () => {
-    const req: FetchGameRequest = {
-      id: 'Game_7'
+  test('Move Game & AddApps (between existing platforms)', () => {
+    // Setup
+    const state = createState();
+    const fromPlatform = createPlatform('from_platform', 'some_library', state.platformsPath);
+    const toPlatform = createPlatform('to_platform', 'another_library', state.platformsPath);
+    state.platforms.push(fromPlatform, toPlatform);
+    // Add Game
+    const game = createGame(fromPlatform.name, fromPlatform.library);
+    const addApps = createAddApps(game.id, 5);
+    GameManager.updateMeta(state, {
+      game: game,
+      addApps: addApps,
+    });
+    // Move Game
+    const sameGame: IGameInfo = {
+      ...game,
+      platform: toPlatform.name,
+      library: toPlatform.library,
     };
-    const res = manager.findGame(req);
-    expect(res.success).toBeTruthy();
-    const data: FetchGameResponse = res.result;
-    // ID 7 is Game "Test Game 7"
-    expect(data.game.title).toEqual('Test Game 7');
-    // Game 7 has an add app with its game id, verify it is given
-    expect(data.addApps.length).toEqual(1);
-    expect(data.addApps[0].id).toEqual('App_7')
+    GameManager.updateMeta(state, {
+      game: sameGame,
+      addApps: addApps,
+    });
+    // Compare
+    expect(fromPlatform).toEqual({ // First platform is empty
+      ...fromPlatform,
+      data: {
+        LaunchBox: {
+          Game: [],
+          AdditionalApplication: [],
+        },
+      },
+      collection: {
+        games: [],
+        additionalApplications: [],
+      },
+    });
+    expect(toPlatform).toEqual({ // Second platform has the game and add-apps
+      ...toPlatform,
+      data: {
+        LaunchBox: {
+          Game: [ GameParser.reverseParseGame(sameGame) ],
+          AdditionalApplication: addApps.map(GameParser.reverseParseAdditionalApplication),
+        },
+      },
+      collection: {
+        games: [ sameGame ],
+        additionalApplications: addApps,
+      },
+    });
   });
 
-  test('Search Game Query', () => {
-    const req: SearchRequest = {
-      query: 'Test Game',
-      offset: 0,
-      limit: 100,
-      orderOpts: {
-        orderBy: 'title',
-        orderReverse: 'ascending'
-      }
-    }
-    const res = manager.searchGames(req, defaultPreferencesData);
-    expect(res.success).toBeTruthy();
-    const data: SearchResults = res.result;
-    // 7 games contain 'Test Game' in their title, 3 do not.
-    expect(data.total).toEqual(7);
-  });
-
-  test('Search Game Limit', () => {
-    const req: SearchRequest = {
-      query: 'Test Game',
-      offset: 0,
-      limit: 5,
-      orderOpts: {
-        orderBy: 'title',
-        orderReverse: 'ascending'
-      }
-    }
-    const res = manager.searchGames(req, defaultPreferencesData);
-    expect(res.success).toBeTruthy();
-    const data: SearchResults = res.result;
-    // Limit of 5 results, should return 5 results, max 7
-    expect(data.total).toEqual(7);
-    expect(data.results.length).toEqual(5);
-  });
-
-  test('Search Game Offset', () => {
-    const req: SearchRequest = {
-      query: 'Test Game',
-      offset: 2,
-      limit: 5,
-      orderOpts: {
-        orderBy: 'title',
-        orderReverse: 'ascending'
-      }
-    }
-    const res = manager.searchGames(req, defaultPreferencesData);
-    expect(res.success).toBeTruthy();
-    const data: SearchResults = res.result;
-    // Test Game [1-7] exist, offset of 2 should be 3
-    expect(data.results[0].title).toEqual('Test Game 3');
-  });
-
-  test('Delete Game', () => {
-    // Delete game
-    const req: GameAppDeleteRequest = {
-      id: 'Game_3'
-    }
-    const res = manager.deleteGameOrApp(req);
-    expect(res.success).toBeTruthy();
-    // Verify game is gone
-    const req2: FetchGameRequest = {
-      id: 'Game_3'
-    }
-    const res2 = manager.findGame(req2);
-    expect(res2.success).toBeFalsy();
-  });
-
-  test('Delete AddApp', () => {
-    // Delete game
-    const req: GameAppDeleteRequest = {
-      id: 'App_4'
-    }
-    const res = manager.deleteGameOrApp(req);
-    expect(res.success).toBeTruthy();
-    // Verify add app is gone by finding attached game
-    const req2: FetchGameRequest = {
-      id: 'Game_4'
-    }
-    const res2 = manager.findGame(req2);
-    expect(res2.success).toBeTruthy();
-    const data: FetchGameResponse = res2.result;
-    expect(data.addApps.length).toEqual(0);
-  });
-
-  test('New Meta', () => {
-    // Do new meta request
-    const req: MetaUpdate = {
-      games: [
-        {
-          ...createGame(),
-          id: 'Game_123',
-          platform: 'test_platform',
-          library: 'test_library',
-          title: 'New Game'
-        }
-      ],
-      addApps: [
-        {
-          ...createAddApp(),
-          id: 'App_123',
-          gameId: 'Game_123',
-          applicationPath: 'New Path'
-        }
-      ],
-      saveToDisk: false
-    };
-    const res = manager.updateMetas(req);
-    expect(res.success).toBeTruthy();
-    const req2: FetchGameRequest = {
-      id: 'Game_123'
-    }
-    const res2 = manager.findGame(req2);
-    expect(res2.success).toBeTruthy();
-    // Verify game was added
-    const data: FetchGameResponse = res2.result;
-    expect(data.game.title).toEqual('New Game');
-    // Verify add apps were added
-    expect(data.addApps.length).toEqual(1);
-    expect(data.addApps[0].id).toEqual('App_123');
-  });
-
-  test('New Platform and Library', () => {
-    // Do meta update request
-    const req: MetaUpdate = {
-      games: [
-        {
-          ...createGame(),
-          id: 'Game_7',
-          platform: 'new_platform',
-          library: 'new_library'
-        }
-      ],
+  test('Update Game (update the value of a field)', () => {
+    // Setup
+    const state = createState();
+    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
+    state.platforms.push(platform);
+    // Add Game
+    const game = createGame(platform.name, platform.library);
+    GameManager.updateMeta(state, {
+      game: game,
       addApps: [],
-      saveToDisk: false
+    });
+    // Update Game
+    const before = deepCopy(platform);
+    const updatedGame: IGameInfo = {
+      ...game,
+      title: 'New Title',
     };
-    // Submit request
-    const res = manager.updateMetas(req);
-    expect(res.success).toBeTruthy();
-    // Verify new platform exists
-    const res3 = manager.fetchPlatformInfo();
-    expect(res3.success).toBeTruthy();
-    const data3: PlatformInfo[] = res3.result;
-    expect(data3.length).toEqual(2);
-    // Verify platform info is correct
-    expect(data3[1].name).toEqual('new_platform');
-    expect(data3[1].library).toEqual('new_library');
+    GameManager.updateMeta(state, {
+      game: updatedGame,
+      addApps: [],
+    });
+    // Compare
+    expect(platform).not.toEqual(before); // Platform has been changed
+    expect(platform).toEqual({ // Game has been added to the platform
+      ...before,
+      data: {
+        LaunchBox: {
+          Game: [ GameParser.reverseParseGame(updatedGame) ],
+          AdditionalApplication: [],
+        },
+      },
+      collection: {
+        games: [ updatedGame ],
+        additionalApplications: [],
+      },
+    });
   });
 
-  test('Unknown Platform and Library', () => {
-    // Do meta update request
-    const req: MetaUpdate = {
-      games: [
-        {
-          ...createGame(),
-          id: 'Game_100',
-          title: 'new game'
-        }
-      ],
-      addApps: [
-        {
-          ...createAddApp(),
-          id: 'App_100',
-          gameId: '100'
-        }
-      ],
-      saveToDisk: false
-    };
-    // Submit request
-    const res = manager.updateMetas(req);
-    expect(res.success).toBeTruthy();
-    // Verify new unknown platform exists
-    const res3 = manager.fetchPlatformInfo();
-    expect(res3.success).toBeTruthy();
-    const data3: PlatformInfo[] = res3.result;
-    expect(data3.length).toEqual(3);
-    // Verify platform info is correct
-    expect(data3[2].name).toEqual('unknown');
-    expect(data3[2].library).toEqual('unknown');
-  })
-
-  test('Update Meta', () => {
-    // Do meta update request
-    const req: MetaUpdate = {
-      games: [
-        {
-          ...createGame(),
-          id: 'Game_1',
-          platform: 'test_platform',
-          library: 'test_library',
-          title: 'New Title',
-          developer: 'New Developer',
-          publisher: 'New Publisher'
-        }
-      ],
-      addApps: [
-        {
-          ...createAddApp(),
-          id: 'App_1',
-          gameId: 'Game_1',
-          applicationPath: 'New Path'
-        }
-      ],
-      saveToDisk: false
+  test('Remove Games & AddApps (from one platform)', () => {
+    // Setup
+    const state = createState();
+    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
+    state.platforms.push(platform);
+    // Add Games & AddApps
+    for (let i = 0; i < 10; i++) {
+      const game = createGame(platform.name, platform.library);
+      const addApp = createAddApp(game.id);
+      GameManager.updateMeta(state, {
+        game: game,
+        addApps: [ addApp ],
+      });
     }
-    const res = manager.updateMetas(req);
-    expect(res.success).toBeTruthy();
-    // Find changed game
-    const req2: FetchGameRequest = {
-      id: 'Game_1'
-    };
-    const res2 = manager.findGame(req2);
-    expect(res2.success).toBeTruthy();
-    const data: FetchGameResponse = res2.result;
-    // Verify game changes were applied
-    expect(data.game.title).toEqual('New Title');
-    expect(data.game.developer).toEqual('New Developer');
-    expect(data.game.publisher).toEqual('New Publisher');
-    // Verify add app changes were applied
-    expect(data.addApps.length).toEqual(1);
-    expect(data.addApps[0].applicationPath).toEqual('New Path');
+    // Remove Games & AddApps
+    for (let i = platform.collection.games.length - 1; i >= 0; i--) {
+      const before = deepCopy(platform);
+      const index = ((i + 7) ** 3) % platform.collection.games.length; // Pick a "random" index
+      const gameId = platform.collection.games[index].id;
+      // Remove Game & AddApps
+      GameManager.removeGameAndAddApps(state, gameId);
+      // Compare
+      expect(platform).toEqual({ // Game & AddApps have been removed
+        ...before,
+        data: {
+          LaunchBox: {
+            Game: before.data.LaunchBox.Game.filter(g => g.ID !== gameId),
+            AdditionalApplication: before.data.LaunchBox.AdditionalApplication.filter(a => a.GameID !== gameId),
+          }
+        },
+        collection: {
+          games: before.collection.games.filter(g => g.id !== gameId),
+          additionalApplications: before.collection.additionalApplications.filter(a => a.gameId !== gameId),
+        },
+      });
+    }
   });
-})
 
-function createGame(): IGameInfo {
+  test('Save Games & AddApps to file (multiple times)', () => {
+    // Setup
+    const state = createState();
+    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
+    state.platforms.push(platform);
+    // Add content to platform
+    for (let i = 0; i < 10; i++) {
+      const game = createGame(platform.name, platform.library);
+      GameManager.updateMeta(state, {
+        game: game,
+        addApps: createAddApps(game.id, i % 3), // Try different numbers of add-apps
+      });
+    }
+    // Save file multiple times
+    const saves: Promise<any>[] = [];
+    for (let i = 0; i < 5; i++) {
+      saves.push(expect(GameManager.savePlatforms(state, [ platform ])).resolves.toBe(undefined));
+    }
+    return Promise.all(saves);
+  });
+
+  // @TODO Add tests for adding, moving and removing add-apps
+  // @TODO Test that edited games and add-apps retain their position in the arrays
+  // @TODO Test that added games and add-apps get pushed to the end of the arrays
+
+  // @TODO Test "GameManager.findGame"
+  // @TODO Test functions in the "LaunchBox" namespace?
+});
+
+function createState(): GameManagerState {
   return {
-    library: '',
+    platforms: [],
+    platformsPath: RESULT_PLATFORMS_PATH,
+    saveQueue: new EventQueue(),
+    log: () => {}, // Don't log
+  };
+}
+
+function createPlatform(name: string, library: string, folderPath: string): GamePlatform {
+  return {
+    filePath: path.join(folderPath, library, name + '.xml'),
+    name: name,
+    library: library,
+    data: {
+      LaunchBox: {
+        Game: [],
+        AdditionalApplication: [],
+      },
+    },
+    collection: {
+      games: [],
+      additionalApplications: [],
+    },
+  };
+}
+
+function createGame(platform: string, library: string): IGameInfo {
+  return {
+    library: library,
     orderTitle: '',
     placeholder: false,
     title: '',
-    id: '',
+    alternateTitles: '',
+    id: uuid(),
     series: '',
     developer: '',
     publisher: '',
     dateAdded: '',
-    platform: '',
+    platform: platform,
     broken: false,
     extreme: false,
     playMode: '',
     status: '',
     notes: '',
-    genre: '',
+    tags: '',
     source: '',
     originalDescription: '',
     applicationPath: '',
     language: '',
     launchCommand: '',
     releaseDate: '',
-    version: ''
-  }
+    version: '',
+  };
 }
 
-function createAddApp(): IAdditionalApplicationInfo {
+function createAddApp(gameId: string): IAdditionalApplicationInfo {
   return {
-    id: '',
+    id: uuid(),
     name: '',
-    gameId: '',
+    gameId: gameId,
     applicationPath: '',
     launchCommand: '',
     autoRunBefore: false,
-    waitForExit: false
-  }
+    waitForExit: false,
+  };
 }
-
-
-const deleteFolderRecursive = (folderPath: string) => {
-  if (fs.existsSync(folderPath)) {
-    fs.readdirSync(folderPath).forEach((file, index) => {
-      const curPath = path.join(folderPath, file);
-      if (fs.lstatSync(curPath).isDirectory()) { // recurse
-        deleteFolderRecursive(curPath);
-      } else { // delete file
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(folderPath);
+function createAddApps(gameId: string, length: number): IAdditionalApplicationInfo[] {
+  const result: IAdditionalApplicationInfo[] = [];
+  for (let i = 0; i < length; i++) {
+    result.push(createAddApp(gameId));
   }
-};
+  return result;
+}

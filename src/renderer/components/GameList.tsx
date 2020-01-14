@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices, ScrollParams } from 'react-virtualized';
-import { ViewGame } from '../../shared/back/types';
-import { GameOrderBy, GameOrderReverse } from '../../shared/order/interfaces';
+import { ViewGame } from '@shared/back/types';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { GAMES } from '../interfaces';
 import { findElementAncestor } from '../Util';
 import { GameItemContainer } from './GameItemContainer';

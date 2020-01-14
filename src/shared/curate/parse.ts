@@ -45,7 +45,7 @@ export function parseCurationMetaNew(text: string): ParsedCurationMeta {
  * @param data "Raw" meta object to convert.
  * @param onError Called whenever an error occurs.
  */
-function convertMeta(data: any, onError?: (error: string) => void): ParsedCurationMeta {
+export function convertMeta(data: any, onError?: (error: string) => void): ParsedCurationMeta {
   // Default parsed data
   const parsed: ParsedCurationMeta = {
     game: {},

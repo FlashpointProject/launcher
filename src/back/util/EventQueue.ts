@@ -12,6 +12,8 @@ export class EventQueue {
   private queue: EventFunction[] = [];
   /** If this is currently executing an event (flag). */
   private isExecuting: boolean = false;
+  /** Called whenever an error occurs. */
+  public onError: (error: any) => void = noop;
 
   /**
    * Add en event to the end of the queue.
@@ -35,13 +37,8 @@ export class EventQueue {
       // Update flag
       this.isExecuting = true;
       // Start executing
-      const p = new Promise<void>((resolve, reject) => {
-        this.executeNext()
-        .then(() => { this.isExecuting = false; })
-        .then(resolve)
-        .catch(reject)
-        .then(() => { this.isExecuting = false; });
-      });
+      this.executeNext()
+      .finally(() => { this.isExecuting = false; });
     }
   }
 
@@ -53,7 +50,7 @@ export class EventQueue {
     const event = this.queue.shift();
     if (event) {
       try { await executeEventFunction(event); }
-      catch (error) { /* Ignore the error. */ }
+      catch (error) { this.onError(error); }
       await this.executeNext();
     }
   }
@@ -98,3 +95,5 @@ function wrapEvent(event: EventFunction): [ () => Promise<void>, Promise<void> ]
   // Return wrapped event and promise
   return [wrappedEvent, promise];
 }
+
+function noop() {}

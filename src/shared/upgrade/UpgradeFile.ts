@@ -1,10 +1,10 @@
 import * as path from 'path';
-import { UpgradeStage } from './types';
-import { readJsonFile } from '../Util';
-import { Coerce } from '../utils/Coerce';
-import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import uuid = require('uuid');
+import { readJsonFile } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
+import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import { UpgradeStageState } from '../interfaces';
+import { UpgradeStage } from './types';
+import { uuid } from '@back/util/uuid';
 
 const { str } = Coerce;
 
@@ -58,7 +58,7 @@ export namespace UpgradeFile {
     parser.prop('sources_sha256',  v => parsed.sources_sha256   = str(v), true);
     parser.prop('deletePaths',     v => parsed.deletePaths      = strArr(v), true);
     parser.prop('keepPaths',       v => parsed.keepPaths        = strArr(v), true);
-    if (parsed.sources_sha256.length != 64 && onError) {
+    if (parsed.sources_sha256.length !== 64 && onError) {
       // All SHA256 sums are 64 characters long
       onError(`IMPORTANT: No valid SHA256 sum given, risk of corrupted or malicious downloads. (stack: "${key}")`);
     }

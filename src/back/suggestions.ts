@@ -1,5 +1,5 @@
-import { IGameInfo } from '../shared/game/interfaces';
-import { GamePropSuggestions, GamePropSuggestionsMap, SuggestionProps } from '../shared/interfaces';
+import { IGameInfo } from '@shared/game/interfaces';
+import { GamePropSuggestions, GamePropSuggestionsMap, SuggestionProps } from '@shared/interfaces';
 
 export function getSuggestions(games: IGameInfo[] = [], libraryTitles: string[] = []): Partial<GamePropSuggestions> {
   // Get the values from the game collection & libraries

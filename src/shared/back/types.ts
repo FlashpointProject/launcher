@@ -46,6 +46,7 @@ export enum BackIn {
   GET_LIBRARIES,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
+  BROWSE_VIEW_INDEX,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
   /** Get all data needed on init (by the renderer). */
@@ -107,6 +108,8 @@ export type BackInitArgs = {
   isDev: boolean;
   localeCode: string;
   exePath: string;
+  /** If the back should accept remote clients to connect (renderers from different machines). */
+  acceptRemote: boolean;
 }
 
 export enum BackInit {
@@ -129,7 +132,7 @@ export type GetMainInitDataResponse = {
 export type GetRendererInitDataResponse = {
   config: IAppConfigData;
   preferences: IAppPreferencesData;
-  imageServerPort: number;
+  fileServerPort: number;
   log: ILogEntry[];
   services: IService[];
   languages: LangFile[];
@@ -207,6 +210,8 @@ export type GetAllGamesResponseData = {
 
 export type RandomGamesData = {
   count: number;
+  broken: boolean;
+  extreme: boolean;
 }
 
 export type RandomGamesResponseData = IGameInfo[];
@@ -239,6 +244,15 @@ export type BrowseViewPageResponseData = {
   games: ViewGame[];
   offset: number;
   total?: number;
+}
+
+export type BrowseViewIndexData = {
+  gameId: string;
+  query: GameQuery;
+}
+
+export type BrowseViewIndexResponseData = {
+  index: number;
 }
 
 export type SaveImageData = {
