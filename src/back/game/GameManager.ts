@@ -164,7 +164,8 @@ export namespace GameManager {
 
     // Save changed platforms to disk
     if (opts.saveToDisk) {
-      await serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p)));
+      try { await serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p))); }
+      catch (error) { /* Do nothing. */ }
     }
   }
 
@@ -210,7 +211,8 @@ export namespace GameManager {
 
     // Save changed platforms to disk
     if (opts.saveToDisk) {
-      await serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p)));
+      try { await serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p))); }
+      catch (error) { /* Do nothing. */ }
     }
 
     return {
@@ -220,7 +222,11 @@ export namespace GameManager {
     };
   }
 
-
+  /**
+   * Save a platform to a file.
+   * @param state State that the platform belongs to.
+   * @param platform Platform to save.
+   */
   export async function savePlatformToFile(state: GameManagerState, platform: GamePlatform): Promise<void> {
     // Parse data into XML
     const parser = new fastXmlParser.j2xParser({
@@ -239,6 +245,7 @@ export namespace GameManager {
         state.log(`Save successful ${extra}`);
       } catch (error) {
         state.log(`Save failed ${extra}\n${error}`);
+        throw error;
       }
     }, true);
   }
