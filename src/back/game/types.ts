@@ -10,15 +10,11 @@ export type UpdateMetaOptions = {
   game: IGameInfo;
   /** All additional applications of that game entry (any missing ones will be deleted). */
   addApps: IAdditionalApplicationInfo[];
-  /** Save to disk immediately after updating the entries. */
-  saveToDisk: boolean;
 }
 
-export type RemoveGameOptions = {
-  /** ID of the game to remove. */
-  gameId: string;
-  /** Save to disk immediately after removing the entries. */
-  saveToDisk: boolean;
+export type UpdateMetaResult = {
+  /** All platforms that were edited. */
+  edited: GamePlatform[];
 }
 
 export type RemoveGameResult = {

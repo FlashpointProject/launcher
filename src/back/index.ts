@@ -818,11 +818,14 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.SAVE_GAME: {
       const reqData: SaveGameData = req.data;
 
-      GameManager.updateMetas(state.gameManager, {
+      const result = GameManager.updateMeta(state.gameManager, {
         game: reqData.game,
         addApps: reqData.addApps,
-        saveToDisk: reqData.saveToFile,
       });
+
+      if (reqData.saveToFile) {
+        await GameManager.savePlatforms(state.gameManager, result.edited);
+      }
 
       state.queries = {}; // Clear entire cache
 
@@ -839,10 +842,9 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.DELETE_GAME: {
       const reqData: DeleteGameData = req.data;
 
-      await GameManager.removeGameAndAddApps(state.gameManager, {
-        gameId: reqData.id,
-        saveToDisk: true,
-      });
+      const result = GameManager.removeGameAndAddApps(state.gameManager, reqData.id);
+
+      await GameManager.savePlatforms(state.gameManager, result.edited);
 
       state.queries = {}; // Clear entire cache
 
@@ -873,11 +875,11 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         }
 
         // Add copies
-        GameManager.updateMetas(state.gameManager, {
+        const result = GameManager.updateMeta(state.gameManager, {
           game: newGame,
           addApps: newAddApps,
-          saveToDisk: true,
         });
+        await GameManager.savePlatforms(state.gameManager, result.edited);
 
         // Copy images
         if (reqData.dupeImages) {

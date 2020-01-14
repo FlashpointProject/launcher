@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { copyError } from '../util/misc';
-import { GameManagerState, LoadPlatformError, RemoveGameOptions, RemoveGameResult, UpdateMetaOptions } from './types';
+import { GameManagerState, LoadPlatformError, RemoveGameResult, UpdateMetaOptions, UpdateMetaResult } from './types';
 
 const mkdir = promisify(fs.mkdir);
 const readdir = promisify(fs.readdir);
@@ -105,14 +105,11 @@ export namespace GameManager {
    * - New games and add-apps will be pushed to the end of their platform
    * - Existing games and add-apps will retain their position in the platform file
    */
-  export async function updateMetas(state: GameManagerState, opts: UpdateMetaOptions): Promise<void> {
+  export function updateMeta(state: GameManagerState, opts: UpdateMetaOptions): UpdateMetaResult {
     const edited: GamePlatform[] = []; // All platforms that were edited and need to be saved
 
     // Delete all games with the same ID and the add-apps that belongs to them
-    const result = await removeGameAndAddApps(state, {
-      gameId: opts.game.id,
-      saveToDisk: false,
-    });
+    const result = removeGameAndAddApps(state, opts.game.id);
     edited.push(...result.edited);
 
     // Add the game and add-apps to the platform they belong to (create one if it doesn't exist)
@@ -162,72 +159,74 @@ export namespace GameManager {
       edited.push(platform);
     }
 
-    // Save changed platforms to disk
-    if (opts.saveToDisk) {
-      try { await serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p))); }
-      catch (error) { /* Do nothing. */ }
-    }
+    return {
+      edited: removeDupes(edited),
+    };
   }
 
-
-  /** Remove all games with a given ID and all add-apps that belongs to it. */
-  export async function removeGameAndAddApps(state: GameManagerState, opts: RemoveGameOptions): Promise<RemoveGameResult> {
+  /**
+   * Remove all games with a given ID and all add-apps that belongs to it.
+   * @param state State to remove games and add-apps from.
+   * @param opts ID of the game to remove.
+   */
+  export function removeGameAndAddApps(state: GameManagerState, gameId: string): RemoveGameResult {
     const edited: GamePlatform[] = []; // All platforms that were edited and need to be saved
     const gameIndices: number[][] = [];
     const addAppIndices: Record<string, number>[] = [];
 
     // Delete all games with the same ID and the add-apps that belongs to them
-    for (let platform of state.platforms) {
+    for (let i = 0; i < state.platforms.length; i++) {
+      const platform = state.platforms[i];
       let changed = false;
 
       const games = platform.collection.games;
-      for (let i = games.length - 1; i >= 0; i--) {
-        if (games[i].id === opts.gameId) {
-          state.log(`Remove Game (ID: "${opts.gameId}", index: ${i}, platform: "${platform.name}", library: "${platform.library}")`);
+      for (let j = games.length - 1; j >= 0; j--) {
+        if (games[j].id === gameId) {
+          state.log(`Remove Game (ID: "${gameId}", index: ${j}, platform: "${platform.name}", library: "${platform.library}")`);
           changed = true;
-          games.splice(i, 1);
+          games.splice(j, 1);
         }
       }
 
       const addApps = platform.collection.additionalApplications;
-      for (let i = addApps.length - 1; i >= 0; i--) {
-        if (addApps[i].gameId === opts.gameId) {
-          state.log(`Remove AddApp (ID: "${addApps[i].id}", index: ${i}, platform: "${platform.name}", library: "${platform.library}")`);
+      for (let j = addApps.length - 1; j >= 0; j--) {
+        if (addApps[j].gameId === gameId) {
+          state.log(`Remove AddApp (ID: "${addApps[j].id}", index: ${j}, platform: "${platform.name}", library: "${platform.library}")`);
           changed = true;
-          addApps.splice(i, 1);
+          addApps.splice(j, 1);
         }
       }
 
-      const gameInd = LaunchBox.removeGame(platform.data, opts.gameId);
+      const gameInd = LaunchBox.removeGame(platform.data, gameId);
       gameIndices.push(gameInd);
       if (gameInd.length > 0) { changed = true; }
 
-      const addAppInd = LaunchBox.removeAddAppsOfGame(platform.data, opts.gameId);
+      const addAppInd = LaunchBox.removeAddAppsOfGame(platform.data, gameId);
       addAppIndices.push(addAppInd);
       if (addAppInd.length > 0) { changed = true; }
 
       if (changed) { edited.push(platform); }
     }
 
-    // Save changed platforms to disk
-    if (opts.saveToDisk) {
-      try { await serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p))); }
-      catch (error) { /* Do nothing. */ }
-    }
-
     return {
-      edited,
+      edited: removeDupes(edited),
       gameIndices,
       addAppIndices,
     };
   }
 
   /**
-   * Save a platform to a file.
-   * @param state State that the platform belongs to.
-   * @param platform Platform to save.
+   * Save a set of platforms to their files.
+   * All platforms are synchronously parsed into the file content, then asynchronously saved to disk.
+   * Note: Saving multiple large platforms at once can use up a large amount of memory.
+   * @param state State that the platforms belongs to.
+   * @param platform Platforms to save.
    */
-  export async function savePlatformToFile(state: GameManagerState, platform: GamePlatform): Promise<void> {
+  export function savePlatforms(state: GameManagerState, platforms: GamePlatform[]): Promise<void> {
+    return Promise.all(platforms.map(p => savePlatformToFile(state, p))).then(() => undefined);
+  }
+
+  function savePlatformToFile(state: GameManagerState, platform: GamePlatform): Promise<void> {
     // Parse data into XML
     const parser = new fastXmlParser.j2xParser({
       ignoreAttributes: true, // Attributes are never used, this might increase performance?

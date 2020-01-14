@@ -22,7 +22,7 @@ describe('GameManager', () => {
     // @TODO Compare that parsed content to a "snapshot" to verify that it was parsed correctly
   });
 
-  test('Add Games & AddApps (to the same and already existing platform)', async () => {
+  test('Add Games & AddApps (to the same and already existing platform)', () => {
     // Setup
     const state = createState();
     const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
@@ -32,10 +32,9 @@ describe('GameManager', () => {
       // Add Game & AddApps
       const game = createGame(before.name, before.library);
       const addApps = createAddApps(game.id, i % 3); // Try different numbers of add-apps
-      await GameManager.updateMetas(state, {
+      GameManager.updateMeta(state, {
         game: game,
         addApps: addApps,
-        saveToDisk: false,
       });
       // Compare
       expect(platform).toEqual({ // Game & AddApps have been added to the end of the collections in the correct order
@@ -60,17 +59,16 @@ describe('GameManager', () => {
     }
   });
 
-  test('Add Games & AddApps (to differnt and non-existing platforms)', async () => {
+  test('Add Games & AddApps (to differnt and non-existing platforms)', () => {
     // Setup
     const state = createState();
     for (let i = 0; i < 10; i++) {
       // Add Game
       const game = createGame(`platform_${i}`, 'some_library');
       const addApps = createAddApps(game.id, i % 3); // Try different numbers of add-apps
-      await GameManager.updateMetas(state, {
+      GameManager.updateMeta(state, {
         game: game,
         addApps: addApps,
-        saveToDisk: false,
       });
       // Compare
       const platform = state.platforms.find(p => (p.name === game.platform) && (p.library === game.library));
@@ -92,7 +90,7 @@ describe('GameManager', () => {
     }
   });
 
-  test('Move Game & AddApps (between existing platforms)', async () => {
+  test('Move Game & AddApps (between existing platforms)', () => {
     // Setup
     const state = createState();
     const fromPlatform = createPlatform('from_platform', 'some_library', state.platformsPath);
@@ -101,10 +99,9 @@ describe('GameManager', () => {
     // Add Game
     const game = createGame(fromPlatform.name, fromPlatform.library);
     const addApps = createAddApps(game.id, 5);
-    await GameManager.updateMetas(state, {
+    GameManager.updateMeta(state, {
       game: game,
       addApps: addApps,
-      saveToDisk: false,
     });
     // Move Game
     const sameGame: IGameInfo = {
@@ -112,10 +109,9 @@ describe('GameManager', () => {
       platform: toPlatform.name,
       library: toPlatform.library,
     };
-    await GameManager.updateMetas(state, {
+    GameManager.updateMeta(state, {
       game: sameGame,
       addApps: addApps,
-      saveToDisk: false,
     });
     // Compare
     expect(fromPlatform).toEqual({ // First platform is empty
@@ -146,17 +142,16 @@ describe('GameManager', () => {
     });
   });
 
-  test('Update Game (update the value of a field)', async () => {
+  test('Update Game (update the value of a field)', () => {
     // Setup
     const state = createState();
     const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
     state.platforms.push(platform);
     // Add Game
     const game = createGame(platform.name, platform.library);
-    await GameManager.updateMetas(state, {
+    GameManager.updateMeta(state, {
       game: game,
       addApps: [],
-      saveToDisk: false,
     });
     // Update Game
     const before = deepCopy(platform);
@@ -164,10 +159,9 @@ describe('GameManager', () => {
       ...game,
       title: 'New Title',
     };
-    await GameManager.updateMetas(state, {
+    GameManager.updateMeta(state, {
       game: updatedGame,
       addApps: [],
-      saveToDisk: false,
     });
     // Compare
     expect(platform).not.toEqual(before); // Platform has been changed
@@ -186,7 +180,7 @@ describe('GameManager', () => {
     });
   });
 
-  test('Remove Games & AddApps (from one platform)', async () => {
+  test('Remove Games & AddApps (from one platform)', () => {
     // Setup
     const state = createState();
     const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
@@ -195,10 +189,9 @@ describe('GameManager', () => {
     for (let i = 0; i < 10; i++) {
       const game = createGame(platform.name, platform.library);
       const addApp = createAddApp(game.id);
-      await GameManager.updateMetas(state, {
+      GameManager.updateMeta(state, {
         game: game,
         addApps: [ addApp ],
-        saveToDisk: false,
       });
     }
     // Remove Games & AddApps
@@ -207,10 +200,7 @@ describe('GameManager', () => {
       const index = ((i + 7) ** 3) % platform.collection.games.length; // Pick a "random" index
       const gameId = platform.collection.games[index].id;
       // Remove Game & AddApps
-      GameManager.removeGameAndAddApps(state, {
-        gameId: gameId,
-        saveToDisk: false,
-      });
+      GameManager.removeGameAndAddApps(state, gameId);
       // Compare
       expect(platform).toEqual({ // Game & AddApps have been removed
         ...before,
@@ -228,7 +218,7 @@ describe('GameManager', () => {
     }
   });
 
-  test('Save Games & AddApps to file (multiple times)', async () => {
+  test('Save Games & AddApps to file (multiple times)', () => {
     // Setup
     const state = createState();
     const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
@@ -236,18 +226,17 @@ describe('GameManager', () => {
     // Add content to platform
     for (let i = 0; i < 10; i++) {
       const game = createGame(platform.name, platform.library);
-      await GameManager.updateMetas(state, {
+      GameManager.updateMeta(state, {
         game: game,
         addApps: createAddApps(game.id, i % 3), // Try different numbers of add-apps
-        saveToDisk: false,
       });
     }
     // Save file multiple times
     const saves: Promise<any>[] = [];
     for (let i = 0; i < 5; i++) {
-      saves.push(expect(GameManager.savePlatformToFile(state, platform)).resolves.toBe(undefined));
+      saves.push(expect(GameManager.savePlatforms(state, [ platform ])).resolves.toBe(undefined));
     }
-    await Promise.all(saves);
+    return Promise.all(saves);
   });
 
   // @TODO Add tests for adding, moving and removing add-apps
