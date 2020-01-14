@@ -1,20 +1,18 @@
+import { GameParser } from '@shared/game/GameParser';
+import { IGameCollection, IGameInfo } from '@shared/game/interfaces';
+import { GamePlatform, IRawPlatformFile } from '@shared/platform/interfaces';
 import * as fastXmlParser from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { GameParser } from '@shared/game/GameParser';
-import { IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate } from '@shared/game/interfaces';
-import { GamePlatform, IRawPlatformFile } from '@shared/platform/interfaces';
 import { copyError } from '../util/misc';
-import { GameManagerState, LoadPlatformError } from './types';
+import { GameManagerState, LoadPlatformError, RemoveGameResult, UpdateMetaOptions, UpdateMetaResult } from './types';
 
 const mkdir = promisify(fs.mkdir);
 const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 const writeFile = promisify(fs.writeFile);
-
-const LOG = false;
 
 const UNKNOWN_LIBRARY = 'unknown';
 const UNKNOWN_PLATFORM = 'unknown';
@@ -36,27 +34,35 @@ export namespace GameManager {
               // Find each platform file
               const platformPath = path.join(libraryPath, platformFile);
               const platformFileExt = path.extname(platformFile);
-              if ((await stat(platformPath)).isFile() && platformFileExt.toLowerCase().endsWith('.xml')) {
+              if (platformFileExt.toLowerCase().endsWith('.xml') && (await stat(platformPath)).isFile()) {
                 platforms.push({
                   name: path.basename(platformFile, platformFileExt),
                   filePath: platformPath,
                   library: libraryName,
-                  data: { LaunchBox: {} },
-                  collection: { games: [], additionalApplications: [] },
+                  data: {
+                    LaunchBox: {
+                      Game: [],
+                      AdditionalApplication: [],
+                    },
+                  },
+                  collection: {
+                    games: [],
+                    additionalApplications: [],
+                  },
                 });
               }
             }
           }
-        } catch (e) { console.log(e); }
+        } catch (e) { console.error(e); }
       }
-    } catch (e) { console.log(e); }
+    } catch (e) { console.error(e); }
 
     // Read and parse all platform files
     const errors: LoadPlatformError[] = [];
     await Promise.all(platforms.map(async (platform) => {
       try {
-        const data = await readFile(platform.filePath);
-        const platformData: IRawPlatformFile | undefined = fastXmlParser.parse(data.toString(), {
+        const content = await readFile(platform.filePath);
+        const data: any | undefined = fastXmlParser.parse(content.toString(), {
           ignoreAttributes: true,
           ignoreNameSpace: true,
           parseNodeValue: true,
@@ -64,14 +70,11 @@ export namespace GameManager {
           parseTrueNumberOnly: true,
           // @TODO Look into which settings are most appropriate
         });
-        if (!platformData) { throw new Error(`Failed to parse XML file: ${platform.filePath}`); }
-
-        // Make sure the sub-object exists
-        if (!platformData.LaunchBox) { platformData.LaunchBox = {}; }
+        if (!LaunchBox.formatPlatformFileData(data)) { throw new Error(`Failed to parse XML file: ${platform.filePath}`); }
 
         // Populate platform
-        platform.data = platformData;
-        platform.collection = GameParser.parse(platformData, platform.library);
+        platform.data = data;
+        platform.collection = GameParser.parse(data, platform.library);
 
         // Success!
         state.platforms.push(platform);
@@ -94,126 +97,136 @@ export namespace GameManager {
     }
   }
 
-  export function updateMetas(state: GameManagerState, request: MetaUpdate): Promise<void> {
+  /**
+   * Add or update a game and its add-apps.
+   * Notes:
+   * - The platform will be automatically selected or created
+   * - All games and add-apps with duplicate IDs will be deleted (from all platforms)
+   * - New games and add-apps will be pushed to the end of their platform
+   * - Existing games and add-apps will retain their position in the platform file
+   */
+  export function updateMeta(state: GameManagerState, opts: UpdateMetaOptions): UpdateMetaResult {
     const edited: GamePlatform[] = []; // All platforms that were edited and need to be saved
 
-    // Games
-    gameUpdateLoop:
-    for (let game of request.games) {
-      // Make sure the library and platform exist, replacing with unknown defaults if not
-      const newLibrary = game.library || UNKNOWN_LIBRARY;
-      const newPlatform = game.platform || UNKNOWN_PLATFORM;
+    // Delete all games with the same ID and the add-apps that belongs to them
+    const result = removeGameAndAddApps(state, opts.game.id);
+    edited.push(...result.edited);
 
-      // Find existing platform and library to update if exists
-      const gamePlatform = state.platforms.find(p => p.name === newPlatform && p.library === newLibrary);
-      if (gamePlatform) {
-        // Attempt to update game in existing platform
-        if (updateGame(game, gamePlatform)) {
-          if (request.saveToDisk) { edited.push(gamePlatform); }
-          if (LOG) { console.log('updated ' + game.id); }
-          continue gameUpdateLoop;
+    // Add the game and add-apps to the platform they belong to (create one if it doesn't exist)
+    const libraryName = opts.game.library || UNKNOWN_LIBRARY;
+    const platformName = opts.game.platform || UNKNOWN_PLATFORM;
+
+    const platformIndex = state.platforms.findIndex(p => p.name === platformName && p.library === libraryName);
+    const platform = state.platforms[platformIndex];
+    if (platform) {
+      // Get game index
+      let gameIndex = result.gameIndices[platformIndex][0];
+      if (typeof gameIndex !== 'number') {
+        gameIndex = platform.collection.games.length;
+      }
+      // Insert game
+      state.log(`Insert Game (ID: "${opts.game.id}", index: ${gameIndex}, platform: "${platform.name}", library: "${platform.library}")`);
+      platform.collection.games.splice(gameIndex, 0, opts.game);
+      platform.data.LaunchBox.Game.splice(gameIndex, 0, GameParser.reverseParseGame(opts.game));
+
+      // Insert app-apps
+      for (let addApp of opts.addApps) {
+        // Get app-app index
+        let index = result.addAppIndices[platformIndex][addApp.id];
+        if (typeof index !== 'number') {
+          index = platform.collection.additionalApplications.length;
         }
-        // Game not found in platform, follow process assuming it's a new game, or moved to another platform.
+        // Insert app-app
+        state.log(`Insert AddApp (ID: "${addApp.id}", index: ${index}, platform: "${platform.name}", library: "${platform.library}")`);
+        platform.collection.additionalApplications.splice(index, 0, addApp);
+        platform.data.LaunchBox.AdditionalApplication.splice(index, 0, GameParser.reverseParseAdditionalApplication(addApp));
       }
 
-      // Game has moved or is new
-      const oldAddApps: IAdditionalApplicationInfo[] = [];
-      for (let platform of state.platforms) {
-        if (removeGame(game.id, platform)) {
-          if (request.saveToDisk) { edited.push(platform); }
-          // Game removed from platform, store add apps to move later
-          let addAppIndex = -1;
-          while ((addAppIndex = platform.collection.additionalApplications.findIndex(a => a.gameId === game.id)) !== -1) {
-            // Remove from platform and push to list to add later
-            const oldAddApp = platform.collection.additionalApplications[addAppIndex];
-            removeAddApp(oldAddApp.id, platform);
-            oldAddApps.push(oldAddApp);
-          }
-        }
-      }
-
-      if (gamePlatform) {
-        if (request.saveToDisk) { edited.push(gamePlatform); }
-        // Platform matching found, add to it
-        addGame(game, gamePlatform);
-        // Add additional apps
-        for (let addApp of oldAddApps) {
-          addAddApp(addApp, gamePlatform);
-        }
-      } else {
-        // No platform found, make a new one
-        const newCollection: IGameCollection = {
-          games: [game],
-          additionalApplications: oldAddApps
-        };
-        const platform: GamePlatform = {
-          filePath: path.join(state.platformsPath, newLibrary, newPlatform + '.xml'),
-          name: newPlatform,
-          library: newLibrary,
-          collection: newCollection,
-          data: createRawFromCollection(newCollection)
-        };
-        // Add to working array
-        state.platforms.push(platform);
-        if (request.saveToDisk) { edited.push(platform); }
-      }
+      edited.push(platform);
+    } else {
+      const newCollection: IGameCollection = {
+        games: [ opts.game ],
+        additionalApplications: [ ...opts.addApps ],
+      };
+      const platform: GamePlatform = {
+        filePath: path.join(state.platformsPath, libraryName, platformName + '.xml'),
+        name: platformName,
+        library: libraryName,
+        collection: newCollection,
+        data: createRawFromCollection(newCollection),
+      };
+      state.platforms.push(platform);
+      edited.push(platform);
     }
 
-    // AddApps
-    addAppLoop:
-    for (let addApp of request.addApps) {
-      // Find platform of parent game
-      for (let platform of state.platforms) {
-        if (updateAddApp(addApp, platform)) {
-          // App found and updated, move onto the next one
-          if (request.saveToDisk) { edited.push(platform); }
-          continue addAppLoop;
-        }
-      }
-
-      // Add App not found, create new entry in games platform
-      for (let platform of state.platforms) {
-        // Find parent games platform
-        const gameIndex = platform.collection.games.findIndex(g => g.id === addApp.gameId);
-        if (gameIndex !== -1) {
-          // Game platform found, add in here then continue
-          addAddApp(addApp, platform);
-          if (request.saveToDisk) { edited.push(platform); }
-          continue addAppLoop;
-        }
-      }
-      // No parent game found, and no add app entry found. This shouldn't be reachable.
-    }
-
-    // Save all edited platforms
-    return serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p)));
+    return {
+      edited: removeDupes(edited),
+    };
   }
 
-  /** Remove an addapp in a platform */
-  export function removeAddApp(id: string, platform: GamePlatform): boolean {
-    // Find and remove from platform addApps if exists
-    const appIndex = platform.collection.additionalApplications.findIndex(a => a.id === id);
-    if (appIndex !== -1) {
-      // Found Add App in platform, remove
-      platform.collection.additionalApplications.splice(appIndex, 1);
-      // Find and remove from raw platform if exists
-      let addApps = platform.data.LaunchBox.AdditionalApplication;
-      if (addApps) {
-        // Convert to array if single Add App in platform
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
-        // Remove from raw Add App array if exists
-        const rawIndex = addApps.findIndex(a => a.Id === id);
-        if (rawIndex >= 0) {
-          addApps.splice(rawIndex, 1);
-          platform.data.LaunchBox.AdditionalApplication = addApps;
+  /**
+   * Remove all games with a given ID and all add-apps that belongs to it.
+   * @param state State to remove games and add-apps from.
+   * @param opts ID of the game to remove.
+   */
+  export function removeGameAndAddApps(state: GameManagerState, gameId: string): RemoveGameResult {
+    const edited: GamePlatform[] = []; // All platforms that were edited and need to be saved
+    const gameIndices: number[][] = [];
+    const addAppIndices: Record<string, number>[] = [];
+
+    // Delete all games with the same ID and the add-apps that belongs to them
+    for (let i = 0; i < state.platforms.length; i++) {
+      const platform = state.platforms[i];
+      let changed = false;
+
+      const games = platform.collection.games;
+      for (let j = games.length - 1; j >= 0; j--) {
+        if (games[j].id === gameId) {
+          state.log(`Remove Game (ID: "${gameId}", index: ${j}, platform: "${platform.name}", library: "${platform.library}")`);
+          changed = true;
+          games.splice(j, 1);
         }
       }
-      return true;
+
+      const addApps = platform.collection.additionalApplications;
+      for (let j = addApps.length - 1; j >= 0; j--) {
+        if (addApps[j].gameId === gameId) {
+          state.log(`Remove AddApp (ID: "${addApps[j].id}", index: ${j}, platform: "${platform.name}", library: "${platform.library}")`);
+          changed = true;
+          addApps.splice(j, 1);
+        }
+      }
+
+      const gameInd = LaunchBox.removeGame(platform.data, gameId);
+      gameIndices.push(gameInd);
+      if (gameInd.length > 0) { changed = true; }
+
+      const addAppInd = LaunchBox.removeAddAppsOfGame(platform.data, gameId);
+      addAppIndices.push(addAppInd);
+      if (addAppInd.length > 0) { changed = true; }
+
+      if (changed) { edited.push(platform); }
     }
-    return false;
+
+    return {
+      edited: removeDupes(edited),
+      gameIndices,
+      addAppIndices,
+    };
   }
 
-  export async function savePlatformToFile(state: GameManagerState, platform: GamePlatform): Promise<void> {
+  /**
+   * Save a set of platforms to their files.
+   * All platforms are synchronously parsed into the file content, then asynchronously saved to disk.
+   * Note: Saving multiple large platforms at once can use up a large amount of memory.
+   * @param state State that the platforms belongs to.
+   * @param platform Platforms to save.
+   */
+  export function savePlatforms(state: GameManagerState, platforms: GamePlatform[]): Promise<void> {
+    return Promise.all(platforms.map(p => savePlatformToFile(state, p))).then(() => undefined);
+  }
+
+  function savePlatformToFile(state: GameManagerState, platform: GamePlatform): Promise<void> {
     // Parse data into XML
     const parser = new fastXmlParser.j2xParser({
       ignoreAttributes: true, // Attributes are never used, this might increase performance?
@@ -222,141 +235,103 @@ export namespace GameManager {
     });
     const parsedData = parser.parse(platform.data);
     // Save data to the platform's file
-    return state.saveQueue.push(
-      mkdir(path.dirname(platform.filePath), { recursive: true })
-      .then(() => writeFile(platform.filePath, parsedData))
-    , true).catch(console.error);
-  }
-
-  /** Update a game in a platform */
-  function updateGame(game: IGameInfo, platform: GamePlatform): boolean {
-    // Find game in platform
-    const gameIndex = platform.collection.games.findIndex(g => g.id === game.id);
-    if (gameIndex !== -1) {
-      // Game found, update collection
-      platform.collection.games[gameIndex] = game;
-      // Update raw
-      let games = platform.data.LaunchBox.Game;
-      if (games) {
-        // Convert to array if single game present.
-        if (!Array.isArray(games)) { games = [ games ]; }
-        const rawIndex = games.findIndex(g => g.ID === game.id);
-        if (rawIndex !== 1) {
-          games[rawIndex] = GameParser.reverseParseGame(game);
-          platform.data.LaunchBox.Game = games;
-        }
-      } else {
-        // Games not defined. This shouldn't ever be reachable.
-        platform.data.LaunchBox.Game = GameParser.reverseParseGame(game);
+    return state.saveQueue.push(async () => {
+      const extra = `(platform: "${platform.name}", library: "${platform.library}", file: "${platform.filePath}")`;
+      try {
+        state.log(`Saving platform to file ${extra}`);
+        await mkdir(path.dirname(platform.filePath), { recursive: true });
+        await writeFile(platform.filePath, parsedData);
+        state.log(`Save successful ${extra}`);
+      } catch (error) {
+        state.log(`Save failed ${extra}\n${error}`);
+        throw error;
       }
-      return true;
-    }
-    // No game found to update
-    return false;
-  }
-
-  /** Update an add app in a platform */
-  function updateAddApp(addApp: IAdditionalApplicationInfo, platform: GamePlatform): boolean {
-    const addAppIndex = platform.collection.additionalApplications.findIndex(a => a.id === addApp.id);
-    if (addAppIndex !== -1) {
-      // Add app found, update collection
-      platform.collection.additionalApplications[addAppIndex] = addApp;
-      // Update raw
-      let addApps = platform.data.LaunchBox.AdditionalApplication;
-      if (addApps) {
-        // Convert to array if single game present. This shouldn't ever be true but better safe than sorry
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
-        const rawIndex = addApps.findIndex(a => a.Id === addApp.id);
-        if (rawIndex !== 1) {
-          addApps[rawIndex] = GameParser.reverseParseAdditionalApplication(addApp);
-          platform.data.LaunchBox.AdditionalApplication = addApps;
-        }
-      } else {
-        // Add apps not defined. This shouldn't ever be reachable either.
-        platform.data.LaunchBox.AdditionalApplication = GameParser.reverseParseAdditionalApplication(addApp);
-      }
-      return true;
-    }
-    // No add app found to update
-    return false;
-  }
-
-  /** Add a game to a platform */
-  function addGame(game: IGameInfo, platform: GamePlatform) {
-    // Add collection entry
-    platform.collection.games.push(game);
-    // Add raw entry
-    let games = platform.data.LaunchBox.Game;
-      if (games) {
-        // Convert to array if single game in platform
-        if (!Array.isArray(games)) { games = [ games ]; }
-        // Add game to array
-        games.push(GameParser.reverseParseGame(game));
-        platform.data.LaunchBox.Game = games;
-      } else {
-        // Games not defined, add on its own
-        platform.data.LaunchBox.Game = GameParser.reverseParseGame(game);
-      }
-  }
-
-  /** Add a game to a platform */
-  function addAddApp(addApp: IAdditionalApplicationInfo, platform: GamePlatform) {
-    // Add collection entry
-    platform.collection.additionalApplications.push(addApp);
-    // Add raw entry
-    let addApps = platform.data.LaunchBox.AdditionalApplication;
-      if (addApps) {
-        // Convert to array if single game in platform
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
-        // Add game to array
-        addApps.push(GameParser.reverseParseAdditionalApplication(addApp));
-        platform.data.LaunchBox.AdditionalApplication = addApps;
-      } else {
-        // AddApps not defined, add on its own
-        platform.data.LaunchBox.AdditionalApplication = GameParser.reverseParseAdditionalApplication(addApp);
-      }
-  }
-
-  /** Remove a game in a platform */
-  export function removeGame(id: string, platform: GamePlatform): IGameInfo | undefined {
-    // Find and remove from platform games if exists
-    if (LOG) { console.log('finding ' + id +  ' ' + id.length); }
-    const gameIndex = platform.collection.games.findIndex(g => g.id === id);
-    if (gameIndex !== -1) {
-      // Found game in platform, store return and remove
-      const returnGame = platform.collection.games.splice(gameIndex, 1)[0];
-      // Find and remove from raw platform if exists
-      let games = platform.data.LaunchBox.Game;
-      if (games) {
-        // Array of raw games, find game
-        if (Array.isArray(games)) {
-          for (let game of games) {
-            if (LOG) { console.log('ID ' + game.ID + ' ' + game.ID.length); }
-          }
-          const rawIndex = games.findIndex(g => g.ID === id);
-          if (LOG) { console.log(rawIndex); }
-          if (rawIndex !== -1) {
-            if (LOG) { console.log('found ' + id + ' at ' + rawIndex); }
-            games.splice(rawIndex, 1);
-          }
-        } else {
-          // Single game, check if matches and remove if does
-          if (games.ID === id) { platform.data.LaunchBox.Game = undefined; }
-        }
-      }
-      if (LOG) { console.log(`deleted ${id} from ${platform.name}`); }
-      return returnGame;
-    }
+    }, true);
   }
 
   /** Create a new raw platform with the same data as a parsed platform */
-  function createRawFromCollection(collection: IGameCollection) : IRawPlatformFile {
+  function createRawFromCollection(collection: IGameCollection): IRawPlatformFile {
     return {
       LaunchBox: {
         Game: collection.games.map(game => GameParser.reverseParseGame(game)),
-        AdditionalApplication: collection.additionalApplications.map(addApp => GameParser.reverseParseAdditionalApplication(addApp))
-      }
+        AdditionalApplication: collection.additionalApplications.map(addApp => GameParser.reverseParseAdditionalApplication(addApp)),
+      },
     };
+  }
+}
+
+export namespace LaunchBox {
+  /**
+   * Format the result of "fast-xml-parser" into a structured object.
+   * This ensures that all types that will be used exists and is of the proper type.
+   * @param data Object to format.
+   */
+  export function formatPlatformFileData(data: any): data is IRawPlatformFile {
+    if (!isObject(data)) { return false; }
+
+    // If there are multiple "LaunchBox" elements, remove all but the first (There should never be more than one!)
+    if (Array.isArray(data.LaunchBox)) {
+      data.LaunchBox = data.LaunchBox[0];
+    }
+
+    if (!isObject(data.LaunchBox)) {
+      data.LaunchBox = {};
+    }
+
+    data.LaunchBox.Game                  = convertEntitiesToArray(data.LaunchBox.Game);
+    data.LaunchBox.AdditionalApplication = convertEntitiesToArray(data.LaunchBox.AdditionalApplication);
+
+    return true;
+
+    function isObject(obj: any): boolean {
+      return (typeof obj === 'object') && (data.LaunchBox !== null);
+    }
+
+    function convertEntitiesToArray(entries: any | any[] | undefined): any[] {
+      if (Array.isArray(entries)) { // Multiple entries
+        return entries;
+      } else if (entries) { // One entry
+        return [ entries ];
+      } else { // No entries
+        return [];
+      }
+    }
+  }
+
+  /**
+   * Remove all games with the given ID.
+   * @param data Data to remove games from.
+   * @param gameId ID of the game(s) to remove.
+   * @returns Indices of all removed games.
+   */
+  export function removeGame(data: IRawPlatformFile, gameId: string): number[] {
+    const indices: number[] = [];
+    const games = data.LaunchBox.Game;
+    for (let i = games.length - 1; i >= 0; i--) {
+      if (games[i].ID === gameId) {
+        indices.push(i);
+        games.splice(i, 1);
+      }
+    }
+    return indices;
+  }
+
+  /**
+   * Remove all add-apps that belongs to the game with the given ID.
+   * @param data Data to remove add-apps from.
+   * @param gameId ID of the game the add-apps belong to.
+   * @returns Indices of all removed add-apps (result[addapp_id] = addapp_index).
+   */
+  export function removeAddAppsOfGame(data: IRawPlatformFile, gameId: string): Record<string, number> {
+    const indices: Record<string, number> = {};
+    const addApps = data.LaunchBox.AdditionalApplication;
+    for (let i = addApps.length - 1; i >= 0; i--) {
+      if (addApps[i].GameID === gameId) {
+        indices[addApps[i].Id] = i;
+        addApps.splice(i, 1);
+      }
+    }
+    return indices;
   }
 }
 
