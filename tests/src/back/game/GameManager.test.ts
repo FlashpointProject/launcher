@@ -1,4 +1,4 @@
-import { GameManager } from '@back/game/GameManager';
+import { GameManager, LaunchBox } from '@back/game/GameManager';
 import { GameManagerState } from '@back/game/types';
 import { EventQueue } from '@back/util/EventQueue';
 import { uuid } from '@back/util/uuid';
@@ -237,6 +237,18 @@ describe('GameManager', () => {
       saves.push(expect(GameManager.savePlatforms(state, [ platform ])).resolves.toBe(undefined));
     }
     return Promise.all(saves);
+  });
+
+  test('Find Game', () => {
+    // Setup
+    const state = createState();
+    const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
+    const game = createGame('', '');
+    game.title = 'Sonic';
+    platform.collection.games.push(game);
+    // Find Sonic (not Tails)
+    expect(GameManager.findGame([platform], g => g.title === 'Tails')).toBe(undefined);
+    expect(GameManager.findGame([platform], g => g.title === 'Sonic')).toHaveProperty('title', 'Sonic');
   });
 
   // @TODO Add tests for adding, moving and removing add-apps

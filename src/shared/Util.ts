@@ -73,14 +73,14 @@ export function padStart(str: string|number, length: number): string {
   return ' '.repeat(Math.max(0, length - str.length)) + str;
 }
 
-type StringifyArrayOpts = {
+export type StringifyArrayOpts = {
   /** If spaces and new lines should be trimmed from the start and end of strings in the array. */
   trimStrings?: boolean;
 };
 
 /**
  * Write an array to a string in a pretty and readable way
- * Ex. [0,'test',null] => "[ 0, 'test', null ]"
+ * Ex. [0,'test',null] => '[ 0, "test", null ]'
  * @param array Array to "stringify"
  * @returns Readable text representation of the array
  */
@@ -113,7 +113,7 @@ function trim(str: string): string {
   // Find the last non-space non-new-line character
   for (let i = str.length - 1; i >= first; i--) {
     if (!isSpaceOrNewLine(str[i])) {
-      last = i;
+      last = i+1;
       break;
     }
   }

@@ -8,4 +8,6 @@ describe('Util.isInstalled()', function() {
       expect(resp).toBe(false);
     });
   });
+
+  // @TODO Replace - This function won't work on Windows! Is anything even using it?
 });
