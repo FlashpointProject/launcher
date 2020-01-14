@@ -1,7 +1,7 @@
-import * as React from 'react';
 import { LangContainer } from '@shared/lang';
 import { versionNumberToText } from '@shared/Util';
-import { CreditsData, CreditsDataProfile } from '../../credits/types';
+import * as React from 'react';
+import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from '../../credits/types';
 import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';
 import { CreditsTooltip } from '../CreditsTooltip';
@@ -33,12 +33,56 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     const strings = this.context.about;
     const { profile } = this.state;
     const { creditsData, creditsDoneLoading } = this.props;
+
+    const roles: CreditsDataRole[] = creditsData ? creditsData.roles.filter(role => role.noCategory != true) : [{ name: strings.specialThanks }];
+    console.log(roles);
+    let creditBlocks: CreditsBlock[] = [];
+    creditBlocks.push({ role: { name: strings.specialThanks }, profiles: [] });
+
+    // Populate credit blocks
+    if (creditsData) {
+      console.log(roles);
+      profileLoop:
+      for (const profile of creditsData.profiles) {
+        for (const role of roles) {
+          // Add Profile to block based on highest role and order
+          if (profile.roles.includes(role.name)) {
+            const block = creditBlocks.find(block => block.role === role);
+            if (block) {
+              block.profiles.push(profile);
+            } else {
+              const newBlock: CreditsBlock = { role: role, profiles: [] };
+              newBlock.profiles.push(profile);
+              creditBlocks.push(newBlock);
+            }
+            // Added, move to next profile
+            continue profileLoop;
+          }
+        }
+        // No role found, use default
+        creditBlocks[0].profiles.push(profile);
+      }
+    }
+
+    // If default block empty, remove
+    if (creditBlocks[0].profiles.length === 0) {
+      creditBlocks.slice(0, 1);
+    }
+
+    // Sort Array
+    if (creditsData) {
+      creditBlocks.sort((a, b) => {
+        return roles.indexOf(a.role) - roles.indexOf(b.role);
+      });
+      creditBlocks.push(creditBlocks.splice(0,1)[0]);
+    }
+
     return (
       <div className='about-page simple-scroll'>
         <div className='about-page__inner'>
           <div className='about-page__top'>
             <h1 className='about-page__title'>{strings.aboutHeader}</h1>
-            <CreditsTooltip profile={profile} />
+            <CreditsTooltip profile={profile} roles={creditsData && creditsData.roles} />
             <div className='about-page__columns simple-columns'>
               {/* Left Column */}
               <div className='about-page__columns__left simple-columns__column'>
@@ -69,6 +113,13 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                     </div>
                   </div>
                 </div>
+                {/* Bottom */}
+                <div className='about-page__bottom'>
+                  <div className='about-page__bottom__inner'>
+                    <p className='about-page__bottom__quote'>"It's not up to us to decide what the future finds interesting"</p>
+                    <p className='about-page__bottom__author'>-Jason Scott</p>
+                  </div>
+                </div>
               </div>
               {/* Right Column */}
               <div className='about-page__columns__right simple-columns__column'>
@@ -76,25 +127,36 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                 <div className='about-page__credits'>
                   <div className='about-page__credits__title'>{strings.creditsHeader}</div>
                   <div className='about-page__credits__profiles'>
-                    { (creditsDoneLoading && creditsData) ? (
-                      creditsData.profiles.map((profile, index) => (
-                        <CreditsIcon
-                          key={index}
-                          profile={profile}
-                          onMouseEnter={this.onMouseEnterCreditsIcon}
-                          onMouseLeave={this.onMouseLeaveCreditsIcon}/>
+                    { (creditsDoneLoading) ? (
+                      creditBlocks.map((block, index) => (
+                        <>
+                          <div
+                            key={index}
+                            className='about-page__credits__role' >
+                            <div
+                              key={index*2}
+                              className='about-page__credits__role-name'>
+                              {block.role.name}
+                            </div>
+                            <div
+                              key={index*3}
+                              className='about-page__credits__role-description'>
+                              {block.role.description}
+                            </div>
+                          </div>
+                          {block.profiles.map((profile, index) => (
+                            <CreditsIcon
+                              key={index}
+                              profile={profile}
+                              onMouseEnter={this.onMouseEnterCreditsIcon}
+                              onMouseLeave={this.onMouseLeaveCreditsIcon} />
+                          ))}
+                        </>
                       ))
                     ) : ('...') }
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          {/* Bottom */}
-          <div className='about-page__bottom'>
-            <div className='about-page__bottom__inner'>
-              <p className='about-page__bottom__quote'>"It's not up to us to decide what the future finds interesting"</p>
-              <p className='about-page__bottom__author'>-Jason Scott</p>
             </div>
           </div>
         </div>

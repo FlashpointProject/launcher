@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
-import { CreditsDataProfile } from '../credits/types';
+import { CreditsDataProfile, CreditsDataRole } from '../credits/types';
 
 export type CreditsTooltipProps = {
+  /** Roles to grab color info from */
+  roles?: CreditsDataRole[];
   /** Credits profile to show in the tooltip. If undefined, the tooltip will be hidden. */
   profile?: CreditsDataProfile;
 };
@@ -32,7 +34,7 @@ export function CreditsTooltip(props: CreditsTooltipProps) {
           ) : undefined }
             <ul className='about-page__credits__tooltip__roles'>
               { props.profile.roles.map((role, index) => (
-                <li key={index} style={{ color: getRoleColor(role) }}>
+                <li key={index} style={{ color: getRoleColor(role, props.roles) }}>
                   <p>{role}</p>
                 </li>
               )) }
@@ -66,20 +68,14 @@ function createOnMouseMove(current: HTMLElement): (event: MouseEvent) => void {
  * Get the color associated with a specific role.
  * @param role Role to get the associated color for.
  */
-function getRoleColor(role: string): string | undefined {
+function getRoleColor(name: string, roles?: CreditsDataRole[]): string | undefined {
   // @TODO Rewrite this function to return css class names, and define the colors the a stylesheet instead.
   //       That way you can change the colors with a theme.
-  switch (role) {
-    default:              return undefined;
-    case 'Mechanic':      return 'rgb(84, 110, 122)';
-    case 'Moderator':     return 'rgb(46, 204, 113)';
-    case 'Curator':       return 'rgb(241, 196, 15)';
-    case 'The Blue':      return 'rgb(32, 102, 148)';
-    case 'The Moe':       return 'rgb(224, 164, 241)';
-    case 'Administrator': return 'rgb(52, 152, 219)';
-    case 'Hacker':        return 'rgb(177, 21, 21)';
-    case 'Archivist':     return 'rgb(170, 135, 135)';
-    case 'Tester':        return 'rgb(230, 126, 34)';
-    case 'VIP':           return 'rgb(214, 4, 127)';
+  if (roles) {
+    const role = roles.find(role => role.name === name);
+    if (role) {
+      return role.color;
+    }
   }
+  return undefined;
 }

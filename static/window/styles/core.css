@@ -682,7 +682,7 @@ body {
 /* ------ About ------ */
 .about-page {
   --columns: 2;
-  --column-width: 35em;
+  --column-width: 40em;
   --column-gutter: 2em;
   width: 100%;
   height: 100%;
@@ -751,8 +751,20 @@ body {
 .about-page__credits {
 }
 .about-page__credits__title {
-  font-size: 1.6rem;
+  font-size: 1.75rem;
   margin-bottom: 0.25rem;
+}
+.about-page__credits__role {
+  display: flex;
+  align-items: baseline;
+}
+.about-page__credits__role-name {
+  font-size: 1.25em;
+  margin: 0.25rem 0rem 0.25rem 0rem;
+}
+.about-page__credits__role-description {
+  font-size: 0.85em;
+  margin: 0.25rem 0rem 0.25rem 0.5rem;
 }
 .about-page__credits__profiles {}
 .about-page__credits__profile {

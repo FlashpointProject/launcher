@@ -1,19 +1,36 @@
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
-import { CreditsData, CreditsDataProfile } from './types';
+import { CreditsData, CreditsDataProfile, CreditsDataRole } from './types';
 
 const { str } = Coerce;
 
 export namespace CreditsFile {
   export function parseCreditsData(data: any, onError?: (error: string) => void): CreditsData {
     const parsed: CreditsData = {
-      profiles: []
+      profiles: [],
+      roles: []
     };
     const parser = new ObjectParser({
       input: data,
       onError: onError && (e => onError(`Error while parsing Credits: ${e.toString()}`))
     });
     parser.prop('profiles').array(item => parsed.profiles.push(parseProfile(item)));
+    parser.prop('roles').array(item => parsed.roles.push(parseRole(item)));
+    console.log(parsed);
+    return parsed;
+  }
+
+  function parseRole(parser: IObjectParserProp<any>): CreditsDataRole {
+    const parsed: CreditsDataRole = {
+      name: '',
+      color: '',
+      description: '',
+      noCategory: false
+    };
+    parser.prop('name',        v => parsed.name = str(v));
+    parser.prop('color',       v => parsed.color  = str(v), true); // @TODO Validate Colors?
+    parser.prop('description', v => parsed.description  = str(v), true);
+    parser.prop('noCategory',  v => parsed.noCategory  = !!v, true);
     return parsed;
   }
 
@@ -30,4 +47,10 @@ export namespace CreditsFile {
     parser.prop('roles', true).arrayRaw(role => parsed.roles.push(str(role)));
     return parsed;
   }
+}
+
+function strArray(array: any): string[] {
+  return Array.isArray(array)
+    ? Array.prototype.map.call(array, v => str(v)) as string[]
+    : [];
 }
