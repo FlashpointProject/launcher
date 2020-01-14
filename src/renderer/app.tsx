@@ -345,7 +345,7 @@ export class App extends React.Component<AppProps, AppState> {
           }
 
           this.setState(newState as any, () => {
-            if (resData.library !== undefined) { this.requestSelectedGame(resData.library); }
+            this.requestSelectedGame(resData.library || getBrowseSubPath(this.props.location.pathname));
           });
         } break;
 

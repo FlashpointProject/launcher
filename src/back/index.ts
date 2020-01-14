@@ -66,8 +66,9 @@ const state: BackState = {
   localeCode: createErrorProxy('countryCode'),
   gameManager: {
     platforms: [],
-    platformsPath: 'Data/Platforms',
+    platformsPath: '',
     saveQueue: new EventQueue(),
+    log: (content) => log({ source: 'GameManager', content }),
   },
   messageQueue: [],
   isHandling: false,
@@ -817,11 +818,14 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.SAVE_GAME: {
       const reqData: SaveGameData = req.data;
 
-      GameManager.updateMetas(state.gameManager, {
-        games: [reqData.game],
-        addApps: reqData.addApps || [],
-        saveToDisk: reqData.saveToFile,
+      const result = GameManager.updateMeta(state.gameManager, {
+        game: reqData.game,
+        addApps: reqData.addApps,
       });
+
+      if (reqData.saveToFile) {
+        await GameManager.savePlatforms(state.gameManager, result.edited);
+      }
 
       state.queries = {}; // Clear entire cache
 
@@ -838,25 +842,9 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.DELETE_GAME: {
       const reqData: DeleteGameData = req.data;
 
-      const platforms = state.gameManager.platforms;
-      for (let i = 0; i < platforms.length; i++) {
-        const platform = platforms[i];
-        if (GameManager.removeGame(reqData.id, platform)) {
-          // Game was found and removed, search for addApps
-          for (let j = 0; j < platforms.length; i++) {
-            const addApps = platforms[j].collection.additionalApplications.filter(addApp => addApp.gameId === reqData.id);
-            if (addApps.length > 0) {
-              // Add apps found, remove all
-              for (let addApp of addApps) {
-                GameManager.removeAddApp(addApp.id, platform);
-              }
-            }
-            // Save platform to disk
-            await GameManager.savePlatformToFile(state.gameManager, platform);
-            break;
-          }
-        }
-      }
+      const result = GameManager.removeGameAndAddApps(state.gameManager, reqData.id);
+
+      await GameManager.savePlatforms(state.gameManager, result.edited);
 
       state.queries = {}; // Clear entire cache
 
@@ -887,11 +875,11 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         }
 
         // Add copies
-        GameManager.updateMetas(state.gameManager, {
-          games: [newGame],
+        const result = GameManager.updateMeta(state.gameManager, {
+          game: newGame,
           addApps: newAddApps,
-          saveToDisk: true,
         });
+        await GameManager.savePlatforms(state.gameManager, result.edited);
 
         // Copy images
         if (reqData.dupeImages) {

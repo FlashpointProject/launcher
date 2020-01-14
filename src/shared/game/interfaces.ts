@@ -155,13 +155,3 @@ export type SearchResults = SearchRequest & {
   /** Games returned from a search query */
   results: IGameInfo[];
 }
-
-/** Client Request - Metadata updates */
-export type MetaUpdate = {
-  /** Any game entries to update */
-  games: IGameInfo[];
-  /** Any add app entries to update */
-  addApps: IAdditionalApplicationInfo[];
-  /** Save to disk immediately after updating the entries */
-  saveToDisk: boolean;
-}
