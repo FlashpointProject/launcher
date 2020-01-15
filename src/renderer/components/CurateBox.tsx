@@ -1018,7 +1018,7 @@ function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string,
     let lc = match[1] || match[0];
     // Extract protocol from potential URL
     console.log(lc);
-    let protocol = lc.match(/(.+):\/\//);
+    let protocol = lc.match(/(.+?):\/\//);
     console.log(protocol);
     if (protocol) {
       // Protocol found, must be URL
