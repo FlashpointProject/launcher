@@ -233,7 +233,7 @@ export function toForcedURL(str: string): URL | undefined {
 }
 
 /** Try to create a URL object (returns undefined if the string is not valid). */
-function toURL(str: string): URL | undefined {
+export function toURL(str: string): URL | undefined {
   try { return new URL(str); }
   catch { return undefined; }
 }
