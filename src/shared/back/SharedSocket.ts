@@ -72,7 +72,7 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
   }
 
   private onOpen = (event: Event): void => {
-    console.log('SharedSocket Open:', event);
+    // console.log('SharedSocket Open:', event);
   }
 
   public send<T, U = any>(type: BackIn, data: U, callback?: (res: WrappedResponse<T>) => void): boolean {
@@ -130,6 +130,7 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
   private ensureConnection = () => {
     if (this.keepOpen) {
       if (this.url && (!this.socket || this.socket.readyState === this.socketCon.CLOSED)) {
+        console.log('Closed, try again');
         this.reconnect();
       }
       setTimeout(this.ensureConnection, 500);
@@ -137,7 +138,7 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
   }
 
   /** Open a new socket and try to connect again. */
-  private reconnect(): void {
+  public reconnect(): void {
     if (this.keepOpen) {
       console.log('Reconnecting...');
       // Disconnect
@@ -145,6 +146,7 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
         this.socket.close();
         this.socket = undefined;
       }
+      console.log('Reconnecting to ' + this.url);
       // Connect
       SharedSocket.connect(this.socketCon, this.url, this.secret)
       .then(socket => { this.setSocket(socket); })
@@ -162,7 +164,7 @@ export class SharedSocket<T extends Socket> extends EventEmitter {
       catch (error) { reject(error); return; }
 
       socket.onopen = () => {
-        socket.onmessage = () => { resolve(socket); };
+        socket.onmessage = () => { console.log('Client - Got Auth Back!'); resolve(socket); };
         socket.onclose   = () => { reject(new Error('Failed to authenticate to the back.')); };
         socket.send(secret);
       };

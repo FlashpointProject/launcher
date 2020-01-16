@@ -26,20 +26,8 @@ export namespace Coerce {
    */
   export function strToBool(str: string, defaultVal: boolean = false): boolean {
     const lowerStr = str.toLowerCase();
-    if (lowerStr === 'yes') { return true;  }
-    if (lowerStr === 'no' ) { return false; }
-    return defaultVal;
-  }
-
-  /**
-   * Convert a string to a boolean (case insensitive).
-   * @param str String to convert ("True" is true, "False" is false).
-   * @param defaultVal Value returned if the string is neither true nor false.
-   */
-  export function strToBool2(str: string, defaultVal: boolean = false): boolean {
-    const lowerStr = str.toLowerCase();
-    if (lowerStr === 'true')  { return true;  }
-    if (lowerStr === 'false') { return false; }
+    if (lowerStr === 'yes' || lowerStr === 'true') { return true;  }
+    if (lowerStr === 'no' || lowerStr === 'false') { return false; }
     return defaultVal;
   }
 }

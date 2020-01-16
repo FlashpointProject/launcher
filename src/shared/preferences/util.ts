@@ -8,6 +8,7 @@ import { deepCopy } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
+import { debounce } from '@back/util/debounce';
 
 export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send: boolean = true) {
   const preferences = window.External.preferences;
@@ -15,11 +16,16 @@ export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, se
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
   if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
-    window.External.back.send(
-      BackIn.UPDATE_PREFERENCES,
-      preferences.data
-    );
+    sendPrefs(); // @TODO Debounce
   }
+}
+
+function sendPrefs() {
+  const preferences = window.External.preferences;
+  window.External.back.send(
+    BackIn.UPDATE_PREFERENCES,
+    preferences.data
+  );
 }
 
 const { num, str } = Coerce;

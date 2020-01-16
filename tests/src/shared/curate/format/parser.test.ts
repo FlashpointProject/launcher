@@ -1,5 +1,6 @@
 import { tokenizeCurationFormat } from '@shared/curate/format/tokenizer';
 import { parseCurationFormat } from '@shared/curate/format/parser';
+import { generateExtrasAddApp, generateMessageAddApp } from '@shared/curate/parse';
 
 describe('parseCurationFormat()', function () {
   test('Empty string', () => {

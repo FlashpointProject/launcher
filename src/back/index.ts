@@ -7,6 +7,7 @@ import * as http from 'http';
 import * as path from 'path';
 import * as util from 'util';
 import * as WebSocket from 'ws';
+import * as mime from 'mime';
 import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
@@ -36,9 +37,10 @@ import { getSuggestions } from './suggestions';
 import { BackQuery, BackQueryChache, BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { copyError, getContentType, pathExists } from './util/misc';
+import { copyError, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
+import { stringifyLogEntries } from '@shared/Log/LogCommon';
 
 const copyFile  = util.promisify(fs.copyFile);
 const readFile  = util.promisify(fs.readFile);
@@ -635,7 +637,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     return;
   }
 
-  // console.log('IN', req);
+  console.log('Back Request - ', req);
 
   state.messageEmitter.emit(req.id, req);
 
@@ -1495,7 +1497,7 @@ function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath
         res.end();
       } else {
         res.writeHead(200, {
-          'Content-Type': getContentType(getFileExtension(filePath)),
+          'Content-Type': mime.getType(path.extname(filePath)) || '',
           'Content-Length': stats.size,
         });
         if (req.method === 'GET') {
@@ -1597,6 +1599,9 @@ function log(preEntry: ILogPreEntry, id?: string): void {
     entry.content = entry.content+'';
   }
 
+  fs.appendFile('./launcher.log', stringifyLogEntries([entry]), () => {
+    console.error('Failed to write to log file');
+  });
   state.log.push(entry);
 
   broadcast({
@@ -1752,18 +1757,6 @@ function createContainer(currentCode: string, autoLangCode: string, fallbackCode
     ...(current && current.data && current.data.upgrades)
   };
   return data;
-}
-
-/** Get the file extension of a file path (efterything after the last dot, or an empty string if the filename has no dots). */
-function getFileExtension(filename: string): string {
-  for (let i = filename.length - 1; i >= 0; i--) {
-    switch (filename[i]) {
-      case '/':
-      case '\\': return '';
-      case '.': return filename.substr(i + 1);
-    }
-  }
-  return '';
 }
 
 async function deletePlaylist(id: string, folder: string, playlists: GamePlaylist[]): Promise<void> {

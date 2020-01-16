@@ -8,6 +8,7 @@
     "target": "esnext",
     "lib": ["es6", "es2015", "dom"],
     "strict": true,
+    "jsx": "react",
     "paths": {
       "@shared/*": [ "./src/shared/*" ],
       "@main/*": [ "./src/main/*" ],

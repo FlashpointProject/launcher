@@ -218,7 +218,7 @@ describe('GameManager', () => {
     }
   });
 
-  test('Save Games & AddApps to file (multiple times)', () => {
+  test('Save Games & AddApps to file (multiple times)', async () => {
     // Setup
     const state = createState();
     const platform = createPlatform('test_platform', 'test_library', state.platformsPath);
@@ -236,7 +236,7 @@ describe('GameManager', () => {
     for (let i = 0; i < 5; i++) {
       saves.push(expect(GameManager.savePlatforms(state, [ platform ])).resolves.toBe(undefined));
     }
-    return Promise.all(saves);
+    await Promise.all(saves);
   });
 
   test('Find Game', () => {
