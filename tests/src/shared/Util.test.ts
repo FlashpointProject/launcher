@@ -1,7 +1,8 @@
-import { clearArray, removeFileExtension, sizeToString, stringifyArray, StringifyArrayOpts, recursiveDirectory, IRecursiveDirectoryOptions, versionNumberToText, canReadWrite, recursiveReplace, shallowStrictEquals } from '@shared/Util';
+import { escapeHTML } from '@shared/Log/LogCommon';
+import { canReadWrite, clearArray, IRecursiveDirectoryOptions, recursiveDirectory, recursiveReplace, removeFileExtension, shallowStrictEquals, sizeToString, stringifyArray, StringifyArrayOpts, versionNumberToText } from '@shared/Util';
+import { RESULT_PATH, STATIC_PATH } from '@tests/setup';
 import * as path from 'path';
-import { STATIC_PATH, RESULT_PATH } from '@tests/setup';
-import { shallowEqual } from 'react-redux';
+import { unescapeHTML } from '@shared/game/GameParser';
 
 describe('Shared Utils', () => {
   test('Remove File Extension', () => {
@@ -122,5 +123,15 @@ describe('Shared Utils', () => {
     const missingPath = path.join(RESULT_PATH, 'FAKE_PATH');
     await expect(canReadWrite(realPath)).resolves.toBeTruthy();
     await expect(canReadWrite(missingPath)).resolves.toBeFalsy();
+  });
+});
+
+describe('HTML Utils', () => {
+  test('Escape HTML', () => {
+    expect(escapeHTML('<html><p>Test & Success</p></html>')).toBe('&lt;html&gt;&lt;p&gt;Test &amp; Success&lt;/p&gt;&lt;/html&gt;');
+  });
+
+  test('Unescape HTML', () => {
+    expect(unescapeHTML('&lt;html&gt;&lt;p&gt;Test &amp; Success&lt;/p&gt;&lt;/html&gt;')).toBe('<html><p>Test & Success</p></html>');
   });
 });

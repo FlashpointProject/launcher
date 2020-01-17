@@ -1,13 +1,3 @@
-import * as child_process from 'child_process';
-import { createHash } from 'crypto';
-import { MessageBoxOptions, OpenExternalOptions } from 'electron';
-import { EventEmitter } from 'events';
-import * as fs from 'fs';
-import * as http from 'http';
-import * as path from 'path';
-import * as util from 'util';
-import * as WebSocket from 'ws';
-import * as mime from 'mime';
 import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
@@ -19,12 +9,23 @@ import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
 import { DeepPartial, GamePlaylist, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile, LangFileContent } from '@shared/lang';
 import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
+import { stringifyLogEntriesRaw } from '@shared/Log/LogCommon';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
 import { createErrorProxy, deepCopy, isErrorProxy, recursiveReplace, removeFileExtension, stringifyArray } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
+import * as child_process from 'child_process';
+import { createHash } from 'crypto';
+import { MessageBoxOptions, OpenExternalOptions } from 'electron';
+import { EventEmitter } from 'events';
+import * as fs from 'fs';
+import * as http from 'http';
+import * as mime from 'mime';
+import * as path from 'path';
+import * as util from 'util';
+import * as WebSocket from 'ws';
 import { ConfigFile } from './ConfigFile';
 import { loadExecMappingsFile } from './Execs';
 import { GameManager } from './game/GameManager';
@@ -40,7 +41,6 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { copyError, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
-import { stringifyLogEntries } from '@shared/Log/LogCommon';
 
 const copyFile  = util.promisify(fs.copyFile);
 const readFile  = util.promisify(fs.readFile);
@@ -1599,7 +1599,7 @@ function log(preEntry: ILogPreEntry, id?: string): void {
     entry.content = entry.content+'';
   }
 
-  fs.appendFile('./launcher.log', stringifyLogEntries([entry]), () => {
+  fs.appendFile('./launcher.log', stringifyLogEntriesRaw([entry]), () => {
     console.error('Failed to write to log file');
   });
   state.log.push(entry);

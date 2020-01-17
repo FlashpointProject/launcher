@@ -16,7 +16,7 @@ type BufferedEvent<T extends AnyFunction> = {
   timestamp: number;
 };
 
-export type DebounceOpts<T extends AnyFunction> = {
+export type EventAggregatorOpts<T extends AnyFunction> = {
   /** Number of milliseconds each call will be buffered. */
   time?: number;
   /** Function that compares two sets of arguments to determine if they are "equal". */
@@ -24,12 +24,12 @@ export type DebounceOpts<T extends AnyFunction> = {
 };
 
 /**
- * Buffer calls for some time and ignore all calls with identical arguments to a buffered call.
- * @param callback Called when a buffered event is "released".
+ * Collect unique callbacks and execute them all `time` after the first call
+ * @param callback Called when the timer is "released".
  * @param opts Options.
  * @returns Function that buffers events when called.
  */
-export function debounce<T extends AnyFunction>(callback: T, opts?: DebounceOpts<T>): CallableCopy<T> {
+export function eventAggregator<T extends AnyFunction>(callback: T, opts?: EventAggregatorOpts<T>): CallableCopy<T> {
   // Variables
   const buffer: BufferedEvent<T>[] = []; // Buffer of all recorded and not-yet-released events
   let time: number = 50;
@@ -42,7 +42,7 @@ export function debounce<T extends AnyFunction>(callback: T, opts?: DebounceOpts
   }
 
   // Function that receives and records the events
-  const debouncer: CallableCopy<T> = function(...args) {
+  const eventAggregator: CallableCopy<T> = function(...args) {
     // Check if equal arguments already are in the buffer
     let isUnique = true;
     for (let item of buffer) {
@@ -68,6 +68,28 @@ export function debounce<T extends AnyFunction>(callback: T, opts?: DebounceOpts
         callback(...args);
       }, time);
     }
+  };
+
+  return eventAggregator;
+}
+
+/**
+ * Executes a callback after a `time` millisecond timer, resetting the existing timer (cancelling its callback) with each call
+ * @param callback Called when the timer ends
+ * @param time Time in milliseconds before calling
+ */
+export function debounce<T extends AnyFunction>(callback: T, time:number): CallableCopy<T> {
+  // Store timeout
+  let timeout: NodeJS.Timeout | undefined;
+  // Function that receives and records the events
+  const debouncer: CallableCopy<T> = function(...args) {
+    // Reset timer for release
+    if (timeout) { clearTimeout(timeout); }
+    // Release event after some time
+    timeout = setTimeout(function() {
+      timeout = undefined;
+      callback(...args);
+    }, time);
   };
 
   return debouncer;

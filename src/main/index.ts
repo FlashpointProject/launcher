@@ -14,7 +14,6 @@ import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { Coerce } from '@shared/utils/Coerce';
 import * as Util from './Util';
-import { debounce } from '@back/util/debounce';
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
