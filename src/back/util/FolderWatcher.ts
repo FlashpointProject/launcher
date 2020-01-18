@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { eventAggregator } from './debounce';
+import { eventAggregator } from './EventAggregator';
 import { EventQueue } from './EventQueue';
 import { WrappedEventEmitter } from './WrappedEventEmitter';
 

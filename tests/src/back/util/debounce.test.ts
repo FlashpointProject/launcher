@@ -1,5 +1,5 @@
-import { debounce as debounceBack, eventAggregator } from '@back/util/debounce';
-import { debounce as debounceFront } from '@renderer/util/debounce';
+import { debounce } from '@shared/utils/debounce';
+import { eventAggregator } from '@back/util/EventAggregator';
 
 jest.useFakeTimers();
 
@@ -21,27 +21,11 @@ describe('Debounce Related Utils', () => {
     expect(lastNum).toEqual([1,2,3]);
   });
 
-  test('Debounce Back', () => {
+  test('Debounce', () => {
     // Setup debounce func
     let lastNum = 0;
     const callbackFunc = jest.fn((num) => lastNum = num);
-    const debounceFunc = debounceBack(callbackFunc, 100);
-    // Call 3 times, execute once
-    debounceFunc(1);
-    debounceFunc(2);
-    debounceFunc(3);
-    // Wait for timers
-    expect(callbackFunc).not.toHaveBeenCalled();
-    jest.runAllTimers();
-    expect(callbackFunc).toHaveBeenCalledTimes(1);
-    expect(lastNum).toBe(3);
-  });
-
-  test('Debounce Front', () => {
-    // Setup debounce func
-    let lastNum = 0;
-    const callbackFunc = jest.fn((num) => lastNum = num);
-    const debounceFunc = debounceFront(callbackFunc, 100);
+    const debounceFunc = debounce(callbackFunc, 100);
     // Call 3 times, execute once
     debounceFunc(1);
     debounceFunc(2);

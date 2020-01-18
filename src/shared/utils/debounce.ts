@@ -1,5 +1,4 @@
 import { AnyFunction, ArgumentTypesOf } from '@shared/interfaces';
-import { shallowStrictEquals } from '@shared/Util';
 
 /** A callable object that has the same argument types as T (and void as the return type). */
 interface CallableCopy<T extends AnyFunction> extends Function {
@@ -13,14 +12,14 @@ interface CallableCopy<T extends AnyFunction> extends Function {
  */
 export function debounce<T extends AnyFunction>(callback: T, time:number): CallableCopy<T> {
   // Store timeout
-  let timeout: number;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   // Function that receives and records the events
   const debouncer: CallableCopy<T> = function(...args) {
     // Reset timer for release
-    if (timeout >= 0) { window.clearTimeout(timeout); }
+    if (timeout != undefined) { clearTimeout(timeout); }
     // Release event after some time
-    timeout = window.setTimeout(function() {
-      timeout = -1;
+    timeout = setTimeout(function() {
+      timeout = undefined;
       callback(...args);
     }, time);
   };
