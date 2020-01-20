@@ -20,7 +20,7 @@
     "browse": "Navegar",
     "redirector": "Redirector",
     "redirectorFiddler": "Fiddler",
-    "redirectorDesc": "Que programa utilizar para redireccionar el tráfico del juego al servidor local web. Ninguno es usado en Linux.",
+    "redirectorDesc": "Que programa utilizar para redirigir el tráfico de los juegos al servidor local web. Ninguno es usado en Linux.",
     "platforms": "Plataformas",
     "nativePlatforms": "Plataformas Nativas",
     "nativePlatformsDesc": "Utilizar la versión nativa de estas plataformas. (Si no esta disponible se utilizara Wine)",
