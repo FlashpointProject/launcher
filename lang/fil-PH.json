@@ -64,11 +64,11 @@
     "tagList": "Listahan ng Tag",
     "filterByPlatform": "Filter ayon sa platform",
     "plannedFeatures": "Tingnan ang aming planong features!",
-    "notesHeader": "Mga Puna",
+    "notesHeader": "Paalala",
     "notes": "Huwag kalimutang basahin ang readme kapag ikaw ay may problema.",
     "linuxSupport": "May problema sa Linux? {0}",
     "linuxSupportLinkText": "Buksan ang FAQ",
-    "randomPicks": "Random na mga Picks"
+    "randomPicks": "Random Picks"
   },
   "logs": {
     "filters": "Filters",
