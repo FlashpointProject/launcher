@@ -58,7 +58,7 @@
     "alreadyInstalled": "Déjà installée",
     "download": "Télécharger",
     "update": "Mise à jour",
-    "checkingUpgradeState": "Checking Upgrade State...",
+    "checkingUpgradeState": "Vérification de l'état de l'actualisation...",
     "extrasHeader": "Suppléments",
     "favoritesPlaylist": "Liste des favoris",
     "tagList": "Tag List",
@@ -159,7 +159,7 @@
     "by": "par",
     "noDeveloper": "Aucun développeur",
     "alternateTitles": "Titres alternatifs",
-    "noAlternateTitles": "No Alternate Titles",
+    "noAlternateTitles": "Il n'y a pas d'autres titre",
     "tags": "Tags",
     "noTags": "No Tags",
     "series": "Série",
@@ -233,10 +233,10 @@
   "curate": {
     "importAll": "Importer Tout",
     "importAllDesc": "Importe toutes les conservations actuellement chargés",
-    "deleteAll": "Delete All",
+    "deleteAll": "Efface Tout",
     "deleteAllDesc": "Delete all curations that are currently loaded",
     "saveImportedCurations": "Save Imported Curations",
-    "openCurationsFolder": "Curations Folder",
+    "openCurationsFolder": "Dossier de Curations",
     "openCurationsFolderDesc": "Open the Curations folder in explorer",
     "openExportsFolder": "Exported Curations",
     "openExportsFolderDesc": "Open the default Exports folder containing your exported curations.",
@@ -307,9 +307,9 @@
     "yes": "Oui",
     "no": "Non",
     "downloading": "Téléchargement",
-    "extracting": "Extracting",
-    "installingFiles": "Installing Files...",
-    "complete": "Complete"
+    "extracting": "Extraire",
+    "installingFiles": "Installation de Fichiers...",
+    "complete": "Fini"
   },
   "menu": {
     "viewThumbnailInFolder": "Voir la miniature dans le dossier",
