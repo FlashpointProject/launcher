@@ -321,7 +321,7 @@
     "exportMetaAndImages": "Exportar (Metadatos é Imágenes)"
   },
   "dialog": {
-    "programNotFound": "Programa  no encontrado!",
+    "programNotFound": "¡Programa no encontrado!",
     "phpNotFound": "'PHP' no fue encontrado en la dirección. Esta instalado?\nPodras experimentar comportamiento inesperado y dañino sin el.",
     "wineNotFound": "Wine no esta instalado, pero es requerido para correr este juego.\nPorfavor mira el articulo de soporte de Linux para mas detalles.",
     "flashpointPathNotFound": "La carpeta Flashpoint no está definida o es inválida. Quieres seleccionar una carpeta para instalar ahora?",
