@@ -2,7 +2,7 @@
   "name": "Español",
   "config": {
     "configHeader": "Configuración",
-    "configDesc": "(Debes presionar 'Guardar y Reiniciar' para que algunos cambios surjan efecto)",
+    "configDesc": "(Debes presionar 'Guardar y Reiniciar' para que algunos cambios surtan efecto)",
     "preferencesHeader": "Preferencias",
     "extremeGames": "Juegos Extremos",
     "extremeGamesDesc": "Mostrar juegos con contenido sexual , violento o no apto para menores de edad.",
@@ -339,7 +339,7 @@
     "selectCurationFolder": "Seleccionar carpeta(s) de curaciones",
     "selectCurationArchive": "Seleccionar archivo(s) de curaciones",
     "selectCurationMeta": "Seleccionar metadato(s) de curación",
-    "errorParsingPlatforms": "Error análisando plataformas!",
+    "errorParsingPlatforms": "¡Error al analizar plataformas!",
     "errorParsingPlatformsMessage": "{0} Error(es) encontrado(s) mientras se analizaban los 'XMLs' de las plataformas \nPor favor mira el registro para los detalles.",
     "dataRequired": "Información adicional requerida",
     "dataRequiredDesc": "Debés instalar primero la mejora en el menú de inicio antes de podes usar la aplicación.\n\nQuieres hacer esto ahora?",
