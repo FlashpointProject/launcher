@@ -23,7 +23,7 @@
     "redirectorDesc": "Le logiciel à utiliser pour rediriger le trafic de jeu vers le serveur web local. Ni l'un ni l'autre n'est utilisé sur Linux.",
     "platforms": "Plateformes",
     "nativePlatforms": "Plateformes natives",
-    "nativePlatformsDesc": "Use Native versions of these platforms. (If not available it will use Wine)",
+    "nativePlatformsDesc": "Utilisez des versions natifs de ces plateformes. (S'il ne sont pas disponible, il utilisera Wine)",
     "visualsHeader": "Visuels",
     "useCustomTitleBar": "Utiliser une barre de titre personnalisée",
     "useCustomTitleBarDesc": "Utilise une barre de titre personnalisée au sommet de cette fenêtre.",
@@ -36,12 +36,12 @@
     "saveAndRestart": "Sauvegarder et redémarrer"
   },
   "home": {
-    "updateHeader": "Launcher Update",
+    "updateHeader": "Actualisation du Lanceur",
     "currentVersion": "Version actuelle",
     "nextVersion": "Version suivante",
     "updateAvailable": "Mise à jour disponible",
     "upToDate": "À jour.",
-    "downloadingUpdate": "Downloading Update...",
+    "downloadingUpdate": "Téléchargement de l'actualisation...",
     "quickStartHeader": "Démarrage rapide",
     "hallOfFameInfo": "Tu veux seulement le meilleur des meilleurs? Viens voir le {0}!",
     "hallOfFame": "Temple de la renommée",
@@ -298,7 +298,7 @@
     "titlePlaceholder": "Titre...",
     "noAuthor": "Aucun(e) Auteur(e)",
     "authorPlaceholder": "Auteur(e)...",
-    "by": "by"
+    "by": "par"
   },
   "misc": {
     "noBlankFound": "Aucune {0} trouvée",
@@ -306,7 +306,7 @@
     "deleteAllBlankImages": "Supprimer TOUTES les images {0} pour ce jeu",
     "yes": "Oui",
     "no": "Non",
-    "downloading": "Downloading",
+    "downloading": "Téléchargement",
     "extracting": "Extracting",
     "installingFiles": "Installing Files...",
     "complete": "Complete"
