@@ -121,7 +121,7 @@
     "checkGameFileLocation": "Sprawdź Lokalizację Plików Gry",
     "checkGameFileLocationDesc": "Pokaż wszystkie gry z komendami uruchamiającymi które nie mogą być przeczytane jako ścieżki do pliku (dotyczy to funkcji 'Otwórz Lokalizację Pliku', nie uruchamiania gry)",
     "checkMissingExecMappings": "Sprawdź Brakujące Mapowania Plików Wykonywalnych",
-    "checkMissingExecMappingsDesc": "Pokaż wszytkie pliki wykonywalne dla win32, linux i darwin, które nie są zmapowane",
+    "checkMissingExecMappingsDesc": "Pokaż wszystkie pliki wykonywalne dla win32, linux i darwin, które nie są zmapowane",
     "renameImagesTitleToId": "Zmień Nazwy Zdjęć (Tytuł => ID)",
     "renameImagesTitleToIdDesc": "Znajdź wszystkie zdjęcia gier z ich tytułami w nazwie i zmień ich nazwy by było w nich ID",
     "renameImagesIdToTitle": "Zmień Nazwy Zdjęć (ID => Tytuł)",
