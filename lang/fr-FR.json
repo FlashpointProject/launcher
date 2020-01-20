@@ -239,11 +239,11 @@
     "openCurationsFolder": "Dossier de Curations",
     "openCurationsFolderDesc": "Ouvrez le dossier de Curations dans l'explorateur",
     "openExportsFolder": "Curations Exportées",
-    "openExportsFolderDesc": "Open the default Exports folder containing your exported curations.",
+    "openExportsFolderDesc": "Ouvrez le dossier défaut des exportations contenant vos curations exportées.",
     "openImportedFolder": "Curations Importées",
-    "openImportedFolderDesc": "Open the default Imported curations folder containing your imported curations.",
+    "openImportedFolderDesc": "Ouvrez le dossier défaut des curations importées contenant vos curations importées.",
     "newCuration": "Nouvelle Curation",
-    "newCurationDesc": "Creates a new curation with a unique folder",
+    "newCurationDesc": "Crée une nouvelle curation avec un dossier unique",
     "loadMeta": "Charger un Méta",
     "loadMetaDesc": "Charge un ou plusieurs fichiers méta de conservation",
     "loadArchive": "Charger une Archive",
@@ -266,23 +266,23 @@
     "removeAddApp": "Enlever l'application",
     "indexContent": "Renouveler le Contenu",
     "delete": "Effacer",
-    "deleteCurationDesc": "Delete this curation (Files can not be recovered)",
+    "deleteCurationDesc": "Effacer cette curation (les fichiers ne peuvent pas être récupérés)",
     "openFolder": "Ouvrir le dossier",
     "run": "Exécuter",
     "export": "Export",
     "import": "Importer",
     "contentFiles": "Fichiers de contenu",
     "warnings": "Avertissements",
-    "noLaunchCommand": "'Launch Command' is a required field. Please fill it in before importing.",
-    "invalidLaunchCommand": "'Launch Command' does not fit these URL requirements:",
+    "noLaunchCommand": "«Launch Command» est un champ obligatoire. S'il vous plaît, rempli le avant d'importer.",
+    "invalidLaunchCommand": "«Launch Command» ne correspond pas à ces exigences d'URL:",
     "releaseDateInvalid": "La date de sortie doit suivre AAAA-MM-JJ (le mois et le jour sont facultatifs).",
     "unusedApplicationPath": "Le chemin d'application contient une valeur inutilisée. Assure-toi qu'elle est orthographiée correctement!",
     "unusedTags": "Les filtres suivantes ne sont présentes sur aucun autre jeu. Sont-ils corrects?",
     "unusedPlatform": "La plateforme contient une valeur inutilisée. Assure-toi qu'elle est orthographiée correctement!",
     "nonExistingLibrary": "La bibliothèque ne correspond à aucune bibliothèque existante ! (la bibliothèque par défaut sera utilisée)",
-    "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?",
+    "nonContentFolders": "Dossiers non-contenu trouvés dans le dossier Curation. Sont-ils censés d'être là?",
     "ilc_notHttp": "Utiliser HTTP.",
-    "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder."
+    "ilc_nonExistant": "Pointez sur un fichier existant dans le dossier «content» de votre curation."
   },
   "playlist": {
     "enterDescriptionHere": "Entre une description ici...",
@@ -323,8 +323,8 @@
   "dialog": {
     "programNotFound": "Programme introuvable !",
     "phpNotFound": "PHP n'as pas été trouvé sur le chemin. Est-il installé?\nVous pouvez rencontrer des comportements inattendus et brisés sans lui.",
-    "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
-    "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
+    "wineNotFound": "Wine n'est pas installé, mais est requis pour exécuter ce jeu.\nS'il vous plaît, consulter l'article wiki du support Linux pour plus de détails.",
+    "flashpointPathNotFound": "Le dossier Flashpoint n'est pas défini ou n'est pas valide. Voulez-vous choisir un dossier pour l'installer maintenant?",
     "fileNotFound": "Fichier introuvable !",
     "flashpointPathInvalid": "Chemin de Flashpoint non valide!",
     "pathNotFound": "Chemin introuvable !",
@@ -342,11 +342,11 @@
     "errorParsingPlatforms": "Erreur lors de l'analyse des plateformes !",
     "errorParsingPlatformsMessage": "{0} Erreur(s) survenue(s) en analysant les XML des plateformes\nVeuillez vérifier l'historique pour les détails.",
     "dataRequired": "Données Supplémentaires Requises",
-    "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
+    "dataRequiredDesc": "Vous devez installer la mise à niveau sur l'écran d'accueil avant de pouvoir utiliser le lanceur.\n\nVoulez-vous le faire maintenant?",
     "upgradeWillInstallTo": "{0} sera installé dans",
-    "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
+    "verifyPathSelection": "Les futures mises à niveau seront installées ici. C'est correct?",
     "restartNow": "Redémarrer Maintenant?",
-    "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
+    "restartToApplyUpgrade": "Cette mise à niveau ne sera appliquée après un redémarrage.\nVoulez-vous le faire maintenant?",
     "areYouSure": "Êtes-vous certain ?"
   },
   "libraries": {
@@ -359,6 +359,6 @@
     "tech": "Autres Technologies",
     "techDesc": "Ajoute le support de toutes les autres technologies - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logos et Captures D'Écran",
-    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+    "screenshotsDesc": "Ajoute des logos pour la vue grille et des captures d'écran pour tous les jeux."
   }
 }
