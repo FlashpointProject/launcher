@@ -237,7 +237,7 @@
     "deleteAllDesc": "Efface toutes les curations déjà chargés",
     "saveImportedCurations": "Enregistrer les Curations Importées",
     "openCurationsFolder": "Dossier de Curations",
-    "openCurationsFolderDesc": "Open the Curations folder in explorer",
+    "openCurationsFolderDesc": "Ouvrez le dossier de Curations dans l'explorateur",
     "openExportsFolder": "Curations Exportées",
     "openExportsFolderDesc": "Open the default Exports folder containing your exported curations.",
     "openImportedFolder": "Curations Importées",
@@ -277,7 +277,7 @@
     "invalidLaunchCommand": "'Launch Command' does not fit these URL requirements:",
     "releaseDateInvalid": "La date de sortie doit suivre AAAA-MM-JJ (le mois et le jour sont facultatifs).",
     "unusedApplicationPath": "Le chemin d'application contient une valeur inutilisée. Assure-toi qu'elle est orthographiée correctement!",
-    "unusedTags": "The following tags are not present on any other game. Are they correct?",
+    "unusedTags": "Les filtres suivantes ne sont présentes sur aucun autre jeu. Sont-ils corrects?",
     "unusedPlatform": "La plateforme contient une valeur inutilisée. Assure-toi qu'elle est orthographiée correctement!",
     "nonExistingLibrary": "La bibliothèque ne correspond à aucune bibliothèque existante ! (la bibliothèque par défaut sera utilisée)",
     "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?",
@@ -326,7 +326,7 @@
     "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "Fichier introuvable !",
-    "flashpointPathInvalid": "Flashpoint path invalid!",
+    "flashpointPathInvalid": "Chemin de Flashpoint non valide!",
     "pathNotFound": "Chemin introuvable !",
     "selectFileToExportMeta": "Sélectionnez le fichier dans lequel sauvegarder le méta",
     "selectFolderToExportMetaAndImages": "Sélectionnez le dossier dans lequel sauvegarder le méta et les images",
@@ -355,10 +355,10 @@
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
+    "infinityDesc": "Fichiers requis. Ajoute le support des jeux Flash.",
     "tech": "Autres Technologies",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos & Screenshots",
+    "techDesc": "Ajoute le support de toutes les autres technologies - Shockwave, Unity, Java, HTML5, etc.",
+    "screenshots": "Logos et Captures D'Écran",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
   }
 }
