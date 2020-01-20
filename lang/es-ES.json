@@ -340,7 +340,7 @@
     "selectCurationArchive": "Seleccionar archivo(s) de curaciones",
     "selectCurationMeta": "Seleccionar metadato(s) de curación",
     "errorParsingPlatforms": "Error análisando plataformas!",
-    "errorParsingPlatformsMessage": "{0} Error(es) encontrados mientras se análisaban los 'XMLs' de las plataformas \nPorfavor mira el registro para detalles.",
+    "errorParsingPlatformsMessage": "{0} Error(es) encontrado(s) mientras se analizaban los 'XMLs' de las plataformas \nPor favor mira el registro para los detalles.",
     "dataRequired": "Información adicional requerida",
     "dataRequiredDesc": "Debés instalar primero la mejora en el menú de inicio antes de podes usar la aplicación.\n\nQuieres hacer esto ahora?",
     "upgradeWillInstallTo": "{0} sera instalada en",
