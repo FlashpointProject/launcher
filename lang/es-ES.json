@@ -304,7 +304,7 @@
     "noBlankFound": "Ninguna {0} Encontrada",
     "addBlank": "Añadir {0}",
     "deleteAllBlankImages": "Borrar todas las {0} imágenes para este juego",
-    "yes": "Si",
+    "yes": "Sí",
     "no": "No \t",
     "downloading": "Descargando",
     "extracting": "Extrayendo",
@@ -314,7 +314,7 @@
   "menu": {
     "viewThumbnailInFolder": "Mirar miniaturas en carpeta",
     "viewScreenshotInFolder": "Mirar capturas de pantalla en carpeta",
-    "openFileLocation": "Abrir dirección de archivo",
+    "openFileLocation": "Abrir ubicación del archivo",
     "duplicateMetaOnly": "Duplicado (Solo Metadatos)",
     "duplicateMetaAndImages": "Duplicado (Metadatos é Imágenes)",
     "exportMetaOnly": "Exportar (Solo Metadatos)",
