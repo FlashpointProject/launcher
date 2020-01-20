@@ -102,8 +102,8 @@
     "title": "Titulo",
     "developer": "Desarrollador",
     "publisher": "Editorial",
-    "ascending": "Ascendiente",
-    "descending": "Descendiente"
+    "ascending": "Ascendente",
+    "descending": "Descendente"
   },
   "developer": {
     "developerHeader": "Desarrollador",
