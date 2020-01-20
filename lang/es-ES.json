@@ -52,7 +52,7 @@
     "configInfo": "Quieres cambiar algo? Ve a {0}.",
     "config": "Configuración",
     "helpInfo": "¿Necesitas Ayuda? {0}.",
-    "help": "Lee el 'readme'",
+    "help": "Leer el archivo 'readme'",
     "upgradesHeader": "Mejoras",
     "installComplete": "Instalación Completada",
     "alreadyInstalled": "Ya Instalado",
@@ -65,7 +65,7 @@
     "filterByPlatform": "Filtrar por plataforma",
     "plannedFeatures": "Mira nuestras características planificadas!",
     "notesHeader": "Notas",
-    "notes": "No olvides leer el 'readme' si estas teniendo problemas.",
+    "notes": "No olvides leer el archivo 'readme' si estas teniendo problemas.",
     "linuxSupport": "Problemas en Linux? {0}",
     "linuxSupportLinkText": "Abrir 'FAQ'",
     "randomPicks": "Selección Aleatoria"
