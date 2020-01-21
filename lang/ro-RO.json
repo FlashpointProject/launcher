@@ -274,15 +274,15 @@
     "contentFiles": "Fișiere",
     "warnings": "Avertizări",
     "noLaunchCommand": "Este necesară completarea câmpului „Comandă de lansare“.",
-    "invalidLaunchCommand": "„Comandă de lansare“ nu corespunde acestor cerințe ale URL:",
+    "invalidLaunchCommand": "Comanda de lansare nu corespunde acestor cerințe ale URL:",
     "releaseDateInvalid": "Data lansării trebuie să fie de tipul AAAA-LL-ZZ (an-lună-zi; luna și ziua sunt opționale).",
     "unusedApplicationPath": "Calea spre aplicație are o valoare nefolosită. Asigurați-vă că este scrisă corect!",
     "unusedTags": "Următoarele etichete nu sunt prezente la niciun alt joc. Asigurați-vă că sunt corecte!",
     "unusedPlatform": "Platforma are o valoare nefolosită. Asigurați-vă că ați scris corect!",
     "nonExistingLibrary": "Categoria are un nume care nu coincide niciunei categorii predefinite. Se va folosi categoria implicită.",
-    "nonContentFolders": "Dosare fără conținut găsite în dosarul Reparărilor. Ar trebui să fie acolo?",
-    "ilc_notHttp": "Folosește HTTP.",
-    "ilc_nonExistant": "Arată către un fișier existent in dosarul 'conținutului' reparărilor."
+    "nonContentFolders": "Au fost găsite dosare neutilizare în dosarul de reparații. Doriți să continuați astfel?",
+    "ilc_notHttp": "Folosiți HTTP.",
+    "ilc_nonExistant": "Selectați un fișier existent din dosarul reparației."
   },
   "playlist": {
     "enterDescriptionHere": "Aici se introduce descrierea...",
@@ -298,7 +298,7 @@
     "titlePlaceholder": "Introduceți un titlu...",
     "noAuthor": "Nu este precizat autorul",
     "authorPlaceholder": "Introduceți numele autorului...",
-    "by": "de"
+    "by": "după"
   },
   "misc": {
     "noBlankFound": "Nu s-a găsit {0}",
@@ -308,7 +308,7 @@
     "no": "Nu",
     "downloading": "Se descarcă",
     "extracting": "Se extrage",
-    "installingFiles": "Se Instalează Fișiere...",
+    "installingFiles": "Se instalează fișierele...",
     "complete": "Finalizat"
   },
   "menu": {
@@ -323,16 +323,16 @@
   "dialog": {
     "programNotFound": "Programul nu a fost găsit.",
     "phpNotFound": "PHP nu a fost găsit.\nS-ar putea să întâmpinați probleme fără acesta.",
-    "wineNotFound": "Wine nu este instalat, dar este necesar pentru a rula acest joc.\nVă rugăm să consultați articolul de pe wiki-ul pentru suportul Linux-ului pentru detalii.",
-    "flashpointPathNotFound": "Dosarul Flashpoint nu este stabilit sau nu este valid. Doriți să alegeți un dosar unde să îl instalați acum?",
+    "wineNotFound": "Wine nu este instalat, dar este necesar pentru a rula acest joc.\nVă rugăm să consultați articolul wiki de ajutor pentru Linux pentru mai multe detalii.",
+    "flashpointPathNotFound": "Dosarul Flashpoint nu este stabilit sau este invalid. Doriți să alegeți un dosar unde să îl instalați acum?",
     "fileNotFound": "Fișierul nu a fost găsit.",
-    "flashpointPathInvalid": "Destinație pentru Flashpoint invalidă!",
+    "flashpointPathInvalid": "Destinație invalidă pentru Flashpoint.",
     "pathNotFound": "Calea nu a fost găsită.",
     "selectFileToExportMeta": "Selectați un fișier pentru salvarea datelor Meta",
     "selectFolderToExportMetaAndImages": "Selectați un dosar pentru salvarea datelor Meta și imaginilor",
     "replaceFilesQuestion": "Doriți să înlocuiți fișierele?",
     "exportedAlreadyExistsYesNo": "Unele fișiere deja există.\nDoriți să le înlocuiți?",
-    "selectFolder": "Alege Dosar",
+    "selectFolder": "Alegeți un dosar",
     "selectScreenshot": "Selectați imaginea",
     "selectThumbnail": "Selectați imaginea",
     "selectThemeFile": "Selectați fișierul de temă vizuală",
@@ -341,13 +341,13 @@
     "selectCurationMeta": "Selectați Metadatele de reparare",
     "errorParsingPlatforms": "Nu s-au putut identifica platformele.",
     "errorParsingPlatformsMessage": "{0} eroare / erori au apărut la citirea fișierelor XML.\nVerificați fișierele de jurnal pentru detalii.",
-    "dataRequired": "Date Adiționale Necesare",
-    "dataRequiredDesc": "Înainte de a putea folosi lansatorul trebuie să instalați actualizarea pe ecranul de pornire.\n\nDoriți să faceți asta acum?",
-    "upgradeWillInstallTo": "{0} va fi instalat în:",
+    "dataRequired": "Sunt necesare date suplimentare",
+    "dataRequiredDesc": "Înainte de a putea folosi lansatorul, trebuie să instalați actualizarea de pe ecranul de pornire.\n\nDoriți să faceți asta acum?",
+    "upgradeWillInstallTo": "{0} va fi instalat în",
     "verifyPathSelection": "Actualizările viitoare se vor instala aici. Este corect?",
-    "restartNow": "Repornești Acum?",
-    "restartToApplyUpgrade": "Această actualizare nu va fi aplicată până când nu repornești programul. Dorești să faci asta acum?",
-    "areYouSure": "Ești sigur(ă)?"
+    "restartNow": "Doriți să reporniți acum?",
+    "restartToApplyUpgrade": "Această actualizare nu va fi aplicată până când nu reporniți programul. Doriți să faceți asta acum?",
+    "areYouSure": "Sunteți sigur(ă)?"
   },
   "libraries": {
     "arcade": "Jocuri",
