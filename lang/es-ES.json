@@ -32,7 +32,7 @@
     "themeDesc": "Dirección del tema (relativo a la carpeta de temas).",
     "advancedHeader": "Avanzado",
     "showDeveloperTab": "Mostrar la pestaña Desarrollador",
-    "showDeveloperTabDesc": "Mostrar la pestaña 'Desarrollador' . Esta es principalmente útil solo para desarrolladores y curadores.",
+    "showDeveloperTabDesc": "Mostrar la pestaña 'Desarrollador'. Esta es muy probable que sólo sea útil para desarrolladores y curadores.",
     "saveAndRestart": "Guardar y Reiniciar"
   },
   "home": {
@@ -49,7 +49,7 @@
     "allGames": "Todos los Juegos",
     "allAnimationsInfo": "Solo quieres algo que ver? Mira {0}.",
     "allAnimations": "Todas las Animaciones",
-    "configInfo": "Quieres cambiar algo? Ve a {0}.",
+    "configInfo": "¿Quieres cambiar algo? Ve a {0}.",
     "config": "Configuración",
     "helpInfo": "¿Necesitas Ayuda? {0}.",
     "help": "Leer el archivo 'readme'",
@@ -58,7 +58,7 @@
     "alreadyInstalled": "Ya Instalado",
     "download": "Descargar",
     "update": "Actualizar",
-    "checkingUpgradeState": "Verficando estado de actualización...",
+    "checkingUpgradeState": "Comprobando estado de actualización...",
     "extrasHeader": "Extras",
     "favoritesPlaylist": "Lista de Reproducción de Favoritos",
     "tagList": "Lista de Etiquetas",
@@ -66,7 +66,7 @@
     "plannedFeatures": "Mira nuestras características planificadas!",
     "notesHeader": "Notas",
     "notes": "No olvides leer el archivo 'readme' si estas teniendo problemas.",
-    "linuxSupport": "Problemas en Linux? {0}",
+    "linuxSupport": "¿Problemas en Linux? {0}",
     "linuxSupportLinkText": "Abrir 'FAQ'",
     "randomPicks": "Selección Aleatoria"
   },
