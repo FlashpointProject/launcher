@@ -9,7 +9,7 @@
     "enableEditing": "Habilitar Edición",
     "enableEditingDesc": "Habilitar la edición de juegos, aplicaciones adicionales y listas de reproducción. También muestra la pestaña 'Curar'.",
     "currentLanguage": "Idioma",
-    "currentLanguageDesc": "Que idioma utilizara el launcher principalmente.",
+    "currentLanguageDesc": "Qué idioma usará el launcher principalmente.",
     "fallbackLanguage": "Idioma de Reserva",
     "fallbackLanguageDesc": "Qué idioma usar en caso de que el idioma actual este incompleto.",
     "auto": "Automático ({0})",
