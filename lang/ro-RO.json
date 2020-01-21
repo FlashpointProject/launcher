@@ -2,7 +2,7 @@
   "name": "Română",
   "config": {
     "configHeader": "Configurații",
-    "configDesc": "(Unele modificări necesită apăsarea pe „Salvare și Repornire“ pentru a le aplica)",
+    "configDesc": "(Unele modificări necesită apăsarea pe „Salvare și Repornire“ pentru a fi aplicate)",
     "preferencesHeader": "Editați preferințele",
     "extremeGames": "Jocuri mature",
     "extremeGamesDesc": "Arătați jocuri cu conținut sexual, violent sau alte tipuri de conținut inadecvat pentru copii.",
