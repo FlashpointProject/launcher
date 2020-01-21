@@ -356,9 +356,9 @@
   "upgrades": {
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "Fișiere necesare. Adaugă suport pentru jocuri Flash.",
-    "tech": "Alte Platforme",
+    "tech": "Alte tehnologii",
     "techDesc": "Adăugă suport pentru toate celelalte tehnologii - Shockwave, Unity, Java, HTML5 etc.",
-    "screenshots": "Sigle și Capturi de Ecran",
-    "screenshotsDesc": "Adaugă sigle pentru Vizualizare grilă și capturi de ecran pentru toate jocurile."
+    "screenshots": "Sigle și capturi de ecran",
+    "screenshotsDesc": "Adaugă sigle pentru vizualizare tip grilă și capturi de ecran pentru toate jocurile."
   }
 }
