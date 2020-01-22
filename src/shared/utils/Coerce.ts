@@ -21,7 +21,7 @@ export namespace Coerce {
 
   /**
    * Convert a string to a boolean (case insensitive).
-   * @param str String to convert ("Yes" is true, "No" is false).
+   * @param str String to convert ("true" and "yes" is true, "false" and "no" is false).
    * @param defaultVal Value returned if the string is neither true nor false.
    */
   export function strToBool(str: string, defaultVal: boolean = false): boolean {
