@@ -15,7 +15,6 @@ export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, se
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
   if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
-    const preferences = window.External.preferences;
     window.External.back.send(
       BackIn.UPDATE_PREFERENCES,
       preferences.data
