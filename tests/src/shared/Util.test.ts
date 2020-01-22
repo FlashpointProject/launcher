@@ -1,6 +1,8 @@
-import { clearArray, removeFileExtension, sizeToString, stringifyArray, StringifyArrayOpts, recursiveDirectory, IRecursiveDirectoryOptions, versionNumberToText } from '@shared/Util';
+import { escapeHTML } from '@shared/Log/LogCommon';
+import { canReadWrite, clearArray, IRecursiveDirectoryOptions, recursiveDirectory, recursiveReplace, removeFileExtension, shallowStrictEquals, sizeToString, stringifyArray, StringifyArrayOpts, versionNumberToText } from '@shared/Util';
+import { RESULT_PATH, STATIC_PATH } from '@tests/setup';
 import * as path from 'path';
-import { STATIC_PATH } from '@tests/setup';
+import { unescapeHTML } from '@shared/game/GameParser';
 
 describe('Shared Utils', () => {
   test('Remove File Extension', () => {
@@ -18,7 +20,6 @@ describe('Shared Utils', () => {
     const array = [0, ' test ', null];
     const formattedArray = '[ 0, " test ", null ]';
     const formattedArrayTrimmed = '[ 0, "test", null ]';
-    
     expect(stringifyArray(array, opts)).toEqual(formattedArray);
     expect(stringifyArray(array, optsTrimmed)).toEqual(formattedArrayTrimmed);
   });
@@ -71,12 +72,66 @@ describe('Shared Utils', () => {
     expect(sizeToString(gigabyte)).toBe('1.00GB');
   });
 
-  /** EPIPE errors? */
+  test('Shallow Equals', () => {
+    const a = {
+      one: 'one',
+      two: 'two',
+    };
+    const b = {
+      one: 'one',
+      two: 'two',
+    };
+    const c = {
+      one: 'two',
+      two: 'two'
+    };
+    const d = {...a, three: 'three'};
 
-  // test('Can Read Write (Safe Test)', () => {
-  //   const realPath = path.resolve(RESULT_PATH);
-  //   const missingPath = path.join(RESULT_PATH, 'FAKE_PATH');
-  //   expect(canReadWrite(realPath)).resolves.toBe(true);
-  //   expect(canReadWrite(missingPath)).resolves.toBe(false);
-  // });
+    expect(shallowStrictEquals(a, b)).toBeTruthy(); // Equal properties
+    expect(shallowStrictEquals(a, c)).toBeFalsy(); // Different properties
+    expect(shallowStrictEquals(a, d)).toBeFalsy(); // Different number of properties
+    expect(shallowStrictEquals({ a: {} }, { a: {} })).toBeFalsy(); // Not strictly equal properties (refs)
+  });
+
+  test('Recursive Replace', () => {
+    const replaceData = {
+      level_one: {
+        data_one: 'TestSuccess',
+        data_two: undefined,
+        not_copy: 'TestFailure'
+      }
+    };
+    const toReplace = {
+      level_one: {
+        data_one: 'TestFailure',
+        data_two: 'TestFailure',
+        data_three: 'TestSuccess'
+      }
+    };
+
+    expect(recursiveReplace(toReplace, replaceData)).toEqual({
+      level_one: {
+        data_one: 'TestSuccess',
+        data_two: undefined,
+        data_three: 'TestSuccess'
+      }
+    });
+  });
+
+  test('Can Read Write (Safe Test)', async () => {
+    const realPath = path.resolve(RESULT_PATH);
+    const missingPath = path.join(RESULT_PATH, 'FAKE_PATH');
+    await expect(canReadWrite(realPath)).resolves.toBeTruthy();
+    await expect(canReadWrite(missingPath)).resolves.toBeFalsy();
+  });
+});
+
+describe('HTML Utils', () => {
+  test('Escape HTML', () => {
+    expect(escapeHTML('<html><p>Test & Success</p></html>')).toBe('&lt;html&gt;&lt;p&gt;Test &amp; Success&lt;/p&gt;&lt;/html&gt;');
+  });
+
+  test('Unescape HTML', () => {
+    expect(unescapeHTML('&lt;html&gt;&lt;p&gt;Test &amp; Success&lt;/p&gt;&lt;/html&gt;')).toBe('<html><p>Test & Success</p></html>');
+  });
 });

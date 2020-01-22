@@ -2,12 +2,14 @@ import * as path from 'path';
 import { pathExists, copyError } from '@back/util/misc';
 
 describe('Miscellanous Backend', () => {
-  test('Check Path Exists', () => {
+  test('Check Path Exists', async () => {
     const realPath = './';
     const fakePath = path.join('./', 'FAKE_PATH');
+    const brokenPath = '*';
 
-    expect(pathExists(realPath)).resolves;
-    expect(pathExists(fakePath)).rejects;
+    await expect(pathExists(realPath)).resolves.toBeTruthy();
+    await expect(pathExists(fakePath)).resolves.toBeFalsy();
+    await expect(pathExists(brokenPath)).rejects;
   });
 
   test('Copy Error', () => {

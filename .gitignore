@@ -21,6 +21,7 @@ package-lock.json
 /.installed
 /.version
 /secret.txt
+/launcher.log
 
 # Jest related files
 /.coveralls.yml

@@ -8,7 +8,6 @@ import { GamePlaylist, GamePlaylistEntry, GamePropSuggestions } from '@shared/in
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { formatDate } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
@@ -617,7 +616,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           developer: '',
           publisher: '',
           platform: '',
-          dateAdded: formatDate(new Date()),
+          dateAdded: (new Date()).toISOString(),
           broken: false,
           extreme: false,
           playMode: '',

@@ -37,6 +37,7 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
+import { debounce } from '@shared/utils/debounce';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -216,16 +217,16 @@ export class App extends React.Component<AppProps, AppState> {
       };
     })();
     // Listen for the window to move or resize (and update the preferences when it does)
-    ipcRenderer.on(WindowIPC.WINDOW_MOVE, (sender, x: number, y: number, isMaximized: boolean) => {
+    ipcRenderer.on(WindowIPC.WINDOW_MOVE, debounce((sender, x: number, y: number, isMaximized: boolean) => {
       if (!isMaximized) {
         updatePreferencesData({ mainWindow: { x: x|0, y: y|0 } });
       }
-    });
-    ipcRenderer.on(WindowIPC.WINDOW_RESIZE, (sender, width: number, height: number, isMaximized: boolean) => {
+    }, 100));
+    ipcRenderer.on(WindowIPC.WINDOW_RESIZE, debounce((sender, width: number, height: number, isMaximized: boolean) => {
       if (!isMaximized) {
         updatePreferencesData({ mainWindow: { width: width|0, height: height|0 } });
       }
-    });
+    }, 100));
     ipcRenderer.on(WindowIPC.WINDOW_MAXIMIZE, (sender, isMaximized: boolean) => {
       updatePreferencesData({ mainWindow: { maximized: isMaximized } });
     });

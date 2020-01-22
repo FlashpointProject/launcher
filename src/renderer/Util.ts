@@ -97,13 +97,6 @@ export function checkIfAncestor(start: Element | null, target: Element | null): 
   return false;
 }
 
-/** Get the file extension of a file (including the dot). Returns an empty string if none. */
-export function getFileExtension(filename: string): string {
-  const firstDot = filename.lastIndexOf('.');
-  if (firstDot === -1) { return ''; }
-  return filename.substr(firstDot);
-}
-
 export function getGameImageURL(folderName: string, gameId: string): string {
   return `${getFileServerURL()}/images/${folderName}/${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`;
 }
@@ -123,6 +116,7 @@ export function getGameImagePath(folderName: string, gameId: string): string {
 
 type IGamePathInfo = Pick<IGameInfo, 'platform' | 'launchCommand'>;
 
+/* istanbul ignore next */
 export function getGamePath(game: IGamePathInfo, fpPath: string): string | undefined {
   // @TODO Because some strings can be interpreted as different paths/URLs, maybe this should return an array
   //       of strings with all the possible paths of the "main" file?
