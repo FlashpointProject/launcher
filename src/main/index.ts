@@ -110,7 +110,7 @@ function main() {
   // Start back process
   if (!initArgs['connect-remote']) {
     p = p.then(() => new Promise((resolve, reject) => {
-      state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true, stdio: ['ignore', 'ignore', process.stderr, 'ipc'] });
+      state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
       // Wait for process to initialize
       state.backProc.once('message', (port) => {
         if (port >= 0) {
@@ -172,6 +172,7 @@ function main() {
       const req: WrappedRequest = {
         id: 'init',
         type: BackIn.GET_MAIN_INIT_DATA,
+        data: undefined,
       };
       ws.send(JSON.stringify(req));
     }), TIMEOUT_DELAY))
