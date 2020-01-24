@@ -134,7 +134,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.serviceInfo) {
     // Run start commands
     for (let i = 0; i < state.serviceInfo.start.length; i++) {
-      await execProcess(state.serviceInfo.start[i]);
+      execProcessSync(state.serviceInfo.start[i]);
     }
     // Run processes
     if (state.serviceInfo.server) {
@@ -1539,7 +1539,7 @@ function exit() {
       }
       // Run stop commands
       for (let i = 0; i < state.serviceInfo.stop.length; i++) {
-        execProcess(state.serviceInfo.stop[i], true);
+        execProcessSync(state.serviceInfo.stop[i]);
       }
     }
 
@@ -1686,15 +1686,18 @@ function searchGames(opts: SearchGamesOpts): IGameInfo[] {
   return foundGames;
 }
 
-async function execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void> {
+/**
+ * Execute a back process synchronously (wait for it to exit).
+ * @param proc Back process to run.
+ */
+function execProcessSync(proc: IBackProcessInfo): void {
   const cwd: string = path.join(state.config.flashpointPath, proc.path);
   log({
     source: servicesSource,
     content: `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`
   });
   try {
-    if (sync) { child_process.execFileSync(  proc.filename, proc.arguments, { cwd: cwd }); }
-    else      { await child_process.execFile(proc.filename, proc.arguments, { cwd: cwd }); }
+    child_process.execFileSync(proc.filename, proc.arguments, { cwd: cwd });
   } catch (error) {
     log({
       source: servicesSource,
