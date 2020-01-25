@@ -78,7 +78,7 @@ export type WrappedRequest<T = any> = {
   /** Type of the request */
   type: BackIn;
   /** Data contained in the response (if any) */
-  data?: T;
+  data: T;
 }
 
 export type WrappedResponse<T = any> = {

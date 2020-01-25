@@ -1,5 +1,5 @@
 import { Game } from '@database/entity/Game';
-import { BackInit, ViewGame, WrappedRequest } from '@shared/back/types';
+import { BackInit, ViewGame } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { ExecMapping, GamePlaylist, IBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -13,16 +13,19 @@ import { Server } from 'http';
 import * as WebSocket from 'ws';
 import { GameManagerState } from './game/types';
 import { ManagedChildProcess } from './ManagedChildProcess';
+import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 
+
+/** Contains most state for the back process. */
 export type BackState = {
+  // @TODO Write comments for these properties
   isInit: boolean;
   isExit: boolean;
-  server: WebSocket.Server;
+  socketServer: SocketServer;
   fileServer: Server;
   fileServerPort: number;
-  secret: string;
   preferences: IAppPreferencesData;
   config: IAppConfigData;
   configFolder: string;
@@ -31,7 +34,6 @@ export type BackState = {
   gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;
-  messageEmitter: MessageEmitter;
   init: { [key in BackInit]: boolean; };
   initEmitter: InitEmitter;
   queries: Record<string, BackQueryChache>;
@@ -67,15 +69,12 @@ export type BackQuery = {
   playlistId?: string;
 }
 
-type MessageEmitter = (
-  EmitterPart<string, (request: WrappedRequest) => void>
-) & EventEmitter
-
 type InitEmitter = (
   EmitterPart<BackInit, () => void>
 ) & EventEmitter
 
-interface EmitterPart<E extends string | number | Symbol, F extends (...args: any[]) => void> {
+/** Declarations for a single event in an event emitter (in all the different related functions). */
+export interface EmitterPart<E extends string | number | Symbol, F extends (...args: any[]) => void> {
   on(event: E, listener: F): this;
   once(event: E, listener: F): this;
   off(event: E, listener: F): this;

@@ -172,6 +172,7 @@ function main() {
       const req: WrappedRequest = {
         id: 'init',
         type: BackIn.GET_MAIN_INIT_DATA,
+        data: undefined,
       };
       ws.send(JSON.stringify(req));
     }), TIMEOUT_DELAY))
