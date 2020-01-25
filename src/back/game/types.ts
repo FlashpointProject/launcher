@@ -1,6 +1,6 @@
 import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
 import { OrderGamesOpts } from '@shared/game/GameFilter';
-import { GamePlaylist } from '@shared/interfaces';
 import { EventQueue } from '../util/EventQueue';
 import { ErrorCopy } from '../util/misc';
 
@@ -32,7 +32,7 @@ export type SearchCacheQuery = {
   query: string;
   orderOpts: OrderGamesOpts;
   library?: string;
-  playlist?: GamePlaylist | undefined;
+  playlist?: Playlist | undefined;
 }
 
 export type GameManagerState = {

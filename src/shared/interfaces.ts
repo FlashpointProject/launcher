@@ -1,3 +1,4 @@
+import { Playlist } from '@database/entity/Playlist';
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
@@ -85,7 +86,7 @@ export interface IMainWindowExternal {
   initialLang: LangContainer;
   initialLangList: LangFile[];
   initialThemes: Theme[];
-  initialPlaylists?: GamePlaylist[];
+  initialPlaylists?: Playlist[];
   initialLibraries: string[];
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
@@ -177,35 +178,6 @@ export type IService = {
   pid: number;
   startTime: number;
   info: IBackProcessInfo;
-}
-
-export type GamePlaylist = GamePlaylistContent & {
-  /** Filename of the playlist (unique for each playlist). */
-  filename: string;
-}
-
-/** Data contained inside a Playlist file. */
-export type GamePlaylistContent = {
-  /** Game entries in the playlist. */
-  games: GamePlaylistEntry[];
-  /** Title of the playlist. */
-  title: string;
-  /** Description of the playlist. */
-  description: string;
-  /** Author of the playlist. */
-  author: string;
-  /** Icon of the playlist (Base64 encoded image). */
-  icon?: string;
-  /** Route of the library this playlist is for. */
-  library?: string;
-}
-
-/** An entry inside a Playlist file. */
-export type GamePlaylistEntry = {
-  /* GameID of game. */
-  id: string;
-  /* Optional notes related to the game (probably about why the game is in the playlist). */
-  notes?: string;
 }
 
 export type ExecMapping = {

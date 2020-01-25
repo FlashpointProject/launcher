@@ -1,12 +1,12 @@
 import { Game } from '@database/entity/Game';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { findMostUsedApplicationPaths } from '@shared/curate/defaultValues';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { FilterGameOpts, orderGames, orderGamesInPlaylist } from '@shared/game/GameFilter';
-import { DeepPartial, GamePlaylist, IService, ProcessAction } from '@shared/interfaces';
+import { FilterGameOpts } from '@shared/game/GameFilter';
+import { DeepPartial, IService, ProcessAction } from '@shared/interfaces';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -21,7 +21,6 @@ import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
 import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
-import { PlaylistFile } from './PlaylistFile';
 import { respond } from './SocketServer';
 import { getSuggestions } from './suggestions';
 import { BackQuery, BackQueryChache, BackState } from './types';
@@ -84,7 +83,7 @@ export function registerRequestCallbacks(state: BackState): void {
         languages: state.languages,
         language: state.languageContainer,
         themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
-        playlists: state.init[BackInit.PLAYLISTS] ? state.playlists : undefined,
+        playlists: await GameManager.findPlaylists(),
         libraries: libraries,
         platforms: platforms,
         localeCode: state.localeCode,
@@ -204,16 +203,14 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<SaveGameData>(BackIn.SAVE_GAME, async (event, req) => {
-    const reqData: SaveGameData = req.data;
-    await GameManager.updateGame(reqData.game);
-
+    const game = await GameManager.updateGame(req.data);
     state.queries = {}; // Clear entire cache
 
     respond<BrowseChangeData>(event.target, {
       id: req.id,
       type: BackOut.BROWSE_CHANGE,
       data: {
-        library: reqData.library,
+        game: game,
         gamesTotal: await GameManager.countGames(),
       }
     });
@@ -229,7 +226,7 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.BROWSE_CHANGE,
       data: {
-        library: undefined,
+        game: undefined,
         gamesTotal: await GameManager.countGames(),
       }
     });
@@ -284,7 +281,7 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.BROWSE_CHANGE,
       data: {
-        library: undefined,
+        game: undefined,
         gamesTotal: await GameManager.countGames(),
       }
     });
@@ -580,86 +577,71 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
-  state.socketServer.register(BackIn.GET_PLAYLISTS, (event, req) => {
-    respond<GetPlaylistResponse>(event.target, {
+  state.socketServer.register<GetPlaylistData>(BackIn.GET_PLAYLIST, async (event, req) => {
+    const playlist = await GameManager.findPlaylist(req.data);
+    respond<GetPlaylistResponse>(event.target,  {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
-      data: state.playlists,
+      data: playlist
+    });
+  });
+
+  state.socketServer.register(BackIn.GET_PLAYLISTS, async (event, req) => {
+    const playlists = await GameManager.findPlaylists();
+    respond<GetPlaylistsResponse>(event.target, {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE,
+      data: playlists,
     });
   });
 
   state.socketServer.register<SavePlaylistData>(BackIn.SAVE_PLAYLIST, async (event, req) => {
-    const folder = state.playlistWatcher.getFolder();
-    const filename = sanitizeFilename(req.data.playlist.filename || `${req.data.playlist.title}.json`);
-    if (folder && filename) {
-      if (req.data.prevFilename === filename) { // (Existing playlist)
-        await PlaylistFile.saveFile(path.join(folder, filename), req.data.playlist);
-      } else {
-        let coolFilename = filename;
-
-        // Attempt to find an available filename
-        if (await pathExists(path.join(folder, filename))) {
-          const parts: string[] = [];
-
-          // Split filename into "name" and "extension"
-          const dotIndex = filename.lastIndexOf('.');
-          if (dotIndex >= 0) {
-            parts.push(coolFilename.substr(0, dotIndex));
-            parts.push(coolFilename.substr(dotIndex));
-          } else {
-            parts.push(coolFilename);
-          }
-
-          // Attempt extracting a "number" from the "name"
-          let n = 2;
-          const match = parts[parts.length - 1].match(/ \d+$/);
-          if (match) {
-            n = parseInt(match[0]) + 1;
-            parts[parts.length - 1] = parts[parts.length - 1].replace(/ \d+$/, '');
-          }
-
-          // Add space between "name" and "number"
-          if (parts.length > 1 && parts[0].length > 0 && !parts[0].endsWith(' ')) { parts[0] += ' '; }
-
-          // Increment the "number" and try again a few times
-          let foundName = false;
-          while (n < 100) {
-            const str = `${parts[0] || ''}${n++}${parts[1] || ''}`;
-            if (!(await pathExists(path.join(folder, str)))) {
-              foundName = true;
-              coolFilename = str;
-              break;
-            }
-          }
-
-          if (!foundName) { coolFilename = ''; } // Abort save
-        }
-
-        if (coolFilename) {
-          await PlaylistFile.saveFile(path.join(folder, coolFilename), req.data.playlist);
-
-          // Delete old playlist (if renaming it)
-          if (req.data.prevFilename) {
-            await deletePlaylist(req.data.prevFilename, folder, state.playlists);
-          }
-        }
-      }
-    }
-
-    respond(event.target, {
+    const playlist = await GameManager.updatePlaylist(req.data);
+    respond<SavePlaylistResponse>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
+      data: playlist
     });
+    state.queries = {};
   });
 
   state.socketServer.register<DeletePlaylistData>(BackIn.DELETE_PLAYLIST, async (event, req) => {
-    const folder = state.playlistWatcher.getFolder();
-    if (folder) { await deletePlaylist(req.data, folder, state.playlists); }
-
-    respond(event.target, {
+    const playlist = await GameManager.removePlaylist(req.data);
+    respond<DeletePlaylistResponse>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
+      data: playlist
     });
+    state.queries = {};
+  });
+
+  state.socketServer.register<GetPlaylistGameData>(BackIn.GET_PLAYLIST_GAME, async (event, req) => {
+    const playlistGame = await GameManager.findPlaylistGame(req.data.playlistId, req.data.gameId);
+    respond<GetPlaylistGameResponse>(event.target, {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE,
+      data: playlistGame
+    });
+  });
+
+  state.socketServer.register<SavePlaylistGameData>(BackIn.SAVE_PLAYLIST_GAME, async (event, req) => {
+    const playlistGame = await GameManager.updatePlaylistGame(req.data);
+    respond<SavePlaylistGameResponse>(event.target, {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE,
+      data: playlistGame
+    });
+    state.queries = {};
+  });
+
+  state.socketServer.register<DeletePlaylistGameData>(BackIn.DELETE_PLAYLIST_GAME, async (event, req) => {
+    const playlistGame = await GameManager.removePlaylistGame(req.data.playlistId, req.data.gameId);
+    respond<DeletePlaylistGameResponse>(event.target, {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE,
+      data: playlistGame
+    });
+    state.queries = {};
   });
 
   state.socketServer.register<ImportCurationData>(BackIn.IMPORT_CURATION, async (event, req) => {
@@ -676,6 +658,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
+      state.queries = {};
     } catch (e) {
       if (util.types.isNativeError(e)) {
         error = copyError(e);
@@ -782,7 +765,7 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
 type SearchGamesOpts = {
   extreme: boolean;
   broken: boolean;
-  playlist?: GamePlaylist;
+  playlistId?: string;
   /** String to use as a search query */
   query: string;
   /** The field to order the games by. */
@@ -799,27 +782,14 @@ async function searchGames(state: BackState, opts: SearchGamesOpts): Promise<Gam
     search: opts.query,
     extreme: opts.extreme,
     broken: opts.broken,
-    playlist: opts.playlist,
+    playlistId: opts.playlistId,
+    library: opts.library
   };
 
   return GameManager.findGames(filterOpts);
 }
 
-async function deletePlaylist(id: string, folder: string, playlists: GamePlaylist[]): Promise<void> {
-  if (id && folder !== undefined) { // (Check if id is not empty and if the folder watcher is set up)
-    const playlist = playlists.find(p => p.filename === id);
-    if (playlist) {
-      const filepath = path.join(folder, playlist.filename);
-      if (filepath.length > folder.length && filepath.startsWith(folder)) { // (Ensure that the filepath doesnt climb out of the platylist folder)
-        await unlink(filepath);
-      }
-    }
-  }
-}
-
 async function queryGames(state: BackState, query: BackQuery): Promise<BackQueryChache> {
-  const playlist = state.playlists.find(p => p.filename === query.playlistId);
-
   const results = await searchGames(state, {
     extreme: query.extreme,
     broken: query.broken,
@@ -827,7 +797,7 @@ async function queryGames(state: BackState, query: BackQuery): Promise<BackQuery
     orderBy: query.orderBy,
     orderReverse: query.orderReverse,
     library: query.library,
-    playlist: playlist,
+    playlistId: query.playlistId,
   });
 
   const viewGames: ViewGame[] = [];

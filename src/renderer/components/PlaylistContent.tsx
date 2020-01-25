@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { GamePlaylist } from '@shared/interfaces';
+import { Playlist } from '@database/entity/Playlist';
 import { LangContainer } from '@shared/lang';
+import * as React from 'react';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputElement, InputField } from './InputField';
@@ -9,10 +9,9 @@ import { OpenIcon } from './OpenIcon';
 export type PlaylistItemContentProps = {
   editingDisabled: boolean;
   editing: boolean;
-  playlist: GamePlaylist;
+  playlist: Playlist;
 
   onDescriptionChange: (event: React.ChangeEvent<InputElement>) => void;
-  OnFilenameChange: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
   onSave: () => void;
   onDiscard: () => void;
@@ -35,9 +34,8 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
               <p className='playlist-list-content__id-pre'>{strings.filename}: </p>
               <div className='playlist-list-content__id-text'>
                 <InputField
-                  text={props.playlist.filename}
+                  text={props.playlist.id}
                   editable={props.editing && !props.editingDisabled}
-                  onChange={props.OnFilenameChange}
                   onKeyDown={props.onKeyDown}
                   multiline={false} />
               </div>

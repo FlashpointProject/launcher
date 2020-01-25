@@ -1,12 +1,12 @@
+import { Playlist } from '@database/entity/Playlist';
 import * as React from 'react';
 import { useCallback, useMemo } from 'react';
-import { GamePlaylist } from '@shared/interfaces';
 import { LangContext } from '../util/lang';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 
 export type PlaylistItemProps = {
-  playlist: GamePlaylist;
+  playlist: Playlist;
   iconFilename?: string;
   editing: boolean;
   selected: boolean;
@@ -27,7 +27,7 @@ export function PlaylistItem(props: PlaylistItemProps) {
 
   const onDrop = useCallback((event: React.DragEvent) => {
     if (dragOver) { setDragOver(false); }
-    props.onDrop(event, props.playlist.filename);
+    props.onDrop(event, props.playlist.id);
   }, [dragOver, props.onDrop]);
 
   const onDragOver = useCallback((event: React.DragEvent): void => {
@@ -49,8 +49,8 @@ export function PlaylistItem(props: PlaylistItemProps) {
   }, [dragOver]);
 
   const onHeadClick = useCallback(() => {
-    props.onHeadClick(props.playlist.filename, props.selected);
-  }, [props.playlist.filename, props.selected]);
+    props.onHeadClick(props.playlist.id, props.selected);
+  }, [props.playlist.id, props.selected]);
 
   const onIconClick = useCallback(() => {
     if (props.selected) { props.onSetIcon(); }
@@ -59,8 +59,8 @@ export function PlaylistItem(props: PlaylistItemProps) {
   const icon = useMemo(() => {
     return props.editing
       ? `url("${props.playlist.icon}")`
-      : props.playlistIconCache[props.iconFilename || props.playlist.filename];
-  }, [props.editing, props.iconFilename, props.playlist.filename, props.playlist.icon, props.playlistIconCache]);
+      : props.playlistIconCache[props.iconFilename || props.playlist.id];
+  }, [props.editing, props.iconFilename, props.playlist.id, props.playlist.icon, props.playlistIconCache]);
 
   let className = 'playlist-list-item';
   if (props.selected) { className += ' playlist-list-item--selected'; }

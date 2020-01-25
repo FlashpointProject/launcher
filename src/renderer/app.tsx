@@ -1,8 +1,10 @@
 import { Game } from '@database/entity/Game';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistGameData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE } from '@shared/constants';
-import { GamePlaylist, GamePropSuggestions, ProcessState, WindowIPC } from '@shared/interfaces';
+import { GamePropSuggestions, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { memoizeOne } from '@shared/memoize';
@@ -72,7 +74,7 @@ export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps;
 export type AppState = {
   views: Views;
   libraries: string[];
-  playlists: GamePlaylist[];
+  playlists: Playlist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
@@ -267,7 +269,7 @@ export class App extends React.Component<AppProps, AppState> {
 
             switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
               case BackInit.PLAYLISTS:
-                window.Shared.back.send<GetPlaylistResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
+                window.Shared.back.send<GetPlaylistsResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
                   if (res.data) {
                     this.setState({ playlists: res.data });
                     this.cachePlaylistIcons(res.data);
@@ -318,13 +320,14 @@ export class App extends React.Component<AppProps, AppState> {
           const newState: Partial<AppState> = {
             gamesTotal: resData.gamesTotal,
           };
+          const newLibrary = resData.game ? resData.game.library : undefined;
 
-          if (resData.library) { // (Clear specific cache)
-            const view = this.state.views[resData.library];
+          if (newLibrary) { // (Clear specific cache)
+            const view = this.state.views[newLibrary];
             if (view) {
               newState.views = {
                 ...this.state.views,
-                [resData.library]: {
+                [newLibrary]: {
                   ...view,
                   dirtyCache: true,
                 }
@@ -345,7 +348,7 @@ export class App extends React.Component<AppProps, AppState> {
           }
 
           this.setState(newState as any, () => {
-            this.requestSelectedGame(resData.library || getBrowseSubPath(this.props.location.pathname));
+            this.requestSelectedGame(newLibrary || getBrowseSubPath(this.props.location.pathname));
           });
         } break;
 
@@ -391,78 +394,6 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.THEME_LIST_CHANGE: {
           const resData: ThemeListChangeData = res.data;
           this.setState({ themeList: resData });
-        } break;
-
-        case BackOut.PLAYLIST_UPDATE: {
-          const resData: PlaylistUpdateData = res.data;
-          const index = this.state.playlists.findIndex(p => p.filename === resData.filename);
-          if (index >= 0) {
-            const playlist = this.state.playlists[index];
-            const state: Partial<Pick<AppState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
-
-            // Remove old icon from cache
-            if (playlist.filename in this.state.playlistIconCache) {
-              state.playlistIconCache = { ...this.state.playlistIconCache };
-              delete state.playlistIconCache[playlist.filename];
-              URL.revokeObjectURL(state.playlistIconCache[playlist.filename]); // Free blob from memory
-            }
-
-            // Cache new icon
-            if (resData.icon !== undefined) {
-              cacheIcon(resData.icon).then(url => {
-                this.setState({
-                  playlistIconCache: {
-                    ...this.state.playlistIconCache,
-                    [resData.filename]: url,
-                  }
-                });
-              });
-            }
-
-            // Update playlist
-            state.playlists = [ ...this.state.playlists ];
-            state.playlists[index] = resData;
-
-            // Clear view caches (that use this playlist)
-            for (let id in this.state.views) {
-              const view = this.state.views[id];
-              if (view) {
-                if (view.selectedPlaylistId === resData.filename) {
-                  if (!state.views) { state.views = { ...this.state.views }; }
-                  state.views[id] = {
-                    ...view,
-                    dirtyCache: true,
-                  };
-                }
-              }
-            }
-
-            this.setState(
-              state as any, // (This is very annoying to make typesafe)
-              () => { if (state.views && resData.library !== undefined) { this.requestSelectedGame(resData.library); } }
-            );
-          } else {
-            this.setState({ playlists: [...this.state.playlists, resData] });
-          }
-        } break;
-
-        case BackOut.PLAYLIST_REMOVE: {
-          const resData: PlaylistRemoveData = res.data;
-
-          const index = this.state.playlists.findIndex(p => p.filename === resData);
-          if (index >= 0) {
-            const playlists = [ ...this.state.playlists ];
-            playlists.splice(index, 1);
-
-            const cache: Record<string, string> = { ...this.state.playlistIconCache };
-            const filename = this.state.playlists[index].filename;
-            if (filename in cache) { delete cache[filename]; }
-
-            this.setState({
-              playlists: playlists,
-              playlistIconCache: cache
-            });
-          }
         } break;
       }
     });
@@ -665,7 +596,6 @@ export class App extends React.Component<AppProps, AppState> {
 
   render() {
     const loaded = (
-      this.state.loaded[BackInit.PLAYLISTS] &&
       this.state.upgradesDoneLoading &&
       this.state.creditsDoneLoading &&
       this.state.loaded[BackInit.EXEC]
@@ -698,6 +628,8 @@ export class App extends React.Component<AppProps, AppState> {
       selectedGameId: view && view.selectedGameId,
       selectedPlaylistId: view && view.selectedPlaylistId,
       onSelectGame: this.onSelectGame,
+      onDeletePlaylist: this.onPlaylistDelete,
+      onUpdatePlaylist: this.onPlaylistUpdate,
       onSelectPlaylist: this.onSelectPlaylist,
       wasNewGameClicked: this.state.wasNewGameClicked,
       onDownloadUpgradeClick: this.onDownloadUpgradeClick,
@@ -714,7 +646,6 @@ export class App extends React.Component<AppProps, AppState> {
           <>
             {/* Splash screen */}
             <SplashScreen
-              playlistsLoaded={this.state.loaded[BackInit.PLAYLISTS]}
               upgradesLoaded={this.state.upgradesDoneLoading}
               creditsLoaded={this.state.creditsDoneLoading}
               miscLoaded={this.state.loaded[BackInit.EXEC]} />
@@ -843,6 +774,14 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
+  /** Updates the playlists state */
+  private updatePlaylists = (playlists: Playlist[], cache: Record<string, string>): void => {
+    this.setState({
+      playlists: playlists,
+      playlistIconCache: cache
+    });
+  }
+
   private onDownloadUpgradeClick = (stage: UpgradeStage, strings: LangContainer) => {
     downloadAndInstallStage(stage, this.setUpgradeStageState, strings);
   }
@@ -860,23 +799,80 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  onSaveGame = (game: Game, playlistNotes: string | undefined, saveToFile: boolean): void => {
-    const library = getBrowseSubPath(this.props.location.pathname);
-    window.Shared.back.send<any, SaveGameData>(BackIn.SAVE_GAME, { game, library, saveToFile });
+  private onPlaylistDelete = (playlist: Playlist) => {
+    if (playlist) {
+      const index = this.state.playlists.findIndex(p => p.id === playlist.id);
+      if (index >= 0) {
+        const playlists = [ ...this.state.playlists ];
+        playlists.splice(index, 1);
 
-    const view = this.state.views[library];
-    if (view && view.selectedPlaylistId && view.selectedGameId) {
-      // Find the selected game in the selected playlist
-      const playlist = this.state.playlists.find(p => p.filename === view.selectedPlaylistId);
-      if (playlist) {
-        const entryIndex = playlist.games.findIndex(g => g.id === view.selectedGameId);
-        if (entryIndex >= 0 && playlist.games[entryIndex].notes !== playlistNotes) {
-          // Save playlist
-          const newPlaylist = deepCopy(playlist); // @PERF This should only copy the objects that are modified instead of the whole thing
-          newPlaylist.games[entryIndex].notes = playlistNotes;
-          window.Shared.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, { playlist: newPlaylist });
+        const cache: Record<string, string> = { ...this.state.playlistIconCache };
+        const icon = this.state.playlists[index].icon;
+        if (icon in cache) { delete cache[icon]; }
+
+        this.setState({
+          playlists: playlists,
+          playlistIconCache: cache
+        });
+      }
+    }
+  }
+
+  private onPlaylistUpdate = (playlist: Playlist) => {
+    const index = this.state.playlists.findIndex(p => p.id === playlist.id);
+    if (index >= 0) {
+      const state: Partial<Pick<AppState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
+
+      // Remove old icon from cache
+      if (playlist.icon in this.state.playlistIconCache) {
+        state.playlistIconCache = { ...this.state.playlistIconCache };
+        delete state.playlistIconCache[playlist.icon];
+        URL.revokeObjectURL(state.playlistIconCache[playlist.icon]); // Free blob from memory
+      }
+
+      // Cache new icon
+      if (playlist.icon !== undefined) {
+        cacheIcon(playlist.icon).then(url => {
+          this.setState({
+            playlistIconCache: {
+              ...this.state.playlistIconCache,
+              [playlist.icon]: url,
+            }
+          });
+        });
+      }
+
+      // Update playlist
+      state.playlists = [ ...this.state.playlists ];
+      state.playlists[index] = playlist;
+
+      // Clear view caches (that use this playlist)
+      for (let id in this.state.views) {
+        const view = this.state.views[id];
+        if (view) {
+          if (view.selectedPlaylistId === playlist.id) {
+            if (!state.views) { state.views = { ...this.state.views }; }
+            state.views[id] = {
+              ...view,
+              dirtyCache: true,
+            };
+          }
         }
       }
+
+      this.setState(
+        state as any, // (This is very annoying to make typesafe)
+        () => { if (state.views && playlist.library !== undefined) { this.requestSelectedGame(playlist.library); } }
+      );
+    } else {
+      this.setState({ playlists: [...this.state.playlists, playlist] });
+    }
+  }
+
+  onSaveGame = (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean): void => {
+    window.Shared.back.send<any, SaveGameData>(BackIn.SAVE_GAME, game);
+    if (playlistEntry) {
+      window.Shared.back.send<any, SavePlaylistGameData>(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
     }
   }
 
@@ -1027,7 +1023,7 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  cachePlaylistIcons(playlists: GamePlaylist[]): void {
+  cachePlaylistIcons(playlists: Playlist[]): void {
     Promise.all(playlists.map(p => (async () => {
       if (p.icon) { return cacheIcon(p.icon); }
     })()))
@@ -1035,13 +1031,13 @@ export class App extends React.Component<AppProps, AppState> {
       const cache: Record<string, string> = {};
       for (let i = 0; i < playlists.length; i++) {
         const url = urls[i];
-        if (url) { cache[playlists[i].filename] = url; }
+        if (url) { cache[playlists[i].icon] = url; }
       }
       this.setState({ playlistIconCache: cache });
     });
   }
 
-  filterAndOrderPlaylistsMemo = memoizeOne((playlists: GamePlaylist[], library: string) => {
+  filterAndOrderPlaylistsMemo = memoizeOne((playlists: Playlist[], library: string) => {
     // @FIXTHIS "arcade" should not be hard coded as the "default" library
     const lowerLibrary = library.toLowerCase();
     return (

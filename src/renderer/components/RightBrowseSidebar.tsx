@@ -1,8 +1,10 @@
 import { Game } from '@database/entity/Game';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { BackIn, BackOut, DeleteImageData, ImageChangeData, LaunchAddAppData, SaveImageData, WrappedResponse } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
-import { GamePlaylistEntry, GamePropSuggestions, PickType } from '@shared/interfaces';
+import { ModelUtils } from '@shared/game/util';
+import { GamePropSuggestions, PickType } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs';
@@ -20,17 +22,14 @@ import { ImagePreview } from './ImagePreview';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
-import { ModelUtils } from '@shared/game/util';
 
 type OwnProps = {
   /** Currently selected game (if any) */
   currentGame?: Game;
-  /** Notes of the selected game in the selected playlist (if any) */
-  currentPlaylistNotes?: string;
   /* Current Library */
   currentLibrary: string;
   /** Currently selected game entry (if any) */
-  gamePlaylistEntry?: GamePlaylistEntry;
+  currentPlaylistEntry?: PlaylistGame;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame: () => void;
   /** Called when the selected game is removed from the selected by this */
@@ -138,12 +137,13 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const strings = this.context.browse;
     const game: Game | undefined = this.props.currentGame;
     if (game) {
-      const { gamePlaylistEntry, currentPlaylistNotes, isEditing, isNewGame, preferencesData, suggestions } = this.props;
+      const { isEditing, isNewGame, currentPlaylistEntry, preferencesData, suggestions } = this.props;
       const currentAddApps = game.addApps;
       const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
       const editable = !editDisabled && isEditing;
-      const dateAdded = new Date(game.dateAdded).toUTCString();
+      const dateAdded = game.dateAdded;
+      const dateModified = game.dateModified;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
       return (
         <div
@@ -193,14 +193,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                             </div>
                           ) }
                           {/* "Remove From Playlist" Button */}
-                          { gamePlaylistEntry ? (
+                          { currentPlaylistEntry ? (
                             <ConfirmElement
                               onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
                               children={this.renderRemoveFromPlaylistButton}
                               extra={strings} />
                           ) : undefined }
                           {/* "Delete Game" Button */}
-                          { (isPlaceholder || isNewGame || gamePlaylistEntry) ? undefined : (
+                          { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
                             <ConfirmElement
                               onConfirm={this.onDeleteGameClick}
                               children={this.renderDeleteGameButton}
@@ -368,6 +368,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     {dateAdded}
                   </p>
                 </div>
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                  <p>{strings.dateModified}: </p>
+                  <p
+                    className='browse-right-sidebar__row__date-added'
+                    title={dateModified}>
+                    {dateModified}
+                  </p>
+                </div>
                 <div className='browse-right-sidebar__row'>
                   <div
                     className='browse-right-sidebar__row__check-box-wrapper'
@@ -392,12 +400,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             </>
           ) }
           {/* -- Playlist Game Entry Notes -- */}
-          { gamePlaylistEntry ? (
+          { currentPlaylistEntry ? (
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row'>
                 <p>{strings.playlistNotes}: </p>
                 <InputField
-                  text={currentPlaylistNotes|| ''}
+                  text={currentPlaylistEntry.notes}
                   placeholder={strings.noPlaylistNotes}
                   onChange={this.onEditPlaylistNotes}
                   editable={editable}

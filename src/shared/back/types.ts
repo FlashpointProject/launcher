@@ -1,8 +1,10 @@
 import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
-import { ExecMapping, GamePlaylist, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
+import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
@@ -30,8 +32,12 @@ export enum BackIn {
   ADD_LOG,
   SERVICE_ACTION,
   GET_PLAYLISTS,
+  GET_PLAYLIST,
   SAVE_PLAYLIST,
   DELETE_PLAYLIST,
+  GET_PLAYLIST_GAME,
+  SAVE_PLAYLIST_GAME,
+  DELETE_PLAYLIST_GAME,
   IMPORT_CURATION,
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
@@ -66,8 +72,6 @@ export enum BackOut {
   LANGUAGE_LIST_CHANGE,
   THEME_CHANGE,
   THEME_LIST_CHANGE,
-  PLAYLIST_UPDATE,
-  PLAYLIST_REMOVE,
   IMPORT_CURATION_RESPONSE,
   QUIT,
 }
@@ -130,7 +134,7 @@ export type GetRendererInitDataResponse = {
   themes: Theme[];
   libraries: string[];
   platforms: Record<string, string[]>;
-  playlists?: GamePlaylist[];
+  playlists: Playlist[];
   localeCode: string;
 }
 
@@ -164,11 +168,7 @@ export type LaunchGameData = {
   id: string;
 }
 
-export type SaveGameData = {
-  game: Game;
-  library: string;
-  saveToFile: boolean;
-}
+export type SaveGameData = Game;
 
 export type DeleteGameData = {
   id: string;
@@ -288,7 +288,7 @@ export type ViewGame = {
 }
 
 export type BrowseChangeData = {
-  library?: string;
+  game?: Game;
   gamesTotal: number;
 }
 
@@ -317,18 +317,37 @@ export type ThemeChangeData = string;
 
 export type ThemeListChangeData = Theme[];
 
-export type PlaylistUpdateData = GamePlaylist;
+export type GetPlaylistsResponse = Playlist[];
 
-export type PlaylistRemoveData = string;
+export type GetPlaylistData = string;
 
-export type GetPlaylistResponse = GamePlaylist[];
+export type GetPlaylistResponse = Playlist;
 
-export type SavePlaylistData = {
-  prevFilename?: string;
-  playlist: GamePlaylist;
-};
+export type SavePlaylistData = Playlist;
+
+export type SavePlaylistResponse = Playlist;
 
 export type DeletePlaylistData = string;
+
+export type DeletePlaylistResponse = Playlist;
+
+export type GetPlaylistGameData = {
+  gameId: string;
+  playlistId: string;
+}
+
+export type GetPlaylistGameResponse = PlaylistGame | undefined;
+
+export type DeletePlaylistGameData = {
+  gameId: string;
+  playlistId: string;
+}
+
+export type DeletePlaylistGameResponse = PlaylistGame | undefined;
+
+export type SavePlaylistGameData = PlaylistGame;
+
+export type SavePlaylistGameResponse = PlaylistGame;
 
 export type ImportCurationData = {
   curation: EditCuration;

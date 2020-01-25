@@ -1,6 +1,6 @@
 import { AdditionalApp } from '../../database/entity/AdditionalApp';
 import { Game } from '../../database/entity/Game';
-import { GamePlaylist } from '../interfaces';
+import { Playlist } from '../../database/entity/Playlist';
 import { OrderGamesOpts } from './GameFilter';
 
 export const UNKNOWN_LIBRARY = 'unknown';
@@ -58,7 +58,7 @@ export type SearchRequest = {
   /** Library to search (all if none) */
   library?: string;
   /** Playlist to filter by (if any) */
-  playlist?: GamePlaylist;
+  playlist?: Playlist;
 }
 
 /** Server Response - List of games from a search */

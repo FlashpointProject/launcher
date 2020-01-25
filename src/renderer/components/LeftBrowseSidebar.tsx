@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { GamePlaylist } from '@shared/interfaces';
+import { Playlist } from '@database/entity/Playlist';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
+import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { gameIdDataType } from '../Util';
 import { LangContext } from '../util/lang';
@@ -11,13 +11,12 @@ import { PlaylistItemContent } from './PlaylistContent';
 import { PlaylistItem } from './PlaylistItem';
 
 type OwnProps = {
-  playlists: GamePlaylist[];
+  playlists: Playlist[];
   /** ID of the playlist that is selected (empty string if none). */
   selectedPlaylistID: string;
   isEditing: boolean;
   isNewPlaylist: boolean;
-  currentPlaylist?: GamePlaylist;
-  currentPlaylistFilename?: string;
+  currentPlaylist?: Playlist;
   playlistIconCache: Record<string, string>;
   onDelete: () => void;
   onSave: () => void;
@@ -30,7 +29,6 @@ type OwnProps = {
   onTitleChange: (event: React.ChangeEvent<InputElement>) => void;
   onAuthorChange: (event: React.ChangeEvent<InputElement>) => void;
   onDescriptionChange: (event: React.ChangeEvent<InputElement>) => void;
-  onFilenameChange: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
   onShowAllClick?: () => void;
 };
@@ -82,23 +80,23 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
   }
 
   renderPlaylistsMemo = memoizeOne((
-    playlists: GamePlaylist[],
+    playlists: Playlist[],
     playlistIconCache: Record<string, string>,
-    currentPlaylist: GamePlaylist | undefined,
+    currentPlaylist: Playlist | undefined,
     selectedPlaylistID: string,
     editingDisabled: boolean,
     isEditing: boolean,
     isEditingNew: boolean,
   ) => {
-    const renderItem = (playlist: GamePlaylist, isNew: boolean): void => {
-      const isSelected = isNew || playlist.filename === selectedPlaylistID;
+    const renderItem = (playlist: Playlist, isNew: boolean): void => {
+      const isSelected = isNew || playlist.id === selectedPlaylistID;
       const p = (isSelected && currentPlaylist) ? currentPlaylist : playlist;
-      const key = isNew ? '?new' : playlist.filename;
+      const key = isNew ? '?new' : playlist.id;
       elements.push(
         <PlaylistItem
           key={key}
           playlist={p}
-          iconFilename={isSelected ? this.props.currentPlaylistFilename : undefined}
+          iconFilename={isSelected ? playlist.icon : undefined}
           selected={isSelected}
           editing={isSelected && isEditing}
           playlistIconCache={playlistIconCache}
@@ -118,7 +116,6 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
             editing={isSelected && isEditing}
             playlist={p}
             onDescriptionChange={this.props.onDescriptionChange}
-            OnFilenameChange={this.props.onFilenameChange}
             onKeyDown={this.props.onKeyDown}
             onSave={this.props.onSave}
             onDiscard={this.props.onDiscard}

@@ -1,22 +1,11 @@
-import { Game } from '@database/entity/Game';
-import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '@shared/back/types';
-import { overwriteConfigData } from '@shared/config/util';
-import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { findMostUsedApplicationPaths } from '@shared/curate/defaultValues';
-import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
-import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { FilterGameOpts } from '@shared/game/GameFilter';
-import { DeepPartial, GamePlaylist, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '@shared/interfaces';
+import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData, ThemeChangeData, ThemeListChangeData } from '@shared/back/types';
+import { IBackProcessInfo, IService, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
-import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
-import { stringifyLogEntriesRaw } from '@shared/Log/LogCommon';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
-import { createContainer, exit, log, procToService } from './util/misc';
 import * as fs from 'fs';
 import * as http from 'http';
 import * as mime from 'mime';
@@ -29,17 +18,14 @@ import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
-import { GameManager } from './game/GameManager';
 import { ManagedChildProcess } from './ManagedChildProcess';
-import { PlaylistFile } from './PlaylistFile';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
 import { BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { sanitizeFilename } from './util/sanitizeFilename';
-import { uuid } from './util/uuid';
+import { createContainer, exit, log, procToService } from './util/misc';
 
 const readFile  = util.promisify(fs.readFile);
 
@@ -335,101 +321,6 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       } else {
         log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
       }
-    }
-  });
-
-  // Init playlists
-  state.playlistWatcher.on('ready', () => {
-    // Add event listeners
-    state.playlistWatcher.on('add', onPlaylistAddOrChange);
-    state.playlistWatcher.on('change', onPlaylistAddOrChange);
-    state.playlistWatcher.on('remove', (filename: string, offsetPath: string) => {
-      state.playlistQueue.push(async () => {
-        const index = state.playlists.findIndex(p => p.filename === filename);
-        if (index >= 0) {
-          const id = state.playlists[index].filename;
-          state.playlists.splice(index, 1);
-          // Clear all query caches that uses this playlist
-          const hashes = Object.keys(state.queries);
-          for (let hash of hashes) {
-            const cache = state.queries[hash];
-            if (cache.query.playlistId === id) {
-              delete state.queries[hash]; // Clear query from cache
-            }
-          }
-          state.socketServer.broadcast<PlaylistRemoveData>({
-            id: '',
-            type: BackOut.PLAYLIST_REMOVE,
-            data: id,
-          });
-        } else {
-          log(state, { source: 'Playlist', content: `Failed to remove playlist. Playlist is not registered (Filename: ${filename})` });
-        }
-      });
-    });
-    // Add initial files
-    for (let filename of state.playlistWatcher.filenames) {
-      onPlaylistAddOrChange(filename, '', false);
-    }
-    // Track when all playlist are done loading
-    state.playlistQueue.push(async () => {
-      state.init[BackInit.PLAYLISTS] = true;
-      state.initEmitter.emit(BackInit.PLAYLISTS);
-    });
-    // Functions
-    function onPlaylistAddOrChange(filename: string, offsetPath: string, doBroadcast: boolean = true) {
-      state.playlistQueue.push(async () => {
-        // Load and parse playlist
-        const filePath = path.join(state.playlistWatcher.getFolder() || '', filename);
-        let playlist: GamePlaylist | undefined;
-        try {
-          const data = await PlaylistFile.readFile(filePath, error => log(state, { source: 'Playlist', content: `Error while parsing playlist "${filePath}". ${error}` }));
-          playlist = {
-            ...data,
-            filename,
-          };
-        } catch (error) {
-          log(state, { source: 'Playlist', content: `Failed to load playlist "${filePath}". ${error}` });
-        }
-        // Add or update playlist
-        if (playlist) {
-          const index = state.playlists.findIndex(p => p.filename === filename);
-          if (index >= 0) {
-            state.playlists[index] = playlist;
-            // Clear all query caches that uses this playlist
-            const hashes = Object.keys(state.queries);
-            for (let hash of hashes) {
-              const cache = state.queries[hash];
-              if (cache.query.playlistId === playlist.filename) {
-                delete state.queries[hash]; // Clear query from cache
-              }
-            }
-          } else {
-            state.playlists.push(playlist);
-          }
-          if (doBroadcast) {
-            state.socketServer.broadcast<PlaylistUpdateData>({
-              id: '',
-              type: BackOut.PLAYLIST_UPDATE,
-              data: playlist,
-            });
-          }
-        }
-      });
-    }
-  });
-  const playlistFolder = path.join(state.config.flashpointPath, state.config.playlistFolderPath);
-  fs.stat(playlistFolder, (error) => {
-    if (!error) { state.playlistWatcher.watch(playlistFolder); }
-    else {
-      if (error.code === 'ENOENT') {
-        log(state, { source: 'Back', content: `Failed to watch playlist folder. Folder does not exist (Path: "${playlistFolder}")` });
-      } else {
-        log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
-      }
-
-      state.init[BackInit.PLAYLISTS] = true;
-      state.initEmitter.emit(BackInit.PLAYLISTS);
     }
   });
 

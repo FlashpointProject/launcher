@@ -1,6 +1,6 @@
 import { Game } from '@database/entity/Game';
-import { GamePlaylist } from '../interfaces';
 import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
+import { Playlist } from '@database/entity/Playlist';
 
 type OrderFn = (a: Game, b: Game) => number;
 
@@ -100,26 +100,6 @@ export function filterExtreme(showExtreme: boolean, games: Game[]): Game[] {
   for (let game of games) {
     if (!game.extreme) {
       filteredGames.push(game);
-    }
-  }
-  return filteredGames;
-}
-
-/**
- * Return a new array with all games that are not in the playlist removed (if playlist isn't undefined)
- * (This will add new games for the games in the playlist that are missing,
- *  this will also reorder the games to match the order of the playlist)
- */
-function filterPlaylist(playlist: GamePlaylist | undefined, games: Game[]): Game[] {
-  if (!playlist) { return games; }
-  const filteredGames: Game[] = [];
-  for (let gameEntry of playlist.games) {
-    const id = gameEntry.id;
-    for (let game of games) {
-      if (game.id === id) {
-        filteredGames.push(game);
-        break;
-      }
     }
   }
   return filteredGames;
@@ -314,12 +294,14 @@ type FieldFilter = {
 export type FilterGameOpts = {
   /** Search query to filter by */
   search?: string;
+  /** Library to search */
+  library?: string;
   /** If extreme games should be included in the result. */
   extreme: boolean;
   /** If broken games should be included in the result. */
   broken: boolean;
   /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
-  playlist?: GamePlaylist;
+  playlistId?: string;
 };
 
 export type OrderGamesOpts = {
@@ -344,7 +326,7 @@ export function orderGames(games: Game[], opts: OrderGamesOpts) {
  * @param games Games to order (this array WILL be manipulated)
  * @param playlist Playlist to order the games after
  */
-export function orderGamesInPlaylist(games: Game[], playlist: GamePlaylist): void {
+export function orderGamesInPlaylist(games: Game[], playlist: Playlist): void {
   for (let i = 0; i < playlist.games.length; i++) {
     const id = playlist.games[i].id;
     for (let j = i; j < games.length; j++) {

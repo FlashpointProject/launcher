@@ -1,6 +1,6 @@
+import { Playlist } from '@database/entity/Playlist';
 import { ARCADE, THEATRE } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
-import { GamePlaylist } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { getUpgradeString } from '@shared/upgrade/util';
 import { formatString } from '@shared/utils/StringFormatter';
@@ -24,7 +24,7 @@ import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
   platforms: Record<string, string[]>;
-  playlists: GamePlaylist[];
+  playlists: Playlist[];
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
@@ -69,7 +69,7 @@ export function HomePage(props: HomePageProps) {
   const onHallOfFameClick = React.useCallback(() => {
     const playlist = props.playlists.find(p => p.title === 'Flashpoint Hall of Fame');
     if (playlist) {
-      props.onSelectPlaylist(ARCADE, playlist.filename);
+      props.onSelectPlaylist(ARCADE, playlist.id);
       props.clearSearch();
     }
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
@@ -77,7 +77,7 @@ export function HomePage(props: HomePageProps) {
   const onFavoriteClick = React.useCallback(() => {
     const playlist = props.playlists.find(p => p.title === '*Favorites*');
     if (playlist) {
-      props.onSelectPlaylist(ARCADE, playlist.filename);
+      props.onSelectPlaylist(ARCADE, playlist.id);
       props.clearSearch();
     }
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);

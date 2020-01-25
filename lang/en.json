@@ -181,6 +181,7 @@
     "language": "Language",
     "noLanguage": "No Language",
     "dateAdded": "Date Added",
+    "dateModified": "Date Modified",
     "brokenInInfinity": "Broken (in Infinity)",
     "extreme": "Extreme",
     "playlistNotes": "Playlist Notes",

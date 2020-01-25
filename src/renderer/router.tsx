@@ -1,6 +1,8 @@
 import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { GamePlaylist, GamePropSuggestions } from '@shared/interfaces';
+import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { Theme } from '@shared/ThemeFile';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
@@ -23,12 +25,12 @@ import { UpgradeStage } from './upgrade/types';
 export type AppRouterProps = {
   games: GAMES | undefined;
   gamesTotal: number;
-  playlists: GamePlaylist[];
+  playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   platformsFlat: string[];
-  onSaveGame: (game: Game, playlistNotes: string | undefined, saveToFile: boolean) => void;
+  onSaveGame: (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean) => void;
   onLaunchGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
   onQuickSearch: (search: string) => void;
@@ -45,6 +47,8 @@ export type AppRouterProps = {
   selectedGameId?: string;
   selectedPlaylistId?: string;
   onSelectGame: (gameId?: string) => void;
+  onUpdatePlaylist: (playlist: Playlist) => void;
+  onDeletePlaylist: (playlist: Playlist) => void;
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   wasNewGameClicked: boolean;
   onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
@@ -76,13 +80,14 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSaveGame: this.props.onSaveGame,
       onRequestGames: this.props.onRequestGames,
       onQuickSearch: this.props.onQuickSearch,
-
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
       selectedGameId: this.props.selectedGameId,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
+      onUpdatePlaylist: this.props.onUpdatePlaylist,
+      onDeletePlaylist: this.props.onDeletePlaylist,
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,

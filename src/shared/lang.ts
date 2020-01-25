@@ -188,6 +188,7 @@ const langTemplate = {
     'language',
     'noLanguage',
     'dateAdded',
+    'dateModified',
     'brokenInInfinity',
     'extreme',
     'playlistNotes',

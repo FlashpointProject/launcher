@@ -1,7 +1,8 @@
 import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
-import { ExecMapping, GamePlaylist, IBackProcessInfo } from '@shared/interfaces';
+import { ExecMapping, IBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -49,7 +50,7 @@ export type BackState = {
   themeFiles: ThemeListItem[];
   playlistWatcher: FolderWatcher;
   playlistQueue: EventQueue;
-  playlists: GamePlaylist[];
+  playlists: Playlist[];
   execMappings: ExecMapping[];
 }
 

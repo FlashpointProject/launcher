@@ -1,14 +1,14 @@
 import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut, GetAllGamesResponseData, GetExecData, ServiceChangeData, WrappedResponse } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { ExecMapping, GamePlaylist, GamePlaylistEntry } from '@shared/interfaces';
+import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
-import * as uuidValidate from 'uuid-validate';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../util/uuid';
 import { LogData } from '../LogData';
@@ -24,7 +24,7 @@ type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
   platforms: string[];
-  playlists: GamePlaylist[];
+  playlists: Playlist[];
 };
 
 type DeveloperPageState = {
@@ -84,10 +84,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.checkGameFields}
               title={strings.checkGameFieldsDesc}
               onClick={this.onCheckGameFieldsClick} />
-            <SimpleButton
+            {/* <SimpleButton
               value={strings.checkPlaylists}
               title={strings.checkPlaylistsDesc}
-              onClick={this.onCheckPlaylistsClick} />
+              onClick={this.onCheckPlaylistsClick} /> */}
             <SimpleButton
               value={strings.checkGameFileLocation}
               title={strings.checkGameFileLocationDesc}
@@ -144,11 +144,11 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     this.setState({ text: checkGameEmptyFields(res) });
   }
 
-  onCheckPlaylistsClick = async (): Promise<void> => {
-    const playlists = this.props.playlists;
-    const res = await fetchAllGames();
-    this.setState({ text: checkPlaylists(playlists, res) });
-  }
+  // onCheckPlaylistsClick = async (): Promise<void> => {
+  //   const playlists = this.props.playlists;
+  //   const res = await fetchAllGames();
+  //   this.setState({ text: checkPlaylists(playlists, res) });
+  // }
 
   onCheckFileLocation = async (): Promise<void> => {
     const res = await fetchAllGames();
@@ -286,85 +286,85 @@ function checkGameEmptyFields(games: Game[]): string {
   }
 }
 
-type PlaylistReport = {
-  playlist: GamePlaylist;
-  missingGameIDs: string[];
-  duplicateGames: { [key: string]: GamePlaylistEntry[] };
-  invalidGameIDs: GamePlaylistEntry[];
-};
-function checkPlaylists(playlists: GamePlaylist[], games: Game[]): string {
-  const timeStart = Date.now(); // Start timing
-  const dupes = checkDupes(playlists, playlist => playlist.filename); // Find all playlists with duplicate IDs
-  const invalidIDs: GamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.filename, 4)); // Find all playlists with invalid IDs
-  // Check the games of all playlists (if they are missing or if their IDs are invalid or duplicates)
-  const reports: PlaylistReport[] = [];
-  for (let i = 0; i < playlists.length - 1; i++) {
-    const playlist = playlists[i];
-    const duplicateGames = checkDupes(playlist.games, game => game.id); // Find all games with duplicate IDs
-    const invalidGameIDs = playlist.games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
-    // Check for missing games (games that are in the playlist, and not in the game collection)
-    const missingGameIDs: string[] = [];
-    for (let gameEntry of playlist.games) {
-      const id = gameEntry.id;
-      if (!games.find(game => game.id === id)) {
-        missingGameIDs.push(id);
-      }
-    }
-    // Add "report" of this playlist
-    if (Object.keys(duplicateGames).length > 0 ||
-        invalidGameIDs.length > 0 ||
-        missingGameIDs.length > 0) {
-      reports.push({
-        playlist,
-        duplicateGames,
-        missingGameIDs,
-        invalidGameIDs
-      });
-    }
-  }
-  const timeEnd = Date.now(); // End timing
-  // Write log message
-  let text = '';
-  text += `Checked all playlists for duplicate or invalid IDs, and for game entries with invalid, missing or duplicate IDs (in ${timeEnd - timeStart}ms)\n`;
-  text += '\n';
-  text += `Playlists with invalid IDs (${invalidIDs.length}):\n`;
-  invalidIDs.forEach(playlist => { text += `"${playlist.title}" (ID: ${playlist.filename})\n`; });
-  text += '\n';
-  text += `Playlists with duplicate IDs (${Object.keys(dupes).length}):\n`;
-  for (let id in dupes) {
-    text += `ID: "${id}" | Playlists (${dupes[id].length}): ${dupes[id].map(playlist => `${playlist.filename}`).join(', ')}\n`;
-  }
-  text += '\n';
-  text += `Playlists with game entry issues (${reports.length}):\n`;
-  reports.forEach(({ playlist, duplicateGames, missingGameIDs, invalidGameIDs }) => {
-    text += `  "${playlist.title}" (ID: ${playlist.filename}):\n`;
-    // Log duplicate game entry IDs
-    if (Object.keys(duplicateGames).length > 0) {
-      text += `    Game entries with duplicate IDs (${Object.keys(duplicateGames).length}):\n`;
-      for (let id in duplicateGames) {
-        const dupes = duplicateGames[id];
-        const game = games.find(game => game.id === id);
-        text += `      ${game ? `"${game.title}"` : 'Game not found'} (ID: ${id}) (Duplicates: ${dupes.length})\n`;
-      }
-    }
-    // Log missing game entry IDs
-    if (missingGameIDs.length > 0) {
-      text += `    Game entries with IDs of missing games (${missingGameIDs.length}):\n`;
-      for (let id of missingGameIDs) {
-        text += `      ${id}\n`;
-      }
-    }
-    // Log invalid game entry IDs
-    if (invalidGameIDs.length > 0) {
-      text += `    Game entries with invalid IDs (${invalidGameIDs.length}):\n`;
-      for (let id of invalidGameIDs) {
-        text += `      ${id}\n`;
-      }
-    }
-  });
-  text += '\n';
-  return text;
-}
+// type PlaylistReport = {
+//   playlist: GamePlaylist;
+//   missingGameIDs: string[];
+//   duplicateGames: { [key: string]: GamePlaylistEntry[] };
+//   invalidGameIDs: GamePlaylistEntry[];
+// };
+// function checkPlaylists(playlists: GamePlaylist[], games: Game[]): string {
+//   const timeStart = Date.now(); // Start timing
+//   const dupes = checkDupes(playlists, playlist => playlist.filename); // Find all playlists with duplicate IDs
+//   const invalidIDs: GamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.filename, 4)); // Find all playlists with invalid IDs
+//   // Check the games of all playlists (if they are missing or if their IDs are invalid or duplicates)
+//   const reports: PlaylistReport[] = [];
+//   for (let i = 0; i < playlists.length - 1; i++) {
+//     const playlist = playlists[i];
+//     const duplicateGames = checkDupes(playlist.games, game => game.id); // Find all games with duplicate IDs
+//     const invalidGameIDs = playlist.games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
+//     // Check for missing games (games that are in the playlist, and not in the game collection)
+//     const missingGameIDs: string[] = [];
+//     for (let gameEntry of playlist.games) {
+//       const id = gameEntry.id;
+//       if (!games.find(game => game.id === id)) {
+//         missingGameIDs.push(id);
+//       }
+//     }
+//     // Add "report" of this playlist
+//     if (Object.keys(duplicateGames).length > 0 ||
+//         invalidGameIDs.length > 0 ||
+//         missingGameIDs.length > 0) {
+//       reports.push({
+//         playlist,
+//         duplicateGames,
+//         missingGameIDs,
+//         invalidGameIDs
+//       });
+//     }
+//   }
+//   const timeEnd = Date.now(); // End timing
+//   // Write log message
+//   let text = '';
+//   text += `Checked all playlists for duplicate or invalid IDs, and for game entries with invalid, missing or duplicate IDs (in ${timeEnd - timeStart}ms)\n`;
+//   text += '\n';
+//   text += `Playlists with invalid IDs (${invalidIDs.length}):\n`;
+//   invalidIDs.forEach(playlist => { text += `"${playlist.title}" (ID: ${playlist.filename})\n`; });
+//   text += '\n';
+//   text += `Playlists with duplicate IDs (${Object.keys(dupes).length}):\n`;
+//   for (let id in dupes) {
+//     text += `ID: "${id}" | Playlists (${dupes[id].length}): ${dupes[id].map(playlist => `${playlist.filename}`).join(', ')}\n`;
+//   }
+//   text += '\n';
+//   text += `Playlists with game entry issues (${reports.length}):\n`;
+//   reports.forEach(({ playlist, duplicateGames, missingGameIDs, invalidGameIDs }) => {
+//     text += `  "${playlist.title}" (ID: ${playlist.filename}):\n`;
+//     // Log duplicate game entry IDs
+//     if (Object.keys(duplicateGames).length > 0) {
+//       text += `    Game entries with duplicate IDs (${Object.keys(duplicateGames).length}):\n`;
+//       for (let id in duplicateGames) {
+//         const dupes = duplicateGames[id];
+//         const game = games.find(game => game.id === id);
+//         text += `      ${game ? `"${game.title}"` : 'Game not found'} (ID: ${id}) (Duplicates: ${dupes.length})\n`;
+//       }
+//     }
+//     // Log missing game entry IDs
+//     if (missingGameIDs.length > 0) {
+//       text += `    Game entries with IDs of missing games (${missingGameIDs.length}):\n`;
+//       for (let id of missingGameIDs) {
+//         text += `      ${id}\n`;
+//       }
+//     }
+//     // Log invalid game entry IDs
+//     if (invalidGameIDs.length > 0) {
+//       text += `    Game entries with invalid IDs (${invalidGameIDs.length}):\n`;
+//       for (let id of invalidGameIDs) {
+//         text += `      ${id}\n`;
+//       }
+//     }
+//   });
+//   text += '\n';
+//   return text;
+// }
 
 // Find and list any used executables missing an entry in the exec mapping file
 function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): string {
