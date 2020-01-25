@@ -1,25 +1,15 @@
+import { Game } from '@database/entity/Game';
 import { OrderGamesOpts } from '@shared/game/GameFilter';
-import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
 import { GamePlaylist } from '@shared/interfaces';
-import { GamePlatform } from '@shared/platform/interfaces';
 import { EventQueue } from '../util/EventQueue';
 import { ErrorCopy } from '../util/misc';
 
 export type UpdateMetaOptions = {
   /** Game entry to add or edit. */
-  game: IGameInfo;
-  /** All additional applications of that game entry (any missing ones will be deleted). */
-  addApps: IAdditionalApplicationInfo[];
-}
-
-export type UpdateMetaResult = {
-  /** All platforms that were edited. */
-  edited: GamePlatform[];
+  game: Game;
 }
 
 export type RemoveGameResult = {
-  /** All platforms that were edited. */
-  edited: GamePlatform[];
   /**
    * Indices of all removed games.
    * (gameIndices[platform_index] = [ game_index, ... ])
@@ -35,7 +25,7 @@ export type RemoveGameResult = {
 export type SearchCache = {
   query: SearchCacheQuery;
   total: number;
-  results: IGameInfo[];
+  results: Game[];
 }
 
 export type SearchCacheQuery = {
@@ -46,8 +36,6 @@ export type SearchCacheQuery = {
 }
 
 export type GameManagerState = {
-  /** All working platforms */
-  platforms: GamePlatform[];
   /** Platforms path, used to build new platforms later */
   platformsPath: string;
   /** Event queue for saving to file (used to avoid collisions with saving to file). */

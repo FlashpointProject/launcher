@@ -1,53 +1,53 @@
+import { Game } from '@database/entity/Game';
 import { GamePlaylist } from '../interfaces';
 import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
-import { IGameInfo } from './interfaces';
 
-type OrderFn = (a: IGameInfo, b: IGameInfo) => number;
+type OrderFn = (a: Game, b: Game) => number;
 
 /** Order games by their order title alphabetically (ascending) */
-function orderByTitle(a: IGameInfo, b: IGameInfo): number {
+function orderByTitle(a: Game, b: Game): number {
   if (a.orderTitle < b.orderTitle) { return -1; }
   if (a.orderTitle > b.orderTitle) { return  1; }
   return 0;
 }
 
 /** Order games by their first tag alphabetically (ascending) */
-function orderByTags(a: IGameInfo, b: IGameInfo): number {
+function orderByTags(a: Game, b: Game): number {
   if (a.tags < b.tags) { return -1; }
   if (a.tags > b.tags) { return  1; }
   return orderByTitle(a, b);
 }
 
 /** Order games by the date-time they were added (ascending) */
-function orderByDateAdded(a: IGameInfo, b: IGameInfo): number {
+function orderByDateAdded(a: Game, b: Game): number {
   if (a.dateAdded < b.dateAdded) { return -1; }
   if (a.dateAdded > b.dateAdded) { return  1; }
   return orderByTitle(a, b);
 }
 
 /** Order games by their series alphabetically (ascending) */
-function orderBySeries(a: IGameInfo, b: IGameInfo): number {
+function orderBySeries(a: Game, b: Game): number {
   if (a.series < b.series) { return -1; }
   if (a.series > b.series) { return  1; }
   return orderByTitle(a, b);
 }
 
 /** Order games by their platform alphabetically (ascending) */
-function orderByPlatform(a: IGameInfo, b: IGameInfo): number {
+function orderByPlatform(a: Game, b: Game): number {
   if (a.platform < b.platform) { return -1; }
   if (a.platform > b.platform) { return  1; }
   return orderByTitle(a, b);
 }
 
 /** Order games by their developer alphabetically (ascending) */
-export function orderByDeveloper(a: IGameInfo, b: IGameInfo): number {
+export function orderByDeveloper(a: Game, b: Game): number {
   if (a.developer < b.developer) { return -1; }
   if (a.developer > b.developer) { return  1; }
   return orderByTitle(a, b);
 }
 
 /** Order games by their publisher alphabetically (ascending) */
-export function orderByPublisher(a: IGameInfo, b: IGameInfo): number {
+export function orderByPublisher(a: Game, b: Game): number {
   if (a.publisher < b.publisher) { return -1; }
   if (a.publisher > b.publisher) { return  1; }
   return orderByTitle(a, b);
@@ -55,7 +55,7 @@ export function orderByPublisher(a: IGameInfo, b: IGameInfo): number {
 
 /** Reverse the order (makes an ascending order function descending instead) */
 function reverseOrder(compareFn: OrderFn): OrderFn {
-  return (a: IGameInfo, b: IGameInfo) => {
+  return (a: Game, b: Game) => {
     const ret: number = compareFn(a, b);
     if (ret ===  1) { return -1; }
     if (ret === -1) { return  1; }
@@ -82,9 +82,9 @@ function getOrderFunction(orderBy: GameOrderBy, orderReverse: GameOrderReverse):
 }
 
 /** Return a new array with all broken games removed (if showBroken is false) */
-export function filterBroken(showBroken: boolean, games: IGameInfo[]): IGameInfo[] {
+export function filterBroken(showBroken: boolean, games: Game[]): Game[] {
   if (showBroken) { return games; }
-  const filteredGames: IGameInfo[] = [];
+  const filteredGames: Game[] = [];
   for (let game of games) {
     if (!game.broken) {
       filteredGames.push(game);
@@ -94,9 +94,9 @@ export function filterBroken(showBroken: boolean, games: IGameInfo[]): IGameInfo
 }
 
 /** Return a new array with all extreme games removed (if showExtreme is false) */
-export function filterExtreme(showExtreme: boolean, games: IGameInfo[]): IGameInfo[] {
+export function filterExtreme(showExtreme: boolean, games: Game[]): Game[] {
   if (showExtreme) { return games; }
-  const filteredGames: IGameInfo[] = [];
+  const filteredGames: Game[] = [];
   for (let game of games) {
     if (!game.extreme) {
       filteredGames.push(game);
@@ -110,9 +110,9 @@ export function filterExtreme(showExtreme: boolean, games: IGameInfo[]): IGameIn
  * (This will add new games for the games in the playlist that are missing,
  *  this will also reorder the games to match the order of the playlist)
  */
-function filterPlaylist(playlist: GamePlaylist | undefined, games: IGameInfo[]): IGameInfo[] {
+function filterPlaylist(playlist: GamePlaylist | undefined, games: Game[]): Game[] {
   if (!playlist) { return games; }
-  const filteredGames: IGameInfo[] = [];
+  const filteredGames: Game[] = [];
   for (let gameEntry of playlist.games) {
     const id = gameEntry.id;
     for (let game of games) {
@@ -148,8 +148,8 @@ function parseQuickSearch(text: string): FieldFilter | undefined {
 }
 
 /** Return a new array with all games that doesn't match the search removed (if there is a search) */
-function filterSearch(text: string, games: IGameInfo[]): IGameInfo[] {
-  const filteredGames: Array<IGameInfo | undefined> = games.slice();
+function filterSearch(text: string, games: Game[]): Game[] {
+  const filteredGames: Array<Game | undefined> = games.slice();
   // Parse search text
   const { titleFilters, fieldFilters } = parseSearchText(text);
   // Filter the titles out
@@ -218,7 +218,7 @@ function filterSearch(text: string, games: IGameInfo[]): IGameInfo[] {
     }
   }
   // Remove nulled entries
-  const finalFilteredGames: IGameInfo[] = [];
+  const finalFilteredGames: Game[] = [];
   for (let game of filteredGames) {
     if (game) { finalFilteredGames.push(game); }
   }
@@ -313,7 +313,7 @@ type FieldFilter = {
 /** Options for ordering games. */
 export type FilterGameOpts = {
   /** Search query to filter by */
-  search: string;
+  search?: string;
   /** If extreme games should be included in the result. */
   extreme: boolean;
   /** If broken games should be included in the result. */
@@ -328,32 +328,13 @@ export type OrderGamesOpts = {
   /** The way to order the games. */
   orderReverse: GameOrderReverse;
 }
-
-/**
- * Filter an array of games.
- * @param games Games to filter (this array will NOT be manipulated).
- * @param opts Options to filter and order by.
- * @returns Filtered array of games
- */
-export function filterGames(games: IGameInfo[], opts: FilterGameOpts): IGameInfo[] {
-  // @TODO Perhaps the new search system (filterSearch) could be used exclusively, so all the other
-  //       filter functions could be removed?
-  // Filter games
-  return (
-    filterSearch(opts.search,
-      filterBroken(opts.broken,
-        filterExtreme(opts.extreme,
-            filterPlaylist(opts.playlist, games)
-          ))));
-}
-
 /**
  * Order an array of games.
  * @param games Games to order (this array WILL be manipulated)
  * @param opts Options to order by
  */
 
-export function orderGames(games: IGameInfo[], opts: OrderGamesOpts) {
+export function orderGames(games: Game[], opts: OrderGamesOpts) {
   games.sort(getOrderFunction(opts.orderBy, opts.orderReverse));
 }
 
@@ -363,7 +344,7 @@ export function orderGames(games: IGameInfo[], opts: OrderGamesOpts) {
  * @param games Games to order (this array WILL be manipulated)
  * @param playlist Playlist to order the games after
  */
-export function orderGamesInPlaylist(games: IGameInfo[], playlist: GamePlaylist): void {
+export function orderGamesInPlaylist(games: Game[], playlist: GamePlaylist): void {
   for (let i = 0; i < playlist.games.length; i++) {
     const id = playlist.games[i].id;
     for (let j = i; j < games.length; j++) {

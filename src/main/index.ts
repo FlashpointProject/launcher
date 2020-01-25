@@ -1,10 +1,3 @@
-import { ChildProcess, fork } from 'child_process';
-import { randomBytes } from 'crypto';
-import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
-import * as fs from 'fs';
-import * as path from 'path';
-import { promisify } from 'util';
-import * as WebSocket from 'ws';
 import { SharedSocket } from '@shared/back/SharedSocket';
 import { BackIn, BackInitArgs, BackOut, GetMainInitDataResponse, SetLocaleData, WrappedRequest, WrappedResponse } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
@@ -13,6 +6,13 @@ import { WindowIPC } from '@shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { Coerce } from '@shared/utils/Coerce';
+import { ChildProcess, fork } from 'child_process';
+import { randomBytes } from 'crypto';
+import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
+import * as fs from 'fs';
+import * as path from 'path';
+import { promisify } from 'util';
+import * as WebSocket from 'ws';
 import * as Util from './Util';
 
 const readFile = promisify(fs.readFile);
@@ -110,7 +110,7 @@ function main() {
   // Start back process
   if (!initArgs['connect-remote']) {
     p = p.then(() => new Promise((resolve, reject) => {
-      state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true, stdio: ['ignore', 'ignore', process.stderr, 'ipc'] });
+      state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
       // Wait for process to initialize
       state.backProc.once('message', (port) => {
         if (port >= 0) {

@@ -1,7 +1,7 @@
-import { IGameInfo } from '@shared/game/interfaces';
+import { Game } from '@database/entity/Game';
 import { GamePropSuggestions, GamePropSuggestionsMap, SuggestionProps } from '@shared/interfaces';
 
-export function getSuggestions(games: IGameInfo[] = [], libraryTitles: string[] = []): Partial<GamePropSuggestions> {
+export function getSuggestions(games: Game[] = [], libraryTitles: string[] = []): Partial<GamePropSuggestions> {
   // Get the values from the game collection & libraries
   const map: GamePropSuggestionsMap = {
     tags: {},

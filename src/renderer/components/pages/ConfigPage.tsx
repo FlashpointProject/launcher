@@ -1,5 +1,3 @@
-import { remote } from 'electron';
-import * as React from 'react';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { AddLogData, BackIn, UpdateConfigData } from '@shared/back/types';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
@@ -7,6 +5,7 @@ import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { Theme } from '@shared/ThemeFile';
 import { formatString } from '@shared/utils/StringFormatter';
+import * as React from 'react';
 import { isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
@@ -55,7 +54,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   constructor(props: ConfigPageProps) {
     super(props);
-    const configData = window.External.config.data;
+    const configData = window.Shared.config.data;
     this.state = {
       isFlashpointPathValid: undefined,
       flashpointPath: configData.flashpointPath,
@@ -82,7 +81,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               <p className='setting__title'>{strings.preferencesHeader}</p>
               <div className='setting__body'>
                 {/* Show Extreme Games */}
-                {((!window.External.config.data.disableExtremeGames)) ? (
+                {((!window.Shared.config.data.disableExtremeGames)) ? (
                   <div className='setting__row'>
                     <div className='setting__row__top'>
                       <div className='setting__row__title'>
@@ -425,11 +424,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
     // Save new config to file, then restart the app
-    window.External.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
+    window.Shared.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
       useFiddler: this.state.useFiddler,
-    }, () => { window.External.restart(); });
+    }, () => { window.Shared.restart(); });
   }
 
   static contextType = LangContext;
@@ -441,7 +440,7 @@ function formatThemeItemName(item: Theme): string {
 }
 
 function log(content: string): void {
-  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Game Launcher',
     content: content,
   });

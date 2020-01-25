@@ -1,6 +1,4 @@
 import * as child_process from 'child_process';
-import { app } from 'electron';
-import * as path from 'path';
 import * as util from 'util';
 
 const execFile = util.promisify(child_process.execFile);

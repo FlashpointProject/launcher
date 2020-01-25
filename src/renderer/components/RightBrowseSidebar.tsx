@@ -1,13 +1,12 @@
+import { Game } from '@database/entity/Game';
+import { BackIn, BackOut, DeleteImageData, ImageChangeData, LaunchAddAppData, SaveImageData, WrappedResponse } from '@shared/back/types';
+import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { wrapSearchTerm } from '@shared/game/GameFilter';
+import { GamePlaylistEntry, GamePropSuggestions, PickType } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs';
 import * as React from 'react';
-import { BackIn, BackOut, DeleteImageData, ImageChangeData, LaunchAddAppData, SaveImageData, WrappedResponse } from '@shared/back/types';
-import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { AdditionalApplicationInfo } from '@shared/game/AdditionalApplicationInfo';
-import { wrapSearchTerm } from '@shared/game/GameFilter';
-import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
-import { GamePlaylistEntry, GamePropSuggestions, PickType } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { WithSearchProps } from '../containers/withSearch';
 import { getGameImagePath, getGameImageURL } from '../Util';
@@ -21,12 +20,11 @@ import { ImagePreview } from './ImagePreview';
 import { InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
+import { ModelUtils } from '@shared/game/util';
 
 type OwnProps = {
   /** Currently selected game (if any) */
-  currentGame?: IGameInfo;
-  /** Additional Applications of the currently selected game (if any) */
-  currentAddApps?: IAdditionalApplicationInfo[];
+  currentGame?: Game;
   /** Notes of the selected game in the selected playlist (if any) */
   currentPlaylistNotes?: string;
   /* Current Library */
@@ -113,12 +111,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   componentDidMount() {
-    window.External.back.on('message', this.onResponse);
+    window.Shared.back.on('message', this.onResponse);
     window.addEventListener('keydown', this.onGlobalKeyDown);
   }
 
   componentWillUnmount() {
-    window.External.back.off('message', this.onResponse);
+    window.Shared.back.off('message', this.onResponse);
     window.removeEventListener('keydown', this.onGlobalKeyDown);
   }
 
@@ -138,9 +136,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   render() {
     const strings = this.context.browse;
-    const game: IGameInfo | undefined = this.props.currentGame;
+    const game: Game | undefined = this.props.currentGame;
     if (game) {
-      const { currentAddApps, gamePlaylistEntry, currentPlaylistNotes, isEditing, isNewGame, preferencesData, suggestions } = this.props;
+      const { gamePlaylistEntry, currentPlaylistNotes, isEditing, isNewGame, preferencesData, suggestions } = this.props;
+      const currentAddApps = game.addApps;
       const isPlaceholder = game.placeholder;
       const editDisabled = !preferencesData.enableEditing;
       const editable = !editDisabled && isEditing;
@@ -657,7 +656,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const { currentGame } = this.props;
       if (!currentGame) { throw new Error('Failed to add image file. The currently selected game could not be found.'); }
       // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
-      const filePaths = window.External.showOpenDialogSync({
+      const filePaths = window.Shared.showOpenDialogSync({
         title: this.context.dialog.selectScreenshot,
         properties: ['openFile']
       });
@@ -665,7 +664,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         fs.readFile(filePaths[0], (error, data) => {
           if (error) { console.error(error); }
           else {
-            window.External.back.send<any, SaveImageData>(BackIn.SAVE_IMAGE, {
+            window.Shared.back.send<any, SaveImageData>(BackIn.SAVE_IMAGE, {
               folder: folder,
               id: currentGame.id,
               content: data.toString('base64'),
@@ -681,7 +680,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   removeImage(folder: string): void {
     if (this.props.currentGame) {
-      window.External.back.send<DeleteImageData>(BackIn.DELETE_IMAGE, {
+      window.Shared.back.send<DeleteImageData>(BackIn.DELETE_IMAGE, {
         folder: folder,
         id: this.props.currentGame.id,
       });
@@ -708,7 +707,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         const reader = new FileReader();
         reader.onloadend = () => {
           if (reader.result && typeof reader.result === 'object') {
-            window.External.back.send<any, SaveImageData>(BackIn.SAVE_IMAGE, {
+            window.Shared.back.send<any, SaveImageData>(BackIn.SAVE_IMAGE, {
               folder: folder,
               id: id,
               content: Buffer.from(reader.result).toString('base64'),
@@ -732,25 +731,25 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onAddAppLaunch(addAppId: string): void {
-    window.External.back.send<any, LaunchAddAppData>(BackIn.LAUNCH_ADDAPP, { id: addAppId });
+    window.Shared.back.send<any, LaunchAddAppData>(BackIn.LAUNCH_ADDAPP, { id: addAppId });
   }
 
   onAddAppDelete = (addAppId: string): void => {
-    const addApps = this.props.currentAddApps;
-    if (!addApps) { throw new Error('editAddApps is missing.'); }
-    const index = addApps.findIndex(addApp => addApp.id === addAppId);
-    if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
-    addApps.splice(index, 1);
-    this.forceUpdate();
+    if (this.props.currentGame) {
+      const addApps = this.props.currentGame.addApps;
+      if (!addApps) { throw new Error('editAddApps is missing.'); }
+      const index = addApps.findIndex(addApp => addApp.id === addAppId);
+      if (index === -1) { throw new Error('Cant remove additional application because it was not found.'); }
+      addApps.splice(index, 1);
+      this.forceUpdate();
+    }
   }
 
   onNewAddAppClick = (): void => {
-    if (!this.props.currentAddApps) { throw new Error('Unable to add a new AddApp. "currentAddApps" is missing.'); }
     if (!this.props.currentGame)    { throw new Error('Unable to add a new AddApp. "currentGame" is missing.'); }
-    const newAddApp = AdditionalApplicationInfo.create();
+    const newAddApp = ModelUtils.createAddApp(this.props.currentGame);
     newAddApp.id = uuid();
-    newAddApp.gameId = this.props.currentGame.id;
-    this.props.currentAddApps.push(newAddApp);
+    this.props.currentGame.addApps.push(newAddApp);
     this.forceUpdate();
   }
 
@@ -772,7 +771,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   /** Create a callback for when a game field is clicked. */
-  wrapOnTextClick<T extends PickType<IGameInfo, string>>(field: T): () => void {
+  wrapOnTextClick<T extends PickType<Game, string>>(field: T): () => void {
     return () => {
       const { currentGame, isEditing } = this.props;
       if (!isEditing && currentGame) {
@@ -787,7 +786,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   /** Create a wrapper for a EditableTextWrap's onChange callback (this is to reduce redundancy). */
-  wrapOnTextChange(func: (game: IGameInfo, text: string) => void): (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
+  wrapOnTextChange(func: (game: Game, text: string) => void): (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
     return (event) => {
       const game = this.props.currentGame;
       if (game) {
@@ -798,7 +797,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
-  wrapOnCheckBoxChange(func: (game: IGameInfo) => void): () => void {
+  wrapOnCheckBoxChange(func: (game: Game) => void): () => void {
     return () => {
       const game = this.props.currentGame;
       const editable = this.props.preferencesData.enableEditing && this.props.isEditing;

@@ -1,4 +1,4 @@
-import { IGameInfo } from '../game/interfaces';
+import { Game } from '@database/entity/Game';
 
 /** Generic associative array with strings as keys and values. */
 type StringMap = {
@@ -27,7 +27,7 @@ export type GameMetaDefaults = {
  * Get the default values for curation game meta.
  * @param games Games to get values from.
  */
-export function getDefaultMetaValues(games: IGameInfo[]): GameMetaDefaults {
+export function getDefaultMetaValues(games: Game[]): GameMetaDefaults {
   return {
     // @TODO Make this value not hard-coded (maybe it should be loaded from the preferences file?)
     addPaths: findMostUsedApplicationPaths(games),
@@ -44,7 +44,7 @@ export function getDefaultMetaValues(games: IGameInfo[]): GameMetaDefaults {
  * @param games Games to search through.
  * @returns Format: map["platform"] => "most used application path"
  */
-export function findMostUsedApplicationPaths(games: IGameInfo[]): StringMap {
+export function findMostUsedApplicationPaths(games: Game[]): StringMap {
   // Count how often each "application path" is used on each "platform"
   const count = countAppPathsPerPlatform(games);
   // Create an object that only has the most used "application paths" per "platform"
@@ -67,7 +67,7 @@ export function findMostUsedApplicationPaths(games: IGameInfo[]): StringMap {
  * Count the number of times each "application path" appears on each "platform".
  * @param games Games to count from.
  */
-function countAppPathsPerPlatform(games: IGameInfo[]): Count {
+function countAppPathsPerPlatform(games: Game[]): Count {
   // Count the number of times each "Application Path" appears on each "Platform"
   const count: Count = {};
   for (let game of games) {

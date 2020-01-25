@@ -86,6 +86,7 @@ export interface IMainWindowExternal {
   initialLangList: LangFile[];
   initialThemes: Theme[];
   initialPlaylists?: GamePlaylist[];
+  initialLibraries: string[];
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
 

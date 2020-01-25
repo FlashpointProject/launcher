@@ -1,8 +1,8 @@
+import { Game } from '@database/entity/Game';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditCuration, EditCurationMeta, EditAddAppCurationMeta } from '../curate/types';
-import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
-import { GamePlaylist, IService, ProcessAction, ExecMapping, GamePropSuggestions } from '../interfaces';
+import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
+import { ExecMapping, GamePlaylist, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
@@ -128,8 +128,9 @@ export type GetRendererInitDataResponse = {
   languages: LangFile[];
   language: LangContainer;
   themes: Theme[];
-  playlists?: GamePlaylist[];
+  libraries: string[];
   platforms: Record<string, string[]>;
+  playlists?: GamePlaylist[];
   localeCode: string;
 }
 
@@ -164,8 +165,7 @@ export type LaunchGameData = {
 }
 
 export type SaveGameData = {
-  game: IGameInfo;
-  addApps: IAdditionalApplicationInfo[];
+  game: Game;
   library: string;
   saveToFile: boolean;
 }
@@ -190,12 +190,11 @@ export type GetGameData = {
 }
 
 export type GetGameResponseData = {
-  game?: IGameInfo;
-  addApps?: IAdditionalApplicationInfo[];
+  game?: Game;
 }
 
 export type GetAllGamesResponseData = {
-  games: IGameInfo[];
+  games: Game[];
 }
 
 export type RandomGamesData = {
@@ -204,7 +203,7 @@ export type RandomGamesData = {
   extreme: boolean;
 }
 
-export type RandomGamesResponseData = IGameInfo[];
+export type RandomGamesResponseData = Game[];
 
 export type LaunchAddAppData = {
   id: string;

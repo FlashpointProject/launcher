@@ -1,11 +1,11 @@
+import { Game } from '@database/entity/Game';
 import { AddLogData, BackIn, BackInit, BackInitArgs, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, ServiceActionData, SetLocaleData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, WrappedRequest, WrappedResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { findMostUsedApplicationPaths } from '@shared/curate/defaultValues';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { FilterGameOpts, filterGames, orderGames, orderGamesInPlaylist } from '@shared/game/GameFilter';
-import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
+import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePlaylist, IBackProcessInfo, IService, ProcessAction, RecursivePartial } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile, LangFileContent } from '@shared/lang';
 import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
@@ -24,6 +24,10 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as mime from 'mime';
 import * as path from 'path';
+import 'reflect-metadata';
+// Required for the DB Models to function
+import 'sqlite3';
+import { Connection, createConnection, getConnectionOptions } from 'typeorm';
 import * as util from 'util';
 import * as WebSocket from 'ws';
 import { ConfigFile } from './ConfigFile';
@@ -41,6 +45,8 @@ import { FolderWatcher } from './util/FolderWatcher';
 import { copyError, pathExists } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
+import { ModelUtils } from '@shared/game/util';
+
 
 const copyFile  = util.promisify(fs.copyFile);
 const readFile  = util.promisify(fs.readFile);
@@ -67,7 +73,6 @@ const state: BackState = {
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
   gameManager: {
-    platforms: [],
     platformsPath: '',
     saveQueue: new EventQueue(),
     log: (content) => log({ source: 'GameManager', content }),
@@ -100,6 +105,7 @@ const state: BackState = {
 
 const preferencesFilename = 'preferences.json';
 const configFilename = 'config.json';
+let connection: Connection | undefined;
 
 const servicesSource = 'Background Services';
 
@@ -123,6 +129,14 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   ]));
   state.preferences = pref;
   state.config = conf;
+
+  // Setup DB
+  if (!connection) {
+    // Override the Database path to place it in Flashpoint data
+    const connectionOptions = await getConnectionOptions();
+    const newOptions = Object.assign(connectionOptions, { database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite') });
+    connection = await createConnection(newOptions);
+  }
 
   // Init services
   try {
@@ -429,23 +443,6 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
 
-  // Init Game Manager
-  state.gameManager.platformsPath = path.join(state.config.flashpointPath, state.config.platformFolderPath);
-  GameManager.loadPlatforms(state.gameManager)
-  .then(errors => {
-    if (errors.length > 0) {
-      console.error(`${errors.length} platform(s) failed to load. Errors:`);
-      for (let error of errors) {
-        console.error(error);
-      }
-    }
-  })
-  .catch(error => { console.error(error); })
-  .finally(() => {
-    state.init[BackInit.GAMES] = true;
-    state.initEmitter.emit(BackInit.GAMES);
-  });
-
   // Load Exec Mappings
   loadExecMappingsFile(state.config.flashpointPath, content => log({ source: 'Launcher', content }))
   .then(data => {
@@ -669,11 +666,10 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         state.preferences.fallbackLanguage
       );
 
-      const platforms: Record<string, string[]> = {}; // platforms[library] = [platform1, platform2 etc.]
-      for (let i = 0; i < state.gameManager.platforms.length; i++) {
-        const p = state.gameManager.platforms[i];
-        if (!platforms[p.library]) { platforms[p.library] = []; }
-        platforms[p.library].push(p.name);
+      const libraries = await GameManager.findLibraries();
+      let platforms: Record<string, string[]> = {};
+      for (let library of libraries) {
+        platforms[library] = await GameManager.findPlatforms(library);
       }
 
       respond<GetRendererInitDataResponse>(event.target, {
@@ -688,8 +684,9 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
           languages: state.languages,
           language: state.languageContainer,
           themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
-          playlists: state.init[BackInit.PLAYLISTS] ? state.playlists : undefined,
+          libraries: libraries,
           platforms: platforms,
+          playlists: state.init[BackInit.PLAYLISTS] ? state.playlists : undefined,
           localeCode: state.localeCode,
         },
       });
@@ -720,12 +717,12 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     } break;
 
     case BackIn.GET_SUGGESTIONS: {
-      const games = allGames();
+      const games = await allGames();
       respond<GetSuggestionsResponseData>(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
         data: {
-          suggestions: getSuggestions(games, getLibraries()),
+          suggestions: getSuggestions(games, await GameManager.findLibraries()),
           appPaths: findMostUsedApplicationPaths(games),
         },
       });
@@ -735,7 +732,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       respond<GetGamesTotalResponseData>(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
-        data: countGames(),
+        data: await GameManager.countGames(),
       });
     } break;
 
@@ -763,24 +760,19 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
     case BackIn.LAUNCH_ADDAPP: {
       const reqData: LaunchAddAppData = req.data;
-
-      const platforms = state.gameManager.platforms;
-      for (let i = 0; i < platforms.length; i++) {
-        const addApp = platforms[i].collection.additionalApplications.find(item => item.id === reqData.id);
-        if (addApp) {
-          const game = findGame(addApp.gameId);
-          GameLauncher.launchAdditionalApplication({
-            addApp,
-            fpPath: path.resolve(state.config.flashpointPath),
-            native: game && state.config.nativePlatforms.some(p => p === game.platform) || false,
-            execMappings: state.execMappings,
-            lang: state.languageContainer,
-            log: log,
-            openDialog: openDialog(event.target),
-            openExternal: openExternal(event.target),
-          });
-          break;
-        }
+      const addApp = await GameManager.findAddApp(reqData.id);
+      if (addApp) {
+        GameLauncher.launchAdditionalApplication({
+          addApp,
+          fpPath: path.resolve(state.config.flashpointPath),
+          native: addApp.parentGame && state.config.nativePlatforms.some(p => p === addApp.parentGame.platform) || false,
+          execMappings: state.execMappings,
+          lang: state.languageContainer,
+          log: log,
+          openDialog: openDialog(event.target),
+          openExternal: openExternal(event.target),
+        });
+        break;
       }
 
       respond(event.target, {
@@ -793,13 +785,11 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.LAUNCH_GAME: {
       const reqData: LaunchGameData = req.data;
 
-      const game = findGame(reqData.id);
-      const addApps = findAddApps(reqData.id);
+      const game = await GameManager.findGame(reqData.id);
 
       if (game) {
         GameLauncher.launchGame({
           game,
-          addApps,
           fpPath: path.resolve(state.config.flashpointPath),
           native: state.config.nativePlatforms.some(p => p === game.platform),
           execMappings: state.execMappings,
@@ -820,14 +810,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.SAVE_GAME: {
       const reqData: SaveGameData = req.data;
 
-      const result = GameManager.updateMeta(state.gameManager, {
-        game: reqData.game,
-        addApps: reqData.addApps,
-      });
-
-      if (reqData.saveToFile) {
-        await GameManager.savePlatforms(state.gameManager, result.edited);
-      }
+      const result = GameManager.updateGame(reqData.game);
 
       state.queries = {}; // Clear entire cache
 
@@ -836,7 +819,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.BROWSE_CHANGE,
         data: {
           library: reqData.library,
-          gamesTotal: countGames(),
+          gamesTotal: await GameManager.countGames(),
         }
       });
     } break;
@@ -844,9 +827,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.DELETE_GAME: {
       const reqData: DeleteGameData = req.data;
 
-      const result = GameManager.removeGameAndAddApps(state.gameManager, reqData.id);
-
-      await GameManager.savePlatforms(state.gameManager, result.edited);
+      GameManager.removeGameAndAddApps(reqData.id);
 
       state.queries = {}; // Clear entire cache
 
@@ -855,7 +836,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.BROWSE_CHANGE,
         data: {
           library: undefined,
-          gamesTotal: countGames(),
+          gamesTotal: await GameManager.countGames(),
         }
       });
     } break;
@@ -863,25 +844,21 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
     case BackIn.DUPLICATE_GAME: {
       const reqData: DuplicateGameData = req.data;
 
-      const game = findGame(reqData.id);
+      const game = await GameManager.findGame(reqData.id);
       if (game) {
-        const addApps = findAddApps(reqData.id);
 
         // Copy and apply new IDs
         const newGame = deepCopy(game);
-        const newAddApps = addApps.map(addApp => deepCopy(addApp));
+        const newAddApps = game.addApps.map(addApp => deepCopy(addApp));
         newGame.id = uuid();
         for (let j = 0; j < newAddApps.length; j++) {
           newAddApps[j].id = uuid();
-          newAddApps[j].gameId = newGame.id;
+          newAddApps[j].parentGame = newGame;
         }
+        newGame.addApps = newAddApps;
 
         // Add copies
-        const result = GameManager.updateMeta(state.gameManager, {
-          game: newGame,
-          addApps: newAddApps,
-        });
-        await GameManager.savePlatforms(state.gameManager, result.edited);
+        const result = GameManager.updateGame(newGame);
 
         // Copy images
         if (reqData.dupeImages) {
@@ -916,7 +893,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         type: BackOut.BROWSE_CHANGE,
         data: {
           library: undefined,
-          gamesTotal: countGames(),
+          gamesTotal: await GameManager.countGames(),
         }
       });
     } break;
@@ -925,15 +902,13 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
       const reqData: ExportGameData = req.data;
 
       if (await pathExists(reqData.metaOnly ? path.dirname(reqData.location) : reqData.location)) {
-        const game = findGame(reqData.id);
+        const game = await GameManager.findGame(reqData.id);
         if (game) {
-          const addApps = findAddApps(reqData.id);
-
           // Save to file
           try {
             await writeFile(
               reqData.metaOnly ? reqData.location : path.join(reqData.location, 'meta.txt'),
-              stringifyCurationFormat(convertToCurationMeta(game, addApps)));
+              stringifyCurationFormat(convertToCurationMeta(game)));
           } catch (e) { console.error(e); }
 
           // Copy images
@@ -969,18 +944,13 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE,
         data: {
-          game: findGame(reqData.id),
-          addApps: findAddApps(reqData.id),
+          game: await GameManager.findGame(reqData.id)
         }
       });
     } break;
 
     case BackIn.GET_ALL_GAMES: {
-      const games: IGameInfo[] = [];
-      for (let i = 0; i < state.gameManager.platforms.length; i++) {
-        const platform = state.gameManager.platforms[i];
-        games.splice(games.length, 0, ...platform.collection.games);
-      }
+      const games: Game[] = await GameManager.findGames();
 
       respond<GetAllGamesResponseData>(event.target, {
         id: req.id,
@@ -991,21 +961,9 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
     case BackIn.RANDOM_GAMES: {
       const reqData: RandomGamesData = req.data;
+      let allGames: Game[] = await GameManager.findGames();
 
-      let allGames: IGameInfo[] = [];
-      for (let platform of state.gameManager.platforms) {
-        Array.prototype.push.apply(allGames, platform.collection.games);
-      }
-
-      if (!reqData.extreme) {
-        allGames = allGames.filter(game => !game.extreme);
-      }
-
-      if (!reqData.broken) {
-        allGames = allGames.filter(game => !game.broken);
-      }
-
-      const pickedGames: IGameInfo[] = [];
+      const pickedGames: Game[] = [];
       for (let i = 0; i < reqData.count; i++) {
         const index = (Math.random() * allGames.length) | 0;
         const game = allGames[index];
@@ -1037,7 +995,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
       const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
       let cache = state.queries[hash];
-      if (!cache) { state.queries[hash] = cache = queryGames(query); } // @TODO Start clearing the cache if it gets too full
+      if (!cache) { state.queries[hash] = cache = await queryGames(query); } // @TODO Start clearing the cache if it gets too full
 
       respond<BrowseViewPageResponseData>(event.target, {
         id: req.id,
@@ -1065,7 +1023,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
       const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
       let cache = state.queries[hash];
-      if (!cache) { state.queries[hash] = cache = queryGames(query); } // @TODO Start clearing the cache if it gets too full
+      if (!cache) { state.queries[hash] = cache = await queryGames(query); } // @TODO Start clearing the cache if it gets too full
 
       let index = -1;
       for (let i = 0; i < cache.viewGames.length; i++) {
@@ -1156,7 +1114,7 @@ async function onMessage(event: WebSocket.MessageEvent): Promise<void> {
 
       const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
       let cache = state.queries[hash];
-      if (!cache) { state.queries[hash] = cache = queryGames(query); }
+      if (!cache) { state.queries[hash] = cache = await queryGames(query); }
 
       let result: string | undefined;
       let index: number | undefined;
@@ -1546,6 +1504,7 @@ function exit() {
     state.languageWatcher.abort();
     state.themeWatcher.abort();
 
+
     Promise.all([
       // Close WebSocket server
       isErrorProxy(state.server) ? undefined : new Promise(resolve => state.server.close(error => {
@@ -1557,8 +1516,8 @@ function exit() {
         if (error) { console.warn('An error occurred whie closing the file server.', error); }
         resolve();
       })),
-      // Wait for game manager to complete all saves
-      state.gameManager.saveQueue.push(() => {}, true),
+      // Close DB connection
+      connection ? connection.close : () => {}
     ]).then(() => { process.exit(); });
   }
 }
@@ -1599,8 +1558,10 @@ function log(preEntry: ILogPreEntry, id?: string): void {
     entry.content = entry.content+'';
   }
 
-  fs.appendFile('./launcher.log', stringifyLogEntriesRaw([entry]), () => {
-    console.error('Failed to write to log file');
+  fs.appendFile('./launcher.log', stringifyLogEntriesRaw([entry]), (err) => {
+    if (err) {
+      console.error(`Failed to write to log file - ${err}`);
+    }
   });
   state.log.push(entry);
 
@@ -1657,7 +1618,7 @@ type SearchGamesOpts = {
   library?: string;
 }
 
-function searchGames(opts: SearchGamesOpts): IGameInfo[] {
+async function searchGames(opts: SearchGamesOpts): Promise<Game[]> {
   // Build opts from preferences and query
   const filterOpts: FilterGameOpts = {
     search: opts.query,
@@ -1666,24 +1627,7 @@ function searchGames(opts: SearchGamesOpts): IGameInfo[] {
     playlist: opts.playlist,
   };
 
-  // Filter games
-  const platforms = state.gameManager.platforms;
-  let foundGames: IGameInfo[] = [];
-  for (let i = 0; i < platforms.length; i++) {
-    // If library matches filter, or no library filter given, filter this platforms games
-    if (!opts.library || platforms[i].library === opts.library) {
-      foundGames = foundGames.concat(filterGames(platforms[i].collection.games, filterOpts));
-    }
-  }
-
-  // Order games
-  if (opts.playlist) {
-    orderGamesInPlaylist(foundGames, opts.playlist);
-  } else {
-    orderGames(foundGames, { orderBy: opts.orderBy, orderReverse: opts.orderReverse });
-  }
-
-  return foundGames;
+  return GameManager.findGames(filterOpts);
 }
 
 async function execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void> {
@@ -1771,10 +1715,10 @@ async function deletePlaylist(id: string, folder: string, playlists: GamePlaylis
   }
 }
 
-function queryGames(query: BackQuery): BackQueryChache {
+async function queryGames(query: BackQuery): Promise<BackQueryChache> {
   const playlist = state.playlists.find(p => p.filename === query.playlistId);
 
-  const results = searchGames({
+  const results = await searchGames({
     extreme: query.extreme,
     broken: query.broken,
     query: query.search,
@@ -1802,30 +1746,6 @@ function queryGames(query: BackQuery): BackQueryChache {
     games: results,
     viewGames: viewGames,
   };
-}
-
-/** Find the game with the specified ID. */
-function findGame(gameId: string): IGameInfo | undefined {
-  const platforms = state.gameManager.platforms;
-  for (let i = 0; i < platforms.length; i++) {
-    const games = platforms[i].collection.games;
-    for (let j = 0; j < games.length; j++) {
-      if (games[j].id === gameId) { return games[j]; }
-    }
-  }
-}
-
-/** Find all add apps with the specified game ID. */
-function findAddApps(gameId: string): IAdditionalApplicationInfo[] {
-  const result: IAdditionalApplicationInfo[] = [];
-  const platforms = state.gameManager.platforms;
-  for (let i = 0; i < platforms.length; i++) {
-    const addApps = platforms[i].collection.additionalApplications;
-    for (let j = 0; j < addApps.length; j++) {
-      if (addApps[j].gameId === gameId) { result.push(addApps[j]); }
-    }
-  }
-  return result;
 }
 
 function openDialog(target: WebSocket) {
@@ -1874,33 +1794,9 @@ function openExternal(target: WebSocket) {
   };
 }
 
-function countGames(): number {
-  let count = 0;
-  const platforms = state.gameManager.platforms;
-  for (let i = 0; i < platforms.length; i++) {
-    count += platforms[i].collection.games.length;
-  }
-  return count;
-}
-
-function getLibraries(): string[] {
-  const platforms = state.gameManager.platforms;
-  const libraries: string[] = [];
-  for (let i = 0; i < platforms.length; i++) {
-    const library = platforms[i].library;
-    if (libraries.indexOf(library) === -1) { libraries.push(library); }
-  }
-  return libraries;
-}
-
 /** Create an array with all games in the game manager. */
-function allGames(): IGameInfo[] {
-  const games: IGameInfo[] = [];
-  const platforms = state.gameManager.platforms;
-  for (let i = 0; i < platforms.length; i++) {
-    Array.prototype.push.apply(games, platforms[i].collection.games);
-  }
-  return games;
+async function allGames(): Promise<Game[]> {
+  return await GameManager.findGames();
 }
 
 function parseWrappedRequest(data: string | Buffer | ArrayBuffer | Buffer[]): [WrappedRequest<any>, undefined] | [undefined, Error] {

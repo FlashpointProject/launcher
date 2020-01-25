@@ -44,13 +44,13 @@ describe('Util Renderer Various', () => {
   mockSocket.send = jest.fn();
 
   test('Easter Egg Search', () => {
-    window.External = {
+    window.Shared = {
       back: mockSocket
     } as any;
     easterEgg('taco');
-    expect(window.External.back.send).not.toHaveBeenCalled();
+    expect(window.Shared.back.send).not.toHaveBeenCalled();
     easterEgg('DarkMoe');
-    expect(window.External.back.send).toHaveBeenCalled();
+    expect(window.Shared.back.send).toHaveBeenCalled();
   });
 
   test('Get Game Image URL', () => {

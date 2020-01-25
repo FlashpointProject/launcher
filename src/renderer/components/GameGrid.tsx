@@ -1,9 +1,9 @@
+import { BackOut, ImageChangeData, WrappedResponse } from '@shared/back/types';
+import { LOGOS } from '@shared/constants';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, ScrollParams } from 'react-virtualized/dist/es/Grid';
-import { BackOut, ImageChangeData, ViewGame, WrappedResponse } from '@shared/back/types';
-import { LOGOS } from '@shared/constants';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { GAMES } from '../interfaces';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
@@ -68,7 +68,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   currentGamesCount: number = 0;
 
   componentDidMount(): void {
-    window.External.back.on('message', this.onResponse);
+    window.Shared.back.on('message', this.onResponse);
     this.updateCssVars();
     this.updatePropRefs();
   }
@@ -79,7 +79,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   }
 
   componentWillUnmount(): void {
-    window.External.back.off('message', this.onResponse);
+    window.Shared.back.off('message', this.onResponse);
   }
 
   render() {
@@ -198,7 +198,7 @@ export class GameGrid extends React.Component<GameGridProps> {
               const img: HTMLElement | null = item.querySelector('.game-grid-item__thumb__image') as any;
               if (img) {
                 const val = img.style.backgroundImage;
-                img.style.backgroundImage = null;
+                img.style.backgroundImage = '';
                 img.style.backgroundImage = val;
               }
             }

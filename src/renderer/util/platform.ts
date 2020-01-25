@@ -1,11 +1,10 @@
-/** platform.ts is suggestion.ts modified for retreival of platform type */
-import { GameCollection } from '@shared/game/GameCollection';
+import { Game } from '@database/entity/Game';
 
-export function getPlatforms(collection: GameCollection): string [] {
+/** platform.ts is suggestion.ts modified for retreival of platform type */
+export function getPlatforms(games: Game[]): string [] {
   // Get the values from the game collection
   const map: { [key: string]: true } = {};
-  for (let key in collection.games) {
-    const game = collection.games[key];
+  for (let game of games) {
     getGamePropValues(map, game.platform);
   }
   // Create a more usable object to store the values in

@@ -1,0 +1,24 @@
+{
+   "type": "sqlite",
+   "host": "localhost",
+   "port": 3306,
+   "username": "flashpoint",
+   "password": "Rw5up8YYxYsbSr",
+   "database": "flashpoint.sqlite",
+   "synchronize": true,
+   "logging": false,
+   "entities": [
+      "build/database/entity/**/*.js"
+   ],
+   "migrations": [
+      "build/database/migration/**/*.js"
+   ],
+   "subscribers": [
+      "src/database/subscriber/**/*.ts"
+   ],
+   "cli": {
+      "entitiesDir": "src/database/entity",
+      "migrationsDir": "src/database/migration",
+      "subscribersDir": "src/database/subscriber"
+   }
+}

@@ -10,12 +10,12 @@ import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
 
 export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send: boolean = true) {
-  const preferences = window.External.preferences;
+  const preferences = window.Shared.preferences;
   // @TODO Figure out the delta change of the object tree, and only send the changes
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
   if (preferences.onUpdate) { preferences.onUpdate(); }
   if (send) {
-    window.External.back.send(
+    window.Shared.back.send(
       BackIn.UPDATE_PREFERENCES,
       preferences.data
     );

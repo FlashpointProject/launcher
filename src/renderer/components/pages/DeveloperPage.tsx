@@ -1,14 +1,14 @@
+import { Game } from '@database/entity/Game';
+import { getGamePath } from '@renderer/Util';
+import { BackIn, BackOut, GetAllGamesResponseData, GetExecData, ServiceChangeData, WrappedResponse } from '@shared/back/types';
+import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { ExecMapping, GamePlaylist, GamePlaylistEntry } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
 import * as uuidValidate from 'uuid-validate';
-import { getGamePath } from '@renderer/Util';
-import { BackIn, BackOut, GetAllGamesResponseData, ServiceChangeData, WrappedResponse, GetExecData } from '@shared/back/types';
-import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { IGameInfo } from '@shared/game/interfaces';
-import { ExecMapping, GamePlaylist, GamePlaylistEntry } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
 import { LangContext } from '../../util/lang';
 import { validateSemiUUID } from '../../util/uuid';
 import { LogData } from '../LogData';
@@ -50,17 +50,17 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   componentDidMount() {
-    window.External.back.on('message', this.onServiceUpdate);
+    window.Shared.back.on('message', this.onServiceUpdate);
   }
 
   componentWillUnmount() {
-    window.External.back.off('message', this.onServiceUpdate);
+    window.Shared.back.off('message', this.onServiceUpdate);
   }
 
   render() {
     const strings = this.context.developer;
     const { text } = this.state;
-    const services = window.External.services;
+    const services = window.Shared.services;
     return (
       <div className='developer-page simple-scroll'>
         <div className='developer-page__inner'>
@@ -158,10 +158,12 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onCheckMissingExecMappings = async (): Promise<void> => {
     const [games, execMappings] = await Promise.all([
       fetchAllGames(),
-      window.External.back.sendP<GetExecData>(BackIn.GET_EXEC, undefined).then(r => r.data),
+      window.Shared.back.sendP<GetExecData>(BackIn.GET_EXEC, undefined).then(r => r.data),
     ]);
     if (!execMappings) { throw new Error('Failed to get exec mappings - response contained no data'); }
-    this.setState({ text: checkMissingExecMappings(games, execMappings) });
+    if (games) {
+      this.setState({ text: checkMissingExecMappings(games, execMappings) });
+    }
   }
 
   onCreateMissingFoldersClick = (): void => {
@@ -173,10 +175,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   static contextType = LangContext;
 }
 
-function checkGameIDs(games: IGameInfo[]): string {
+function checkGameIDs(games: Game[]): string {
   const timeStart = Date.now(); // Start timing
   const dupes = checkDupes(games, game => game.id); // Find all games with duplicate IDs
-  const invalidIDs: IGameInfo[] = games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
+  const invalidIDs: Game[] = games.filter(game => !validateSemiUUID(game.id)); // Find all games with invalid IDs
   const timeEnd = Date.now(); // End timing
   // Write log message
   let text = '';
@@ -193,11 +195,11 @@ function checkGameIDs(games: IGameInfo[]): string {
   return text;
 }
 
-function checkGameTitles(games: IGameInfo[]): string {
+function checkGameTitles(games: Game[]): string {
   // Find all games for the same platform that has identical titles
   const timeStart = Date.now(); // Start timing
   const gamesPerPlatform = categorizeByProp(games, 'platform');
-  const dupesPerPlatform: Map<string, Map<string, IGameInfo[]>> = {};
+  const dupesPerPlatform: Map<string, Map<string, Game[]>> = {};
   for (let key in gamesPerPlatform) {
     dupesPerPlatform[key] = checkDupes(gamesPerPlatform[key], game => game.title.toUpperCase());
   }
@@ -227,9 +229,9 @@ function checkGameTitles(games: IGameInfo[]): string {
   return text;
 }
 
-type IGameInfoKeys = AllowedNames<IGameInfo, string>;
-type EmptyRegister = { [key in IGameInfoKeys]?: IGameInfo[] }; // empty[fieldName] = [ game... ]
-function checkGameEmptyFields(games: IGameInfo[]): string {
+type GameKeys = AllowedNames<Game, string>;
+type EmptyRegister = { [key in GameKeys]?: Game[] }; // empty[fieldName] = [ game... ]
+function checkGameEmptyFields(games: Game[]): string {
   const timeStart = Date.now(); // Start timing
   // Find all games with empty fields (that should not be empty)
   const empty: EmptyRegister = {};
@@ -253,7 +255,7 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
   text += 'Summary:\n';
   text += '\n';
   for (let field in empty) {
-    const array = empty[field as IGameInfoKeys];
+    const array = empty[field as GameKeys];
     if (array) {
       text += `"${field}" has ${array.length} games with missing values.\n`;
     }
@@ -262,7 +264,7 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
   text += 'Detailed list:\n';
   text += '\n';
   for (let field in empty) {
-    const array = empty[field as IGameInfoKeys];
+    const array = empty[field as GameKeys];
     if (array) {
       text += `Field "${field}" has ${array.length} games with missing values:\n`;
       array.forEach(game => { text += `"${game.title}" (ID: ${game.id})\n`; });
@@ -274,7 +276,7 @@ function checkGameEmptyFields(games: IGameInfo[]): string {
   text += '\n';
   return text;
   // -- Functions --
-  function checkField(game: IGameInfo, empty: EmptyRegister, field: IGameInfoKeys): void {
+  function checkField(game: Game, empty: EmptyRegister, field: GameKeys): void {
     if (game[field] === '') {
       // Check if field is empty, if so add it to the collection of that field
       const array = empty[field] || [];
@@ -290,7 +292,7 @@ type PlaylistReport = {
   duplicateGames: { [key: string]: GamePlaylistEntry[] };
   invalidGameIDs: GamePlaylistEntry[];
 };
-function checkPlaylists(playlists: GamePlaylist[], games: IGameInfo[]): string {
+function checkPlaylists(playlists: GamePlaylist[], games: Game[]): string {
   const timeStart = Date.now(); // Start timing
   const dupes = checkDupes(playlists, playlist => playlist.filename); // Find all playlists with duplicate IDs
   const invalidIDs: GamePlaylist[] = playlists.filter(playlist => !uuidValidate(playlist.filename, 4)); // Find all playlists with invalid IDs
@@ -365,7 +367,7 @@ function checkPlaylists(playlists: GamePlaylist[], games: IGameInfo[]): string {
 }
 
 // Find and list any used executables missing an entry in the exec mapping file
-function checkMissingExecMappings(games: IGameInfo[], execMappings: ExecMapping[]): string {
+function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): string {
   let allExecs: string[] = [];
   let text = '';
   // Gather list of all unique execs
@@ -443,17 +445,17 @@ function checkDupes<T>(array: T[], fn: (element: T) => string): { [key: string]:
   return clean;
 }
 
-function checkFileLocation(games: IGameInfo[]): string {
+function checkFileLocation(games: Game[]): string {
   const timeStart = Date.now(); // Start timing
-  const pathFailed: IGameInfo[] = []; // (Games that it failed to get the path from)
-  const pathError: [ IGameInfo, Error ][] = []; // (Games that it threw an error while attempting to get the path)
+  const pathFailed: Game[] = []; // (Games that it failed to get the path from)
+  const pathError: [ Game, Error ][] = []; // (Games that it threw an error while attempting to get the path)
   let skippedCount: number = 0; // (Number of skipped games)
   // Try getting the path from all games
   for (let game of games) {
     if (game.broken) { skippedCount += 1; }
     else {
       try {
-        const gamePath = getGamePath(game, window.External.config.fullFlashpointPath);
+        const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath);
         if (gamePath === undefined) { pathFailed.push(game); }
       } catch (error) {
         pathError.push([ game, error ]);
@@ -493,7 +495,7 @@ type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base];
 type FolderStructure = { [key: string]: FolderStructure | string[] } | string[];
 async function createMissingFolders(): Promise<string> {
   let str = '';
-  const fullFlashpointPath = window.External.config.fullFlashpointPath;
+  const fullFlashpointPath = window.Shared.config.fullFlashpointPath;
   // Create "static" folder structure (folders that should always exist)
   str += 'Creating "static" folders:\n';
   str += '(Folders that should be in every Flashpoint folder)\n\n';
@@ -570,9 +572,9 @@ function repeat(char: string, n: number): string {
   return char.repeat(Math.max(0, n));
 }
 
-function fetchAllGames(): Promise<IGameInfo[]> {
+function fetchAllGames(): Promise<Game[]> {
   return new Promise((resolve, reject) => {
-    window.External.back.send<GetAllGamesResponseData>(BackIn.GET_ALL_GAMES, undefined, result => {
+    window.Shared.back.send<GetAllGamesResponseData>(BackIn.GET_ALL_GAMES, undefined, result => {
       if (result.data) { resolve(result.data.games); }
       else { reject(new Error('Failed to fetch all games. Data is undefined.')); }
     });

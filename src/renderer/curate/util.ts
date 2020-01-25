@@ -1,12 +1,12 @@
-import { remote } from 'electron';
-import * as fs from 'fs';
-import * as path from 'path';
-import { promisify } from 'util';
 import { AddLogData, BackIn } from '@shared/back/types';
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '@shared/curate/parse';
 import { CurationIndexImage } from '@shared/curate/types';
 import { stripBOM } from '@shared/Util';
+import { remote } from 'electron';
+import * as fs from 'fs';
+import * as path from 'path';
+import { promisify } from 'util';
 import { setGameMetaDefaults } from '../components/pages/CuratePage';
 import { createCurationIndexImage } from './importCuration';
 
@@ -54,7 +54,7 @@ export function showWarningBox(str: string): void {
 
 /** Log function for the 'Curation' heading */
 export function curationLog(content: string): void {
-  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Curation',
     content: content
   });

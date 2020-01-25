@@ -1,6 +1,6 @@
-import * as React from 'react';
 import { LangContainer } from '@shared/lang';
 import { versionNumberToText } from '@shared/Util';
+import * as React from 'react';
 import { CreditsData, CreditsDataProfile } from '../../credits/types';
 import { LangContext } from '../../util/lang';
 import { CreditsIcon } from '../CreditsProfile';
@@ -62,7 +62,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                     <p className='about-page__section__content__description'>
                       {strings.flashpointLauncherDesc}
                     </p>
-                    <p><b>{strings.version}:</b> {versionNumberToText(window.External.version)} ({window.External.version})</p>
+                    <p><b>{strings.version}:</b> {versionNumberToText(window.Shared.version)} ({window.Shared.version})</p>
                     <p><b>{strings.license}:</b> {strings.licenseInfo}</p>
                     <div className='about-page__section__links'>
                       {link('Github', 'https://github.com/FlashpointProject/launcher')}

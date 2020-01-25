@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { BackOut, WrappedResponse } from '@shared/back/types';
 import { ArgumentTypesOf } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -6,6 +5,7 @@ import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { shallowStrictEquals } from '@shared/Util';
+import * as React from 'react';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
@@ -33,17 +33,17 @@ export class LogsPage extends React.Component<LogsPageProps> {
   stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
 
   getLogString() {
-    const logEntries = [ ...window.External.log.entries ];
+    const logEntries = [ ...window.Shared.log.entries ];
     const filter = { ...this.props.preferencesData.showLogSource };
     return this.stringifyLogEntriesMemo(logEntries, filter);
   }
 
   componentDidMount() {
-    window.External.back.on('message', this.onMessage);
+    window.Shared.back.on('message', this.onMessage);
   }
 
   componentWillUnmount() {
-    window.External.back.off('message', this.onMessage);
+    window.Shared.back.off('message', this.onMessage);
   }
 
   render() {
@@ -122,8 +122,8 @@ export class LogsPage extends React.Component<LogsPageProps> {
   }
 
   onClearClick = (): void => {
-    window.External.log.offset += window.External.log.entries.length;
-    window.External.log.entries = [];
+    window.Shared.log.offset += window.Shared.log.entries.length;
+    window.Shared.log.entries = [];
     this.forceUpdate();
   }
 

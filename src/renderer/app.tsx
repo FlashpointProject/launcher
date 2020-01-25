@@ -1,14 +1,7 @@
-import { ipcRenderer, remote } from 'electron';
-import { AppUpdater, UpdateInfo } from 'electron-updater';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as React from 'react';
-import { RouteComponentProps } from 'react-router-dom';
-import * as which from 'which';
+import { Game } from '@database/entity/Game';
 import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistRemoveData, PlaylistUpdateData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE } from '@shared/constants';
-import { IAdditionalApplicationInfo, IGameInfo, UNKNOWN_LIBRARY } from '@shared/game/interfaces';
 import { GamePlaylist, GamePropSuggestions, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
@@ -19,7 +12,15 @@ import { setTheme } from '@shared/Theme';
 import { Theme } from '@shared/ThemeFile';
 import { getUpgradeString } from '@shared/upgrade/util';
 import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace } from '@shared/Util';
+import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
+import { ipcRenderer, remote } from 'electron';
+import { AppUpdater, UpdateInfo } from 'electron-updater';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as React from 'react';
+import { RouteComponentProps } from 'react-router-dom';
+import * as which from 'which';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
@@ -37,7 +38,6 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
-import { debounce } from '@shared/utils/debounce';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -118,7 +118,7 @@ export class App extends React.Component<AppProps, AppState> {
     };
 
     // Prepare libraries
-    const libraries = Object.keys(window.External.initialPlatforms).sort();
+    const libraries = window.Shared.initialLibraries.sort();
 
     // Prepare initial views
     const views: Record<string, View> = {};
@@ -140,14 +140,14 @@ export class App extends React.Component<AppProps, AppState> {
     // Prepare platforms
     const platforms: Record<string, string[]> = {};
     for (let library of libraries) {
-      platforms[library] = window.External.initialPlatforms[library].slice().sort();
+      platforms[library] = window.Shared.initialPlatforms[library].slice().sort();
     }
 
     // Set initial state
     this.state = {
       views: views,
       libraries: libraries,
-      playlists: window.External.initialPlaylists || [],
+      playlists: window.Shared.initialPlaylists || [],
       playlistIconCache: {},
       suggestions: {},
       appPaths: {},
@@ -157,9 +157,9 @@ export class App extends React.Component<AppProps, AppState> {
         1: false,
         2: false,
       },
-      themeList: window.External.initialThemes,
+      themeList: window.Shared.initialThemes,
       gamesTotal: -1,
-      localeCode: window.External.initialLocaleCode,
+      localeCode: window.Shared.initialLocaleCode,
       upgrades: [],
       upgradesDoneLoading: false,
       stopRender: false,
@@ -167,8 +167,8 @@ export class App extends React.Component<AppProps, AppState> {
       creditsDoneLoading: false,
       gameScale: preferencesData.browsePageGameScale,
       gameLayout: preferencesData.browsePageLayout,
-      lang: window.External.initialLang,
-      langList: window.External.initialLangList,
+      lang: window.Shared.initialLang,
+      langList: window.Shared.initialLangList,
       wasNewGameClicked: false,
       updateInfo: undefined,
       order,
@@ -180,8 +180,8 @@ export class App extends React.Component<AppProps, AppState> {
 
   init() {
     const strings = this.state.lang;
-    const fullFlashpointPath = window.External.config.fullFlashpointPath;
-    const fullJsonFolderPath = window.External.config.fullJsonFolderPath;
+    const fullFlashpointPath = window.Shared.config.fullFlashpointPath;
+    const fullJsonFolderPath = window.Shared.config.fullJsonFolderPath;
     // Warn the user when closing the launcher WHILE downloading or installing an upgrade
     (() => {
       let askBeforeClosing = true;
@@ -231,7 +231,7 @@ export class App extends React.Component<AppProps, AppState> {
       updatePreferencesData({ mainWindow: { maximized: isMaximized } });
     });
 
-    window.External.back.send<InitEventData>(BackIn.INIT_LISTEN, undefined, res => {
+    window.Shared.back.send<InitEventData>(BackIn.INIT_LISTEN, undefined, res => {
       if (!res.data) { throw new Error('INIT_LISTEN response is missing data.'); }
       const nextLoaded = { ...this.state.loaded };
       for (let key of res.data.done) {
@@ -240,7 +240,22 @@ export class App extends React.Component<AppProps, AppState> {
       this.setState({ loaded: nextLoaded });
     });
 
-    window.External.back.on('message', res => {
+    window.Shared.back.send<GetGamesTotalResponseData>(BackIn.GET_GAMES_TOTAL, undefined, res => {
+      if (res.data) {
+        this.setState({ gamesTotal: res.data });
+      }
+    });
+
+    window.Shared.back.send<GetSuggestionsResponseData>(BackIn.GET_SUGGESTIONS, undefined, res => {
+      if (res.data) {
+        this.setState({
+          suggestions: res.data.suggestions,
+          appPaths: res.data.appPaths,
+        });
+      }
+    });
+
+    window.Shared.back.on('message', res => {
       // console.log('IN', res);
       switch (res.type) {
         case BackOut.INIT_EVENT: {
@@ -252,26 +267,10 @@ export class App extends React.Component<AppProps, AppState> {
 
             switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
               case BackInit.PLAYLISTS:
-                window.External.back.send<GetPlaylistResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
+                window.Shared.back.send<GetPlaylistResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
                   if (res.data) {
                     this.setState({ playlists: res.data });
                     this.cachePlaylistIcons(res.data);
-                  }
-                });
-                break;
-
-              case BackInit.GAMES:
-                window.External.back.send<GetGamesTotalResponseData>(BackIn.GET_GAMES_TOTAL, undefined, res => {
-                  if (res.data) {
-                    this.setState({ gamesTotal: res.data });
-                  }
-                });
-                window.External.back.send<GetSuggestionsResponseData>(BackIn.GET_SUGGESTIONS, undefined, res => {
-                  if (res.data) {
-                    this.setState({
-                      suggestions: res.data.suggestions,
-                      appPaths: res.data.appPaths,
-                    });
                   }
                 });
                 break;
@@ -283,7 +282,7 @@ export class App extends React.Component<AppProps, AppState> {
 
         case BackOut.LOG_ENTRY_ADDED: {
           const resData: LogEntryAddedData = res.data;
-          window.External.log.entries[resData.index - window.External.log.offset] = resData.entry;
+          window.Shared.log.entries[resData.index - window.Shared.log.offset] = resData.entry;
         } break;
 
         case BackOut.LOCALE_UPDATE: {
@@ -353,11 +352,11 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.SERVICE_CHANGE: {
           const resData: ServiceChangeData = res.data;
           if (resData.id) {
-            const service = window.External.services.find(item => item.id === resData.id);
+            const service = window.Shared.services.find(item => item.id === resData.id);
             if (service) {
               recursiveReplace(service, resData);
             } else {
-              window.External.services.push(recursiveReplace({
+              window.Shared.services.push(recursiveReplace({
                 id: 'invalid',
                 name: 'Invalid',
                 state: ProcessState.STOPPED,
@@ -474,7 +473,7 @@ export class App extends React.Component<AppProps, AppState> {
     // -- Stuff that should probably be moved to the back --
 
     // Load Upgrades
-    const folderPath = window.External.isDev
+    const folderPath = window.Shared.isDev
         ? process.cwd()
         : path.dirname(remote.app.getPath('exe'));
     const upgradeCatch = (error: Error) => { console.warn(error); };
@@ -491,7 +490,7 @@ export class App extends React.Component<AppProps, AppState> {
         upgrades: allData,
         upgradesDoneLoading: true,
       });
-      const isValid = await isFlashpointValidCheck(window.External.config.data.flashpointPath);
+      const isValid = await isFlashpointValidCheck(window.Shared.config.data.flashpointPath);
       // Notify of downloading initial data (if available)
       if (!isValid && allData.length > 0) {
         remote.dialog.showMessageBox({
@@ -540,7 +539,7 @@ export class App extends React.Component<AppProps, AppState> {
     });
 
     // Updater code - DO NOT run in development environment!
-    if (!window.External.isDev) {
+    if (!window.Shared.isDev) {
       autoUpdater.autoDownload = false;
       autoUpdater.on('error', (error: Error) => {
         console.log(error);
@@ -644,7 +643,6 @@ export class App extends React.Component<AppProps, AppState> {
       } else {
         const defaultLibrary = preferencesData.defaultLibrary;
         if (defaultLibrary) { route = defaultLibrary; }
-        else                { route = UNKNOWN_LIBRARY; }
       }
 
       if (location.pathname.startsWith(Paths.BROWSE)) {
@@ -667,7 +665,6 @@ export class App extends React.Component<AppProps, AppState> {
 
   render() {
     const loaded = (
-      this.state.loaded[BackInit.GAMES] &&
       this.state.loaded[BackInit.PLAYLISTS] &&
       this.state.upgradesDoneLoading &&
       this.state.creditsDoneLoading &&
@@ -717,13 +714,12 @@ export class App extends React.Component<AppProps, AppState> {
           <>
             {/* Splash screen */}
             <SplashScreen
-              gamesLoaded={this.state.loaded[BackInit.GAMES]}
               playlistsLoaded={this.state.loaded[BackInit.PLAYLISTS]}
               upgradesLoaded={this.state.upgradesDoneLoading}
               creditsLoaded={this.state.creditsDoneLoading}
               miscLoaded={this.state.loaded[BackInit.EXEC]} />
             {/* Title-bar (if enabled) */}
-            { window.External.config.data.useCustomTitlebar ? (
+            { window.Shared.config.data.useCustomTitlebar ? (
               <TitleBar title={`${APP_TITLE} (${remote.app.getVersion()})`} />
             ) : undefined }
             {/* "Content" */}
@@ -864,9 +860,9 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  onSaveGame = (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean): void => {
+  onSaveGame = (game: Game, playlistNotes: string | undefined, saveToFile: boolean): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
-    window.External.back.send<any, SaveGameData>(BackIn.SAVE_GAME, { game, addApps: addApps || [], library, saveToFile });
+    window.Shared.back.send<any, SaveGameData>(BackIn.SAVE_GAME, { game, library, saveToFile });
 
     const view = this.state.views[library];
     if (view && view.selectedPlaylistId && view.selectedGameId) {
@@ -878,14 +874,14 @@ export class App extends React.Component<AppProps, AppState> {
           // Save playlist
           const newPlaylist = deepCopy(playlist); // @PERF This should only copy the objects that are modified instead of the whole thing
           newPlaylist.games[entryIndex].notes = playlistNotes;
-          window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, { playlist: newPlaylist });
+          window.Shared.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, { playlist: newPlaylist });
         }
       }
     }
   }
 
   onLaunchGame(gameId: string): void {
-    window.External.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
+    window.Shared.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
   }
 
   /** Fetch the selected game of the specified library (or the first page if no game is selected). */
@@ -900,11 +896,11 @@ export class App extends React.Component<AppProps, AppState> {
     if (view.selectedGameId === undefined) {
       this.onRequestGames(0, 1);
     } else {
-      window.External.back.send<any, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
+      window.Shared.back.send<any, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
         gameId: view.selectedGameId,
         query: {
           extreme: view.query.extreme,
-          broken: window.External.config.data.showBrokenGames,
+          broken: window.Shared.config.data.showBrokenGames,
           library: library,
           search: view.query.search,
           playlistId: view && view.selectedPlaylistId,
@@ -953,7 +949,7 @@ export class App extends React.Component<AppProps, AppState> {
 
     if (pages.length > 0) {
       // console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
-      window.External.back.sendReq<any, BrowseViewPageData>({
+      window.Shared.back.sendReq<any, BrowseViewPageData>({
         id: library, // @TODO Add this as an optional property of the data instead of misusing the id
         type: BackIn.BROWSE_VIEW_PAGE,
         data: {
@@ -961,7 +957,7 @@ export class App extends React.Component<AppProps, AppState> {
           limit: (pageMax - pageMin + 1) * VIEW_PAGE_SIZE,
           query: {
             extreme: view.query.extreme,
-            broken: window.External.config.data.showBrokenGames,
+            broken: window.Shared.config.data.showBrokenGames,
             library: library,
             search: view.query.search,
             playlistId: view && view.selectedPlaylistId,
@@ -999,11 +995,11 @@ export class App extends React.Component<AppProps, AppState> {
       return;
     }
 
-    window.External.back.send<QuickSearchResponseData, QuickSearchData>(BackIn.QUICK_SEARCH, {
+    window.Shared.back.send<QuickSearchResponseData, QuickSearchData>(BackIn.QUICK_SEARCH, {
       search: search,
       query: {
         extreme: this.props.preferencesData.browsePageShowExtreme,
-        broken: window.External.config.data.showBrokenGames,
+        broken: window.Shared.config.data.showBrokenGames,
         library: library,
         search: this.props.search.text, // view.query.search,
         playlistId: view && view.selectedPlaylistId,
@@ -1080,7 +1076,7 @@ export class App extends React.Component<AppProps, AppState> {
 
 async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void, strings: LangContainer) {
   // Check data folder is set
-  let flashpointPath = window.External.config.data.flashpointPath;
+  let flashpointPath = window.Shared.config.data.flashpointPath;
   const isValid = await isFlashpointValidCheck(flashpointPath);
   if (!isValid) {
     let verifiedPath = false;
@@ -1090,7 +1086,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       const res = await openConfirmDialog(strings.dialog.flashpointPathInvalid, strings.dialog.flashpointPathNotFound);
       if (!res) { return; }
       // Set folder now
-      const chosenPaths = window.External.showOpenDialogSync({
+      const chosenPaths = window.Shared.showOpenDialogSync({
         title: strings.dialog.selectFolder,
         properties: ['openDirectory', 'promptToCreate', 'createDirectory']
       });
@@ -1123,9 +1119,9 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       flashpointPath = chosenPath;
       fs.ensureDirSync(flashpointPath);
       // Save picked folder to config
-      window.External.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
+      window.Shared.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
         flashpointPath: flashpointPath,
-      }, () => { /* window.External.restart(); */ });
+      }, () => { /* window.Shared.restart(); */ });
     }
   }
   // Flag as installing
@@ -1165,7 +1161,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       });
       const res = await openConfirmDialog(strings.dialog.restartNow, strings.dialog.restartToApplyUpgrade);
       if (res) {
-        window.External.restart();
+        window.Shared.restart();
       }
     })
     .once('error', (error) => {
@@ -1208,7 +1204,7 @@ function onUpdateDownloaded() {
 }
 
 function log(content: string): void {
-  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Launcher',
     content: content,
   });

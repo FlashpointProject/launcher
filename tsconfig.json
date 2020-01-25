@@ -9,12 +9,16 @@
     "lib": ["es6", "es2015", "dom"],
     "strict": true,
     "jsx": "react",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
     "paths": {
       "@shared/*": [ "./src/shared/*" ],
       "@main/*": [ "./src/main/*" ],
       "@back/*": [ "./src/back/*" ],
       "@renderer/*": [ "./src/renderer/*" ],
-      "@tests/*": [ "./tests/*" ]
+      "@database/*": [ "./src/database/*" ],
+      "@tests/*": [ "./tests/*" ],
     },
     "plugins": [
       {

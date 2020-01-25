@@ -1,3 +1,5 @@
+import { AddLogData, BackIn } from '@shared/back/types';
+import { indexContentFolder } from '@shared/curate/util';
 import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 import * as fs from 'fs-extra';
@@ -6,8 +8,6 @@ import { extractFull } from 'node-7z';
 import * as os from 'os';
 import * as path from 'path';
 import * as stream from 'stream';
-import { AddLogData, BackIn } from '@shared/back/types';
-import { indexContentFolder } from '@shared/curate/util';
 import { curationLog } from '../curate/util';
 import { UpgradeStage } from '../upgrade/types';
 import { pathTo7z } from './SevenZip';
@@ -253,7 +253,7 @@ async function getSha256FromFile(filePath: string): Promise<string> {
 }
 
 function log(content: string): void {
-  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Upgrade',
     content: content
   });

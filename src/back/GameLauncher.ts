@@ -1,20 +1,20 @@
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
+import { ExecMapping, Omit } from '@shared/interfaces';
+import { LangContainer } from '@shared/lang';
+import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { ChildProcess, exec, ExecOptions } from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
-import { ExecMapping } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
-import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
-  addApp: IAdditionalApplicationInfo;
+  addApp: AdditionalApp;
   native: boolean;
 }
 
 export type LaunchGameOpts = LaunchBaseOpts & {
-  game: IGameInfo;
-  addApps?: IAdditionalApplicationInfo[];
+  game: Game;
   native: boolean;
 }
 
@@ -34,13 +34,14 @@ export namespace GameLauncher {
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
       case ':message:':
-        return opts.openDialog({
-          type: 'info',
-          title: 'About This Game',
-          message: opts.addApp.launchCommand,
-          buttons: ['Ok'],
-        }).then();
-
+        return new Promise((resolve, reject) => {
+          opts.openDialog({
+            type: 'info',
+            title: 'About This Game',
+            message: opts.addApp.launchCommand,
+            buttons: ['Ok'],
+          }).finally(() => resolve());
+        });
       case ':extras:':
         const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.addApp.launchCommand)));
         return opts.openExternal(folderPath, { activate: true })
@@ -86,7 +87,7 @@ export namespace GameLauncher {
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
-    if (opts.addApps) {
+    if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
         fpPath: opts.fpPath,
         native: opts.native,
@@ -96,7 +97,7 @@ export namespace GameLauncher {
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
       };
-      for (let addApp of opts.addApps) {
+      for (let addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
           const promise = launchAdditionalApplication({ ...addAppOpts, addApp });
           if (addApp.waitForExit) { await promise; }

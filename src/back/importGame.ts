@@ -1,16 +1,17 @@
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
+import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
+import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
+import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
+import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
+import { sizeToString } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import { copy } from 'fs-extra';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as YAML from 'yaml';
-import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
-import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
-import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
-import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
-import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
-import { sizeToString } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
 import { GameManager } from './game/GameManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
@@ -61,18 +62,20 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
-  const existingGame = GameManager.findGame(gameManager.platforms, g => g.launchCommand === curation.meta.launchCommand);
-  if (existingGame) {
-    // Warn user of possible duplicate
-    const response = await opts.openDialog({
-      title: 'Possible Duplicate',
-      message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
-               + `Curation:\n\tTitle: ${curation.meta.title}\n\tPlatform: ${curation.meta.platform}\n\n`
-               + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
-      buttons: ['Yes', 'No']
-    });
-    if (response === 1) {
-      throw new Error('User Cancelled Import');
+  if (curation.meta.launchCommand) {
+    const existingGame = await GameManager.findGame(undefined, {where: `game.launchCommand = ${curation.meta.launchCommand}`});
+    if (existingGame) {
+      // Warn user of possible duplicate
+      const response = await opts.openDialog({
+        title: 'Possible Duplicate',
+        message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
+                + `Curation:\n\tTitle: ${curation.meta.title}\n\tPlatform: ${curation.meta.platform}\n\n`
+                + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
+        buttons: ['Yes', 'No']
+      });
+      if (response === 1) {
+        throw new Error('User Cancelled Import');
+      }
     }
   }
   // Build content list
@@ -86,18 +89,12 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
   // Create and add game and additional applications
   const gameId = uuid();
-  const game = createGameFromCurationMeta(gameId, curation.meta, date);
-  const addApps = curation.addApps.map(addApp => createAddAppsFromCurationMeta(gameId, addApp.meta));
+  const game = createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
   // Make a copy if not deleting the curation afterwards
   const moveFiles = !saveCuration;
   curationLog(log, 'Importing Curation Meta');
   // Copy/extract content and image files
-  const result = GameManager.updateMeta(gameManager, {
-    game,
-    addApps,
-  });
-  await GameManager.savePlatforms(gameManager, result.edited)
-  .then(() => { if (log) { logMsg('Meta Added', curation); } }),
+  GameManager.updateGame(game).then(() => logMsg('Meta Added', curation));
 
   // Copy Thumbnail
   curationLog(log, 'Importing Curation Thumbnail');
@@ -164,8 +161,7 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
   curationLog(opts.log, `Launching Curation ${meta.title}`);
   GameLauncher.launchGame({
     ...opts,
-    game: createGameFromCurationMeta(key, meta, new Date()),
-    addApps: addAppMetas.map(meta => createAddAppsFromCurationMeta(key, meta)),
+    game: createGameFromCurationMeta(key, meta, [], new Date()),
   });
 }
 
@@ -178,7 +174,7 @@ export async function launchAddAppCuration(curationKey: string, appCuration: Edi
   await linkContentFolder(curationKey, opts.fpPath);
   GameLauncher.launchAdditionalApplication({
     ...opts,
-    addApp: createAddAppsFromCurationMeta(curationKey, appCuration.meta),
+    addApp: createAddAppFromCurationMeta(appCuration, createPlaceholderGame()),
   });
 }
 
@@ -193,48 +189,47 @@ function noop(...args: any) {}
  * @param curation Curation to get data from.
  * @param gameId ID to use for Game
  */
-function createGameFromCurationMeta(gameId: string, meta: EditCurationMeta, date: Date): IGameInfo {
-  return {
+function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, addApps : EditAddAppCuration[], date: Date): Game {
+  const game: Game = {
     id:                  gameId, // (Re-use the id of the curation)
-    title:               meta.title               || '',
-    alternateTitles:     meta.alternateTitles     || '',
-    series:              meta.series              || '',
-    developer:           meta.developer           || '',
-    publisher:           meta.publisher           || '',
-    platform:            meta.platform            || '',
-    playMode:            meta.playMode            || '',
-    status:              meta.status              || '',
-    notes:               meta.notes               || '',
-    tags:                meta.tags                || '',
-    source:              meta.source              || '',
-    applicationPath:     meta.applicationPath     || '',
-    launchCommand:       meta.launchCommand       || '',
-    releaseDate:         meta.releaseDate         || '',
-    version:             meta.version             || '',
-    originalDescription: meta.originalDescription || '',
-    language:            meta.language            || '',
+    title:               gameMeta.title               || '',
+    alternateTitles:     gameMeta.alternateTitles     || '',
+    series:              gameMeta.series              || '',
+    developer:           gameMeta.developer           || '',
+    publisher:           gameMeta.publisher           || '',
+    platform:            gameMeta.platform            || '',
+    playMode:            gameMeta.playMode            || '',
+    status:              gameMeta.status              || '',
+    notes:               gameMeta.notes               || '',
+    tags:                gameMeta.tags                || '',
+    source:              gameMeta.source              || '',
+    applicationPath:     gameMeta.applicationPath     || '',
+    launchCommand:       gameMeta.launchCommand       || '',
+    releaseDate:         gameMeta.releaseDate         || '',
+    version:             gameMeta.version             || '',
+    originalDescription: gameMeta.originalDescription || '',
+    language:            gameMeta.language            || '',
     dateAdded:           date.toISOString(),
     broken:              false,
-    extreme:             !!strToBool(meta.extreme || ''),
-    library:             meta.library || '',
+    extreme:             !!strToBool(gameMeta.extreme || ''),
+    library:             gameMeta.library || '',
     orderTitle: '', // This will be set when saved
     placeholder: false,
+    addApps: []
   };
+  game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
+  return game;
 }
 
-/**
- * Create an array of additional application infos from a curation.
- * @param curation Curation to get data from.
- */
-function createAddAppsFromCurationMeta(key: string, meta: EditAddAppCurationMeta): IAdditionalApplicationInfo {
+function createAddAppFromCurationMeta(addAppMeta: EditAddAppCuration, game: Game): AdditionalApp {
   return {
-    id: uuid(),
-    gameId: key,
-    applicationPath: meta.applicationPath || '',
-    launchCommand: meta.launchCommand || '',
-    name: meta.heading || '',
+    id: addAppMeta.key,
+    name: addAppMeta.meta.heading || '',
+    applicationPath: addAppMeta.meta.applicationPath || '',
+    launchCommand: addAppMeta.meta.launchCommand || '',
     autoRunBefore: false,
     waitForExit: false,
+    parentGame: game
   };
 }
 
@@ -408,4 +403,34 @@ async function equalFileHashes(filePath: string, secondFilePath: string) {
   const buffer = await readFile(filePath);
   const secondBuffer = await readFile(secondFilePath);
   return buffer.equals(secondBuffer);
+}
+
+function createPlaceholderGame(): Game {
+  return {
+    id: uuid(),
+    title: '',
+    alternateTitles: '',
+    series: '',
+    developer: '',
+    publisher: '',
+    platform: '',
+    dateAdded: (new Date()).toISOString(),
+    broken: false,
+    extreme: false,
+    playMode: '',
+    status: '',
+    notes: '',
+    tags: '',
+    source: '',
+    applicationPath: '',
+    launchCommand: '',
+    releaseDate: '',
+    version: '',
+    originalDescription: '',
+    language: '',
+    library: '',
+    orderTitle: '',
+    addApps: [],
+    placeholder: false,
+  };
 }

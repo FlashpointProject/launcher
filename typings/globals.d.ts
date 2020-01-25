@@ -3,7 +3,7 @@ import { IMainWindowExternal } from '../src/shared/interfaces';
 /** Custom modifications made by this project */
 declare global {
   interface Window {
-    External: IMainWindowExternal;
+    Shared: IMainWindowExternal;
   }
 }
 
