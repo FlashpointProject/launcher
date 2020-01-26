@@ -1,7 +1,7 @@
 {
   "name": "Deutsch",
   "config": {
-    "configHeader": "Einstellungen",
+    "configHeader": "Konfig",
     "configDesc": "(Einige Änderungen erfordern einen Neustart)",
     "preferencesHeader": "Einstellungen",
     "extremeGames": "Extreme Spiele",
