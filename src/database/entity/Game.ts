@@ -7,23 +7,23 @@ export class Game {
   /** ID of the game (unique identifier) */
   id: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Full title of the game */
   title: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Any alternate titles to match against search */
   alternateTitles: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Game series the game belongs to (empty string if none) */
   series: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Name of the developer(s) of the game (developer names are separated by ',') */
   developer: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Name of the publisher of the game */
   publisher: string;
 
@@ -35,7 +35,7 @@ export class Game {
   /** Date-time of when the game was added to collection */
   dateModified: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Platform the game runs on (Flash, HTML5, Shockwave etc.) */
   platform: string;
 
@@ -47,23 +47,23 @@ export class Game {
   /** Game is not suitable for children */
   extreme: boolean;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** If the game is single player or multiplayer, and if the multiplayer is cooperative or not */
   playMode: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** How playable the game is */
   status: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Information that could be useful for the player (of varying importance) */
   notes: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Tags of the game (seperated by semi-colon) */
   tags: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Source if the game files, either full URL or the name of the website */
   source: string;
 
@@ -75,27 +75,27 @@ export class Game {
   /** Command line argument(s) passed to the application to launch the game */
   launchCommand: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Date of when the game was released */
   releaseDate: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Version of the game */
   version: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Original description of the game (probably given by the game's creator or publisher) */
   originalDescription: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** The language(s) the game is in */
   language: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Library this game belongs to */
   library: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** The title but reconstructed to be suitable for sorting and ordering (and not be shown visually) */
   orderTitle: string;
 

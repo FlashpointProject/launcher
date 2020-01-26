@@ -29,6 +29,7 @@ module.exports = {
   },
   externals: {
     fsevents: 'require(\'fsevents\')',
+    'react-native-sqlite-storage': 'react-native-sqlite-storage'
     // archiver: 'require(\'archiver\')'
   }
 };

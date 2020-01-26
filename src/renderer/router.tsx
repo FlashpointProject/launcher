@@ -24,7 +24,7 @@ import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
   games: GAMES | undefined;
-  gamesTotal: number;
+  gamesTotal?: number;
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;

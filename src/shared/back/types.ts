@@ -1,6 +1,8 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { FilterGameOpts } from '@shared/game/GameFilter';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
@@ -225,8 +227,9 @@ export type BrowseViewResponseData = {
 
 export type BrowseViewPageData = {
   offset: number;
-  limit: number;
-  query: GameQuery;
+  limit?: number;
+  query: SearchGamesOpts;
+  getTotal?: boolean;
 }
 
 export type BrowseViewPageResponseData = {
@@ -237,10 +240,10 @@ export type BrowseViewPageResponseData = {
 
 export type BrowseViewIndexData = {
   gameId: string;
-  query: GameQuery;
+  query: SearchGamesOpts;
 }
 
-export type BrowseViewIndexResponseData = {
+export type BrowseViewIndexResponse = {
   index: number;
 }
 
@@ -255,12 +258,16 @@ export type DeleteImageData = {
   id: string;
 }
 
-export type QuickSearchData = {
-  query: GameQuery;
-  search: string;
+export type SearchGamesOpts = {
+  /** Info to filter the search from */
+  filter: FilterGameOpts;
+  /** The field to order the games by. */
+  orderBy: GameOrderBy;
+  /** The way to order the games. */
+  orderReverse: GameOrderReverse;
 }
 
-export type QuickSearchResponseData = {
+export type SearchGamesResponse = {
   id?: string;
   index?: number;
 }
@@ -282,7 +289,7 @@ export type ViewGame = {
   title: string;
   platform: string;
   // List view only
-  genre: string;
+  tags: string;
   developer: string;
   publisher: string;
 }

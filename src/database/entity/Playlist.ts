@@ -10,15 +10,15 @@ export class Playlist {
   @OneToMany(type => PlaylistGame, playlist => playlist.playlistId)
   games: PlaylistGame[];
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Title of the playlist. */
   title: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Description of the playlist. */
   description: string;
 
-  @Column()
+  @Column({collation: 'NOCASE'})
   /** Author of the playlist. */
   author: string;
 

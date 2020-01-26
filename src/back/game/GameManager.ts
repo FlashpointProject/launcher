@@ -4,9 +4,15 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Coerce } from '@shared/utils/Coerce';
-import { FindOneOptions, getManager } from 'typeorm';
+import { FindOneOptions, getManager, SelectQueryBuilder, Brackets } from 'typeorm';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { ArgumentTypesOf } from '@shared/interfaces';
 
 export namespace GameManager {
+  export type GameResults = {
+    games: Game[],
+    total?: number
+  }
 
   export async function countGames(): Promise<number> {
     const gameRepository = getManager().getRepository(Game);
@@ -21,25 +27,75 @@ export namespace GameManager {
     }
   }
 
+  export async function findGameIndex(gameId: string, ...args: FindGameParams) {
+    const result = await findGames(...args);
+    return result.games.findIndex(g => g.id === gameId);
+  }
+
+  type FindGameParams = ArgumentTypesOf<typeof findGames>;
   /** Find the game with the specified ID. */
-  export async function findGames(filterOpts?: FilterGameOpts): Promise<Game[]> {
+  export async function findGames(filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
+                                  offset?: number, limit?: number, shallow?: boolean, getTotal?: boolean): Promise<GameResults> {
     // Skips opts when returning a playlist
     // @TODO Properly select from playlists
     const gameRepository = getManager().getRepository(Game);
+    const query = gameRepository.createQueryBuilder('game');
+
     if (filterOpts) {
+      // Playlist results
       if (filterOpts.playlistId) {
-        const playlistGames = await getManager().getRepository(PlaylistGame).find({ where: { playlistId: filterOpts.playlistId }});
-        return gameRepository.findByIds(playlistGames.map(g => g.gameId));
+        if (filterOpts.playlistId) {
+          const playlistGames = await getManager().getRepository(PlaylistGame).find({ where: { playlistId: filterOpts.playlistId }});
+          const games = await gameRepository.findByIds(playlistGames.map(g => g.gameId));
+          return {games: games, total: games.length};
+        }
+      }
+      // Search results
+      if (filterOpts.searchQuery) {
+        let whereCount = 0;
+        const searchQuery = filterOpts.searchQuery;
+        for (let filter of searchQuery.blacklist) {
+          doWhereField(query, filter.field, filter.value, whereCount, false);
+          whereCount++;
+        }
+        for (let filter of searchQuery.whitelist) {
+          doWhereField(query, filter.field, filter.value, whereCount, true);
+          whereCount++;
+        }
+        for (let phrase of searchQuery.genericBlacklist) {
+          doWhereTitle(query, phrase, whereCount, false);
+          whereCount++;
+        }
+        for (let phrase of searchQuery.genericWhitelist) {
+          doWhereTitle(query, phrase, whereCount, true);
+          whereCount++;
+        }
       }
     }
-    // Filter games out to return
-    const query = gameRepository.createQueryBuilder('game');
-    if (filterOpts) {
-      if (!filterOpts.extreme) { query.where('game.extreme = :extreme', {extreme: filterOpts.extreme}); }
-      if (!filterOpts.broken)  { query.where('game.broken = :broken',   {broken: filterOpts.broken});   }
-      if (filterOpts.library)  { query.where('game.library = :library', {library: filterOpts.library}); }
+    // Process rest of parameters
+    if (orderBy) { query.orderBy(`game.${orderBy}`, direction); }
+    if (offset)  { query.offset(offset); }
+    if (limit)   { query.limit(limit); }
+    // Subset of Game info, can be cast to ViewGame later
+    // if (shallow) { query.select('game.id, game.title, game.platform, game.tags, game.developer, game.publisher'); }
+    console.log(query.getQueryAndParameters());
+    if (getTotal) {
+      const results = await query.getManyAndCount();
+      return { games: results[0], total: results[1] };
+    } else {
+      const games = await query.getMany();
+      return { games };
     }
-    return query.getMany();
+  }
+
+  export type ViewGame = {
+    id: string;
+    title: string;
+    platform: string;
+    // List view only
+    tags: string;
+    developer: string;
+    publisher: string;
   }
 
   /** Find an add apps with the specified ID. */
@@ -136,5 +192,57 @@ export namespace GameManager {
   export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
     const playlistGameRepository = getManager().getRepository(PlaylistGame);
     return playlistGameRepository.save(playlistGame);
+  }
+}
+
+function doWhereTitle(query: SelectQueryBuilder<Game>, value: string, count: number, whitelist: boolean) {
+  const formedValue = '%' + value + '%';
+  let comparator: string;
+  if (whitelist) { comparator = 'like'; }
+  else           { comparator = 'not like'; }
+
+  console.log(`W: ${count} - F: generic - V: ${formedValue}`);
+
+  const ref = `field-${count}`;
+  if (count === 0) {
+    query.where(`game.title ${comparator} :${ref}`,             { [ref]: formedValue });
+    query.orWhere(`game.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
+    query.orWhere(`game.developer ${comparator} :${ref}`,       { [ref]: formedValue });
+    query.orWhere(`game.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
+  } else {
+    query.andWhere(new Brackets(qb => {
+      qb.where(`game.title ${comparator} :${ref}`,             { [ref]: formedValue });
+      qb.orWhere(`game.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
+      qb.orWhere(`game.developer ${comparator} :${ref}`,       { [ref]: formedValue });
+      qb.orWhere(`game.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
+    }));
+  }
+}
+
+function doWhereField(query: SelectQueryBuilder<Game>, field: keyof Game, value: any, count: number, whitelist: boolean) {
+  // Create comparator
+  const typing = typeof value;
+  let comparator: string;
+  if (typing === 'string' && value.length != '') {
+    if (whitelist) { comparator = 'like'; }
+    else           { comparator = 'not like'; }
+  } else {
+    if (whitelist) { comparator = '=';  }
+    else           { comparator = '!='; }
+  }
+
+  // Create formed value
+  let formedValue: any = value;
+  if (typing === 'string' && value.length != '') {
+    formedValue = '%' + value + '%';
+  }
+
+  console.log(`W: ${count} - F: ${field} - V: ${formedValue}`);
+  // Do correct 'where' call
+  const ref = `generic-${count}`;
+  if (count === 0) {
+    query.where(`game.${field} ${comparator} :${ref}`, { [ref]: formedValue });
+  } else {
+    query.andWhere(`game.${field} ${comparator} :${ref}`, { [ref]: formedValue });
   }
 }

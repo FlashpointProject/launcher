@@ -41,7 +41,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   currentTheme: 'Metal\\theme.css',
   lastSelectedLibrary: '',
   gamesOrderBy: 'title',
-  gamesOrder: 'ascending',
+  gamesOrder: 'ASC',
   defaultLibrary: ARCADE,
   mainWindow: Object.freeze({
     x: undefined,
@@ -87,7 +87,7 @@ export function overwritePreferenceData(
   parser.prop('currentTheme',                v => source.currentTheme                = str(v), true);
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
   parser.prop('gamesOrderBy',                v => source.gamesOrderBy                = strOpt(v, gameOrderByOptions,      'title'    ));
-  parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ascending'));
+  parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ASC'));
   parser.prop('defaultLibrary',              v => source.defaultLibrary              = str(v));
   parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
   // Parse window object

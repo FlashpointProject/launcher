@@ -30,7 +30,7 @@ type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNew
 
 type OwnProps = {
   games: GAMES | undefined;
-  gamesTotal: number;
+  gamesTotal?: number;
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
@@ -299,7 +299,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           <>
             <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
             <br/>
-            { (this.props.gamesTotal > 0) ? (
+            { (this.props.gamesTotal) ? (
               <>
                 {strings.noGameMatchedDesc}
                 <br/>
@@ -806,7 +806,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   static defaultOrder: Readonly<GameOrderChangeEvent> = {
     orderBy: 'title',
-    orderReverse: 'ascending',
+    orderReverse: 'ASC',
   }
 
   static contextType = LangContext;

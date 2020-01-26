@@ -18,7 +18,7 @@ export type GameListProps = {
   /** All games that will be shown in the list. */
   games?: GAMES;
   /** Total number of games there are. */
-  gamesTotal: number;
+  gamesTotal?: number;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently dragged game (if any). */
@@ -92,7 +92,7 @@ export class GameList extends React.Component<GameListProps> {
                   mode='cells'
                   isControlled={true}
                   columnCount={1}
-                  rowCount={this.props.gamesTotal}
+                  rowCount={this.props.gamesTotal || 0}
                   scrollToRow={scrollToIndex}>
                   {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
                     <List
@@ -100,7 +100,7 @@ export class GameList extends React.Component<GameListProps> {
                       width={width}
                       height={height}
                       rowHeight={this.props.rowHeight}
-                      rowCount={this.props.gamesTotal}
+                      rowCount={this.props.gamesTotal || 0}
                       overscanRowCount={RENDERER_OVERSCAN}
                       noRowsRenderer={this.props.noRowsRenderer}
                       rowRenderer={this.rowRenderer}
@@ -136,7 +136,7 @@ export class GameList extends React.Component<GameListProps> {
         id={game.id}
         title={game.title}
         platform={game.platform}
-        tags={game.genre}
+        tags={game.tags}
         developer={game.developer}
         publisher={game.publisher}
         isDraggable={true}
@@ -147,7 +147,7 @@ export class GameList extends React.Component<GameListProps> {
 
   onScroll = (params: ScrollParams) => {
     const top = Math.max(0, Math.floor(params.scrollTop / this.props.rowHeight) - BACK_OVERSCAN);
-    const bot = Math.min(Math.ceil((params.scrollTop + params.clientHeight) / this.props.rowHeight) + BACK_OVERSCAN, this.props.gamesTotal);
+    const bot = Math.min(Math.ceil((params.scrollTop + params.clientHeight) / this.props.rowHeight) + BACK_OVERSCAN, this.props.gamesTotal || 0);
     this.props.onRequestGames(top, (bot - top));
   }
 

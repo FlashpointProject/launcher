@@ -26,7 +26,7 @@ export type GameGridProps = {
   /** All games that will be shown in the grid (filter it before passing it here). */
   games?: GAMES;
   /** Total number of games there are. */
-  gamesTotal: number;
+  gamesTotal?: number;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently dragged game (if any). */
@@ -104,7 +104,7 @@ export class GameGrid extends React.Component<GameGridProps> {
         onKeyPress={this.onKeyPress}>
         <AutoSizer>
           {({ width, height }) => {
-            const { columns, rows } = this.calculateSize(this.props.gamesTotal, width);
+            const { columns, rows } = this.calculateSize(this.props.gamesTotal || 0, width);
             this.columns = columns;
             // Calculate column and row of selected item
             let scrollToColumn: number = -1;
@@ -209,7 +209,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   }
 
   onScroll = (params: ScrollParams) => {
-    const { rows, columns } = this.calculateSize(this.props.gamesTotal, params.clientWidth);
+    const { rows, columns } = this.calculateSize(this.props.gamesTotal || 0, params.clientWidth);
 
     const top = Math.max(0, Math.floor(params.scrollTop / this.props.cellHeight) - BACK_OVERSCAN);
     const bot = Math.min(Math.ceil((params.scrollTop + params.clientHeight) / this.props.cellHeight) + BACK_OVERSCAN, rows);

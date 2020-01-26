@@ -21,7 +21,7 @@ export class AdditionalApp {
   launchCommand: string;
   @Column()
   /** Name of the additional application */
-  @Column()
+  @Column({collation: 'NOCASE'})
   name: string;
   @Column()
   /** Wait for this to exit before the Game will launch (if starting before launch) */

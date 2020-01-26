@@ -105,8 +105,8 @@ function validateOrderBy(value: string): GameOrderBy {
  */
 function validateOrderReverse(value: string): GameOrderReverse {
   switch (value) {
-    case 'ascending':  return 'ascending';
-    case 'descending': return 'descending';
+    case 'ascending':  return 'ASC';
+    case 'descending': return 'DESC';
     default: throw new Error(`"${value}" is not a valid GameOrderReverse`);
   }
 }

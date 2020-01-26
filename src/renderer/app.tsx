@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, QuickSearchData, QuickSearchResponseData, SaveGameData, SavePlaylistGameData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, SaveGameData, SavePlaylistGameData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, SearchGamesOpts } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE } from '@shared/constants';
 import { GamePropSuggestions, ProcessState, WindowIPC } from '@shared/interfaces';
@@ -40,6 +40,7 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
+import { ParsedSearch, parseSearchText } from '@shared/game/GameFilter';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -49,18 +50,13 @@ type Views = Record<string, View | undefined>; // views[id] = view
 type View = {
   games: GAMES;
   pages: Record<number, ViewPage | undefined>;
-  total: number;
+  total?: number;
   selectedPlaylistId?: string;
   selectedGameId?: string;
   /** If the cache is dirty and should be discarded. */
   dirtyCache: boolean;
   /** The most recent query used for this view. */
-  query: {
-    search: string;
-    extreme: boolean;
-    orderBy: GameOrderBy;
-    orderReverse: GameOrderReverse;
-  };
+  query: SearchGamesOpts;
 }
 type ViewPage = {}
 
@@ -123,16 +119,24 @@ export class App extends React.Component<AppProps, AppState> {
     const libraries = window.Shared.initialLibraries.sort();
 
     // Prepare initial views
+    const initialQuery: ParsedSearch = {
+      blacklist: [],
+      whitelist: [],
+      genericBlacklist: [],
+      genericWhitelist: []
+    };
+    if (!preferencesData.browsePageShowExtreme)     { initialQuery.blacklist.push({ field: 'extreme', value: true }); }
+    if (!window.Shared.config.data.showBrokenGames) { initialQuery.blacklist.push({ field: 'broken', value: true });  }
     const views: Record<string, View> = {};
     for (let library of libraries) {
       views[library] = {
         dirtyCache: false,
         games: {},
         pages: {},
-        total: 0,
         query: {
-          search: this.props.search.text,
-          extreme: this.props.preferencesData.browsePageShowExtreme,
+          filter: {
+            searchQuery: initialQuery
+          },
           orderBy: order.orderBy,
           orderReverse: order.orderReverse,
         }
@@ -304,6 +308,7 @@ export class App extends React.Component<AppProps, AppState> {
               newView.dirtyCache = false;
               newView.games = {};
               newView.pages = {};
+              newView.total = undefined;
             } else {
               newView.games = { ...view.games };
             }
@@ -529,25 +534,34 @@ export class App extends React.Component<AppProps, AppState> {
           }
         }, () => { this.requestSelectedGame(library); });
       }
+      const prevPlaylist = prevView && prevView.selectedPlaylistId;
 
       // Check if the search query has changed
-      if (view.query.search       !== this.props.search.text ||
-          view.query.extreme      !== this.props.preferencesData.browsePageShowExtreme ||
-          view.query.orderBy      !== this.state.order.orderBy ||
-          view.query.orderReverse !== this.state.order.orderReverse) {
+      if (prevProps.search.text                           !== this.props.search.text ||
+          prevProps.preferencesData.browsePageShowExtreme !== this.props.preferencesData.browsePageShowExtreme ||
+          prevState.order.orderBy                         !== this.state.order.orderBy ||
+          prevState.order.orderReverse                    !== this.state.order.orderReverse ||
+          prevPlaylist                                    !== view.selectedPlaylistId) {
+        // Rebuild query
+        const searchQuery = parseSearchText(this.props.search.text);
+        if (!this.props.preferencesData.browsePageShowExtreme) { searchQuery.blacklist.push({ field: 'extreme', value: true }); }
+        if (!window.Shared.config.data.showBrokenGames)        { searchQuery.blacklist.push({ field: 'broken', value: true });  }
+        const query: SearchGamesOpts = {
+          filter: {
+            searchQuery: searchQuery,
+            playlistId: view.selectedPlaylistId
+          },
+          orderBy: this.state.order.orderBy,
+          orderReverse: this.state.order.orderReverse
+        };
+        // Clear out cache views
         this.setState({
           views: {
             ...this.state.views,
             [library]: {
               ...view,
               dirtyCache: true,
-              query: {
-                ...view.query,
-                search: this.props.search.text,
-                extreme: this.props.preferencesData.browsePageShowExtreme,
-                orderBy: this.state.order.orderBy,
-                orderReverse: this.state.order.orderReverse,
-              },
+              query: query,
             }
           }
         }, () => { this.requestSelectedGame(library); });
@@ -854,7 +868,7 @@ export class App extends React.Component<AppProps, AppState> {
             if (!state.views) { state.views = { ...this.state.views }; }
             state.views[id] = {
               ...view,
-              dirtyCache: true,
+              dirtyCache: true
             };
           }
         }
@@ -892,21 +906,12 @@ export class App extends React.Component<AppProps, AppState> {
     if (view.selectedGameId === undefined) {
       this.onRequestGames(0, 1);
     } else {
-      window.Shared.back.send<any, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
+      window.Shared.back.send<BrowseViewIndexResponse, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
         gameId: view.selectedGameId,
-        query: {
-          extreme: view.query.extreme,
-          broken: window.Shared.config.data.showBrokenGames,
-          library: library,
-          search: view.query.search,
-          playlistId: view && view.selectedPlaylistId,
-          orderBy: view.query.orderBy,
-          orderReverse: view.query.orderReverse,
-        }
+        query: view.query
       }, res => {
-        const resData: BrowseViewIndexResponseData = res.data;
-        if (resData.index >= 0) { // (Game found)
-          this.onRequestGames(resData.index, 1);
+        if (res.data && res.data.index >= 0) { // (Game found)
+          this.onRequestGames(res.data.index, 1);
         } else { // (Game not found)
           this.setState({
             views: {
@@ -951,15 +956,8 @@ export class App extends React.Component<AppProps, AppState> {
         data: {
           offset: pageMin * VIEW_PAGE_SIZE,
           limit: (pageMax - pageMin + 1) * VIEW_PAGE_SIZE,
-          query: {
-            extreme: view.query.extreme,
-            broken: window.Shared.config.data.showBrokenGames,
-            library: library,
-            search: view.query.search,
-            playlistId: view && view.selectedPlaylistId,
-            orderBy: view.query.orderBy,
-            orderReverse: view.query.orderReverse,
-          },
+          query: view.query,
+          getTotal: !view.total || view.dirtyCache
         }
       });
 
@@ -986,41 +984,50 @@ export class App extends React.Component<AppProps, AppState> {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
 
+    console.log('quick');
     if (!view) {
       log(`Failed to quick search. Current view is missing (Library: "${library}", View: "${view}").`);
       return;
     }
 
-    window.Shared.back.send<QuickSearchResponseData, QuickSearchData>(BackIn.QUICK_SEARCH, {
-      search: search,
-      query: {
-        extreme: this.props.preferencesData.browsePageShowExtreme,
-        broken: window.Shared.config.data.showBrokenGames,
-        library: library,
-        search: this.props.search.text, // view.query.search,
-        playlistId: view && view.selectedPlaylistId,
-        orderBy: this.state.order.orderBy, // view.query.orderBy,
-        orderReverse: this.state.order.orderReverse, // view.query.orderReverse,
-      },
-    }, res => {
-      const view = this.state.views[library];
-      if (res.data && view) {
-        // Fetch the page that the game is on
-        if (res.data.index !== undefined && !view.pages[(res.data.index / VIEW_PAGE_SIZE) | 0]) {
-          this.onRequestGames(res.data.index, res.data.index);
-        }
 
-        this.setState({
-          views: {
-            ...this.state.views,
-            [library]: {
-              ...view,
-              selectedGameId: res.data.id
-            },
-          }
-        });
+    // Build up filter
+    const searchQuery = parseSearchText(search);
+    searchQuery.whitelist.push({ field: 'library', value: library });
+    if (!this.props.preferencesData.browsePageShowExtreme) { searchQuery.blacklist.push({field: 'extreme', value: true}); }
+    if (!window.Shared.config.data.showBrokenGames)       { searchQuery.blacklist.push({field: 'broken', value: true});  }
+
+    // Build query to run
+    const query: SearchGamesOpts = {
+      filter: {
+        searchQuery: searchQuery,
+        playlistId: view && view.selectedPlaylistId
+      },
+      orderBy: this.state.order.orderBy,
+      orderReverse: this.state.order.orderReverse
+    };
+    // Stash the query
+    this.setState({
+      views: {
+        [library]: view
       }
     });
+
+    // No point finding the game id if it doesn't even exist
+    if (view.selectedGameId) {
+      window.Shared.back.send<BrowseViewIndexResponse, BrowseViewIndexData>(BackIn.QUICK_SEARCH, {
+        query: query,
+        gameId: view.selectedGameId
+      }, res => {
+        const view = this.state.views[library];
+        if (res.data && view) {
+          // Fetch the page that the game is on
+          if (res.data.index !== undefined && !view.pages[(res.data.index / VIEW_PAGE_SIZE) | 0]) {
+            this.onRequestGames(res.data.index, res.data.index);
+          }
+        }
+      });
+    }
   }
 
   cachePlaylistIcons(playlists: Playlist[]): void {

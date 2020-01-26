@@ -1,11 +1,10 @@
 import { Game } from '@database/entity/Game';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponseData, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, QuickSearchData, QuickSearchResponseData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame, SearchGamesOpts, SearchGamesResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { findMostUsedApplicationPaths } from '@shared/curate/defaultValues';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, IService, ProcessAction } from '@shared/interfaces';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
@@ -27,6 +26,7 @@ import { BackQuery, BackQueryChache, BackState } from './types';
 import { copyError, createContainer, exit, log, pathExists, procToService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
+import { shallow } from 'enzyme';
 
 const copyFile  = util.promisify(fs.copyFile);
 const stat      = util.promisify(fs.stat);
@@ -116,7 +116,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async (event, req) => {
-    const games = await GameManager.findGames();
+    const { games } = await GameManager.findGames();
     respond<GetSuggestionsResponseData>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
@@ -337,7 +337,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event, req) => {
-    const games = await GameManager.findGames();
+    const { games } = await GameManager.findGames();
     respond<GetAllGamesResponseData>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
@@ -347,15 +347,15 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register<RandomGamesData>(BackIn.RANDOM_GAMES, async (event, req) => {
     const reqData: RandomGamesData = req.data;
-    let allGames: Game[] = await GameManager.findGames();
+    let { games } = await GameManager.findGames();
 
     const pickedGames: Game[] = [];
     for (let i = 0; i < reqData.count; i++) {
-      const index = (Math.random() * allGames.length) | 0;
-      const game = allGames[index];
+      const index = (Math.random() * games.length) | 0;
+      const game = games[index];
       if (game) {
         pickedGames.push(game);
-        allGames.splice(index, 1);
+        games.splice(index, 1);
       }
     }
 
@@ -367,58 +367,30 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, async (event, req) => {
-    const query: BackQuery = {
-      extreme: req.data.query.extreme,
-      broken: req.data.query.broken,
-      library: req.data.query.library,
-      search: req.data.query.search,
-      orderBy: req.data.query.orderBy as GameOrderBy,
-      orderReverse: req.data.query.orderReverse as GameOrderReverse,
-      playlistId: req.data.query.playlistId,
-    };
-
-    const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
-    let cache = state.queries[hash];
-    if (!cache) { state.queries[hash] = cache = await queryGames(state, query); } // @TODO Start clearing the cache if it gets too full
+    const { query, offset, limit, getTotal } = req.data;
+    const { games, total } = await GameManager.findGames(query.filter, query.orderBy, query.orderReverse, offset, limit, true, getTotal);
 
     respond<BrowseViewPageResponseData>(event.target, {
       id: req.id,
       type: BackOut.BROWSE_VIEW_PAGE_RESPONSE,
       data: {
-        games: cache.viewGames.slice(req.data.offset, req.data.offset + req.data.limit),
-        offset: req.data.offset,
-        total: cache.games.length,
+        games: games as ViewGame[],
+        offset: offset,
+        total: total
       },
     });
   });
 
   state.socketServer.register<BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, async (event, req) => {
-    const query: BackQuery = {
-      extreme: req.data.query.extreme,
-      broken: req.data.query.broken,
-      library: req.data.query.library,
-      search: req.data.query.search,
-      orderBy: req.data.query.orderBy as GameOrderBy,
-      orderReverse: req.data.query.orderReverse as GameOrderReverse,
-      playlistId: req.data.query.playlistId,
-    };
+    const { gameId, query } = req.data;
+    const position = await GameManager.findGameIndex(gameId, query.filter, query.orderBy, query.orderReverse, 0, 1, true, false);
 
-    const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
-    let cache = state.queries[hash];
-    if (!cache) { state.queries[hash] = cache = await queryGames(state, query); } // @TODO Start clearing the cache if it gets too full
-
-    let index = -1;
-    for (let i = 0; i < cache.viewGames.length; i++) {
-      if (cache.viewGames[i].id === req.data.gameId) {
-        index = i;
-        break;
-      }
-    }
-
-    respond<BrowseViewIndexResponseData>(event.target, {
+    respond<BrowseViewIndexResponse>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
-      data: { index },
+      data: {
+        index: position,
+      },
     });
   });
 
@@ -473,41 +445,6 @@ export function registerRequestCallbacks(state: BackState): void {
       data: {
         id: id,
         folder: folder,
-      },
-    });
-  });
-
-  state.socketServer.register<QuickSearchData>(BackIn.QUICK_SEARCH, async (event, req) => {
-    const query: BackQuery = {
-      extreme: req.data.query.extreme,
-      broken: req.data.query.broken,
-      library: req.data.query.library,
-      search: req.data.query.search,
-      orderBy: req.data.query.orderBy as GameOrderBy,
-      orderReverse: req.data.query.orderReverse as GameOrderReverse,
-      playlistId: req.data.query.playlistId,
-    };
-
-    const hash = createHash('sha256').update(JSON.stringify(query)).digest('base64');
-    let cache = state.queries[hash];
-    if (!cache) { state.queries[hash] = cache = await queryGames(state, query); }
-
-    let result: string | undefined;
-    let index: number | undefined;
-    for (let i = 0; i < cache.games.length; i++) {
-      if (cache.games[i].title.toLowerCase().startsWith(req.data.search)) {
-        index = i;
-        result = cache.games[i].id;
-        break;
-      }
-    }
-
-    respond<QuickSearchResponseData>(event.target, {
-      id: req.id,
-      type: BackOut.GENERIC_RESPONSE,
-      data: {
-        id: result,
-        index: index,
       },
     });
   });
@@ -760,62 +697,4 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
     }
   }
   return dif;
-}
-
-type SearchGamesOpts = {
-  extreme: boolean;
-  broken: boolean;
-  playlistId?: string;
-  /** String to use as a search query */
-  query: string;
-  /** The field to order the games by. */
-  orderBy: GameOrderBy;
-  /** The way to order the games. */
-  orderReverse: GameOrderReverse;
-  /** Library to search (all if none) */
-  library?: string;
-}
-
-async function searchGames(state: BackState, opts: SearchGamesOpts): Promise<Game[]> {
-  // Build opts from preferences and query
-  const filterOpts: FilterGameOpts = {
-    search: opts.query,
-    extreme: opts.extreme,
-    broken: opts.broken,
-    playlistId: opts.playlistId,
-    library: opts.library
-  };
-
-  return GameManager.findGames(filterOpts);
-}
-
-async function queryGames(state: BackState, query: BackQuery): Promise<BackQueryChache> {
-  const results = await searchGames(state, {
-    extreme: query.extreme,
-    broken: query.broken,
-    query: query.search,
-    orderBy: query.orderBy,
-    orderReverse: query.orderReverse,
-    library: query.library,
-    playlistId: query.playlistId,
-  });
-
-  const viewGames: ViewGame[] = [];
-  for (let i = 0; i < results.length; i++) {
-    const g = results[i];
-    viewGames[i] = {
-      id: g.id,
-      title: g.title,
-      platform: g.platform,
-      genre: g.tags,
-      developer: g.developer,
-      publisher: g.publisher,
-    };
-  }
-
-  return {
-    query: query,
-    games: results,
-    viewGames: viewGames,
-  };
 }
