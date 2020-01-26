@@ -1,7 +1,7 @@
 {
-  "name": "English",
+  "name": "Engels",
   "config": {
-    "configHeader": "Config",
+    "configHeader": "Configuratie",
     "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
     "preferencesHeader": "Preferences",
     "extremeGames": "Extreme Games",
