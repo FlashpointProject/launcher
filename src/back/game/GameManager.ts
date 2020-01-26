@@ -125,6 +125,17 @@ export namespace GameManager {
     return Coerce.strArray(libraries.map(l => l.game_platform));
   }
 
+  export async function updateGames(games: Game[]): Promise<void> {
+    const chunks = chunkArray(games, 1000);
+    for (let chunk of chunks) {
+      await getManager().transaction(async transEntityManager => {
+        for (let game of chunk) {
+          await transEntityManager.save(Game, game);
+        }
+      });
+    }
+  }
+
   export async function updateGame(game: Game): Promise<Game> {
     const gameRepository = getManager().getRepository(Game);
     return gameRepository.save(game);
@@ -245,4 +256,14 @@ function doWhereField(query: SelectQueryBuilder<Game>, field: keyof Game, value:
   } else {
     query.andWhere(`game.${field} ${comparator} :${ref}`, { [ref]: formedValue });
   }
+}
+
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  let chunks: T[][] = [];
+
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+
+  return chunks;
 }

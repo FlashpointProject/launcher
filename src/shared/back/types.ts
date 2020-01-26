@@ -2,6 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { FilterGameOpts } from '@shared/game/GameFilter';
+import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
@@ -40,6 +41,7 @@ export enum BackIn {
   GET_PLAYLIST_GAME,
   SAVE_PLAYLIST_GAME,
   DELETE_PLAYLIST_GAME,
+  SAVE_LEGACY_PLATFORM,
   IMPORT_CURATION,
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
@@ -171,6 +173,8 @@ export type LaunchGameData = {
 }
 
 export type SaveGameData = Game;
+
+export type SaveLegacyPlatformData = Legacy_GamePlatform;
 
 export type DeleteGameData = {
   id: string;

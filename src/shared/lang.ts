@@ -135,6 +135,8 @@ const langTemplate = {
     'renameImagesIdToTitleDesc',
     'createMissingFolders',
     'createMissingFoldersDesc',
+    'importLegacyContent',
+    'importLegacyContentDesc',
     'servicesHeader',
     'servicesMissing',
     'running',

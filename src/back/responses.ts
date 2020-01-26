@@ -1,17 +1,15 @@
 import { Game } from '@database/entity/Game';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame, SearchGamesOpts, SearchGamesResponse } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { findMostUsedApplicationPaths } from '@shared/curate/defaultValues';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
 import { DeepPartial, IService, ProcessAction } from '@shared/interfaces';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy } from '@shared/Util';
-import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
@@ -22,11 +20,10 @@ import { GameLauncher } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { respond } from './SocketServer';
 import { getSuggestions } from './suggestions';
-import { BackQuery, BackQueryChache, BackState } from './types';
-import { copyError, createContainer, exit, log, pathExists, procToService } from './util/misc';
+import { BackState } from './types';
+import { copyError, createContainer, createGameFromLegacy, exit, log, pathExists, procToService, createAddAppFromLegacy } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
-import { shallow } from 'enzyme';
 
 const copyFile  = util.promisify(fs.copyFile);
 const stat      = util.promisify(fs.stat);
@@ -159,10 +156,11 @@ export function registerRequestCallbacks(state: BackState): void {
     const reqData: LaunchAddAppData = req.data;
     const addApp = await GameManager.findAddApp(reqData.id);
     if (addApp) {
+      const platform = addApp.parentGame ? addApp.parentGame : '';
       GameLauncher.launchAdditionalApplication({
         addApp,
         fpPath: path.resolve(state.config.flashpointPath),
-        native: addApp.parentGame && state.config.nativePlatforms.some(p => p === addApp.parentGame.platform) || false,
+        native: addApp.parentGame && state.config.nativePlatforms.some(p => p === platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
         log: log.bind(undefined, state),
@@ -579,6 +577,21 @@ export function registerRequestCallbacks(state: BackState): void {
       data: playlistGame
     });
     state.queries = {};
+  });
+
+  state.socketServer.register<SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, async (event, req) => {
+    const platform = req.data;
+    const translatedGames = platform.collection.games.map(g => {
+      const addApps = platform.collection.additionalApplications.filter(a => a.gameId === g.id);
+      const translatedGame = createGameFromLegacy(g);
+      translatedGame.addApps = createAddAppFromLegacy(addApps, translatedGame);
+      return translatedGame;
+    });
+    await GameManager.updateGames(translatedGames);
+    respond(event.target, {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE
+    });
   });
 
   state.socketServer.register<ImportCurationData>(BackIn.IMPORT_CURATION, async (event, req) => {

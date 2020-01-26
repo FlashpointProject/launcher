@@ -1,9 +1,12 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState } from '@back/types';
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
 import { BackOut } from '@shared/back/types';
 import { IBackProcessInfo, IService } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
+import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
 import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
@@ -173,4 +176,49 @@ export async function execProcess(state: BackState, proc: IBackProcessInfo, sync
       content: `An unexpected error occurred while executing a command:\n  "${error}"`,
     });
   }
+}
+
+export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInfo[], game: Game): AdditionalApp[] {
+  return addApps.map(a => {
+    return {
+      id: a.id,
+      name: a.name,
+      applicationPath: a.applicationPath,
+      launchCommand: a.launchCommand,
+      autoRunBefore: a.autoRunBefore,
+      waitForExit: a.waitForExit,
+      parentGame: game
+    };
+  });
+}
+
+export function createGameFromLegacy(game: Legacy_IGameInfo): Game {
+  return {
+    id: game.id,
+    title: game.title,
+    alternateTitles: game.alternateTitles,
+    series: game.series,
+    developer: game.developer,
+    publisher: game.publisher,
+    platform: game.platform,
+    dateAdded: game.dateAdded,
+    dateModified: game.dateAdded,
+    broken: game.broken,
+    extreme: game.extreme,
+    playMode: game.playMode,
+    status: game.status,
+    notes: game.notes,
+    tags: game.tags,
+    source: game.source,
+    applicationPath: game.applicationPath,
+    launchCommand: game.launchCommand,
+    releaseDate: game.releaseDate,
+    version: game.version,
+    originalDescription: game.originalDescription,
+    language: game.language,
+    library: game.library,
+    orderTitle: game.orderTitle,
+    placeholder: false,
+    addApps: []
+  };
 }

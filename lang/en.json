@@ -128,6 +128,8 @@
     "renameImagesIdToTitleDesc": "Find all game images with the games ID in their filename and rename them to use its title instead",
     "createMissingFolders": "Create Missing Folders",
     "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them",
+    "importLegacyContent": "Import Legacy Content",
+    "importLegacyContentDesc": "Imports Legacy Content - Platform XMLs from 'Data/Platform/'",
     "servicesHeader": "Background Services",
     "servicesMissing": "There are no services.",
     "running": "Running",

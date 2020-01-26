@@ -1,10 +1,12 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
-import { BackIn, BackOut, GetAllGamesResponseData, GetExecData, ServiceChangeData, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, GetAllGamesResponseData, GetExecData, SaveLegacyPlatformData, ServiceChangeData, WrappedResponse } from '@shared/back/types';
+import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
+import { Legacy_GameManager } from '@shared/legacy/GameManager';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as React from 'react';
@@ -105,6 +107,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.createMissingFolders}
               title={strings.createMissingFoldersDesc}
               onClick={this.onCreateMissingFoldersClick} />
+            <SimpleButton
+              value={strings.importLegacyContent}
+              title={strings.importLegacyContentDesc}
+              onClick={this.onImportLegacyContentClick} />
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
@@ -170,6 +176,12 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     setTimeout(async () => {
       this.setState({ text: await createMissingFolders() });
     }, 0);
+  }
+
+  onImportLegacyContentClick = (): void => {
+    setTimeout(async () => {
+      importLegacyContent(window.Shared.config.data, (text) => this.setState({ text: text }));
+    });
   }
 
   static contextType = LangContext;
@@ -316,7 +328,7 @@ function checkGameEmptyFields(games: Game[]): string {
 //         missingGameIDs.length > 0) {
 //       reports.push({
 //         playlist,
-//         duplicateGames,
+//         duplicateGames,Legacy_GameManager
 //         missingGameIDs,
 //         invalidGameIDs
 //       });
@@ -579,4 +591,31 @@ function fetchAllGames(): Promise<Game[]> {
       else { reject(new Error('Failed to fetch all games. Data is undefined.')); }
     });
   });
+}
+
+async function importLegacyContent(config: IAppConfigData, setText: (text: string) => void): Promise<void> {
+  let text: string[] = [];
+  text.push('Finding XMLs...');
+  setText(text.join('\n'));
+
+  const platformsPath = path.join(config.flashpointPath, config.platformFolderPath);
+  const { platforms, errors } = await Legacy_GameManager.loadPlatforms(platformsPath);
+  if (errors.length > 0) {
+    for (let error of errors) {
+      text.push(`File - ${error.filePath}\nStack\n ${error.stack}`);
+    }
+    text.push('\nErrors detected in some platforms, aborting');
+  } else {
+    const startTime = new Date();
+    for (let platform of platforms) {
+      text.push(`\nAdding Platform ${platform.library} - ${platform.name} - ${platform.collection.games.length} Games`);
+      setText(text.join('\n'));
+      await window.Shared.back.sendP<any, SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, platform);
+    }
+    const timeTaken = Date.now() - startTime.getTime();
+    const totalGames = platforms.reduce((total, cur) => total += cur.collection.games.length, 0);
+    text.push(`Finished! Took ${Math.floor((timeTaken / 1000) / 60)}m ${Math.round((timeTaken / 1000) % 60)}s to add ${totalGames} Games!`);
+    text.push(`${Math.ceil(timeTaken / totalGames)}ms per game.`);
+    setText(text.join('\n'));
+  }
 }
