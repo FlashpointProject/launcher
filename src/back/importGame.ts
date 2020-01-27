@@ -9,7 +9,7 @@ import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
-import { formatDate, sizeToString } from '@shared/Util';
+import { sizeToString } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { GameManager } from './game/GameManager';
 import { GameManagerState } from './game/types';
@@ -213,7 +213,7 @@ function createGameFromCurationMeta(gameId: string, meta: EditCurationMeta, date
     version:             meta.version             || '',
     originalDescription: meta.originalDescription || '',
     language:            meta.language            || '',
-    dateAdded:           formatDate(date),
+    dateAdded:           date.toISOString(),
     broken:              false,
     extreme:             !!strToBool(meta.extreme || ''),
     library:             meta.library || '',

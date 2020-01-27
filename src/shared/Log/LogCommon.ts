@@ -26,6 +26,28 @@ export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string
   return str;
 }
 
+/** Create a HTML string of a number of entries */
+export function stringifyLogEntriesRaw(entries: ILogEntry[], filter: { [key: string]: boolean } = {}): string {
+  let str = '';
+  let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0 };
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const entryFilter = filter[entry.source];
+    if (entryFilter === true || entryFilter === undefined) {
+      str += `[${(new Date(entry.timestamp)).toLocaleString()}] `;
+      if (entry.source) {
+        str += (entry.source !== prevEntry.source) ?
+              `${padStart(escapeHTML(entry.source), sourceChars)} | ` :
+              ' '.repeat(sourceChars + 2);
+      }
+      str += padLines(entry.content, timeChars + sourceChars + 2);
+      str += '\n';
+    }
+    prevEntry = entry;
+  }
+  return str;
+}
+
 /** Formats a date to a string in the format "HH:MM:SS" */
 export function formatTime(date: Date): string {
   return (

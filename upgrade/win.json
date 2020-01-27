@@ -3,10 +3,10 @@
     "title": "infinity",
     "description": "infinityDesc",
     "verify_files":  [ "readme.txt" ],
-    "verify_sha256": [ "9DCB49CAC9FF515881158534BFEFFC1EA1B5DFA35B1FFEDEDFFAFF885DEAE33A" ],
-    "deletePaths": [ "Data\\Platforms\\", "Data\\Images\\", "FPSoftware\\BrowserPlugins\\", "FPSoftware\\Basilisk-Portable\\Bin\\"  ],
+    "verify_sha256": [ "75198ef0dcfaa3dd5f3478c0fec973e3c3f0bd4b4b0f3d6612387c133df42048" ],
+    "deletePaths": [ "FPSoftware\\BrowserPlugins\\", "FPSoftware\\Basilisk-Portable\\Bin\\"  ],
     "keepPaths": [ "Data\\Playlists\\favorites.json" ],
-    "sources": [ "https://download.unstable.life/upgrades/FP70-Infinity.7z" ],
-    "sources_sha256": "31DFFDB248D5292598131B4F547C8ECA0A921F24765E4AB0FA86BE99BBEC84A9"
+    "sources": [ "https://download.unstable.life/upgrades/FP71-Infinity.7z" ],
+    "sources_sha256": "e9edeb58abb6bafaefef59a8c80f4f2e10dbb456aa404ca36cea66d31a36a11e"
   }
 }

@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import * as path from 'path';
 import * as React from 'react';
-import * as AppConstants from '../../../shared/AppConstants';
+import * as AppConstants from '@shared/constants';
 import * as fs from 'fs-extra';
 import { BackIn, GetLanguageData, UpdateConfigData } from '../../../shared/back/types';
 import { createLangContainer } from '../../../shared/lang';
@@ -170,7 +170,7 @@ export function SetupPage(props: SetupPageProps) {
   return React.useMemo(() => (
     <>
       { window.External.config.data.useCustomTitlebar ? (
-        <TitleBar title={`${AppConstants.appTitle} (${remote.app.getVersion()})`} />
+        <TitleBar title={`${AppConstants.APP_TITLE} (${remote.app.getVersion()})`} />
       ) : undefined }
       <div className='setup-page simple-scroll'>
         <div className='setup-page__title'>

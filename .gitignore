@@ -24,6 +24,7 @@ package-lock.json
 /upgrade_launcher.json
 /setupFinished
 /secret.txt
+/launcher.log
 
 # Jest related files
 /.coveralls.yml

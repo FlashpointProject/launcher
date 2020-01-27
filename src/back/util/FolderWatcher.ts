@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { debounce } from './debounce';
+import { eventAggregator } from './EventAggregator';
 import { EventQueue } from './EventQueue';
 import { WrappedEventEmitter } from './WrappedEventEmitter';
 
@@ -122,7 +122,7 @@ export class FolderWatcher extends WrappedEventEmitter {
         // Watch folder for changes
         this._watcher = fs.watch(
           this._folderPath, { persistent: false },
-          debounce(this.onWatcherChange.bind(this), { time: 25 })
+          eventAggregator(this.onWatcherChange.bind(this), { time: 25 })
         );
         fixFsWatcher(this._watcher); // (Fix a bug with node/electron)
         // Relay errors

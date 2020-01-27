@@ -110,7 +110,7 @@ function main() {
   // Start back process
   if (!initArgs['connect-remote']) {
     p = p.then(() => new Promise((resolve, reject) => {
-      state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true });
+      state.backProc = fork(path.join(__dirname, '../back/index.js'), undefined, { detached: true, stdio: ['ignore', 'ignore', process.stderr, 'ipc'] });
       // Wait for process to initialize
       state.backProc.once('message', (port) => {
         if (port >= 0) {
@@ -403,7 +403,7 @@ function getArgs(): InitArgs {
         // Boolean value
         case 'host-remote':
         case 'back-only':
-          initArgs[name] = Coerce.strToBool2(value);
+          initArgs[name] = Coerce.strToBool(value);
           break;
       }
     }
