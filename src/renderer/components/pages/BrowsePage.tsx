@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { BackIn, DeleteGameData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, ExportGameData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, LaunchGameData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse } from '@shared/back/types';
+import { BackIn, DeleteGameData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, ImportPlaylistData, LaunchGameData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -199,6 +199,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onDelete={this.onDeletePlaylist}
             onSave={this.onSavePlaylist}
             onCreate={this.onCreatePlaylistClick}
+            onImport={() => this.onImportPlaylistClick(strings)}
             onDiscard={this.onDiscardPlaylistClick}
             onEditClick={this.onEditPlaylistClick}
             onDrop={this.onPlaylistDrop}
@@ -208,7 +209,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onAuthorChange={this.onPlaylistAuthorChange}
             onDescriptionChange={this.onPlaylistDescriptionChange}
             onKeyDown={this.onPlaylistKeyDown}
-            onShowAllClick={this.onLeftSidebarShowAllClick} />
+            onShowAllClick={this.onLeftSidebarShowAllClick}
+            onDuplicatePlaylist={this.onDuplicatePlaylist}
+            onExportPlaylist={(playlistId) => this.onExportPlaylist(strings, playlistId)}
+            onContextMenu={this.onPlaylistContextMenuMemo(strings, this.state.isEditingPlaylist, this.props.selectedPlaylistId)} />
         </ResizableSidebar>
         <div
           className='game-browser__center'
@@ -312,6 +316,28 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         ) }
       </div>
     );
+  });
+
+  private onPlaylistContextMenuMemo = memoizeOne((strings: LangContainer, isEditing: boolean, selectedPlaylistId?: string) => {
+    return (event: React.MouseEvent<HTMLDivElement, MouseEvent>, playlistId: string) => {
+      if (!isEditing || selectedPlaylistId != playlistId) { // Don't export a playlist in the back while it's being edited in the front
+        return (
+          openContextMenu([{
+            label: strings.menu.duplicatePlaylist,
+            click: () => {
+              this.onDuplicatePlaylist(playlistId);
+            }
+          },
+          {
+            label: strings.menu.exportPlaylist,
+            enabled: !window.Shared.isBackRemote, // (Local "back" only)
+            click: () => {
+              this.onExportPlaylist(strings, playlistId);
+            },
+          }])
+        );
+      }
+    };
   });
 
   private onGameContextMenuMemo = memoizeOne((strings: LangContainer) => {
@@ -642,6 +668,20 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
+  onImportPlaylistClick = (strings: LangContainer): void => {
+    const filePath = remote.dialog.showOpenDialogSync({
+      title: strings.dialog.selectPlaylistToImport,
+      defaultPath: 'playlists',
+      filters: [{
+        name: 'Playlist file',
+        extensions: ['json'],
+      }]
+    });
+    if (filePath) {
+      window.Shared.back.send<any, ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, filePath[0]);
+    }
+  }
+
   onCreatePlaylistClick = (): void => {
     this.setState({
       currentPlaylist: {
@@ -718,11 +758,21 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onPlaylistSetIcon = () => {
-    if (this.state.currentPlaylist) {
+    if (this.state.currentPlaylist && this.state.isEditingPlaylist) {
       // Synchronously show a "open dialog" (this makes the main window "frozen" while this is open)
       const filePaths = window.Shared.showOpenDialogSync({
-        title: 'Select the FlashPoint root directory',
+        title: 'Select a file to use as the icon',
         properties: ['openFile'],
+        filters: [
+          {
+            name: 'Image File (.png, .jpg, .jpeg)',
+            extensions: ['png', 'jpg', 'jpeg'],
+          },
+          {
+            name: 'All files (*.*)',
+            extensions: [],
+          }
+        ]
       });
       if (filePaths && filePaths.length > 0) {
         toDataURL(filePaths[0])
@@ -790,6 +840,22 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       currentGame: undefined,
       currentPlaylistEntry: undefined,
     });
+  }
+
+  onDuplicatePlaylist = (playlistId: string): void => {
+    window.Shared.back.send<any, DuplicatePlaylistData>(BackIn.DUPLICATE_PLAYLIST, playlistId);
+  }
+
+  onExportPlaylist = (strings: LangContainer, playlistId: string): void => {
+    const filePath = remote.dialog.showSaveDialogSync({
+      title: strings.dialog.selectFileToExportPlaylist,
+      defaultPath: 'playlist.json',
+      filters: [{
+        name: 'Playlist file',
+        extensions: ['json'],
+      }]
+    });
+    if (filePath) { window.Shared.back.send<any, ExportPlaylistData>(BackIn.EXPORT_PLAYLIST, { id: playlistId, location: filePath }); }
   }
 
   /** Focus the game grid/list (if this has a reference to one). */

@@ -3,10 +3,10 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { FilterGameOpts } from '@shared/game/GameFilter';
-import { Coerce } from '@shared/utils/Coerce';
-import { FindOneOptions, getManager, SelectQueryBuilder, Brackets } from 'typeorm';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ArgumentTypesOf } from '@shared/interfaces';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { Coerce } from '@shared/utils/Coerce';
+import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
 
 export namespace GameManager {
   export type GameResults = {
@@ -78,7 +78,6 @@ export namespace GameManager {
     if (limit)   { query.limit(limit); }
     // Subset of Game info, can be cast to ViewGame later
     // if (shallow) { query.select('game.id, game.title, game.platform, game.tags, game.developer, game.publisher'); }
-    console.log(query.getQueryAndParameters());
     if (getTotal) {
       const results = await query.getManyAndCount();
       return { games: results[0], total: results[1] };
@@ -153,9 +152,10 @@ export namespace GameManager {
     }
   }
 
-  export async function findPlaylist(playlistId: string): Promise<Playlist | undefined> {
+  export async function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | undefined> {
+    const opts: FindOneOptions<Playlist> = join ? { relations: ['games'] } : {};
     const playlistRepository = getManager().getRepository(Playlist);
-    return playlistRepository.findOne(playlistId);
+    return playlistRepository.findOne(playlistId, opts);
   }
 
   /** Find playlists given a filter. @TODO filter */
@@ -167,8 +167,13 @@ export namespace GameManager {
   /** Removes a playlist */
   export async function removePlaylist(playlistId: string): Promise<Playlist | undefined> {
     const playlistRepository = getManager().getRepository(Playlist);
-    const playlist = await GameManager.findPlaylist(playlistId);
+    const playlistGameRepository = getManager().getRepository(PlaylistGame);
+    const playlist = await GameManager.findPlaylist(playlistId, true);
     if (playlist) {
+      for (let game of playlist.games) {
+        await playlistGameRepository.remove(game);
+      }
+      playlist.games = [];
       return playlistRepository.remove(playlist);
     }
   }

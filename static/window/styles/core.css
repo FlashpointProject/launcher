@@ -1640,6 +1640,12 @@ body {
   height: calc(var(--image-size) + var(--image-padding) * 2);
   padding: var(--image-padding);
   padding-left: 0.5rem;
+  flex-grow: 1;
+}
+.playlist-list-fake-item-buttons {
+  display: flex;
+  overflow: hidden;
+  height: calc(var(--image-size) + var(--image-padding) * 2);
 }
 .playlist-list-fake-item,
 .playlist-list-fake-item * {

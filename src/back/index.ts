@@ -70,8 +70,6 @@ const state: BackState = {
   themeWatcher: new FolderWatcher(),
   themeQueue: new EventQueue(),
   themeFiles: [],
-  playlistWatcher: new FolderWatcher(),
-  playlistQueue: new EventQueue(),
   playlists: [],
   execMappings: [],
 };

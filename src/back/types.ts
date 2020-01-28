@@ -48,8 +48,6 @@ export type BackState = {
   themeWatcher: FolderWatcher;
   themeQueue: EventQueue;
   themeFiles: ThemeListItem[];
-  playlistWatcher: FolderWatcher;
-  playlistQueue: EventQueue;
   playlists: Playlist[];
   execMappings: ExecMapping[];
 }

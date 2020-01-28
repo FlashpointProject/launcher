@@ -18,12 +18,17 @@ export type PlaylistItemProps = {
   onTitleChange: (event: React.ChangeEvent<InputElement>) => void;
   onAuthorChange: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
+  onContextMenu?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>, playlistId: string) => void;
 }
 
 export function PlaylistItem(props: PlaylistItemProps) {
   const strings = React.useContext(LangContext).playlist;
 
   const [dragOver, setDragOver] = React.useState(false);
+
+  const onContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (props.onContextMenu) { props.onContextMenu(event, props.playlist.id); }
+  }, [props.onContextMenu]);
 
   const onDrop = useCallback((event: React.DragEvent) => {
     if (dragOver) { setDragOver(false); }
@@ -57,7 +62,7 @@ export function PlaylistItem(props: PlaylistItemProps) {
   }, [props.onSetIcon, props.selected]);
 
   const icon = useMemo(() => {
-    return props.editing
+    return !props.editing
       ? `url("${props.playlist.icon}")`
       : props.playlistIconCache[props.iconFilename || props.playlist.id];
   }, [props.editing, props.iconFilename, props.playlist.id, props.playlist.icon, props.playlistIconCache]);
@@ -72,6 +77,7 @@ export function PlaylistItem(props: PlaylistItemProps) {
       className={className}
       onDrop={onDrop}
       onDragOver={onDragOver}
+      onContextMenu={onContextMenu}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}>
       {/* Drag Overlay */}
@@ -85,8 +91,9 @@ export function PlaylistItem(props: PlaylistItemProps) {
           <div className='playlist-list-item__icon'>
             <div
               className='playlist-list-item__icon-image'
+              title={props.editing ? strings.changeIcon : undefined}
               style={{ backgroundImage: icon }}
-              onClick={onIconClick} />
+              onClick={props.editing ? onIconClick : undefined} />
           </div>
         ) : (
           <div

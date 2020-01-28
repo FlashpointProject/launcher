@@ -1,6 +1,6 @@
 {
    "name": "flashpoint-launcher",
-   "version": "7.0.0",
+   "version": "7.1.0-snapshot",
    "description": "A desktop application used to browse, manage and play games from BlueMaxima's Flashpoint",
    "main": "build/main/index.js",
    "config": {
@@ -27,7 +27,6 @@
       "publish:win32": "npx cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:win32\"",
       "publish:darwin": "npx cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:darwin\"",
       "publish:all": "npx cross-env-shell NODE_ENV=production PUBLISH=true \"npm run build && npm run pack:all\"",
-      "rebuild": "electron-rebuild -f -w sqlite3",
       "postinstall": "electron-builder install-app-deps"
    },
    "author": "Jesper Gustafsson",
@@ -85,7 +84,6 @@
       "cross-env": "5.2.0",
       "electron": "6.1.5",
       "electron-builder": "21.2.0",
-      "electron-rebuild": "1.9.0",
       "enzyme": "3.11.0",
       "enzyme-adapter-react-16": "1.15.2",
       "enzyme-to-json": "3.4.3",

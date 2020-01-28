@@ -50,7 +50,6 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
     curation,
-    gameManager,
     log,
     date,
     saveCuration,

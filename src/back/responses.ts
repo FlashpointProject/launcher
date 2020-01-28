@@ -1,5 +1,5 @@
 import { Game } from '@database/entity/Game';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, ExportGameData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { findMostUsedApplicationPaths } from '@shared/curate/defaultValues';
@@ -10,6 +10,7 @@ import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
 import { deepCopy } from '@shared/Util';
+import { formatString } from '@shared/utils/StringFormatter';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
@@ -21,7 +22,7 @@ import { importCuration, launchAddAppCuration, launchCuration } from './importGa
 import { respond } from './SocketServer';
 import { getSuggestions } from './suggestions';
 import { BackState } from './types';
-import { copyError, createContainer, createGameFromLegacy, exit, log, pathExists, procToService, createAddAppFromLegacy } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -282,6 +283,101 @@ export function registerRequestCallbacks(state: BackState): void {
         game: undefined,
         gamesTotal: await GameManager.countGames(),
       }
+    });
+  });
+
+  state.socketServer.register<DuplicatePlaylistData>(BackIn.DUPLICATE_PLAYLIST, async (event, req) => {
+    const playlist = await GameManager.findPlaylist(req.data, true);
+    if (playlist) {
+      const newPlaylistId = uuid();
+      playlist.id = newPlaylistId;
+      playlist.title += ' - Copy';
+      playlist.games = playlist.games.map(g => {
+        g.id = undefined; // New Entry
+        g.playlistId = newPlaylistId;
+        return g;
+      });
+      await GameManager.updatePlaylist(playlist);
+      respond<PlaylistsChangeData>(event.target, {
+        id: req.id,
+        type: BackOut.PLAYLISTS_CHANGE,
+        data: await GameManager.findPlaylists()
+      });
+    } else {
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE
+      });
+    }
+  });
+
+  state.socketServer.register<ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, async (event, req) => {
+    try {
+      const rawData = await fs.promises.readFile(req.data, 'utf-8');
+      const jsonData = JSON.parse(rawData);
+      const newPlaylist = createPlaylist(jsonData);
+      const existingPlaylist = await GameManager.findPlaylist(jsonData['id'], true);
+      if (existingPlaylist) {
+        // Conflict, resolve with user
+        const dialogFunc = state.socketServer.openDialog(event.target);
+        const strings = state.languageContainer.dialog;
+        const result = await dialogFunc({
+          title: strings.playlistConflict,
+          message:  `${formatString(strings.importedPlaylistAlreadyExists, existingPlaylist.title)}\n\n${strings.mergeOrStaySeperate}`,
+          buttons: [strings.mergePlaylists, strings.newPlaylist, strings.cancel]
+        });
+        console.log(result);
+        switch (result) {
+          case 0:
+            let topOrder = existingPlaylist.games.reduce((highest, cur) => highest = Math.max(highest, cur.order), 0);
+            let addedGames = 0;
+            for (let game of newPlaylist.games) {
+              if (existingPlaylist.games.findIndex(g => g.gameId === game.gameId) === -1) {
+                game.order = topOrder + addedGames + 1;
+                existingPlaylist.games.push(game);
+                addedGames++;
+              }
+            }
+            newPlaylist.games = existingPlaylist.games;
+            break;
+          case 1:
+            const newPlaylistId = uuid();
+            newPlaylist.id = newPlaylistId;
+            newPlaylist.title += ' - Copy';
+            newPlaylist.games = newPlaylist.games.map(g => {
+              g.id = undefined; // New Entry
+              g.playlistId = newPlaylistId;
+              return g;
+            });
+            break;
+          default:
+            throw 'User Cancelled';
+        }
+      }
+      await GameManager.updatePlaylist(newPlaylist);
+      respond<PlaylistsChangeData>(event.target, {
+        id: req.id,
+        type: BackOut.PLAYLISTS_CHANGE,
+        data: await GameManager.findPlaylists()
+      });
+    } catch (e) {
+      respond(event.target, {
+        id: req.id,
+        type: BackOut.GENERIC_RESPONSE
+      });
+    }
+  });
+
+  state.socketServer.register<ExportPlaylistData>(BackIn.EXPORT_PLAYLIST, async (event, req) => {
+    const playlist = await GameManager.findPlaylist(req.data.id, true);
+    if (playlist) {
+      try {
+        await writeFile(req.data.location, JSON.stringify(playlist, null, '\t'));
+      } catch (e) { console.error(e); }
+    }
+    respond(event.target, {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE
     });
   });
 

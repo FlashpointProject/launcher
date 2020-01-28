@@ -7,7 +7,9 @@ export class Playlist {
   /** ID of the playlist (unique identifier) */
   id: string;
 
-  @OneToMany(type => PlaylistGame, playlist => playlist.playlistId)
+  @OneToMany(type => PlaylistGame, pg => pg.playlist, {
+    cascade: true
+  })
   games: PlaylistGame[];
 
   @Column({collation: 'NOCASE'})

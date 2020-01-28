@@ -21,6 +21,7 @@ type OwnProps = {
   onDelete: () => void;
   onSave: () => void;
   onCreate: () => void;
+  onImport: () => void;
   onDiscard: () => void;
   onEditClick: () => void;
   onDrop: (event: React.DragEvent, playlistId: string) => void;
@@ -31,6 +32,9 @@ type OwnProps = {
   onDescriptionChange: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
   onShowAllClick?: () => void;
+  onContextMenu: (event: React.MouseEvent<HTMLDivElement, MouseEvent>, playlistId: string) => void
+  onDuplicatePlaylist: (playlistId: string) => void;
+  onExportPlaylist: (playlistId: string) => void;
 };
 
 export type LeftBrowseSidebarProps = OwnProps & WithPreferencesProps;
@@ -64,13 +68,24 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
           {/* Create New Playlist */}
           { editingDisabled ? undefined : (
             <div
-              className='playlist-list-fake-item'
-              onClick={this.props.onCreate}>
-              <div className='playlist-list-fake-item__inner'>
-                <OpenIcon icon='plus' />
+              className='playlist-list-fake-item-buttons' >
+              <div className='playlist-list-fake-item'
+                onClick={this.props.onCreate} >
+                <div className='playlist-list-fake-item__inner'>
+                  <OpenIcon icon='plus' />
+                </div>
+                <div className='playlist-list-fake-item__inner'>
+                  <p className='playlist-list-fake-item__inner__title'>{strings.newPlaylist}</p>
+                </div>
               </div>
-              <div className='playlist-list-fake-item__inner'>
-                <p className='playlist-list-fake-item__inner__title'>{strings.newPlaylist}</p>
+              <div className='playlist-list-fake-item'
+                onClick={this.props.onImport} >
+                <div className='playlist-list-fake-item__inner'>
+                  <OpenIcon icon='file' />
+                </div>
+                <div className='playlist-list-fake-item__inner'>
+                  <p className='playlist-list-fake-item__inner__title'>{strings.importPlaylist}</p>
+                </div>
               </div>
             </div>
           ) }
@@ -106,7 +121,8 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
           onSetIcon={this.props.onSetIcon}
           onTitleChange={this.props.onTitleChange}
           onAuthorChange={this.props.onAuthorChange}
-          onKeyDown={this.props.onKeyDown} />
+          onKeyDown={this.props.onKeyDown}
+          onContextMenu={this.props.onContextMenu} />
       );
       if (isSelected) {
         elements.push(
@@ -120,7 +136,9 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
             onSave={this.props.onSave}
             onDiscard={this.props.onDiscard}
             onEdit={this.props.onEditClick}
-            onDelete={this.props.onDelete} />
+            onDelete={this.props.onDelete}
+            onDuplicatePlaylist={this.props.onDuplicatePlaylist}
+            onExportPlaylist={this.props.onExportPlaylist} />
         );
       }
     };

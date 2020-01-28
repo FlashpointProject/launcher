@@ -34,6 +34,9 @@ export enum BackIn {
   QUICK_SEARCH,
   ADD_LOG,
   SERVICE_ACTION,
+  DUPLICATE_PLAYLIST,
+  IMPORT_PLAYLIST,
+  EXPORT_PLAYLIST,
   GET_PLAYLISTS,
   GET_PLAYLIST,
   SAVE_PLAYLIST,
@@ -74,6 +77,7 @@ export enum BackOut {
   SERVICE_CHANGE,
   LANGUAGE_CHANGE,
   LANGUAGE_LIST_CHANGE,
+  PLAYLISTS_CHANGE,
   THEME_CHANGE,
   THEME_LIST_CHANGE,
   IMPORT_CURATION_RESPONSE,
@@ -191,6 +195,15 @@ export type ExportGameData = {
   metaOnly: boolean;
 }
 
+export type DuplicatePlaylistData = string;
+
+export type ImportPlaylistData = string;
+
+export type ExportPlaylistData = {
+  id: string;
+  location: string;
+}
+
 export type GetGameData = {
   id: string;
 }
@@ -261,6 +274,8 @@ export type DeleteImageData = {
   folder: string;
   id: string;
 }
+
+export type PlaylistsChangeData = Playlist[];
 
 export type SearchGamesOpts = {
   /** Info to filter the search from */

@@ -3,6 +3,7 @@ import { ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
 import { BackOut } from '@shared/back/types';
 import { IBackProcessInfo, IService } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
@@ -12,6 +13,7 @@ import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { uuid } from './uuid';
 
 export function pathExists(filePath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
@@ -221,4 +223,28 @@ export function createGameFromLegacy(game: Legacy_IGameInfo): Game {
     placeholder: false,
     addApps: []
   };
+}
+
+export function createPlaylist(jsonData: any): Playlist {
+  const playlist: Playlist = {
+    id: jsonData['id'] || uuid(),
+    title: jsonData['title'] || 'No Name',
+    description: jsonData['description'] || '',
+    author: jsonData['author'] || '',
+    icon: jsonData['icon'] || '',
+    library: jsonData['library'] || 'arcade',
+    games: []
+  };
+
+  for (let i = 0; i < jsonData['games'].length ; i++) {
+    const game = jsonData['games'][i];
+    playlist.games.push({
+      playlistId: playlist.id,
+      order: game['order'] ? Number(game['order']) : i,
+      notes: game['notes'] || '',
+      gameId: game['gameId'] || game['id']
+    });
+  }
+
+  return playlist;
 }

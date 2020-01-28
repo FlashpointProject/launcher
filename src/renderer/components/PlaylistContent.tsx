@@ -17,6 +17,8 @@ export type PlaylistItemContentProps = {
   onDiscard: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onDuplicatePlaylist: (playlistId: string) => void;
+  onExportPlaylist: (playlistId: string) => void;
 }
 
 export function PlaylistItemContent(props: PlaylistItemContentProps) {
@@ -31,12 +33,10 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
         { props.editingDisabled ? undefined : (
           <div className='playlist-list-content__edit'>
             <div className='playlist-list-content__id'>
-              <p className='playlist-list-content__id-pre'>{strings.filename}: </p>
+              <p className='playlist-list-content__id-pre'>{strings.id}: </p>
               <div className='playlist-list-content__id-text'>
                 <InputField
                   text={props.playlist.id}
-                  editable={props.editing && !props.editingDisabled}
-                  onKeyDown={props.onKeyDown}
                   multiline={false} />
               </div>
             </div>
@@ -60,6 +60,20 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
                 </>
               ) : (
                 <>
+                  {/* Duplicate Button */}
+                  <div
+                    className='playlist-list-content__button playlist-list-content__button--confirm'
+                    title={strings.duplicatePlaylistDesc}
+                    onClick={() => props.onDuplicatePlaylist(props.playlist.id)}>
+                    <OpenIcon icon='layers' />
+                  </div>
+                  {/* Export Button */}
+                  <div
+                    className='playlist-list-content__button playlist-list-content__button--confirm'
+                    title={strings.exportPlaylistDesc}
+                    onClick={() => props.onExportPlaylist(props.playlist.id)}>
+                    <OpenIcon icon='box' />
+                  </div>
                   {/* Edit Button */}
                   <div
                     className='playlist-list-content__button playlist-list-content__button--confirm'

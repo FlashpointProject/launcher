@@ -1,14 +1,14 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, SaveGameData, SavePlaylistGameData, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, SearchGamesOpts } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE } from '@shared/constants';
+import { ParsedSearch, parseSearchText } from '@shared/game/GameFilter';
 import { GamePropSuggestions, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { memoizeOne } from '@shared/memoize';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
 import { Theme } from '@shared/ThemeFile';
@@ -40,11 +40,10 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
-import { ParsedSearch, parseSearchText } from '@shared/game/GameFilter';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
-const VIEW_PAGE_SIZE = 250;
+const VIEW_PAGE_SIZE = 100;
 
 type Views = Record<string, View | undefined>; // views[id] = view
 type View = {
@@ -400,6 +399,11 @@ export class App extends React.Component<AppProps, AppState> {
           const resData: ThemeListChangeData = res.data;
           this.setState({ themeList: resData });
         } break;
+
+        case BackOut.PLAYLISTS_CHANGE: {
+          const resData: PlaylistsChangeData = res.data;
+          this.setState({ playlists: resData });
+        }
       }
     });
 
@@ -523,7 +527,8 @@ export class App extends React.Component<AppProps, AppState> {
 
     if (view) {
       // Check if the playlist selection changed
-      if (view.selectedPlaylistId !== (prevView && prevView.selectedPlaylistId)) {
+      if (view.selectedPlaylistId !== (prevView && prevView.selectedPlaylistId) ||
+          prevState.playlists     !== this.state.playlists) {
         this.setState({
           views: {
             ...this.state.views,

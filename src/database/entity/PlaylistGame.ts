@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Game } from './Game';
+import { Playlist } from './Playlist';
 
 @Entity()
 export class PlaylistGame {
@@ -8,6 +9,9 @@ export class PlaylistGame {
 
   @Column()
   playlistId?: string;
+
+  @ManyToOne(type => Playlist, p => p.games)
+  playlist?: Playlist;
 
   @Column()
   /** Order priority of the game in the playlist */

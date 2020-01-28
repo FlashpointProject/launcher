@@ -135,8 +135,10 @@ const langTemplate = {
     'renameImagesIdToTitleDesc',
     'createMissingFolders',
     'createMissingFoldersDesc',
-    'importLegacyContent',
-    'importLegacyContentDesc',
+    'importLegacyPlatforms',
+    'importLegacyPlatformsDesc',
+    'importLegacyPlaylists',
+    'importLegacyPlaylistsDesc',
     'servicesHeader',
     'servicesMissing',
     'running',
@@ -227,6 +229,7 @@ const langTemplate = {
     'editGame',
     'allGames',
     'newPlaylist',
+    'importPlaylist',
     'emptyPlaylist',
     'noGamesFound',
     'dropGameOnLeft',
@@ -307,6 +310,9 @@ const langTemplate = {
     'discardDesc',
     'edit',
     'editDesc',
+    'changeIcon',
+    'duplicatePlaylistDesc',
+    'exportPlaylistDesc',
     'delete',
     'deleteDesc',
     'areYouSure',
@@ -314,7 +320,7 @@ const langTemplate = {
     'titlePlaceholder',
     'noAuthor',
     'authorPlaceholder',
-    'filename',
+    'id',
     'by',
   ] as const,
   misc: [
@@ -336,6 +342,8 @@ const langTemplate = {
     'duplicateMetaAndImages',
     'exportMetaOnly',
     'exportMetaAndImages',
+    'duplicatePlaylist',
+    'exportPlaylist'
   ] as const,
   dialog: [
     'programNotFound',
@@ -345,8 +353,12 @@ const langTemplate = {
     'fileNotFound',
     'flashpointPathInvalid',
     'pathNotFound',
+    'playlistConflict',
+    'importedPlaylistAlreadyExists',
+    'mergeOrStaySeperate',
     'selectFileToExportMeta',
     'selectFolderToExportMetaAndImages',
+    'selectFileToExportPlaylist',
     'replaceFilesQuestion',
     'exportedAlreadyExistsYesNo',
     'selectFolder',
@@ -356,6 +368,7 @@ const langTemplate = {
     'selectCurationFolder',
     'selectCurationArchive',
     'selectCurationMeta',
+    'selectPlaylistToImport',
     'errorParsingPlatforms',
     'errorParsingPlatformsMessage',
     'dataRequired',
@@ -366,7 +379,10 @@ const langTemplate = {
     'pickAnotherFolder',
     'restartNow',
     'restartToApplyUpgrade',
-    'areYouSure'
+    'areYouSure',
+    'cancel',
+    'mergePlaylists',
+    'newPlaylist'
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
@@ -464,6 +480,7 @@ export function getDefaultLocalization(): LangContainer {
   lang.misc.deleteAllBlankImages += ' {0}';
   lang.dialog.errorParsingPlatformsMessage = '{0} ' + lang.dialog.errorParsingPlatformsMessage;
   lang.dialog.upgradeWillInstallTo = '{0} ' + lang.dialog.upgradeWillInstallTo;
+  lang.dialog.importedPlaylistAlreadyExists = lang.dialog.importedPlaylistAlreadyExists + ' - "{0}"';
   // Return object
   return lang;
 }
