@@ -69,13 +69,13 @@ export function convertMeta(data: any, onError?: (error: string) => void): Parse
     onError: onError && (e => onError(`Error while converting Curation Meta: ${e.toString()}`))
   });
   // -- Old curation format --
-  parser.prop('author notes',         v => parsed.game.authorNotes         = str(v));
+  parser.prop('author notes',         v => parsed.game.curationNotes       = str(v));
   parser.prop('genre',                v => parsed.game.tags                = arrayStr(v));
   parser.prop('notes',                v => parsed.game.notes               = str(v));
   // -- New curation format --
   // Single value properties
   parser.prop('application path',     v => parsed.game.applicationPath     = str(v));
-  parser.prop('curation notes',       v => parsed.game.authorNotes         = str(v));
+  parser.prop('curation notes',       v => parsed.game.curationNotes       = str(v));
   parser.prop('developer',            v => parsed.game.developer           = arrayStr(v));
   parser.prop('extreme',              v => parsed.game.extreme             = str(v));
   parser.prop('game notes',           v => parsed.game.notes               = str(v));

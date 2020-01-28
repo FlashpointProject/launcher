@@ -89,7 +89,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onLibraryChange             = useOnInputChange('library',             key, props.dispatch);
   const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
-  const onAuthorNotesChange         = useOnInputChange('authorNotes',         key, props.dispatch);
+  const onCurationNotesChange       = useOnInputChange('curationNotes',       key, props.dispatch);
   const onExtremeChange             = useOnCheckboxToggle('extreme',          key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
   const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
@@ -514,7 +514,7 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation && progressState[props.curation.key]]);
 
   // Meta
-  const authorNotes = props.curation && props.curation.meta.authorNotes || '';
+  const curationNotes = props.curation && props.curation.meta.curationNotes || '';
   // Misc
   const sharedInputProps = {
     editable: editable,
@@ -688,11 +688,11 @@ export function CurateBox(props: CurateBoxProps) {
           </CurateBoxRow>
           <CurateBoxRow title={strings.curate.curationNotes + ':'}>
             <InputField
-              text={authorNotes}
+              text={curationNotes}
               placeholder={strings.curate.noCurationNotes}
-              onChange={onAuthorNotesChange}
+              onChange={onCurationNotesChange}
               multiline={true}
-              className={authorNotes.length > 0 ? 'input-field--info' : ''}
+              className={curationNotes.length > 0 ? 'input-field--info' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.extreme + ':'}>
