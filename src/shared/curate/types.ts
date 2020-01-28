@@ -45,7 +45,7 @@ export type EditCurationMeta = Partial<{
   launchCommand: string;
   library: string;
   notes: string;
-  authorNotes: string;
+  curationNotes: string;
   platform: string;
   applicationPath: string;
   playMode: string;
