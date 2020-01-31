@@ -55,7 +55,7 @@ export function CuratePage(props: CuratePageProps) {
   // Get default curation game meta values
   const defaultGameMetaValues = useMemo<GameMetaDefaults>(() => {
     return {
-      addPaths: props.appPaths,
+      appPaths: props.appPaths,
       language: 'en',
       platform: 'Flash',
       playMode: 'Single Player',
@@ -824,7 +824,7 @@ export function setGameMetaDefaults(meta: EditCurationMeta, defaults?: GameMetaD
     // Set default application path
     // (Note: This has to be set after the default platform)
     if (!meta.applicationPath) {
-      meta.applicationPath = defaults.addPaths[meta.platform || ''] || '';
+      meta.applicationPath = defaults.appPaths[meta.platform || ''] || '';
     }
   }
 }

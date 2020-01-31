@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices, ScrollParams } from 'react-virtualized';
+import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices, ScrollParams, SectionRenderedParams } from 'react-virtualized';
 import { ViewGame } from '@shared/back/types';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { GAMES } from '../interfaces';
@@ -7,6 +7,8 @@ import { findElementAncestor } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
+import { RenderedSection } from 'react-virtualized/dist/es/Grid';
+import { VIEW_PAGE_SIZE } from '@shared/constants';
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
@@ -14,7 +16,6 @@ const RENDERER_OVERSCAN = 15;
 const BACK_OVERSCAN = 100;
 
 export type GameListProps = {
-  onRequestGames: (start: number, end: number) => void;
   /** All games that will be shown in the list. */
   games?: GAMES;
   /** Total number of games there are. */
@@ -37,6 +38,8 @@ export type GameListProps = {
   onGameDragStart: (event: React.DragEvent, gameId: string) => void;
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd: (event: React.DragEvent, gameId: string) => void;
+  /** Request a page be filled */
+  requestPages: (start: number, amount: number) => void;
   // React-Virtualized pass-through props (their values are not used for anything other than updating the grid when changed)
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -94,7 +97,7 @@ export class GameList extends React.Component<GameListProps> {
                   columnCount={1}
                   rowCount={this.props.gamesTotal || 0}
                   scrollToRow={scrollToIndex}>
-                  {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
+                  {({ onSectionRendered, scrollToRow }) => (
                     <List
                       className='game-list simple-scroll'
                       width={width}
@@ -104,9 +107,9 @@ export class GameList extends React.Component<GameListProps> {
                       overscanRowCount={RENDERER_OVERSCAN}
                       noRowsRenderer={this.props.noRowsRenderer}
                       rowRenderer={this.rowRenderer}
-                      onScroll={this.onScroll}
                       // ArrowKeyStepper props
                       scrollToIndex={scrollToRow}
+                      onRowsRendered={this.onRowsRendered}
                       onSectionRendered={onSectionRendered}
                       // Pass-through props (they have no direct effect on the list)
                       // (If any property is changed the list is re-rendered, even these)
@@ -145,10 +148,17 @@ export class GameList extends React.Component<GameListProps> {
     ) : <div key={props.key} style={props.style} />;
   }
 
-  onScroll = (params: ScrollParams) => {
-    const top = Math.max(0, Math.floor(params.scrollTop / this.props.rowHeight) - BACK_OVERSCAN);
-    const bot = Math.min(Math.ceil((params.scrollTop + params.clientHeight) / this.props.rowHeight) + BACK_OVERSCAN, this.props.gamesTotal || 0);
-    this.props.onRequestGames(top, (bot - top));
+  onRowsRendered = (info: {
+        overscanStartIndex: number;
+        overscanStopIndex: number;
+        startIndex: number;
+        stopIndex: number;
+    }) => {
+
+    const trailingPage = Math.floor(info.overscanStartIndex / VIEW_PAGE_SIZE);
+    const leadingPage = Math.floor(info.overscanStopIndex / VIEW_PAGE_SIZE);
+
+    this.props.requestPages(trailingPage, (leadingPage - trailingPage) + 2);
   }
 
   /** When a key is pressed (while the list, or one of its children, is selected). */

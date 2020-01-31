@@ -6,7 +6,19 @@ import { FilterGameOpts } from '@shared/game/GameFilter';
 import { ArgumentTypesOf } from '@shared/interfaces';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { Coerce } from '@shared/utils/Coerce';
-import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
+import { Brackets, FindOneOptions, getManager, SelectQueryBuilder, EntitySchema, Repository } from 'typeorm';
+import { PageIndex, Index } from '@shared/back/types';
+import { VIEW_PAGE_SIZE } from '@shared/constants';
+
+const exactFields: (keyof Game)[] = ['extreme', 'broken', 'library'];
+
+export type FindGameOptions = {
+  offset?: number;
+  limit?: number;
+  shallow?: boolean;
+  getTotal?: boolean;
+  index?: Index;
+}
 
 export namespace GameManager {
   export type GameResults = {
@@ -27,63 +39,115 @@ export namespace GameManager {
     }
   }
 
-  export async function findGameIndex(gameId: string, ...args: FindGameParams) {
-    const result = await findGames(...args);
-    return result.games.findIndex(g => g.id === gameId);
+  export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
+    opts?: FindGameOptions) {
+    if (opts === undefined) { opts = {}; }
+    const startTime = Date.now();
+    const { offset, limit, shallow, getTotal, index } = opts;
+    const gameRepository = getManager().getRepository(Game);
+
+    const subQ = gameRepository.createQueryBuilder('game')
+      .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
+    if (index) {
+      subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
+    }
+    if (filterOpts) {
+      applyGameFilters(gameRepository, 'game', subQ, filterOpts, index ? 1 : 0);
+    }
+    if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
+
+    const query = getManager().createQueryBuilder()
+      .setParameters(subQ.getParameters())
+      .select('row_num')
+      .from('(' + subQ.getQuery() + ')', 'g')
+      .where('g.id = :gameId', { gameId: gameId });
+
+    const raw = await query.getRawOne();
+    console.log(raw);
+    console.log(`${Date.now() - startTime}ms for row`);
+    return raw;
   }
 
-  type FindGameParams = ArgumentTypesOf<typeof findGames>;
+  export async function findRandomGames(count: number): Promise<Game[]> {
+    const gameRepository = getManager().getRepository(Game);
+    const query = gameRepository.createQueryBuilder('game');
+    query.where('game.id IN ' + query.subQuery().select('game_random.id').from(Game, 'game_random').orderBy('RANDOM()').take(count).getQuery());
+    return query.getMany();
+  }
+
+  export async function findGamePageIndex(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<PageIndex> {
+    const startTime = Date.now();
+    const gameRepository = getManager().getRepository(Game);
+
+    const subQ = gameRepository.createQueryBuilder('sub')
+      .select(`sub.${orderBy}, sub.id, case row_number() over(order by sub.${orderBy}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
+    applyGameFilters(gameRepository, 'sub', subQ, filterOpts, 0);
+    subQ.orderBy(`sub.${orderBy}`, direction);
+
+    const query = getManager().createQueryBuilder()
+      .select(`g.${orderBy}, g.id, row_number() over(order by g.${orderBy}) + 1 page_number`)
+      .from('(' + subQ.getQuery() + ')', 'g')
+      .where('g.page_boundary = 1')
+      .setParameters(subQ.getParameters());
+
+    const raw = await query.getRawMany();
+    const pageIndex: PageIndex = {};
+    for (let r of raw) {
+      pageIndex[r['page_number']] = {orderVal: Coerce.str(r[orderBy]), id: Coerce.str(r['id'])};
+    }
+    console.log(`${Date.now() - startTime}ms for index`);
+    return pageIndex;
+  }
+
   /** Find the game with the specified ID. */
   export async function findGames(filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
-                                  offset?: number, limit?: number, shallow?: boolean, getTotal?: boolean): Promise<GameResults> {
-    // Skips opts when returning a playlist
-    // @TODO Properly select from playlists
+                                  opts?: FindGameOptions): Promise<GameResults> {
+    let playlistSelect = '';
+    let whereCount = 0;
+
+    if (opts === undefined) { opts = {}; }
+    const { offset, limit, shallow, getTotal, index } = opts;
+    const startTime = Date.now();
     const gameRepository = getManager().getRepository(Game);
     const query = gameRepository.createQueryBuilder('game');
 
-    if (filterOpts) {
-      // Playlist results
-      if (filterOpts.playlistId) {
-        if (filterOpts.playlistId) {
-          const playlistGames = await getManager().getRepository(PlaylistGame).find({ where: { playlistId: filterOpts.playlistId }});
-          const games = await gameRepository.findByIds(playlistGames.map(g => g.gameId));
-          return {games: games, total: games.length};
-        }
-      }
-      // Search results
-      if (filterOpts.searchQuery) {
-        let whereCount = 0;
-        const searchQuery = filterOpts.searchQuery;
-        for (let filter of searchQuery.blacklist) {
-          doWhereField(query, filter.field, filter.value, whereCount, false);
-          whereCount++;
-        }
-        for (let filter of searchQuery.whitelist) {
-          doWhereField(query, filter.field, filter.value, whereCount, true);
-          whereCount++;
-        }
-        for (let phrase of searchQuery.genericBlacklist) {
-          doWhereTitle(query, phrase, whereCount, false);
-          whereCount++;
-        }
-        for (let phrase of searchQuery.genericWhitelist) {
-          doWhereTitle(query, phrase, whereCount, true);
-          whereCount++;
-        }
-      }
+    if (index) {
+      query.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
     }
+    if (filterOpts) {
+      whereCount = applyGameFilters(gameRepository, 'game', query, filterOpts, whereCount);
+    }
+
     // Process rest of parameters
     if (orderBy) { query.orderBy(`game.${orderBy}`, direction); }
-    if (offset)  { query.offset(offset); }
-    if (limit)   { query.limit(limit); }
-    // Subset of Game info, can be cast to ViewGame later
-    // if (shallow) { query.select('game.id, game.title, game.platform, game.tags, game.developer, game.publisher'); }
+    if (!index && offset)  { console.log('OFFSET'); query.skip(offset); }
+    if (limit)   { query.take(limit); }
+    if (filterOpts && filterOpts.playlistId) {
+      query.innerJoin(PlaylistGame, 'pg', 'pg.gameId = game.id');
+      query.orderBy('pg.order');
+      if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+      else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+    }
+
+    let total: number | undefined = undefined;
     if (getTotal) {
-      const results = await query.getManyAndCount();
-      return { games: results[0], total: results[1] };
+      query.select('COUNT(*)');
+      total = (await query.getRawOne())['COUNT(*)'];
+      console.log(`${Date.now() - startTime}ms for query count`);
+      console.log(total);
+      query.select('*');
+    }
+    console.log(query.getQuery());
+    // Subset of Game info, can be cast to ViewGame later
+    if (shallow) {
+      query.select('game.id, game.title, game.platform, game.tags, game.developer, game.publisher');
+      const games: Game[] = await query.getRawMany();
+      console.log(`${Date.now() - startTime}ms for query`);
+      return { games, total };
     } else {
       const games = await query.getMany();
-      return { games };
+      console.log(`${Date.now() - startTime}ms for query`);
+      return { games, total };
     }
   }
 
@@ -105,13 +169,34 @@ export namespace GameManager {
     }
   }
 
-  export async function findLibraries(): Promise<string[]> {
+  export async function findPlatformAppPaths(platform: string): Promise<string[]> {
     const gameRepository = getManager().getRepository(Game);
-    const libraries = await gameRepository.createQueryBuilder('game')
-      .select('game.library')
+    const values = await gameRepository.createQueryBuilder('game')
+      .select('game.applicationPath')
+      .distinct()
+      .where('game.platform = :platform', {platform: platform})
+      .groupBy('game.applicationPath')
+      .orderBy('COUNT(*)', 'DESC')
+      .getRawMany();
+    return Coerce.strArray(values.map(v => v['game_applicationPath']));
+  }
+
+  export async function findUniqueValues(entity: any, column: string): Promise<string[]> {
+    const repository = getManager().getRepository(entity);
+    const values = await repository.createQueryBuilder('entity')
+      .select(`entity.${column}`)
       .distinct()
       .getRawMany();
-    return Coerce.strArray(libraries.map(l => l.game_library));
+    return Coerce.strArray(values.map(v => v[`entity_${column}`]));
+  }
+
+  export async function findUniqueValuesInOrder(entity: any, column: string): Promise<string[]> {
+    const repository = getManager().getRepository(entity);
+    const values = await repository.createQueryBuilder('entity')
+      .select(`entity.${column}`)
+      .distinct()
+      .getRawMany();
+    return Coerce.strArray(values.map(v => v[`entity_${column}`]));
   }
 
   export async function findPlatforms(library: string): Promise<string[]> {
@@ -125,7 +210,7 @@ export namespace GameManager {
   }
 
   export async function updateGames(games: Game[]): Promise<void> {
-    const chunks = chunkArray(games, 1000);
+    const chunks = chunkArray(games, 2000);
     for (let chunk of chunks) {
       await getManager().transaction(async transEntityManager => {
         for (let game of chunk) {
@@ -211,35 +296,65 @@ export namespace GameManager {
   }
 }
 
-function doWhereTitle(query: SelectQueryBuilder<Game>, value: string, count: number, whitelist: boolean) {
+function applyGameFilters(gameRepository: Repository<Game>, alias: string, query: SelectQueryBuilder<Game>, filterOpts: FilterGameOpts, whereCount: number): number {
+  if (filterOpts) {
+    // Search results
+    if (filterOpts.searchQuery) {
+      const searchQuery = filterOpts.searchQuery;
+      // Whitelists are often more restrictive, do these first
+      for (let filter of searchQuery.whitelist) {
+        doWhereField(alias, query, filter.field, filter.value, whereCount, true);
+        whereCount++;
+      }
+      for (let filter of searchQuery.blacklist) {
+        doWhereField(alias, query, filter.field, filter.value, whereCount, false);
+        whereCount++;
+      }
+      for (let phrase of searchQuery.genericWhitelist) {
+        doWhereTitle(alias, query, phrase, whereCount, true);
+        whereCount++;
+      }
+      for (let phrase of searchQuery.genericBlacklist) {
+        doWhereTitle(alias, query, phrase, whereCount, false);
+        whereCount++;
+      }
+    }
+  }
+  return whereCount;
+}
+
+function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: string, count: number, whitelist: boolean) {
   const formedValue = '%' + value + '%';
   let comparator: string;
   if (whitelist) { comparator = 'like'; }
   else           { comparator = 'not like'; }
 
-  console.log(`W: ${count} - F: generic - V: ${formedValue}`);
+  // console.log(`W: ${count} - C: ${comparator} - F: GENERIC - V:${value}`);
 
-  const ref = `field-${count}`;
+  const ref = `generic-${count}`;
   if (count === 0) {
-    query.where(`game.title ${comparator} :${ref}`,             { [ref]: formedValue });
-    query.orWhere(`game.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
-    query.orWhere(`game.developer ${comparator} :${ref}`,       { [ref]: formedValue });
-    query.orWhere(`game.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
+    query.where(new Brackets(qb => {
+      query.where(`${alias}.title ${comparator} :${ref}`,             { [ref]: formedValue });
+      query.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
+      query.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });
+      query.orWhere(`${alias}.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
+    }));
   } else {
     query.andWhere(new Brackets(qb => {
-      qb.where(`game.title ${comparator} :${ref}`,             { [ref]: formedValue });
-      qb.orWhere(`game.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
-      qb.orWhere(`game.developer ${comparator} :${ref}`,       { [ref]: formedValue });
-      qb.orWhere(`game.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
+      qb.where(`${alias}.title ${comparator} :${ref}`,             { [ref]: formedValue });
+      qb.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
+      qb.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });
+      qb.orWhere(`${alias}.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
     }));
   }
 }
 
-function doWhereField(query: SelectQueryBuilder<Game>, field: keyof Game, value: any, count: number, whitelist: boolean) {
+function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: keyof Game, value: any, count: number, whitelist: boolean) {
   // Create comparator
   const typing = typeof value;
+  const exact = !(typing === 'string') || exactFields.includes(field);
   let comparator: string;
-  if (typing === 'string' && value.length != '') {
+  if (!exact && value.length != '') {
     if (whitelist) { comparator = 'like'; }
     else           { comparator = 'not like'; }
   } else {
@@ -249,17 +364,17 @@ function doWhereField(query: SelectQueryBuilder<Game>, field: keyof Game, value:
 
   // Create formed value
   let formedValue: any = value;
-  if (typing === 'string' && value.length != '') {
+  if (!exact && value.length != '') {
     formedValue = '%' + value + '%';
   }
 
-  console.log(`W: ${count} - F: ${field} - V: ${formedValue}`);
+  // console.log(`W: ${count} - C: ${comparator} - F: ${field} - V:${value}`);
   // Do correct 'where' call
-  const ref = `generic-${count}`;
+  const ref = `field-${count}`;
   if (count === 0) {
-    query.where(`game.${field} ${comparator} :${ref}`, { [ref]: formedValue });
+    query.where(`${alias}.${field} ${comparator} :${ref}`, { [ref]: formedValue });
   } else {
-    query.andWhere(`game.${field} ${comparator} :${ref}`, { [ref]: formedValue });
+    query.andWhere(`${alias}.${field} ${comparator} :${ref}`, { [ref]: formedValue });
   }
 }
 

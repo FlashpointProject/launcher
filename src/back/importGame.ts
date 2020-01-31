@@ -214,8 +214,8 @@ function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, 
     extreme:             !!strToBool(gameMeta.extreme || ''),
     library:             gameMeta.library || '',
     orderTitle: '', // This will be set when saved
-    placeholder: false,
-    addApps: []
+    addApps: [],
+    placeholder: false
   };
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
   return game;
@@ -432,6 +432,6 @@ function createPlaceholderGame(): Game {
     library: '',
     orderTitle: '',
     addApps: [],
-    placeholder: false,
+    placeholder: true
   };
 }

@@ -28,8 +28,8 @@ export namespace ModelUtils {
       language: '',
       library: '',
       orderTitle: '',
-      placeholder: false,
-      addApps: []
+      addApps: [],
+      placeholder: false
     };
   }
 

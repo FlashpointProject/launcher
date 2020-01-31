@@ -1,9 +1,9 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, PageIndex, BrowseViewPageIndexResponse, BrowseViewPageIndexData, Index } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { APP_TITLE } from '@shared/constants';
+import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { ParsedSearch, parseSearchText } from '@shared/game/GameFilter';
 import { GamePropSuggestions, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -40,15 +40,15 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
+import { EventQueue } from '@back/util/EventQueue';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
-
-const VIEW_PAGE_SIZE = 100;
 
 type Views = Record<string, View | undefined>; // views[id] = view
 type View = {
   games: GAMES;
-  pages: Record<number, ViewPage | undefined>;
+  pageRequests: Record<number, boolean>;
+  pageIndex?: PageIndex;
   total?: number;
   selectedPlaylistId?: string;
   selectedGameId?: string;
@@ -116,25 +116,16 @@ export class App extends React.Component<AppProps, AppState> {
 
     // Prepare libraries
     const libraries = window.Shared.initialLibraries.sort();
-
-    // Prepare initial views
-    const initialQuery: ParsedSearch = {
-      blacklist: [],
-      whitelist: [],
-      genericBlacklist: [],
-      genericWhitelist: []
-    };
-    if (!preferencesData.browsePageShowExtreme)     { initialQuery.blacklist.push({ field: 'extreme', value: true }); }
-    if (!window.Shared.config.data.showBrokenGames) { initialQuery.blacklist.push({ field: 'broken', value: true });  }
     const views: Record<string, View> = {};
     for (let library of libraries) {
       views[library] = {
         dirtyCache: false,
         games: {},
-        pages: {},
+        pageRequests: {},
+        pageIndex: undefined,
         query: {
           filter: {
-            searchQuery: initialQuery
+            searchQuery: undefined
           },
           orderBy: order.orderBy,
           orderReverse: order.orderReverse,
@@ -295,18 +286,39 @@ export class App extends React.Component<AppProps, AppState> {
           this.setState({ localeCode: resData });
         } break;
 
-        case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
-          const resData: BrowseViewPageResponseData = res.data;
-
-          let view: View | undefined = this.state.views[res.id];
+        case BackOut.BROWSE_VIEW_PAGE_INDEX_RESPONSE: {
+          const resData: BrowseViewPageIndexResponse = res.data;
+          let view: View | undefined = this.state.views[res.data.library];
 
           if (view) {
             const views = { ...this.state.views };
-            const newView = views[res.id] = { ...view };
+            const newView = views[res.data.library] = { ...view };
             if (view.dirtyCache) {
               newView.dirtyCache = false;
               newView.games = {};
-              newView.pages = {};
+              newView.pageRequests = {};
+              newView.pageIndex = undefined;
+              newView.total = undefined;
+            } else {
+              newView.pageIndex = resData.index;
+            }
+            this.setState({ views });
+          }
+        } break;
+
+        case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
+          const resData: BrowseViewPageResponseData = res.data;
+
+          let view: View | undefined = this.state.views[res.data.library];
+
+          if (view) {
+            const views = { ...this.state.views };
+            const newView = views[res.data.library] = { ...view };
+            if (view.dirtyCache) {
+              newView.dirtyCache = false;
+              newView.games = {};
+              newView.pageRequests = {};
+              newView.pageIndex = undefined;
               newView.total = undefined;
             } else {
               newView.games = { ...view.games };
@@ -548,17 +560,7 @@ export class App extends React.Component<AppProps, AppState> {
           prevState.order.orderReverse                    !== this.state.order.orderReverse ||
           prevPlaylist                                    !== view.selectedPlaylistId) {
         // Rebuild query
-        const searchQuery = parseSearchText(this.props.search.text);
-        if (!this.props.preferencesData.browsePageShowExtreme) { searchQuery.blacklist.push({ field: 'extreme', value: true }); }
-        if (!window.Shared.config.data.showBrokenGames)        { searchQuery.blacklist.push({ field: 'broken', value: true });  }
-        const query: SearchGamesOpts = {
-          filter: {
-            searchQuery: searchQuery,
-            playlistId: view.selectedPlaylistId
-          },
-          orderBy: this.state.order.orderBy,
-          orderReverse: this.state.order.orderReverse
-        };
+        const query = this.rebuildQuery(view, library);
         // Clear out cache views
         this.setState({
           views: {
@@ -624,7 +626,8 @@ export class App extends React.Component<AppProps, AppState> {
     const playlists = this.filterAndOrderPlaylistsMemo(this.state.playlists, libraryPath);
     // Props to set to the router
     const routerProps: AppRouterProps = {
-      games: view && view.games,
+      games: view && view.games || {},
+      requestPages: this.requestPages,
       gamesTotal: view ? view.total : 0,
       playlists: playlists,
       suggestions: this.state.suggestions,
@@ -909,7 +912,7 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     if (view.selectedGameId === undefined) {
-      this.onRequestGames(0, 1);
+      this.onRequestGames(0, VIEW_PAGE_SIZE);
     } else {
       window.Shared.back.send<BrowseViewIndexResponse, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
         gameId: view.selectedGameId,
@@ -926,91 +929,99 @@ export class App extends React.Component<AppProps, AppState> {
                 selectedGameId: undefined,
               }
             }
-          }, () => { this.onRequestGames(0, 1); });
+          }, () => { this.onRequestGames(0, VIEW_PAGE_SIZE); });
         }
       });
     }
   }
 
-  onRequestGames = (offset: number, limit: number): void => {
+  /** Marks a list of pages as requested */
+  requestPages = debounce(async (start: number, count: number): Promise<void> => {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
+
+    if (view) {
+      for (let i = start; i < (start + count); i++) {
+        if (!view.pageRequests[i]) {
+          if (!view.pageIndex) {
+            let query = view.query;
+            if (!view.query.filter.searchQuery) {
+              query = this.rebuildQuery(view, library);
+            }
+            window.Shared.back.sendP<BrowseViewPageIndexResponse, BrowseViewPageIndexData>(BackIn.BROWSE_VIEW_PAGE_INDEX, {
+              query: query,
+              offset: 0,
+              library: library,
+            }).then((res) => {
+              if (res.data) {
+                const resData: BrowseViewPageIndexResponse = res.data;
+                const lastGame = resData.index[i+1];
+                this.onRequestGames(i * VIEW_PAGE_SIZE, VIEW_PAGE_SIZE, lastGame);
+              }
+            });
+            view.pageRequests[i] = true;
+            view.pageIndex = {}; // Stop multiple calls
+          } else {
+            const lastGame = view.pageIndex[i+1];
+            if (lastGame) {
+              this.onRequestGames(i * VIEW_PAGE_SIZE, VIEW_PAGE_SIZE, lastGame);
+              view.pageRequests[i] = true;
+            }
+          }
+          this.setState({
+            views: {
+              ...this.state.views,
+              view
+            }
+          });
+        }
+      }
+    }
+  }, 10);
+
+  onRequestGames = (offset: number, limit: number, index?: Index): void => {
+    const library = getBrowseSubPath(this.props.location.pathname);
+    const view = this.state.views[library];
+
+    console.log(`${offset} off - ${limit} lim`);
 
     if (!view) {
       log(`Failed to request games. Current view is missing (Library: "${library}", View: "${view}").`);
       return;
     }
 
-    const pageMin = Math.floor(offset / VIEW_PAGE_SIZE);
-    const pageMax = Math.ceil((offset + limit) / VIEW_PAGE_SIZE);
-
-    const pageIndices: number[] = [];
-    const pages: ViewPage[] = [];
-    for (let page = pageMin; page <= pageMax; page++) {
-      if (view.dirtyCache || !view.pages[page]) {
-        pageIndices.push(page);
-        pages.push({});
-      }
+    let query = view.query;
+    if (!query.filter.searchQuery) {
+      // Search query can't be empty, rebuild it
+      query = this.rebuildQuery(view, library);
     }
 
-    if (pages.length > 0) {
-      // console.log(`GET (PAGES: ${pageMin} - ${pageMax} | OFFSET: ${pageMin * VIEW_PAGE_SIZE} | LIMIT: ${(pageMax - pageMin + 1) * VIEW_PAGE_SIZE})`);
-      window.Shared.back.sendReq<any, BrowseViewPageData>({
-        id: library, // @TODO Add this as an optional property of the data instead of misusing the id
-        type: BackIn.BROWSE_VIEW_PAGE,
-        data: {
-          offset: pageMin * VIEW_PAGE_SIZE,
-          limit: (pageMax - pageMin + 1) * VIEW_PAGE_SIZE,
-          query: view.query,
-          getTotal: !view.total || view.dirtyCache
-        }
-      });
-
-      const newPages: Record<number, ViewPage | undefined> = {};
-      for (let i = 0; i < pages.length; i++) {
-        newPages[pageIndices[i]] = pages[i];
+    window.Shared.back.send<any, BrowseViewPageData>(
+      BackIn.BROWSE_VIEW_PAGE,
+      {
+        offset: offset,
+        limit: limit,
+        library: library,
+        query: query,
+        index: index,
+        getTotal: !view.total || view.dirtyCache
       }
-      this.setState({
-        views: {
-          ...this.state.views,
-          [library]: {
-            ...view,
-            pages: {
-              ...view.pages,
-              ...newPages
-            }
-          },
-        }
-      });
-    }
+    );
   }
 
   onQuickSearch = (search: string): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
 
-    console.log('quick');
     if (!view) {
       log(`Failed to quick search. Current view is missing (Library: "${library}", View: "${view}").`);
       return;
     }
 
 
-    // Build up filter
-    const searchQuery = parseSearchText(search);
-    searchQuery.whitelist.push({ field: 'library', value: library });
-    if (!this.props.preferencesData.browsePageShowExtreme) { searchQuery.blacklist.push({field: 'extreme', value: true}); }
-    if (!window.Shared.config.data.showBrokenGames)       { searchQuery.blacklist.push({field: 'broken', value: true});  }
+    // Rebuild query
+    view.query = this.rebuildQuery(view, library);
 
-    // Build query to run
-    const query: SearchGamesOpts = {
-      filter: {
-        searchQuery: searchQuery,
-        playlistId: view && view.selectedPlaylistId
-      },
-      orderBy: this.state.order.orderBy,
-      orderReverse: this.state.order.orderReverse
-    };
     // Stash the query
     this.setState({
       views: {
@@ -1018,21 +1029,23 @@ export class App extends React.Component<AppProps, AppState> {
       }
     });
 
+    // @TODO Find a good way of doing snap to selected
+
     // No point finding the game id if it doesn't even exist
-    if (view.selectedGameId) {
-      window.Shared.back.send<BrowseViewIndexResponse, BrowseViewIndexData>(BackIn.QUICK_SEARCH, {
-        query: query,
-        gameId: view.selectedGameId
-      }, res => {
-        const view = this.state.views[library];
-        if (res.data && view) {
-          // Fetch the page that the game is on
-          if (res.data.index !== undefined && !view.pages[(res.data.index / VIEW_PAGE_SIZE) | 0]) {
-            this.onRequestGames(res.data.index, res.data.index);
-          }
-        }
-      });
-    }
+    // if (view.selectedGameId) {
+    //   window.Shared.back.send<BrowseViewIndexResponse, BrowseViewIndexData>(BackIn.QUICK_SEARCH, {
+    //     query: query,
+    //     gameId: view.selectedGameId
+    //   }, res => {
+    //     const view = this.state.views[library];
+    //     if (res.data && view) {
+    //       // Fetch the page that the game is on
+    //       if (res.data.index !== undefined) {
+    //         this.onRequestGames(res.data.index, VIEW_PAGE_SIZE);
+    //       }
+    //     }
+    //   });
+    // }
   }
 
   cachePlaylistIcons(playlists: Playlist[]): void {
@@ -1080,6 +1093,21 @@ export class App extends React.Component<AppProps, AppState> {
     }
     return names;
   });
+
+  private rebuildQuery = (view: View, library: string): SearchGamesOpts => {
+    const searchQuery = parseSearchText(this.props.search.text);
+    if (!this.props.preferencesData.browsePageShowExtreme) { searchQuery.blacklist.push({ field: 'extreme', value: true }); }
+    if (!window.Shared.config.data.showBrokenGames)        { searchQuery.blacklist.push({ field: 'broken', value: true });  }
+    const query: SearchGamesOpts = {
+      filter: {
+        searchQuery: searchQuery,
+        playlistId: view.selectedPlaylistId
+      },
+      orderBy: this.state.order.orderBy,
+      orderReverse: this.state.order.orderReverse
+    };
+    return query;
+  }
 }
 
 async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void, strings: LangContainer) {
@@ -1182,6 +1210,8 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
     })
     .on('warn', console.warn);
   }
+
+
 }
 
 /** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */

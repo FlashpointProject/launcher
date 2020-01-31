@@ -29,7 +29,7 @@ const gameForKeying: Game = {
   library: '',
   orderTitle: '',
   addApps: [],
-  placeholder: false,
+  placeholder: true
 };
 
 /**
@@ -55,7 +55,6 @@ export function parseSearchText(text: string): ParsedSearch {
   const regex = /(?:(\b\w+)?:(?:"(.+?)"|([^\s]+))?(?=\s?)|([^-\s"!@#][^\s"]*)(?:$|\s)|"([^"]+)")/gu;
   // Parse search string
   let match;
-  console.log(`Text - ${text}`);
 
   while (match = regex.exec(text)) { // eslint-disable-line no-cond-assign
     console.log(`Match - ${match}`);

@@ -1,6 +1,8 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, Index } from 'typeorm';
 import { AdditionalApp } from './AdditionalApp';
 
+@Index('IDX_lookup', ['library', 'title', 'id'], { unique: true })
+@Index('IDX_total', ['library', 'broken', 'extreme'])
 @Entity()
 export class Game {
   @PrimaryGeneratedColumn('uuid')
@@ -8,6 +10,7 @@ export class Game {
   id: string;
 
   @Column({collation: 'NOCASE'})
+  @Index('IDX_gameTitle')
   /** Full title of the game */
   title: string;
 
@@ -100,8 +103,8 @@ export class Game {
   orderTitle: string;
 
   @OneToMany(type => AdditionalApp, addApp => addApp.parentGame, {
-    eager: true,
-    cascade: true
+    cascade: true,
+    eager: true
   })
   /** All attached Additional Apps of a game */
   addApps: AdditionalApp[];

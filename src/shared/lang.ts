@@ -243,6 +243,7 @@ const langTemplate = {
     'noGameMatchedDesc',
     'noGameMatchedSearch',
     'thereAreNoGames',
+    'searching',
     'library',
     'defaultLibrary',
   ] as const,

@@ -13,7 +13,7 @@ import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
 import 'sqlite3';
-import { Connection, createConnection, getConnectionOptions } from 'typeorm';
+import { Connection, createConnection, getConnectionOptions, ConnectionOptions } from 'typeorm';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
@@ -26,6 +26,11 @@ import { BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { createContainer, exit, log, procToService } from './util/misc';
+import { Game } from '@database/entity/Game';
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Initial1580315578390 } from '@database/migration/1580315578390-Initial';
 
 const readFile  = util.promisify(fs.readFile);
 
@@ -105,10 +110,14 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Setup DB
   if (!connection) {
-    // Override the Database path to place it in Flashpoint data
-    const connectionOptions = await getConnectionOptions();
-    const newOptions = Object.assign(connectionOptions, { database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite') });
-    connection = await createConnection(newOptions);
+    const options: ConnectionOptions = {
+      type: 'sqlite',
+      database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
+      entities: [Game, AdditionalApp, Playlist, PlaylistGame],
+      migrations: [Initial1580315578390]
+    };
+    connection = await createConnection(options);
+    connection.synchronize();
   }
 
   // Init services

@@ -52,6 +52,7 @@ export enum BackIn {
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   BROWSE_VIEW_INDEX,
+  BROWSE_VIEW_PAGE_INDEX,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
   /** Get all data needed on init (by the renderer). */
@@ -68,6 +69,7 @@ export enum BackOut {
   OPEN_DIALOG,
   OPEN_EXTERNAL,
   LOCALE_UPDATE,
+  BROWSE_VIEW_PAGE_INDEX_RESPONSE,
   BROWSE_VIEW_PAGE_RESPONSE,
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
@@ -242,15 +244,31 @@ export type BrowseViewResponseData = {
   total: number;
 }
 
+export type Index = {
+  orderVal: any,
+  id: string
+}
+export type PageIndex = Record<number, Index>;
+
+export type BrowseViewPageIndexResponse = {
+  index: PageIndex;
+  library: string;
+};
+
+export type BrowseViewPageIndexData = BrowseViewPageData;
+
 export type BrowseViewPageData = {
   offset: number;
+  library: string;
   limit?: number;
+  index?: Index;
   query: SearchGamesOpts;
   getTotal?: boolean;
 }
 
 export type BrowseViewPageResponseData = {
   games: ViewGame[];
+  library?: string;
   offset: number;
   total?: number;
 }

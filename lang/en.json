@@ -203,6 +203,7 @@
     "noApplicationPath": "No Application Path",
     "launchCommand": "Launch Command",
     "noLaunchCommand": "No Launch Command",
+    "searching": "Searching...",
     "library": "Library",
     "defaultLibrary": "Default Library",
     "thumbnail": "Thumbnail",

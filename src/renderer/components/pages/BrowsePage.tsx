@@ -24,12 +24,13 @@ import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
+import { VIEW_PAGE_SIZE } from '@shared/constants';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
 
 type OwnProps = {
-  games: GAMES | undefined;
+  games: GAMES;
   gamesTotal?: number;
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
@@ -37,6 +38,7 @@ type OwnProps = {
   onSaveGame: (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean) => void;
   onRequestGames: (start: number, end: number) => void;
   onQuickSearch: (search: string) => void;
+  requestPages: (start: number, count: number) => void;
 
   /** Most recent search query. */
   search: SearchQuery;
@@ -120,6 +122,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.updateCurrentGame(this.props.selectedGameId, this.props.selectedPlaylistId);
     this.createNewGameIfClicked(false, assignToState);
     this.state = initialState;
+    // Load in if nothing, request first page
+    if (!this.props.gamesTotal) {
+      this.props.onRequestGames(0, VIEW_PAGE_SIZE);
+    }
   }
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
@@ -225,6 +231,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               return (
                 <GameGrid
                   games={games}
+                  requestPages={this.props.requestPages}
                   gamesTotal={this.props.gamesTotal}
                   selectedGameId={selectedGameId}
                   draggedGameId={draggedGameId}
@@ -234,7 +241,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
-                  onRequestGames={this.props.onRequestGames}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   cellWidth={width}
@@ -255,7 +261,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
-                  onRequestGames={this.props.onRequestGames}
+                  requestPages={this.props.requestPages}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   rowHeight={height}
@@ -298,22 +304,21 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             <br/>
             <p>{formatString(strings.dropGameOnLeft, <i>{strings.leftSidebar}</i>)}</p>
           </>
-        ) : (
-          /* No games found */
-          <>
+        ) : this.props.gamesTotal != undefined ? (
+            <>
             <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
             <br/>
-            { (this.props.gamesTotal) ? (
-              <>
-                {strings.noGameMatchedDesc}
-                <br/>
-                {strings.noGameMatchedSearch}
-              </>
-            ) : (
-              <>{strings.thereAreNoGames}</>
-            ) }
-          </>
-        ) }
+              { this.props.gamesTotal > 1 ? (
+                <>
+                  {strings.noGameMatchedDesc}
+                  <br/>
+                  {strings.noGameMatchedSearch}
+                </>
+              ) : (
+                <>{strings.thereAreNoGames}</>
+              ) }
+            </>
+          ) : <h1 className='game-list__no-games__title'>{strings.searching}</h1> }
       </div>
     );
   });

@@ -23,7 +23,7 @@ import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
-  games: GAMES | undefined;
+  games: GAMES;
   gamesTotal?: number;
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
@@ -34,6 +34,7 @@ export type AppRouterProps = {
   onLaunchGame: (gameId: string) => void;
   onRequestGames: (start: number, end: number) => void;
   onQuickSearch: (search: string) => void;
+  requestPages: (start: number, count: number) => void;
   playlistIconCache: Record<string, string>;
   libraries: string[];
   localeCode: string;
@@ -73,6 +74,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
+      requestPages: this.props.requestPages,
       gamesTotal: this.props.gamesTotal,
       playlists: this.props.playlists,
       suggestions: this.props.suggestions,

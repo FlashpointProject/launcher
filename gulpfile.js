@@ -93,6 +93,9 @@ gulp.task('pack', (done) => {
       },
       mac: {
         icon: './icons/icon.icns'
+      },
+      linux: {
+        category: 'games'
       }
     },
     targets: targets
@@ -126,7 +129,7 @@ function createBuildTargets(os, arch) {
     case 'darwin':
       return Platform.MAC.createTarget('dmg');
     case 'linux':
-      return Platform.LINUX.createTarget('appimage', archFromString(arch));
+      return Platform.LINUX.createTarget('dir', archFromString(arch));
   }
 }
 
@@ -140,6 +143,7 @@ function getCopyFiles() {
     './lang',
     './licenses',
     './.installed',
+    'ormconfig.json',
     {
       from: './LICENSE',
       to: './licenses/LICENSE'

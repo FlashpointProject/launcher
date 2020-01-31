@@ -1,11 +1,10 @@
 import { Game } from '@database/entity/Game';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewPageIndexData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame, BrowseViewPageIndexResponse, PageIndex } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { findMostUsedApplicationPaths } from '@shared/curate/defaultValues';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { DeepPartial, IService, ProcessAction } from '@shared/interfaces';
+import { DeepPartial, IService, ProcessAction, GamePropSuggestions } from '@shared/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
@@ -13,6 +12,7 @@ import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as fs from 'fs';
 import * as path from 'path';
+import { FindGameOptions } from './game/GameManager';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
@@ -20,7 +20,6 @@ import { GameManager } from './game/GameManager';
 import { GameLauncher } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { respond } from './SocketServer';
-import { getSuggestions } from './suggestions';
 import { BackState } from './types';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
@@ -63,7 +62,7 @@ export function registerRequestCallbacks(state: BackState): void {
       state.preferences.fallbackLanguage
     );
 
-    const libraries = await GameManager.findLibraries();
+    const libraries = await GameManager.findUniqueValues(Game, 'library');
     let platforms: Record<string, string[]> = {};
     for (let library of libraries) {
       platforms[library] = await GameManager.findPlatforms(library);
@@ -114,13 +113,26 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async (event, req) => {
-    const { games } = await GameManager.findGames();
+    const startTime = Date.now();
+    const suggestions: GamePropSuggestions = {
+      tags: await GameManager.findUniqueValues(Game, 'tags'),
+      platform: await GameManager.findUniqueValues(Game, 'platform'),
+      playMode: await GameManager.findUniqueValues(Game, 'playMode'),
+      status: await GameManager.findUniqueValues(Game, 'status'),
+      applicationPath: await GameManager.findUniqueValues(Game, 'applicationPath'),
+      library: await GameManager.findUniqueValues(Game, 'library'),
+    };
+    const appPaths: {[platform: string]: string} = {};
+    for (let platform of suggestions.platform) {
+      appPaths[platform] = (await GameManager.findPlatformAppPaths(platform))[0] || '';
+    }
+    console.log(Date.now() - startTime);
     respond<GetSuggestionsResponseData>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
       data: {
-        suggestions: getSuggestions(games, await GameManager.findLibraries()),
-        appPaths: findMostUsedApplicationPaths(games),
+        suggestions: suggestions,
+        appPaths: appPaths,
       },
     });
   });
@@ -441,34 +453,50 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register<RandomGamesData>(BackIn.RANDOM_GAMES, async (event, req) => {
     const reqData: RandomGamesData = req.data;
-    let { games } = await GameManager.findGames();
-
-    const pickedGames: Game[] = [];
-    for (let i = 0; i < reqData.count; i++) {
-      const index = (Math.random() * games.length) | 0;
-      const game = games[index];
-      if (game) {
-        pickedGames.push(game);
-        games.splice(index, 1);
-      }
-    }
+    let games = await GameManager.findRandomGames(reqData.count);
 
     respond<RandomGamesResponseData>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
-      data: pickedGames
+      data: games
+    });
+  });
+
+  state.socketServer.register<BrowseViewPageIndexData>(BackIn.BROWSE_VIEW_PAGE_INDEX, async (event, req) => {
+    const opts = req.data.query.filter || {};
+    const index: PageIndex = await GameManager.findGamePageIndex(opts, req.data.query.orderBy, req.data.query.orderReverse);
+    console.log('Sending Index');
+    respond<BrowseViewPageIndexResponse>(event.target, {
+      id: req.id,
+      type: BackOut.BROWSE_VIEW_PAGE_INDEX_RESPONSE,
+      data:{
+        index: index,
+        library: req.data.library
+      }
     });
   });
 
   state.socketServer.register<BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, async (event, req) => {
-    const { query, offset, limit, getTotal } = req.data;
-    const { games, total } = await GameManager.findGames(query.filter, query.orderBy, query.orderReverse, offset, limit, true, getTotal);
+    const { query, offset, limit, getTotal, library, index } = req.data;
+    const opts: FindGameOptions = {
+      offset: offset,
+      limit: limit,
+      shallow: true,
+      index: index,
+      getTotal: getTotal
+    };
+    // Add library to whitelist
+    if (query.filter.searchQuery) {
+      query.filter.searchQuery.whitelist.push({ field: 'library', value: library });
+    }
+    const { games, total } = await GameManager.findGames(query.filter, query.orderBy, query.orderReverse, opts);
 
     respond<BrowseViewPageResponseData>(event.target, {
       id: req.id,
       type: BackOut.BROWSE_VIEW_PAGE_RESPONSE,
       data: {
         games: games as ViewGame[],
+        library: library,
         offset: offset,
         total: total
       },
@@ -477,7 +505,13 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register<BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, async (event, req) => {
     const { gameId, query } = req.data;
-    const position = await GameManager.findGameIndex(gameId, query.filter, query.orderBy, query.orderReverse, 0, 1, true, false);
+    const opts: FindGameOptions = {
+      offset: 0,
+      limit: 1,
+      shallow: true,
+      getTotal: false
+    };
+    const position = await GameManager.findGameRow(gameId, query.filter, query.orderBy, query.orderReverse, opts);
 
     respond<BrowseViewIndexResponse>(event.target, {
       id: req.id,
