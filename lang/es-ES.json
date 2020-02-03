@@ -220,14 +220,14 @@
     "noGamesFound": "¡No se encontraron juegos!",
     "dropGameOnLeft": "Suelta un juego en esta lista de reproducción en la {0} para añadirlos.",
     "leftSidebar": "barra lateral izquierda",
-    "setFlashpointPathQuestion": "Ya pusiste la dirección {0} en la página de {1}?",
+    "setFlashpointPathQuestion": "¿Ya pusiste la ruta {0} en la página de {1}?",
     "flashpointPath": "Ruta de Flashpoint",
     "config": "Configuración",
     "noteSaveAndRestart": "Nota: Tienes que presionar {0} para que el cambio surta efecto.",
     "saveAndRestart": "Guardar y reiniciar",
     "loadingGames": "Cargando juegos...",
     "thereAreNoGames": "No hay juegos.",
-    "noGameMatchedDesc": "Ningun título de un juego se asemeja a tu búsqueda.",
+    "noGameMatchedDesc": "Ningún título de un juego coincide con tu búsqueda.",
     "noGameMatchedSearch": "Intenta buscar algo menos restrictivo."
   },
   "curate": {
@@ -264,7 +264,7 @@
     "addExtras": "Añadir Extras",
     "addMessage": "Añadir mensaje",
     "removeAddApp": "Remover Aplicación",
-    "indexContent": "Refrescar Contenido",
+    "indexContent": "Actualizar contenido",
     "delete": "Borrar",
     "deleteCurationDesc": "Eliminar esta curación (Los archivos no pueden ser recuperados)",
     "openFolder": "Abrir carpeta",
@@ -273,16 +273,16 @@
     "import": "Importar",
     "contentFiles": "Archivos de contenido",
     "warnings": "Advertencias",
-    "noLaunchCommand": "'Comando de Lanzamiento' es un campo requerido. Porfavor llenarlo antes de importar.",
+    "noLaunchCommand": "'Comando de Lanzamiento' es un campo obligatorio. Por favor, llenarlo antes de importar.",
     "invalidLaunchCommand": "'Comando de Lanzamiento' no se ajusta a los requerimientos de esta 'URL':",
-    "releaseDateInvalid": "'Fecha de Adición' debe seguir el formato AAAA-MM-DD (mes y dia son opcionales).",
-    "unusedApplicationPath": "'Dirección de la Aplicacion' tiene un valor inusual. Asegurate que este deletreado correctamente!",
+    "releaseDateInvalid": "'Fecha de Adición' debe seguir el formato AAAA-MM-DD (mes y día son opcionales).",
+    "unusedApplicationPath": "'Ruta de la Aplicación' tiene un valor inusual. ¡Asegúrate que esté deletreado correctamente!",
     "unusedTags": "Las siguientes etiquetas no están presentes en ningún otro juego. ¿Son correctas?",
     "unusedPlatform": "'Plataforma' tiene un valor sin usar. ¡Asegúrate de que está escrito correctamente!",
-    "nonExistingLibrary": "'Librería' no es el nombre de una librería existente! (La predeterminada sera usada)",
-    "nonContentFolders": "Carpetas diferentes a 'content' encontradas en la carpeta de curación. Deberian estar ahí?",
+    "nonExistingLibrary": "'Biblioteca' no es el nombre de una biblioteca existente! (La predeterminada será usada)",
+    "nonContentFolders": "Carpetas diferentes a 'content' encontradas en la carpeta de curación. ¿Deberían estar ahí?",
     "ilc_notHttp": "Usar 'HTTP'.",
-    "ilc_nonExistant": "Dirige hacia la carpeta 'content' de tu curación."
+    "ilc_nonExistant": "Selecciona un archivo existente de la carpeta 'contents' de tu curación."
   },
   "playlist": {
     "enterDescriptionHere": "Introduzca una descripción aquí...",
@@ -316,17 +316,17 @@
     "viewScreenshotInFolder": "Ver captura de pantalla en la carpeta",
     "openFileLocation": "Abrir ubicación del archivo",
     "duplicateMetaOnly": "Duplicado (Solo Metadatos)",
-    "duplicateMetaAndImages": "Duplicado (Metadatos é Imágenes)",
+    "duplicateMetaAndImages": "Duplicado (Metadatos e Imágenes)",
     "exportMetaOnly": "Exportar (Solo Metadatos)",
-    "exportMetaAndImages": "Exportar (Metadatos é Imágenes)"
+    "exportMetaAndImages": "Exportar (Metadatos e Imágenes)"
   },
   "dialog": {
     "programNotFound": "¡Programa no encontrado!",
     "phpNotFound": "PHP no se encontró en la ruta. ¿Está instalado?\nPuede encontrarse con un comportamiento inesperado y roto sin él.",
-    "wineNotFound": "Wine no esta instalado, pero es requerido para correr este juego.\nPorfavor mira el articulo de soporte de Linux para mas detalles.",
+    "wineNotFound": "Wine no está instalado, pero es necesario para correr este juego.\nPor favor revisa el artículo de soporte de Linux para más detalles.",
     "flashpointPathNotFound": "La carpeta Flashpoint no está establecida o no es válida. ¿Desea elegir una carpeta a la que instalar ahora?",
     "fileNotFound": "¡Archivo no encontrado!",
-    "flashpointPathInvalid": "Dirección de Flashpoint inválida!",
+    "flashpointPathInvalid": "¡Ruta de Flashpoint inválida!",
     "pathNotFound": "¡Ruta no encontrada!",
     "selectFileToExportMeta": "Seleccionar archivo para guardar metadatos",
     "selectFolderToExportMetaAndImages": "Seleccionar carpeta para guardar metadatos e imágenes",
@@ -338,16 +338,16 @@
     "selectThemeFile": "Seleccionar archivo de tema",
     "selectCurationFolder": "Seleccionar carpeta(s) de curaciones",
     "selectCurationArchive": "Seleccionar archivo(s) de curaciones",
-    "selectCurationMeta": "Seleccionar metadato(s) de curación",
+    "selectCurationMeta": "Seleccionar archivo(s) de metadatos de curación",
     "errorParsingPlatforms": "¡Error al analizar plataformas!",
     "errorParsingPlatformsMessage": "{0} Error(es) encontrado(s) mientras se analizaban los 'XMLs' de las plataformas \nPor favor mira el registro para los detalles.",
     "dataRequired": "Datos adicionales requeridos",
     "dataRequiredDesc": "Debe instalar la mejora en la pantalla de inicio antes de poder usar la aplicación.\n\n¿Desea hacerlo ahora?",
-    "upgradeWillInstallTo": "{0} sera instalada en",
-    "verifyPathSelection": "Futuras mejoras tambien se instalaran aquí. Es esto correcto?",
+    "upgradeWillInstallTo": "{0} se instalará en",
+    "verifyPathSelection": "Futuras mejoras también se instalarán aquí. ¿Es esto correcto?",
     "restartNow": "¿Reiniciar ahora?",
-    "restartToApplyUpgrade": "Esta mejora no sera aplicada hasta que reinicies.\nQuieres hacer esto ahora?",
-    "areYouSure": "Estás seguro?"
+    "restartToApplyUpgrade": "Esta mejora no será aplicada hasta que reinicies.\n¿Quieres hacer esto ahora?",
+    "areYouSure": "¿Estás seguro?"
   },
   "libraries": {
     "arcade": "Juegos",
@@ -356,8 +356,8 @@
   "upgrades": {
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "Archivos Requeridos. Añade soporte para Juegos Flash.",
-    "tech": "Otras Técnologias",
-    "techDesc": "Añade soporte para otras técnologias - Shockwave, Unity, Java, HTML5, etc.",
+    "tech": "Otras Tecnologías",
+    "techDesc": "Añade soporte para otras tecnologías - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logos y Capturas de Pantalla",
     "screenshotsDesc": "Añade logos para vista en cuadrícula y capturas de pantalla para todos los juegos."
   }
