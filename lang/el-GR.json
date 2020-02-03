@@ -334,7 +334,7 @@
     "exportedAlreadyExistsYesNo": "One or more of the exported files already exists.\n Do you want to replace them?",
     "selectFolder": "Select Folder",
     "selectScreenshot": "Select Screenshot",
-    "selectThumbnail": "Select Thumbnail",
+    "selectThumbnail": "Επιλογή Μικρογραφίας",
     "selectThemeFile": "Select Theme File",
     "selectCurationFolder": "Select Curation Folder(s)",
     "selectCurationArchive": "Select Curation Archive(s)",
