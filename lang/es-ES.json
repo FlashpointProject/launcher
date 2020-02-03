@@ -80,7 +80,7 @@
     "browse": "Navegar",
     "logs": "Registro",
     "config": "Configuración",
-    "about": "Acerca",
+    "about": "Acerca de",
     "curate": "Curar",
     "developer": "Desarrollador",
     "searchPlaceholder": "Buscar...",
@@ -143,7 +143,7 @@
     "detailsDesc": "Abrir diálogo con detalles del servicio"
   },
   "about": {
-    "aboutHeader": "Acerca",
+    "aboutHeader": "Acerca de",
     "flashpoint": "BlueMaxima's Flashpoint",
     "flashpointDesc": "El proyecto de preservación para el que se creó esta aplicación, que pretende ser un archivo, un museo y una colección jugable de juegos de Internet basados en la red",
     "website": "Página Web",
