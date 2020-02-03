@@ -22,7 +22,7 @@
     "redirectorFiddler": "Fiddler",
     "redirectorDesc": "Que programa utilizar para redirigir el tráfico de los juegos al servidor local web. Ninguno es usado en Linux.",
     "platforms": "Plataformas",
-    "nativePlatforms": "Plataformas Nativas",
+    "nativePlatforms": "Plataformas nativas",
     "nativePlatformsDesc": "Usar versiones nativas de estas plataformas. (Si no está disponible, utilizará Wine)",
     "visualsHeader": "Visuales",
     "useCustomTitleBar": "Usar barra de título personalizada",
@@ -33,7 +33,7 @@
     "advancedHeader": "Avanzado",
     "showDeveloperTab": "Mostrar la pestaña Desarrollador",
     "showDeveloperTabDesc": "Mostrar la pestaña 'Desarrollador'. Esta es muy probable que sólo sea útil para desarrolladores y curadores.",
-    "saveAndRestart": "Guardar y Reiniciar"
+    "saveAndRestart": "Guardar y reiniciar"
   },
   "home": {
     "updateHeader": "Actualización del Launcher",
@@ -42,7 +42,7 @@
     "updateAvailable": "Actualización disponible",
     "upToDate": "Al Día.",
     "downloadingUpdate": "Descargando Actualización...",
-    "quickStartHeader": "Comienzo Rápido",
+    "quickStartHeader": "Inicio rápido",
     "hallOfFameInfo": "Solo quieres lo mejor de lo mejor? Mira {0}!",
     "hallOfFame": "Salón de la Fama",
     "allGamesInfo": "Buscando algo que jugar? Mira {0}.",
@@ -181,7 +181,7 @@
     "language": "Idioma",
     "noLanguage": "Sin Idioma",
     "dateAdded": "Fecha de Adición",
-    "brokenInInfinity": "Roto (en Infinity)",
+    "brokenInInfinity": "No funciona (en Infinity)",
     "extreme": "Extremo",
     "playlistNotes": "Notas de Lista de Reproducción",
     "noPlaylistNotes": "Sin Notas de Lista de Reproducción",
