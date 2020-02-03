@@ -23,7 +23,7 @@
     "redirectorDesc": "Programul folosit pentru redirecționarea traficului de internet al jocului spre un server local. Nu se aplică pentru Linux.",
     "platforms": "Platforme",
     "nativePlatforms": "Platforme native",
-    "nativePlatformsDesc": "Folosește versiuni native ale acestor platforme. (Dacă nu este valabil, se va folosi Wine)",
+    "nativePlatformsDesc": "Folosește versiuni native ale acestor platforme. (Dacă nu sunt disponibile, se vor folosi prin Wine)",
     "visualsHeader": "Aspecte vizuale",
     "useCustomTitleBar": "Folosiți o bară de titlu personalizată",
     "useCustomTitleBarDesc": "Se va folosi o bară de titlu personalizată în partea de sus a ferestrei.",
