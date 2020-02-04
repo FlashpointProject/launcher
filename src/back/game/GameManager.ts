@@ -113,6 +113,7 @@ export namespace GameManager {
 
     if (index) {
       query.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
+      whereCount++;
     }
     if (filterOpts) {
       whereCount = applyGameFilters(gameRepository, 'game', query, filterOpts, whereCount);

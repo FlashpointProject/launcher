@@ -485,10 +485,6 @@ export function registerRequestCallbacks(state: BackState): void {
       index: index,
       getTotal: getTotal
     };
-    // Add library to whitelist
-    if (query.filter.searchQuery) {
-      query.filter.searchQuery.whitelist.push({ field: 'library', value: library });
-    }
     const { games, total } = await GameManager.findGames(query.filter, query.orderBy, query.orderReverse, opts);
 
     respond<BrowseViewPageResponseData>(event.target, {
