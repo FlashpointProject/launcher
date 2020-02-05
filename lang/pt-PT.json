@@ -291,25 +291,25 @@
     "saveDesc": "Save changes made and stop editing",
     "discard": "Discard",
     "discardDesc": "Discard changes made and stop editing",
-    "delete": "Delete",
-    "deleteDesc": "Delete this playlist",
-    "areYouSure": "Are you sure?",
-    "noTitle": "No Title",
-    "titlePlaceholder": "Title...",
-    "noAuthor": "No Author",
-    "authorPlaceholder": "Author...",
-    "by": "by"
+    "delete": "Eliminar",
+    "deleteDesc": "Eliminar esta playlist",
+    "areYouSure": "Tem a certeza?",
+    "noTitle": "Sem título",
+    "titlePlaceholder": "Título...",
+    "noAuthor": "Sem Autor",
+    "authorPlaceholder": "Autor...",
+    "by": "por"
   },
   "misc": {
-    "noBlankFound": "No {0} Found",
-    "addBlank": "Add {0}",
-    "deleteAllBlankImages": "Delete ALL {0} images for this game",
-    "yes": "Yes",
-    "no": "No",
-    "downloading": "Downloading",
-    "extracting": "Extracting",
-    "installingFiles": "Installing Files...",
-    "complete": "Complete"
+    "noBlankFound": "Nenhum {0} Encontrado",
+    "addBlank": "Adicionar {0}",
+    "deleteAllBlankImages": "Excluir TODAS as {0} imagens deste jogo",
+    "yes": "Sim",
+    "no": "Não",
+    "downloading": "Transferindo",
+    "extracting": "A extrair",
+    "installingFiles": "Instalando Arquivos...",
+    "complete": "Completo"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
@@ -345,7 +345,7 @@
     "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
     "upgradeWillInstallTo": "{0} will be installed to",
     "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
-    "restartNow": "Restart Now?",
+    "restartNow": "Reiniciar agora?",
     "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
     "areYouSure": "Tem a certeza?"
   },
@@ -355,9 +355,9 @@
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
-    "tech": "Other Technologies",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
+    "infinityDesc": "Arquivos necessários. Adiciona suporte para jogos em Flash.",
+    "tech": "Outras Tecnologias",
+    "techDesc": "Adiciona suporte para todas as outras tecnologias - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logos e capturas de tela",
     "screenshotsDesc": "Adiciona logotipos para exibição em grade e capturas de tela para todos os jogos."
   }
