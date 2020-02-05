@@ -313,15 +313,15 @@
   },
   "menu": {
     "viewThumbnailInFolder": "Προβολή Μικρογραφίας στον Φάκελο",
-    "viewScreenshotInFolder": "View Screenshot in Folder",
-    "openFileLocation": "Open File Location",
-    "duplicateMetaOnly": "Duplicate (Meta Only)",
-    "duplicateMetaAndImages": "Duplicate (Meta && Images)",
-    "exportMetaOnly": "Export (Meta Only)",
-    "exportMetaAndImages": "Export (Meta && Images)"
+    "viewScreenshotInFolder": "Προβολή Στιγμιότυπου στον Φάκελο",
+    "openFileLocation": "Άνοιγμα Διαδρομής Αρχείου",
+    "duplicateMetaOnly": "Διπλότυπο (Μεταδεδομένα μόνον)",
+    "duplicateMetaAndImages": "Διπλότυπο (Μεταδεδομένα && Εικόνες)",
+    "exportMetaOnly": "Εξαγωγή (Μεταδεδομένα μόνον)",
+    "exportMetaAndImages": "Εξαγωγή (Μεταδεδομένα && Εικόνες)"
   },
   "dialog": {
-    "programNotFound": "Program not found!",
+    "programNotFound": "Το πρόγραμμα δεν βρέθηκε!",
     "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
     "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
