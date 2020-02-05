@@ -102,14 +102,14 @@
     "title": "Título",
     "developer": "Desenvolvedor",
     "publisher": "Editor",
-    "ascending": "Ascending",
-    "descending": "Descending"
+    "ascending": "Ascendente",
+    "descending": "Descendente"
   },
   "developer": {
-    "developerHeader": "Developer",
-    "developerDesc": "This is where all the useful developer tools will go.",
-    "checkMissingImages": "Check Missing Images",
-    "checkMissingImagesDesc": "List all games without a thumbnail or screenshot",
+    "developerHeader": "Desenvolvedor",
+    "developerDesc": "É aqui que ficarão todas as ferramentas úteis de desenvolvimento.",
+    "checkMissingImages": "Verificar Imagens em falta",
+    "checkMissingImagesDesc": "Listar todos os jogos sem miniatura ou captura de tela",
     "checkGameIds": "Check Game IDs",
     "checkGameIdsDesc": "List all games with duplicate or invalid IDs",
     "checkGameTitles": "Check Game Titles",
