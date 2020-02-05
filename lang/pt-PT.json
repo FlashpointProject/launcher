@@ -110,15 +110,15 @@
     "developerDesc": "É aqui que ficarão todas as ferramentas úteis de desenvolvimento.",
     "checkMissingImages": "Verificar Imagens em falta",
     "checkMissingImagesDesc": "Listar todos os jogos sem miniatura ou captura de tela",
-    "checkGameIds": "Check Game IDs",
-    "checkGameIdsDesc": "List all games with duplicate or invalid IDs",
-    "checkGameTitles": "Check Game Titles",
-    "checkGameTitlesDesc": "List all games with duplicate titles on the same platform",
-    "checkGameFields": "Check Game Fields",
-    "checkGameFieldsDesc": "List all games with empty fields (of the fields that should not be empty)",
-    "checkPlaylists": "Check Playlists",
-    "checkPlaylistsDesc": "List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs",
-    "checkGameFileLocation": "Check Game File Location",
+    "checkGameIds": "Verificar IDs de Jogos",
+    "checkGameIdsDesc": "Listar todos os jogos com IDs duplicados ou inválidos",
+    "checkGameTitles": "Verificar Títulos dos Jogos",
+    "checkGameTitlesDesc": "Listar todos os jogos com títulos duplicados na mesma plataforma",
+    "checkGameFields": "Verificar Campos de Jogo",
+    "checkGameFieldsDesc": "Listar todos os jogos com campos vazios (dos campos que não devem estar vazios)",
+    "checkPlaylists": "Verificar playlists",
+    "checkPlaylistsDesc": "Lista todas as playlists com IDs duplicados ou inválidos, ou que possui entradas de jogo com IDs faltantes, inválidos ou duplicados",
+    "checkGameFileLocation": "Verificar local do arquivo do jogo",
     "checkGameFileLocationDesc": "List all games with launch commands that can not be parsed into file paths (this is related to the 'Open File Location' function, not launching the game)",
     "checkMissingExecMappings": "Check Missing Exec Mappings",
     "checkMissingExecMappingsDesc": "List all unique execs for win32, linux and darwin which are missing an exec mapping",
@@ -133,30 +133,30 @@
     "running": "Running",
     "stopped": "Stopped",
     "killing": "Killing",
-    "start": "Start",
+    "start": "Inicio",
     "startDesc": "Start the service",
-    "stop": "Stop",
+    "stop": "Parar",
     "stopDesc": "Stop the running service",
-    "restart": "Restart",
+    "restart": "Reiniciar",
     "restartDesc": "Restart the service",
-    "details": "Details",
+    "details": "Detalhes",
     "detailsDesc": "Open dialog with service details"
   },
   "about": {
-    "aboutHeader": "About",
+    "aboutHeader": "Sobre",
     "flashpoint": "BlueMaxima's Flashpoint",
     "flashpointDesc": "The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.",
-    "website": "Website",
+    "website": "Site",
     "flashpointLauncher": "Flashpoint Launcher",
     "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint project.",
-    "version": "Version",
+    "version": "Versão",
     "license": "License",
     "licenseInfo": "MIT (Read the file named 'LICENSE' for more information)",
-    "creditsHeader": "Credits"
+    "creditsHeader": "Créditos"
   },
   "browse": {
-    "noTitle": "No Title",
-    "by": "by",
+    "noTitle": "Sem título",
+    "by": "por",
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
     "noAlternateTitles": "No Alternate Titles",
@@ -347,18 +347,18 @@
     "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
     "restartNow": "Restart Now?",
     "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
-    "areYouSure": "Are you sure?"
+    "areYouSure": "Tem a certeza?"
   },
   "libraries": {
-    "arcade": "Games",
-    "theatre": "Animations"
+    "arcade": "Jogos",
+    "theatre": "Animações"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "Required files. Adds support for Flash games.",
     "tech": "Other Technologies",
     "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos & Screenshots",
-    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+    "screenshots": "Logos e capturas de tela",
+    "screenshotsDesc": "Adiciona logotipos para exibição em grade e capturas de tela para todos os jogos."
   }
 }
