@@ -223,7 +223,7 @@
     "setFlashpointPathQuestion": "Έχετε θέσει τη διαδρομή στο {0} στην σελίδα {1};",
     "flashpointPath": "ΔιαδρομήΦλάσποϊντ",
     "config": "Ρυθμίσεις",
-    "noteSaveAndRestart": "Note: You have to press {0} for the change to take effect.",
+    "noteSaveAndRestart": "Σημείωση: Πρέπει να πιέσετε {0} για να εφαρμοσθεί αυτή η αλλαγή.",
     "saveAndRestart": "Αποθήκευση και Επανεκκίνηση",
     "loadingGames": "Φόρτωση Παιχνιδιών...",
     "thereAreNoGames": "Δεν υπάρχουν παιχνίδια.",
