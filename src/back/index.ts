@@ -447,7 +447,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
 
   // Load Exec Mappings
-  loadExecMappingsFile(state.config.flashpointPath, content => log({ source: 'Launcher', content }))
+  loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log({ source: 'Launcher', content }))
   .then(data => {
     state.execMappings = data;
   })
