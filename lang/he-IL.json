@@ -92,7 +92,7 @@
     "newGame": "משחק חדש",
     "list": "רשימה",
     "grid": "טבלה",
-    "searchResults": "Search Results"
+    "searchResults": "תוצאות חיפוש"
   },
   "filter": {
     "dateAdded": "תאריך הוספה",
@@ -149,7 +149,7 @@
     "website": "Website",
     "flashpointLauncher": "Flashpoint Launcher",
     "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint project.",
-    "version": "Version",
+    "version": "גרסה",
     "license": "License",
     "licenseInfo": "MIT (Read the file named 'LICENSE' for more information)",
     "creditsHeader": "Credits"
