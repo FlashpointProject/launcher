@@ -37,11 +37,11 @@
   },
   "home": {
     "updateHeader": "Launcher Update",
-    "currentVersion": "Current Version",
-    "nextVersion": "Next Version",
-    "updateAvailable": "Update Available",
+    "currentVersion": "Aktuel Version",
+    "nextVersion": "Næste Version",
+    "updateAvailable": "Opdatering Tilgængelig",
     "upToDate": "Up to date.",
-    "downloadingUpdate": "Downloading Update...",
+    "downloadingUpdate": "Henter opdatering...",
     "quickStartHeader": "Hurtigt Start",
     "hallOfFameInfo": "Vil du kun have det bedste af det bedste?? Tjek out {0}!",
     "hallOfFame": "Hallen af Berømmelse",
@@ -57,7 +57,7 @@
     "installComplete": "Installation er færdig",
     "alreadyInstalled": "Allerede Installeret",
     "download": "Download",
-    "update": "Update",
+    "update": "Opdater",
     "checkingUpgradeState": "Checking Upgrade State...",
     "extrasHeader": "Ekstra",
     "favoritesPlaylist": "Favoritter Playlisten",
@@ -92,7 +92,7 @@
     "newGame": "Ny Spil",
     "list": "Liste",
     "grid": "Grid",
-    "searchResults": "Search Results"
+    "searchResults": "Søgeresultater"
   },
   "filter": {
     "dateAdded": "Dato Tilføjet",
@@ -158,10 +158,10 @@
     "noTitle": "Ingen Titel",
     "by": "af",
     "noDeveloper": "Ingen Udvikler",
-    "alternateTitles": "Alternate Titles",
-    "noAlternateTitles": "No Alternate Titles",
+    "alternateTitles": "Alternative Titler",
+    "noAlternateTitles": "Ingen Alternative Titler",
     "tags": "Tags",
-    "noTags": "No Tags",
+    "noTags": "Ingen Tags",
     "series": "Serie",
     "noSeries": "Ingen Serie",
     "publisher": "Udgiver",
@@ -189,7 +189,7 @@
     "noNotes": "Ingen Noter",
     "originalDescription": "Original Beskrivelse",
     "noOriginalDescription": "Ingen Original Beskrivelse",
-    "additionalApplications": "Additional Applications",
+    "additionalApplications": "Additionelle Applikationer",
     "noName": "Ingen Navn",
     "launch": "Start",
     "autoRunBefore": "Auto Start Før",
@@ -233,7 +233,7 @@
   "curate": {
     "importAll": "Importer Alle",
     "importAllDesc": "Importer alle kurationer som er indlæst lige nu",
-    "deleteAll": "Delete All",
+    "deleteAll": "Slet Alle",
     "deleteAllDesc": "Delete all curations that are currently loaded",
     "saveImportedCurations": "Save Imported Curations",
     "openCurationsFolder": "Curations Folder",
@@ -281,7 +281,7 @@
     "unusedPlatform": "'Platform' har et ubrugt værdi. Sørg for at det er stavet korrekt!",
     "nonExistingLibrary": "'Bibliotek' er ikke et navn af et eksisterende bibliotek! (Standarden vil blive brugt)",
     "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?",
-    "ilc_notHttp": "Use HTTP.",
+    "ilc_notHttp": "Brug HTTP.",
     "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder."
   },
   "playlist": {
@@ -298,7 +298,7 @@
     "titlePlaceholder": "Titel...",
     "noAuthor": "Ingen Udvikler",
     "authorPlaceholder": "Udvikler...",
-    "by": "by"
+    "by": "af"
   },
   "misc": {
     "noBlankFound": "Ingen {0} fundet",
@@ -306,10 +306,10 @@
     "deleteAllBlankImages": "Slet ALLE {0} billeder for dette spil",
     "yes": "Ja",
     "no": "Nej",
-    "downloading": "Downloading",
-    "extracting": "Extracting",
-    "installingFiles": "Installing Files...",
-    "complete": "Complete"
+    "downloading": "Henter",
+    "extracting": "Udpakker",
+    "installingFiles": "Installerer filer...",
+    "complete": "Færdig"
   },
   "menu": {
     "viewThumbnailInFolder": "Vis Thumbnail i Folderen",
@@ -332,7 +332,7 @@
     "selectFolderToExportMetaAndImages": "Vælg folder til at gemme meta og billeder til",
     "replaceFilesQuestion": "Erstat filer?",
     "exportedAlreadyExistsYesNo": "En eller mere af de eksporterede filer eksisterer allerede.\n Vil du erstatte dem?",
-    "selectFolder": "Select Folder",
+    "selectFolder": "Vælg Mappe",
     "selectScreenshot": "Vælg Skærmbillede",
     "selectThumbnail": "Vælg Thumbnail",
     "selectThemeFile": "Vælg Tema Fil",
@@ -345,9 +345,9 @@
     "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
     "upgradeWillInstallTo": "{0} will be installed to",
     "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
-    "restartNow": "Restart Now?",
+    "restartNow": "Genstart Nu?",
     "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
-    "areYouSure": "Are you sure?"
+    "areYouSure": "Er du sikker?"
   },
   "libraries": {
     "arcade": "Spil",
