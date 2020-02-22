@@ -73,7 +73,7 @@
   "logs": {
     "filters": "Filtros",
     "copyText": "Copiar texto",
-    "clearLog": "Limpiar el Registro"
+    "clearLog": "Limpiar el registro"
   },
   "app": {
     "home": "Inicio",
@@ -114,9 +114,9 @@
     "checkGameIdsDesc": "Listar todos los juegos con IDs duplicados o inválidos",
     "checkGameTitles": "Revisar títulos de juegos",
     "checkGameTitlesDesc": "Lista todos los juegos con títulos duplicados en la misma plataforma",
-    "checkGameFields": "Revisar Campos de Juegos",
+    "checkGameFields": "Comprobar campos de juego",
     "checkGameFieldsDesc": "Lista todos los juegos con campos vacíos (de los campos que no deberían estarlo)",
-    "checkPlaylists": "Revisar Listas de Reproducción",
+    "checkPlaylists": "Revisar listas de reproducción",
     "checkPlaylistsDesc": "Muestra todas las listas de reproducción con ID duplicado o inválido, o las que contienen juegos sin ID, duplicado o inválido",
     "checkGameFileLocation": "Comprobar ubicación del archivo del juego",
     "checkGameFileLocationDesc": "Lista todos los juegos cuyas órdenes de ejecución no pueden convertirse en una ruta de archivo (relacionado con la función 'Abrir Ubicación de Archivo', no con la ejecución del juego)",
@@ -126,7 +126,7 @@
     "renameImagesTitleToIdDesc": "Encuentra todas las imágenes de juegos con el título del juego en su nombre de archivo y los renombra para usar su ID en su lugar",
     "renameImagesIdToTitle": "Renombrar Imágenes (ID => Título)",
     "renameImagesIdToTitleDesc": "Encuentra todas las imágenes de juegos con el ID del juego en su nombre de archivo y los renombra para usar su título en su lugar",
-    "createMissingFolders": "Crear Carpetas Faltantes",
+    "createMissingFolders": "Crear carpetas faltantes",
     "createMissingFoldersDesc": "Encuentra todas las carpetas faltantes en la estructura de carpetas de Flashpoint y las crea",
     "servicesHeader": "Servicios en segundo plano",
     "servicesMissing": "No hay servicios.",
@@ -146,7 +146,7 @@
     "aboutHeader": "Acerca de",
     "flashpoint": "BlueMaxima's Flashpoint",
     "flashpointDesc": "El proyecto de preservación para el que se creó esta aplicación, que pretende ser un archivo, un museo y una colección de juegos de Internet basados en la web.",
-    "website": "Página Web",
+    "website": "Sitio web",
     "flashpointLauncher": "Flashpoint Launcher",
     "flashpointLauncherDesc": "Una aplicación de escritorio de código abierto usada para navegar, administrar y jugar juegos desde el proyecto Flashpoint.",
     "version": "Versión",
