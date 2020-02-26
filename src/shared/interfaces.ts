@@ -6,6 +6,7 @@ import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { IAppPreferencesData } from './preferences/interfaces';
 import { Theme } from './ThemeFile';
+import { TagCategory } from '@database/entity/TagCategory';
 
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
@@ -90,6 +91,7 @@ export interface IMainWindowExternal {
   initialLibraries: string[];
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
+  initialTagCategories: TagCategory[];
 
   /**
    * Wait for the preload to initialize.

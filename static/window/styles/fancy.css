@@ -851,3 +851,11 @@ body {
 .splash-screen__status {
   color: var(--layout__primary-text-color);
 }
+
+/* ----- Tag Related Elements ----- */
+.tag:hover {
+  color: var(--layout__browse-right-sidebar-searchable-hover)
+}
+.tag-editable:hover {
+  color: var(--layout__warning-bright-color)
+}

@@ -1,10 +1,11 @@
 import { Game } from '@database/entity/Game';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewPageIndexData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, UpdateConfigData, ViewGame, BrowseViewPageIndexResponse, PageIndex } from '@shared/back/types';
+import { Tag } from '@database/entity/Tag';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PageIndex, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, ViewGame } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { DeepPartial, IService, ProcessAction, GamePropSuggestions } from '@shared/interfaces';
+import { DeepPartial, GamePropSuggestions, IService, ProcessAction } from '@shared/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
@@ -12,11 +13,11 @@ import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FindGameOptions } from './game/GameManager';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
-import { GameManager } from './game/GameManager';
+import { FindGameOptions, GameManager } from './game/GameManager';
+import { TagManager } from './game/TagManager';
 import { GameLauncher } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { respond } from './SocketServer';
@@ -84,6 +85,7 @@ export function registerRequestCallbacks(state: BackState): void {
         libraries: libraries,
         platforms: platforms,
         localeCode: state.localeCode,
+        tagCategories: await TagManager.findTagCategories()
       },
     });
   });
@@ -463,8 +465,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<BrowseViewPageIndexData>(BackIn.BROWSE_VIEW_PAGE_INDEX, async (event, req) => {
-    const opts = req.data.query.filter || {};
-    const index: PageIndex = await GameManager.findGamePageIndex(opts, req.data.query.orderBy, req.data.query.orderReverse);
+    const index: PageIndex = await GameManager.findGamePageIndex(req.data.query.filter, req.data.query.orderBy, req.data.query.orderReverse);
     console.log('Sending Index');
     respond<BrowseViewPageIndexResponse>(event.target, {
       id: req.id,
@@ -486,16 +487,40 @@ export function registerRequestCallbacks(state: BackState): void {
       getTotal: getTotal
     };
     const { games, total } = await GameManager.findGames(query.filter, query.orderBy, query.orderReverse, opts);
+    const viewGames: ViewGame[] = games.map(g => {
+      return {
+        ...g,
+        tags: []
+      };
+    });
 
     respond<BrowseViewPageResponseData>(event.target, {
       id: req.id,
       type: BackOut.BROWSE_VIEW_PAGE_RESPONSE,
       data: {
-        games: games as ViewGame[],
+        games: viewGames,
         library: library,
         offset: offset,
         total: total
       },
+    });
+  });
+
+  state.socketServer.register<TagByIdData>(BackIn.GET_TAG_BY_ID, async (event, req) => {
+    const tag = await TagManager.getTagById(req.data);
+
+    respond<TagByIdResponse>(event.target,  {
+      id: req.id,
+      type: BackOut.GET_TAG_BY_ID,
+      data: tag
+    });
+  });
+
+  state.socketServer.register<TagSuggestionsData>(BackIn.GET_TAG_SUGGESTIONS, async (event, req) => {
+    respond<TagSuggestionsResponse>(event.target,  {
+      id: req.id,
+      type: BackOut.GET_TAG_SUGGESTIONS,
+      data: await TagManager.findTagSuggestions(req.data)
     });
   });
 
@@ -647,6 +672,20 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
+  state.socketServer.register<TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, async (event, req) => {
+    const name = req.data.trim();
+    let tag = await TagManager.findTag(name);
+    if (!tag) {
+      // Tag doesn't exist, make a new one
+      tag = await TagManager.createTag(name);
+    }
+    respond<Tag>(event.target,  {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE,
+      data: tag
+    });
+  });
+
   state.socketServer.register(BackIn.GET_PLAYLISTS, async (event, req) => {
     const playlists = await GameManager.findPlaylists();
     respond<GetPlaylistsResponse>(event.target, {
@@ -707,12 +746,13 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register<SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, async (event, req) => {
     const platform = req.data;
-    const translatedGames = platform.collection.games.map(g => {
-      const addApps = platform.collection.additionalApplications.filter(a => a.gameId === g.id);
-      const translatedGame = createGameFromLegacy(g);
+    const translatedGames = [];
+    for (let game of platform.collection.games) {
+      const addApps = platform.collection.additionalApplications.filter(a => a.gameId === game.id);
+      const translatedGame = await createGameFromLegacy(game);
       translatedGame.addApps = createAddAppFromLegacy(addApps, translatedGame);
-      return translatedGame;
-    });
+      translatedGames.push(translatedGame);
+    }
     await GameManager.updateGames(translatedGames);
     respond(event.target, {
       id: req.id,

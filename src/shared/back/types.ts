@@ -1,6 +1,8 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Tag } from '@database/entity/Tag';
+import { TagCategory } from '@database/entity/TagCategory';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -49,6 +51,10 @@ export enum BackIn {
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
   QUIT,
+  /** Tag funcs */
+  GET_OR_CREATE_TAG,
+  GET_TAG_SUGGESTIONS,
+  GET_TAG_BY_ID,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   BROWSE_VIEW_INDEX,
@@ -83,6 +89,9 @@ export enum BackOut {
   THEME_CHANGE,
   THEME_LIST_CHANGE,
   IMPORT_CURATION_RESPONSE,
+  GET_TAG_SUGGESTIONS,
+  GET_TAG_BY_ID,
+  TAG_CATEGORIES_CHANGE,
   QUIT,
 }
 
@@ -146,6 +155,7 @@ export type GetRendererInitDataResponse = {
   platforms: Record<string, string[]>;
   playlists: Playlist[];
   localeCode: string;
+  tagCategories: TagCategory[];
 }
 
 export type GetSuggestionsResponseData = {
@@ -295,6 +305,8 @@ export type DeleteImageData = {
 
 export type PlaylistsChangeData = Playlist[];
 
+export type TagCategoriesChangeData = TagCategory[];
+
 export type SearchGamesOpts = {
   /** Info to filter the search from */
   filter: FilterGameOpts;
@@ -326,7 +338,7 @@ export type ViewGame = {
   title: string;
   platform: string;
   // List view only
-  tags: string;
+  tags: Tag[];
   developer: string;
   publisher: string;
 }
@@ -419,3 +431,20 @@ export type LaunchCurationAddAppData = {
   curation: EditAddAppCuration;
   platform?: string;
 }
+
+export type TagSuggestion = {
+  alias?: string;
+  tag: Tag;
+}
+
+export type TagGetOrCreateData = string;
+
+export type TagGetOrCreateResponse = Tag;
+
+export type TagByIdData = number;
+
+export type TagByIdResponse = Tag | undefined;
+
+export type TagSuggestionsData = string;
+
+export type TagSuggestionsResponse = TagSuggestion[];

@@ -250,6 +250,22 @@ body {
   display: inline-block;
   overflow: hidden;
 }
+.tag-input-dropdown__suggestion {
+  display: flex;
+}
+.tag-input-dropdown__content {
+  display: flex;
+  flex-direction: column;
+}
+.tag-icon {
+  margin-right: 0.2em;
+}
+.tag-suggestion-label {
+  width: 100%;
+}
+.tag-label {
+  vertical-align: top;
+}
 /* Log */
 .log {
   height: 100%;

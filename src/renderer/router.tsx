@@ -21,6 +21,7 @@ import { CreditsData } from './credits/types';
 import { GAMES } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
+import { TagCategory } from '@database/entity/TagCategory';
 
 export type AppRouterProps = {
   games: GAMES;
@@ -57,7 +58,8 @@ export type AppRouterProps = {
   themeList: Theme[];
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
-  autoUpdater: AppUpdater
+  autoUpdater: AppUpdater,
+  tagCategories: TagCategory[],
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -93,6 +95,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
+      tagCategories: this.props.tagCategories
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,

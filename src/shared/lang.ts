@@ -173,6 +173,7 @@ const langTemplate = {
     'noAlternateTitles',
     'tags',
     'noTags',
+    'enterTag',
     'series',
     'noSeries',
     'publisher',

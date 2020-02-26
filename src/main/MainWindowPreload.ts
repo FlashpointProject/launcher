@@ -84,6 +84,7 @@ window.Shared = {
   initialLibraries: createErrorProxy('initialLibraries'),
   initialPlatforms: createErrorProxy('initialPlatforms'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
+  initialTagCategories: createErrorProxy('initialTagCategories'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -127,6 +128,7 @@ const onInit = (async () => {
       window.Shared.initialLibraries = response.data.libraries;
       window.Shared.initialPlatforms = response.data.platforms;
       window.Shared.initialLocaleCode = response.data.localeCode;
+      window.Shared.initialTagCategories = response.data.tagCategories;
       if (window.Shared.preferences.data.currentTheme) { setTheme(window.Shared.preferences.data.currentTheme); }
       resolve();
     } else { reject(new Error('"Get Renderer Init Data" response does not contain any data.')); }

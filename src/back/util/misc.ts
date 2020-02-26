@@ -14,6 +14,7 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { uuid } from './uuid';
+import { createTagsFromLegacy } from '@back/importGame';
 
 export function pathExists(filePath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
@@ -194,7 +195,7 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
   });
 }
 
-export function createGameFromLegacy(game: Legacy_IGameInfo): Game {
+export async function createGameFromLegacy(game: Legacy_IGameInfo): Promise<Game> {
   return {
     id: game.id,
     title: game.title,
@@ -210,7 +211,7 @@ export function createGameFromLegacy(game: Legacy_IGameInfo): Game {
     playMode: game.playMode,
     status: game.status,
     notes: game.notes,
-    tags: game.tags,
+    tags: await createTagsFromLegacy(game.tags),
     source: game.source,
     applicationPath: game.applicationPath,
     launchCommand: game.launchCommand,

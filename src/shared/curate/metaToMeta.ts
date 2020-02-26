@@ -19,7 +19,7 @@ export function convertToCurationMeta(game: Game): CurationFormatMeta {
   parsed['Version']              = game.version;
   parsed['Languages']            = game.language;
   parsed['Extreme']              = game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = game.tags;
+  parsed['Tags']                 = game.tags.map(t => t.aliases[0].name).join('; ');
   parsed['Source']               = game.source;
   parsed['Platform']             = game.platform;
   parsed['Status']               = game.status;

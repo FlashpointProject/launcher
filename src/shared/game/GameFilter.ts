@@ -3,34 +3,6 @@ import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
 
 const blacklistFields = ['not', 'no', 'missing'];
 const whitelistFields = ['is', 'has'];
-const gameForKeying: Game = {
-  id: '',
-  title: '',
-  alternateTitles: '',
-  series: '',
-  developer: '',
-  publisher: '',
-  platform: '',
-  dateAdded: new Date().toISOString(),
-  dateModified: new Date().toISOString(),
-  broken: false,
-  extreme: false,
-  playMode: '',
-  status: '',
-  notes: '',
-  tags: '',
-  source: '',
-  applicationPath: '',
-  launchCommand: '',
-  releaseDate: '',
-  version: '',
-  originalDescription: '',
-  language: '',
-  library: '',
-  orderTitle: '',
-  addApps: [],
-  placeholder: true
-};
 
 /**
  * Parse a search query text into an object.
@@ -108,7 +80,7 @@ export function parseSearchText(text: string): ParsedSearch {
  * Parse a "quick search" into an object.
  * @param text Quick search text to parse.
  */
-function parseQuickSearch(text: string): FieldFilter<any> | undefined {
+function parseQuickSearch(text: string): FieldFilter | undefined {
   switch (text.charAt(0)) {
     case '@':
       return { field: 'developer', value: text.substring(1) };
@@ -121,21 +93,16 @@ function parseQuickSearch(text: string): FieldFilter<any> | undefined {
 
 /** Outputs the correct field filter onto `parsed` */
 function handleFieldFilter(field: string, phrase: string, inverse: boolean, parsed: ParsedSearch) {
-  // If field is a key of Game, process as normal field filter
-  if (field in gameForKeying) {
+  if (blacklistFields.includes(field)) {
+    parsed.whitelist.push({field: phrase, value: ''});
+  } else if (whitelistFields.includes(field)) {
+    parsed.blacklist.push({field: phrase, value: ''});
+  } else {
     const gameField = field as keyof Game;
     if (inverse) {
       parsed.blacklist.push({field: gameField, value: phrase});
     } else {
       parsed.whitelist.push({field: gameField, value: phrase});
-    }
-  // If instead phrase is key of Game, then check for whitelist/blacklist keyword and generate field filter with phrase as field
-  } else if (phrase in gameForKeying) {
-    const gameField = phrase as keyof Game;
-    if (blacklistFields.includes(field)) {
-      parsed.whitelist.push({field: gameField, value: ''});
-    } else if (whitelistFields.findIndex(f => f === field) != -1) {
-      parsed.blacklist.push({field: gameField, value: ''});
     }
   }
 }
@@ -147,17 +114,17 @@ export type ParsedSearch = {
   /** Generic filter to whitelist some predetermined field(s). */
   genericWhitelist: string[];
   /** Whitelists to apply */
-  blacklist: FieldFilter<any>[];
+  blacklist: FieldFilter[];
   /** Blacklists to apply */
-  whitelist: FieldFilter<any>[];
+  whitelist: FieldFilter[];
 };
 
 /** A filter that applies to a specific field. */
-type FieldFilter<T extends keyof Game> = {
+type FieldFilter = {
   /** The field the filter applies to. */
-  field: T;
+  field: string;
   /** Value to search for in the field. */
-  value: Game[T];
+  value: any;
 };
 
 /** Options for ordering games. */

@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, Index } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, Index, ManyToMany, JoinTable } from 'typeorm';
 import { AdditionalApp } from './AdditionalApp';
+import { Tag } from './Tag';
 
 @Index('IDX_lookup', ['library', 'title', 'id'], { unique: true })
 @Index('IDX_total', ['library', 'broken', 'extreme'])
@@ -62,9 +63,10 @@ export class Game {
   /** Information that could be useful for the player (of varying importance) */
   notes: string;
 
-  @Column({collation: 'NOCASE'})
+  @ManyToMany(type => Tag, t => t.gamesUsing, { cascade: true, eager: true })
+  @JoinTable()
   /** Tags of the game (seperated by semi-colon) */
-  tags: string;
+  tags: Tag[];
 
   @Column({collation: 'NOCASE'})
   /** Source if the game files, either full URL or the name of the website */

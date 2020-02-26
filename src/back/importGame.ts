@@ -17,6 +17,9 @@ import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
 import { uuid } from './util/uuid';
+import { BackIn } from '@shared/back/types';
+import { Tag } from '@database/entity/Tag';
+import { TagManager } from './game/TagManager';
 
 const { strToBool } = Coerce;
 
@@ -88,7 +91,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   }
   // Create and add game and additional applications
   const gameId = uuid();
-  const game = createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
+  const game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
   // Make a copy if not deleting the curation afterwards
   const moveFiles = !saveCuration;
   curationLog(log, 'Importing Curation Meta');
@@ -160,7 +163,7 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
   curationLog(opts.log, `Launching Curation ${meta.title}`);
   GameLauncher.launchGame({
     ...opts,
-    game: createGameFromCurationMeta(key, meta, [], new Date()),
+    game: await createGameFromCurationMeta(key, meta, [], new Date()),
   });
 }
 
@@ -188,7 +191,7 @@ function noop(...args: any) {}
  * @param curation Curation to get data from.
  * @param gameId ID to use for Game
  */
-function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, addApps : EditAddAppCuration[], date: Date): Game {
+async function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, addApps : EditAddAppCuration[], date: Date): Promise<Game> {
   const game: Game = {
     id:                  gameId, // (Re-use the id of the curation)
     title:               gameMeta.title               || '',
@@ -200,7 +203,7 @@ function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, 
     playMode:            gameMeta.playMode            || '',
     status:              gameMeta.status              || '',
     notes:               gameMeta.notes               || '',
-    tags:                gameMeta.tags                || '',
+    tags:                [],
     source:              gameMeta.source              || '',
     applicationPath:     gameMeta.applicationPath     || '',
     launchCommand:       gameMeta.launchCommand       || '',
@@ -218,6 +221,9 @@ function createGameFromCurationMeta(gameId: string, gameMeta: EditCurationMeta, 
     placeholder: false
   };
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
+  if (gameMeta.tags) {
+    game.tags = await createTagsFromLegacy(gameMeta.tags);
+  }
   return game;
 }
 
@@ -421,7 +427,7 @@ function createPlaceholderGame(): Game {
     playMode: '',
     status: '',
     notes: '',
-    tags: '',
+    tags: [],
     source: '',
     applicationPath: '',
     launchCommand: '',
@@ -434,4 +440,22 @@ function createPlaceholderGame(): Game {
     addApps: [],
     placeholder: true
   };
+}
+
+export async function createTagsFromLegacy(tags: string): Promise<Tag[]> {
+  const allTags: Tag[] = [];
+
+  for (let t of tags.split(';')) {
+    const trimTag = t.trim();
+    let tag = await TagManager.findTag(trimTag);
+    if (!tag) {
+      // Tag doesn't exist, make a new one
+      tag = await TagManager.createTag(trimTag);
+    }
+    if (tag) {
+      allTags.push(tag);
+    }
+  }
+
+  return allTags;
 }

@@ -18,7 +18,7 @@ export namespace ModelUtils {
       playMode: '',
       status: '',
       notes: '',
-      tags: '',
+      tags: [],
       source: '',
       applicationPath: '',
       launchCommand: '',

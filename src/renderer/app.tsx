@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, PageIndex, BrowseViewPageIndexResponse, BrowseViewPageIndexData, Index } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, TagCategoriesChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, PageIndex, BrowseViewPageIndexResponse, BrowseViewPageIndexData, Index } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { ParsedSearch, parseSearchText } from '@shared/game/GameFilter';
@@ -41,6 +41,7 @@ import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './U
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
 import { EventQueue } from '@back/util/EventQueue';
+import { TagCategory } from '@database/entity/TagCategory';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -78,6 +79,7 @@ export type AppState = {
   themeList: Theme[];
   gamesTotal: number;
   localeCode: string;
+  tagCategories: TagCategory[];
 
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
@@ -168,6 +170,7 @@ export class App extends React.Component<AppProps, AppState> {
       wasNewGameClicked: false,
       updateInfo: undefined,
       order,
+      tagCategories: window.Shared.initialTagCategories
     };
 
     // Initialize app
@@ -363,9 +366,7 @@ export class App extends React.Component<AppProps, AppState> {
             newState.views = newViews;
           }
 
-          this.setState(newState as any, () => {
-            this.requestSelectedGame(newLibrary || getBrowseSubPath(this.props.location.pathname));
-          });
+          this.setState(newState as any);
         } break;
 
         case BackOut.SERVICE_CHANGE: {
@@ -415,6 +416,11 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.PLAYLISTS_CHANGE: {
           const resData: PlaylistsChangeData = res.data;
           this.setState({ playlists: resData });
+        }
+
+        case BackOut.TAG_CATEGORIES_CHANGE: {
+          const resData: TagCategoriesChangeData = res.data;
+          this.setState({ tagCategories: resData });
         }
       }
     });
@@ -549,7 +555,7 @@ export class App extends React.Component<AppProps, AppState> {
               dirtyCache: true,
             }
           }
-        }, () => { this.requestSelectedGame(library); });
+        }, () => { this.requestSelectedLibrary(library); });
       }
       const prevPlaylist = prevView && prevView.selectedPlaylistId;
 
@@ -571,13 +577,13 @@ export class App extends React.Component<AppProps, AppState> {
               query: query,
             }
           }
-        }, () => { this.requestSelectedGame(library); });
+        }, () => { this.requestSelectedLibrary(library); });
       }
     }
 
     // Fetch games if a different library is selected
     if (library && prevLibrary && library !== prevLibrary) {
-      this.requestSelectedGame(library);
+      this.requestSelectedLibrary(library);
     }
 
     // Update preference "lastSelectedLibrary"
@@ -660,6 +666,7 @@ export class App extends React.Component<AppProps, AppState> {
       languages: this.state.langList,
       updateInfo: this.state.updateInfo,
       autoUpdater: autoUpdater,
+      tagCategories: this.state.tagCategories
     };
     // Render
     return (
@@ -730,7 +737,7 @@ export class App extends React.Component<AppProps, AppState> {
             },
           }
         }
-      }, () => { this.requestSelectedGame(library); });
+      }, () => { this.requestSelectedLibrary(library); });
     }
     // Update Preferences Data (this is to make it get saved on disk)
     updatePreferencesData({
@@ -884,7 +891,7 @@ export class App extends React.Component<AppProps, AppState> {
 
       this.setState(
         state as any, // (This is very annoying to make typesafe)
-        () => { if (state.views && playlist.library !== undefined) { this.requestSelectedGame(playlist.library); } }
+        () => { if (state.views && playlist.library !== undefined) { this.requestSelectedLibrary(playlist.library); } }
       );
     } else {
       this.setState({ playlists: [...this.state.playlists, playlist] });
@@ -903,7 +910,7 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   /** Fetch the selected game of the specified library (or the first page if no game is selected). */
-  requestSelectedGame(library: string): void {
+  requestSelectedLibrary(library: string): void {
     const view = this.state.views[library];
 
     if (!view) {

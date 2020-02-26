@@ -9,8 +9,15 @@ import { Coerce } from '@shared/utils/Coerce';
 import { Brackets, FindOneOptions, getManager, SelectQueryBuilder, EntitySchema, Repository } from 'typeorm';
 import { PageIndex, Index } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
+import { TagAlias } from '@database/entity/TagAlias';
+import { Tag } from '@database/entity/Tag';
 
-const exactFields: (keyof Game)[] = ['extreme', 'broken', 'library'];
+const exactFields = [ 'broken', 'extreme', 'library' ];
+enum flatGameFields {
+  'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
+  'platform', 'broken', 'extreme', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
+  'version', 'originalDescription', 'language', 'library'
+}
 
 export type FindGameOptions = {
   offset?: number;
@@ -52,7 +59,7 @@ export namespace GameManager {
       subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
     }
     if (filterOpts) {
-      applyGameFilters(gameRepository, 'game', subQ, filterOpts, index ? 1 : 0);
+      applyFlatGameFilters(gameRepository, 'game', subQ, filterOpts, index ? 1 : 0);
     }
     if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
 
@@ -79,10 +86,10 @@ export namespace GameManager {
     const startTime = Date.now();
     const gameRepository = getManager().getRepository(Game);
 
-    const subQ = gameRepository.createQueryBuilder('sub')
-      .select(`sub.${orderBy}, sub.id, case row_number() over(order by sub.${orderBy}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
-    applyGameFilters(gameRepository, 'sub', subQ, filterOpts, 0);
+    const subQ = await getGameQuery('sub', filterOpts, orderBy, direction);
+    subQ.select(`sub.${orderBy}, sub.id, case row_number() over(order by sub.${orderBy}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
     subQ.orderBy(`sub.${orderBy}`, direction);
+    console.log(subQ.getQuery());
 
     const query = getManager().createQueryBuilder()
       .select(`g.${orderBy}, g.id, row_number() over(order by g.${orderBy}) + 1 page_number`)
@@ -102,33 +109,9 @@ export namespace GameManager {
   /** Find the game with the specified ID. */
   export async function findGames(filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
                                   opts?: FindGameOptions): Promise<GameResults> {
-    let playlistSelect = '';
-    let whereCount = 0;
-
-    if (opts === undefined) { opts = {}; }
-    const { offset, limit, shallow, getTotal, index } = opts;
+    const query = await getGameQuery('game', filterOpts, orderBy, direction, opts);
+    const { offset, limit, shallow, getTotal, index } = opts || {};
     const startTime = Date.now();
-    const gameRepository = getManager().getRepository(Game);
-    const query = gameRepository.createQueryBuilder('game');
-
-    if (index) {
-      query.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
-      whereCount++;
-    }
-    if (filterOpts) {
-      whereCount = applyGameFilters(gameRepository, 'game', query, filterOpts, whereCount);
-    }
-
-    // Process rest of parameters
-    if (orderBy) { query.orderBy(`game.${orderBy}`, direction); }
-    if (!index && offset)  { console.log('OFFSET'); query.skip(offset); }
-    if (limit)   { query.take(limit); }
-    if (filterOpts && filterOpts.playlistId) {
-      query.innerJoin(PlaylistGame, 'pg', 'pg.gameId = game.id');
-      query.orderBy('pg.order');
-      if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
-      else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
-    }
 
     let total: number | undefined = undefined;
     if (getTotal) {
@@ -141,7 +124,7 @@ export namespace GameManager {
     console.log(query.getQuery());
     // Subset of Game info, can be cast to ViewGame later
     if (shallow) {
-      query.select('game.id, game.title, game.platform, game.tags, game.developer, game.publisher');
+      query.select('game.id, game.title, game.platform, game.developer, game.publisher');
       const games: Game[] = await query.getRawMany();
       console.log(`${Date.now() - startTime}ms for query`);
       return { games, total };
@@ -150,6 +133,54 @@ export namespace GameManager {
       console.log(`${Date.now() - startTime}ms for query`);
       return { games, total };
     }
+  }
+
+  async function getGameQuery(alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
+    opts?: FindGameOptions): Promise<SelectQueryBuilder<Game>> {
+      let whereCount = 0;
+
+      if (opts === undefined) { opts = {}; }
+      const { offset, limit, shallow, getTotal, index } = opts;
+      const gameRepository = getManager().getRepository(Game);
+      const query = gameRepository.createQueryBuilder(alias);
+
+      // Use Page Index (If Given)
+      if (index) {
+        query.where(`(${alias}.${orderBy}, ${alias}.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
+        whereCount++;
+      }
+      // Apply all flat game filters
+      if (filterOpts) {
+        whereCount = applyFlatGameFilters(gameRepository, alias, query, filterOpts, whereCount);
+      }
+
+      // Order By + Limit
+      if (orderBy) { query.orderBy(`${alias}.${orderBy}`, direction); }
+      if (!index && offset)  { console.log('OFFSET'); query.skip(offset); }
+      if (limit)   { query.take(limit); }
+      // Playlist filtering
+      if (filterOpts && filterOpts.playlistId) {
+        query.innerJoin(PlaylistGame, 'pg', `pg.gameId = ${alias}.id`);
+        query.orderBy('pg.order');
+        if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+        else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+      }
+      // Tag filtering
+      if (filterOpts && filterOpts.searchQuery) {
+        const aliasWhitelist = filterOpts.searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
+        const aliasBlacklist = filterOpts.searchQuery.blacklist.filter(f => f.field === 'tag').map(f => f.value);
+
+        if (aliasWhitelist.length > 0) {
+          await applyTagFilters(aliasWhitelist, alias, query, whereCount, true);
+          whereCount++;
+        }
+        if (aliasBlacklist.length > 0) {
+          await applyTagFilters(aliasBlacklist, alias, query, whereCount, false);
+          whereCount++;
+        }
+      }
+
+      return query;
   }
 
   export type ViewGame = {
@@ -297,18 +328,29 @@ export namespace GameManager {
   }
 }
 
-function applyGameFilters(gameRepository: Repository<Game>, alias: string, query: SelectQueryBuilder<Game>, filterOpts: FilterGameOpts, whereCount: number): number {
+function applyFlatGameFilters(gameRepository: Repository<Game>, alias: string, query: SelectQueryBuilder<Game>, filterOpts: FilterGameOpts, whereCount: number): number {
   if (filterOpts) {
     // Search results
     if (filterOpts.searchQuery) {
       const searchQuery = filterOpts.searchQuery;
+      const flatGameFieldObjs = Object.values(flatGameFields);
       // Whitelists are often more restrictive, do these first
       for (let filter of searchQuery.whitelist) {
-        doWhereField(alias, query, filter.field, filter.value, whereCount, true);
+        if (flatGameFieldObjs.includes(filter.field)) {
+          doWhereField(alias, query, filter.field, filter.value, whereCount, true);
+        } else {
+          // Nothing happened with this filter, negate the forward movement
+          whereCount--;
+        }
         whereCount++;
       }
       for (let filter of searchQuery.blacklist) {
-        doWhereField(alias, query, filter.field, filter.value, whereCount, false);
+        if (flatGameFieldObjs.includes(filter.field)) {
+          doWhereField(alias, query, filter.field, filter.value, whereCount, false);
+        } else {
+          // Nothing happened with this filter, negate the forward movement
+          whereCount--;
+        }
         whereCount++;
       }
       for (let phrase of searchQuery.genericWhitelist) {
@@ -350,7 +392,7 @@ function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: str
   }
 }
 
-function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: keyof Game, value: any, count: number, whitelist: boolean) {
+function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: string, value: any, count: number, whitelist: boolean) {
   // Create comparator
   const typing = typeof value;
   const exact = !(typing === 'string') || exactFields.includes(field);
@@ -376,6 +418,35 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: key
     query.where(`${alias}.${field} ${comparator} :${ref}`, { [ref]: formedValue });
   } else {
     query.andWhere(`${alias}.${field} ${comparator} :${ref}`, { [ref]: formedValue });
+  }
+}
+
+async function applyTagFilters(aliases: string[], alias: string, query: SelectQueryBuilder<Game>, whereCount: number, whitelist: boolean) {
+  const tagAliasRepository = getManager().getRepository(TagAlias);
+  const comparator = whitelist ? 'IN' : 'NOT IN';
+
+  const tagIds = (await tagAliasRepository.createQueryBuilder('tag_alias')
+    .where('tag_alias.name IN (:...aliases)', { aliases: aliases })
+    .select('tag_alias.tagId')
+    .distinct()
+    .getRawMany()).map(r => r['tag_alias_tagId']);
+
+  for (let i = 0; i < tagIds.length; i++) {
+    const filterName = `tag_filter_${whereCount}_${i}`;
+
+    const tagId = tagIds[i];
+    const subQuery = getManager().createQueryBuilder()
+      .select('game_tag.gameId')
+      .distinct()
+      .from('game_tags_tag', 'game_tag')
+      .where(`game_tag.tagId = :${filterName}`, { [filterName]: tagId });
+    if (whereCount == 0 && i == 0) {
+      query.where(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
+      query.setParameters(subQuery.getParameters());
+    } else {
+      query.andWhere(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
+      query.setParameters(subQuery.getParameters());
+    }
   }
 }
 

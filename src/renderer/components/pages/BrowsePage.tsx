@@ -25,6 +25,7 @@ import { GameOrderChangeEvent } from '../GameOrder';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
+import { TagCategory } from '@database/entity/TagCategory';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -66,6 +67,8 @@ type OwnProps = {
   wasNewGameClicked: boolean;
   /** "Route" of the currently selected library (empty string means no library). */
   gameLibrary: string;
+  /** Tag Categories info */
+  tagCategories: TagCategory[];
 };
 
 export type BrowsePageProps = OwnProps & WithPreferencesProps;
@@ -131,19 +134,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
     const { gameLibrary, selectedGameId, selectedPlaylistId } = this.props;
     const { isEditingGame, quickSearch } = this.state;
-    // Check if it ended editing
-    if (!isEditingGame && prevState.isEditingGame) {
-      this.updateCurrentGame();
-      // this.setState({ suggestions: undefined });
-    }
-    // Check if it started editing
-    if (isEditingGame && !prevState.isEditingGame) {
-      this.updateCurrentGame();
-      // this.setState({ suggestions: getSuggestions(central.games.listPlatforms(), libraryData.libraries) }); @FIXTHIS
+    // Check if it started or ended editing
+    if (isEditingGame != prevState.isEditingGame) {
+      this.updateCurrentGame(this.props.selectedGameId, this.props.selectedPlaylistId);
     }
     // Update current game and add-apps if the selected game changes
     if (selectedGameId && selectedGameId !== prevProps.selectedGameId) {
-      this.updateCurrentGame();
+      this.updateCurrentGame(this.props.selectedGameId, this.props.selectedPlaylistId);
       this.setState({ isEditingGame: false });
     }
     // Deselect the current game if the game has been deselected (from outside this component most likely)
@@ -285,9 +282,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onEditPlaylistNotes={this.onEditPlaylistNotes}
             isEditing={this.state.isEditingGame}
             isNewGame={this.state.isNewGame}
+            onEditGame={this.onEditGame}
             onEditClick={this.onStartEditClick}
             onDiscardClick={this.onDiscardEditClick}
             onSaveGame={this.onSaveEditClick}
+            tagCategories={this.props.tagCategories}
             suggestions={this.props.suggestions} />
         </ResizableSidebar>
       </div>
@@ -553,6 +552,14 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
+  onEditGame = (game: Partial<Game>) => {
+    if (this.state.currentGame) {
+      this.setState({
+        currentGame: {...this.state.currentGame, ...game}
+      });
+    }
+  }
+
   onEditPlaylistNotes = (text: string): void => {
     if (this.state.currentPlaylistEntry) {
       this.setState({
@@ -599,7 +606,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.setState({
       isEditingGame: false,
       isNewGame: false,
-      currentGame:    this.state.isNewGame ? undefined : this.state.currentGame,
+      currentGame: this.state.isNewGame ? undefined : this.state.currentGame,
     });
     this.focusGameGridOrList();
   }
@@ -638,7 +645,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           playMode: '',
           status: '',
           notes: '',
-          tags: '',
+          tags: [],
           source: '',
           applicationPath: '',
           launchCommand: '',

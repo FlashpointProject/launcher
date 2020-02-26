@@ -30,7 +30,10 @@ import { Game } from '@database/entity/Game';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { Initial1580315578390 } from '@database/migration/1580315578390-Initial';
+import { Tag } from '@database/entity/Tag';
+import { TagAlias } from '@database/entity/TagAlias';
+import { TagCategory } from '@database/entity/TagCategory';
+import { Initial1582132559885 } from '@database/migration/1582132559885-Initial';
 
 const readFile  = util.promisify(fs.readFile);
 
@@ -113,8 +116,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     const options: ConnectionOptions = {
       type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
-      entities: [Game, AdditionalApp, Playlist, PlaylistGame],
-      migrations: [Initial1580315578390]
+      entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory],
+      migrations: [Initial1582132559885]
     };
     connection = await createConnection(options);
     connection.synchronize();
