@@ -1,3 +1,11 @@
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Tag } from '@database/entity/Tag';
+import { TagAlias } from '@database/entity/TagAlias';
+import { TagCategory } from '@database/entity/TagCategory';
+import { Initial1582714266901 } from '@database/migration/1582714266901-Initial';
 import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData, ThemeChangeData, ThemeListChangeData } from '@shared/back/types';
 import { IBackProcessInfo, IService, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
@@ -13,7 +21,7 @@ import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
 import 'sqlite3';
-import { Connection, createConnection, getConnectionOptions, ConnectionOptions } from 'typeorm';
+import { Connection, ConnectionOptions, createConnection } from 'typeorm';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
@@ -26,14 +34,6 @@ import { BackState } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { createContainer, exit, log, procToService } from './util/misc';
-import { Game } from '@database/entity/Game';
-import { AdditionalApp } from '@database/entity/AdditionalApp';
-import { Playlist } from '@database/entity/Playlist';
-import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { Tag } from '@database/entity/Tag';
-import { TagAlias } from '@database/entity/TagAlias';
-import { TagCategory } from '@database/entity/TagCategory';
-import { Initial1582132559885 } from '@database/migration/1582132559885-Initial';
 
 const readFile  = util.promisify(fs.readFile);
 
@@ -117,7 +117,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory],
-      migrations: [Initial1582132559885]
+      migrations: [Initial1582714266901]
     };
     connection = await createConnection(options);
     connection.synchronize();

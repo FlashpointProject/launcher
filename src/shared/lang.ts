@@ -139,6 +139,8 @@ const langTemplate = {
     'importLegacyPlatformsDesc',
     'importLegacyPlaylists',
     'importLegacyPlaylistsDesc',
+    'fixPrimaryAliases',
+    'fixPrimaryAliasesDesc',
     'servicesHeader',
     'servicesMissing',
     'running',

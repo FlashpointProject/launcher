@@ -21,7 +21,7 @@ export type TagInputFieldProps = InputFieldProps & {
   /** Called when a tag is selected when editable */
   onTagEditableSelect?: (tag: Tag, index: number) => void;
   /** Called when a tag suggestion is selected */
-  onTagSuggestionSelect?: (suggestion: TagSuggestion, index: number) => void;
+  onTagSuggestionSelect?: (suggestion: TagSuggestion) => void;
   /** Called when the tag input box is submitted */
   onTagSubmit?: (text: string) => void;
   /** Function for getting a reference to the input element. Called whenever the reference could change. */
@@ -81,7 +81,6 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         { suggestions.length > 0 ?
           <div
             className={'input-dropdown__content simple-scroll'}
-            onClick={this.onSuggestionItemClick}
             ref={this.contentRef}>
             { this.renderSuggestions(suggestions) }
           </div>
@@ -98,35 +97,48 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   }
 
   /** Renders the list of items in the drop-down menu. */
-  renderSuggestions = memoizeOne<(items: TagSuggestion[]) => JSX.Element[]>((items: TagSuggestion[]) => {
-    return items.map((suggestion, index) => {
-      const category = this.props.categories.find(c => c.id == suggestion.tag.categoryId);
-      return (
-        <div className='tag-input-dropdown__suggestion' key={index}>
-          <OpenIcon
-            className='tag-icon'
-            color={category ? category.color : '#FFFFFF'}
-            key={index * 2}
-            icon='tag'/>
-          <label
-            className='tag-suggestion-label'
-            key={index * 2 + 1}
-            data-dropdown-index={index}
-            tabIndex={0}>
-            {suggestion.alias}
-          </label>
-        </div>
-      );
-    });
+  renderSuggestions = memoizeOne<(items: TagSuggestion[]) => JSX.Element>((items: TagSuggestion[]) => {
+    const itemsRendered = items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index));
+    return (
+      <ul>
+        {itemsRendered}
+      </ul>
+    );
   }, ([ itemsA ], [ itemsB ]) => {
     return checkIfArraysAreEqual(itemsA, itemsB);
   });
+
+  renderSuggestionItem = (suggestion: TagSuggestion, index: number) => {
+    const category = this.props.categories.find(c => c.id == suggestion.tag.categoryId);
+    const aliasRender = suggestion.alias ? (
+      <p>{suggestion.alias} <b className='tag_alias-joiner'>-></b> {suggestion.primaryAlias}</p>
+    ) : (
+      <p>{suggestion.primaryAlias}</p>
+    );
+    return (
+      <li onClick={() => this.onSuggestionItemClick(suggestion)} className='tag-input-dropdown__suggestion' key={index}>
+        <OpenIcon
+          className='tag-icon'
+          color={category ? category.color : '#FFFFFF'}
+          key={index * 2}
+          icon='tag'/>
+        <label
+          className='tag-suggestion-label'
+          key={index * 2 + 1}
+          data-dropdown-index={index}
+          tabIndex={0}>
+          {aliasRender}
+        </label>
+      </li>
+    );
+  };
 
   /** Renders the list of items in the drop-down menu. */
   renderItems = memoizeOne<(items: Tag[]) => JSX.Element[]>((items: Tag[]) => {
     const className = this.props.editable ? 'tag-editable' : '';
     return items.map((tag, index) => {
       const category = this.props.categories.find(c => c.id == tag.categoryId);
+      const shownAlias = tag.primaryAlias ? tag.primaryAlias.name : 'No Primary Alias Set';
       return (
         <div className={'tag ' + className} key={index}>
           <OpenIcon
@@ -139,7 +151,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
             key={index * 2 + 1}
             data-dropdown-index={index}
             tabIndex={0}>
-            { tag.aliases[0].name }
+            { shownAlias }
           </label>
         </div>
       );
@@ -168,13 +180,11 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
     }
   }
 
-  onSuggestionItemClick = (event: React.MouseEvent): void => {
+  onSuggestionItemClick = (suggestion: TagSuggestion): void => {
+    console.log('CLICKED');
     if (!this.props.disabled) {
       if (this.props.onTagSuggestionSelect) {
-        const index = getListItemIndex(event.target);
-        if (index >= 0) {
-          this.props.onTagSuggestionSelect(this.props.suggestions[index], index);
-        }
+        this.props.onTagSuggestionSelect(suggestion);
       }
     }
   }

@@ -821,12 +821,13 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onTagSelect = (tag: Tag, index: number): void => {
-    const alias = tag.aliases[0].name;
+    const alias = tag.primaryAlias.name;
     const search = `tag:${wrapSearchTerm(alias)}`;
     this.props.onSearch(search);
   }
 
-  onAddTagSuggestion = (suggestion: TagSuggestion, index: number): void => {
+  onAddTagSuggestion = (suggestion: TagSuggestion): void => {
+    console.log(suggestion);
     if (suggestion.tag.id) {
       window.Shared.back.send<TagByIdResponse, TagByIdData>(BackIn.GET_TAG_BY_ID, suggestion.tag.id, (res) => {
         const tag = res.data;

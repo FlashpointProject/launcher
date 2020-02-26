@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
-import { BackIn, BackOut, GetAllGamesResponseData, GetExecData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, GetAllGamesResponseData, GetExecData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, WrappedResponse, TagPrimaryFixResponse, TagPrimaryFixData } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ExecMapping } from '@shared/interfaces';
@@ -115,7 +115,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.importLegacyPlaylists}
               title={strings.importLegacyPlaylistsDesc}
               onClick={this.onImportLegacyPlaylistsClick} />
-
+            <SimpleButton
+              value={strings.fixPrimaryAliases}
+              title={strings.fixPrimaryAliasesDesc}
+              onClick={this.onFixPrimaryAliases} />
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
@@ -194,6 +197,15 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       this.setState({ text: 'Importing playlists...'});
       importLegacyPlaylists(window.Shared.config.data).then(num => {
         this.setState({ text: `${num} Playlists Imported!`});
+      });
+    });
+  }
+
+  onFixPrimaryAliases = () : void => {
+    setTimeout(async () => {
+      this.setState({ text: 'Fixing tags, please wait...'});
+      fixPrimaryAliases().then(num => {
+        this.setState({ text: `${num} Tag Aliases Fixed!`});
       });
     });
   }
@@ -646,4 +658,9 @@ async function importLegacyPlaylists(config: IAppConfigData): Promise<number> {
     }
   }
   return playlistsImported;
+}
+
+async function fixPrimaryAliases(): Promise<number> {
+  const res = await window.Shared.back.sendP<TagPrimaryFixResponse, TagPrimaryFixData>(BackIn.FIX_TAG_PRIMARY_ALIASES, null);
+  return res.data || 0;
 }

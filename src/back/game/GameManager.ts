@@ -11,6 +11,7 @@ import { PageIndex, Index } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { TagAlias } from '@database/entity/TagAlias';
 import { Tag } from '@database/entity/Tag';
+import { chunkArray } from '@back/util/misc';
 
 const exactFields = [ 'broken', 'extreme', 'library' ];
 enum flatGameFields {
@@ -51,7 +52,16 @@ export namespace GameManager {
     if (opts === undefined) { opts = {}; }
     const startTime = Date.now();
     const { offset, limit, shallow, getTotal, index } = opts;
-    const subQ = await getGameQuery('game', filterOpts, orderBy, direction);
+    const gameRepository = getManager().getRepository(Game);
+
+    const subQ = gameRepository.createQueryBuilder('game')
+      .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
+    if (index) {
+      subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
+    }
+    if (filterOpts) {
+      applyFlatGameFilters(gameRepository, 'game', subQ, filterOpts, index ? 1 : 0);
+    }
     if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
 
     const query = getManager().createQueryBuilder()
@@ -439,14 +449,4 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
       query.setParameters(subQuery.getParameters());
     }
   }
-}
-
-function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  let chunks: T[][] = [];
-
-  for (let i = 0; i < array.length; i += chunkSize) {
-    chunks.push(array.slice(i, i + chunkSize));
-  }
-
-  return chunks;
 }

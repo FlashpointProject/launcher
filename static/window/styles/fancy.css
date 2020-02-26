@@ -859,3 +859,6 @@ body {
 .tag-editable:hover {
   color: var(--layout__warning-bright-color)
 }
+.tag_alias-joiner {
+  color: var(--layout__secondary-text-color)
+}

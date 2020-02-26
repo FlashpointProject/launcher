@@ -55,6 +55,7 @@ export enum BackIn {
   GET_OR_CREATE_TAG,
   GET_TAG_SUGGESTIONS,
   GET_TAG_BY_ID,
+  FIX_TAG_PRIMARY_ALIASES,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   BROWSE_VIEW_INDEX,
@@ -92,6 +93,7 @@ export enum BackOut {
   GET_TAG_SUGGESTIONS,
   GET_TAG_BY_ID,
   TAG_CATEGORIES_CHANGE,
+  FIX_TAG_PRIMARY_ALIASES,
   QUIT,
 }
 
@@ -434,6 +436,7 @@ export type LaunchCurationAddAppData = {
 
 export type TagSuggestion = {
   alias?: string;
+  primaryAlias: string;
   tag: Tag;
 }
 
@@ -448,3 +451,7 @@ export type TagByIdResponse = Tag | undefined;
 export type TagSuggestionsData = string;
 
 export type TagSuggestionsResponse = TagSuggestion[];
+
+export type TagPrimaryFixData = null;
+
+export type TagPrimaryFixResponse = number;
