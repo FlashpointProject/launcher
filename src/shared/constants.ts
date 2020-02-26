@@ -13,4 +13,4 @@ export const SCREENSHOTS = 'Screenshots';
 export const htdocsPath = 'Server/htdocs';
 
 /** Games to fetch in each block */
-export const VIEW_PAGE_SIZE = 250;
+export const VIEW_PAGE_SIZE = 200;

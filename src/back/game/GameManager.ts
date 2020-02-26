@@ -51,16 +51,7 @@ export namespace GameManager {
     if (opts === undefined) { opts = {}; }
     const startTime = Date.now();
     const { offset, limit, shallow, getTotal, index } = opts;
-    const gameRepository = getManager().getRepository(Game);
-
-    const subQ = gameRepository.createQueryBuilder('game')
-      .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
-    if (index) {
-      subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
-    }
-    if (filterOpts) {
-      applyFlatGameFilters(gameRepository, 'game', subQ, filterOpts, index ? 1 : 0);
-    }
+    const subQ = await getGameQuery('game', filterOpts, orderBy, direction);
     if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
 
     const query = getManager().createQueryBuilder()

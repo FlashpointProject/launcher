@@ -331,6 +331,7 @@ export class App extends React.Component<AppProps, AppState> {
             }
             if (resData.total !== undefined) { newView.total = resData.total; }
             this.setState({ views });
+            this.forceUpdate();
           }
         } break;
 

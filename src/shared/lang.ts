@@ -103,7 +103,7 @@ const langTemplate = {
   ] as const,
   filter: [
     'dateAdded',
-    'tags',
+    'dateModified',
     'platform',
     'series',
     'title',

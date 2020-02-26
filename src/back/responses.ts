@@ -25,6 +25,7 @@ import { BackState } from './types';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
+import { TagAlias } from '@database/entity/TagAlias';
 
 const copyFile  = util.promisify(fs.copyFile);
 const stat      = util.promisify(fs.stat);
@@ -117,7 +118,7 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.GET_SUGGESTIONS, async (event, req) => {
     const startTime = Date.now();
     const suggestions: GamePropSuggestions = {
-      tags: await GameManager.findUniqueValues(Game, 'tags'),
+      tags: await GameManager.findUniqueValues(TagAlias, 'name'),
       platform: await GameManager.findUniqueValues(Game, 'platform'),
       playMode: await GameManager.findUniqueValues(Game, 'playMode'),
       status: await GameManager.findUniqueValues(Game, 'status'),

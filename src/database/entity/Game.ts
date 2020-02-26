@@ -2,8 +2,14 @@ import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Up
 import { AdditionalApp } from './AdditionalApp';
 import { Tag } from './Tag';
 
-@Index('IDX_lookup', ['library', 'title', 'id'], { unique: true })
-@Index('IDX_total', ['library', 'broken', 'extreme'])
+@Index('IDX_lookup_title',        ['library', 'title'])
+@Index('IDX_lookup_dateAdded',    ['library', 'dateAdded'])
+@Index('IDX_lookup_dateModified', ['library', 'dateModified'])
+@Index('IDX_lookup_developer',    ['library', 'developer'])
+@Index('IDX_lookup_publisher',    ['library', 'publisher'])
+@Index('IDX_lookup_series',       ['library', 'series'])
+@Index('IDX_lookup_platform',     ['library', 'platform'])
+@Index('IDX_total',               ['library', 'broken', 'extreme'])
 @Entity()
 export class Game {
   @PrimaryGeneratedColumn('uuid')

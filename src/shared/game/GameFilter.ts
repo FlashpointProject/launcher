@@ -85,7 +85,7 @@ function parseQuickSearch(text: string): FieldFilter | undefined {
     case '@':
       return { field: 'developer', value: text.substring(1) };
     case '#':
-      return { field: 'tags', value: text.substring(1) };
+      return { field: 'tag', value: text.substring(1) };
     case '!':
       return { field: 'platform', value: text.substring(1) };
   }

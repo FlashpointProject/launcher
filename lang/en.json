@@ -96,7 +96,7 @@
   },
   "filter": {
     "dateAdded": "Date Added",
-    "tags": "Tags",
+    "dateModified": "Date Modified",
     "platform": "Platform",
     "series": "Series",
     "title": "Title",
