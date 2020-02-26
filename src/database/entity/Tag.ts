@@ -29,4 +29,7 @@ export class Tag {
 
   @ManyToMany(type => Game, g => g.tags)
   gamesUsing?: Game[];
+
+  // Number of games this tag belongs to
+  count?: number;
 }

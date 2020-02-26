@@ -39,10 +39,13 @@ export namespace TagManager {
       .where('tag_alias.name like :partial', { partial: name + '%' });
 
     const tagAliases = await getManager().createQueryBuilder()
-      .select('sugg.id, sugg.categoryId, sugg.name, primary_alias.name as primaryName')
+      .select('sugg.id, sugg.categoryId, sugg.name, COUNT(game_tag.gameId) as gameCount, primary_alias.name as primaryName')
+      .distinct()
       .from(`(${ subQuery.getQuery() })`, 'sugg')
       .leftJoin(TagAlias, 'primary_alias', 'sugg.primaryAliasId = primary_alias.id')
-      .orderBy('sugg.name')
+      .leftJoin('game_tags_tag', 'game_tag', 'game_tag.tagId = sugg.id')
+      .groupBy('game_tag.tagId')
+      .orderBy('COUNT(game_tag.gameId) DESC, sugg.name', 'ASC') // Hacky
       .setParameters(subQuery.getParameters())
       .getRawMany();
 
@@ -51,11 +54,10 @@ export namespace TagManager {
       const primaryAlias = ta.primaryName;
       const tag = new Tag();
       tag.id = ta.id;
-      tag.category = ta.categoryId;
+      tag.categoryId = ta.categoryId;
+      tag.count = ta.gameCount;
       return { alias: alias, primaryAlias: primaryAlias, tag: tag };
     });
-
-    console.log(tagAliases);
 
     return suggestions;
 

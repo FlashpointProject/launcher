@@ -862,3 +862,6 @@ body {
 .tag_alias-joiner {
   color: var(--layout__secondary-text-color)
 }
+.tag-inner {
+  color: var(--layout__secondary-text-color)
+}

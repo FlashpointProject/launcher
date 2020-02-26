@@ -266,6 +266,14 @@ body {
 .tag-label {
   vertical-align: top;
 }
+.tag-inner {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+.tag-count {
+  text-align: right;
+}
 /* Log */
 .log {
   height: 100%;

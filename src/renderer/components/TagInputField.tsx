@@ -111,9 +111,15 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   renderSuggestionItem = (suggestion: TagSuggestion, index: number) => {
     const category = this.props.categories.find(c => c.id == suggestion.tag.categoryId);
     const aliasRender = suggestion.alias ? (
-      <p>{suggestion.alias} <b className='tag_alias-joiner'>-></b> {suggestion.primaryAlias}</p>
+      <div className='tag-inner'>
+        <p>{suggestion.alias} <b className='tag_alias-joiner'>-></b> {suggestion.primaryAlias}</p>
+        {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
+      </div>
     ) : (
-      <p>{suggestion.primaryAlias}</p>
+      <div className='tag-inner'>
+        <p>{suggestion.primaryAlias}</p>
+        {suggestion.tag.count ? (<p className='tag-count'>{suggestion.tag.count}</p>) : undefined}
+      </div>
     );
     return (
       <li onClick={() => this.onSuggestionItemClick(suggestion)} className='tag-input-dropdown__suggestion' key={index}>
