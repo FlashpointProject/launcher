@@ -154,6 +154,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
             icon='tag'/>
           <label
             className='tag-label'
+            title={tag.description}
             key={index * 2 + 1}
             data-dropdown-index={index}
             tabIndex={0}>

@@ -51,8 +51,8 @@ export class GameOrder extends React.Component<GameOrderProps> {
           className='simple-selector'
           value={this.props.orderReverse}
           onChange={this.onOrderReverseChange}>
-          <option value='ascending'>{strings.ascending}</option>
-          <option value='descending'>{strings.descending}</option>
+          <option value='ASC'>{strings.ascending}</option>
+          <option value='DESC'>{strings.descending}</option>
         </select>
       </>
     );
@@ -101,8 +101,8 @@ function validateOrderBy(value: string): GameOrderBy {
  */
 function validateOrderReverse(value: string): GameOrderReverse {
   switch (value) {
-    case 'ascending':  return 'ASC';
-    case 'descending': return 'DESC';
+    case 'ASC':  return 'ASC';
+    case 'DESC': return 'DESC';
     default: throw new Error(`"${value}" is not a valid GameOrderReverse`);
   }
 }

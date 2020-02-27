@@ -1,9 +1,9 @@
+import { chunkArray } from '@back/util/misc';
 import { Tag } from '@database/entity/Tag';
-import { getManager } from 'typeorm';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { TagSuggestion } from '@shared/back/types';
-import { chunkArray } from '@back/util/misc';
+import { getManager } from 'typeorm';
 
 export namespace TagManager {
 
@@ -66,15 +66,21 @@ export namespace TagManager {
   export async function findGameTags(gameId: string): Promise<Tag[] | undefined> {
     const tagRepository = getManager().getRepository(Tag);
 
-    const tagIds = await getManager().createQueryBuilder()
+    const subQuery = getManager().createQueryBuilder()
       .select('game_tag.tagId')
-      .from('game_tag_tags', 'game_tag')
-      .where('game_tag.gameId = :gameId', { gameId: gameId })
-      .getRawMany();
+      .from('game_tags_tag', 'game_tag')
+      .where('game_tag.gameId = :gameId', { gameId: gameId });
 
-    console.log(tagIds);
+    const tags = await tagRepository.createQueryBuilder('tag')
+      .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias', 'primaryAlias.id = tag.primaryAliasId')
+      .where(`tag.id IN (${subQuery.getQuery()})`)
+      .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
+      .setParameters(subQuery.getParameters())
+      .getMany();
 
-    return await tagRepository.findByIds(tagIds);
+    console.log(tags);
+
+    return tags;
   }
 
   export async function createTag(name: string): Promise<Tag | undefined> {
@@ -109,6 +115,7 @@ export namespace TagManager {
       name: name,
       color: color
     });
+
     return tagCategoryRepository.save(category);
   }
 

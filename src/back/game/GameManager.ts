@@ -1,17 +1,15 @@
+import { chunkArray } from '@back/util/misc';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { TagAlias } from '@database/entity/TagAlias';
+import { Index, PageIndex } from '@shared/back/types';
+import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
-import { ArgumentTypesOf } from '@shared/interfaces';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { Coerce } from '@shared/utils/Coerce';
-import { Brackets, FindOneOptions, getManager, SelectQueryBuilder, EntitySchema, Repository } from 'typeorm';
-import { PageIndex, Index } from '@shared/back/types';
-import { VIEW_PAGE_SIZE } from '@shared/constants';
-import { TagAlias } from '@database/entity/TagAlias';
-import { Tag } from '@database/entity/Tag';
-import { chunkArray } from '@back/util/misc';
+import { Brackets, FindOneOptions, getManager, Repository, SelectQueryBuilder } from 'typeorm';
 
 const exactFields = [ 'broken', 'extreme', 'library' ];
 enum flatGameFields {
@@ -43,7 +41,21 @@ export namespace GameManager {
   export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | undefined> {
     if (id || filter) {
       const gameRepository = getManager().getRepository(Game);
-      return gameRepository.findOne(id);
+      const game = await gameRepository.findOne(id);
+      if (game) {
+        game.tags.sort((tagA, tagB) => {
+          const catIdA = tagA.category ? tagA.category.id : tagA.categoryId;
+          const catIdB = tagB.category ? tagB.category.id : tagB.categoryId;
+          if (catIdA && catIdB) {
+            if (catIdA > catIdB) { return 1;  }
+            if (catIdB > catIdA) { return -1; }
+          }
+          if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
+          if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
+          return 0;
+        });
+      }
+      return game;
     }
   }
 
@@ -85,15 +97,14 @@ export namespace GameManager {
 
   export async function findGamePageIndex(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<PageIndex> {
     const startTime = Date.now();
-    const gameRepository = getManager().getRepository(Game);
 
     const subQ = await getGameQuery('sub', filterOpts, orderBy, direction);
-    subQ.select(`sub.${orderBy}, sub.id, case row_number() over(order by sub.${orderBy}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
-    subQ.orderBy(`sub.${orderBy}`, direction);
+    subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy}, sub.title, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
+    subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
     console.log(subQ.getQuery());
 
     const query = getManager().createQueryBuilder()
-      .select(`g.${orderBy}, g.id, row_number() over(order by g.${orderBy}) + 1 page_number`)
+      .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy}, g.title) + 1 page_number`)
       .from('(' + subQ.getQuery() + ')', 'g')
       .where('g.page_boundary = 1')
       .setParameters(subQ.getParameters());
@@ -101,7 +112,7 @@ export namespace GameManager {
     const raw = await query.getRawMany();
     const pageIndex: PageIndex = {};
     for (let r of raw) {
-      pageIndex[r['page_number']] = {orderVal: Coerce.str(r[orderBy]), id: Coerce.str(r['id'])};
+      pageIndex[r['page_number']] = {orderVal: Coerce.str(r[orderBy]), title: Coerce.str(r['title']), id: Coerce.str(r['id'])};
     }
     console.log(`${Date.now() - startTime}ms for index`);
     return pageIndex;
@@ -147,7 +158,7 @@ export namespace GameManager {
 
       // Use Page Index (If Given)
       if (index) {
-        query.where(`(${alias}.${orderBy}, ${alias}.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
+        query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) > (:orderVal, :title, :id)`, { orderVal: index.orderVal, title:index.title, id: index.id });
         whereCount++;
       }
       // Apply all flat game filters
@@ -156,7 +167,7 @@ export namespace GameManager {
       }
 
       // Order By + Limit
-      if (orderBy) { query.orderBy(`${alias}.${orderBy}`, direction); }
+      if (orderBy) { query.orderBy(`${alias}.${orderBy} ${direction}, ${alias}.title`, direction); }
       if (!index && offset)  { console.log('OFFSET'); query.skip(offset); }
       if (limit)   { query.take(limit); }
       // Playlist filtering

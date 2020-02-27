@@ -27,6 +27,9 @@ export class Tag {
   @ManyToOne(type => TagCategory)
   category?: TagCategory;
 
+  @Column({ nullable: true })
+  description?: string;
+
   @ManyToMany(type => Game, g => g.tags)
   gamesUsing?: Game[];
 

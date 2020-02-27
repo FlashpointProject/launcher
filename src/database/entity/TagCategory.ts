@@ -15,6 +15,9 @@ export class TagCategory {
   /** Category Color */
   color: string;
 
+  @Column({ nullable: true })
+  description?: string;
+
   @OneToMany(type => Tag, t => t.category)
   tags: Tag[];
 }

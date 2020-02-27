@@ -1,13 +1,13 @@
 import {MigrationInterface, QueryRunner} from "typeorm";
 
-export class Initial1582714266901 implements MigrationInterface {
-    name = 'Initial1582714266901'
+export class Initial1582731790028 implements MigrationInterface {
+    name = 'Initial1582731790028'
 
     public async up(queryRunner: QueryRunner): Promise<any> {
         await queryRunner.query(`CREATE TABLE "tag_alias" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "tagId" integer, "name" varchar COLLATE NOCASE NOT NULL, CONSTRAINT "UQ_34d6ff6807129b3b193aea26789" UNIQUE ("name"))`, undefined);
         await queryRunner.query(`CREATE INDEX "IDX_34d6ff6807129b3b193aea2678" ON "tag_alias" ("name") `, undefined);
-        await queryRunner.query(`CREATE TABLE "tag_category" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar COLLATE NOCASE NOT NULL, "color" varchar NOT NULL)`, undefined);
-        await queryRunner.query(`CREATE TABLE "tag" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "categoryId" integer)`, undefined);
+        await queryRunner.query(`CREATE TABLE "tag_category" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar COLLATE NOCASE NOT NULL, "color" varchar NOT NULL, "description" varchar)`, undefined);
+        await queryRunner.query(`CREATE TABLE "tag" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "primaryAliasId" integer, "categoryId" integer, "description" varchar)`, undefined);
         await queryRunner.query(`CREATE TABLE "game" ("id" varchar PRIMARY KEY NOT NULL, "title" varchar COLLATE NOCASE NOT NULL, "alternateTitles" varchar COLLATE NOCASE NOT NULL, "series" varchar COLLATE NOCASE NOT NULL, "developer" varchar COLLATE NOCASE NOT NULL, "publisher" varchar COLLATE NOCASE NOT NULL, "dateAdded" datetime NOT NULL DEFAULT (datetime('now')), "dateModified" datetime NOT NULL DEFAULT (datetime('now')), "platform" varchar COLLATE NOCASE NOT NULL, "broken" boolean NOT NULL, "extreme" boolean NOT NULL, "playMode" varchar COLLATE NOCASE NOT NULL, "status" varchar COLLATE NOCASE NOT NULL, "notes" varchar COLLATE NOCASE NOT NULL, "source" varchar COLLATE NOCASE NOT NULL, "applicationPath" varchar NOT NULL, "launchCommand" varchar NOT NULL, "releaseDate" varchar COLLATE NOCASE NOT NULL, "version" varchar COLLATE NOCASE NOT NULL, "originalDescription" varchar COLLATE NOCASE NOT NULL, "language" varchar COLLATE NOCASE NOT NULL, "library" varchar COLLATE NOCASE NOT NULL, "orderTitle" varchar COLLATE NOCASE NOT NULL)`, undefined);
         await queryRunner.query(`CREATE INDEX "IDX_gameTitle" ON "game" ("title") `, undefined);
         await queryRunner.query(`CREATE INDEX "IDX_total" ON "game" ("library", "broken", "extreme") `, undefined);
@@ -30,8 +30,8 @@ export class Initial1582714266901 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "tag_alias"`, undefined);
         await queryRunner.query(`ALTER TABLE "temporary_tag_alias" RENAME TO "tag_alias"`, undefined);
         await queryRunner.query(`CREATE INDEX "IDX_34d6ff6807129b3b193aea2678" ON "tag_alias" ("name") `, undefined);
-        await queryRunner.query(`CREATE TABLE "temporary_tag" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "categoryId" integer, CONSTRAINT "FK_60fbdce32f9ca3b5afce15a9c32" FOREIGN KEY ("categoryId") REFERENCES "tag_category" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION)`, undefined);
-        await queryRunner.query(`INSERT INTO "temporary_tag"("id", "categoryId") SELECT "id", "categoryId" FROM "tag"`, undefined);
+        await queryRunner.query(`CREATE TABLE "temporary_tag" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "primaryAliasId" integer, "categoryId" integer, "description" varchar, CONSTRAINT "FK_60fbdce32f9ca3b5afce15a9c32" FOREIGN KEY ("categoryId") REFERENCES "tag_category" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION)`, undefined);
+        await queryRunner.query(`INSERT INTO "temporary_tag"("id", "primaryAliasId", "categoryId", "description") SELECT "id", "primaryAliasId", "categoryId", "description" FROM "tag"`, undefined);
         await queryRunner.query(`DROP TABLE "tag"`, undefined);
         await queryRunner.query(`ALTER TABLE "temporary_tag" RENAME TO "tag"`, undefined);
         await queryRunner.query(`CREATE TABLE "temporary_additional_app" ("id" varchar PRIMARY KEY NOT NULL, "applicationPath" varchar NOT NULL, "autoRunBefore" boolean NOT NULL, "launchCommand" varchar NOT NULL, "name" varchar COLLATE NOCASE NOT NULL, "waitForExit" boolean NOT NULL, "parentGameId" varchar, CONSTRAINT "FK_c174651de0daf9eae7878d06430" FOREIGN KEY ("parentGameId") REFERENCES "game" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION)`, undefined);
@@ -70,8 +70,8 @@ export class Initial1582714266901 implements MigrationInterface {
         await queryRunner.query(`INSERT INTO "additional_app"("id", "applicationPath", "autoRunBefore", "launchCommand", "name", "waitForExit", "parentGameId") SELECT "id", "applicationPath", "autoRunBefore", "launchCommand", "name", "waitForExit", "parentGameId" FROM "temporary_additional_app"`, undefined);
         await queryRunner.query(`DROP TABLE "temporary_additional_app"`, undefined);
         await queryRunner.query(`ALTER TABLE "tag" RENAME TO "temporary_tag"`, undefined);
-        await queryRunner.query(`CREATE TABLE "tag" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "categoryId" integer)`, undefined);
-        await queryRunner.query(`INSERT INTO "tag"("id", "categoryId") SELECT "id", "categoryId" FROM "temporary_tag"`, undefined);
+        await queryRunner.query(`CREATE TABLE "tag" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "primaryAliasId" integer, "categoryId" integer, "description" varchar)`, undefined);
+        await queryRunner.query(`INSERT INTO "tag"("id", "primaryAliasId", "categoryId", "description") SELECT "id", "primaryAliasId", "categoryId", "description" FROM "temporary_tag"`, undefined);
         await queryRunner.query(`DROP TABLE "temporary_tag"`, undefined);
         await queryRunner.query(`DROP INDEX "IDX_34d6ff6807129b3b193aea2678"`, undefined);
         await queryRunner.query(`ALTER TABLE "tag_alias" RENAME TO "temporary_tag_alias"`, undefined);

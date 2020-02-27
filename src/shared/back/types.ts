@@ -258,6 +258,7 @@ export type BrowseViewResponseData = {
 
 export type Index = {
   orderVal: any,
+  title: string,
   id: string
 }
 export type PageIndex = Record<number, Index>;
