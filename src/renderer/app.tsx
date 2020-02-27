@@ -1,10 +1,11 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, TagCategoriesChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame, PageIndex, BrowseViewPageIndexResponse, BrowseViewPageIndexData, Index } from '@shared/back/types';
+import { TagCategory } from '@database/entity/TagCategory';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, Index, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageIndex, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
-import { ParsedSearch, parseSearchText } from '@shared/game/GameFilter';
+import { parseSearchText } from '@shared/game/GameFilter';
 import { GamePropSuggestions, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
@@ -29,6 +30,7 @@ import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
 import HeaderContainer from './containers/HeaderContainer';
 import { WithPreferencesProps } from './containers/withPreferences';
+import { WithTagCategoriesProps } from './containers/withTagCategories';
 import { CreditsFile } from './credits/CreditsFile';
 import { CreditsData } from './credits/types';
 import { GAMES, UpgradeStageState } from './interfaces';
@@ -40,8 +42,6 @@ import { UpgradeFile } from './upgrade/UpgradeFile';
 import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
-import { EventQueue } from '@back/util/EventQueue';
-import { TagCategory } from '@database/entity/TagCategory';
 
 const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
@@ -65,7 +65,7 @@ type AppOwnProps = {
   search: SearchQuery;
 };
 
-export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps;
+export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps;
 
 export type AppState = {
   views: Views;
@@ -79,7 +79,6 @@ export type AppState = {
   themeList: Theme[];
   gamesTotal: number;
   localeCode: string;
-  tagCategories: TagCategory[];
 
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
@@ -170,7 +169,6 @@ export class App extends React.Component<AppProps, AppState> {
       wasNewGameClicked: false,
       updateInfo: undefined,
       order,
-      tagCategories: window.Shared.initialTagCategories
     };
 
     // Initialize app
@@ -421,7 +419,7 @@ export class App extends React.Component<AppProps, AppState> {
 
         case BackOut.TAG_CATEGORIES_CHANGE: {
           const resData: TagCategoriesChangeData = res.data;
-          this.setState({ tagCategories: resData });
+          this.props.setTagCategories(resData);
         }
       }
     });
@@ -530,6 +528,8 @@ export class App extends React.Component<AppProps, AppState> {
         }
       });
     }
+
+    this.props.setTagCategories(window.Shared.initialTagCategories);
   }
 
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {
@@ -667,7 +667,6 @@ export class App extends React.Component<AppProps, AppState> {
       languages: this.state.langList,
       updateInfo: this.state.updateInfo,
       autoUpdater: autoUpdater,
-      tagCategories: this.state.tagCategories
     };
     // Render
     return (

@@ -1,5 +1,5 @@
 import { Reducer } from 'redux';
-import { SearchActionTypes, SearchState } from './types';
+import { SearchActions, SearchState } from './types';
 
 const initialState: SearchState = {
   query: { text: '' },
@@ -7,7 +7,7 @@ const initialState: SearchState = {
 
 const reducer: Reducer<SearchState> = (state = initialState, action) => {
   switch (action.type) {
-    case SearchActionTypes.SET_QUERY: {
+    case SearchActions.SET_QUERY: {
       return { ...state, query: action.payload };
     }
     default: {

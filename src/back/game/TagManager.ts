@@ -2,8 +2,9 @@ import { chunkArray } from '@back/util/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { TagSuggestion } from '@shared/back/types';
+import { TagSuggestion, TagCategoriesChangeData } from '@shared/back/types';
 import { getManager } from 'typeorm';
+import { respond } from '@back/SocketServer';
 
 export namespace TagManager {
 
@@ -36,7 +37,8 @@ export namespace TagManager {
     const subQuery = tagAliasRepostiory.createQueryBuilder('tag_alias')
       .leftJoin(Tag, 'tag', 'tag_alias.tagId = tag.id')
       .select('tag.id, tag.categoryId, tag.primaryAliasId, tag_alias.name')
-      .where('tag_alias.name like :partial', { partial: name + '%' });
+      .where('tag_alias.name like :partial', { partial: name + '%' })
+      .limit(10);
 
     const tagAliases = await getManager().createQueryBuilder()
       .select('sugg.id, sugg.categoryId, sugg.name, COUNT(game_tag.gameId) as gameCount, primary_alias.name as primaryName')
@@ -116,7 +118,9 @@ export namespace TagManager {
       color: color
     });
 
-    return tagCategoryRepository.save(category);
+    const tagCategory = await tagCategoryRepository.save(category);
+    // @TODO : Tag category change events
+    return tagCategory;
   }
 
   export async function getTagById(tagId: number): Promise<Tag | undefined> {

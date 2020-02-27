@@ -1,4 +1,4 @@
 import { action } from 'typesafe-actions';
-import { SearchActionTypes, SearchQuery } from './types';
+import { SearchActions, SearchQuery } from './types';
 
-export const setQuery = (query: SearchQuery) => action(SearchActionTypes.SET_QUERY, query);
+export const setQuery = (query: SearchQuery) => action(SearchActions.SET_QUERY, query);

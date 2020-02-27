@@ -26,6 +26,7 @@ import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { TagCategory } from '@database/entity/TagCategory';
+import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -67,11 +68,9 @@ type OwnProps = {
   wasNewGameClicked: boolean;
   /** "Route" of the currently selected library (empty string means no library). */
   gameLibrary: string;
-  /** Tag Categories info */
-  tagCategories: TagCategory[];
 };
 
-export type BrowsePageProps = OwnProps & WithPreferencesProps;
+export type BrowsePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
 
 export type BrowsePageState = {
   /** Current quick search string (used to jump to a game in the list, not to filter the list). */

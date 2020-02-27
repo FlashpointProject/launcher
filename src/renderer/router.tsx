@@ -22,6 +22,7 @@ import { GAMES } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
 import { TagCategory } from '@database/entity/TagCategory';
+import { ConnectedTagsPage, ConnectedTagsPageProps } from './containers/ConnectedTagsPage';
 
 export type AppRouterProps = {
   games: GAMES;
@@ -59,7 +60,6 @@ export type AppRouterProps = {
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
   autoUpdater: AppUpdater,
-  tagCategories: TagCategory[],
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -95,7 +95,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
-      tagCategories: this.props.tagCategories
+    };
+    const tagsProps: ConnectedTagsPageProps = {
+
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
@@ -127,6 +129,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
           path={Paths.BROWSE}
           component={ConnectedBrowsePage}
           { ...browseProps } />
+        <PropsRoute
+          path={Paths.TAGS}
+          component={ConnectedTagsPage}
+          { ...tagsProps } />
         <PropsRoute
           path={Paths.LOGS}
           component={ConnectedLogsPage} />

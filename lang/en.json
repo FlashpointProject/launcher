@@ -78,6 +78,7 @@
   "app": {
     "home": "Home",
     "browse": "Browse",
+    "tags": "Tags",
     "logs": "Logs",
     "config": "Config",
     "about": "About",

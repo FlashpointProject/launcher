@@ -91,6 +91,11 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
                 title={strings.browse}
                 link={Paths.BROWSE} />
             ) }
+            { enableEditing ? (
+              <MenuItem
+                title={strings.tags}
+                link={Paths.TAGS} />
+            ) : undefined }
             <MenuItem
               title={strings.logs}
               link={Paths.LOGS} />

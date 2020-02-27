@@ -85,6 +85,7 @@ const langTemplate = {
   app: [
     'home',
     'browse',
+    'tags',
     'logs',
     'config',
     'about',
