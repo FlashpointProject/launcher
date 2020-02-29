@@ -1,4 +1,5 @@
 import { SERVICES_SOURCE } from '@back/constants';
+import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
@@ -13,8 +14,10 @@ import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { promisify } from 'util';
 import { uuid } from './uuid';
-import { createTagsFromLegacy } from '@back/importGame';
+
+const unlink = promisify(fs.unlink);
 
 export function pathExists(filePath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
@@ -132,6 +135,21 @@ export function exit(state: BackState): void {
       })),
       // Wait for game manager to complete all saves
       state.gameManager.saveQueue.push(() => {}, true),
+      // Abort saving on demand images
+      (async () => {
+        state.fileServerDownloads.queue.length = 0; // Clear array
+        const current = state.fileServerDownloads.current.splice(0); // Copy & clear array
+        for (let i = 0; i < current.length; i++) { // Delete all partial files
+          const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+          const filePath = path.join(imageFolder, current[i].subPath);
+
+          try {
+            await unlink(filePath);
+          } catch (error) {
+            if (error.code !== 'ENOENT') { console.error(`Failed to delete partially downloaded image file (path: "${current[i].subPath}").`, error); }
+          }
+        }
+      })(),
     ]).then(() => { process.exit(); });
   }
 }

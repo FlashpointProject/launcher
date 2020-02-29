@@ -76,6 +76,8 @@ function main() {
   // Add Socket event listener(s)
   state.socket.on('message', onMessage);
 
+  app.commandLine.appendSwitch('ignore-connections-limit', 'localhost');
+
   // ---- Initialize ----
   // Check if installed
   let p = exists('./.installed')
