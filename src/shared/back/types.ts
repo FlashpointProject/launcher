@@ -55,6 +55,11 @@ export enum BackIn {
   GET_OR_CREATE_TAG,
   GET_TAG_SUGGESTIONS,
   GET_TAG_BY_ID,
+  GET_TAGS,
+  GET_TAG,
+  SAVE_TAG,
+  DELETE_TAG,
+  CLEANUP_TAG_ALIASES,
   FIX_TAG_PRIMARY_ALIASES,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
@@ -92,6 +97,10 @@ export enum BackOut {
   IMPORT_CURATION_RESPONSE,
   GET_TAG_SUGGESTIONS,
   GET_TAG_BY_ID,
+  GET_TAGS,
+  GET_TAG,
+  SAVE_TAG,
+  DELETE_TAG,
   TAG_CATEGORIES_CHANGE,
   FIX_TAG_PRIMARY_ALIASES,
   QUIT,
@@ -456,3 +465,22 @@ export type TagSuggestionsResponse = TagSuggestion[];
 export type TagPrimaryFixData = null;
 
 export type TagPrimaryFixResponse = number;
+
+export type TagFindData = string;
+
+export type TagFindResponse = Tag[];
+
+export type TagGetData = string;
+
+export type TagGetResponse = Tag | undefined;
+
+export type TagSaveData = Tag;
+
+export type TagSaveResponse = Tag;
+
+export type TagDeleteData = number;
+
+export type TagDeleteResponse = {
+  success: boolean;
+  id: number;
+}

@@ -1,7 +1,7 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Game } from './Game';
 import { TagAlias } from './TagAlias';
 import { TagCategory } from './TagCategory';
-import { Game } from './Game';
 
 @Entity()
 export class Tag {
@@ -14,7 +14,8 @@ export class Tag {
   primaryAliasId: number;
 
   /** Primary Alias */
-  @OneToOne(type => TagAlias, t => t.tag, { cascade: true, eager: true, nullable: true })
+  @OneToOne(type => TagAlias, { cascade: true, eager: true, nullable: true })
+  @JoinColumn()
   primaryAlias: TagAlias;
 
   /** Aliases / Names of the tag */

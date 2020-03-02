@@ -1,7 +1,9 @@
+import { Tag } from '@database/entity/Tag';
 import { ViewGame } from '@shared/back/types';
-import { UpgradeStage } from './upgrade/types';
 
 export type GAMES = Record<number, ViewGame | undefined>
+
+export type TAGS = Record<number, Tag | undefined>
 
 /** State of a single "stage" in the upgrade system (each individual downloadable upgrade is called a "stage"). */
 export type UpgradeStageState = {

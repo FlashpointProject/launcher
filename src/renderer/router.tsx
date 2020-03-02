@@ -17,12 +17,11 @@ import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/Conn
 import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
+import { ConnectedTagsPage, ConnectedTagsPageProps } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { GAMES } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
-import { TagCategory } from '@database/entity/TagCategory';
-import { ConnectedTagsPage, ConnectedTagsPageProps } from './containers/ConnectedTagsPage';
 
 export type AppRouterProps = {
   games: GAMES;
@@ -97,7 +96,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       gameLibrary: this.props.gameLibrary,
     };
     const tagsProps: ConnectedTagsPageProps = {
-
+      tagScale: this.props.gameScale
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,

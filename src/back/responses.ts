@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
-import { AddLogData, BackIn, BackInit, BackOut, TagPrimaryFixData, TagPrimaryFixResponse, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PageIndex, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, ViewGame } from '@shared/back/types';
+import { TagAlias } from '@database/entity/TagAlias';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PageIndex, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, ViewGame } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
@@ -25,7 +26,6 @@ import { BackState } from './types';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
-import { TagAlias } from '@database/entity/TagAlias';
 
 const copyFile  = util.promisify(fs.copyFile);
 const stat      = util.promisify(fs.stat);
@@ -517,6 +517,34 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
+  state.socketServer.register<TagFindData>(BackIn.GET_TAGS, async (event, req) => {
+    respond<TagFindResponse>(event.target, {
+      id: req.id,
+      type: BackOut.GET_TAGS,
+      data: await TagManager.findTags(req.data)
+    });
+  });
+
+  state.socketServer.register<TagDeleteData>(BackIn.DELETE_TAG, async (event, req) => {
+    const success = await TagManager.deleteTag(req.data, state.socketServer.openDialog(event.target));
+    respond<TagDeleteResponse>(event.target, {
+      id: req.id,
+      type: BackOut.DELETE_TAG,
+      data: {
+        success: success,
+        id: req.data
+      }
+    });
+  });
+
+  state.socketServer.register<TagSaveData>(BackIn.SAVE_TAG, async (event, req) => {
+    respond<TagSaveResponse>(event.target, {
+      id: req.id,
+      type: BackOut.SAVE_TAG,
+      data: await TagManager.saveTag(req.data)
+    });
+  });
+
   state.socketServer.register<TagSuggestionsData>(BackIn.GET_TAG_SUGGESTIONS, async (event, req) => {
     respond<TagSuggestionsResponse>(event.target,  {
       id: req.id,
@@ -670,6 +698,22 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
       data: playlist
+    });
+  });
+
+  state.socketServer.register<any>(BackIn.CLEANUP_TAG_ALIASES, async (event, req) => {
+    await TagManager.cleanupTagAliases();
+    respond(event.target, {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE,
+    });
+  });
+
+  state.socketServer.register<TagGetData>(BackIn.GET_TAG, async (event, req) => {
+    respond<TagGetResponse>(event.target, {
+      id: req.id,
+      type: BackOut.GET_TAG,
+      data: await TagManager.findTag(req.data)
     });
   });
 

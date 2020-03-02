@@ -1,15 +1,79 @@
+import { OpenDialogFunc } from '@back/types';
 import { chunkArray } from '@back/util/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { TagSuggestion, TagCategoriesChangeData } from '@shared/back/types';
-import { getManager } from 'typeorm';
-import { respond } from '@back/SocketServer';
+import { TagSuggestion } from '@shared/back/types';
+import { getManager, Like } from 'typeorm';
 
 export namespace TagManager {
 
   export async function findTagCategories(): Promise<TagCategory[]> {
     return getManager().getRepository(TagCategory).find();
+  }
+
+  export async function deleteTag(tagId: number, openDialog: OpenDialogFunc): Promise<boolean> {
+    const tagRepository = getManager().getRepository(Tag);
+    const tagAliasRepository = getManager().getRepository(TagAlias);
+
+    const gameCount = (await getManager().createQueryBuilder()
+      .select('COUNT(*)')
+      .from('game_tags_tag', 'game_tag')
+      .where('game_tag.tagId = :id', { id: tagId })
+      .getRawOne())['COUNT(*)'];
+
+    if (gameCount > 0) {
+      const res = await openDialog({
+        title: 'Deletion Warning',
+        message: `This tag will be removed from ${gameCount} games.\n\n Are you sure you want to delete this tag?`,
+        buttons: ['Yes', 'No']
+      });
+      if (res === 1) { return false; }
+    }
+    // Delete game relations
+    await getManager().createQueryBuilder()
+      .delete()
+      .from('game_tags_tag')
+      .where('game_tags_tag.tagId = :id', { id: tagId })
+      .execute();
+    // Delete tag aliases
+    await tagAliasRepository.delete({ tagId: tagId });
+    await tagRepository.delete(tagId);
+    return true;
+  }
+
+  export async function saveTag(tag: Tag): Promise<Tag> {
+    const tagRepository = getManager().getRepository(Tag);
+    return tagRepository.save(tag);
+  }
+
+  export async function findTags(name: string): Promise<Tag[]> {
+    const tagRepository = getManager().getRepository(Tag);
+    const tagAliasRepostiory = getManager().getRepository(TagAlias);
+
+    const aliases = await tagAliasRepostiory.find({
+      where: [
+        { name: Like(name + '%') }
+      ],
+    });
+
+    console.log(name);
+    console.log(aliases);
+
+    return tagRepository.createQueryBuilder('tag')
+      .leftJoinAndSelect('tag.aliases', 'alias')
+      .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias')
+      .whereInIds(aliases.map(a => a.tagId))
+      .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
+      .getMany();
+  }
+
+  export async function cleanupTagAliases() {
+    const tagAliasRepostiory = getManager().getRepository(TagAlias);
+    const q = tagAliasRepostiory.createQueryBuilder('tag_alias')
+      .delete()
+      .where('tag_alias.tagId IS NULL');
+    return q.execute();
   }
 
   export async function findTag(name: string): Promise<Tag | undefined> {
@@ -38,15 +102,14 @@ export namespace TagManager {
       .leftJoin(Tag, 'tag', 'tag_alias.tagId = tag.id')
       .select('tag.id, tag.categoryId, tag.primaryAliasId, tag_alias.name')
       .where('tag_alias.name like :partial', { partial: name + '%' })
-      .limit(10);
+      .limit(25);
 
     const tagAliases = await getManager().createQueryBuilder()
       .select('sugg.id, sugg.categoryId, sugg.name, COUNT(game_tag.gameId) as gameCount, primary_alias.name as primaryName')
-      .distinct()
       .from(`(${ subQuery.getQuery() })`, 'sugg')
       .leftJoin(TagAlias, 'primary_alias', 'sugg.primaryAliasId = primary_alias.id')
       .leftJoin('game_tags_tag', 'game_tag', 'game_tag.tagId = sugg.id')
-      .groupBy('game_tag.tagId')
+      .groupBy('sugg.name')
       .orderBy('COUNT(game_tag.gameId) DESC, sugg.name', 'ASC') // Hacky
       .setParameters(subQuery.getParameters())
       .getRawMany();
