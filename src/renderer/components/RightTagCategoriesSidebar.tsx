@@ -133,14 +133,16 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
                   onKeyDown={this.onInputKeyDown} />
               </div>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
-                <p>{strings.color}:</p>
+                <p>{strings.color}: </p>
                 { editable ? (
                   <SketchPicker
                     color={category.color}
                     onChange={this.onColorChange}/>
                 ) : (
-                  <div className='tag-categories__solid-color'
-                    style={{ backgroundColor: category.color }}/>
+                  <div className='tag-categories__color-preview'
+                    style={{ backgroundColor: category.color }}>
+                    {category.color.toUpperCase()}
+                  </div>
                 )}
               </div>
             </div>

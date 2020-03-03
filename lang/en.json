@@ -79,6 +79,7 @@
     "home": "Home",
     "browse": "Browse",
     "tags": "Tags",
+    "categories": "Categories",
     "logs": "Logs",
     "config": "Config",
     "about": "About",
@@ -238,6 +239,24 @@
     "thereAreNoGames": "There are no games.",
     "noGameMatchedDesc": "No game title matched your search.",
     "noGameMatchedSearch": "Try searching for something less restrictive."
+  },
+  "tags": {
+    "noName": "No Name",
+    "description": "Description",
+    "noDescription": "No Description",
+    "category": "Category",
+    "noCategory": "No Category",
+    "newCategory": "New Category",
+    "enterAlias": "Enter Alias",
+    "aliases": "Aliases",
+    "editTag": "Edit Tag",
+    "color": "Color",
+    "noTagSelected": "No Tag Selected",
+    "clickToSelectTag": "Click to select Tag",
+    "deleteTagAlias": "Delete Tag Alias",
+    "setPrimaryAlias": "Set Primary Alias",
+    "deleteTag": "Delete Tag",
+    "deleteTagCategory": "Delete Tag Category"
   },
   "curate": {
     "importAll": "Import All",

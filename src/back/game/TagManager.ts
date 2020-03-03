@@ -4,7 +4,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { TagSuggestion, TagCategoriesChangeData, BackOut } from '@shared/back/types';
-import { getManager, Like } from 'typeorm';
+import { getManager, Like, Not } from 'typeorm';
 import { SocketServer } from '@back/SocketServer';
 
 export namespace TagManager {
@@ -246,7 +246,12 @@ export namespace TagManager {
         }
       }
       if (res == 0) {
-        let defaultCategory = await tagCategoryRepository.findOne();
+        // Find first category that isn't the one we're deleting
+        let defaultCategory = await tagCategoryRepository.findOne({
+          where: [
+            { id: Not(tagCategoryId) }
+          ]
+        });
         if (!defaultCategory) {
             defaultCategory = await createTagCategory('default', '#FFFFFF');
         }

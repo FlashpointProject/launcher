@@ -903,6 +903,17 @@ body {
   fill: var(--layout__confirm-color);
 }
 
+.tag-list-header-column__divider {
+  background: var(--layout__browse-sidebar-divider-background);
+}
+.tag-list-header__scroll-fill {
+  background: linear-gradient(to left, var(--layout__tertiary-background), #00000000);
+}
+/* GameList Header Column */
+.tag-list-header-column--icon {
+  background: linear-gradient(to right, var(--layout__tertiary-background), #00000000);
+}
+
 
 .browse-right-sidebar__row .sketch-picker {
   margin: 0 0.5rem;

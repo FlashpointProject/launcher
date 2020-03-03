@@ -57,6 +57,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
         <div className='tags-page__browser'>
           <div className='tags-browser__center'>
             <SimpleButton
+                className='tag-category__new-button'
                 onClick={this.createNewCategory}
                 value={strings.newCategory}/>
             <TagCategoriesList
