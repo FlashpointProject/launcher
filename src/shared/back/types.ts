@@ -60,7 +60,12 @@ export enum BackIn {
   SAVE_TAG,
   DELETE_TAG,
   CLEANUP_TAG_ALIASES,
+  CLEANUP_TAGS,
   FIX_TAG_PRIMARY_ALIASES,
+  /** Tag Category funcs */
+  SAVE_TAG_CATEGORY,
+  GET_TAG_CATEGORY_BY_ID,
+  DELETE_TAG_CATEGORY,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   BROWSE_VIEW_INDEX,
@@ -101,6 +106,9 @@ export enum BackOut {
   GET_TAG,
   SAVE_TAG,
   DELETE_TAG,
+  GET_TAG_CATEGORY_BY_ID,
+  SAVE_TAG_CATEGORY,
+  DELETE_TAG_CATEGORY,
   TAG_CATEGORIES_CHANGE,
   FIX_TAG_PRIMARY_ALIASES,
   QUIT,
@@ -484,3 +492,17 @@ export type TagDeleteResponse = {
   success: boolean;
   id: number;
 }
+
+export type TagCategorySaveData = TagCategory;
+
+export type TagCategorySaveResponse = TagCategory;
+
+export type TagCategoryDeleteData = number;
+
+export type TagCategoryDeleteResponse = {
+  success: boolean;
+}
+
+export type TagCategoryByIdData = number;
+
+export type TagCategoryByIdResponse = TagCategory | undefined;

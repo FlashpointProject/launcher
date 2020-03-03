@@ -6,28 +6,27 @@ import { findElementAncestor } from '../Util';
 import { TagItemContainer } from './TagItemContainer';
 import { TagListHeader } from './TagListHeader';
 import { TagListItem } from './TagListItem';
-import { Tag } from '@database/entity/Tag';
+import { TagCategoriesListItem } from './TagCategoriesListItem';
+import { TagCategoriesListHeader } from './TagCategoriesListHeader';
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
 const RENDERER_OVERSCAN = 15;
 const BACK_OVERSCAN = 100;
 
-export type TagListProps = {
+export type TagCategoriesProps = {
   /** All tags that will be shown in the list. */
-  tags: Tag[];
-  /** Tag category info */
-  tagCategories: TagCategory[];
+  categories: TagCategory[];
   /** Total number of tags there are. */
-  tagsTotal: number;
+  categoriesTotal: number;
   /** Currently selected tag (if any). */
-  selectedTagId?: number;
+  selectedCategoryId?: number;
   /** Height of each row in the list (in pixels). */
   rowHeight: number;
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
-  onTagSelect: (tagId?: number) => void;
+  onCategorySelect: (tagId?: number) => void;
   // React-Virtualized pass-through props (their values are not used for anything other than updating the grid when changed)
   orderReverse?: GameOrderReverse;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
@@ -35,10 +34,10 @@ export type TagListProps = {
 };
 
 /** A list of rows, where each rows displays a game. */
-export class TagList extends React.Component<TagListProps> {
+export class TagCategoriesList extends React.Component<TagCategoriesProps> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
   /** Currently displayed games. */
-  currentTags: Tag[] | undefined = undefined;
+  currentCategories: TagCategory[] | undefined = undefined;
 
   componentDidMount(): void {
     this.updateCssVars();
@@ -49,16 +48,16 @@ export class TagList extends React.Component<TagListProps> {
   }
 
   render() {
-    const tags = this.props.tags || [];
+    const categories = this.props.categories || [];
     // @HACK: Check if the tags array changed
     // (This will cause the re-rendering of all cells any time the tags prop uses a different reference)
-    const tagsChanged = tags !== this.currentTags;
-    if (tagsChanged) { this.currentTags = tags; }
+    const tagsChanged = categories !== this.currentCategories;
+    if (tagsChanged) { this.currentCategories = categories; }
     // Render
     return (
       <div className='tags-list-wrapper'
         ref={this._wrapper}>
-        <TagListHeader />
+        <TagCategoriesListHeader />
         <TagItemContainer
           className='tag-browser__center-inner'
           onTagSelect={this.onTagSelect}
@@ -77,11 +76,11 @@ export class TagList extends React.Component<TagListProps> {
                       width={width}
                       height={height}
                       rowHeight={this.props.rowHeight}
-                      rowCount={this.props.tagsTotal || 0}
+                      rowCount={this.props.categoriesTotal || 0}
                       overscanRowCount={RENDERER_OVERSCAN}
                       rowRenderer={this.rowRenderer}
                       pass_tagsChanged={tagsChanged}
-                      pass_selectedId={this.props.selectedTagId} />
+                      pass_selectedId={this.props.selectedCategoryId} />
                   )}
                 </ArrowKeyStepper>
               );
@@ -93,8 +92,8 @@ export class TagList extends React.Component<TagListProps> {
   }
 
   onTagSelect = (event: React.MouseEvent<HTMLDivElement>, tagId: number | undefined) => {
-    if (this.props.onTagSelect) {
-      this.props.onTagSelect(tagId);
+    if (this.props.onCategorySelect) {
+      this.props.onCategorySelect(tagId);
     }
   }
 
@@ -105,15 +104,14 @@ export class TagList extends React.Component<TagListProps> {
   }
 
   rowRenderer = (props: ListRowProps): React.ReactNode => {
-    const { tags, selectedTagId } = this.props;
-    const tag = tags[props.index];
-    return tag ? (
-      <TagListItem
+    const { categories, selectedCategoryId } = this.props;
+    const category = categories[props.index];
+    return category ? (
+      <TagCategoriesListItem
         { ...props }
         key={props.key}
-        tagCategories={this.props.tagCategories}
-        isSelected={tag.id === selectedTagId}
-        tag={tag} />
+        isSelected={category.id === selectedCategoryId}
+        category={category} />
     ) : <div key={props.key} style={props.style} />;
   }
 

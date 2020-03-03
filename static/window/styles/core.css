@@ -2092,3 +2092,7 @@ body {
 .tag-list-item__field--category {
   max-width: 15%;
 }
+.tag-categories__solid-color {
+  margin: 0 0.5rem;
+  height: 2rem;
+}

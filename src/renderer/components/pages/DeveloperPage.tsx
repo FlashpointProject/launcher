@@ -119,6 +119,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.fixPrimaryAliases}
               title={strings.fixPrimaryAliasesDesc}
               onClick={this.onFixPrimaryAliases} />
+            <SimpleButton
+              value={strings.fixCommaTags}
+              title={strings.fixCommaTagsDesc}
+              onClick={this.onFixCommaTags} />
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
@@ -206,6 +210,15 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       this.setState({ text: 'Fixing tags, please wait...'});
       fixPrimaryAliases().then(num => {
         this.setState({ text: `${num} Tag Aliases Fixed!`});
+      });
+    });
+  }
+
+  onFixCommaTags = () : void => {
+    setTimeout(async () => {
+      this.setState({ text: 'Fixing tags, please wait...'});
+      window.Shared.back.sendP(BackIn.CLEANUP_TAGS, undefined).then(() => {
+        this.setState({ text: 'Tags Fixed!'});
       });
     });
   }

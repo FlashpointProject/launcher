@@ -3,6 +3,7 @@ import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { Index, PageIndex } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
@@ -337,6 +338,19 @@ export namespace GameManager {
   export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
     const playlistGameRepository = getManager().getRepository(PlaylistGame);
     return playlistGameRepository.save(playlistGame);
+  }
+
+  export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
+    const gameRepository = getManager().getRepository(Game);
+
+    const gameIds = (await getManager().createQueryBuilder()
+      .select('game_tag.gameId as gameId')
+      .distinct()
+      .from('game_tags_tag', 'game_tag')
+      .where('game_tag.tagId = :id', { id: tag.id })
+      .getRawMany()).map(g => g['gameId']);
+
+    return gameRepository.findByIds(gameIds);
   }
 }
 

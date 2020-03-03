@@ -22,6 +22,7 @@ import { CreditsData } from './credits/types';
 import { GAMES } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
+import { ConnectedTagCategoriesPageProps, ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
 
 export type AppRouterProps = {
   games: GAMES;
@@ -98,6 +99,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const tagsProps: ConnectedTagsPageProps = {
       tagScale: this.props.gameScale
     };
+    const tagCategoriesProps: ConnectedTagCategoriesPageProps = {
+      tagScale: this.props.gameScale
+    };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
       availableLangs: this.props.languages,
@@ -132,6 +136,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
           path={Paths.TAGS}
           component={ConnectedTagsPage}
           { ...tagsProps } />
+        <PropsRoute
+          path={Paths.CATEGORIES}
+          component={ConnectedTagCategoriesPage}
+          { ...tagCategoriesProps } />
         <PropsRoute
           path={Paths.LOGS}
           component={ConnectedLogsPage} />

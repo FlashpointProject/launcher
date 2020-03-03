@@ -95,7 +95,8 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     return items.map((tagAlias, index) => {
       const className = baseClassName + (tagAlias.id == this.props.primaryAliasId ? 'tag-primary' : '');
       return (
-        <div className={'tag-alias-wrapper ' + baseClassName}>
+        <div className={'tag-alias-wrapper ' + baseClassName}
+          key={index}>
           <OpenIcon
             className='tag-icon'
             icon='arrow-right' />

@@ -902,3 +902,17 @@ body {
 .tag-alias__buttons-primary:hover .icon__use {
   fill: var(--layout__confirm-color);
 }
+
+
+.browse-right-sidebar__row .sketch-picker {
+  margin: 0 0.5rem;
+}
+.sketch-picker {
+  background-color: var(--layout__secondary-background) !important;
+}
+.sketch-picker * {
+  color: var(--layout__primary-text-color) !important;
+}
+.sketch-picker input {
+  background-color: var(--layout__quaternary-background);
+}

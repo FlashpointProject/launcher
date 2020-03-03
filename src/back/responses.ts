@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PageIndex, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, ViewGame } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PageIndex, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, ViewGame, TagCategoryByIdData, TagCategoryByIdResponse, TagCategorySaveData, TagCategorySaveResponse, TagCategoryDeleteData, TagCategoryDeleteResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
@@ -507,6 +507,34 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
+  state.socketServer.register<TagCategoryDeleteData>(BackIn.DELETE_TAG_CATEGORY, async (event, req) => {
+    respond<TagCategoryDeleteResponse>(event.target, {
+      id: req.id,
+      type: BackOut.DELETE_TAG_CATEGORY,
+      data: {
+        success: await TagManager.deleteTagCategory(req.data, state.socketServer.openDialog(event.target))
+      }
+    });
+    await TagManager.sendTagCategories(state.socketServer);
+  });
+
+  state.socketServer.register<TagCategoryByIdData>(BackIn.GET_TAG_CATEGORY_BY_ID, async (event, req) => {
+    respond<TagCategoryByIdResponse>(event.target, {
+      id: req.id,
+      type: BackOut.GET_TAG_CATEGORY_BY_ID,
+      data: await TagManager.getTagCategoryById(req.data)
+    });
+  });
+
+  state.socketServer.register<TagCategorySaveData>(BackIn.SAVE_TAG_CATEGORY, async (event, req) => {
+    respond<TagCategorySaveResponse>(event.target,  {
+      id: req.id,
+      type: BackOut.SAVE_TAG_CATEGORY,
+      data: await TagManager.saveTagCategory(req.data)
+    });
+    await TagManager.sendTagCategories(state.socketServer);
+  });
+
   state.socketServer.register<TagByIdData>(BackIn.GET_TAG_BY_ID, async (event, req) => {
     const tag = await TagManager.getTagById(req.data);
 
@@ -522,6 +550,56 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.GET_TAGS,
       data: await TagManager.findTags(req.data)
+    });
+  });
+
+  state.socketServer.register(BackIn.CLEANUP_TAGS, async (event, req) => {
+    const allTags = await TagManager.findTags();
+    const commaTags = allTags.filter(t => t.primaryAlias.name.includes(','));
+    for (let oldTag of commaTags) {
+      const allAliases = oldTag.primaryAlias.name.split(',').map(a => a.trim());
+      const tagsToAdd: Tag[] = [];
+      for (let alias of allAliases) {
+        let tag = await TagManager.findTag(alias);
+        if (!tag) {
+          // Tag doesn't exist, make a new one
+          tag = await TagManager.createTag(alias);
+        }
+        // Add tag to list if unique
+        if (tag) {
+          if (tagsToAdd.findIndex(t => tag && tag.id == t.id) == -1) {
+            tagsToAdd.push(tag);
+          }
+        }
+      }
+      // Edit each game with this tag
+      const gamesToEdit = await GameManager.findGamesWithTag(oldTag);
+      for (let i = 0; i < gamesToEdit.length; i++) {
+        const game = gamesToEdit[i];
+        // Remove old tag
+        const oldTagIndex = game.tags.findIndex(t => t.id == oldTag.id);
+        if (oldTagIndex > -1) {
+          game.tags.splice(oldTagIndex, 1);
+        }
+        // Add new tags
+        for (let newTag of tagsToAdd) {
+          if (game.tags.findIndex(t => t.id == newTag.id) == -1) {
+            game.tags.push(newTag);
+          }
+        }
+        gamesToEdit[i] = game;
+      }
+      // Save all games
+      await GameManager.updateGames(gamesToEdit);
+      // Remove old tag
+      if (oldTag.id) {
+        await TagManager.deleteTag(oldTag.id, state.socketServer.openDialog(event.target));
+      }
+    }
+
+    respond(event.target, {
+      id: req.id,
+      type: BackOut.GENERIC_RESPONSE
     });
   });
 

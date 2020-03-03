@@ -2,7 +2,6 @@ import { Tag } from '@database/entity/Tag';
 import { ConnectedRightTagsSidebar } from '@renderer/containers/ConnectedRightTagsSidebar';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { TAGS } from '@renderer/interfaces';
 import { findElementAncestor, gameScaleSpan } from '@renderer/Util';
 import { BackIn, TagByIdData, TagByIdResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagSaveData, TagSaveResponse } from '@shared/back/types';
 import { deepCopy } from '@shared/Util';
@@ -23,7 +22,7 @@ export type TagsPageState = {
   /** Whether we're editing a tag or not */
   isEditing: boolean;
   /** Current tag results */
-  tags: TAGS;
+  tags: Tag[];
   /** Original Tag */
   originalTag?: Tag;
   /** Current tag */
@@ -46,7 +45,6 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   componentDidMount() {
     window.Shared.back.send<TagFindResponse, TagFindData>(BackIn.GET_TAGS, '', (res) => {
       if (res.data) {
-        console.log(res.data);
         this.onTagsChange(res.data);
       }
     });
@@ -94,11 +92,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   }
 
   onTagsChange = (newTags: Tag[]) => {
-    const tags = this.state.tags;
-    for (let i = 0; i < newTags.length; i++) {
-      tags[i] = newTags[i];
-    }
-    this.setState({ tags: tags, tagsTotal: newTags.length });
+    this.setState({ tags: newTags, tagsTotal: newTags.length });
     this.forceUpdate();
   }
 
@@ -168,12 +162,9 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
         if (res.data) {
           if (res.data.success) {
             const newTags = deepCopy(this.state.tags);
-            for (let key in newTags) {
-              const oldTag = newTags[key];
-              if (oldTag && oldTag.id == res.data.id) {
-                newTags[key] = undefined;
-                break;
-              }
+            const newTagIndex = newTags.findIndex(t => t.id == this.state.selectedTagId);
+            if (newTagIndex > -1) {
+              newTags.splice(newTagIndex, 1);
             }
             this.setState({ tags: newTags, currentTag: undefined });
             window.Shared.back.send<any, any>(BackIn.CLEANUP_TAG_ALIASES, undefined);

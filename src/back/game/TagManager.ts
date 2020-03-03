@@ -3,8 +3,9 @@ import { chunkArray } from '@back/util/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { TagSuggestion } from '@shared/back/types';
+import { TagSuggestion, TagCategoriesChangeData, BackOut } from '@shared/back/types';
 import { getManager, Like } from 'typeorm';
+import { SocketServer } from '@back/SocketServer';
 
 export namespace TagManager {
 
@@ -12,31 +13,26 @@ export namespace TagManager {
     return getManager().getRepository(TagCategory).find();
   }
 
-  export async function deleteTag(tagId: number, openDialog: OpenDialogFunc): Promise<boolean> {
+  export async function deleteTag(tagId: number, openDialog: OpenDialogFunc, skipWarn?: boolean): Promise<boolean> {
     const tagRepository = getManager().getRepository(Tag);
     const tagAliasRepository = getManager().getRepository(TagAlias);
 
-    const gameCount = (await getManager().createQueryBuilder()
-      .select('COUNT(*)')
-      .from('game_tags_tag', 'game_tag')
-      .where('game_tag.tagId = :id', { id: tagId })
-      .getRawOne())['COUNT(*)'];
+    if (!skipWarn) {
+      const gameCount = (await getManager().createQueryBuilder()
+        .select('COUNT(*)')
+        .from('game_tags_tag', 'game_tag')
+        .where('game_tag.tagId = :id', { id: tagId })
+        .getRawOne())['COUNT(*)'];
 
-    if (gameCount > 0) {
-      const res = await openDialog({
-        title: 'Deletion Warning',
-        message: `This tag will be removed from ${gameCount} games.\n\n Are you sure you want to delete this tag?`,
-        buttons: ['Yes', 'No']
-      });
-      if (res === 1) { return false; }
+      if (gameCount > 0) {
+        const res = await openDialog({
+          title: 'Deletion Warning',
+          message: `This tag will be removed from ${gameCount} games.\n\n Are you sure you want to delete this tag?`,
+          buttons: ['Yes', 'No']
+        });
+        if (res === 1) { return false; }
+      }
     }
-    // Delete game relations
-    await getManager().createQueryBuilder()
-      .delete()
-      .from('game_tags_tag')
-      .where('game_tags_tag.tagId = :id', { id: tagId })
-      .execute();
-    // Delete tag aliases
     await tagAliasRepository.delete({ tagId: tagId });
     await tagRepository.delete(tagId);
     return true;
@@ -47,18 +43,20 @@ export namespace TagManager {
     return tagRepository.save(tag);
   }
 
-  export async function findTags(name: string): Promise<Tag[]> {
+  export async function findTags(name?: string): Promise<Tag[]> {
     const tagRepository = getManager().getRepository(Tag);
     const tagAliasRepostiory = getManager().getRepository(TagAlias);
 
-    const aliases = await tagAliasRepostiory.find({
-      where: [
-        { name: Like(name + '%') }
-      ],
-    });
-
-    console.log(name);
-    console.log(aliases);
+    let aliases: TagAlias[] = [];
+    if (name) {
+      aliases = await tagAliasRepostiory.find({
+        where: [
+          { name: Like(name + '%') }
+        ],
+      });
+    } else {
+      aliases = await tagAliasRepostiory.find();
+    }
 
     return tagRepository.createQueryBuilder('tag')
       .leftJoinAndSelect('tag.aliases', 'alias')
@@ -143,8 +141,6 @@ export namespace TagManager {
       .setParameters(subQuery.getParameters())
       .getMany();
 
-    console.log(tags);
-
     return tags;
   }
 
@@ -186,6 +182,17 @@ export namespace TagManager {
     return tagCategory;
   }
 
+  export async function saveTagCategory(tagCategory: TagCategory): Promise<TagCategory> {
+    const tagCategoryRepository = getManager().getRepository(TagCategory);
+    const newCat = await tagCategoryRepository.save(tagCategory);
+    return newCat;
+  }
+
+  export async function getTagCategoryById(categoryId: number): Promise<TagCategory | undefined> {
+    const tagCategoryRepository = getManager().getRepository(TagCategory);
+    return tagCategoryRepository.findOne(categoryId);
+  }
+
   export async function getTagById(tagId: number): Promise<Tag | undefined> {
     const tagRepository = getManager().getRepository(Tag);
     return tagRepository.findOne(tagId);
@@ -211,5 +218,58 @@ export namespace TagManager {
     }
 
     return fixed;
+  }
+
+  export async function deleteTagCategory(tagCategoryId: number, openDialog: OpenDialogFunc): Promise<boolean> {
+    const tagCategoryRepository = getManager().getRepository(TagCategory);
+    const tagRepository = getManager().getRepository(Tag);
+
+    const attachedTags = await tagRepository.find({
+      where: [
+        { categoryId: tagCategoryId }
+      ]
+    });
+
+    if (attachedTags.length > 0) {
+      // Warn about moving tags
+      const res = await openDialog({
+        title: 'Deletion Warning',
+        message: `This tag category will be removed from ${attachedTags.length} tags.\n\n What do you want to do with the remaining tags?`,
+        buttons: ['Move to Default Category', 'Delete Tags', 'Cancel']
+      });
+      if (res == 2) { return false; }
+      if (res == 1) {
+        for (let tag of attachedTags) {
+          if (tag.id) {
+            await TagManager.deleteTag(tag.id, openDialog, true);
+          }
+        }
+      }
+      if (res == 0) {
+        let defaultCategory = await tagCategoryRepository.findOne();
+        if (!defaultCategory) {
+            defaultCategory = await createTagCategory('default', '#FFFFFF');
+        }
+
+        if (defaultCategory) {
+          for (let tag of attachedTags) {
+            tag.categoryId = defaultCategory.id;
+            await TagManager.saveTag(tag);
+          }
+        }
+      }
+    }
+    await tagCategoryRepository.delete(tagCategoryId);
+    return true;
+  }
+
+  export async function sendTagCategories(socketServer: SocketServer) {
+    const tagCategoryRepository = getManager().getRepository(TagCategory);
+    const cats = await tagCategoryRepository.find();
+    socketServer.broadcast<TagCategoriesChangeData>({
+      id: '',
+      type: BackOut.TAG_CATEGORIES_CHANGE,
+      data: cats
+    });
   }
 }
