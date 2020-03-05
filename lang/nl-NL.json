@@ -309,7 +309,7 @@
     "downloading": "Downloaden",
     "extracting": "Uitpakken",
     "installingFiles": "Bestanden Installeren...",
-    "complete": "Compleet"
+    "complete": "Voltooid"
   },
   "menu": {
     "viewThumbnailInFolder": "Miniatuur in Map Weergeven",
@@ -358,7 +358,7 @@
     "infinityDesc": "Vereiste bestanden. Voegt ondersteuning voor Flash spellen.",
     "tech": "Andere Technologieën",
     "techDesc": "Voegt ondersteuning voor alle andere technologieën - Shockwave, Unity, Java, HTML5, enz.",
-    "screenshots": "Logos & Screenshots",
+    "screenshots": "Logo's & Schermafbeeldingen",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
   }
 }
