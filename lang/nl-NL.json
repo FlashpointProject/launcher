@@ -72,8 +72,8 @@
   },
   "logs": {
     "filters": "Filters",
-    "copyText": "Copy Text",
-    "clearLog": "Clear Log"
+    "copyText": "Kopieer tekst",
+    "clearLog": "Wis logboek"
   },
   "app": {
     "home": "Home",
@@ -91,7 +91,7 @@
     "total": "Total",
     "newGame": "New Game",
     "list": "List",
-    "grid": "Grid",
+    "grid": "Raster",
     "searchResults": "Search Results"
   },
   "filter": {
