@@ -118,6 +118,24 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                     <p>{strings.enableEditingDesc}</p>
                   </div>
                 </div>
+                {/* On Demand Images */}
+                <div className='setting__row'>
+                  <div className='setting__row__top'>
+                    <div className='setting__row__title'>
+                      <p>{strings.onDemandImages}</p>
+                    </div>
+                    <div className='setting__row__content setting__row__content--toggle'>
+                      <div>
+                        <CheckBox
+                          checked={this.props.preferencesData.onDemandImages}
+                          onToggle={this.onOnDemandImagesChange} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className='setting__row__bottom'>
+                    <p>{strings.onDemandImagesDesc}</p>
+                  </div>
+                </div>
                 {/* Current Language */}
                 <div className='setting__row'>
                   <div className='setting__row__top'>
@@ -354,6 +372,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onEnableEditingChange = (isChecked: boolean): void => {
     updatePreferencesData({ enableEditing: isChecked });
+  }
+
+  onOnDemandImagesChange = (isChecked: boolean): void => {
+    updatePreferencesData({ onDemandImages: isChecked });
   }
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {

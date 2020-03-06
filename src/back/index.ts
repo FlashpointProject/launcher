@@ -41,7 +41,6 @@ const send: Required<typeof process.send> = process.send
   ? process.send.bind(process)
   : (() => { throw new Error('process.send is undefined.'); });
 
-const IMAGE_BASE_URL = 'https://unstable.life/Flashpoint/Data/Images/';
 const CONCURRENT_IMAGE_DOWNLOADS = 6;
 
 const state: BackState = {
@@ -484,7 +483,7 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
                 } else {
                   res.end();
                 }
-              } else {
+              } else if (state.preferences.onDemandImages) {
                 // Remove any older duplicate requests
                 const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === fileSubPath);
                 if (index >= 0) {
@@ -504,14 +503,15 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
                 state.fileServerDownloads.queue.push(item);
                 req.once('close', () => { item.cancelled = true; });
                 updateFileServerDownloadQueue();
+              } else {
+                res.writeHead(404);
+                res.end();
               }
             });
           } else {
             res.writeHead(404);
             res.end();
           }
-
-
         }
       } break;
 
@@ -636,7 +636,7 @@ function updateFileServerDownloadQueue() {
     state.fileServerDownloads.current.push(item);
 
     // Start download
-    const url = IMAGE_BASE_URL + item.subPath;
+    const url = state.config.onDemandBaseUrl + (state.config.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
     const protocol = url.startsWith('https://') ? https : http;
     try {
       protocol.get(url, async (res) => {

@@ -13,6 +13,8 @@ const langTemplate = {
     'extremeGamesDesc',
     'enableEditing',
     'enableEditingDesc',
+    'onDemandImages',
+    'onDemandImagesDesc',
     'currentLanguage',
     'currentLanguageDesc',
     'fallbackLanguage',

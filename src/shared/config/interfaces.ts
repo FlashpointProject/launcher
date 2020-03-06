@@ -42,4 +42,6 @@ export type IAppConfigData = {
   imagesPortMin: number;
   /** Upper limit of the range of ports that the back image server should listen on. */
   imagesPortMax: number;
+  /** Base URL of the server to download missing thumbnails/screenshots from. */
+  onDemandBaseUrl: string;
 };

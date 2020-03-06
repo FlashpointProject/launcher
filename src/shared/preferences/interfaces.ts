@@ -44,6 +44,8 @@ export type IAppPreferencesData = {
   defaultLibrary: string;
   /** Save curations after importing */
   saveImportedCurations: boolean;
+  /** Download missing thumbnails/screenshots from a remote server. */
+  onDemandImages: boolean;
   /** Sources to show/hide in the log page. */
   showLogSource: {
     [key: string]: boolean;
