@@ -315,13 +315,13 @@
     "viewThumbnailInFolder": "Ipakita ang Thumbnail sa folder",
     "viewScreenshotInFolder": "Ipakita ang Screenshot sa Folder",
     "openFileLocation": "Buksan ang File Location",
-    "duplicateMetaOnly": "Duplicate (Meta Only)",
-    "duplicateMetaAndImages": "Duplicate (Meta && Images)",
-    "exportMetaOnly": "Export (Meta Only)",
-    "exportMetaAndImages": "Export (Meta && Images)"
+    "duplicateMetaOnly": "Iduplicate (Meta)",
+    "duplicateMetaAndImages": "Iduplicate (Meta at mga Larawan)",
+    "exportMetaOnly": "Iexport (Meta)",
+    "exportMetaAndImages": "Iexport (Meta at mga Larawan)"
   },
   "dialog": {
-    "programNotFound": "Program not found!",
+    "programNotFound": "Hindi nahanap ang program!",
     "phpNotFound": "Hindi natagpuan ang PHP sa lokasyon na ito. Naka-install ba ito?\nMaaari kang makaranas ng mga error kung wala ito.",
     "wineNotFound": "Hindi naka-install ang Wine, ngunit kinakailangan ito upang mag-load ang game.\nMangyaring tingnan ang Linux Support wiki article para sa mga detalye.",
     "flashpointPathNotFound": "Ang folder ng Flashpoint ay mali. Nais mo bang pumili ng folder upang mainstall ngayon?",
