@@ -322,7 +322,7 @@
   },
   "dialog": {
     "programNotFound": "Program not found!",
-    "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
+    "phpNotFound": "Hindi natagpuan ang PHP sa lokasyon na ito. Naka-install ba ito?\nMaaari kang makaranas ng mga error kung wala ito.",
     "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "Walang nahanap na file!",
@@ -339,15 +339,15 @@
     "selectCurationFolder": "Pumili ng Curation Folder(s)",
     "selectCurationArchive": "Pumili ng Curation Archive(s)",
     "selectCurationMeta": "Pumili ng Curation Meta(s)",
-    "errorParsingPlatforms": "Error parsing platforms!",
-    "errorParsingPlatformsMessage": "{0} Error(s) raised while parsing platform XMLs\nPlease check the logs for details.",
-    "dataRequired": "Additional Data Required",
-    "dataRequiredDesc": "You must install the Upgrade on the home screen before being able to use the launcher.\n\nDo you wish to do this now?",
-    "upgradeWillInstallTo": "{0} will be installed to",
-    "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
-    "restartNow": "Restart Now?",
-    "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
-    "areYouSure": "Are you sure?"
+    "errorParsingPlatforms": "Error. Hindi nag-parse ang platforms!",
+    "errorParsingPlatformsMessage": "{0} May mali habang nag-parse ng platform XMLs\nPakitingnan ang log file para sa karagdagang detalye.",
+    "dataRequired": "Kailangan ng karagdagang detalye",
+    "dataRequiredDesc": "Dapat mong i-install ang Upgrade sa home screen bago magamit ang launcher.\n\nNais mo bang gawin ito ngayon?",
+    "upgradeWillInstallTo": "{0} mai-install sa",
+    "verifyPathSelection": "Mag-install din dito sa mga susunod na upgrades. Tama ba ito?",
+    "restartNow": "I-restart ngayon?",
+    "restartToApplyUpgrade": "Ang upgrade na ito ay hindi mai-install hanggang sa mag-restart ka.\nNais mo bang gawin ito ngayon?",
+    "areYouSure": "Sigurado ka ba?"
   },
   "libraries": {
     "arcade": "Laro",
