@@ -52,7 +52,7 @@
     "configInfo": "何か変更したいことがありますか？: {0}",
     "config": "設定",
     "helpInfo": "ヘルプが必要ですか？: {0}",
-    "help": "説明書を読む",
+    "help": "Readmeを読む",
     "upgradesHeader": "アップグレード",
     "installComplete": "インストール完了",
     "alreadyInstalled": "既にインストールされています",
@@ -65,15 +65,15 @@
     "filterByPlatform": "プラットフォーム別",
     "plannedFeatures": "計画中の機能をチェック！",
     "notesHeader": "メモ",
-    "notes": "Don't forget to read the readme if you're having issues.",
+    "notes": "問題が発生したら、まずはReadmeを読んでください。",
     "linuxSupport": "Issues on Linux? {0}",
-    "linuxSupportLinkText": "Open FAQ",
-    "randomPicks": "Random Picks"
+    "linuxSupportLinkText": "FAQ",
+    "randomPicks": "ランダムなゲーム"
   },
   "logs": {
-    "filters": "Filters",
-    "copyText": "Copy Text",
-    "clearLog": "Clear Log"
+    "filters": "フィルター",
+    "copyText": "テキストをコピー",
+    "clearLog": "ログを消去"
   },
   "app": {
     "home": "ホーム",
@@ -203,7 +203,7 @@
     "thumbnail": "Thumbnail",
     "screenshot": "Screenshot",
     "dropImageHere": "Drop an image here to add it",
-    "noGameSelected": "No Game Selected",
+    "noGameSelected": "ゲームが選択されていません",
     "clickToSelectGame": "Click on a game to select it.",
     "failedToLoadPlaylistFolder": "Failed to load playlist folder",
     "checkLogForInfo": "Check the log for more information.",
@@ -217,7 +217,7 @@
     "allGames": "All Games",
     "newPlaylist": "New Playlist",
     "emptyPlaylist": "Empty Playlist",
-    "noGamesFound": "No Games Found!",
+    "noGamesFound": "ゲームが見つかりません！",
     "dropGameOnLeft": "Drop a game on this playlist in the {0} to add it.",
     "leftSidebar": "left sidebar",
     "setFlashpointPathQuestion": "Have you set the path to the {0} at the {1} page?",
