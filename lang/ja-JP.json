@@ -2,7 +2,7 @@
   "name": "英語",
   "config": {
     "configHeader": "設定",
-    "configDesc": "(一部の変更を有効にするには、”セーブしてリスタート”を押す必要があります)",
+    "configDesc": "(一部の変更を有効にするには、”変更を保存して再起動”を押す必要があります)",
     "preferencesHeader": "基本設定",
     "extremeGames": "過激なゲームの表示",
     "extremeGamesDesc": "Show games with sexual, violent or other content unsuitable for children.",
@@ -33,7 +33,7 @@
     "advancedHeader": "Advanced",
     "showDeveloperTab": "Show Developer Tab",
     "showDeveloperTabDesc": "Show the 'Developer' tab. This is most likely only useful for developers and curators.",
-    "saveAndRestart": "Save and Restart"
+    "saveAndRestart": "変更を保存して再起動"
   },
   "home": {
     "updateHeader": "Launcher Update",
