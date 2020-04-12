@@ -1,7 +1,7 @@
 {
   "name": "Română",
   "config": {
-    "configHeader": "Configurații",
+    "configHeader": "Configurări",
     "configDesc": "(Unele modificări necesită apăsarea pe „Salvare și Repornire“ pentru a fi aplicate)",
     "preferencesHeader": "Editați preferințele",
     "extremeGames": "Jocuri mature",
@@ -11,16 +11,16 @@
     "currentLanguage": "Limba principală",
     "currentLanguageDesc": "Limba principală a lansatorului.",
     "fallbackLanguage": "Limba secundară",
-    "fallbackLanguageDesc": "Limba folosită de lansator, în cazul în care limba principală nu e completă.",
+    "fallbackLanguageDesc": "Limba folosită de lansator, în cazul în care limba principală e incompletă.",
     "auto": "Auto ({0})",
     "none": "Nimic selectat",
     "flashpointHeader": "Flashpoint",
-    "flashpointPath": "Calea spre Flashpoint",
+    "flashpointPath": "Calea spre dosarul Flashpoint",
     "flashpointPathDesc": "Calea spre dosarul lansatorului Flashpoint (poate fi relativă)",
     "browse": "Răsfoire",
     "redirector": "Redirector",
     "redirectorFiddler": "Fiddler",
-    "redirectorDesc": "Programul folosit pentru redirecționarea traficului de internet al jocului spre un server local. Nu se aplică pentru Linux.",
+    "redirectorDesc": "Programul folosit pentru redirecționarea traficului de internet al joculurilor spre un server local. Nu se aplică pentru Linux.",
     "platforms": "Platforme",
     "nativePlatforms": "Platforme native",
     "nativePlatformsDesc": "Folosește versiuni native ale acestor platforme. (Dacă nu sunt disponibile, se vor folosi prin Wine)",
@@ -63,7 +63,7 @@
     "favoritesPlaylist": "Lista de jocuri favorite",
     "tagList": "Listă de etichete",
     "filterByPlatform": "Filtrați în funcție de platformă",
-    "plannedFeatures": "Vedeți ce noutăți avem planificate pentru dumneavoastră!",
+    "plannedFeatures": "Vedeți ce funcționalități am planificat pentru dvs!",
     "notesHeader": "Note",
     "notes": "Citiți fișierul de asistență, în cazul în care aveți dificultăți.",
     "linuxSupport": "Apar probleme pe Linux? {0}",
@@ -92,7 +92,7 @@
     "newGame": "Adăugare joc",
     "list": "Listă",
     "grid": "Tabel",
-    "searchResults": "Rezultate Căutare"
+    "searchResults": "Rezultate"
   },
   "filter": {
     "dateAdded": "Data adăugării",
