@@ -1,34 +1,54 @@
 import * as fs from 'fs';
 import { IAppConfigData } from '@shared/config/interfaces';
-import { deepCopy, readJsonFile, stringifyJsonDataFile } from '@shared/Util';
+import { deepCopy, readJsonFile, stringifyJsonDataFile, readJsonFileSync } from '@shared/Util';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
 
 export namespace ConfigFile {
-  /** Get the config file path (or throw and error if it is not set). */
   export function readFile(filePath: string, onError?: (error: string) => void): Promise<IAppConfigData> {
     return new Promise((resolve, reject) => {
       readJsonFile(filePath, 'utf8')
-      .then(json => resolve(overwriteConfigData(deepCopy(getDefaultConfigData(process.platform)), json, onError)))
+      .then(json => resolve(parse(json, onError)))
       .catch(reject);
     });
+  }
+
+  export function readFileSync(filePath: string, onError?: (error: string) => void): IAppConfigData {
+    return parse(readJsonFileSync(filePath), onError);
   }
 
   export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<IAppConfigData> {
     let error: Error | undefined,
         data: IAppConfigData | undefined;
-    // Try to get the data from the file
+
     try {
       data = await readFile(filePath, onError);
     } catch (e) {
       error = e;
     }
-    // If that failed, set data to default and save it to a new file
+
     if (error || !data) {
       data = deepCopy(getDefaultConfigData(process.platform));
-      await saveFile(filePath, data)
-            .catch(() => console.log('Failed to save default config file!'));
+      saveFile(filePath, data).catch(() => console.log('Failed to save default config file!'));
     }
-    // Return
+
+    return data;
+  }
+
+  export function readOrCreateFileSync(filePath: string, onError?: (error: string) => void): IAppConfigData {
+    let error: Error | undefined,
+        data: IAppConfigData | undefined;
+
+    try {
+      data = readFileSync(filePath, onError);
+    } catch (e) {
+      error = e;
+    }
+
+    if (error || !data) {
+      data = deepCopy(getDefaultConfigData(process.platform));
+      saveFile(filePath, data).catch(() => console.log('Failed to save default config file!'));
+    }
+
     return data;
   }
 
@@ -42,5 +62,9 @@ export namespace ConfigFile {
         else       { return resolve();     }
       });
     });
+  }
+
+  function parse(json: any, onError?: (error: string) => void): IAppConfigData {
+    return overwriteConfigData(deepCopy(getDefaultConfigData(process.platform)), json, onError);
   }
 }

@@ -11,8 +11,8 @@ type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | u
 /**
  * Read and parse a JSON file asynchronously.
  * Wrapper around "fs.readFile()" plus "JSON.parse()".
- * @param path Path of the JSON file
- * @param options Options for reading the file
+ * @param path Path of the JSON file.
+ * @param options Options for reading the file.
  */
 export function readJsonFile(path: string, options?: ReadFileOptions): Promise<any> {
   return new Promise<any>((resolve, reject) => {
@@ -28,6 +28,17 @@ export function readJsonFile(path: string, options?: ReadFileOptions): Promise<a
       }
     });
   });
+}
+
+/**
+ * Read and parse a JSON file synchronously.
+ * Wrapper around "fs.readFileSync()" plus "JSON.parse()".
+ * Throws an error if either the read or parsing fails.
+ * @param path Path of the JSON file.
+ * @param options Options for reading the file.
+ */
+export function readJsonFileSync(path: string, options?: ReadFileOptions): any {
+  return JSON.parse(fs.readFileSync(path, options) as string);
 }
 
 /**

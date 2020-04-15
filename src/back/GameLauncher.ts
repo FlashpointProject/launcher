@@ -1,10 +1,10 @@
-import { ChildProcess, exec, ExecOptions } from 'child_process';
-import { EventEmitter } from 'events';
-import * as path from 'path';
 import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
 import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
+import { ChildProcess, exec, execFile } from 'child_process';
+import { EventEmitter } from 'events';
+import * as path from 'path';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
@@ -59,11 +59,11 @@ export namespace GameLauncher {
       default:
         const appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
         const appArgs: string = opts.addApp.launchCommand;
-        const proc = launch(
+        const proc = exec(
           createCommand(appPath, appArgs),
-          { env: getEnvironment(opts.fpPath) },
-          opts.log
+          { env: getEnvironment(opts.fpPath) }
         );
+        logProcessOutput(proc, opts.log);
         opts.log({
           source: logSource,
           content: `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,
@@ -104,17 +104,41 @@ export namespace GameLauncher {
       }
     }
     // Launch game
-    const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
-    const gameArgs: string = opts.game.launchCommand;
-    const command: string = createCommand(gamePath, gameArgs);
-    const proc = launch(command, { env: getEnvironment(opts.fpPath) }, opts.log);
-    opts.log({
-      source: logSource,
-      content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
-               `    applicationPath: "${opts.game.applicationPath}",\n`+
-               `    launchCommand:   "${opts.game.launchCommand}",\n`+
-               `    command:         "${command}" ]`
-    });
+    let proc: ChildProcess;
+    switch (opts.game.applicationPath) {
+      case ':flash:': {
+        const env = getEnvironment(opts.fpPath);
+        if ('ELECTRON_RUN_AS_NODE' in env) {
+          delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
+        }
+        proc = execFile(
+          process.execPath, // path.join(__dirname, '../main/index.js'),
+          [path.join(__dirname, '../main/index.js'), 'flash=true', opts.game.launchCommand],
+          { env, cwd: process.cwd() }
+        );
+        logProcessOutput(proc, opts.log);
+        opts.log({
+          source: logSource,
+          content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+                  `    applicationPath: "${opts.game.applicationPath}",\n`+
+                  `    launchCommand:   "${opts.game.launchCommand}" ]`
+        });
+      } break;
+      default: {
+        const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
+        const gameArgs: string = opts.game.launchCommand;
+        const command: string = createCommand(gamePath, gameArgs);
+        proc = exec(command, { env: getEnvironment(opts.fpPath) });
+        logProcessOutput(proc, opts.log);
+        opts.log({
+          source: logSource,
+          content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+                  `    applicationPath: "${opts.game.applicationPath}",\n`+
+                  `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                  `    command:         "${command}" ]`
+        });
+      } break;
+    }
     // Show popups for Unity games
     // (This is written specifically for the "startUnity.bat" batch file)
     if (opts.game.platform === 'Unity' && proc.stdout) {
@@ -198,9 +222,7 @@ export namespace GameLauncher {
     return `"${escFilename}" ${escArgs}`;
   }
 
-  function launch(command: string, opts: ExecOptions, log: LogFunc): ChildProcess {
-    // Run
-    const proc = exec(command, opts);
+  function logProcessOutput(proc: ChildProcess, log: LogFunc): void {
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     const logStuff = (event: string, args: any[]): void => {
@@ -212,8 +234,6 @@ export namespace GameLauncher {
     doStuffs(proc, [/* 'close', */ 'disconnect', 'error', 'exit', 'message'], logStuff);
     if (proc.stdout) { proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); }); }
     if (proc.stderr) { proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); }); }
-    // Return process
-    return proc;
   }
 }
 
