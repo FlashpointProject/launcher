@@ -134,7 +134,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.serviceInfo) {
     // Run start commands
     for (let i = 0; i < state.serviceInfo.start.length; i++) {
-      execProcessSync(state.serviceInfo.start[i]);
+      await execProcess(state.serviceInfo.start[i]);
     }
     // Run processes
     if (state.serviceInfo.server) {
@@ -1539,7 +1539,7 @@ function exit() {
       }
       // Run stop commands
       for (let i = 0; i < state.serviceInfo.stop.length; i++) {
-        execProcessSync(state.serviceInfo.stop[i]);
+        execProcess(state.serviceInfo.stop[i], true);
       }
     }
 
@@ -1687,17 +1687,23 @@ function searchGames(opts: SearchGamesOpts): IGameInfo[] {
 }
 
 /**
- * Execute a back process synchronously (wait for it to exit).
+ * Execute a back process (a)synchronously.
  * @param proc Back process to run.
+ * @param sync If the process should run synchronously (block this thread until it exits).
  */
-function execProcessSync(proc: IBackProcessInfo): void {
+async function execProcess(proc: IBackProcessInfo, sync: boolean = false): Promise<void> {
   const cwd: string = path.join(state.config.flashpointPath, proc.path);
   log({
     source: servicesSource,
     content: `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`
   });
   try {
-    child_process.execFileSync(proc.filename, proc.arguments, { cwd: cwd });
+    if (sync) {
+      child_process.execFileSync(proc.filename, proc.arguments, { cwd: cwd });
+    } else {
+      const childProc = child_process.execFile(proc.filename, proc.arguments, { cwd: cwd });
+      await awaitEvents(childProc, ['exit', 'error']);
+    }
   } catch (error) {
     log({
       source: servicesSource,
@@ -1944,4 +1950,33 @@ function parseWrappedRequest(data: string | Buffer | ArrayBuffer | Buffer[]): [W
   };
 
   return [result, undefined];
+}
+
+/**
+ * Create a promise that resolves when the emitter emits one of the given events.
+ * @param emitter Emitter to listen on.
+ * @param events Events that causes the promise to resolve.
+ */
+function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // @TODO Maybe add a timeout that rejects it?
+    const safeEvents = [ ...events ]; // This is a copy in case another function edits the events array after calling this
+
+    let isResolved = false;
+    const listener = () => {
+      if (!isResolved) {
+        isResolved = true;
+
+        for (let event of safeEvents) {
+          emitter.off(event, listener);
+        }
+
+        resolve();
+      }
+    };
+
+    for (let event of safeEvents) {
+      emitter.on(event, listener);
+    }
+  });
 }
