@@ -301,7 +301,7 @@
     "by": "tarafından"
   },
   "misc": {
-    "noBlankFound": "No {0} Found",
+    "noBlankFound": "{0} Bulunamadı",
     "addBlank": "{0} Ekle",
     "deleteAllBlankImages": "Bu oyun için olan TÜM {0} resimlerini sil",
     "yes": "Evet",
