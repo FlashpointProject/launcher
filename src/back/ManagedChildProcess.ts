@@ -155,7 +155,6 @@ export class ManagedChildProcess extends EventEmitter {
       } else {
         this.logContent(str(content));
       }
-      this.logContent(content.toString());
     } catch (e) {
       console.warn(`ManagedChildProcess failed to log content: "${content}" (type: ${typeof content})`);
     }
