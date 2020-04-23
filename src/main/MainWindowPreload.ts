@@ -81,7 +81,7 @@ window.External = {
   initialLangList: createErrorProxy('initialLangList'),
   initialThemes: createErrorProxy('initialThemes'),
   initialPlaylists: createErrorProxy('initialPlaylists'),
-  initialPlatforms: createErrorProxy('initialPlatformNames'),
+  initialPlatforms: createErrorProxy('initialPlatforms'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
 
   waitUntilInitialized() {
