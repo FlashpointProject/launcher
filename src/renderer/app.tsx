@@ -309,7 +309,18 @@ export class App extends React.Component<AppProps, AppState> {
             for (let i = 0; i < resData.games.length; i++) {
               newView.games[resData.offset + i] = resData.games[i];
             }
-            if (resData.total !== undefined) { newView.total = resData.total; }
+            if (resData.total !== undefined) {
+              // Remove overflowing games
+              if (resData.total < newView.total) {
+                const indices = Object.keys(newView.games);
+                for (let i = 0; i < indices.length; i++) {
+                  const index = parseInt(indices[i], 10);
+                  if (index >= resData.total) { delete newView.games[index]; }
+                }
+              }
+              // Update total
+              newView.total = resData.total;
+            }
             this.setState({ views });
           }
         } break;
