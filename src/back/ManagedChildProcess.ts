@@ -35,17 +35,20 @@ export class ManagedChildProcess extends EventEmitter {
   private cwd: string;
   /** If the process is detached (it is not spawned as a child process of this program). */
   private detached: boolean;
+  /** If the process should be restarted if it exits unexpectedly. */
+  private autoRestart: boolean;
   /** A timestamp of when the process was started. */
   private startTime: number = 0;
   /** State of the process. */
   private state: ProcessState = ProcessState.STOPPED;
 
-  constructor(id: string, name: string, cwd: string, detached: boolean, info: IBackProcessInfo) {
+  constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: IBackProcessInfo) {
     super();
     this.id = id;
     this.name = name;
     this.cwd = cwd;
     this.detached = detached;
+    this.autoRestart = autoRestart;
     this.info = info;
   }
 
@@ -86,8 +89,12 @@ export class ManagedChildProcess extends EventEmitter {
       this.process.on('exit', (code, signal) => {
         if (code) { this.logContent(`${this.name} exited with code ${code}`);     }
         else      { this.logContent(`${this.name} exited with signal ${signal}`); }
+        const wasRunning = (this.state === ProcessState.RUNNING);
         this.process = undefined;
         this.setState(ProcessState.STOPPED);
+        if (this.autoRestart && wasRunning) {
+          this.spawn();
+        }
       })
       .on('error', error => {
         this.logContent(`${this.name} failed to start - ${error.message}`);
