@@ -138,12 +138,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
     // Run processes
     if (state.serviceInfo.server) {
-      state.services.server = runService('server', 'Server', state.serviceInfo.server, false, true);
+      state.services.server = runService('server', 'Server', state.serviceInfo.server);
     }
     if (state.config.startRedirector && process.platform !== 'linux') {
       const redirectorInfo = state.config.useFiddler ? state.serviceInfo.fiddler : state.serviceInfo.redirector;
       if (!redirectorInfo) { throw new Error(`Redirector process information not found. (Type: ${state.config.useFiddler ? 'Fiddler' : 'Redirector'})`); }
-      state.services.redirector = runService('redirector', 'Redirector', redirectorInfo, false, false);
+      state.services.redirector = runService('redirector', 'Redirector', redirectorInfo);
     }
   }
 
@@ -566,13 +566,13 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   // Respond
   send(serverPort);
 
-  function runService(id: string, name: string, info: IBackProcessInfo, detached: boolean, autoRestart: boolean): ManagedChildProcess {
+  function runService(id: string, name: string, info: IBackProcessInfo): ManagedChildProcess {
     const proc = new ManagedChildProcess(
       id,
       name,
       path.join(state.config.flashpointPath, info.path),
-      !!detached,
-      autoRestart,
+      false,
+      true,
       info
     );
     proc.on('output', log);
