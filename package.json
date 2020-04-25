@@ -1,6 +1,6 @@
 {
   "name": "flashpoint-launcher",
-  "version": "7.1.0",
+  "version": "8.0.0",
   "description": "A desktop application used to browse, manage and play games from BlueMaxima's Flashpoint",
   "main": "build/main/index.js",
   "config": {
