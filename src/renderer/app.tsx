@@ -889,7 +889,10 @@ export class App extends React.Component<AppProps, AppState> {
           // Save playlist
           const newPlaylist = deepCopy(playlist); // @PERF This should only copy the objects that are modified instead of the whole thing
           newPlaylist.games[entryIndex].notes = playlistNotes;
-          window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, { playlist: newPlaylist });
+          window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, {
+            prevFilename: newPlaylist.filename,
+            playlist: newPlaylist,
+          });
         }
       }
     }

@@ -514,10 +514,11 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             games.splice(index, 1);
 
             window.External.back.send<any, SavePlaylistData>(BackIn.SAVE_PLAYLIST, {
+              prevFilename: playlist.filename,
               playlist: {
                 ...playlist,
                 games: games,
-              }
+              },
             });
           } else { logError('Selected game is missing from the selected playlist'); }
         } else { logError('Selected playlist is missing'); }
