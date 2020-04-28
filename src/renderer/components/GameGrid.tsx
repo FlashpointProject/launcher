@@ -198,7 +198,7 @@ export class GameGrid extends React.Component<GameGridProps> {
               const img: HTMLElement | null = item.querySelector('.game-grid-item__thumb__image') as any;
               if (img) {
                 const val = img.style.backgroundImage;
-                img.style.backgroundImage = '';
+                img.style.backgroundImage = null;
                 img.style.backgroundImage = val;
               }
             }

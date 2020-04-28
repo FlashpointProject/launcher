@@ -52,9 +52,9 @@ function createOnMouseMove(current: HTMLElement): (event: MouseEvent) => void {
     if (current) {
       if (event.clientX <= window.innerWidth * 0.5) {
         current.style.left  = (event.clientX + 16)+'px';
-        current.style.right = '';
+        current.style.right = null;
       } else {
-        current.style.left  = '';
+        current.style.left  = null;
         current.style.right = (window.innerWidth - event.clientX + 16)+'px';
       }
       current.style.top  = (event.clientY +  8)+'px';

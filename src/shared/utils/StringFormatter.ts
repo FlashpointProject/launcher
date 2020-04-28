@@ -26,7 +26,7 @@ export function formatString<T extends Arg[]>(str: string, ...args: T): any[] | 
         const arg = args[i];
         if (React.isValidElement(arg)) {
           onlyStrings = false;
-          return React.Children.toArray(arg).map(component => Object.assign({ key: index.toString() }, component));
+          return React.Children.toArray(arg).map(component => ({ ...component, key: index.toString() }));
         }
         return arg;
       } else { throw new Error(`Failed to format string. Index out of bounds (index: "${i}", string: "${str}").`); }
