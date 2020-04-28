@@ -50,10 +50,10 @@ export function flash(init: Init): void {
         extension = '.so';
         break;
       case 'darwin':
-        // @TODO Find out the extension on mac
+        extension = '.plugin'
         break;
       default:
-        console.error(`No plguin file extension is assigned to the current operating system (platform: "${process.platform}").`);
+        console.error(`No plugin file extension is assigned to the current operating system (platform: "${process.platform}").`);
         break;
     }
     app.commandLine.appendSwitch('ppapi-flash-path', path.resolve(state.config.flashpointPath, 'Plugins', state.plugin + extension));

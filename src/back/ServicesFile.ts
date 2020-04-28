@@ -37,11 +37,11 @@ export namespace ServicesFile {
       input: data,
       onError: onError && (e => { onError(`Error while parsing Services: ${e.toString()}`); })
     });
-    parsed.redirector = parseBackProcessInfo(parser.prop('redirector'));
-    parsed.fiddler    = parseBackProcessInfo(parser.prop('fiddler'));
-    parsed.server     = parseBackProcessInfo(parser.prop('server'));
-    parser.prop('start').array(item => parsed.start.push(parseBackProcessInfo(item)));
-    parser.prop('stop').array(item  => parsed.stop.push(parseBackProcessInfo(item)));
+    parsed.fiddler    = parseBackProcessInfo(parser.prop('fiddler', true));
+    parsed.redirector = parseBackProcessInfo(parser.prop('redirector', true));
+    parsed.server     = parseBackProcessInfo(parser.prop('server', true));
+    parser.prop('start', true).array(item => parsed.start.push(parseBackProcessInfo(item)));
+    parser.prop('stop', true).array(item  => parsed.stop.push(parseBackProcessInfo(item)));
     return parsed;
   }
 

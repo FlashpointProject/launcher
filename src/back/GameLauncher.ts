@@ -105,7 +105,9 @@ export namespace GameLauncher {
     }
     // Launch game
     let proc: ChildProcess;
-    switch (opts.game.applicationPath) {
+    const appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)
+
+    switch (appPath) {
       case ':flash:': {
         const env = getEnvironment(opts.fpPath);
         if ('ELECTRON_RUN_AS_NODE' in env) {
@@ -120,12 +122,12 @@ export namespace GameLauncher {
         opts.log({
           source: logSource,
           content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
-                  `    applicationPath: "${opts.game.applicationPath}",\n`+
+                  `    applicationPath: "${appPath}",\n`+
                   `    launchCommand:   "${opts.game.launchCommand}" ]`
         });
       } break;
       default: {
-        const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
+        const gamePath: string = fixSlashes(path.join(opts.fpPath, appPath));
         const gameArgs: string = opts.game.launchCommand;
         const command: string = createCommand(gamePath, gameArgs);
         proc = exec(command, { env: getEnvironment(opts.fpPath) });
@@ -133,7 +135,7 @@ export namespace GameLauncher {
         opts.log({
           source: logSource,
           content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
-                  `    applicationPath: "${opts.game.applicationPath}",\n`+
+                  `    applicationPath: "${appPath}",\n`+
                   `    launchCommand:   "${opts.game.launchCommand}",\n`+
                   `    command:         "${command}" ]`
         });
