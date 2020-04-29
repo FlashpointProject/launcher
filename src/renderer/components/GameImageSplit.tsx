@@ -127,7 +127,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
       const item: HTMLElement | null = elements.item(i) as any;
       if (item) {
         const val = item.style.backgroundImage;
-        item.style.backgroundImage = null;
+        item.style.backgroundImage = '';
         item.style.backgroundImage = val;
       }
     }
