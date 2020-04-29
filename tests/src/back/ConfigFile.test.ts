@@ -21,10 +21,27 @@ describe('Config File', () => {
     expect(await ConfigFile.readFile(filePath)).toEqual(staticConfig);
   });
 
+  test('Read Config File Synchronously', () => {
+    // staticConfig should be identical to the one in ./tests/static/back/config.json
+    const filePath = path.join(STATIC_PATH, BASE_PATH, 'config.json');
+    expect(ConfigFile.readFileSync(filePath)).toEqual(staticConfig);
+  });
+
   test('Generate Config File', async () => {
     // Create file
     const filePath = path.join(RESULT_PATH, BASE_PATH, 'config_generated.json');
     await ConfigFile.readOrCreateFile(filePath);
+    // Get expected defaults
+    const rawData = await fs.readFile(filePath, 'utf8');
+    const fileData = JSON.parse(rawData);
+    const defaultData = getDefaultConfigData(process.platform);
+    expect(fileData).toEqual(defaultData);
+  });
+
+  test('Generate Config File Synchronously', async () => {
+    // Create file
+    const filePath = path.join(RESULT_PATH, BASE_PATH, 'config_generated_sync.json');
+    ConfigFile.readOrCreateFileSync(filePath);
     // Get expected defaults
     const rawData = await fs.readFile(filePath, 'utf8');
     const fileData = JSON.parse(rawData);
