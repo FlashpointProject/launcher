@@ -1,5 +1,5 @@
 {
-  "name": "Português",
+  "name": "Português (Brasil)",
   "config": {
     "configHeader": "Configuração",
     "configDesc": "(Você deve pressionar ''Salvar e Reiniciar'' para que algumas alterações tenham efeito)",
@@ -92,7 +92,7 @@
     "newGame": "Novo Jogo",
     "list": "Lista",
     "grid": "Grade",
-    "searchResults": "Search Results"
+    "searchResults": "Resultados da Pesquisa"
   },
   "filter": {
     "dateAdded": "Data Adicionada",
@@ -298,7 +298,7 @@
     "titlePlaceholder": "Título...",
     "noAuthor": "Sem Autor",
     "authorPlaceholder": "Autor...",
-    "by": "by"
+    "by": "por"
   },
   "misc": {
     "noBlankFound": "{0} Não Foi Encontrada",

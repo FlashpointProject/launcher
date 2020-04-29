@@ -92,6 +92,7 @@ export function convertEditToCurationMeta(curation: EditCurationMeta, addApps?: 
   parsed['Launch Command']       = curation.launchCommand;
   parsed['Game Notes']           = curation.notes;
   parsed['Original Description'] = curation.originalDescription;
+  parsed['Curation Notes']       = curation.curationNotes;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
   if (addApps) {
@@ -159,6 +160,7 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta): Curat
   parsed['Launch Command']       = curation.game.launchCommand;
   parsed['Game Notes']           = curation.game.notes;
   parsed['Original Description'] = curation.game.originalDescription;
+  parsed['Curation Notes']       = curation.game.curationNotes;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
   if (curation.addApps) {
@@ -220,6 +222,7 @@ type CurationFormatMeta = {
   'Library'?: string;
   'Version'?: string;
   'Additional Applications'?: CurationFormatAddApps;
+  'Curation Notes'?: string;
 };
 
 type CurationFormatAddApps = {

@@ -228,8 +228,8 @@ export function main(init: Init): void {
     });
     // Stop non-local resources from being fetched (as long as their response has at least one header?)
     // Only allow local scripts to execute (Not sure what this allows? "file://"? "localhost"?)
-    // (TypeScript type information is missing, check the link below for the type info)
-    // https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
+    // Method doc at https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
+    // CSP HTTP Header example at https://www.electronjs.org/docs/tutorial/security#csp-http-header
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       let url: URL | undefined;
       try { url = new URL(details.url); }
@@ -241,13 +241,19 @@ export function main(init: Init): void {
         ((url.hostname   === 'localhost' || url.hostname   === '127.0.0.1') && // Treat "localhost" and "127.0.0.1" as the same hostname
         (remoteHostname === 'localhost' || remoteHostname === '127.0.0.1')))) {
         callback({
-          ...details.responseHeaders,
-          responseHeaders: 'script-src \'self\'',
+          ...details,
+          responseHeaders: {
+            ...details.responseHeaders,
+            'Content-Security-Policy': ["script-src 'self'"]
+          },
         });
       } else {
         callback({
-          ...details.responseHeaders,
-          responseHeaders: 'script-src \'self\'',
+          ...details,
+          responseHeaders: {
+            ...details.responseHeaders,
+            'Content-Security-Policy': ["script-src 'self'"]
+          },
           cancel: true
         });
       }
