@@ -59,8 +59,9 @@ export namespace GameLauncher {
       default:
         const appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
         const appArgs: string = opts.addApp.launchCommand;
+        const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
         const proc = exec(
-          createCommand(appPath, appArgs),
+          createCommand(appPath, appArgs, useWine),
           { env: getEnvironment(opts.fpPath) }
         );
         logProcessOutput(proc, opts.log);
@@ -127,17 +128,18 @@ export namespace GameLauncher {
         });
       } break;
       default: {
-        const gamePath: string = fixSlashes(path.join(opts.fpPath, appPath));
+        const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
         const gameArgs: string = opts.game.launchCommand;
-        const command: string = createCommand(gamePath, gameArgs);
-        proc = exec(command, { env: getEnvironment(opts.fpPath) });
+        const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+        const command: string = createCommand(gamePath, gameArgs, useWine);
+        const proc = exec(command, { env: getEnvironment(opts.fpPath) });
         logProcessOutput(proc, opts.log);
         opts.log({
           source: logSource,
           content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
-                  `    applicationPath: "${appPath}",\n`+
-                  `    launchCommand:   "${opts.game.launchCommand}",\n`+
-                  `    command:         "${command}" ]`
+                   `    applicationPath: "${opts.game.applicationPath}",\n`+
+                   `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                   `    command:         "${command}" ]`
         });
       } break;
     }
@@ -206,22 +208,22 @@ export namespace GameLauncher {
     };
   }
 
-  function createCommand(filename: string, args: string): string {
-    // Escape filename and args
-    let escFilename: string = filename;
-    let escArgs: string = args;
+  function createCommand(filename: string, args: string, useWine: boolean): string {
+    // This whole escaping thing is horribly broken. We probably want to switch
+    // to an array representing the argv instead and not have a shell
+    // in between.
     switch (process.platform) {
       case 'win32':
-        escFilename = filename;
-        escArgs = escapeWin(args);
-        break;
+        return `"${filename}" ${escapeWin(args)}`;
+      case 'darwin':
       case 'linux':
-        escFilename = filename;
-        escArgs = escapeLinuxArgs(args);
-        break;
+        if (useWine) {
+          return `wine start /unix "${filename}" ${escapeLinuxArgs(args)}`;
+        }
+        return `"${filename}" ${escapeLinuxArgs(args)}`;
+      default:
+        throw Error("Unsupported platform");
     }
-    // Return
-    return `"${escFilename}" ${escArgs}`;
   }
 
   function logProcessOutput(proc: ChildProcess, log: LogFunc): void {
@@ -267,6 +269,20 @@ function escapeWin(str: string): string {
 }
 
 /**
+ * Escape arguments that will be used in a Linux shell (command line)
+ * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
+ */
+function escapeLinuxArgs(str: string): string {
+  return (
+    splitQuotes(str)
+    .reduce((acc, val, i) => acc + ((i % 2 === 0)
+      ? val.replace(/[~`#$&*()\\|[\]{};<>?!]/g, '\\$&')
+      : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
+    ), '')
+  );
+}
+
+/**
  * Split a string to separate the characters wrapped in quotes from all other.
  * Example: '-a -b="123" "example.com"' => ['-a -b=', '123', ' ', 'example.com']
  * @param str String to split.
@@ -294,14 +310,6 @@ function splitQuotes(str: string): string[] {
     splits.push(str.substring(start, str.length));
   }
   return splits;
-}
-
-/**
- * Escape arguments that will be used in a Linux shell (command line)
- * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
- */
-function escapeLinuxArgs(str: string): string {
-  return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
 }
 
 type UnityOutputResponse = {

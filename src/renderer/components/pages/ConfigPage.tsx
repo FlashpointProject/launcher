@@ -429,6 +429,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: this.state.flashpointPath,
       useCustomTitlebar: this.state.useCustomTitlebar,
       useFiddler: this.state.useFiddler,
+      nativePlatforms: this.state.nativePlatforms,
     }, () => { window.External.restart(); });
   }
 
