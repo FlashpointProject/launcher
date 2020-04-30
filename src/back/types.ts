@@ -17,6 +17,7 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { Connection } from 'typeorm';
 
 
 /** Contains most state for the back process. */
@@ -50,6 +51,7 @@ export type BackState = {
   themeFiles: ThemeListItem[];
   playlists: Playlist[];
   execMappings: ExecMapping[];
+  connection: Connection | undefined;
 }
 
 export type BackQueryChache = {

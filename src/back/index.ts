@@ -21,7 +21,7 @@ import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
 import 'sqlite3';
-import { Connection, ConnectionOptions, createConnection } from 'typeorm';
+import { ConnectionOptions, createConnection } from 'typeorm';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
@@ -80,13 +80,9 @@ const state: BackState = {
   themeFiles: [],
   playlists: [],
   execMappings: [],
+  connection: undefined,
 };
 
-const preferencesFilename = 'preferences.json';
-const configFilename = 'config.json';
-let connection: Connection | undefined;
-
-const servicesSource = 'Background Services';
 registerRequestCallbacks(state);
 
 process.on('message', onProcessMessage);
@@ -112,15 +108,15 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.config = conf;
 
   // Setup DB
-  if (!connection) {
+  if (!state.connection) {
     const options: ConnectionOptions = {
       type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory],
       migrations: [Initial1583180635980]
     };
-    connection = await createConnection(options);
-    connection.synchronize();
+    state.connection = await createConnection(options);
+    state.connection.synchronize();
   }
 
   // Init services
