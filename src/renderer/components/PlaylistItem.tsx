@@ -7,7 +7,6 @@ import { OpenIcon } from './OpenIcon';
 
 export type PlaylistItemProps = {
   playlist: Playlist;
-  iconFilename?: string;
   editing: boolean;
   selected: boolean;
   playlistIconCache: Record<string, string>;
@@ -62,10 +61,10 @@ export function PlaylistItem(props: PlaylistItemProps) {
   }, [props.onSetIcon, props.selected]);
 
   const icon = useMemo(() => {
-    return !props.editing
+    return props.editing
       ? `url("${props.playlist.icon}")`
-      : props.playlistIconCache[props.iconFilename || props.playlist.id];
-  }, [props.editing, props.iconFilename, props.playlist.id, props.playlist.icon, props.playlistIconCache]);
+      : props.playlistIconCache[props.playlist.id];
+  }, [props.editing, props.playlist.id, props.playlist.icon, props.playlistIconCache]);
 
   let className = 'playlist-list-item';
   if (props.selected) { className += ' playlist-list-item--selected'; }

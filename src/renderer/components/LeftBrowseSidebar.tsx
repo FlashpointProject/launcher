@@ -111,7 +111,6 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
         <PlaylistItem
           key={key}
           playlist={p}
-          iconFilename={isSelected ? playlist.icon : undefined}
           selected={isSelected}
           editing={isSelected && isEditing}
           playlistIconCache={playlistIconCache}

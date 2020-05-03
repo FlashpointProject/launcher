@@ -836,8 +836,8 @@ export class App extends React.Component<AppProps, AppState> {
         playlists.splice(index, 1);
 
         const cache: Record<string, string> = { ...this.state.playlistIconCache };
-        const icon = this.state.playlists[index].icon;
-        if (icon in cache) { delete cache[icon]; }
+        const id = this.state.playlists[index].id;
+        if (id in cache) { delete cache[id]; }
 
         this.setState({
           playlists: playlists,
@@ -848,54 +848,55 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   private onPlaylistUpdate = (playlist: Playlist) => {
+    const state: Partial<Pick<AppState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
+
+    // Update or add playlist
     const index = this.state.playlists.findIndex(p => p.id === playlist.id);
     if (index >= 0) {
-      const state: Partial<Pick<AppState, 'playlistIconCache' | 'playlists' | 'views'>> = {};
-
-      // Remove old icon from cache
-      if (playlist.icon in this.state.playlistIconCache) {
-        state.playlistIconCache = { ...this.state.playlistIconCache };
-        delete state.playlistIconCache[playlist.icon];
-        URL.revokeObjectURL(state.playlistIconCache[playlist.icon]); // Free blob from memory
-      }
-
-      // Cache new icon
-      if (playlist.icon !== undefined) {
-        cacheIcon(playlist.icon).then(url => {
-          this.setState({
-            playlistIconCache: {
-              ...this.state.playlistIconCache,
-              [playlist.icon]: url,
-            }
-          });
-        });
-      }
-
-      // Update playlist
       state.playlists = [ ...this.state.playlists ];
       state.playlists[index] = playlist;
+    } else {
+      state.playlists = [ ...this.state.playlists, playlist ];
+    }
 
-      // Clear view caches (that use this playlist)
-      for (let id in this.state.views) {
-        const view = this.state.views[id];
-        if (view) {
-          if (view.selectedPlaylistId === playlist.id) {
-            if (!state.views) { state.views = { ...this.state.views }; }
-            state.views[id] = {
-              ...view,
-              dirtyCache: true
-            };
+    // Remove old icon from cache
+    if (playlist.id in this.state.playlistIconCache) {
+      state.playlistIconCache = { ...this.state.playlistIconCache };
+      delete state.playlistIconCache[playlist.id];
+      URL.revokeObjectURL(this.state.playlistIconCache[playlist.id]); // Free blob from memory
+      console.log(!!this.state.playlistIconCache[playlist.id], !!state.playlistIconCache[playlist.id])
+    }
+
+    // Cache new icon
+    if (playlist.icon !== undefined) {
+      cacheIcon(playlist.icon).then(url => {
+        this.setState({
+          playlistIconCache: {
+            ...this.state.playlistIconCache,
+            [playlist.id]: url,
           }
+        });
+      });
+    }
+
+    // Clear view caches (that use this playlist)
+    for (let id in this.state.views) {
+      const view = this.state.views[id];
+      if (view) {
+        if (view.selectedPlaylistId === playlist.id) {
+          if (!state.views) { state.views = { ...this.state.views }; }
+          state.views[id] = {
+            ...view,
+            dirtyCache: true
+          };
         }
       }
-
-      this.setState(
-        state as any, // (This is very annoying to make typesafe)
-        () => { if (state.views && playlist.library !== undefined) { this.requestSelectedLibrary(playlist.library); } }
-      );
-    } else {
-      this.setState({ playlists: [...this.state.playlists, playlist] });
     }
+
+    this.setState(
+      state as any, // (This is very annoying to make typesafe)
+      () => { if (state.views && playlist.library !== undefined) { this.requestSelectedLibrary(playlist.library); } }
+    );
   }
 
   onSaveGame = (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean): void => {
@@ -1063,7 +1064,7 @@ export class App extends React.Component<AppProps, AppState> {
       const cache: Record<string, string> = {};
       for (let i = 0; i < playlists.length; i++) {
         const url = urls[i];
-        if (url) { cache[playlists[i].icon] = url; }
+        if (url) { cache[playlists[i].id] = url; }
       }
       this.setState({ playlistIconCache: cache });
     });
