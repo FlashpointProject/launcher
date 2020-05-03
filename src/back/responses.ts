@@ -455,8 +455,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<RandomGamesData>(BackIn.RANDOM_GAMES, async (event, req) => {
-    const reqData: RandomGamesData = req.data;
-    let games = await GameManager.findRandomGames(reqData.count);
+    const games = await GameManager.findRandomGames(req.data.count, req.data.extreme, req.data.broken);
 
     respond<RandomGamesResponseData>(event.target, {
       id: req.id,

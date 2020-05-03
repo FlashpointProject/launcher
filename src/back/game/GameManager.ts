@@ -89,10 +89,12 @@ export namespace GameManager {
     return raw;
   }
 
-  export async function findRandomGames(count: number): Promise<Game[]> {
+  export async function findRandomGames(count: number, extreme: boolean, broken: boolean): Promise<Game[]> {
     const gameRepository = getManager().getRepository(Game);
     const query = gameRepository.createQueryBuilder('game');
-    query.where('game.id IN ' + query.subQuery().select('game_random.id').from(Game, 'game_random').orderBy('RANDOM()').take(count).getQuery());
+    if (!extreme) { query.andWhere('extreme = false'); }
+    if (!broken)  { query.andWhere('broken = false');  }
+    query.orderBy('RANDOM()').take(count);
     return query.getMany();
   }
 
