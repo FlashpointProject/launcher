@@ -864,7 +864,6 @@ export class App extends React.Component<AppProps, AppState> {
       state.playlistIconCache = { ...this.state.playlistIconCache };
       delete state.playlistIconCache[playlist.id];
       URL.revokeObjectURL(this.state.playlistIconCache[playlist.id]); // Free blob from memory
-      console.log(!!this.state.playlistIconCache[playlist.id], !!state.playlistIconCache[playlist.id])
     }
 
     // Cache new icon
