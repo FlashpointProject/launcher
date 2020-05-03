@@ -1104,8 +1104,8 @@ export class App extends React.Component<AppProps, AppState> {
   private rebuildQuery = (view: View, library: string): SearchGamesOpts => {
     const searchQuery = parseSearchText(this.props.search.text);
     searchQuery.whitelist.push({ field: 'library', value: library });
-    if (!this.props.preferencesData.browsePageShowExtreme) { searchQuery.blacklist.push({ field: 'extreme', value: true }); }
-    if (!window.Shared.config.data.showBrokenGames)        { searchQuery.blacklist.push({ field: 'broken', value: true });  }
+    if (!this.props.preferencesData.browsePageShowExtreme) { searchQuery.whitelist.push({ field: 'extreme', value: false }); }
+    if (!window.Shared.config.data.showBrokenGames)        { searchQuery.whitelist.push({ field: 'broken', value: false });  }
     const query: SearchGamesOpts = {
       filter: {
         searchQuery: searchQuery,
