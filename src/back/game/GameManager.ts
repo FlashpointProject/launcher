@@ -1,4 +1,5 @@
 import { chunkArray } from '@back/util/misc';
+import { validateSqlName, validateSqlOrder } from '@back/util/sql';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
@@ -48,12 +49,15 @@ export namespace GameManager {
   }
 
   export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: Index) {
+    if (orderBy) { validateSqlName(orderBy); }
+
     const startTime = Date.now();
     const gameRepository = getManager().getRepository(Game);
 
     const subQ = gameRepository.createQueryBuilder('game')
       .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
     if (index) {
+      if (!orderBy) { throw new Error('Failed to get game row. "index" is set but "orderBy" is missing.'); }
       subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
     }
     if (filterOpts) {
@@ -84,6 +88,9 @@ export namespace GameManager {
 
   export async function findGamePageIndex(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<PageIndex> {
     const startTime = Date.now();
+
+    validateSqlName(orderBy);
+    validateSqlOrder(direction);
 
     const subQ = await getGameQuery('sub', filterOpts, orderBy, direction);
     subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy}, sub.title, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
@@ -162,6 +169,10 @@ export namespace GameManager {
 
   async function getGameQuery(alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
     offset?: number, limit?: number, index?: Index): Promise<SelectQueryBuilder<Game>> {
+    validateSqlName(alias);
+    if (orderBy) { validateSqlName(orderBy); }
+    if (direction) { validateSqlOrder(direction); }
+    
     let whereCount = 0;
 
     const gameRepository = getManager().getRepository(Game);
@@ -169,6 +180,7 @@ export namespace GameManager {
 
     // Use Page Index (If Given)
     if (index) {
+      if (!orderBy) { throw new Error('Failed to get game query. "index" is set but "orderBy" is missing.'); }
       query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) > (:orderVal, :title, :id)`, { orderVal: index.orderVal, title:index.title, id: index.id });
       whereCount++;
     }
@@ -237,6 +249,8 @@ export namespace GameManager {
   }
 
   export async function findUniqueValues(entity: any, column: string): Promise<string[]> {
+    validateSqlName(column);
+
     const repository = getManager().getRepository(entity);
     const values = await repository.createQueryBuilder('entity')
       .select(`entity.${column}`)
@@ -246,6 +260,8 @@ export namespace GameManager {
   }
 
   export async function findUniqueValuesInOrder(entity: any, column: string): Promise<string[]> {
+    validateSqlName(column);
+
     const repository = getManager().getRepository(entity);
     const values = await repository.createQueryBuilder('entity')
       .select(`entity.${column}`)
@@ -403,6 +419,8 @@ function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, fi
 }
 
 function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: string, count: number, whitelist: boolean) {
+  validateSqlName(alias);
+
   const formedValue = '%' + value + '%';
   let comparator: string;
   if (whitelist) { comparator = 'like'; }
@@ -458,6 +476,8 @@ function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: str
 }
 
 async function applyTagFilters(aliases: string[], alias: string, query: SelectQueryBuilder<Game>, whereCount: number, whitelist: boolean) {
+  validateSqlName(alias);
+
   const tagAliasRepository = getManager().getRepository(TagAlias);
   const comparator = whitelist ? 'IN' : 'NOT IN';
 
