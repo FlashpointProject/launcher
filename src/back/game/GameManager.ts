@@ -10,7 +10,7 @@ import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { Coerce } from '@shared/utils/Coerce';
-import { Brackets, FindOneOptions, getManager, Repository, SelectQueryBuilder } from 'typeorm';
+import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
 
 const exactFields = [ 'broken', 'extreme', 'library' ];
 enum flatGameFields {
@@ -19,20 +19,7 @@ enum flatGameFields {
   'version', 'originalDescription', 'language', 'library'
 }
 
-export type FindGameOptions = {
-  offset?: number;
-  limit?: number;
-  shallow?: boolean;
-  getTotal?: boolean;
-  index?: Index;
-}
-
 export namespace GameManager {
-  export type GameResults = {
-    games: Game[],
-    total?: number
-  }
-
   export async function countGames(): Promise<number> {
     const gameRepository = getManager().getRepository(Game);
     return gameRepository.count();
@@ -60,11 +47,8 @@ export namespace GameManager {
     }
   }
 
-  export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
-    opts?: FindGameOptions) {
-    if (opts === undefined) { opts = {}; }
+  export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: Index) {
     const startTime = Date.now();
-    const { offset, limit, shallow, getTotal, index } = opts;
     const gameRepository = getManager().getRepository(Game);
 
     const subQ = gameRepository.createQueryBuilder('game')
@@ -73,7 +57,7 @@ export namespace GameManager {
       subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
     }
     if (filterOpts) {
-      applyFlatGameFilters(gameRepository, 'game', subQ, filterOpts, index ? 1 : 0);
+      applyFlatGameFilters('game', subQ, filterOpts, index ? 1 : 0);
     }
     if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
 
@@ -121,81 +105,105 @@ export namespace GameManager {
     return pageIndex;
   }
 
-  /** Find the game with the specified ID. */
-  export async function findGames(filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
-                                  opts?: FindGameOptions): Promise<GameResults> {
-    const query = await getGameQuery('game', filterOpts, orderBy, direction, opts);
-    const { offset, limit, shallow, getTotal, index } = opts || {};
-    const startTime = Date.now();
+  export type FindGamesOpts = {
+    filter?: FilterGameOpts;
+    orderBy?: GameOrderBy;
+    direction?: GameOrderReverse;
+    shallow?: boolean;
+    getTotal?: boolean;
+    offset?: number;
+    limit?: number;
+    index?: Index;
+  }
 
-    let total: number | undefined = undefined;
-    if (getTotal) {
+  export type GameResults = {
+    /** Games found. */
+    games: Game[];
+    /** Total number of games. */
+    total?: number;
+  }
+
+  /** Search the database for games. */
+  export async function findGames(opts: FindGamesOpts = {}): Promise<GameResults> {
+    if (opts.getTotal && opts.offset) {
+      console.warn('Warning! Both "getTotal" and "index" was set. This can cause the "total" to be incorrect (since it will only count from the index and forward)!');
+    }
+
+    const startTime = Date.now();
+    const query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, opts.offset, opts.limit, opts.index);
+
+    let total: number | undefined;
+    if (opts.getTotal) {
       query.select('COUNT(*)');
-      total = (await query.getRawOne())['COUNT(*)'];
-      console.log(`${Date.now() - startTime}ms for query count`);
-      console.log(total);
+      const result = await query.getRawOne();
+      if (result) {
+        total = result['COUNT(*)'];
+        console.log(`${Date.now() - startTime}ms for query count`);
+        console.log('Total:', total);
+      } else {
+        console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
+      }
       query.select('*');
     }
     console.log(query.getQuery());
+
     // Subset of Game info, can be cast to ViewGame later
-    if (shallow) {
+    let games: Game[];
+    if (opts.shallow) {
       query.select('game.id, game.title, game.platform, game.developer, game.publisher');
-      const games: Game[] = await query.getRawMany();
-      console.log(`${Date.now() - startTime}ms for query`);
-      return { games, total };
+      games = await query.getRawMany();
     } else {
-      const games = await query.getMany();
-      console.log(`${Date.now() - startTime}ms for query`);
-      return { games, total };
+      games = await query.getMany();
     }
+    console.log(`${Date.now() - startTime}ms for query`);
+
+    return { games, total };
   }
 
   async function getGameQuery(alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
-    opts?: FindGameOptions): Promise<SelectQueryBuilder<Game>> {
-      let whereCount = 0;
+    offset?: number, limit?: number, index?: Index): Promise<SelectQueryBuilder<Game>> {
+    let whereCount = 0;
 
-      if (opts === undefined) { opts = {}; }
-      const { offset, limit, shallow, getTotal, index } = opts;
-      const gameRepository = getManager().getRepository(Game);
-      const query = gameRepository.createQueryBuilder(alias);
+    const gameRepository = getManager().getRepository(Game);
+    const query = gameRepository.createQueryBuilder(alias);
 
-      // Use Page Index (If Given)
-      if (index) {
-        query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) > (:orderVal, :title, :id)`, { orderVal: index.orderVal, title:index.title, id: index.id });
+    // Use Page Index (If Given)
+    if (index) {
+      query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) > (:orderVal, :title, :id)`, { orderVal: index.orderVal, title:index.title, id: index.id });
+      whereCount++;
+    }
+    // Apply all flat game filters
+    if (filterOpts) {
+      whereCount = applyFlatGameFilters(alias, query, filterOpts, whereCount);
+    }
+
+    // Order By + Limit
+    if (orderBy) { query.orderBy(`${alias}.${orderBy} ${direction}, ${alias}.title`, direction); }
+    if (!index && offset) { console.log('OFFSET'); query.skip(offset); }
+    if (limit) { query.take(limit); }
+    // Playlist filtering
+    if (filterOpts && filterOpts.playlistId) {
+      query.innerJoin(PlaylistGame, 'pg', `pg.gameId = ${alias}.id`);
+      query.orderBy('pg.order');
+      if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+      else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+    }
+    // Tag filtering
+    if (filterOpts && filterOpts.searchQuery) {
+      const aliasWhitelist = filterOpts.searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
+      const aliasBlacklist = filterOpts.searchQuery.blacklist.filter(f => f.field === 'tag').map(f => f.value);
+
+      if (aliasWhitelist.length > 0) {
+        await applyTagFilters(aliasWhitelist, alias, query, whereCount, true);
         whereCount++;
       }
-      // Apply all flat game filters
-      if (filterOpts) {
-        whereCount = applyFlatGameFilters(gameRepository, alias, query, filterOpts, whereCount);
+      if (aliasBlacklist.length > 0) {
+        await applyTagFilters(aliasBlacklist, alias, query, whereCount, false);
+        whereCount++;
       }
+    }
 
-      // Order By + Limit
-      if (orderBy) { query.orderBy(`${alias}.${orderBy} ${direction}, ${alias}.title`, direction); }
-      if (!index && offset)  { console.log('OFFSET'); query.skip(offset); }
-      if (limit)   { query.take(limit); }
-      // Playlist filtering
-      if (filterOpts && filterOpts.playlistId) {
-        query.innerJoin(PlaylistGame, 'pg', `pg.gameId = ${alias}.id`);
-        query.orderBy('pg.order');
-        if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
-        else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
-      }
-      // Tag filtering
-      if (filterOpts && filterOpts.searchQuery) {
-        const aliasWhitelist = filterOpts.searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
-        const aliasBlacklist = filterOpts.searchQuery.blacklist.filter(f => f.field === 'tag').map(f => f.value);
-
-        if (aliasWhitelist.length > 0) {
-          await applyTagFilters(aliasWhitelist, alias, query, whereCount, true);
-          whereCount++;
-        }
-        if (aliasBlacklist.length > 0) {
-          await applyTagFilters(aliasBlacklist, alias, query, whereCount, false);
-          whereCount++;
-        }
-      }
-
-      return query;
+    return query;
   }
 
   export type ViewGame = {
@@ -356,7 +364,7 @@ export namespace GameManager {
   }
 }
 
-function applyFlatGameFilters(gameRepository: Repository<Game>, alias: string, query: SelectQueryBuilder<Game>, filterOpts: FilterGameOpts, whereCount: number): number {
+function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, filterOpts: FilterGameOpts, whereCount: number): number {
   if (filterOpts) {
     // Search results
     if (filterOpts.searchQuery) {

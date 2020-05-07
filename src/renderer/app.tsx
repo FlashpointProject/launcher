@@ -990,7 +990,7 @@ export class App extends React.Component<AppProps, AppState> {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
 
-    console.log(`${offset} off - ${limit} lim`);
+    console.log(`Request Games (${offset} offset, ${limit} limit)`);
 
     if (!view) {
       log(`Failed to request games. Current view is missing (Library: "${library}", View: "${view}").`);
@@ -1011,7 +1011,8 @@ export class App extends React.Component<AppProps, AppState> {
         library: library,
         query: query,
         index: index,
-        getTotal: !view.total || view.dirtyCache
+        getTotal: !view.total || view.dirtyCache,
+        shallow: true,
       }
     );
   }

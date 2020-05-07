@@ -294,6 +294,7 @@ export type BrowseViewPageData = {
   index?: Index;
   query: SearchGamesOpts;
   getTotal?: boolean;
+  shallow?: boolean;
 }
 
 export type BrowseViewPageResponseData = {
@@ -339,16 +340,6 @@ export type SearchGamesOpts = {
 export type SearchGamesResponse = {
   id?: string;
   index?: number;
-}
-
-type GameQuery = {
-  extreme: boolean;
-  broken: boolean;
-  library: string;
-  search: string;
-  playlistId?: string;
-  orderBy: string;
-  orderReverse: string;
 }
 
 export type UpdateConfigData = Partial<IAppConfigData>;

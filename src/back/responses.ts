@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PageIndex, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, ViewGame, TagCategoryByIdData, TagCategoryByIdResponse, TagCategorySaveData, TagCategorySaveResponse, TagCategoryDeleteData, TagCategoryDeleteResponse } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PageIndex, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, ViewGame } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
@@ -17,7 +17,7 @@ import * as path from 'path';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
-import { FindGameOptions, GameManager } from './game/GameManager';
+import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameLauncher } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
@@ -478,30 +478,30 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, async (event, req) => {
-    const { query, offset, limit, getTotal, library, index } = req.data;
-    const opts: FindGameOptions = {
-      offset: offset,
-      limit: limit,
-      shallow: true,
-      index: index,
-      getTotal: getTotal
-    };
-    const { games, total } = await GameManager.findGames(query.filter, query.orderBy, query.orderReverse, opts);
-    const viewGames: ViewGame[] = games.map(g => {
-      return {
-        ...g,
-        tags: []
-      };
+    const result = await GameManager.findGames({
+      filter: req.data.query.filter,
+      orderBy: req.data.query.orderBy,
+      direction: req.data.query.orderReverse,
+      shallow: req.data.shallow,
+      getTotal: req.data.getTotal,
+      offset: req.data.offset,
+      limit: req.data.limit,
+      index: req.data.index,
     });
+
+    const viewGames: ViewGame[] = result.games.map(g => ({
+      ...g,
+      tags: []
+    }));
 
     respond<BrowseViewPageResponseData>(event.target, {
       id: req.id,
       type: BackOut.BROWSE_VIEW_PAGE_RESPONSE,
       data: {
         games: viewGames,
-        library: library,
-        offset: offset,
-        total: total
+        library: req.data.library,
+        offset: req.data.offset,
+        total: result.total,
       },
     });
   });
@@ -632,13 +632,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register<BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, async (event, req) => {
     const { gameId, query } = req.data;
-    const opts: FindGameOptions = {
-      offset: 0,
-      limit: 1,
-      shallow: true,
-      getTotal: false
-    };
-    const position = await GameManager.findGameRow(gameId, query.filter, query.orderBy, query.orderReverse, opts);
+    const position = await GameManager.findGameRow(gameId, query.filter, query.orderBy, query.orderReverse, undefined);
 
     respond<BrowseViewIndexResponse>(event.target, {
       id: req.id,
