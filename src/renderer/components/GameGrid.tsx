@@ -163,22 +163,25 @@ export class GameGrid extends React.Component<GameGridProps> {
 
   /** Renders a single cell in the game grid. */
   cellRenderer = (props: GridCellProps): React.ReactNode => {
-    const { draggedGameId, games, selectedGameId } = this.props;
-    if (!games) { throw new Error('Trying to render a cell in game grid, but no games are found?'); }
-    const index: number = props.rowIndex * this.columns + props.columnIndex;
-    const game = games[index];
-    return (
-      <GameGridItem
-        { ...props }
-        key={props.key}
-        id={game ? game.id : ''}
-        title={game ? game.title : ''}
-        platform={game ? game.platform : ''}
-        thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
-        isDraggable={true}
-        isSelected={game ? game.id === selectedGameId : false}
-        isDragged={game ? game.id === draggedGameId : false} />
-    );
+    const { draggedGameId, games, gamesTotal, selectedGameId } = this.props;
+    const index = props.rowIndex * this.columns + props.columnIndex;
+    if (index < (gamesTotal || 0)) {
+      const game = games[index];
+      return (
+        <GameGridItem
+          { ...props }
+          key={props.key}
+          id={game ? game.id : ''}
+          title={game ? game.title : ''}
+          platform={game ? game.platform : ''}
+          thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
+          isDraggable={true}
+          isSelected={game ? game.id === selectedGameId : false}
+          isDragged={game ? game.id === draggedGameId : false} />
+      );
+    } else {
+      return undefined;
+    }
   }
 
   onResponse = (res: WrappedResponse) => {
