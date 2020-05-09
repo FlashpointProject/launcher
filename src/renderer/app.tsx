@@ -57,6 +57,10 @@ type View = {
   dirtyCache: boolean;
   /** The most recent query used for this view. */
   query: SearchGamesOpts;
+  /** Most recent "start" page index that has been viewed. */
+  lastStart: number;
+  /** Most recent "count" of pages that has been viewed. */
+  lastCount: number;
 }
 type ViewPage = {}
 
@@ -130,7 +134,9 @@ export class App extends React.Component<AppProps, AppState> {
           },
           orderBy: order.orderBy,
           orderReverse: order.orderReverse,
-        }
+        },
+        lastStart: 0,
+        lastCount: 0,
       };
     }
 
@@ -930,7 +936,7 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     if (view.selectedGameId === undefined) {
-      this.onRequestGames(0, VIEW_PAGE_SIZE);
+      this.onRequestGames(view.lastStart * VIEW_PAGE_SIZE, view.lastCount * VIEW_PAGE_SIZE);
     } else {
       window.Shared.back.send<BrowseViewIndexResponse, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
         gameId: view.selectedGameId,
@@ -947,52 +953,66 @@ export class App extends React.Component<AppProps, AppState> {
                 selectedGameId: undefined,
               }
             }
-          }, () => { this.onRequestGames(0, VIEW_PAGE_SIZE); });
+          }, () => { this.onRequestGames(view.lastStart * VIEW_PAGE_SIZE, view.lastCount * VIEW_PAGE_SIZE); });
         }
       });
     }
   }
 
-  /** Marks a list of pages as requested */
+  /** Request any missing pages of the current view (within a range). */
   requestPages = debounce(async (start: number, count: number): Promise<void> => {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
 
     if (view) {
+      const newView = {
+        ...view,
+        pageRequests: { ...view.pageRequests },
+      };
+      let viewChanged = false;
+
+      // Find and request missing pages
       for (let i = start; i < (start + count); i++) {
         if (!view.pageRequests[i]) {
+          viewChanged = true;
+
           if (!view.pageIndex) {
-            let query = view.query;
-            if (!view.query.filter.searchQuery) {
-              query = this.rebuildQuery(view, library);
-            }
+            newView.pageRequests[i] = true;
+            newView.pageIndex = {}; // Stop multiple calls
+
             window.Shared.back.sendP<BrowseViewPageIndexResponse, BrowseViewPageIndexData>(BackIn.BROWSE_VIEW_PAGE_INDEX, {
-              query: query,
+              query: (view.query.filter.searchQuery)
+                ? view.query
+                : this.rebuildQuery(view, library),
               offset: 0,
               library: library,
             }).then((res) => {
-              if (res.data) {
-                const resData: BrowseViewPageIndexResponse = res.data;
-                const lastGame = resData.index[i+1];
-                this.onRequestGames(i * VIEW_PAGE_SIZE, VIEW_PAGE_SIZE, lastGame);
-              }
+              if (res.data) { this.onRequestGames(i * VIEW_PAGE_SIZE, VIEW_PAGE_SIZE, res.data.index[i + 1]); }
             });
-            view.pageRequests[i] = true;
-            view.pageIndex = {}; // Stop multiple calls
           } else {
-            const lastGame = view.pageIndex[i+1];
+            const lastGame = view.pageIndex[i + 1];
             if (lastGame) {
+              newView.pageRequests[i] = true;
               this.onRequestGames(i * VIEW_PAGE_SIZE, VIEW_PAGE_SIZE, lastGame);
-              view.pageRequests[i] = true;
             }
           }
-          this.setState({
-            views: {
-              ...this.state.views,
-              view
-            }
-          });
         }
+      }
+
+      // Track most recent pages viewed
+      if (newView.lastStart !== start || newView.lastCount !== count) {
+        viewChanged = true;
+        newView.lastStart = start;
+        newView.lastCount = count;
+      }
+
+      if (viewChanged) {
+        this.setState({
+          views: {
+            ...this.state.views,
+            [library]: newView,
+          },
+        });
       }
     }
   }, 10);
