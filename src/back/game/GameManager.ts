@@ -48,7 +48,7 @@ export namespace GameManager {
     }
   }
 
-  export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: Index) {
+  export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: Index): Promise<number> {
     if (orderBy) { validateSqlName(orderBy); }
 
     const startTime = Date.now();
@@ -72,9 +72,8 @@ export namespace GameManager {
       .where('g.id = :gameId', { gameId: gameId });
 
     const raw = await query.getRawOne();
-    console.log(raw);
     console.log(`${Date.now() - startTime}ms for row`);
-    return raw;
+    return raw ? Coerce.num(raw.row_num) : -1; // Coerce it, even though it is probably of type number or undefined
   }
 
   export async function findRandomGames(count: number, extreme: boolean, broken: boolean): Promise<Game[]> {
@@ -132,37 +131,33 @@ export namespace GameManager {
 
   /** Search the database for games. */
   export async function findGames(opts: FindGamesOpts = {}): Promise<GameResults> {
-    if (opts.getTotal && opts.offset) {
-      console.warn('Warning! Both "getTotal" and "index" was set. This can cause the "total" to be incorrect (since it will only count from the index and forward)!');
-    }
-
     const startTime = Date.now();
+
     const query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, opts.offset, opts.limit, opts.index);
 
-    let total: number | undefined;
-    if (opts.getTotal) {
-      query.select('COUNT(*)');
-      const result = await query.getRawOne();
-      if (result) {
-        total = result['COUNT(*)'];
-        console.log(`${Date.now() - startTime}ms for query count`);
-        console.log('Total:', total);
-      } else {
-        console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
-      }
-      query.select('*');
-    }
-    console.log(query.getQuery());
-
-    // Subset of Game info, can be cast to ViewGame later
+    // Select games
     let games: Game[];
-    if (opts.shallow) {
+    if (opts.shallow) { // Subset of Game info, can be cast to ViewGame later
       query.select('game.id, game.title, game.platform, game.developer, game.publisher');
       games = await query.getRawMany();
     } else {
       games = await query.getMany();
     }
-    console.log(`${Date.now() - startTime}ms for query`);
+
+    // Count games
+    let total: number | undefined;
+    if (opts.getTotal) {
+      query.skip(0);
+      query.select('COUNT(*)');
+      const result = await query.getRawOne();
+      if (result) {
+        total = Coerce.num(result['COUNT(*)']); // Coerce it, even though it is probably of type number or undefined
+      } else {
+        console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
+      }
+    }
+    
+    console.log(`FindGames: ${Date.now() - startTime}ms ${opts.getTotal ? `(/w getTotal)` : ''}`);
 
     return { games, total };
   }
@@ -296,7 +291,7 @@ export namespace GameManager {
     return gameRepository.save(game);
   }
 
-  export async function removeGameAndAddApps(gameId: string): Promise<void> {
+  export async function removeGameAndAddApps(gameId: string): Promise<Game | undefined> {
     const gameRepository = getManager().getRepository(Game);
     const addAppRepository = getManager().getRepository(AdditionalApp);
     const game = await GameManager.findGame(gameId);
@@ -306,6 +301,7 @@ export namespace GameManager {
       }
       await gameRepository.remove(game);
     }
+    return game;
   }
 
   export async function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | undefined> {
@@ -418,7 +414,7 @@ function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, fi
   return whereCount;
 }
 
-function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: string, count: number, whitelist: boolean) {
+function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: string, count: number, whitelist: boolean): void {
   validateSqlName(alias);
 
   const formedValue = '%' + value + '%';

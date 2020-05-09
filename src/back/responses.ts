@@ -224,15 +224,14 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.BROWSE_CHANGE,
       data: {
-        game: game,
+        library: game.library,
         gamesTotal: await GameManager.countGames(),
       }
     });
   });
 
   state.socketServer.register<DeleteGameData>(BackIn.DELETE_GAME, async (event, req) => {
-    const reqData: DeleteGameData = req.data;
-    await GameManager.removeGameAndAddApps(reqData.id);
+    const game = await GameManager.removeGameAndAddApps(req.data.id);
 
     state.queries = {}; // Clear entire cache
 
@@ -240,7 +239,7 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.BROWSE_CHANGE,
       data: {
-        game: undefined,
+        library: game && game.library,
         gamesTotal: await GameManager.countGames(),
       }
     });
@@ -248,6 +247,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register<DuplicateGameData>(BackIn.DUPLICATE_GAME, async (event, req) => {
     const game = await GameManager.findGame(req.data.id);
+    let result: Game | undefined;
     if (game) {
 
       // Copy and apply new IDs
@@ -261,7 +261,7 @@ export function registerRequestCallbacks(state: BackState): void {
       newGame.addApps = newAddApps;
 
       // Add copies
-      const result = GameManager.updateGame(newGame);
+      result = await GameManager.updateGame(newGame);
 
       // Copy images
       if (req.data.dupeImages) {
@@ -295,7 +295,7 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.BROWSE_CHANGE,
       data: {
-        game: undefined,
+        library: result && result.library,
         gamesTotal: await GameManager.countGames(),
       }
     });
@@ -489,6 +489,7 @@ export function registerRequestCallbacks(state: BackState): void {
       index: req.data.index,
     });
 
+    // @PERF Copying all game objects seems wasteful
     const viewGames: ViewGame[] = result.games.map(g => ({
       ...g,
       tags: []
@@ -631,14 +632,18 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, async (event, req) => {
-    const { gameId, query } = req.data;
-    const position = await GameManager.findGameRow(gameId, query.filter, query.orderBy, query.orderReverse, undefined);
+    const position = await GameManager.findGameRow(
+      req.data.gameId,
+      req.data.query.filter,
+      req.data.query.orderBy,
+      req.data.query.orderReverse,
+      undefined);
 
     respond<BrowseViewIndexResponse>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
       data: {
-        index: position,
+        index: position - 1, // ("position" starts at 1, while "index" starts at 0)
       },
     });
   });

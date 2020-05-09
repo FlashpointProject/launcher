@@ -327,9 +327,19 @@ export class App extends React.Component<AppProps, AppState> {
             for (let i = 0; i < resData.games.length; i++) {
               newView.games[resData.offset + i] = resData.games[i];
             }
-            if (resData.total !== undefined) { newView.total = resData.total; }
+            if (resData.total !== undefined) {
+              // Remove overflowing games
+              if (newView.total && resData.total < newView.total) {
+                const indices = Object.keys(newView.games);
+                for (let i = 0; i < indices.length; i++) {
+                  const index = parseInt(indices[i], 10);
+                  if (index >= resData.total) { delete newView.games[index]; }
+                }
+              }
+              // Update total
+              newView.total = resData.total;
+            }
             this.setState({ views });
-            this.forceUpdate();
           }
         } break;
 
@@ -338,14 +348,13 @@ export class App extends React.Component<AppProps, AppState> {
           const newState: Partial<AppState> = {
             gamesTotal: resData.gamesTotal,
           };
-          const newLibrary = resData.game ? resData.game.library : undefined;
 
-          if (newLibrary) { // (Clear specific cache)
-            const view = this.state.views[newLibrary];
+          if (resData.library) { // (Clear specific cache)
+            const view = this.state.views[resData.library];
             if (view) {
               newState.views = {
                 ...this.state.views,
-                [newLibrary]: {
+                [resData.library]: {
                   ...view,
                   dirtyCache: true,
                 }
@@ -365,7 +374,9 @@ export class App extends React.Component<AppProps, AppState> {
             newState.views = newViews;
           }
 
-          this.setState(newState as any);
+          this.setState(newState as any, () => {
+            this.requestSelectedLibrary(resData.library || getBrowseSubPath(this.props.location.pathname));
+          });
         } break;
 
         case BackOut.SERVICE_CHANGE: {
@@ -923,7 +934,7 @@ export class App extends React.Component<AppProps, AppState> {
     } else {
       window.Shared.back.send<BrowseViewIndexResponse, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
         gameId: view.selectedGameId,
-        query: view.query
+        query: view.query,
       }, res => {
         if (res.data && res.data.index >= 0) { // (Game found)
           this.onRequestGames(res.data.index, 1);
