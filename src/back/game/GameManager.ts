@@ -424,21 +424,21 @@ function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: str
 
   // console.log(`W: ${count} - C: ${comparator} - F: GENERIC - V:${value}`);
 
-  const ref = `generic-${count}`;
-  if (count === 0) {
-    query.where(new Brackets(qb => {
-      query.where(`${alias}.title ${comparator} :${ref}`,             { [ref]: formedValue });
-      query.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
-      query.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });
-      query.orWhere(`${alias}.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
-    }));
+  const and = (count !== 0);
+  
+  const where = new Brackets(qb => {
+    const q = and ? qb : query;
+    const ref = `generic-${count}`;
+    q.where(  `${alias}.title ${comparator} :${ref}`,           { [ref]: formedValue });
+    q.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
+    q.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });
+    q.orWhere(`${alias}.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
+  });
+
+  if (and) {
+    query.andWhere(where);
   } else {
-    query.andWhere(new Brackets(qb => {
-      qb.where(`${alias}.title ${comparator} :${ref}`,             { [ref]: formedValue });
-      qb.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
-      qb.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });
-      qb.orWhere(`${alias}.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
-    }));
+    query.where(where);
   }
 }
 
