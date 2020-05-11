@@ -1,8 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { TagCategory } from '@database/entity/TagCategory';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, Index, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageIndex, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, Index, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageIndex, PlaylistsChangeData, RequestGameRange, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { parseSearchText } from '@shared/game/GameFilter';
@@ -295,11 +294,11 @@ export class App extends React.Component<AppProps, AppState> {
 
         case BackOut.BROWSE_VIEW_PAGE_INDEX_RESPONSE: {
           const resData: BrowseViewPageIndexResponse = res.data;
-          let view: View | undefined = this.state.views[res.data.library];
+          const view: View | undefined = this.state.views[resData.library];
 
           if (view) {
             const views = { ...this.state.views };
-            const newView = views[res.data.library] = { ...view };
+            const newView = views[resData.library] = { ...view };
             if (view.dirtyCache) {
               newView.dirtyCache = false;
               newView.games = {};
@@ -314,13 +313,14 @@ export class App extends React.Component<AppProps, AppState> {
         } break;
 
         case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
-          const resData: BrowseViewPageResponseData = res.data;
+          const resData: BrowseViewPageResponseData<boolean> = res.data;
 
-          let view: View | undefined = this.state.views[res.data.library];
+          const view: View | undefined = this.state.views[res.data.library];
 
           if (view) {
             const views = { ...this.state.views };
             const newView = views[res.data.library] = { ...view };
+
             if (view.dirtyCache) {
               newView.dirtyCache = false;
               newView.games = {};
@@ -330,9 +330,14 @@ export class App extends React.Component<AppProps, AppState> {
             } else {
               newView.games = { ...view.games };
             }
-            for (let i = 0; i < resData.games.length; i++) {
-              newView.games[resData.offset + i] = resData.games[i];
+
+            for (let i = 0; i < resData.ranges.length; i++) {
+              const range = resData.ranges[i];
+              for (let j = 0; j < range.games.length; j++) {
+                newView.games[range.start + j] = range.games[j];
+              }
             }
+
             if (resData.total !== undefined) {
               // Remove overflowing games
               if (newView.total && resData.total < newView.total) {
@@ -345,6 +350,7 @@ export class App extends React.Component<AppProps, AppState> {
               // Update total
               newView.total = resData.total;
             }
+
             this.setState({ views });
           }
         } break;
@@ -935,15 +941,22 @@ export class App extends React.Component<AppProps, AppState> {
       return;
     }
 
+    const start  = view.lastStart * VIEW_PAGE_SIZE;
+    const length = view.lastCount * VIEW_PAGE_SIZE;
+
     if (view.selectedGameId === undefined) {
-      this.onRequestGames(view.lastStart * VIEW_PAGE_SIZE, view.lastCount * VIEW_PAGE_SIZE);
+      this.onRequestGames([{ start, length }]);
     } else {
       window.Shared.back.send<BrowseViewIndexResponse, BrowseViewIndexData>(BackIn.BROWSE_VIEW_INDEX, {
         gameId: view.selectedGameId,
         query: view.query,
       }, res => {
         if (res.data && res.data.index >= 0) { // (Game found)
-          this.onRequestGames(res.data.index, 1);
+          const ranges: RequestGameRange[] = [{ start, length }];
+          if (res.data.index < start || res.data.index >= start + length) {
+            ranges.push({ start: res.data.index, length: 1 });
+          }
+          this.onRequestGames(ranges);
         } else { // (Game not found)
           this.setState({
             views: {
@@ -953,7 +966,7 @@ export class App extends React.Component<AppProps, AppState> {
                 selectedGameId: undefined,
               }
             }
-          }, () => { this.onRequestGames(view.lastStart * VIEW_PAGE_SIZE, view.lastCount * VIEW_PAGE_SIZE); });
+          }, () => { this.onRequestGames([{ start, length }]); });
         }
       });
     }
@@ -974,9 +987,8 @@ export class App extends React.Component<AppProps, AppState> {
       // Find and request missing pages
       for (let i = start; i < (start + count); i++) {
         if (!view.pageRequests[i]) {
-          viewChanged = true;
-
           if (!view.pageIndex) {
+            viewChanged = true;
             newView.pageRequests[i] = true;
             newView.pageIndex = {}; // Stop multiple calls
 
@@ -984,16 +996,26 @@ export class App extends React.Component<AppProps, AppState> {
               query: (view.query.filter.searchQuery)
                 ? view.query
                 : this.rebuildQuery(view, library),
-              offset: 0,
               library: library,
             }).then((res) => {
-              if (res.data) { this.onRequestGames(i * VIEW_PAGE_SIZE, VIEW_PAGE_SIZE, res.data.index[i + 1]); }
+              if (res.data) {
+                this.onRequestGames([{
+                  start: i * VIEW_PAGE_SIZE,
+                  length: VIEW_PAGE_SIZE,
+                  index: res.data.index[i + 1],
+                }]);
+              }
             });
           } else {
             const lastGame = view.pageIndex[i + 1];
             if (lastGame) {
+              viewChanged = true;
               newView.pageRequests[i] = true;
-              this.onRequestGames(i * VIEW_PAGE_SIZE, VIEW_PAGE_SIZE, lastGame);
+              this.onRequestGames([{
+                start: i * VIEW_PAGE_SIZE,
+                length: VIEW_PAGE_SIZE,
+                index: lastGame,
+              }]);
             }
           }
         }
@@ -1017,11 +1039,9 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }, 10);
 
-  onRequestGames = (offset: number, limit: number, index?: Index): void => {
+  onRequestGames = (ranges: RequestGameRange[]): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
-
-    console.log(`Request Games (${offset} offset, ${limit} limit)`);
 
     if (!view) {
       log(`Failed to request games. Current view is missing (Library: "${library}", View: "${view}").`);
@@ -1034,14 +1054,10 @@ export class App extends React.Component<AppProps, AppState> {
       query = this.rebuildQuery(view, library);
     }
 
-    window.Shared.back.send<any, BrowseViewPageData>(
-      BackIn.BROWSE_VIEW_PAGE,
-      {
-        offset: offset,
-        limit: limit,
+    window.Shared.back.send<any, BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, {
+        ranges: ranges,
         library: library,
         query: query,
-        index: index,
         getTotal: !view.total || view.dirtyCache,
         shallow: true,
       }

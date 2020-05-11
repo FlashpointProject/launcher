@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PageIndex, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, ViewGame } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
@@ -446,11 +446,15 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event, req) => {
-    const { games } = await GameManager.findGames();
+    const result = await GameManager.findGames({}, false);
+
+    const range = result.ranges[0];
+    if (!range) { throw new Error(`Failed to fetch all games. No range of games was in the result.`); }
+
     respond<GetAllGamesResponseData>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
-      data: { games }
+      data: { games: range.games },
     });
   });
 
@@ -465,43 +469,45 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<BrowseViewPageIndexData>(BackIn.BROWSE_VIEW_PAGE_INDEX, async (event, req) => {
-    const index: PageIndex = await GameManager.findGamePageIndex(req.data.query.filter, req.data.query.orderBy, req.data.query.orderReverse);
+    const index = await GameManager.findGamePageIndex(req.data.query.filter, req.data.query.orderBy, req.data.query.orderReverse);
     console.log('Sending Index');
     respond<BrowseViewPageIndexResponse>(event.target, {
       id: req.id,
       type: BackOut.BROWSE_VIEW_PAGE_INDEX_RESPONSE,
-      data:{
-        index: index,
-        library: req.data.library
-      }
+      data: {
+        index,
+        library: req.data.library,
+      },
     });
   });
 
   state.socketServer.register<BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, async (event, req) => {
     const result = await GameManager.findGames({
+      ranges: req.data.ranges,
       filter: req.data.query.filter,
       orderBy: req.data.query.orderBy,
       direction: req.data.query.orderReverse,
-      shallow: req.data.shallow,
       getTotal: req.data.getTotal,
-      offset: req.data.offset,
-      limit: req.data.limit,
-      index: req.data.index,
-    });
+    }, !!req.data.shallow);
 
-    // @PERF Copying all game objects seems wasteful
-    const viewGames: ViewGame[] = result.games.map(g => ({
-      ...g,
-      tags: []
-    }));
+    // idk why this is done, but it is probably here for a reason
+    // @PERF Copying all game objects seems wasteful (I think both sets of objects are thrown away after this response? //obelisk)
+    for (let i = 0; i < result.ranges.length; i++) {
+      const range = result.ranges[i];
+      for (let j = 0; j < range.games.length; j++) {
+        range.games[j] = {
+          ...range.games[j],
+          tags: [],
+        };
+      }
+    }
 
-    respond<BrowseViewPageResponseData>(event.target, {
+    respond<BrowseViewPageResponseData<boolean>>(event.target, {
       id: req.id,
       type: BackOut.BROWSE_VIEW_PAGE_RESPONSE,
       data: {
-        games: viewGames,
+        ranges: result.ranges,
         library: req.data.library,
-        offset: req.data.offset,
         total: result.total,
       },
     });

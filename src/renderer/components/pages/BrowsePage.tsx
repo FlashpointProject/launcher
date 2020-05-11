@@ -1,8 +1,10 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { BackIn, DeleteGameData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, ImportPlaylistData, LaunchGameData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse } from '@shared/back/types';
+import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
+import { BackIn, DeleteGameData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, ImportPlaylistData, LaunchGameData, RequestGameRange, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
+import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
@@ -24,9 +26,6 @@ import { GameList } from '../GameList';
 import { GameOrderChangeEvent } from '../GameOrder';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
-import { VIEW_PAGE_SIZE } from '@shared/constants';
-import { TagCategory } from '@database/entity/TagCategory';
-import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 
 type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
@@ -38,7 +37,7 @@ type OwnProps = {
   suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
   onSaveGame: (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean) => void;
-  onRequestGames: (start: number, end: number) => void;
+  onRequestGames: (ranges: RequestGameRange[]) => void;
   onQuickSearch: (search: string) => void;
   requestPages: (start: number, count: number) => void;
 
@@ -126,7 +125,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.state = initialState;
     // Load in if nothing, request first page
     if (!this.props.gamesTotal) {
-      this.props.onRequestGames(0, VIEW_PAGE_SIZE);
+      this.props.onRequestGames([{ start: 0, length: VIEW_PAGE_SIZE }]);
     }
   }
 

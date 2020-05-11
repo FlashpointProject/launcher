@@ -285,22 +285,51 @@ export type BrowseViewPageIndexResponse = {
   library: string;
 };
 
-export type BrowseViewPageIndexData = BrowseViewPageData;
+export type BrowseViewPageIndexData = {
+  /** Library to filter games by (only games in the library will be queried). */
+  library: string;
+  /** Query to filter games by. */
+  query: SearchGamesOpts;
+};
+
+export type RequestGameRange = {
+  /** Index of the first game. */
+  start: number;
+  /** Number of games to request (if undefined, all games until the end of the query will be included). */
+  length: number | undefined;
+  /** @TODO Write this */
+  index?: Index;
+}
+
+export type ResponseGameRange<T extends boolean> = {
+  /** Index of the first game. */
+  start: number;
+  /** Number of games requested. */
+  length?: number;
+  /** Games found within the range. */
+  games: T extends true ? ViewGame[] : Game[];
+}
 
 export type BrowseViewPageData = {
-  offset: number;
-  library: string;
-  limit?: number;
-  index?: Index;
+  /** Ranges of games to fetch. */
+  ranges: RequestGameRange[];
+  /** Library to filter games by (only games in the library will be queried). */
+  library?: string;
+  /** Query to filter games by. */
   query: SearchGamesOpts;
+  /** If the total number of games matching the query should be included in the response. */
   getTotal?: boolean;
+  /** If a subset of the games should be returned instead of the full game objects. */
   shallow?: boolean;
 }
 
-export type BrowseViewPageResponseData = {
-  games: ViewGame[];
+/** Note: The generic type should have the same value as "shallow" from the request, or "boolean" if the type is unknown. */
+export type BrowseViewPageResponseData<T extends boolean> = {
+  /** Ranges of games. */
+  ranges: ResponseGameRange<T>[];
+  /** Library used in the query. */
   library?: string;
-  offset: number;
+  /** Total number of games in the query (undefined unless "getTotal" in the request was true). */
   total?: number;
 }
 

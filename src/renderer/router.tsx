@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { RequestGameRange } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -17,12 +18,12 @@ import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/Conn
 import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
+import { ConnectedTagCategoriesPage, ConnectedTagCategoriesPageProps } from './containers/ConnectedTagCategoriesPage';
 import { ConnectedTagsPage, ConnectedTagsPageProps } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { GAMES } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
-import { ConnectedTagCategoriesPageProps, ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
 
 export type AppRouterProps = {
   games: GAMES;
@@ -34,7 +35,7 @@ export type AppRouterProps = {
   platformsFlat: string[];
   onSaveGame: (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean) => void;
   onLaunchGame: (gameId: string) => void;
-  onRequestGames: (start: number, end: number) => void;
+  onRequestGames: (ranges: RequestGameRange[]) => void;
   onQuickSearch: (search: string) => void;
   requestPages: (start: number, count: number) => void;
   playlistIconCache: Record<string, string>;

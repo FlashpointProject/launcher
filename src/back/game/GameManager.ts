@@ -6,7 +6,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { Index, PageIndex } from '@shared/back/types';
+import { Index, PageIndex, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -112,41 +112,55 @@ export namespace GameManager {
   }
 
   export type FindGamesOpts = {
+    /** Ranges of games to fetch (all games are fetched if undefined). */
+    ranges?: RequestGameRange[];
     filter?: FilterGameOpts;
     orderBy?: GameOrderBy;
     direction?: GameOrderReverse;
-    shallow?: boolean;
     getTotal?: boolean;
-    offset?: number;
-    limit?: number;
-    index?: Index;
   }
 
-  export type GameResults = {
-    /** Games found. */
-    games: Game[];
-    /** Total number of games. */
+  export type FindGamesResult<T extends boolean> = {
+    ranges: ResponseGameRange<T>[];
     total?: number;
   }
 
   /** Search the database for games. */
-  export async function findGames(opts: FindGamesOpts = {}): Promise<GameResults> {
-    const startTime = Date.now();
+  export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<FindGamesResult<T>> {
+    const ranges = opts.ranges || [{ start: 0, length: undefined }];
+    const rangesOut: ResponseGameRange<T>[] = [];
 
-    const query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, opts.offset, opts.limit, opts.index);
+    let total: number | undefined;
 
-    // Select games
-    let games: Game[];
-    if (opts.shallow) { // Subset of Game info, can be cast to ViewGame later
-      query.select('game.id, game.title, game.platform, game.developer, game.publisher');
-      games = await query.getRawMany();
-    } else {
-      games = await query.getMany();
+    //console.log('FindGames:');
+
+    let query: SelectQueryBuilder<Game> | undefined;
+    for (let i = 0; i < ranges.length; i++) {
+      const startTime = Date.now();
+
+      const range = ranges[i];
+      query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, range.start, range.length, range.index);
+
+      // Select games
+      // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
+      rangesOut.push({
+        start: range.start,
+        length: range.length,
+        games: ((shallow)
+          ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher').getRawMany()) as ViewGame[]
+          : await query.getMany()
+        ) as (T extends true ? ViewGame[] : Game[]),
+      });
+      
+      //console.log(`  Query: ${Date.now() - startTime}ms (${range.start}, ${range.length})`);
     }
 
     // Count games
-    let total: number | undefined;
     if (opts.getTotal) {
+      const startTime = Date.now();
+
+      if (!query) { query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, 0, undefined, undefined); }
+
       query.skip(0);
       query.select('COUNT(*)');
       const result = await query.getRawOne();
@@ -155,15 +169,19 @@ export namespace GameManager {
       } else {
         console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
       }
-    }
-    
-    console.log(`FindGames: ${Date.now() - startTime}ms ${opts.getTotal ? `(/w getTotal)` : ''}`);
 
-    return { games, total };
+      //console.log(`  Count: ${Date.now() - startTime}ms`);
+    }
+
+    return {
+      ranges: rangesOut,
+      total,
+    };
   }
 
-  async function getGameQuery(alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse,
-    offset?: number, limit?: number, index?: Index): Promise<SelectQueryBuilder<Game>> {
+  async function getGameQuery(
+    alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, offset?: number, limit?: number, index?: Index
+  ): Promise<SelectQueryBuilder<Game>> {
     validateSqlName(alias);
     if (orderBy) { validateSqlName(orderBy); }
     if (direction) { validateSqlOrder(direction); }
@@ -186,7 +204,7 @@ export namespace GameManager {
 
     // Order By + Limit
     if (orderBy) { query.orderBy(`${alias}.${orderBy} ${direction}, ${alias}.title`, direction); }
-    if (!index && offset) { console.log('OFFSET'); query.skip(offset); }
+    if (!index && offset) { query.skip(offset); }
     if (limit) { query.take(limit); }
     // Playlist filtering
     if (filterOpts && filterOpts.playlistId) {
@@ -211,16 +229,6 @@ export namespace GameManager {
     }
 
     return query;
-  }
-
-  export type ViewGame = {
-    id: string;
-    title: string;
-    platform: string;
-    // List view only
-    tags: string;
-    developer: string;
-    publisher: string;
   }
 
   /** Find an add apps with the specified ID. */
