@@ -941,8 +941,8 @@ export class App extends React.Component<AppProps, AppState> {
       return;
     }
 
-    const start  = view.lastStart * VIEW_PAGE_SIZE;
-    const length = view.lastCount * VIEW_PAGE_SIZE;
+    const start = view.lastStart * VIEW_PAGE_SIZE;
+    const length = Math.max(1, view.lastCount) * VIEW_PAGE_SIZE;
 
     if (view.selectedGameId === undefined) {
       this.onRequestGames([{ start, length }]);
