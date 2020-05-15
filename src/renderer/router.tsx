@@ -35,7 +35,6 @@ export type AppRouterProps = {
   platformsFlat: string[];
   onSaveGame: (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean) => void;
   onLaunchGame: (gameId: string) => void;
-  onRequestGames: (ranges: RequestGameRange[]) => void;
   onQuickSearch: (search: string) => void;
   requestPages: (start: number, count: number) => void;
   playlistIconCache: Record<string, string>;
@@ -83,7 +82,6 @@ export class AppRouter extends React.Component<AppRouterProps> {
       suggestions: this.props.suggestions,
       playlistIconCache: this.props.playlistIconCache,
       onSaveGame: this.props.onSaveGame,
-      onRequestGames: this.props.onRequestGames,
       onQuickSearch: this.props.onQuickSearch,
       order: this.props.order,
       gameScale: this.props.gameScale,

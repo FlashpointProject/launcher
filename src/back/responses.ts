@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
@@ -468,16 +468,12 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
-  state.socketServer.register<BrowseViewPageIndexData>(BackIn.BROWSE_VIEW_PAGE_INDEX, async (event, req) => {
-    const index = await GameManager.findGamePageIndex(req.data.query.filter, req.data.query.orderBy, req.data.query.orderReverse);
-    console.log('Sending Index');
-    respond<BrowseViewPageIndexResponse>(event.target, {
+  state.socketServer.register<BrowseViewKeysetData>(BackIn.BROWSE_VIEW_KEYSET, async (event, req) => {
+    const index = await GameManager.findGamePageKeyset(req.data.query.filter, req.data.query.orderBy, req.data.query.orderReverse);
+    respond<BrowseViewKeysetResponse>(event.target, {
       id: req.id,
-      type: BackOut.BROWSE_VIEW_PAGE_INDEX_RESPONSE,
-      data: {
-        index,
-        library: req.data.library,
-      },
+      type: BackOut.GENERIC_RESPONSE,
+      data: { keyset: index },
     });
   });
 

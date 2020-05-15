@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewPageIndexData, BrowseViewPageIndexResponse, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, Index, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageIndex, PlaylistsChangeData, RequestGameRange, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageResponseData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageKeyset, PlaylistsChangeData, RequestGameRange, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { parseSearchText } from '@shared/game/GameFilter';
@@ -48,7 +48,7 @@ type Views = Record<string, View | undefined>; // views[id] = view
 type View = {
   games: GAMES;
   pageRequests: Record<number, boolean>;
-  pageIndex?: PageIndex;
+  pageIndex?: PageKeyset;
   total?: number;
   selectedPlaylistId?: string;
   selectedGameId?: string;
@@ -290,26 +290,6 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.LOCALE_UPDATE: {
           const resData: LocaleUpdateData = res.data;
           this.setState({ localeCode: resData });
-        } break;
-
-        case BackOut.BROWSE_VIEW_PAGE_INDEX_RESPONSE: {
-          const resData: BrowseViewPageIndexResponse = res.data;
-          const view: View | undefined = this.state.views[resData.library];
-
-          if (view) {
-            const views = { ...this.state.views };
-            const newView = views[resData.library] = { ...view };
-            if (view.dirtyCache) {
-              newView.dirtyCache = false;
-              newView.games = {};
-              newView.pageRequests = {};
-              newView.pageIndex = undefined;
-              newView.total = undefined;
-            } else {
-              newView.pageIndex = resData.index;
-            }
-            this.setState({ views });
-          }
         } break;
 
         case BackOut.BROWSE_VIEW_PAGE_RESPONSE: {
@@ -667,7 +647,6 @@ export class App extends React.Component<AppProps, AppState> {
       playlistIconCache: this.state.playlistIconCache,
       onSaveGame: this.onSaveGame,
       onLaunchGame: this.onLaunchGame,
-      onRequestGames: this.onRequestGames,
       onQuickSearch: this.onQuickSearch,
       libraries: this.state.libraries,
       localeCode: this.state.localeCode,
@@ -992,17 +971,36 @@ export class App extends React.Component<AppProps, AppState> {
             newView.pageRequests[i] = true;
             newView.pageIndex = {}; // Stop multiple calls
 
-            window.Shared.back.sendP<BrowseViewPageIndexResponse, BrowseViewPageIndexData>(BackIn.BROWSE_VIEW_PAGE_INDEX, {
+            window.Shared.back.sendP<BrowseViewKeysetResponse, BrowseViewKeysetData>(BackIn.BROWSE_VIEW_KEYSET, {
               query: (view.query.filter.searchQuery)
                 ? view.query
                 : this.rebuildQuery(view, library),
               library: library,
             }).then((res) => {
               if (res.data) {
+                const view = this.state.views[library];
+
+                if (view) {
+                  const newViews = { ...this.state.views };
+                  const newView = newViews[library] = { ...view };
+
+                  if (view.dirtyCache) {
+                    newView.dirtyCache = false;
+                    newView.games = {};
+                    newView.pageRequests = {};
+                    newView.pageIndex = undefined;
+                    newView.total = undefined;
+                  } else {
+                    newView.pageIndex = res.data.keyset;
+                  }
+
+                  this.setState({ views: newViews });
+                }
+
                 this.onRequestGames([{
                   start: i * VIEW_PAGE_SIZE,
                   length: VIEW_PAGE_SIZE,
-                  index: res.data.index[i + 1],
+                  index: res.data.keyset[i + 1],
                 }]);
               }
             });
@@ -1039,7 +1037,7 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }, 10);
 
-  onRequestGames = (ranges: RequestGameRange[]): void => {
+  onRequestGames(ranges: RequestGameRange[]): void {
     const library = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[library];
 
@@ -1048,20 +1046,17 @@ export class App extends React.Component<AppProps, AppState> {
       return;
     }
 
-    let query = view.query;
-    if (!query.filter.searchQuery) {
-      // Search query can't be empty, rebuild it
-      query = this.rebuildQuery(view, library);
-    }
+    const query = (!view.query.filter.searchQuery)
+      ? this.rebuildQuery(view, library) // Search query can't be empty, rebuild it
+      : view.query;
 
     window.Shared.back.send<any, BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, {
-        ranges: ranges,
-        library: library,
-        query: query,
-        getTotal: !view.total || view.dirtyCache,
-        shallow: true,
-      }
-    );
+      ranges: ranges,
+      library: library,
+      query: query,
+      getTotal: !view.total || view.dirtyCache,
+      shallow: true,
+    });
   }
 
   onQuickSearch = (search: string): void => {

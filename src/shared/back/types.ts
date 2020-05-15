@@ -68,8 +68,10 @@ export enum BackIn {
   DELETE_TAG_CATEGORY,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
+  /** Get the index of a specific game (in the results of a given query). */
   BROWSE_VIEW_INDEX,
-  BROWSE_VIEW_PAGE_INDEX,
+  /** Get the keyset of all pages (in the results of a given query). */
+  BROWSE_VIEW_KEYSET,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
   /** Get all data needed on init (by the renderer). */
@@ -86,7 +88,6 @@ export enum BackOut {
   OPEN_DIALOG,
   OPEN_EXTERNAL,
   LOCALE_UPDATE,
-  BROWSE_VIEW_PAGE_INDEX_RESPONSE,
   BROWSE_VIEW_PAGE_RESPONSE,
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
@@ -273,19 +274,24 @@ export type BrowseViewResponseData = {
   total: number;
 }
 
-export type Index = {
-  orderVal: any,
-  title: string,
-  id: string
+/** Tuple of values from the last game of a previous page (look up "keyset pagination"). */
+export type PageTuple = {
+  /** Primary order value. */
+  orderVal: any;
+  /** Title of the game (secondary order value). */
+  title: string;
+  /** ID of the game (unique value). */
+  id: string;
 }
-export type PageIndex = Record<number, Index>;
 
-export type BrowseViewPageIndexResponse = {
-  index: PageIndex;
-  library: string;
+/** A set of page tuples. The keys in the record are page indices. */
+export type PageKeyset = Record<number, PageTuple>;
+
+export type BrowseViewKeysetResponse = {
+  keyset: PageKeyset;
 };
 
-export type BrowseViewPageIndexData = {
+export type BrowseViewKeysetData = {
   /** Library to filter games by (only games in the library will be queried). */
   library: string;
   /** Query to filter games by. */
@@ -297,8 +303,12 @@ export type RequestGameRange = {
   start: number;
   /** Number of games to request (if undefined, all games until the end of the query will be included). */
   length: number | undefined;
-  /** @TODO Write this */
-  index?: Index;
+  /**
+   * Tuple of the last game of the previous page.
+   * If this is set then "start" must be the index of the game after this (since this will be used instead of
+   * "start" when selecting the games).
+   */
+  index?: PageTuple;
 }
 
 export type ResponseGameRange<T extends boolean> = {
@@ -339,6 +349,7 @@ export type BrowseViewIndexData = {
 }
 
 export type BrowseViewIndexResponse = {
+  /** Index of the game (equal to or greater than 0 if found, otherwise -1). */
   index: number;
 }
 

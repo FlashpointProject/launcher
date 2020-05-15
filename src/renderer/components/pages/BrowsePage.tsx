@@ -37,7 +37,6 @@ type OwnProps = {
   suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
   onSaveGame: (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean) => void;
-  onRequestGames: (ranges: RequestGameRange[]) => void;
   onQuickSearch: (search: string) => void;
   requestPages: (start: number, count: number) => void;
 
@@ -125,7 +124,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.state = initialState;
     // Load in if nothing, request first page
     if (!this.props.gamesTotal) {
-      this.props.onRequestGames([{ start: 0, length: VIEW_PAGE_SIZE }]);
+      this.props.requestPages(0, 1); // @TODO Use the actual start and count values
     }
   }
 

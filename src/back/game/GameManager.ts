@@ -6,7 +6,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { Index, PageIndex, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
+import { PageTuple, PageKeyset, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -48,7 +48,7 @@ export namespace GameManager {
     }
   }
 
-  export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: Index): Promise<number> {
+  export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
     if (orderBy) { validateSqlName(orderBy); }
 
     const startTime = Date.now();
@@ -85,7 +85,7 @@ export namespace GameManager {
     return query.getMany();
   }
 
-  export async function findGamePageIndex(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<PageIndex> {
+  export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<PageKeyset> {
     const startTime = Date.now();
 
     validateSqlName(orderBy);
@@ -103,7 +103,7 @@ export namespace GameManager {
       .setParameters(subQ.getParameters());
 
     const raw = await query.getRawMany();
-    const pageIndex: PageIndex = {};
+    const pageIndex: PageKeyset = {};
     for (let r of raw) {
       pageIndex[r['page_number']] = {orderVal: Coerce.str(r[orderBy]), title: Coerce.str(r['title']), id: Coerce.str(r['id'])};
     }
@@ -180,7 +180,7 @@ export namespace GameManager {
   }
 
   async function getGameQuery(
-    alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, offset?: number, limit?: number, index?: Index
+    alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, offset?: number, limit?: number, index?: PageTuple
   ): Promise<SelectQueryBuilder<Game>> {
     validateSqlName(alias);
     if (orderBy) { validateSqlName(orderBy); }
@@ -188,13 +188,12 @@ export namespace GameManager {
     
     let whereCount = 0;
 
-    const gameRepository = getManager().getRepository(Game);
-    const query = gameRepository.createQueryBuilder(alias);
+    const query = getManager().getRepository(Game).createQueryBuilder(alias);
 
     // Use Page Index (If Given)
     if (index) {
       if (!orderBy) { throw new Error('Failed to get game query. "index" is set but "orderBy" is missing.'); }
-      query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) > (:orderVal, :title, :id)`, { orderVal: index.orderVal, title:index.title, id: index.id });
+      query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) > (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
       whereCount++;
     }
     // Apply all flat game filters
@@ -394,20 +393,14 @@ function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, fi
       for (let filter of searchQuery.whitelist) {
         if (flatGameFieldObjs.includes(filter.field)) {
           doWhereField(alias, query, filter.field, filter.value, whereCount, true);
-        } else {
-          // Nothing happened with this filter, negate the forward movement
-          whereCount--;
+          whereCount++;
         }
-        whereCount++;
       }
       for (let filter of searchQuery.blacklist) {
         if (flatGameFieldObjs.includes(filter.field)) {
           doWhereField(alias, query, filter.field, filter.value, whereCount, false);
-        } else {
-          // Nothing happened with this filter, negate the forward movement
-          whereCount--;
+          whereCount++;
         }
-        whereCount++;
       }
       for (let phrase of searchQuery.genericWhitelist) {
         doWhereTitle(alias, query, phrase, whereCount, true);
