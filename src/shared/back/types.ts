@@ -88,10 +88,8 @@ export enum BackOut {
   OPEN_DIALOG,
   OPEN_EXTERNAL,
   LOCALE_UPDATE,
-  BROWSE_VIEW_PAGE_RESPONSE,
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
-  BROWSE_CHANGE,
   IMAGE_CHANGE,
   LOG_ENTRY_ADDED,
   SERVICE_CHANGE,
@@ -285,10 +283,11 @@ export type PageTuple = {
 }
 
 /** A set of page tuples. The keys in the record are page indices. */
-export type PageKeyset = Record<number, PageTuple>;
+export type PageKeyset = Partial<Record<number, PageTuple>>;
 
 export type BrowseViewKeysetResponse = {
   keyset: PageKeyset;
+  total: number;
 };
 
 export type BrowseViewKeysetData = {
@@ -327,8 +326,6 @@ export type BrowseViewPageData = {
   library?: string;
   /** Query to filter games by. */
   query: SearchGamesOpts;
-  /** If the total number of games matching the query should be included in the response. */
-  getTotal?: boolean;
   /** If a subset of the games should be returned instead of the full game objects. */
   shallow?: boolean;
 }
@@ -339,8 +336,6 @@ export type BrowseViewPageResponseData<T extends boolean> = {
   ranges: ResponseGameRange<T>[];
   /** Library used in the query. */
   library?: string;
-  /** Total number of games in the query (undefined unless "getTotal" in the request was true). */
-  total?: number;
 }
 
 export type BrowseViewIndexData = {

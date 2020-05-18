@@ -1,7 +1,6 @@
-import { Tag } from '@database/entity/Tag';
 import { ViewGame } from '@shared/back/types';
 
-export type GAMES = Record<number, ViewGame | undefined>
+export type ViewGameSet = Record<number, ViewGame | undefined>
 
 /** State of a single "stage" in the upgrade system (each individual downloadable upgrade is called a "stage"). */
 export type UpgradeStageState = {
@@ -18,3 +17,6 @@ export type UpgradeStageState = {
   /** Current progress note of the installation (visible text meant to inform the user about the current progress of the download or install). */
   installProgressNote: string;
 }
+
+/** Update the range of pages that are visible in the visible and buffered area. */
+export type UpdateView = (start: number, count: number) => void;

@@ -1,7 +1,6 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { RequestGameRange } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -21,22 +20,23 @@ import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
 import { ConnectedTagCategoriesPage, ConnectedTagCategoriesPageProps } from './containers/ConnectedTagCategoriesPage';
 import { ConnectedTagsPage, ConnectedTagsPageProps } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
-import { GAMES } from './interfaces';
+import { UpdateView, ViewGameSet } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
-  games: GAMES;
+  games: ViewGameSet;
   gamesTotal?: number;
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   platformsFlat: string[];
-  onSaveGame: (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean) => void;
+  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => void;
+  onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;
-  requestPages: (start: number, count: number) => void;
+  updateView: UpdateView;
   playlistIconCache: Record<string, string>;
   libraries: string[];
   localeCode: string;
@@ -76,12 +76,13 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
-      requestPages: this.props.requestPages,
+      updateView: this.props.updateView,
       gamesTotal: this.props.gamesTotal,
       playlists: this.props.playlists,
       suggestions: this.props.suggestions,
       playlistIconCache: this.props.playlistIconCache,
       onSaveGame: this.props.onSaveGame,
+      onDeleteGame: this.props.onDeleteGame,
       onQuickSearch: this.props.onQuickSearch,
       order: this.props.order,
       gameScale: this.props.gameScale,

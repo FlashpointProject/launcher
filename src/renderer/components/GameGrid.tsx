@@ -4,7 +4,7 @@ import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, RenderedSection } from 'react-virtualized/dist/es/Grid';
-import { GAMES } from '../interfaces';
+import { UpdateView, ViewGameSet } from '../interfaces';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
@@ -22,7 +22,7 @@ type ColumnsRows = {
 export type GameGridProps = {
   onGameLaunch: (gameId: string) => void;
   /** All games that will be shown in the grid (filter it before passing it here). */
-  games: GAMES;
+  games: ViewGameSet;
   /** Total number of games there are. */
   gamesTotal?: number;
   /** Currently selected game (if any). */
@@ -43,8 +43,7 @@ export type GameGridProps = {
   onGameDragStart?: (event: React.DragEvent, gameId: string) => void;
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd?: (event: React.DragEvent, gameId: string) => void;
-  /** Request a page be filled */
-  requestPages: (start: number, amount: number) => void;
+  updateView: UpdateView;
   // React-Virtualized pass-through props (their values are not used for anything other than updating the grid when changed)
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -64,8 +63,10 @@ export class GameGrid extends React.Component<GameGridProps> {
   /** Current value of the "height" css variable. */
   currentHeight: number = 0;
   /** Currently displayed games. */
-  currentGames: GAMES | undefined;
+  currentGames: ViewGameSet | undefined;
   currentGamesCount: number = 0;
+  // Used for the "view update hack"
+  grid: React.RefObject<Grid> = React.createRef();
 
   componentDidMount(): void {
     window.Shared.back.on('message', this.onResponse);
@@ -76,6 +77,21 @@ export class GameGrid extends React.Component<GameGridProps> {
   componentDidUpdate(): void {
     this.updateCssVars();
     this.updatePropRefs();
+
+    // @HACK: Update the view in cases where the "onSectionRendered" callback is not called _EVEN THOUGH_ the cells have been re-rendered
+    //        (Such as when changing library without making it scroll)
+    // Note: This has a side effect of sometimes requesting the same pages twice (I think? //obelisk)
+    const grid = this.grid.current;
+    if (grid) {
+      const start = (grid as any)._rowStartIndex;
+      const stop = (grid as any)._rowStopIndex;
+
+      if (typeof start === 'number' && typeof stop === 'number') {
+        this.updateView(start, stop, this.columns);
+      } else {
+        console.warn('Failed to check if the grid view has been updated. The private properties extracted from "Grid" was of an unexpected type.');
+      }
+    }
   }
 
   componentWillUnmount(): void {
@@ -90,6 +106,7 @@ export class GameGrid extends React.Component<GameGridProps> {
       this.currentGames = games;
       this.currentGamesCount = (this.currentGamesCount + 1) % 100;
     }
+
     // Render
     return (
       <GameItemContainer
@@ -130,6 +147,7 @@ export class GameGrid extends React.Component<GameGridProps> {
                   return (
                     <Grid
                       className='game-grid simple-scroll'
+                      ref={this.grid}
                       // Grid stuff
                       width={width}
                       height={height}
@@ -212,13 +230,7 @@ export class GameGrid extends React.Component<GameGridProps> {
 
   onSectionRendered = (params: RenderedSection, columns: number, callback?: (params: RenderedSection) => void) => {
     if (callback) { callback(params); }
-    const startIndex = params.rowOverscanStartIndex * columns;
-    const endIndex = params.rowOverscanStopIndex * columns;
-    const trailingPage = Math.floor(startIndex / VIEW_PAGE_SIZE);
-    const leadingPage = Math.floor(endIndex / VIEW_PAGE_SIZE);
-
-    // Render 2 pages ahead
-    this.props.requestPages(trailingPage, (leadingPage - trailingPage) + 2);
+    this.updateView(params.rowOverscanStartIndex, params.rowOverscanStopIndex, columns);
   }
 
   /** When a key is pressed (while the grid, or one of its children, is selected). */
@@ -327,9 +339,16 @@ export class GameGrid extends React.Component<GameGridProps> {
     }
     return cells;
   }
+
+  updateView(start: number, stop: number, columns: number): void {
+    const trailingPage = Math.floor((start * columns) / VIEW_PAGE_SIZE);
+    const leadingPage  = Math.floor((stop  * columns) / VIEW_PAGE_SIZE);
+
+    this.props.updateView(trailingPage, (leadingPage - trailingPage) + 2);
+  }
 }
 
-function findGameIndex(games: GAMES | undefined, gameId: string | undefined): number {
+function findGameIndex(games: ViewGameSet | undefined, gameId: string | undefined): number {
   if (gameId !== undefined && games) {
     for (let index in games) {
       const game = games[index];

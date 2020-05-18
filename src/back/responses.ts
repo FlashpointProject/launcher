@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewPageData, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
@@ -222,7 +222,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
     respond<BrowseChangeData>(event.target, {
       id: req.id,
-      type: BackOut.BROWSE_CHANGE,
+      type: BackOut.GENERIC_RESPONSE,
       data: {
         library: game.library,
         gamesTotal: await GameManager.countGames(),
@@ -237,7 +237,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
     respond<BrowseChangeData>(event.target, {
       id: req.id,
-      type: BackOut.BROWSE_CHANGE,
+      type: BackOut.GENERIC_RESPONSE,
       data: {
         library: game && game.library,
         gamesTotal: await GameManager.countGames(),
@@ -293,7 +293,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
     respond<BrowseChangeData>(event.target, {
       id: req.id,
-      type: BackOut.BROWSE_CHANGE,
+      type: BackOut.GENERIC_RESPONSE,
       data: {
         library: result && result.library,
         gamesTotal: await GameManager.countGames(),
@@ -446,9 +446,9 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event, req) => {
-    const result = await GameManager.findGames({}, false);
+    const results = await GameManager.findGames({}, false);
 
-    const range = result.ranges[0];
+    const range = results[0];
     if (!range) { throw new Error(`Failed to fetch all games. No range of games was in the result.`); }
 
     respond<GetAllGamesResponseData>(event.target, {
@@ -469,27 +469,29 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<BrowseViewKeysetData>(BackIn.BROWSE_VIEW_KEYSET, async (event, req) => {
-    const index = await GameManager.findGamePageKeyset(req.data.query.filter, req.data.query.orderBy, req.data.query.orderReverse);
+    const result = await GameManager.findGamePageKeyset(req.data.query.filter, req.data.query.orderBy, req.data.query.orderReverse);
     respond<BrowseViewKeysetResponse>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
-      data: { keyset: index },
+      data: {
+        keyset: result.keyset,
+        total: result.total,
+      },
     });
   });
 
   state.socketServer.register<BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, async (event, req) => {
-    const result = await GameManager.findGames({
+    const results = await GameManager.findGames({
       ranges: req.data.ranges,
       filter: req.data.query.filter,
       orderBy: req.data.query.orderBy,
       direction: req.data.query.orderReverse,
-      getTotal: req.data.getTotal,
     }, !!req.data.shallow);
 
     // idk why this is done, but it is probably here for a reason
     // @PERF Copying all game objects seems wasteful (I think both sets of objects are thrown away after this response? //obelisk)
-    for (let i = 0; i < result.ranges.length; i++) {
-      const range = result.ranges[i];
+    for (let i = 0; i < results.length; i++) {
+      const range = results[i];
       for (let j = 0; j < range.games.length; j++) {
         range.games[j] = {
           ...range.games[j],
@@ -500,11 +502,10 @@ export function registerRequestCallbacks(state: BackState): void {
 
     respond<BrowseViewPageResponseData<boolean>>(event.target, {
       id: req.id,
-      type: BackOut.BROWSE_VIEW_PAGE_RESPONSE,
+      type: BackOut.GENERIC_RESPONSE,
       data: {
-        ranges: result.ranges,
+        ranges: results,
         library: req.data.library,
-        total: result.total,
       },
     });
   });

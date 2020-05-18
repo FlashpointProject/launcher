@@ -2,9 +2,8 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, DeleteGameData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, ImportPlaylistData, LaunchGameData, RequestGameRange, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse } from '@shared/back/types';
+import { BackIn, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, ImportPlaylistData, LaunchGameData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
@@ -16,7 +15,7 @@ import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
 import { ConnectedRightBrowseSidebar } from '../../containers/ConnectedRightBrowseSidebar';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { GAMES } from '../../interfaces';
+import { UpdateView, ViewGameSet } from '../../interfaces';
 import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getGamePath } from '../../Util';
 import { LangContext } from '../../util/lang';
@@ -31,14 +30,15 @@ type Pick<T, K extends keyof T> = { [P in K]: T[P]; };
 type StateCallback1 = Pick<BrowsePageState, 'currentGame'|'isEditingGame'|'isNewGame'|'currentPlaylistEntry'>;
 
 type OwnProps = {
-  games: GAMES;
+  games: ViewGameSet;
   gamesTotal?: number;
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   playlistIconCache: Record<string, string>;
-  onSaveGame: (game: Game, playlistEntry: PlaylistGame | undefined, saveToFile: boolean) => void;
+  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => void;
+  onDeleteGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;
-  requestPages: (start: number, count: number) => void;
+  updateView: UpdateView;
 
   /** Most recent search query. */
   search: SearchQuery;
@@ -122,10 +122,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     this.updateCurrentGame(this.props.selectedGameId, this.props.selectedPlaylistId);
     this.createNewGameIfClicked(false, assignToState);
     this.state = initialState;
-    // Load in if nothing, request first page
-    if (!this.props.gamesTotal) {
-      this.props.requestPages(0, 1); // @TODO Use the actual start and count values
-    }
   }
 
   componentDidUpdate(prevProps: BrowsePageProps, prevState: BrowsePageState) {
@@ -225,7 +221,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               return (
                 <GameGrid
                   games={games}
-                  requestPages={this.props.requestPages}
+                  updateView={this.props.updateView}
                   gamesTotal={this.props.gamesTotal}
                   selectedGameId={selectedGameId}
                   draggedGameId={draggedGameId}
@@ -255,7 +251,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
-                  requestPages={this.props.requestPages}
+                  updateView={this.props.updateView}
                   orderBy={order.orderBy}
                   orderReverse={order.orderReverse}
                   rowHeight={height}
@@ -503,7 +499,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onDeleteSelectedGame = (): void => {
     // Delete the game
     if (this.props.selectedGameId) {
-      window.Shared.back.send<any, DeleteGameData>(BackIn.DELETE_GAME, { id: this.props.selectedGameId });
+      this.props.onDeleteGame(this.props.selectedGameId);
     }
     // Deselect the game
     this.props.onSelectGame(undefined);
@@ -613,7 +609,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       console.error('Can\'t save game. "currentGame" is missing.');
       return;
     }
-    this.props.onSaveGame(this.state.currentGame, this.state.currentPlaylistEntry, true);
+    this.props.onSaveGame(this.state.currentGame, this.state.currentPlaylistEntry);
     this.setState({
       isEditingGame: false,
       isNewGame: false

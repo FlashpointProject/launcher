@@ -6,7 +6,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { PageTuple, PageKeyset, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
+import { PageKeyset, PageTuple, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
 import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -72,7 +72,7 @@ export namespace GameManager {
       .where('g.id = :gameId', { gameId: gameId });
 
     const raw = await query.getRawOne();
-    console.log(`${Date.now() - startTime}ms for row`);
+    // console.log(`${Date.now() - startTime}ms for row`);
     return raw ? Coerce.num(raw.row_num) : -1; // Coerce it, even though it is probably of type number or undefined
   }
 
@@ -85,16 +85,22 @@ export namespace GameManager {
     return query.getMany();
   }
 
-  export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<PageKeyset> {
+  export type GetPageKeysetResult = {
+    keyset: PageKeyset;
+    total: number;
+  }
+
+  export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<GetPageKeysetResult> {
     const startTime = Date.now();
 
     validateSqlName(orderBy);
     validateSqlOrder(direction);
 
+    // console.log('FindGamePageKeyset:');
+
     const subQ = await getGameQuery('sub', filterOpts, orderBy, direction);
     subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy}, sub.title, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
     subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
-    console.log(subQ.getQuery());
 
     const query = getManager().createQueryBuilder()
       .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy}, g.title) + 1 page_number`)
@@ -103,12 +109,36 @@ export namespace GameManager {
       .setParameters(subQ.getParameters());
 
     const raw = await query.getRawMany();
-    const pageIndex: PageKeyset = {};
+    const keyset: PageKeyset = {};
     for (let r of raw) {
-      pageIndex[r['page_number']] = {orderVal: Coerce.str(r[orderBy]), title: Coerce.str(r['title']), id: Coerce.str(r['id'])};
+      keyset[r['page_number']] = {orderVal: Coerce.str(r[orderBy]), title: Coerce.str(r['title']), id: Coerce.str(r['id'])};
     }
-    console.log(`${Date.now() - startTime}ms for index`);
-    return pageIndex;
+
+    // console.log(`  Keyset: ${Date.now() - startTime}ms`);
+
+    // Count games
+    let total = -1;
+    if (true) {
+      const startTime = Date.now();
+
+      const query = await getGameQuery('sub', filterOpts, orderBy, direction, 0, undefined, undefined);
+
+      query.skip(0);
+      query.select('COUNT(*)');
+      const result = await query.getRawOne();
+      if (result) {
+        total = Coerce.num(result['COUNT(*)']); // Coerce it, even though it is probably of type number or undefined
+      } else {
+        console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
+      }
+
+      // console.log(`  Count: ${Date.now() - startTime}ms`);
+    }
+
+    return {
+      keyset,
+      total,
+    };
   }
 
   export type FindGamesOpts = {
@@ -120,19 +150,12 @@ export namespace GameManager {
     getTotal?: boolean;
   }
 
-  export type FindGamesResult<T extends boolean> = {
-    ranges: ResponseGameRange<T>[];
-    total?: number;
-  }
-
   /** Search the database for games. */
-  export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<FindGamesResult<T>> {
+  export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<ResponseGameRange<T>[]> {
     const ranges = opts.ranges || [{ start: 0, length: undefined }];
     const rangesOut: ResponseGameRange<T>[] = [];
 
-    let total: number | undefined;
-
-    //console.log('FindGames:');
+    // console.log('FindGames:');
 
     let query: SelectQueryBuilder<Game> | undefined;
     for (let i = 0; i < ranges.length; i++) {
@@ -143,6 +166,7 @@ export namespace GameManager {
 
       // Select games
       // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
+      // @PERF When multiple pages are requested as individual ranges, select all of them with a single query then split them up
       rangesOut.push({
         start: range.start,
         length: range.length,
@@ -152,31 +176,10 @@ export namespace GameManager {
         ) as (T extends true ? ViewGame[] : Game[]),
       });
       
-      //console.log(`  Query: ${Date.now() - startTime}ms (${range.start}, ${range.length})`);
+      // console.log(`  Query: ${Date.now() - startTime}ms (start: ${range.start}, length: ${range.length}${range.index ? ', with index' : ''})`);
     }
 
-    // Count games
-    if (opts.getTotal) {
-      const startTime = Date.now();
-
-      if (!query) { query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, 0, undefined, undefined); }
-
-      query.skip(0);
-      query.select('COUNT(*)');
-      const result = await query.getRawOne();
-      if (result) {
-        total = Coerce.num(result['COUNT(*)']); // Coerce it, even though it is probably of type number or undefined
-      } else {
-        console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
-      }
-
-      //console.log(`  Count: ${Date.now() - startTime}ms`);
-    }
-
-    return {
-      ranges: rangesOut,
-      total,
-    };
+    return rangesOut;
   }
 
   async function getGameQuery(
