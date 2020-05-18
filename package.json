@@ -32,7 +32,7 @@
   "author": "Jesper Gustafsson",
   "license": "MIT",
   "dependencies": {
-    "chokidar": "3.2.1",
+    "chokidar": "3.4.0",
     "connected-react-router": "6.5.2",
     "electron-updater": "4.2.0",
     "fast-xml-parser": "3.12.19",
@@ -90,7 +90,7 @@
     "eslint": "6.1.0",
     "eslint-plugin-react": "7.16.0",
     "gulp": "4.0.2",
-    "jest": "24.8.0",
+    "jest": "26.0.1",
     "jest-websocket-mock": "2.0.1",
     "mock-socket": "9.0.3",
     "ts-jest": "24.0.2",
@@ -100,11 +100,11 @@
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "5.18.0",
     "ttypescript": "1.5.10",
-    "typescript": "3.7.5",
+    "typescript": "^3.9.2",
     "webpack": "4.39.1",
     "webpack-cli": "3.3.6"
   },
   "optionalDependencies": {
-    "fsevents": "2.1.0"
+    "fsevents": "2.1.3"
   }
 }
