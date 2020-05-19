@@ -99,11 +99,11 @@ export namespace GameManager {
     // console.log('FindGamePageKeyset:');
 
     const subQ = await getGameQuery('sub', filterOpts, orderBy, direction);
-    subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy}, sub.title, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
+    subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy} ${direction}, sub.title ${direction}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
     subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
 
     const query = getManager().createQueryBuilder()
-      .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy}, g.title) + 1 page_number`)
+      .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
       .from('(' + subQ.getQuery() + ')', 'g')
       .where('g.page_boundary = 1')
       .setParameters(subQ.getParameters());
@@ -195,8 +195,9 @@ export namespace GameManager {
 
     // Use Page Index (If Given)
     if (index) {
+      const comparator = direction === 'ASC' ? '>' : '<';
       if (!orderBy) { throw new Error('Failed to get game query. "index" is set but "orderBy" is missing.'); }
-      query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) > (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
+      query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) ${comparator} (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
       whereCount++;
     }
     // Apply all flat game filters
