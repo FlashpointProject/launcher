@@ -18,15 +18,19 @@ export function RandomGames(props: RandomGamesProps) {
   const [games, setGames] = useState<Game[]>([]);
 
   React.useEffect(() => {
-    window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(
-      BackIn.RANDOM_GAMES,
-      {
-        count: 6,
-        broken: props.broken,
-        extreme: props.extreme,
-      },
-      res => { if (res.data) { setGames(res.data); } }
-    );
+    let unmounted = false;
+
+    window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
+      count: 6,
+      broken: props.broken,
+      extreme: props.extreme,
+    }, (res) => {
+      if (res.data && !unmounted) {
+        setGames(res.data);
+      }
+    });
+
+    return () => { unmounted = true; }
   }, []);
 
   const onLaunchGame = React.useCallback((event: React.MouseEvent, gameId: string) => {
