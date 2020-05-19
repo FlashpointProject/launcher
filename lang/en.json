@@ -33,6 +33,8 @@
     "advancedHeader": "Advanced",
     "showDeveloperTab": "Show Developer Tab",
     "showDeveloperTabDesc": "Show the 'Developer' tab. This is most likely only useful for developers and curators.",
+    "metadataServerHost": "Metadata Server Host",
+    "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
     "saveAndRestart": "Save and Restart"
   },
   "home": {

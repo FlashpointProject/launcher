@@ -39,6 +39,8 @@ const langTemplate = {
     'advancedHeader',
     'showDeveloperTab',
     'showDeveloperTabDesc',
+    'metadataServerHost',
+    'metadataServerHostDesc',
     'saveAndRestart',
     'browse',
   ] as const,

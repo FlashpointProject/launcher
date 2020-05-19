@@ -29,6 +29,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   imagesPortMin: 12101,
   imagesPortMax: 12200,
   nativePlatforms: [],
+  metadataServerHost: ''
 });
 
 /**
@@ -90,6 +91,7 @@ export function overwriteConfigData(
   parser.prop('backPortMax',         v => source.backPortMax         = num(v));
   parser.prop('imagesPortMin',       v => source.imagesPortMin       = num(v));
   parser.prop('imagesPortMax',       v => source.imagesPortMax       = num(v));
+  parser.prop('metadataServerHost',  v => source.metadataServerHost  = str(v)); // Server Host, won't contain vars
   // Do some alterations
   source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)
   // Return

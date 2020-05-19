@@ -16,5 +16,6 @@
   "backPortMax": 1,
   "imagesPortMin": 1,
   "imagesPortMax": 1,
-  "nativePlatforms": [ "TestSuccess" ]
+  "nativePlatforms": [ "TestSuccess" ],
+  "metadataServerHost": "TestSuccess"
 }

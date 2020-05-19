@@ -42,4 +42,6 @@ export type IAppConfigData = {
   imagesPortMin: number;
   /** Upper limit of the range of ports that the back image server should listen on. */
   imagesPortMax: number;
+  /** Metadata Server Host (For Online Sync) */
+  metadataServerHost: string;
 };

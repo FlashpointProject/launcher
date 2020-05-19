@@ -12,6 +12,7 @@ import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { Dropdown } from '../Dropdown';
 import { DropdownInputField } from '../DropdownInputField';
+import { InputField } from '../InputField';
 
 type OwnProps = {
   /** List of all platforms */
@@ -30,6 +31,8 @@ type ConfigPageState = {
   isFlashpointPathValid?: boolean;
   /** Currently entered Flashpoint path. */
   flashpointPath: string;
+  /** Currently entered Metadata Server Host */
+  metadataServerHost: string;
   /** If the "use custom title bar" checkbox is checked. */
   useCustomTitlebar: boolean;
   /** If the "use fiddler" checkbox is checked. */
@@ -58,6 +61,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     this.state = {
       isFlashpointPathValid: undefined,
       flashpointPath: configData.flashpointPath,
+      metadataServerHost: configData.metadataServerHost,
       useCustomTitlebar: configData.useCustomTitlebar,
       useFiddler: configData.useFiddler,
       nativePlatforms: configData.nativePlatforms
@@ -297,6 +301,21 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <p>{strings.showDeveloperTabDesc}</p>
                 </div>
               </div>
+              {/* Metadata Server Host */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <p className='setting__row__title'>{strings.metadataServerHost}</p>
+                  <div className='setting__row__content setting__row__content--filepath-path'>
+                    <InputField
+                      editable={true}
+                      text={this.state.metadataServerHost}
+                      onChange={this.onMetadataServerHostChange} />
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.metadataServerHostDesc}</p>
+                </div>
+              </div>
               {/* Fallback Language */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
@@ -399,6 +418,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ showDeveloperTab: isChecked });
   }
 
+  onMetadataServerHostChange = async (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): Promise<void> => {
+    this.setState({ metadataServerHost: event.currentTarget.value });
+  }
+
   onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
     updatePreferencesData({ currentTheme: event.currentTarget.value });
   }
@@ -426,6 +449,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     // Save new config to file, then restart the app
     window.Shared.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
+      metadataServerHost: this.state.metadataServerHost,
       useCustomTitlebar: this.state.useCustomTitlebar,
       useFiddler: this.state.useFiddler,
     }, () => { window.Shared.restart(); });
