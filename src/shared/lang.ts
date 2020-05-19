@@ -269,8 +269,12 @@ const langTemplate = {
     'clickToSelectTag',
     'deleteTagAlias',
     'setPrimaryAlias',
+    'mergeIntoTag',
+    'mergeTag',
+    'makeAliasWhenMerged',
     'deleteTag',
     'deleteTagCategory',
+    'locked'
   ] as const,
   curate: [
     'importAll',

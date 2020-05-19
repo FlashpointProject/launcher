@@ -255,8 +255,12 @@
     "clickToSelectTag": "Click to select Tag",
     "deleteTagAlias": "Delete Tag Alias",
     "setPrimaryAlias": "Set Primary Alias",
+    "mergeIntoTag": "Merge into Tag",
+    "mergeTag": "Merge Tag",
+    "makeAliasWhenMerged": "Make this an alias of the tag?",
     "deleteTag": "Delete Tag",
-    "deleteTagCategory": "Delete Tag Category"
+    "deleteTagCategory": "Delete Tag Category",
+    "locked": "Locked while processing..."
   },
   "curate": {
     "importAll": "Import All",

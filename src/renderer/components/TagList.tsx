@@ -1,3 +1,4 @@
+import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
@@ -6,7 +7,6 @@ import { findElementAncestor } from '../Util';
 import { TagItemContainer } from './TagItemContainer';
 import { TagListHeader } from './TagListHeader';
 import { TagListItem } from './TagListItem';
-import { Tag } from '@database/entity/Tag';
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
@@ -32,6 +32,8 @@ export type TagListProps = {
   orderReverse?: GameOrderReverse;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   listRef?: RefFunc<HTMLDivElement>;
+  /** Whether this is usable */
+  isLocked: boolean;
 };
 
 /** A list of rows, where each rows displays a game. */
@@ -93,7 +95,7 @@ export class TagList extends React.Component<TagListProps> {
   }
 
   onTagSelect = (event: React.MouseEvent<HTMLDivElement>, tagId: number | undefined) => {
-    if (this.props.onTagSelect) {
+    if (this.props.onTagSelect && !this.props.isLocked) {
       this.props.onTagSelect(tagId);
     }
   }

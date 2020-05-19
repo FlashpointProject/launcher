@@ -1,11 +1,12 @@
+import { SocketServer } from '@back/SocketServer';
 import { OpenDialogFunc } from '@back/types';
 import { chunkArray } from '@back/util/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { TagSuggestion, TagCategoriesChangeData, BackOut } from '@shared/back/types';
+import { BackOut, MergeTagData, TagCategoriesChangeData, TagSuggestion } from '@shared/back/types';
 import { getManager, Like, Not } from 'typeorm';
-import { SocketServer } from '@back/SocketServer';
+import { GameManager } from './GameManager';
 
 export namespace TagManager {
 
@@ -64,6 +65,55 @@ export namespace TagManager {
       .whereInIds(aliases.map(a => a.tagId))
       .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
       .getMany();
+  }
+
+  // @TODO : Localize
+  export async function mergeTags(mergeData: MergeTagData, openDialog: OpenDialogFunc): Promise<Tag | undefined> {
+    const mergeDest = await TagManager.findTag(mergeData.mergeInto);
+    if (mergeDest) {
+      if (mergeDest.id !== mergeData.toMerge.id) {
+        // Confirm merge
+        const res = await openDialog({
+          title: 'Are you sure?',
+          message: 'Merge ' + mergeData.toMerge.primaryAlias.name + ' into ' + mergeData.mergeInto + '?',
+          buttons: [ 'Yes', 'No', 'Cancel' ]
+        });
+        if (res !== 0) {
+          return undefined;
+        }
+        // Move names first
+        if (mergeData.makeAlias) {
+          for (const alias of mergeData.toMerge.aliases) {
+            mergeDest.aliases.push(alias);
+          }
+          await TagManager.saveTag(mergeDest);
+        }
+        // Move game tag references next
+        const games = await GameManager.findGamesWithTag(mergeData.toMerge);
+        for (const game of games) {
+          if (game.tags.findIndex(t => t.id === mergeDest.id) === -1) {
+            game.tags.push(mergeDest);
+          }
+        }
+        await GameManager.updateGames(games);
+        if (mergeData.toMerge.id) {
+          await TagManager.deleteTag(mergeData.toMerge.id, openDialog, true);
+        }
+      } else {
+        openDialog({
+          title: 'Error!',
+          message: 'Cannot merge tag into itself!',
+          buttons: [ 'Ok' ]
+        });
+      }
+    } else {
+      openDialog({
+        title: 'No Tag Found!',
+        message: 'No tag found for "' + mergeData.mergeInto + '"',
+        buttons: [ 'Ok ' ]
+      });
+    }
+    return mergeDest;
   }
 
   export async function cleanupTagAliases() {

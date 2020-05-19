@@ -59,6 +59,7 @@ export enum BackIn {
   GET_TAG,
   SAVE_TAG,
   DELETE_TAG,
+  MERGE_TAGS,
   CLEANUP_TAG_ALIASES,
   CLEANUP_TAGS,
   FIX_TAG_PRIMARY_ALIASES,
@@ -105,6 +106,7 @@ export enum BackOut {
   GET_TAG,
   SAVE_TAG,
   DELETE_TAG,
+  MERGE_TAGS,
   GET_TAG_CATEGORY_BY_ID,
   SAVE_TAG_CATEGORY,
   DELETE_TAG_CATEGORY,
@@ -517,6 +519,12 @@ export type TagDeleteData = number;
 export type TagDeleteResponse = {
   success: boolean;
   id: number;
+}
+
+export type MergeTagData = {
+  toMerge: Tag;
+  mergeInto: string;
+  makeAlias: boolean;
 }
 
 export type TagCategorySaveData = TagCategory;

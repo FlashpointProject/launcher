@@ -21,6 +21,8 @@ export type TagsPageState = {
   selectedTagId?: number;
   /** Whether we're editing a tag or not */
   isEditing: boolean;
+  /** If changes are being made in the back, lock the page */
+  isLocked: boolean;
   /** Current tag results */
   tags: Tag[];
   /** Original Tag */
@@ -37,6 +39,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
     super(props);
     this.state = {
       isEditing: false,
+      isLocked: false,
       tags: [],
       tagsTotal: 0
     };
@@ -63,7 +66,8 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
               rowHeight={rowHeight}
               onTagSelect={this.onTagSelect}
               selectedTagId={this.state.selectedTagId}
-              tagCategories={this.props.tagCategories} />
+              tagCategories={this.props.tagCategories}
+              isLocked={this.state.isLocked} />
           </div>
           <ResizableSidebar
             hide={!!this.state.currentTag}
@@ -71,12 +75,15 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
             width={this.props.preferencesData.browsePageLeftSidebarWidth} >
             <ConnectedRightTagsSidebar
               currentTag={this.state.currentTag}
-              isEditing={this.state.isEditing}
+              isEditing={this.state.isEditing && !this.state.isLocked}
+              isLocked={this.state.isLocked}
               onEditTag={this.onEditTag}
               onEditClick={this.onEditClick}
               onDiscardClick={this.onDiscardClick}
               onDeleteTag={this.deleteCurrentTag}
               onSaveTag={this.onSaveTag}
+              onSetTag={this.onTagMerged}
+              onLockEdit={this.onLockEdit}
               tagCategories={this.props.tagCategories} />
           </ResizableSidebar>
         </div>
@@ -144,10 +151,32 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
     }
   }
 
+  onTagMerged = (tag: Tag) => {
+    const newTags = deepCopy(this.state.tags);
+    const newTagIndex = newTags.findIndex(t => t.id == this.state.selectedTagId);
+    if (newTagIndex > -1) {
+      newTags.splice(newTagIndex, 1);
+    }
+    this.setState({ tags: newTags }, () => {
+      if (tag.id) { this.updateCurrentTag(tag.id); }
+    });
+  }
+
+  onLockEdit = (locked: boolean) => {
+    this.setState({ isLocked: locked });
+  }
+
   updateCurrentTag = (tagId: number) => {
     window.Shared.back.send<TagByIdResponse, TagByIdData>(BackIn.GET_TAG_BY_ID, tagId, (res) => {
       if (res.data) {
+        const allTags = deepCopy(this.state.tags);
+        const tagIndex = allTags.findIndex(t => t.id === tagId);
+        if (tagIndex > -1) {
+          allTags[tagIndex] = res.data;
+        }
         this.setState({
+          tags: allTags,
+          selectedTagId: tagId,
           currentTag: res.data,
           originalTag: deepCopy(res.data)
         });

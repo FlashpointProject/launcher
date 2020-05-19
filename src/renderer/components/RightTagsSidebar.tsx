@@ -1,24 +1,29 @@
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, TagGetData, TagGetResponse } from '@shared/back/types';
+import { BackIn, MergeTagData, TagGetData, TagGetResponse, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { deepCopy } from '@shared/Util';
 import { remote } from 'electron';
 import * as React from 'react';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { LangContext } from '../util/lang';
+import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { SimpleButton } from './SimpleButton';
 import { TagAliasInputField } from './TagAliasInputField';
+import { TagInputField } from './TagInputField';
 
 type OwnProps = {
   /** Currently selected game (if any) */
   currentTag?: Tag;
   /** If the "edit mode" is currently enabled */
   isEditing: boolean;
+  /** If this tag is locked while processing */
+  isLocked: boolean;
   /** Tag Categories info */
   tagCategories: TagCategory[];
 
@@ -28,12 +33,18 @@ type OwnProps = {
   onDeleteTag: () => void;
 
   onEditTag: (tag: Partial<Tag>) => void;
+
+  onSetTag: (tag: Tag) => void;
+  onLockEdit: (locked: boolean) => void;
 };
 
 export type RightTagsSidebarProps = OwnProps & WithPreferencesProps;
 
 type RightTagsSidebarState = {
   currentTagInput: string;
+  currentTagMergeInput: string;
+  tagMergeSuggestions: TagSuggestion[];
+  makeAliasWhenMerged: boolean;
 };
 
 export interface RightTagsSidebar {
@@ -48,7 +59,10 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   constructor(props: RightTagsSidebarProps) {
     super(props);
     this.state = {
-      currentTagInput: ''
+      currentTagInput: '',
+      currentTagMergeInput: '',
+      tagMergeSuggestions: [],
+      makeAliasWhenMerged: false
     };
   }
 
@@ -65,7 +79,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     const strings = this.context.tags;
     const tag: Tag | undefined = this.props.currentTag;
     if (tag) {
-      const { isEditing, preferencesData, tagCategories } = this.props;
+      const { isEditing, isLocked, preferencesData, tagCategories } = this.props;
       const editDisabled = !preferencesData.enableEditing;
       const editable = !editDisabled && isEditing;
       const category = tagCategories.find(c => c.id == tag.categoryId);
@@ -155,6 +169,36 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
                   onTagAliasSubmit={this.onAddTagAliasByString}
                   onKeyDown={this.onInputKeyDown} />
               </div>
+              { isEditing ? (
+                <>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.mergeIntoTag}: </p>
+                    <TagInputField
+                      editable={true}
+                      text={this.state.currentTagMergeInput}
+                      tags={[]}
+                      suggestions={this.state.tagMergeSuggestions}
+                      onChange={this.onCurrentTagMergeChange}
+                      onTagSuggestionSelect={this.onSelectTagMergeSuggestion}
+                      categories={this.props.tagCategories} />
+                  </div>
+                  <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
+                    <p>{strings.makeAliasWhenMerged} </p>
+                    <CheckBox
+                      checked={this.state.makeAliasWhenMerged}
+                      onToggle={this.onMakeAliasWhenMergedToggle}
+                      />
+                  </div>
+                  <SimpleButton
+                    value={strings.mergeTag}
+                    onClick={this.onMergeTag} />
+                </>
+              ) : undefined }
+              { isLocked ? (
+                <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line browse-right-sidebar__locked'>
+                  {strings.locked}
+                </div>
+              ) : undefined }
             </div>
           </div>
         </div>
@@ -210,13 +254,67 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     this.setState({ currentTagInput: event.currentTarget.value });
   }
 
+  onCurrentTagMergeChange = (event: React.ChangeEvent<InputElement>) => {
+    const newTag = event.currentTarget.value;
+    let newSuggestions: TagSuggestion[] = this.state.tagMergeSuggestions;
+
+    if (newTag != '') {
+      // Delayed set
+      window.Shared.back.send<any, any>(BackIn.GET_TAG_SUGGESTIONS, newTag, (res) => {
+        if (res.data) {
+          this.setState({
+            tagMergeSuggestions: res.data
+          });
+        }
+      });
+    } else {
+      newSuggestions = [];
+    }
+
+    this.setState({
+      currentTagMergeInput: newTag,
+      tagMergeSuggestions: newSuggestions
+    });
+  }
+
+  onMergeTag = (event: React.MouseEvent) => {
+    if (this.props.currentTag) {
+      this.props.onLockEdit(true);
+      window.Shared.back.send<Tag, MergeTagData>(BackIn.MERGE_TAGS, {
+        toMerge: this.props.currentTag,
+        mergeInto: this.state.currentTagMergeInput,
+        makeAlias: this.state.makeAliasWhenMerged
+      }, (res) => {
+        if (res.data && (!this.props.currentTag || res.data.id !== this.props.currentTag.id)) {
+          this.props.onSetTag(res.data);
+        }
+        this.props.onLockEdit(false);
+        this.setState({ currentTagMergeInput: '', makeAliasWhenMerged: false });
+      });
+    }
+  }
+
+  onSelectTagMergeSuggestion = (suggestion: TagSuggestion): void => {
+    // Clear out suggestions box
+    this.setState({
+      tagMergeSuggestions: [],
+      currentTagMergeInput: suggestion.primaryAlias
+    });
+  }
+
+  onMakeAliasWhenMergedToggle = (checked: boolean): void => {
+    this.setState({ makeAliasWhenMerged: checked });
+  }
+
   /** When a key is pressed while an input field is selected (except for multiline fields) */
   onInputKeyDown = (event: React.KeyboardEvent): void => {
     // if (event.key === 'Enter') { this.props.onSaveGame(); }
   }
 
   onTagAliasSelect = (tagAlias: TagAlias, index: number): void => {
-    this.props.onEditTag({ primaryAlias: tagAlias, primaryAliasId: tagAlias.id });
+    if (!this.props.isLocked) {
+      this.props.onEditTag({ primaryAlias: tagAlias, primaryAliasId: tagAlias.id });
+    }
   }
 
   onRemoveTagAlias = (tagAlias: TagAlias, index: number): void => {

@@ -1280,6 +1280,12 @@ body {
   font-size: 0.9rem;
   font-style: italic;
 }
+.browse-right-sidebar__locked {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 2em;
+  font-style: bold;
+}
 /* GameImageSplit */
 .game-image-split {
   flex: 1 1 auto;

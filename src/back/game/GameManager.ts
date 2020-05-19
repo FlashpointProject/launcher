@@ -175,7 +175,7 @@ export namespace GameManager {
           : await query.getMany()
         ) as (T extends true ? ViewGame[] : Game[]),
       });
-      
+
       // console.log(`  Query: ${Date.now() - startTime}ms (start: ${range.start}, length: ${range.length}${range.index ? ', with index' : ''})`);
     }
 
@@ -188,7 +188,7 @@ export namespace GameManager {
     validateSqlName(alias);
     if (orderBy) { validateSqlName(orderBy); }
     if (direction) { validateSqlOrder(direction); }
-    
+
     let whereCount = 0;
 
     const query = getManager().getRepository(Game).createQueryBuilder(alias);
@@ -373,8 +373,6 @@ export namespace GameManager {
   }
 
   export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
-    const gameRepository = getManager().getRepository(Game);
-
     const gameIds = (await getManager().createQueryBuilder()
       .select('game_tag.gameId as gameId')
       .distinct()
@@ -382,8 +380,20 @@ export namespace GameManager {
       .where('game_tag.tagId = :id', { id: tag.id })
       .getRawMany()).map(g => g['gameId']);
 
-    return gameRepository.findByIds(gameIds);
+    return chunkedFindByIds(gameIds);
   }
+}
+
+async function chunkedFindByIds(gameIds: string[]): Promise<Game[]> {
+  const gameRepository = getManager().getRepository(Game);
+
+  const chunks = chunkArray(gameIds, 100);
+  const gamesFound: Game[] = [];
+  for (const chunk of chunks) {
+    gamesFound.concat(await gameRepository.findByIds(chunk));
+  }
+
+  return gamesFound;
 }
 
 function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, filterOpts: FilterGameOpts, whereCount: number): number {
@@ -429,7 +439,7 @@ function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: str
   // console.log(`W: ${count} - C: ${comparator} - F: GENERIC - V:${value}`);
 
   const and = (count !== 0);
-  
+
   const where = new Brackets(qb => {
     const q = and ? qb : query;
     const ref = `generic-${count}`;
