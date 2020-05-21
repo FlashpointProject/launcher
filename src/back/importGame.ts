@@ -1,5 +1,6 @@
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
+import { Tag } from '@database/entity/Tag';
 import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
@@ -13,13 +14,11 @@ import * as path from 'path';
 import { promisify } from 'util';
 import * as YAML from 'yaml';
 import { GameManager } from './game/GameManager';
+import { TagManager } from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
 import { uuid } from './util/uuid';
-import { BackIn } from '@shared/back/types';
-import { Tag } from '@database/entity/Tag';
-import { TagManager } from './game/TagManager';
 
 const { strToBool } = Coerce;
 
@@ -412,8 +411,10 @@ async function equalFileHashes(filePath: string, secondFilePath: string) {
 }
 
 function createPlaceholderGame(): Game {
+  const id = uuid();
   return {
-    id: uuid(),
+    id: id,
+    parentGameId: id,
     title: '',
     alternateTitles: '',
     series: '',

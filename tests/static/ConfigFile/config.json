@@ -17,5 +17,6 @@
   "imagesPortMin": 1,
   "imagesPortMax": 1,
   "nativePlatforms": [ "TestSuccess" ],
-  "metadataServerHost": "TestSuccess"
+  "metadataServerHost": "TestSuccess",
+  "lastSync": 1
 }

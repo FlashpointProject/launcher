@@ -147,6 +147,8 @@ const langTemplate = {
     'fixPrimaryAliasesDesc',
     'fixCommaTags',
     'fixCommaTagsDesc',
+    'forceGameMetaSync',
+    'forceGameMetaSyncDesc',
     'servicesHeader',
     'servicesMissing',
     'running',

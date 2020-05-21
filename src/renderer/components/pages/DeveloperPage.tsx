@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
-import { BackIn, BackOut, GetAllGamesResponseData, GetExecData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, WrappedResponse, TagPrimaryFixResponse, TagPrimaryFixData } from '@shared/back/types';
+import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ExecMapping } from '@shared/interfaces';
@@ -123,6 +123,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.fixCommaTags}
               title={strings.fixCommaTagsDesc}
               onClick={this.onFixCommaTags} />
+            <SimpleButton
+              value={strings.forceGameMetaSync}
+              title={strings.forceGameMetaSyncDesc}
+              onClick={this.onForceGameMetaSync} />
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
@@ -223,6 +227,21 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     });
   }
 
+  onForceGameMetaSync = () : void => {
+    setTimeout(async () => {
+      this.setState({ text: 'Syncing...' });
+      window.Shared.back.sendP<GameMetadataSyncResponse,any>(BackIn.SYNC_GAME_METADATA, undefined).then((res) => {
+        if (res.data) {
+          if (res.data.error) {
+            this.setState({ text: `ERROR: ${res.data.error}` });
+          } else {
+            this.setState({ text: `Requested ${res.data.total} modified games, successfully saved ${res.data.successes}.`});
+          }
+        }
+      });
+    });
+  };
+
   static contextType = LangContext;
 }
 
@@ -280,7 +299,7 @@ function checkGameTitles(games: Game[]): string {
   return text;
 }
 
-type GameKeys = AllowedNames<Game, string>;
+type GameKeys = NonNullable<AllowedNames<Game, string>>;
 type EmptyRegister = { [key in GameKeys]?: Game[] }; // empty[fieldName] = [ game... ]
 function checkGameEmptyFields(games: Game[]): string {
   const timeStart = Date.now(); // Start timing

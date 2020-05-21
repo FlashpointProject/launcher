@@ -1,4 +1,5 @@
 import { Playlist } from '@database/entity/Playlist';
+import { TagCategory } from '@database/entity/TagCategory';
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
@@ -6,7 +7,6 @@ import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { IAppPreferencesData } from './preferences/interfaces';
 import { Theme } from './ThemeFile';
-import { TagCategory } from '@database/entity/TagCategory';
 
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
@@ -122,9 +122,15 @@ export type RecursivePartial<T> = {
 };
 
 /** From T, pick a set of properties whose values are assignable to U. */
-export type PickType<T, U> = {
+export type PickType<T, U> = NonNullable<{
   [P in keyof T]: T[P] extends U ? P : never
-}[keyof T];
+}[keyof T]>;
+
+
+export type TestType = {
+  id: string;
+  test?: string;
+}
 
 /** IPC channels used to relay window events from main to renderer. */
 export enum WindowIPC {

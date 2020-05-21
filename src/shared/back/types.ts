@@ -81,6 +81,8 @@ export enum BackIn {
   UPDATE_CONFIG,
   /** Update any number of preferences. */
   UPDATE_PREFERENCES,
+  /** API */
+  SYNC_GAME_METADATA,
 }
 
 export enum BackOut {
@@ -112,6 +114,7 @@ export enum BackOut {
   DELETE_TAG_CATEGORY,
   TAG_CATEGORIES_CHANGE,
   FIX_TAG_PRIMARY_ALIASES,
+  SYNC_GAME_METADATA,
   QUIT,
 }
 
@@ -540,3 +543,9 @@ export type TagCategoryDeleteResponse = {
 export type TagCategoryByIdData = number;
 
 export type TagCategoryByIdResponse = TagCategory | undefined;
+
+export type GameMetadataSyncResponse = {
+  total: number;
+  successes: number;
+  error?: string;
+}

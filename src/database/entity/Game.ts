@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, Index, ManyToMany, JoinTable } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { AdditionalApp } from './AdditionalApp';
 import { Tag } from './Tag';
 
@@ -15,6 +15,12 @@ export class Game {
   @PrimaryGeneratedColumn('uuid')
   /** ID of the game (unique identifier) */
   id: string;
+
+  @ManyToOne(type => Game)
+  parentGame?: Game;
+
+  @Column({ nullable: true })
+  parentGameId?: string;
 
   @Column({collation: 'NOCASE'})
   @Index('IDX_gameTitle')

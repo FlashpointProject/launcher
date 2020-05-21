@@ -284,13 +284,15 @@ function createPlatform(name: string, library: string, folderPath: string): Game
 }
 
 function createGame(platform: string, library: string): IGameInfo {
+  const id = uuid();
   return {
     library: library,
     orderTitle: '',
     placeholder: false,
     title: '',
     alternateTitles: '',
-    id: uuid(),
+    id: id,
+    parentGameId: id,
     series: '',
     developer: '',
     publisher: '',

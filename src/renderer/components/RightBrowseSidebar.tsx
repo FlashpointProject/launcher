@@ -1,11 +1,14 @@
 import { Game } from '@database/entity/Game';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { BackIn, BackOut, DeleteImageData, ImageChangeData, LaunchAddAppData, SaveImageData, WrappedResponse, TagSuggestion, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagGetOrCreateResponse } from '@shared/back/types';
+import { Tag } from '@database/entity/Tag';
+import { TagCategory } from '@database/entity/TagCategory';
+import { BackIn, BackOut, DeleteImageData, ImageChangeData, LaunchAddAppData, SaveImageData, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagGetOrCreateResponse, TagSuggestion, WrappedResponse } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
 import { GamePropSuggestions, PickType } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
+import { deepCopy } from '@shared/Util';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs';
 import * as React from 'react';
@@ -19,13 +22,10 @@ import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { DropdownInputField } from './DropdownInputField';
 import { GameImageSplit } from './GameImageSplit';
 import { ImagePreview } from './ImagePreview';
-import { InputField, InputElement } from './InputField';
+import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
 import { RightBrowseSidebarAddApp } from './RightBrowseSidebarAddApp';
 import { TagInputField } from './TagInputField';
-import { TagCategory } from '@database/entity/TagCategory';
-import { deepCopy } from '@shared/Util';
-import { Tag } from '@database/entity/Tag';
 
 type OwnProps = {
   /** Currently selected game (if any) */

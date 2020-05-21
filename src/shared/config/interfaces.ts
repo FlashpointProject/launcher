@@ -44,4 +44,6 @@ export type IAppConfigData = {
   imagesPortMax: number;
   /** Metadata Server Host (For Online Sync) */
   metadataServerHost: string;
+  /** Last time the Metadata Server Host was synced with */
+  lastSync: number;
 };

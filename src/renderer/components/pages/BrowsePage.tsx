@@ -620,11 +620,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   /** Create a new game if the "New Game" button was clicked */
   createNewGameIfClicked(prevWasNewGameClicked: boolean, cb: (state: StateCallback1) => void = this.boundSetState): void {
     const { wasNewGameClicked } = this.props;
+    const id = uuid();
     // Create a new game if the "New Game" button is pushed
     if (wasNewGameClicked && !prevWasNewGameClicked) {
       cb({
         currentGame: {
-          id: uuid(),
+          id: id,
+          parentGameId: id,
           title: '',
           alternateTitles: '',
           series: '',

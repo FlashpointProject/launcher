@@ -1,4 +1,5 @@
 import { SERVICES_SOURCE } from '@back/constants';
+import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
@@ -14,7 +15,6 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { uuid } from './uuid';
-import { createTagsFromLegacy } from '@back/importGame';
 
 export function pathExists(filePath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
@@ -198,6 +198,7 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
 export async function createGameFromLegacy(game: Legacy_IGameInfo): Promise<Game> {
   return {
     id: game.id,
+    parentGameId: game.id,
     title: game.title,
     alternateTitles: game.alternateTitles,
     series: game.series,
