@@ -30,7 +30,7 @@ export namespace GameManager {
   export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | undefined> {
     if (id || filter) {
       const gameRepository = getManager().getRepository(Game);
-      const game = await gameRepository.findOne(id);
+      const game = await gameRepository.findOne(id, filter);
       if (game) {
         game.tags.sort((tagA, tagB) => {
           const catIdA = tagA.category ? tagA.category.id : tagA.categoryId;

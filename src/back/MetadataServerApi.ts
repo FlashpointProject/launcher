@@ -3,11 +3,10 @@ import { Tag } from '@database/entity/Tag';
 import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
 import * as axiosImport from 'axios';
-import { version } from '../../package.json';
 import { TagManager } from './game/TagManager';
 
 const { str } = Coerce;
-const userAgentHeader = { 'User-Agent': `Flashpoint Launcher ${version}` };
+const userAgentHeader = { 'User-Agent': 'Flashpoint Launcher 8.0.0' };
 
 export namespace MetadataServerApi {
   const axios = axiosImport.default;

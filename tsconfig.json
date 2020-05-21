@@ -12,7 +12,6 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "resolveJsonModule": true,
     "paths": {
       "@shared/*": [ "./src/shared/*" ],
       "@main/*": [ "./src/main/*" ],

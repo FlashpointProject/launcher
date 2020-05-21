@@ -64,13 +64,17 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
   if (curation.meta.launchCommand) {
-    const existingGame = await GameManager.findGame(undefined, {where: `game.launchCommand = ${curation.meta.launchCommand}`});
+    const existingGame = await GameManager.findGame(undefined, {
+      where: {
+        launchCommand: curation.meta.launchCommand
+      }
+    });
     if (existingGame) {
       // Warn user of possible duplicate
       const response = await opts.openDialog({
         title: 'Possible Duplicate',
         message: 'There is already a game using this launch command. It may be a duplicate.\nContinue importing this curation?\n\n'
-                + `Curation:\n\tTitle: ${curation.meta.title}\n\tPlatform: ${curation.meta.platform}\n\n`
+                + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\n`
                 + `Existing Game:\n\tID: ${existingGame.id}\n\tTitle: ${existingGame.title}\n\tPlatform: ${existingGame.platform}`,
         buttons: ['Yes', 'No']
       });
