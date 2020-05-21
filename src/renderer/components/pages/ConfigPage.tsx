@@ -21,6 +21,8 @@ type OwnProps = {
   themeList: Theme[];
   /** List of available languages. */
   availableLangs: LangFile[];
+  /** List of available server names. */
+  serverNames: string[];
   localeCode: string;
 };
 
@@ -35,10 +37,10 @@ type ConfigPageState = {
   metadataServerHost: string;
   /** If the "use custom title bar" checkbox is checked. */
   useCustomTitlebar: boolean;
-  /** If the "use fiddler" checkbox is checked. */
-  useFiddler: boolean;
   /** Array of native platforms */
   nativePlatforms: string[];
+  /** Current Server */
+  server: string;
 };
 
 export interface ConfigPage {
@@ -63,8 +65,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       metadataServerHost: configData.metadataServerHost,
       useCustomTitlebar: configData.useCustomTitlebar,
-      useFiddler: configData.useFiddler,
-      nativePlatforms: configData.nativePlatforms
+      nativePlatforms: configData.nativePlatforms,
+      server: configData.server
     };
   }
 
@@ -74,6 +76,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const { nativePlatforms } = this.state;
     const autoString = formatString(strings.auto, this.props.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
+    const serverOptions = this.renderServerOptionsMemo(this.props.serverNames);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -146,7 +149,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
               </div>
             </div>
-
           {/* -- Flashpoint -- */}
           <div className='setting'>
             <p className='setting__title'>{strings.flashpointHeader}</p>
@@ -165,33 +167,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
                 <div className='setting__row__bottom'>
                   <p>{strings.flashpointPathDesc}</p>
-                </div>
-              </div>
-              {/* Redirector / Fiddler */}
-              <div className='setting__row'>
-                <div className='setting__row__top'>
-                  <div className='setting__row__title'>
-                    <p>{strings.redirector}</p>
-                  </div>
-                  <div className='setting__row__content setting__row__content--redirector'>
-                    <div>
-                      <input
-                        type='radio'
-                        checked={!this.state.useFiddler}
-                        onChange={this.onRedirectorRedirectorChange} />
-                      <p>{strings.redirector}</p>
-                    </div>
-                    <div>
-                      <input
-                        type='radio'
-                        checked={this.state.useFiddler}
-                        onChange={this.onRedirectorFiddlerChange} />
-                      <p>{strings.redirectorFiddler}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className='setting__row__bottom'>
-                  <p>{strings.redirectorDesc}</p>
                 </div>
               </div>
               {/* Native Platforms */}
@@ -301,6 +276,27 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <p>{strings.showDeveloperTabDesc}</p>
                 </div>
               </div>
+              {/* Server */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.server}</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <select
+                        className='simple-selector'
+                        value={this.state.server}
+                        onChange={this.onServerSelect}>
+                        {serverOptions}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.serverDesc}</p>
+                </div>
+              </div>
               {/* Metadata Server Host */}
               <div className='setting__row'>
                 <div className='setting__row__top'>
@@ -367,6 +363,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     ))
   );
 
+  renderServerOptionsMemo = memoizeOne((serverNames: string[]) =>
+    serverNames.map((name, index) => (
+      <option
+        key={index}
+        value={name}>
+        {name}
+      </option>
+    ))
+  );
+
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
   }
@@ -377,6 +383,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onCurrentLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ currentLanguage: event.target.value });
+  }
+
+  onServerSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    this.setState({ server: event.target.value });
   }
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -393,13 +403,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       nativePlatforms.push(platform);
     }
     this.setState({ nativePlatforms: nativePlatforms });
-  }
-
-  onRedirectorRedirectorChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    this.setState({ useFiddler: !event.target.checked });
-  }
-  onRedirectorFiddlerChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    this.setState({ useFiddler: event.target.checked });
   }
 
   /** When the "FlashPoint Folder Path" input text is changed. */
@@ -451,7 +454,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: this.state.flashpointPath,
       metadataServerHost: this.state.metadataServerHost,
       useCustomTitlebar: this.state.useCustomTitlebar,
-      useFiddler: this.state.useFiddler,
+      server: this.state.server,
     }, () => { window.Shared.restart(); });
   }
 

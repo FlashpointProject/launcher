@@ -39,6 +39,7 @@ export type AppRouterProps = {
   updateView: UpdateView;
   playlistIconCache: Record<string, string>;
   libraries: string[];
+  serverNames: string[];
   localeCode: string;
 
   upgrades: UpgradeStage[];
@@ -107,6 +108,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       availableLangs: this.props.languages,
       platforms: this.props.platformsFlat,
       localeCode: this.props.localeCode,
+      serverNames: this.props.serverNames,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,

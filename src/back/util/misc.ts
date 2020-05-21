@@ -101,16 +101,11 @@ export function exit(state: BackState): void {
 
     if (state.serviceInfo) {
       // Kill services
-      if (state.services.server && state.serviceInfo.server && state.serviceInfo.server.kill) {
-        state.services.server.kill();
-      }
-      if (state.services.redirector) {
-        const doKill: boolean = !!(
-          state.config.useFiddler
-            ? state.serviceInfo.fiddler    && state.serviceInfo.fiddler.kill
-            : state.serviceInfo.redirector && state.serviceInfo.redirector.kill
-        );
-        if (doKill) { state.services.redirector.kill(); }
+      if (state.serviceInfo.server.length > 0) {
+        const server = state.serviceInfo.server.find(i => i.name === state.config.server) || state.serviceInfo.server[0];
+        if (state.services.server && server && server.kill) {
+          state.services.server.kill();
+        }
       }
       // Run stop commands
       for (let i = 0; i < state.serviceInfo.stop.length; i++) {

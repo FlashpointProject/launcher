@@ -82,6 +82,7 @@ export type AppProps = AppOwnProps & RouteComponentProps & WithPreferencesProps 
 export type AppState = {
   views: Record<string, View | undefined>; // views[id] = view
   libraries: string[];
+  serverNames: string[];
   playlists: Playlist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
   suggestions: Partial<GamePropSuggestions>;
@@ -129,6 +130,7 @@ export class App extends React.Component<AppProps, AppState> {
 
     // Prepare libraries
     const libraries = window.Shared.initialLibraries.sort();
+    const serverNames = window.Shared.initialServerNames.sort();
     const views: Record<string, View> = {};
     for (let library of libraries) {
       views[library] = {
@@ -155,6 +157,7 @@ export class App extends React.Component<AppProps, AppState> {
     this.state = {
       views: views,
       libraries: libraries,
+      serverNames: serverNames,
       playlists: window.Shared.initialPlaylists || [],
       playlistIconCache: {},
       suggestions: {},
@@ -559,6 +562,7 @@ export class App extends React.Component<AppProps, AppState> {
       onLaunchGame: this.onLaunchGame,
       onQuickSearch: this.onQuickSearch,
       libraries: this.state.libraries,
+      serverNames: this.state.serverNames,
       localeCode: this.state.localeCode,
       upgrades: this.state.upgrades,
       creditsData: this.state.creditsData,

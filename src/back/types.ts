@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
-import { ExecMapping, IBackProcessInfo } from '@shared/interfaces';
+import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -11,13 +11,13 @@ import { Theme } from '@shared/ThemeFile';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { EventEmitter } from 'events';
 import { Server } from 'http';
+import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
 import { GameManagerState } from './game/types';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { Connection } from 'typeorm';
 
 
 /** Contains most state for the back process. */
@@ -83,9 +83,7 @@ export interface EmitterPart<E extends string | number | Symbol, F extends (...a
 }
 
 export type ServiceFileData = {
-  redirector?: IBackProcessInfo;
-  fiddler?: IBackProcessInfo;
-  server?: IBackProcessInfo;
+  server: INamedBackProcessInfo[];
   /** Processes to run before the launcher starts. */
   start: IBackProcessInfo[];
   /** Processes to run when the launcher closes. */

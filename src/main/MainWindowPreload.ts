@@ -82,6 +82,7 @@ window.Shared = {
   initialThemes: createErrorProxy('initialThemes'),
   initialPlaylists: createErrorProxy('initialPlaylists'),
   initialLibraries: createErrorProxy('initialLibraries'),
+  initialServerNames: createErrorProxy('initialServerNames'),
   initialPlatforms: createErrorProxy('initialPlatforms'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
   initialTagCategories: createErrorProxy('initialTagCategories'),
@@ -126,6 +127,7 @@ const onInit = (async () => {
       window.Shared.initialThemes = response.data.themes;
       window.Shared.initialPlaylists = response.data.playlists;
       window.Shared.initialLibraries = response.data.libraries;
+      window.Shared.initialServerNames = response.data.serverNames;
       window.Shared.initialPlatforms = response.data.platforms;
       window.Shared.initialLocaleCode = response.data.localeCode;
       window.Shared.initialTagCategories = response.data.tagCategories;

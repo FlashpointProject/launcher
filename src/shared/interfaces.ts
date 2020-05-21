@@ -89,6 +89,7 @@ export interface IMainWindowExternal {
   initialThemes: Theme[];
   initialPlaylists?: Playlist[];
   initialLibraries: string[];
+  initialServerNames: string[];
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
   initialTagCategories: TagCategory[];
@@ -143,6 +144,10 @@ export enum WindowIPC {
 }
 
 /** IPC channels used to relay game manager events from  */
+
+export type INamedBackProcessInfo = IBackProcessInfo & {
+  name: string;
+}
 
 export type IBackProcessInfo = {
   /** Path of the file (relative to the Flashpoint root) */

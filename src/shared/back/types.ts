@@ -175,6 +175,7 @@ export type GetRendererInitDataResponse = {
   language: LangContainer;
   themes: Theme[];
   libraries: string[];
+  serverNames: string[];
   platforms: Record<string, string[]>;
   playlists: Playlist[];
   localeCode: string;

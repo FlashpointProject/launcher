@@ -56,7 +56,6 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event, req) => {
     const services: IService[] = [];
     if (state.services.server) { services.push(procToService(state.services.server)); }
-    if (state.services.redirector) { services.push(procToService(state.services.redirector)); }
 
     state.languageContainer = createContainer(
       state.languages,
@@ -66,6 +65,7 @@ export function registerRequestCallbacks(state: BackState): void {
     );
 
     const libraries = await GameManager.findUniqueValues(Game, 'library');
+    const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name) : [];
     let platforms: Record<string, string[]> = {};
     for (let library of libraries) {
       platforms[library] = await GameManager.findPlatforms(library);
@@ -85,6 +85,7 @@ export function registerRequestCallbacks(state: BackState): void {
         themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
         playlists: await GameManager.findPlaylists(),
         libraries: libraries,
+        serverNames: serverNames,
         platforms: platforms,
         localeCode: state.localeCode,
         tagCategories: await TagManager.findTagCategories()
