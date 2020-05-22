@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Game } from './Game';
 import { TagAlias } from './TagAlias';
 import { TagCategory } from './TagCategory';
@@ -8,6 +8,10 @@ export class Tag {
   @PrimaryGeneratedColumn()
   /** ID of the tag (unique identifier) */
   id?: number;
+
+  @UpdateDateColumn()
+  /** Date when this tag was last modified */
+  dateModified: string;
 
   /** ID of Primary Alias */
   @Column({ nullable: true })
