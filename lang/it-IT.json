@@ -366,8 +366,8 @@
     "exportMetaOnly": "Esporta (Solo Meta)",
     "exportMetaAndImages": "Esporta (Meta && immagini)",
     "exportMetaEdit": "Esporta Meta Edit",
-    "duplicatePlaylist": "Duplicate Playlist",
-    "exportPlaylist": "Export Playlist"
+    "duplicatePlaylist": "Duplica playlist",
+    "exportPlaylist": "Esporta Playlist"
   },
   "dialog": {
     "programNotFound": "Programma non trovato!",
@@ -377,8 +377,8 @@
     "fileNotFound": "File non trovato!",
     "flashpointPathInvalid": "Percorso Flashpoint non valido!",
     "pathNotFound": "Percorso non trovato!",
-    "playlistConflict": "Playlist Conflict",
-    "importedPlaylistAlreadyExists": "Imported playlist already exists! - '{0}'",
+    "playlistConflict": "Conflitto Playlist",
+    "importedPlaylistAlreadyExists": "La playlist importata esiste già! - '{0}'",
     "mergeOrStaySeperate": "Should they merge into one, or stay as seperate playlists?",
     "selectFileToExportMeta": "Seleziona il file su cui salvare meta",
     "selectFolderToExportMetaAndImages": "Seleziona la cartella in cui salvare meta e immagini",
