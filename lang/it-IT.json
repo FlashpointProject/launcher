@@ -263,10 +263,10 @@
     "setPrimaryAlias": "Imposta Alias Primario",
     "mergeIntoTag": "Unisci all'Etichetta",
     "mergeTag": "Unisci Etichetta",
-    "makeAliasWhenMerged": "Make this an alias of the tag?",
-    "deleteTag": "Delete Tag",
-    "deleteTagCategory": "Delete Tag Category",
-    "locked": "Locked while processing..."
+    "makeAliasWhenMerged": "Fare di questo un alias del'etichetta?",
+    "deleteTag": "Elimina etichetta",
+    "deleteTagCategory": "Elimina Categoria Etichetta",
+    "locked": "Bloccato durante l'elaborazione..."
   },
   "curate": {
     "importAll": "Importa Tutti",
@@ -329,13 +329,13 @@
     "saveDesc": "Salva le modifiche apportate e interrompi la modifica",
     "discard": "Annulla",
     "discardDesc": "Annulla le modifiche apportate e interrompe la modifica",
-    "edit": "Edit",
-    "editDesc": "Edit this playlist",
+    "edit": "Modifica",
+    "editDesc": "Modifica questa playlist",
     "delete": "Elimina",
     "deleteDesc": "Elimina questa playlist",
-    "changeIcon": "Change Playlist Icon",
-    "duplicatePlaylistDesc": "Duplicate Playlist",
-    "exportPlaylistDesc": "Export playlist to a file",
+    "changeIcon": "Cambia L'Icona Della Playlist",
+    "duplicatePlaylistDesc": "Duplica playlist",
+    "exportPlaylistDesc": "Esporta scaletta in un file",
     "areYouSure": "Sei sicuro?",
     "noTitle": "Nessun titolo",
     "titlePlaceholder": "Titolo...",
@@ -354,8 +354,8 @@
     "extracting": "Estrazione",
     "installingFiles": "Installazione File...",
     "complete": "Complete",
-    "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditTitle": "Esporta Meta Edit",
+    "exportMetaEditDesc": "Seleziona tutte le proprietà da esportare:"
   },
   "menu": {
     "viewThumbnailInFolder": "Visualizza Anteprima nella cartella",
@@ -365,7 +365,7 @@
     "duplicateMetaAndImages": "Duplica (Meta & Immagini)",
     "exportMetaOnly": "Esporta (Solo Meta)",
     "exportMetaAndImages": "Esporta (Meta && immagini)",
-    "exportMetaEdit": "Export Meta Edit",
+    "exportMetaEdit": "Esporta Meta Edit",
     "duplicatePlaylist": "Duplicate Playlist",
     "exportPlaylist": "Export Playlist"
   },
