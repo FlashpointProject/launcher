@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageKeyset, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageKeyset, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { parseSearchText } from '@shared/game/GameFilter';
@@ -24,6 +24,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import * as which from 'which';
 import { GameOrderChangeEvent } from './components/GameOrder';
+import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
 import { SplashScreen } from './components/SplashScreen';
 import { TitleBar } from './components/TitleBar';
 import { ConnectedFooter } from './containers/ConnectedFooter';
@@ -116,6 +117,10 @@ export type AppState = {
   langList: LangFile[];
   /** Info of the update, if one was found */
   updateInfo: UpdateInfo | undefined;
+  /** If the "Meta Edit Popup" is open. */
+  metaEditExporterOpen: boolean;
+  /** ID of the game used in the "Meta Edit Popup". */
+  metaEditExporterGameId: string;
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -183,6 +188,8 @@ export class App extends React.Component<AppProps, AppState> {
       wasNewGameClicked: false,
       updateInfo: undefined,
       order,
+      metaEditExporterOpen: false,
+      metaEditExporterGameId: '',
     };
 
     // Initialize app
@@ -561,6 +568,7 @@ export class App extends React.Component<AppProps, AppState> {
       onDeleteGame: this.onDeleteGame,
       onLaunchGame: this.onLaunchGame,
       onQuickSearch: this.onQuickSearch,
+      onOpenExportMetaEdit: this.onOpenExportMetaEdit,
       libraries: this.state.libraries,
       serverNames: this.state.serverNames,
       localeCode: this.state.localeCode,
@@ -626,6 +634,13 @@ export class App extends React.Component<AppProps, AppState> {
                   onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.state.gameScale}
                   onLayoutChange={this.onLayoutSelectorChange} layout={this.state.gameLayout}
                   onNewGameClick={this.onNewGameClick} />
+                {/* Meta Edit Popup */}
+                { this.state.metaEditExporterOpen ? (
+                  <MetaEditExporter
+                    gameId={this.state.metaEditExporterGameId}
+                    onCancel={this.onCancelExportMetaEdit}
+                    onConfirm={this.onConfirmExportMetaEdit} />
+                ) : undefined }
               </>
             ) : undefined }
           </>
@@ -1036,6 +1051,25 @@ export class App extends React.Component<AppProps, AppState> {
         },
       }, () => { this.requestGames(library); });
     }
+  }
+
+  onOpenExportMetaEdit = (gameId: string): void => {
+    this.setState({
+      metaEditExporterOpen: true,
+      metaEditExporterGameId: gameId,
+    });
+  }
+
+  onCancelExportMetaEdit = (): void => {
+    this.setState({ metaEditExporterOpen: false });
+  }
+
+  onConfirmExportMetaEdit = (data: MetaEditExporterConfirmData): void => {
+    this.setState({ metaEditExporterOpen: false });
+    window.Shared.back.sendP<any, ExportMetaEditData>(BackIn.EXPORT_META_EDIT, {
+      id: data.id,
+      properties: data.properties,
+    });
   }
 }
 

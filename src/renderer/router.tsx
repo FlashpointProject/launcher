@@ -36,6 +36,7 @@ export type AppRouterProps = {
   onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;
+  onOpenExportMetaEdit: (gameId: string) => void;
   updateView: UpdateView;
   playlistIconCache: Record<string, string>;
   libraries: string[];
@@ -85,6 +86,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSaveGame: this.props.onSaveGame,
       onDeleteGame: this.props.onDeleteGame,
       onQuickSearch: this.props.onQuickSearch,
+      onOpenExportMetaEdit: this.props.onOpenExportMetaEdit,
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,

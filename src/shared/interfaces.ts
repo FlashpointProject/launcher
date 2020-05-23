@@ -1,3 +1,4 @@
+import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { OpenDialogOptions } from 'electron';
@@ -216,4 +217,43 @@ export type SuggestionProps = (
 /** Suggestions for game properties organized by property. */
 export type GamePropSuggestions = {
   [P in SuggestionProps]: string[];
+}
+
+/** Game properties that can be partially exported/imported. */
+type MetaEditProperties = (
+  | 'title'
+  | 'alternateTitles'
+  | 'series'
+  | 'developer'
+  | 'publisher'
+  | 'dateAdded'
+  | 'dateModified'
+  | 'tags'
+  | 'platform'
+  | 'broken'
+  | 'extreme'
+  | 'playMode'
+  | 'status'
+  | 'notes'
+  | 'source'
+  | 'applicationPath'
+  | 'launchCommand'
+  | 'releaseDate'
+  | 'version'
+  | 'originalDescription'
+  | 'language'
+  | 'library'
+)
+
+/** Flags of which game properties to export. */
+export type MetaEditFlags = {
+  [key in MetaEditProperties]: boolean;
+}
+
+/** Partial game meta that has been exported and can be imported. */
+export type MetaEdit = {
+  [key in MetaEditProperties]?: key extends 'tags' ? string[] : Game[key];
+} & {
+  id: string;
+  parentGameId: string | undefined;
 }

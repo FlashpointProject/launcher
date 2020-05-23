@@ -138,6 +138,8 @@
     "importLegacyPlatformsDesc": "Imports Legacy Platforms from `Data/Platforms/` - WARNING: Will overwrite conflicting games",
     "importLegacyPlaylists": "Import Legacy Playlists",
     "importLegacyPlaylistsDesc": "Imports Legacy Playlists from `/Data/Playlists`",
+    "importMetaEdits": "Import Meta Edits",
+    "importMetaEditsDesc": "Imports ALL Meta Edits from `/Data/MetaEdits`",
     "servicesHeader": "Background Services",
     "servicesMissing": "There are no services.",
     "running": "Running",
@@ -351,7 +353,9 @@
     "downloading": "Downloading",
     "extracting": "Extracting",
     "installingFiles": "Installing Files...",
-    "complete": "Complete"
+    "complete": "Complete",
+    "exportMetaEditTitle": "Export Meta Edit",
+    "exportMetaEditDesc": "Select all properties to export:"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
@@ -361,6 +365,7 @@
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
     "exportMetaOnly": "Export (Meta Only)",
     "exportMetaAndImages": "Export (Meta && Images)",
+    "exportMetaEdit": "Export Meta Edit",
     "duplicatePlaylist": "Duplicate Playlist",
     "exportPlaylist": "Export Playlist"
   },

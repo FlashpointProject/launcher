@@ -151,6 +151,8 @@ const langTemplate = {
     'fixCommaTagsDesc',
     'forceGameMetaSync',
     'forceGameMetaSyncDesc',
+    'importMetaEdits',
+    'importMetaEditsDesc',
     'servicesHeader',
     'servicesMissing',
     'running',
@@ -369,6 +371,8 @@ const langTemplate = {
     'extracting',
     'installingFiles',
     'complete',
+    'exportMetaEditTitle',
+    'exportMetaEditDesc',
   ] as const,
   menu: [
     'viewThumbnailInFolder',
@@ -378,6 +382,7 @@ const langTemplate = {
     'duplicateMetaAndImages',
     'exportMetaOnly',
     'exportMetaAndImages',
+    'exportMetaEdit',
     'duplicatePlaylist',
     'exportPlaylist'
   ] as const,

@@ -14,6 +14,8 @@ export type IAppConfigData = {
   platformFolderPath: string;
   /** Path to the theme folder (relative to the flashpoint path) */
   themeFolderPath: string;
+  /** Path of the meta edits folder (relative to the flashpoint path) */
+  metaEditsFolderPath: string;
   /** If the custom title bar should be used in MainWindow */
   useCustomTitlebar: boolean;
   /**

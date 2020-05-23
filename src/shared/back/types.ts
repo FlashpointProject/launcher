@@ -4,6 +4,7 @@ import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { FilterGameOpts } from '@shared/game/GameFilter';
+import { MetaEdit, MetaEditFlags } from '@shared/interfaces';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
@@ -83,6 +84,9 @@ export enum BackIn {
   UPDATE_PREFERENCES,
   /** API */
   SYNC_GAME_METADATA,
+  // Meta edits
+  EXPORT_META_EDIT,
+  IMPORT_META_EDITS,
 }
 
 export enum BackOut {
@@ -549,4 +553,22 @@ export type GameMetadataSyncResponse = {
   total: number;
   successes: number;
   error?: string;
+}
+
+export type ExportMetaEditData = {
+  /** ID of the game to export meta from. */
+  id: string;
+  /** Properties to export. */
+  properties: MetaEditFlags;
+}
+
+export type ImportMetaEditResponseData = {
+  errors: Error[];
+  results: ImportMetaEditResult[];
+}
+
+export type ImportMetaEditResult = {
+  filename: string;
+  success: boolean;
+  meta?: MetaEdit;
 }

@@ -280,6 +280,19 @@ body {
 }
 
 
+/* ------ Meta Edit Exporter ------ */
+.meta-edit-exporter {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.meta-edit-exporter__inner {
+  border-radius: 0.25rem;
+  background-color: var(--layout__quaternary-background);
+}
+.meta-edit-exporter__row:hover {
+  background-color: var(--layout__secondary-background);
+}
+
+
 /* ------ Main Layout ------ */
 .root {
   background-color: var(--layout__tertiary-background);

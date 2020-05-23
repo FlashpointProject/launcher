@@ -38,6 +38,7 @@ type OwnProps = {
   onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => void;
   onDeleteGame: (gameId: string) => void;
   onQuickSearch: (search: string) => void;
+  onOpenExportMetaEdit: (gameId: string) => void;
   updateView: UpdateView;
 
   /** Most recent search query. */
@@ -416,6 +417,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             if (filePaths && filePaths.length > 0) {
               window.Shared.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePaths[0], metaOnly: false });
             }
+          },
+        }, {  type: 'separator' }, {
+          /* Export Partial Meta */
+          label: strings.menu.exportMetaEdit, // ("&&" will be shown as "&")
+          enabled: !window.Shared.isBackRemote, // (Local "back" only)
+          click: () => {
+            this.props.onOpenExportMetaEdit(gameId);
           },
         }])
       );

@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
-import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportMetaEditResponseData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ExecMapping } from '@shared/interfaces';
@@ -127,6 +127,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.forceGameMetaSync}
               title={strings.forceGameMetaSyncDesc}
               onClick={this.onForceGameMetaSync} />
+            <SimpleButton
+              value={strings.importMetaEdits}
+              title={strings.importMetaEditsDesc}
+              onClick={this.onImportMetaEdits} />
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
@@ -238,6 +242,32 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
             this.setState({ text: `Requested ${res.data.total} modified games, successfully saved ${res.data.successes}.`});
           }
         }
+      });
+    });
+  };
+
+  onImportMetaEdits = (): void => {
+    setTimeout(async () => {
+      this.setState({ text: 'Importing meta edits...' });
+      window.Shared.back.sendP<ImportMetaEditResponseData, undefined>(BackIn.IMPORT_META_EDITS, undefined).then((res) => {
+        let text = 'Meta edits imported!\n\n';
+        if (res.data) {
+          text += `Results (${res.data.results.length}):\n`;
+          for (const result of res.data.results) {
+            const meta = result.meta
+              ? JSON.stringify(result.meta, undefined, 2).replace(/\n/g, '\n    ')
+              : 'nope';
+            text += `  "${result.filename}"\n` + 
+                    `    Success: ${result.success}\n` +
+                    `    Meta: ${meta}\n`;
+          }
+
+          text += `\nErrors (${res.data.errors.length}):\n`;
+          for (const error of res.data.errors) {
+            text += `  ${error}\n`;
+          }
+        }
+        this.setState({ text });
       });
     });
   };
@@ -577,6 +607,7 @@ async function createMissingFolders(): Promise<string> {
           SCREENSHOTS
         ],
         [LOGOS]: [],
+        'MetaEdits': [],
         'Platforms': [],
         'Playlists': [],
         'Themes': [],

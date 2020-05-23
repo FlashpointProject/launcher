@@ -362,6 +362,46 @@ body {
 }
 
 
+/* ------ Meta Edit Exporter ------ */
+.meta-edit-exporter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+}
+.meta-edit-exporter * {
+  user-select: none;
+}
+.meta-edit-exporter__outer {
+  width: 100%;
+  height: 100%;
+}
+.meta-edit-exporter__inner {
+  width: fit-content;
+  margin: auto;
+  padding: 1rem;
+  overflow: auto;
+}
+.meta-edit-exporter__title {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+.meta-edit-exporter__rows {
+  width: fit-content;
+  margin: 0.5rem auto;
+  text-align: left;
+}
+.meta-edit-exporter__row-checkbox {
+  margin-right: 0.45rem;
+  vertical-align: middle;
+}
+.meta-edit-exporter__row-title {
+  display: inline;
+}
+
+
 /* ------ Main Layout ------ */
 .root {
   display: flex;
@@ -2129,3 +2169,4 @@ body {
   bottom: 2rem;
   right: 0.5rem;
 }
+
