@@ -206,7 +206,7 @@
     "additionalApplications": "További applikációk",
     "noName": "Nincs név",
     "launch": "Indítás",
-    "autoRunBefore": "Automatikus futtatás mielőtt",
+    "autoRunBefore": "Automatikus futtatás előtte",
     "waitForExit": "Bezárásra várakozás",
     "applicationPath": "Applikációs útvonal",
     "noApplicationPath": "Nincs applikációs útvonal",
