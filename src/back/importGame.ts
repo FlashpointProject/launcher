@@ -452,7 +452,7 @@ export async function createTagsFromLegacy(tags: string): Promise<Tag[]> {
   for (let t of tags.split(';')) {
     const trimTag = t.trim();
     let tag = await TagManager.findTag(trimTag);
-    if (!tag && trimTag != '') {
+    if (!tag && trimTag !== '') {
       // Tag doesn't exist, make a new one
       tag = await TagManager.createTag(trimTag);
     }

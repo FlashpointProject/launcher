@@ -80,7 +80,7 @@ export function CurateBox(props: CurateBoxProps) {
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = tagSuggestions;
 
-    if (newTag != '') {
+    if (newTag !== '') {
       // Delayed set
       window.Shared.back.send<TagSuggestionsResponse, TagSuggestionsData>(BackIn.GET_TAG_SUGGESTIONS, newTag, (res) => {
         if (res.data) {
@@ -96,7 +96,6 @@ export function CurateBox(props: CurateBoxProps) {
   }, [tagSuggestions]);
 
   const onAddTagSuggestion = useCallback((suggestion: TagSuggestion) => {
-    console.log(suggestion);
     if (suggestion.tag.id) {
       window.Shared.back.send<TagByIdResponse, TagByIdData>(BackIn.GET_TAG_BY_ID, suggestion.tag.id, (res) => {
         const tag = res.data;
@@ -109,7 +108,7 @@ export function CurateBox(props: CurateBoxProps) {
               payload: {
                 key: curation.key,
                 property: 'tags',
-                value: [...oldTags, ...[tag]]
+                value: [...oldTags, tag]
               }
             });
           }
@@ -122,7 +121,7 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation]);
 
   const onAddTagByString = useCallback((text: string): void => {
-    if (text != '') {
+    if (text !== '') {
       window.Shared.back.send<TagGetOrCreateResponse, TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, { tag: text }, (res) => {
         const tag = res.data;
         if (tag) {
@@ -133,7 +132,7 @@ export function CurateBox(props: CurateBoxProps) {
               payload: {
                 key: curation.key,
                 property: 'tags',
-                value: [...curation.meta.tags, ...[tag]]
+                value: [...curation.meta.tags, tag]
               }
             });
           }
@@ -161,7 +160,7 @@ export function CurateBox(props: CurateBoxProps) {
             value: newTags
           }
         });
-      } 
+      }
     }
   }, [props.curation]);
   // Callbacks for the fields (onChange)
@@ -683,7 +682,7 @@ export function CurateBox(props: CurateBoxProps) {
               placeholder={strings.browse.enterTag}
               text={tagInputText}
               editable={editable}
-              tags={props.curation ? (props.curation.meta.tags ? props.curation.meta.tags : []) : []}
+              tags={props.curation && props.curation.meta.tags || []}
               categories={props.tagCategories}
               suggestions={tagSuggestions}
               onChange={onCurrentTagChange}

@@ -659,7 +659,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = this.state.tagSuggestions;
 
-    if (newTag != '') {
+    if (newTag !== '') {
       // Delayed set
       window.Shared.back.send<any, any>(BackIn.GET_TAG_SUGGESTIONS, newTag, (res) => {
         if (res.data) {
@@ -827,7 +827,6 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onAddTagSuggestion = (suggestion: TagSuggestion): void => {
-    console.log(suggestion);
     if (suggestion.tag.id) {
       window.Shared.back.send<TagByIdResponse, TagByIdData>(BackIn.GET_TAG_BY_ID, suggestion.tag.id, (res) => {
         const tag = res.data;
@@ -835,7 +834,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
           const game = this.props.currentGame;
           // Ignore dupe tags
           if (game && game.tags.findIndex(t => t.id == tag.id) == -1) {
-            this.props.onEditGame({ tags: [...game.tags, ...[tag]] });
+            this.props.onEditGame({ tags: [...game.tags, tag] });
             console.log('ADDED TAG ' + tag.id);
           }
         }
@@ -849,14 +848,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onAddTagByString = (text: string): void => {
-    if (text != '') {
+    if (text !== '') {
       window.Shared.back.send<TagGetOrCreateResponse, TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, { tag: text }, (res) => {
         const tag = res.data;
         if (tag) {
           const game = this.props.currentGame;
           // Ignore dupe tags
           if (game && game.tags.findIndex(t => t.id == tag.id) == -1) {
-            this.props.onEditGame({ tags: [...game.tags, ...[tag]] });
+            this.props.onEditGame({ tags: [...game.tags, tag] });
             console.log('ADDED TAG ' + tag.id);
           }
         }
