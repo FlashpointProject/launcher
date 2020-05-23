@@ -208,9 +208,6 @@ export function main(init: Init): void {
   }
 
   function onAppReady(): void {
-    if (!session.defaultSession) {
-      throw new Error('Default session is missing!');
-    }
     // Send locale code (if it has no been sent already)
     if (process.platform === 'win32' && !state._sentLocaleCode) {
       const didSend = state.socket.send<any, SetLocaleData>(BackIn.SET_LOCALE, app.getLocale().toLowerCase());
@@ -226,37 +223,35 @@ export function main(init: Init): void {
       proxyRules: '',
       proxyBypassRules: '',
     });
-    // Stop non-local resources from being fetched (as long as their response has at least one header?)
-    // Only allow local scripts to execute (Not sure what this allows? "file://"? "localhost"?)
-    // Method doc at https://github.com/electron/electron/blob/master/docs/api/web-request.md#webrequestonheadersreceivedfilter-listener
+    // Stop non-local resources from being fetched
     // CSP HTTP Header example at https://www.electronjs.org/docs/tutorial/security#csp-http-header
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       let url: URL | undefined;
       try { url = new URL(details.url); }
       catch (e) { /* Do nothing. */ }
-      // Don't accept any connections other than to the back
+
+      // Only accept connections to:
+      // * Local files ("file:///")
+      // * The back server(s)
+      // * DevTools (I have no idea if this is safe or not, but DevTools won't work without it)
       const remoteHostname = state.backHost.hostname;
-      if (url && (
-          url.hostname === remoteHostname ||
-        ((url.hostname   === 'localhost' || url.hostname   === '127.0.0.1') && // Treat "localhost" and "127.0.0.1" as the same hostname
-        (remoteHostname === 'localhost' || remoteHostname === '127.0.0.1')))) {
-        callback({
-          ...details,
-          responseHeaders: {
-            ...details.responseHeaders,
-            'Content-Security-Policy': ["script-src 'self'"]
-          },
-        });
-      } else {
-        callback({
-          ...details,
-          responseHeaders: {
-            ...details.responseHeaders,
-            'Content-Security-Policy': ["script-src 'self'"]
-          },
-          cancel: true
-        });
-      }
+      const allow = (
+        url && (
+          (url.protocol === 'file:') ||
+          (url.protocol === 'devtools:') ||
+          (
+            url.hostname === remoteHostname ||
+            // Treat "localhost" and "127.0.0.1" as the same hostname
+            ((url.hostname   === 'localhost' || url.hostname   === '127.0.0.1') &&
+            (remoteHostname === 'localhost' || remoteHostname === '127.0.0.1'))
+          )
+        )
+      );
+
+      callback({
+        ...details,
+        cancel: !allow,
+      });
     });
   }
 
