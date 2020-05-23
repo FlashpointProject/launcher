@@ -1,9 +1,9 @@
+import { AddLogData, BackIn } from '@shared/back/types';
 import { ConnectedRouter } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { AddLogData, BackIn } from '@shared/back/types';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
@@ -15,12 +15,12 @@ import { ProgressContext } from './context/ProgressContext';
   // Toggle DevTools when CTRL+SHIFT+I is pressed
   window.addEventListener('keypress', (event) => {
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyI') {
-      window.External.toggleDevtools();
+      window.Shared.toggleDevtools();
       event.preventDefault();
     }
   });
   // Wait for the preferences and config to initialize
-  await window.External.waitUntilInitialized();
+  await window.Shared.waitUntilInitialized();
   // Create history
   const history = createMemoryHistory();
   // Create Redux store
@@ -44,7 +44,7 @@ import { ProgressContext } from './context/ProgressContext';
 })();
 
 function log(content: string): void {
-  window.External.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
     source: 'Launcher',
     content: content,
   });

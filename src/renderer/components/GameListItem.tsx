@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { ListRowProps } from 'react-virtualized';
 import { getPlatformIconURL } from '../Util';
+import { Tag } from '@database/entity/Tag';
 
 export type GameListItemProps = ListRowProps & {
   id: string;
   title: string;
   platform: string;
-  tags: string;
+  tags: Tag[];
   developer: string;
   publisher: string;
   /** If the row can be dragged (defaults to false). */
@@ -18,7 +19,7 @@ export type GameListItemProps = ListRowProps & {
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, tags: tags, developer, publisher, isDraggable, isSelected, isDragged, index, style } = props;
+  const { id, title, platform, tags, developer, publisher, isDraggable, isSelected, isDragged, index, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
     getPlatformIconURL(platform)
@@ -52,11 +53,13 @@ export function GameListItem(props: GameListItemProps) {
             title={title}>
             {title}
           </div>
-          <div
-            className='game-list-item__field game-list-item__field--tags'
-            title={tags}>
-            {tags}
-          </div>
+          { tags.forEach(t => (
+            <div
+              className='game-list-item__field game-list-item__field--tags'
+              title={t.aliases[0].name}>
+              {t.aliases[0].name}
+            </div>
+          ))}
           <div
             className='game-list-item__field game-list-item__field--developer'
             title={developer}>

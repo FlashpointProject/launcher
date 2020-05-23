@@ -56,7 +56,7 @@ export class Footer extends React.Component<FooterProps> {
           {/* Game Count */}
           <div className='footer__game-count'>
             <p>{`${strings.total}: ${totalCount}`}</p>
-            { currentLabel ? (
+            { currentLabel && strings.searchResults ? (
               <>
                 <p>|</p>
                 <p>{`${strings.searchResults}: ${currentCount}`}</p>

@@ -8,12 +8,18 @@ export interface EventQueue {
 
 /** Executes a queue of asynchronous functions, one at a time. */
 export class EventQueue {
+  /** Max size of queue (Unlimited if undefined) */
+  private maxSize?: number;
   /** Queue of functions. */
   private queue: EventFunction[] = [];
   /** If this is currently executing an event (flag). */
   private isExecuting: boolean = false;
   /** Called whenever an error occurs. */
   public onError: (error: any) => void = noop;
+
+  constructor(maxSize?: number) {
+    this.maxSize = maxSize;
+  }
 
   /**
    * Add en event to the end of the queue.
@@ -25,6 +31,10 @@ export class EventQueue {
   push(event: EventFunction, returnPromise?: boolean): Promise<void> | void {
     // Wrap the event, and create a promise, if a promise should be returned
     const [wrappedEvent, promise] = returnPromise ? wrapEvent(event) : [undefined, undefined];
+    // Push end off early if max size is reached
+    if (this.queue.length === this.maxSize) {
+      this.queue.shift();
+    }
     // Add event to the end of the queue
     this.queue.push(wrappedEvent || event);
     this.update();

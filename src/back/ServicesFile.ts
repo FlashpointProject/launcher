@@ -1,8 +1,8 @@
-import * as path from 'path';
-import { IBackProcessInfo } from '@shared/interfaces';
+import { IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { parseVarStr, readJsonFile } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
+import * as path from 'path';
 
 const { str } = Coerce;
 
@@ -27,9 +27,7 @@ export namespace ServicesFile {
 
   function parseServiceFileData(data: any, onError?: (error: string) => void): ServiceFileData {
     let parsed: ServiceFileData = {
-      redirector: undefined,
-      fiddler: undefined,
-      server: undefined,
+      server: [],
       start: [],
       stop: [],
     };
@@ -37,11 +35,21 @@ export namespace ServicesFile {
       input: data,
       onError: onError && (e => { onError(`Error while parsing Services: ${e.toString()}`); })
     });
-    parsed.fiddler    = parseBackProcessInfo(parser.prop('fiddler', true));
-    parsed.redirector = parseBackProcessInfo(parser.prop('redirector', true));
-    parsed.server     = parseBackProcessInfo(parser.prop('server', true));
-    parser.prop('start', true).array(item => parsed.start.push(parseBackProcessInfo(item)));
-    parser.prop('stop', true).array(item  => parsed.stop.push(parseBackProcessInfo(item)));
+    parser.prop('server').array(item => parsed.server.push(parseNamedBackProcessInfo(item)));
+    parser.prop('start').array(item => parsed.start.push(parseBackProcessInfo(item)));
+    parser.prop('stop').array(item  => parsed.stop.push(parseBackProcessInfo(item)));
+    parsed.server.sort((a, b) => (a.name > b.name) ? 1 : -1);
+    return parsed;
+  }
+
+  function parseNamedBackProcessInfo(parser: IObjectParserProp<any>): INamedBackProcessInfo {
+    const backProcessInfo = parseBackProcessInfo(parser);
+    const parsed: INamedBackProcessInfo = {
+      ...backProcessInfo,
+      name: ''
+    };
+
+    parser.prop('name', v => parsed.name = str(v));
     return parsed;
   }
 
@@ -61,9 +69,7 @@ export namespace ServicesFile {
 }
 
 export type ServiceFileData = {
-  redirector?: IBackProcessInfo;
-  fiddler?: IBackProcessInfo;
-  server?: IBackProcessInfo;
+  server: INamedBackProcessInfo[];
   /** Processes to run before the launcher starts. */
   start: IBackProcessInfo[];
   /** Processes to run when the launcher closes. */

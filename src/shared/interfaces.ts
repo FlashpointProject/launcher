@@ -1,3 +1,6 @@
+import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
+import { TagCategory } from '@database/entity/TagCategory';
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
@@ -85,9 +88,12 @@ export interface IMainWindowExternal {
   initialLang: LangContainer;
   initialLangList: LangFile[];
   initialThemes: Theme[];
-  initialPlaylists?: GamePlaylist[];
+  initialPlaylists?: Playlist[];
+  initialLibraries: string[];
+  initialServerNames: string[];
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
+  initialTagCategories: TagCategory[];
 
   /**
    * Wait for the preload to initialize.
@@ -118,9 +124,15 @@ export type RecursivePartial<T> = {
 };
 
 /** From T, pick a set of properties whose values are assignable to U. */
-export type PickType<T, U> = {
+export type PickType<T, U> = NonNullable<{
   [P in keyof T]: T[P] extends U ? P : never
-}[keyof T];
+}[keyof T]>;
+
+
+export type TestType = {
+  id: string;
+  test?: string;
+}
 
 /** IPC channels used to relay window events from main to renderer. */
 export enum WindowIPC {
@@ -133,6 +145,10 @@ export enum WindowIPC {
 }
 
 /** IPC channels used to relay game manager events from  */
+
+export type INamedBackProcessInfo = IBackProcessInfo & {
+  name: string;
+}
 
 export type IBackProcessInfo = {
   /** Path of the file (relative to the Flashpoint root) */
@@ -178,35 +194,6 @@ export type IService = {
   info: IBackProcessInfo;
 }
 
-export type GamePlaylist = GamePlaylistContent & {
-  /** Filename of the playlist (unique for each playlist). */
-  filename: string;
-}
-
-/** Data contained inside a Playlist file. */
-export type GamePlaylistContent = {
-  /** Game entries in the playlist. */
-  games: GamePlaylistEntry[];
-  /** Title of the playlist. */
-  title: string;
-  /** Description of the playlist. */
-  description: string;
-  /** Author of the playlist. */
-  author: string;
-  /** Icon of the playlist (Base64 encoded image). */
-  icon?: string;
-  /** Route of the library this playlist is for. */
-  library?: string;
-}
-
-/** An entry inside a Playlist file. */
-export type GamePlaylistEntry = {
-  /* GameID of game. */
-  id: string;
-  /* Optional notes related to the game (probably about why the game is in the playlist). */
-  notes?: string;
-}
-
 export type ExecMapping = {
   /** Windows path */
   win32: string;
@@ -227,16 +214,46 @@ export type SuggestionProps = (
   | 'library'
 )
 
-/** Temporarily used to store the suggestions for performance reasons. */
-export type GamePropSuggestionsMap = {
-  /** A map of suggestions for a single game property. */
-  [P in SuggestionProps]: {
-    /** The key is the suggestion value. */
-    [key: string]: true; // (Some arbitrary true-y value, it is only used to confirm that the key exists)
-  }
-}
-
 /** Suggestions for game properties organized by property. */
 export type GamePropSuggestions = {
   [P in SuggestionProps]: string[];
+}
+
+/** Game properties that can be partially exported/imported. */
+type MetaEditProperties = (
+  | 'title'
+  | 'alternateTitles'
+  | 'series'
+  | 'developer'
+  | 'publisher'
+  | 'dateAdded'
+  | 'dateModified'
+  | 'tags'
+  | 'platform'
+  | 'broken'
+  | 'extreme'
+  | 'playMode'
+  | 'status'
+  | 'notes'
+  | 'source'
+  | 'applicationPath'
+  | 'launchCommand'
+  | 'releaseDate'
+  | 'version'
+  | 'originalDescription'
+  | 'language'
+  | 'library'
+)
+
+/** Flags of which game properties to export. */
+export type MetaEditFlags = {
+  [key in MetaEditProperties]: boolean;
+}
+
+/** Partial game meta that has been exported and can be imported. */
+export type MetaEdit = {
+  [key in MetaEditProperties]?: key extends 'tags' ? string[] : Game[key];
+} & {
+  id: string;
+  parentGameId: string | undefined;
 }

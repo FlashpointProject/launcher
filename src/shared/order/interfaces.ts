@@ -1,5 +1,7 @@
+import { Game } from '@database/entity/Game';
+
 /** Properties to order games by */
-export type GameOrderBy = 'dateAdded'|'tags'|'platform'|'series'|'title'|'developer'|'publisher';
+export type GameOrderBy = keyof Game;
 
 /** Ways to order games */
-export type GameOrderReverse = 'ascending'|'descending';
+export type GameOrderReverse = 'ASC'|'DESC';

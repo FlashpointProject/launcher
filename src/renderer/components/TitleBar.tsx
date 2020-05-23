@@ -14,13 +14,13 @@ export function TitleBar(props: TitleBarProps) {
         <div className='title-bar__button-bar'>
           <div
             className='title-bar__button-bar__min'
-            onClick={window.External.minimize} />
+            onClick={window.Shared.minimize} />
           <div
             className='title-bar__button-bar__max'
-            onClick={window.External.maximize} />
+            onClick={window.Shared.maximize} />
           <div
             className='title-bar__button-bar__cross'
-            onClick={window.External.close} />
+            onClick={window.Shared.close} />
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { parseVariableString } from './utils/VariableString';
 
 export function getFileServerURL() {
-  return `http://${window.External.backUrl.hostname}:${window.External.fileServerPort}`;
+  return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
 }
 
 type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | undefined | null;

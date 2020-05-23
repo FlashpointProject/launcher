@@ -1,8 +1,8 @@
+import { CurationIndexImage, IndexedContent } from '@shared/curate/types';
+import { recursiveFolderIndex } from '@shared/curate/util';
 import * as fs from 'fs-extra';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
-import { CurationIndexImage, IndexedContent } from '@shared/curate/types';
-import { recursiveFolderIndex } from '@shared/curate/util';
 import { ProgressDispatch, ProgressHandle } from '../context/ProgressContext';
 import { pathTo7z } from '../util/SevenZip';
 import { uuid } from '../util/uuid';
@@ -14,7 +14,7 @@ import { curationLog } from './util';
  * @return Curation key
  */
 export async function importCurationMeta(filePath: string, key: string = uuid()): Promise<string> {
-  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
   const metaPath = path.join(curationPath, 'meta' + path.extname(filePath));
   try {
     await fs.ensureDir(curationPath);
@@ -33,7 +33,7 @@ export async function importCurationMeta(filePath: string, key: string = uuid())
  */
 export async function importCurationFolder(filePath: string, key: string = uuid(), progress: ProgressHandle): Promise<string> {
   ProgressDispatch.setText(progress, 'Importing Curation Folder');
-  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
   try {
     // Index the folder we're going to import
     const index: IndexedContent[] = [];
@@ -64,7 +64,7 @@ export async function importCurationFolder(filePath: string, key: string = uuid(
  */
 export async function importCurationArchive(filePath: string, key: string = uuid(), progress: ProgressHandle): Promise<string> {
   ProgressDispatch.setText(progress, 'Extracting Curation Archive');
-  const curationPath = path.join(window.External.config.fullFlashpointPath, 'Curations', key);
+  const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
   const extractPath = path.join(curationPath, '.temp');
   try {
     // Extract curation to .temp folder inside curation folder

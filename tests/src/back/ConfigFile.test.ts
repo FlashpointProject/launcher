@@ -76,5 +76,7 @@ const staticConfig: IAppConfigData = {
   backPortMax: 1,
   imagesPortMin: 1,
   imagesPortMax: 1,
-  nativePlatforms: [ 'TestSuccess' ]
+  metadataServerHost: 'TestSuccess',
+  lastSync: 1,
+  nativePlatforms: [ 'TestSuccess' ],
 };

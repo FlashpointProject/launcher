@@ -1,11 +1,13 @@
+import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { BrowsePageLayout } from '@shared/BrowsePageLayout';
+import { GamePropSuggestions } from '@shared/interfaces';
+import { LangContainer, LangFile } from '@shared/lang';
+import { Theme } from '@shared/ThemeFile';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
-import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
-import { GamePlaylist, GamePropSuggestions } from '@shared/interfaces';
-import { LangContainer, LangFile } from '@shared/lang';
-import { Theme } from '@shared/ThemeFile';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { AboutPage, AboutPageProps } from './components/pages/AboutPage';
 import { DeveloperPage, DeveloperPageProps } from './components/pages/DeveloperPage';
@@ -15,25 +17,30 @@ import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/Conn
 import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
+import { ConnectedTagCategoriesPage, ConnectedTagCategoriesPageProps } from './containers/ConnectedTagCategoriesPage';
+import { ConnectedTagsPage, ConnectedTagsPageProps } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
-import { GAMES } from './interfaces';
+import { UpdateView, ViewGameSet } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
 
 export type AppRouterProps = {
-  games: GAMES | undefined;
-  gamesTotal: number;
-  playlists: GamePlaylist[];
+  games: ViewGameSet;
+  gamesTotal?: number;
+  playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   platformsFlat: string[];
-  onSaveGame: (game: IGameInfo, addApps: IAdditionalApplicationInfo[] | undefined, playlistNotes: string | undefined, saveToFile: boolean) => void;
+  onSaveGame: (game: Game, playlistEntry?: PlaylistGame) => void;
+  onDeleteGame: (gameId: string) => void;
   onLaunchGame: (gameId: string) => void;
-  onRequestGames: (start: number, end: number) => void;
   onQuickSearch: (search: string) => void;
+  onOpenExportMetaEdit: (gameId: string) => void;
+  updateView: UpdateView;
   playlistIconCache: Record<string, string>;
   libraries: string[];
+  serverNames: string[];
   localeCode: string;
 
   upgrades: UpgradeStage[];
@@ -45,6 +52,8 @@ export type AppRouterProps = {
   selectedGameId?: string;
   selectedPlaylistId?: string;
   onSelectGame: (gameId?: string) => void;
+  onUpdatePlaylist: (playlist: Playlist) => void;
+  onDeletePlaylist: (playlist: Playlist) => void;
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
   wasNewGameClicked: boolean;
   onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
@@ -52,7 +61,7 @@ export type AppRouterProps = {
   themeList: Theme[];
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
-  autoUpdater: AppUpdater
+  autoUpdater: AppUpdater,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -69,29 +78,39 @@ export class AppRouter extends React.Component<AppRouterProps> {
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
+      updateView: this.props.updateView,
       gamesTotal: this.props.gamesTotal,
       playlists: this.props.playlists,
       suggestions: this.props.suggestions,
       playlistIconCache: this.props.playlistIconCache,
       onSaveGame: this.props.onSaveGame,
-      onRequestGames: this.props.onRequestGames,
+      onDeleteGame: this.props.onDeleteGame,
       onQuickSearch: this.props.onQuickSearch,
-
+      onOpenExportMetaEdit: this.props.onOpenExportMetaEdit,
       order: this.props.order,
       gameScale: this.props.gameScale,
       gameLayout: this.props.gameLayout,
       selectedGameId: this.props.selectedGameId,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
+      onUpdatePlaylist: this.props.onUpdatePlaylist,
+      onDeletePlaylist: this.props.onDeletePlaylist,
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
+    };
+    const tagsProps: ConnectedTagsPageProps = {
+      tagScale: this.props.gameScale
+    };
+    const tagCategoriesProps: ConnectedTagCategoriesPageProps = {
+      tagScale: this.props.gameScale
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
       availableLangs: this.props.languages,
       platforms: this.props.platformsFlat,
       localeCode: this.props.localeCode,
+      serverNames: this.props.serverNames,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,
@@ -117,6 +136,14 @@ export class AppRouter extends React.Component<AppRouterProps> {
           path={Paths.BROWSE}
           component={ConnectedBrowsePage}
           { ...browseProps } />
+        <PropsRoute
+          path={Paths.TAGS}
+          component={ConnectedTagsPage}
+          { ...tagsProps } />
+        <PropsRoute
+          path={Paths.CATEGORIES}
+          component={ConnectedTagCategoriesPage}
+          { ...tagCategoriesProps } />
         <PropsRoute
           path={Paths.LOGS}
           component={ConnectedLogsPage} />

@@ -1,10 +1,7 @@
-import { GameManager, LaunchBox } from '@back/game/GameManager';
+import { GameManager } from '@back/game/GameManager';
 import { GameManagerState } from '@back/game/types';
 import { EventQueue } from '@back/util/EventQueue';
 import { uuid } from '@back/util/uuid';
-import { GameParser } from '@shared/game/GameParser';
-import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
-import { GamePlatform } from '@shared/platform/interfaces';
 import { deepCopy } from '@shared/Util';
 import { RESULT_PATH, STATIC_PATH } from '@tests/setup';
 import * as path from 'path';
@@ -287,13 +284,15 @@ function createPlatform(name: string, library: string, folderPath: string): Game
 }
 
 function createGame(platform: string, library: string): IGameInfo {
+  const id = uuid();
   return {
     library: library,
     orderTitle: '',
     placeholder: false,
     title: '',
     alternateTitles: '',
-    id: uuid(),
+    id: id,
+    parentGameId: id,
     series: '',
     developer: '',
     publisher: '',

@@ -1,8 +1,16 @@
+import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Tag } from '@database/entity/Tag';
+import { TagCategory } from '@database/entity/TagCategory';
+import { FilterGameOpts } from '@shared/game/GameFilter';
+import { MetaEdit, MetaEditFlags } from '@shared/interfaces';
+import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditCuration, EditCurationMeta, EditAddAppCurationMeta } from '../curate/types';
-import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
-import { GamePlaylist, IService, ProcessAction, ExecMapping, GamePropSuggestions } from '../interfaces';
+import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
+import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
@@ -29,16 +37,43 @@ export enum BackIn {
   QUICK_SEARCH,
   ADD_LOG,
   SERVICE_ACTION,
+  DUPLICATE_PLAYLIST,
+  IMPORT_PLAYLIST,
+  EXPORT_PLAYLIST,
   GET_PLAYLISTS,
+  GET_PLAYLIST,
   SAVE_PLAYLIST,
   DELETE_PLAYLIST,
+  GET_PLAYLIST_GAME,
+  SAVE_PLAYLIST_GAME,
+  DELETE_PLAYLIST_GAME,
+  SAVE_LEGACY_PLATFORM,
   IMPORT_CURATION,
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
   QUIT,
+  /** Tag funcs */
+  GET_OR_CREATE_TAG,
+  GET_TAG_SUGGESTIONS,
+  GET_TAG_BY_ID,
+  GET_TAGS,
+  GET_TAG,
+  SAVE_TAG,
+  DELETE_TAG,
+  MERGE_TAGS,
+  CLEANUP_TAG_ALIASES,
+  CLEANUP_TAGS,
+  FIX_TAG_PRIMARY_ALIASES,
+  /** Tag Category funcs */
+  SAVE_TAG_CATEGORY,
+  GET_TAG_CATEGORY_BY_ID,
+  DELETE_TAG_CATEGORY,
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
+  /** Get the index of a specific game (in the results of a given query). */
   BROWSE_VIEW_INDEX,
+  /** Get the keyset of all pages (in the results of a given query). */
+  BROWSE_VIEW_KEYSET,
   /** Get all data needed on init (by the renderer). */
   GET_RENDERER_INIT_DATA,
   /** Get all data needed on init (by the renderer). */
@@ -47,6 +82,11 @@ export enum BackIn {
   UPDATE_CONFIG,
   /** Update any number of preferences. */
   UPDATE_PREFERENCES,
+  /** API */
+  SYNC_GAME_METADATA,
+  // Meta edits
+  EXPORT_META_EDIT,
+  IMPORT_META_EDITS,
 }
 
 export enum BackOut {
@@ -55,20 +95,30 @@ export enum BackOut {
   OPEN_DIALOG,
   OPEN_EXTERNAL,
   LOCALE_UPDATE,
-  BROWSE_VIEW_PAGE_RESPONSE,
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
-  BROWSE_CHANGE,
   IMAGE_CHANGE,
   LOG_ENTRY_ADDED,
   SERVICE_CHANGE,
   LANGUAGE_CHANGE,
   LANGUAGE_LIST_CHANGE,
+  PLAYLISTS_CHANGE,
   THEME_CHANGE,
   THEME_LIST_CHANGE,
-  PLAYLIST_UPDATE,
-  PLAYLIST_REMOVE,
   IMPORT_CURATION_RESPONSE,
+  GET_TAG_SUGGESTIONS,
+  GET_TAG_BY_ID,
+  GET_TAGS,
+  GET_TAG,
+  SAVE_TAG,
+  DELETE_TAG,
+  MERGE_TAGS,
+  GET_TAG_CATEGORY_BY_ID,
+  SAVE_TAG_CATEGORY,
+  DELETE_TAG_CATEGORY,
+  TAG_CATEGORIES_CHANGE,
+  FIX_TAG_PRIMARY_ALIASES,
+  SYNC_GAME_METADATA,
   QUIT,
 }
 
@@ -78,7 +128,7 @@ export type WrappedRequest<T = any> = {
   /** Type of the request */
   type: BackIn;
   /** Data contained in the response (if any) */
-  data?: T;
+  data: T;
 }
 
 export type WrappedResponse<T = any> = {
@@ -128,9 +178,12 @@ export type GetRendererInitDataResponse = {
   languages: LangFile[];
   language: LangContainer;
   themes: Theme[];
-  playlists?: GamePlaylist[];
+  libraries: string[];
+  serverNames: string[];
   platforms: Record<string, string[]>;
+  playlists: Playlist[];
   localeCode: string;
+  tagCategories: TagCategory[];
 }
 
 export type GetSuggestionsResponseData = {
@@ -163,12 +216,9 @@ export type LaunchGameData = {
   id: string;
 }
 
-export type SaveGameData = {
-  game: IGameInfo;
-  addApps: IAdditionalApplicationInfo[];
-  library: string;
-  saveToFile: boolean;
-}
+export type SaveGameData = Game;
+
+export type SaveLegacyPlatformData = Legacy_GamePlatform;
 
 export type DeleteGameData = {
   id: string;
@@ -185,17 +235,25 @@ export type ExportGameData = {
   metaOnly: boolean;
 }
 
+export type DuplicatePlaylistData = string;
+
+export type ImportPlaylistData = string;
+
+export type ExportPlaylistData = {
+  id: string;
+  location: string;
+}
+
 export type GetGameData = {
   id: string;
 }
 
 export type GetGameResponseData = {
-  game?: IGameInfo;
-  addApps?: IAdditionalApplicationInfo[];
+  game?: Game;
 }
 
 export type GetAllGamesResponseData = {
-  games: IGameInfo[];
+  games: Game[];
 }
 
 export type RandomGamesData = {
@@ -204,7 +262,7 @@ export type RandomGamesData = {
   extreme: boolean;
 }
 
-export type RandomGamesResponseData = IGameInfo[];
+export type RandomGamesResponseData = Game[];
 
 export type LaunchAddAppData = {
   id: string;
@@ -224,24 +282,79 @@ export type BrowseViewResponseData = {
   total: number;
 }
 
-export type BrowseViewPageData = {
-  offset: number;
-  limit: number;
-  query: GameQuery;
+/** Tuple of values from the last game of a previous page (look up "keyset pagination"). */
+export type PageTuple = {
+  /** Primary order value. */
+  orderVal: any;
+  /** Title of the game (secondary order value). */
+  title: string;
+  /** ID of the game (unique value). */
+  id: string;
 }
 
-export type BrowseViewPageResponseData = {
-  games: ViewGame[];
-  offset: number;
-  total?: number;
+/** A set of page tuples. The keys in the record are page indices. */
+export type PageKeyset = Partial<Record<number, PageTuple>>;
+
+export type BrowseViewKeysetResponse = {
+  keyset: PageKeyset;
+  total: number;
+};
+
+export type BrowseViewKeysetData = {
+  /** Library to filter games by (only games in the library will be queried). */
+  library: string;
+  /** Query to filter games by. */
+  query: SearchGamesOpts;
+};
+
+export type RequestGameRange = {
+  /** Index of the first game. */
+  start: number;
+  /** Number of games to request (if undefined, all games until the end of the query will be included). */
+  length: number | undefined;
+  /**
+   * Tuple of the last game of the previous page.
+   * If this is set then "start" must be the index of the game after this (since this will be used instead of
+   * "start" when selecting the games).
+   */
+  index?: PageTuple;
+}
+
+export type ResponseGameRange<T extends boolean> = {
+  /** Index of the first game. */
+  start: number;
+  /** Number of games requested. */
+  length?: number;
+  /** Games found within the range. */
+  games: T extends true ? ViewGame[] : Game[];
+}
+
+export type BrowseViewPageData = {
+  /** Ranges of games to fetch. */
+  ranges: RequestGameRange[];
+  /** Library to filter games by (only games in the library will be queried). */
+  library?: string;
+  /** Query to filter games by. */
+  query: SearchGamesOpts;
+  /** If a subset of the games should be returned instead of the full game objects. */
+  shallow?: boolean;
+}
+
+/** Note: The generic type should have the same value as "shallow" from the request, or "boolean" if the type is unknown. */
+export type BrowseViewPageResponseData<T extends boolean> = {
+  /** Ranges of games. */
+  ranges: ResponseGameRange<T>[];
+  /** Library used in the query. */
+  library?: string;
 }
 
 export type BrowseViewIndexData = {
   gameId: string;
-  query: GameQuery;
+  query: SearchGamesOpts;
 }
 
-export type BrowseViewIndexResponseData = {
+export type BrowseViewIndexResponse = {
+  /** Index of the game (equal to or greater than 0 if found, otherwise -1). */
   index: number;
 }
 
@@ -256,24 +369,22 @@ export type DeleteImageData = {
   id: string;
 }
 
-export type QuickSearchData = {
-  query: GameQuery;
-  search: string;
+export type PlaylistsChangeData = Playlist[];
+
+export type TagCategoriesChangeData = TagCategory[];
+
+export type SearchGamesOpts = {
+  /** Info to filter the search from */
+  filter: FilterGameOpts;
+  /** The field to order the games by. */
+  orderBy: GameOrderBy;
+  /** The way to order the games. */
+  orderReverse: GameOrderReverse;
 }
 
-export type QuickSearchResponseData = {
+export type SearchGamesResponse = {
   id?: string;
   index?: number;
-}
-
-type GameQuery = {
-  extreme: boolean;
-  broken: boolean;
-  library: string;
-  search: string;
-  playlistId?: string;
-  orderBy: string;
-  orderReverse: string;
 }
 
 export type UpdateConfigData = Partial<IAppConfigData>;
@@ -283,7 +394,7 @@ export type ViewGame = {
   title: string;
   platform: string;
   // List view only
-  genre: string;
+  tags: Tag[];
   developer: string;
   publisher: string;
 }
@@ -318,18 +429,37 @@ export type ThemeChangeData = string;
 
 export type ThemeListChangeData = Theme[];
 
-export type PlaylistUpdateData = GamePlaylist;
+export type GetPlaylistsResponse = Playlist[];
 
-export type PlaylistRemoveData = string;
+export type GetPlaylistData = string;
 
-export type GetPlaylistResponse = GamePlaylist[];
+export type GetPlaylistResponse = Playlist;
 
-export type SavePlaylistData = {
-  prevFilename?: string;
-  playlist: GamePlaylist;
-};
+export type SavePlaylistData = Playlist;
+
+export type SavePlaylistResponse = Playlist;
 
 export type DeletePlaylistData = string;
+
+export type DeletePlaylistResponse = Playlist;
+
+export type GetPlaylistGameData = {
+  gameId: string;
+  playlistId: string;
+}
+
+export type GetPlaylistGameResponse = PlaylistGame | undefined;
+
+export type DeletePlaylistGameData = {
+  gameId: string;
+  playlistId: string;
+}
+
+export type DeletePlaylistGameResponse = PlaylistGame | undefined;
+
+export type SavePlaylistGameData = PlaylistGame;
+
+export type SavePlaylistGameResponse = PlaylistGame;
 
 export type ImportCurationData = {
   curation: EditCuration;
@@ -356,4 +486,89 @@ export type LaunchCurationAddAppData = {
   curationKey: string;
   curation: EditAddAppCuration;
   platform?: string;
+}
+
+export type TagSuggestion = {
+  alias?: string;
+  primaryAlias: string;
+  tag: Tag;
+}
+
+export type TagGetOrCreateData = string;
+
+export type TagGetOrCreateResponse = Tag;
+
+export type TagByIdData = number;
+
+export type TagByIdResponse = Tag | undefined;
+
+export type TagSuggestionsData = string;
+
+export type TagSuggestionsResponse = TagSuggestion[];
+
+export type TagPrimaryFixData = null;
+
+export type TagPrimaryFixResponse = number;
+
+export type TagFindData = string;
+
+export type TagFindResponse = Tag[];
+
+export type TagGetData = string;
+
+export type TagGetResponse = Tag | undefined;
+
+export type TagSaveData = Tag;
+
+export type TagSaveResponse = Tag;
+
+export type TagDeleteData = number;
+
+export type TagDeleteResponse = {
+  success: boolean;
+  id: number;
+}
+
+export type MergeTagData = {
+  toMerge: Tag;
+  mergeInto: string;
+  makeAlias: boolean;
+}
+
+export type TagCategorySaveData = TagCategory;
+
+export type TagCategorySaveResponse = TagCategory;
+
+export type TagCategoryDeleteData = number;
+
+export type TagCategoryDeleteResponse = {
+  success: boolean;
+}
+
+export type TagCategoryByIdData = number;
+
+export type TagCategoryByIdResponse = TagCategory | undefined;
+
+export type GameMetadataSyncResponse = {
+  total: number;
+  successes: number;
+  error?: string;
+}
+
+export type ExportMetaEditData = {
+  /** ID of the game to export meta from. */
+  id: string;
+  /** Properties to export. */
+  properties: MetaEditFlags;
+}
+
+export type ImportMetaEditResponseData = {
+  errors: Error[];
+  results: ImportMetaEditResult[];
+}
+
+export type ImportMetaEditResult = {
+  filename: string;
+  success: boolean;
+  meta?: MetaEdit;
 }

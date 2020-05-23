@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices, ScrollParams } from 'react-virtualized';
-import { ViewGame } from '@shared/back/types';
+import { VIEW_PAGE_SIZE } from '@shared/constants';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { GAMES } from '../interfaces';
+import * as React from 'react';
+import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
+import { UpdateView, ViewGameSet } from '../interfaces';
 import { findElementAncestor } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
@@ -11,14 +11,12 @@ import { GameListItem } from './GameListItem';
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
 const RENDERER_OVERSCAN = 15;
-const BACK_OVERSCAN = 100;
 
 export type GameListProps = {
-  onRequestGames: (start: number, end: number) => void;
   /** All games that will be shown in the list. */
-  games?: GAMES;
+  games?: ViewGameSet;
   /** Total number of games there are. */
-  gamesTotal: number;
+  gamesTotal?: number;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently dragged game (if any). */
@@ -37,6 +35,7 @@ export type GameListProps = {
   onGameDragStart: (event: React.DragEvent, gameId: string) => void;
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd: (event: React.DragEvent, gameId: string) => void;
+  updateView: UpdateView;
   // React-Virtualized pass-through props (their values are not used for anything other than updating the grid when changed)
   orderBy?: GameOrderBy;
   orderReverse?: GameOrderReverse;
@@ -44,11 +43,20 @@ export type GameListProps = {
   listRef?: RefFunc<HTMLDivElement>;
 };
 
+type RowsRenderedInfo = {
+  overscanStartIndex: number;
+  overscanStopIndex: number;
+  startIndex: number;
+  stopIndex: number;
+}
+
 /** A list of rows, where each rows displays a game. */
 export class GameList extends React.Component<GameListProps> {
   private _wrapper: React.RefObject<HTMLDivElement> = React.createRef();
   /** Currently displayed games. */
-  currentGames: GAMES | undefined = undefined;
+  currentGames: ViewGameSet | undefined = undefined;
+  // Used for the "view update hack"
+  list: React.RefObject<List> = React.createRef();
 
   componentDidMount(): void {
     this.updateCssVars();
@@ -56,6 +64,21 @@ export class GameList extends React.Component<GameListProps> {
 
   componentDidUpdate(): void {
     this.updateCssVars();
+
+    // @HACK: Update the view in cases where the "onSectionRendered" callback is not called _EVEN THOUGH_ the cells have been re-rendered
+    //        (Such as when changing library without making it scroll)
+    // Note: This has a side effect of sometimes requesting the same pages twice (I think? //obelisk)
+    const grid = this.list.current && this.list.current.Grid;
+    if (grid) {
+      const start = (grid as any)._rowStartIndex;
+      const stop = (grid as any)._rowStopIndex;
+
+      if (typeof start === 'number' && typeof stop === 'number') {
+        this.updateView(start, stop);
+      } else {
+        console.warn('Failed to check if the grid view has been updated. The private properties extracted from "Grid" was of an unexpected type.');
+      }
+    }
   }
 
   render() {
@@ -92,21 +115,22 @@ export class GameList extends React.Component<GameListProps> {
                   mode='cells'
                   isControlled={true}
                   columnCount={1}
-                  rowCount={this.props.gamesTotal}
+                  rowCount={this.props.gamesTotal || 0}
                   scrollToRow={scrollToIndex}>
-                  {({ onSectionRendered, scrollToColumn, scrollToRow }) => (
+                  {({ onSectionRendered, scrollToRow }) => (
                     <List
                       className='game-list simple-scroll'
+                      ref={this.list}
                       width={width}
                       height={height}
                       rowHeight={this.props.rowHeight}
-                      rowCount={this.props.gamesTotal}
+                      rowCount={this.props.gamesTotal || 0}
                       overscanRowCount={RENDERER_OVERSCAN}
                       noRowsRenderer={this.props.noRowsRenderer}
                       rowRenderer={this.rowRenderer}
-                      onScroll={this.onScroll}
                       // ArrowKeyStepper props
                       scrollToIndex={scrollToRow}
+                      onRowsRendered={this.onRowsRendered}
                       onSectionRendered={onSectionRendered}
                       // Pass-through props (they have no direct effect on the list)
                       // (If any property is changed the list is re-rendered, even these)
@@ -136,7 +160,7 @@ export class GameList extends React.Component<GameListProps> {
         id={game.id}
         title={game.title}
         platform={game.platform}
-        tags={game.genre}
+        tags={game.tags}
         developer={game.developer}
         publisher={game.publisher}
         isDraggable={true}
@@ -145,10 +169,8 @@ export class GameList extends React.Component<GameListProps> {
     ) : <div key={props.key} style={props.style} />;
   }
 
-  onScroll = (params: ScrollParams) => {
-    const top = Math.max(0, Math.floor(params.scrollTop / this.props.rowHeight) - BACK_OVERSCAN);
-    const bot = Math.min(Math.ceil((params.scrollTop + params.clientHeight) / this.props.rowHeight) + BACK_OVERSCAN, this.props.gamesTotal);
-    this.props.onRequestGames(top, (bot - top));
+  onRowsRendered = (info: RowsRenderedInfo) => {
+    this.updateView(info.overscanStartIndex, info.overscanStopIndex);
   }
 
   /** When a key is pressed (while the list, or one of its children, is selected). */
@@ -208,9 +230,16 @@ export class GameList extends React.Component<GameListProps> {
     if (!ref) { throw new Error('Browse Page wrapper div not found'); }
     ref.style.setProperty('--height', this.props.rowHeight+'');
   }
+
+  updateView(start: number, stop: number): void {
+    const trailingPage = Math.floor(start / VIEW_PAGE_SIZE);
+    const leadingPage  = Math.floor(stop  / VIEW_PAGE_SIZE);
+
+    this.props.updateView(trailingPage, (leadingPage - trailingPage) + 2);
+  }
 }
 
-function findGameIndex(games: GAMES | undefined, gameId: string | undefined): number {
+function findGameIndex(games: ViewGameSet | undefined, gameId: string | undefined): number {
   if (gameId !== undefined && games) {
     for (let index in games) {
       const game = games[index];
@@ -218,13 +247,4 @@ function findGameIndex(games: GAMES | undefined, gameId: string | undefined): nu
     }
   }
   return -1;
-}
-
-function findGame(games: GAMES | undefined, gameId: string | undefined): ViewGame | undefined {
-  if (gameId !== undefined && games) {
-    for (let index in games) {
-      const game = games[index];
-      if (game && game.id === gameId) { return game; }
-    }
-  }
 }

@@ -1,9 +1,8 @@
-import { IRawAdditionalApplicationInfo, IRawGameInfo, IRawPlatformFile } from '../platform/interfaces';
-import { IAdditionalApplicationInfo, IGameCollection, IGameInfo } from './interfaces';
+import { Legacy_IAdditionalApplicationInfo, Legacy_IGameCollection, Legacy_IGameInfo, Legacy_IRawPlatformFile, Legacy_IRawGameInfo, Legacy_IRawAdditionalApplicationInfo } from './interfaces';
 
-export class GameParser {
-  public static parse(data: IRawPlatformFile, filename: string): IGameCollection {
-    const collection: IGameCollection = {
+export class Legacy_GameParser {
+  public static parse(data: Legacy_IRawPlatformFile, filename: string): Legacy_IGameCollection {
+    const collection: Legacy_IGameCollection = {
       games: [],
       additionalApplications: [],
     };
@@ -11,63 +10,63 @@ export class GameParser {
     if (games) {
       if (!Array.isArray(games)) { games = [ games ]; }
       for (let i = games.length - 1; i >= 0; i--) {
-        collection.games[i] = GameParser.parseRawGame(games[i], filename);
+        collection.games[i] = Legacy_GameParser.parseRawGame(games[i], filename);
       }
     }
     let apps = data.LaunchBox.AdditionalApplication;
     if (apps) {
       if (!Array.isArray(apps)) { apps = [ apps ]; }
       for (let i = apps.length - 1; i >= 0; i--) {
-        collection.additionalApplications[i] = GameParser.parseRawAdditionalApplication(apps[i]);
+        collection.additionalApplications[i] = Legacy_GameParser.parseRawAdditionalApplication(apps[i]);
       }
     }
     return collection;
   }
 
 
-  public static parseRawGame(data: Partial<IRawGameInfo>, library: string): IGameInfo {
-    const title: string = unescapeHTML(data.Title);
+  public static parseRawGame(data: Partial<Legacy_IRawGameInfo>, library: string): Legacy_IGameInfo {
+    const title: string = Legacy_unescapeHTML(data.Title);
     return {
-      id: unescapeHTML(data.ID),
+      id: Legacy_unescapeHTML(data.ID),
       title: title,
-      alternateTitles: unescapeHTML(data.AlternateTitles),
-      series: unescapeHTML(data.Series),
-      developer: unescapeHTML(data.Developer),
-      publisher: unescapeHTML(data.Publisher),
-      platform: unescapeHTML(data.Platform),
-      dateAdded: unescapeHTML(data.DateAdded),
+      alternateTitles: Legacy_unescapeHTML(data.AlternateTitles),
+      series: Legacy_unescapeHTML(data.Series),
+      developer: Legacy_unescapeHTML(data.Developer),
+      publisher: Legacy_unescapeHTML(data.Publisher),
+      platform: Legacy_unescapeHTML(data.Platform),
+      dateAdded: Legacy_unescapeHTML(data.DateAdded),
       broken: !!data.Broken,
       extreme: !!data.Hide,
-      playMode: unescapeHTML(data.PlayMode),
-      status: unescapeHTML(data.Status),
-      notes: unescapeHTML(data.Notes),
-      tags: unescapeHTML(data.Genre),
-      source: unescapeHTML(data.Source),
-      applicationPath: unescapeHTML(data.ApplicationPath),
-      launchCommand: unescapeHTML(data.CommandLine),
-      releaseDate: unescapeHTML(data.ReleaseDate),
-      version: unescapeHTML(data.Version),
-      originalDescription: unescapeHTML(data.OriginalDescription),
-      language: unescapeHTML(data.Language),
+      playMode: Legacy_unescapeHTML(data.PlayMode),
+      status: Legacy_unescapeHTML(data.Status),
+      notes: Legacy_unescapeHTML(data.Notes),
+      tags: Legacy_unescapeHTML(data.Genre),
+      source: Legacy_unescapeHTML(data.Source),
+      applicationPath: Legacy_unescapeHTML(data.ApplicationPath),
+      launchCommand: Legacy_unescapeHTML(data.CommandLine),
+      releaseDate: Legacy_unescapeHTML(data.ReleaseDate),
+      version: Legacy_unescapeHTML(data.Version),
+      originalDescription: Legacy_unescapeHTML(data.OriginalDescription),
+      language: Legacy_unescapeHTML(data.Language),
       library: library,
-      orderTitle: generateGameOrderTitle(title),
+      orderTitle: title.toLowerCase(),
       placeholder: false, // (No loaded game is a placeholder)
     };
   }
 
-  private static parseRawAdditionalApplication(data: IRawAdditionalApplicationInfo): IAdditionalApplicationInfo {
+  private static parseRawAdditionalApplication(data: Legacy_IRawAdditionalApplicationInfo): Legacy_IAdditionalApplicationInfo {
     return {
-      id: unescapeHTML(data.Id),
-      gameId: unescapeHTML(data.GameID),
-      applicationPath: unescapeHTML(data.ApplicationPath),
+      id: Legacy_unescapeHTML(data.Id),
+      gameId: Legacy_unescapeHTML(data.GameID),
+      applicationPath: Legacy_unescapeHTML(data.ApplicationPath),
       autoRunBefore: !!data.AutoRunBefore,
-      launchCommand: unescapeHTML(data.CommandLine),
-      name: unescapeHTML(data.Name),
+      launchCommand: Legacy_unescapeHTML(data.CommandLine),
+      name: Legacy_unescapeHTML(data.Name),
       waitForExit: !!data.WaitForExit,
     };
   }
 
-  public static reverseParseGame(game: IGameInfo): IRawGameInfo {
+  public static reverseParseGame(game: Legacy_IGameInfo): Legacy_IRawGameInfo {
     return {
       ID: escapeHTML(game.id),
       Title: escapeHTML(game.title),
@@ -93,7 +92,7 @@ export class GameParser {
     };
   }
 
-  public static reverseParseAdditionalApplication(addapp: IAdditionalApplicationInfo): IRawAdditionalApplicationInfo {
+  public static reverseParseAdditionalApplication(addapp: Legacy_IAdditionalApplicationInfo): Legacy_IRawAdditionalApplicationInfo {
     return {
       Id: escapeHTML(addapp.id),
       GameID: escapeHTML(addapp.gameId),
@@ -105,7 +104,7 @@ export class GameParser {
     };
   }
 
-  public static readonly emptyRawAdditionalApplication: IRawAdditionalApplicationInfo = {
+  public static readonly emptyRawAdditionalApplication: Legacy_IRawAdditionalApplicationInfo = {
     Id: '',
     GameID: '',
     ApplicationPath: '',
@@ -134,15 +133,10 @@ export class GameParser {
   }
 }
 
-/** Generate a title suitable for ordering (only used for ordering and sorting, not visual) */
-export function generateGameOrderTitle(title: string): string {
-  return title.toLowerCase();
-}
-
 // Escape / Unescape some HTML characters
 // ( From: https://stackoverflow.com/questions/18749591/encode-html-entities-in-javascript/39243641#39243641 )
 // spell-checker: disable
-export const unescapeHTML = (function() {
+export const Legacy_unescapeHTML = (function() {
   const htmlEntities: any = Object.freeze({
     nbsp: ' ',
     cent: '¢',

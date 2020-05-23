@@ -2,6 +2,8 @@ import * as React from 'react';
 import { LangContainer } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { LangContext } from '../util/lang';
+import { ModelUtils } from '@shared/game/util';
+import { Game } from '@database/entity/Game';
 
 export type GameOrderProps = {
   /** Called when the either the property to order by, or what way to order in, is changed. */
@@ -37,7 +39,7 @@ export class GameOrder extends React.Component<GameOrderProps> {
           value={this.props.orderBy}
           onChange={this.onOrderByChange}>
           <option value='dateAdded'>{strings.dateAdded}</option>
-          <option value='tags'>{strings.tags}</option>
+          <option value='dateModified'>{strings.dateModified}</option>
           <option value='platform'>{strings.platform}</option>
           <option value='series'>{strings.series}</option>
           <option value='title'>{strings.title}</option>
@@ -49,8 +51,8 @@ export class GameOrder extends React.Component<GameOrderProps> {
           className='simple-selector'
           value={this.props.orderReverse}
           onChange={this.onOrderReverseChange}>
-          <option value='ascending'>{strings.ascending}</option>
-          <option value='descending'>{strings.descending}</option>
+          <option value='ASC'>{strings.ascending}</option>
+          <option value='DESC'>{strings.descending}</option>
         </select>
       </>
     );
@@ -81,20 +83,14 @@ export class GameOrder extends React.Component<GameOrderProps> {
 }
 
 /**
- * Validate a value to be a "GameOrderBy" string (throws an error if invalid).
+ * Validate a value to be a "GameOrderBy" string (throws an error if non-existant or excluded).
  * @param value Value to validate.
- * @returns The same value as the first argument.
+ * @returns The same value as the first argument as a GameOrderBy obj
  */
 function validateOrderBy(value: string): GameOrderBy {
   switch (value) {
-    case 'dateAdded': return 'dateAdded';
-    case 'tags':      return 'tags';
-    case 'platform':  return 'platform';
-    case 'series':    return 'series';
-    case 'title':     return 'title';
-    case 'developer': return 'developer';
-    case 'publisher': return 'publisher';
-    default: throw new Error(`"${value}" is not a valid GameOrderBy`);
+    case 'tags': throw new Error(`"${value}" is not a valid GameOrderBy`);
+    default:     return value as keyof Game;
   }
 }
 
@@ -105,8 +101,8 @@ function validateOrderBy(value: string): GameOrderBy {
  */
 function validateOrderReverse(value: string): GameOrderReverse {
   switch (value) {
-    case 'ascending':  return 'ascending';
-    case 'descending': return 'descending';
+    case 'ASC':  return 'ASC';
+    case 'DESC': return 'DESC';
     default: throw new Error(`"${value}" is not a valid GameOrderReverse`);
   }
 }

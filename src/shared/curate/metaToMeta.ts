@@ -1,4 +1,4 @@
-import { IAdditionalApplicationInfo, IGameInfo } from '../game/interfaces';
+import { Game } from '@database/entity/Game';
 import { ParsedCurationMeta } from './parse';
 import { EditAddAppCuration, EditCurationMeta } from './types';
 
@@ -7,7 +7,7 @@ import { EditAddAppCuration, EditCurationMeta } from './types';
  * @param game Game to convert.
  * @param addApps Additional applications of the game.
  */
-export function convertToCurationMeta(game: IGameInfo, addApps?: IAdditionalApplicationInfo[]): CurationFormatMeta {
+export function convertToCurationMeta(game: Game): CurationFormatMeta {
   const parsed: CurationFormatMeta = {};
   // Game meta
   parsed['Title']                = game.title;
@@ -19,7 +19,7 @@ export function convertToCurationMeta(game: IGameInfo, addApps?: IAdditionalAppl
   parsed['Version']              = game.version;
   parsed['Languages']            = game.language;
   parsed['Extreme']              = game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = game.tags;
+  parsed['Tags']                 = game.tags.map(t => t.aliases[0].name).join('; ');
   parsed['Source']               = game.source;
   parsed['Platform']             = game.platform;
   parsed['Status']               = game.status;
@@ -29,35 +29,33 @@ export function convertToCurationMeta(game: IGameInfo, addApps?: IAdditionalAppl
   parsed['Original Description'] = game.originalDescription;
   // Add-apps meta
   const parsedAddApps: CurationFormatAddApps = {};
-  if (addApps) {
-    for (let i = 0; i < addApps.length; i++) {
-      const addApp = addApps[i];
-      if (addApp.applicationPath === ':extras:') {
-        parsedAddApps['Extras'] = addApp.launchCommand;
-      } else if (addApp.applicationPath === ':message:') {
-        parsedAddApps['Message'] = addApp.launchCommand;
-      } else {
-        let heading = addApp.name;
-        // Check if the property name is already in use
-        if (parsedAddApps[heading] !== undefined) {
-          // Look for an available name (by appending a number after it)
-          let index = 2;
-          while (true) {
-            const testHeading = `${heading} (${index})`;
-            if (parsedAddApps[testHeading] === undefined) {
-              heading = testHeading;
-              break;
-            }
-            index += 1;
+  for (let i = 0; i < game.addApps.length; i++) {
+    const addApp = game.addApps[i];
+    if (addApp.applicationPath === ':extras:') {
+      parsedAddApps['Extras'] = addApp.launchCommand;
+    } else if (addApp.applicationPath === ':message:') {
+      parsedAddApps['Message'] = addApp.launchCommand;
+    } else {
+      let heading = addApp.name;
+      // Check if the property name is already in use
+      if (parsedAddApps[heading] !== undefined) {
+        // Look for an available name (by appending a number after it)
+        let index = 2;
+        while (true) {
+          const testHeading = `${heading} (${index})`;
+          if (parsedAddApps[testHeading] === undefined) {
+            heading = testHeading;
+            break;
           }
+          index += 1;
         }
-        // Add add-app
-        parsedAddApps[heading] = {
-          'Heading': addApp.name,
-          'Application Path': addApp.applicationPath,
-          'Launch Command': addApp.launchCommand,
-        };
       }
+      // Add add-app
+      parsedAddApps[heading] = {
+        'Heading': addApp.name,
+        'Application Path': addApp.applicationPath,
+        'Launch Command': addApp.launchCommand,
+      };
     }
   }
   parsed['Additional Applications'] = parsedAddApps;
