@@ -1,11 +1,13 @@
-import { BackIn, LaunchCurationData } from '@shared/back/types';
+import { Tag } from '@database/entity/Tag';
+import { TagCategory } from '@database/entity/TagCategory';
+import { BackIn, LaunchCurationData, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagGetOrCreateResponse, TagSuggestion, TagSuggestionsData, TagSuggestionsResponse } from '@shared/back/types';
 import { htdocsPath } from '@shared/constants';
 import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { fixSlashes, sizeToString } from '@shared/Util';
+import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
@@ -31,6 +33,7 @@ import { GameImageSplit } from './GameImageSplit';
 import { InputField } from './InputField';
 import { AutoProgressComponent } from './ProgressComponents';
 import { SimpleButton } from './SimpleButton';
+import { TagInputField } from './TagInputField';
 
 const { strToBool } = Coerce;
 
@@ -46,6 +49,7 @@ type CurateBoxProps = {
   /** Libraries to pick in the drop-down input field. */
   libraryOptions: JSX.Element[];
   libraries: string[];
+  tagCategories: TagCategory[];
 }
 
 /** A box that displays and lets the user edit a curation. */
@@ -53,6 +57,8 @@ export function CurateBox(props: CurateBoxProps) {
   // Localized strings
   const strings = React.useContext(LangContext);
   const [progressState, progressDispatch] = React.useContext(ProgressContext.context);
+  const [tagInputText, setTagInputText] = React.useState('');
+  const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
   // Content file collisions
   const [contentCollisions, setContentCollisions] = useState<ContentCollision[] | undefined>(undefined);
   // Check for content file collisions
@@ -69,14 +75,102 @@ export function CurateBox(props: CurateBoxProps) {
       return () => { isAborted = true; };
     }
   }, [props.curation && props.curation.content]);
+  // Tag Input Field funcs
+  const onCurrentTagChange = useCallback((event: React.ChangeEvent<InputElement>) => {
+    const newTag = event.currentTarget.value;
+    let newSuggestions: TagSuggestion[] = tagSuggestions;
+
+    if (newTag != '') {
+      // Delayed set
+      window.Shared.back.send<TagSuggestionsResponse, TagSuggestionsData>(BackIn.GET_TAG_SUGGESTIONS, newTag, (res) => {
+        if (res.data) {
+          setTagSuggestions(res.data);
+        }
+      });
+    } else {
+      newSuggestions = [];
+    }
+
+    setTagInputText(newTag);
+    setTagSuggestions(newSuggestions);
+  }, [tagSuggestions]);
+
+  const onAddTagSuggestion = useCallback((suggestion: TagSuggestion) => {
+    console.log(suggestion);
+    if (suggestion.tag.id) {
+      window.Shared.back.send<TagByIdResponse, TagByIdData>(BackIn.GET_TAG_BY_ID, suggestion.tag.id, (res) => {
+        const tag = res.data;
+        if (tag) {
+          const curation = props.curation;
+          const oldTags = curation ? (curation.meta.tags || []) : [];
+          if (curation && oldTags.findIndex(t => t.id == tag.id) == -1) {
+            props.dispatch({
+              type: 'edit-curation-meta',
+              payload: {
+                key: curation.key,
+                property: 'tags',
+                value: [...oldTags, ...[tag]]
+              }
+            });
+          }
+        }
+      });
+    }
+    // Clear out suggestions box
+    setTagSuggestions([]);
+    setTagInputText('');
+  }, [props.curation]);
+
+  const onAddTagByString = useCallback((text: string): void => {
+    if (text != '') {
+      window.Shared.back.send<TagGetOrCreateResponse, TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, { tag: text }, (res) => {
+        const tag = res.data;
+        if (tag) {
+          const curation = props.curation;
+          if (curation && curation.meta.tags && curation.meta.tags.findIndex(t => t.id == tag.id) == -1) {
+            props.dispatch({
+              type: 'edit-curation-meta',
+              payload: {
+                key: curation.key,
+                property: 'tags',
+                value: [...curation.meta.tags, ...[tag]]
+              }
+            });
+          }
+        }
+      });
+    }
+    // Clear out suggestions box
+    setTagSuggestions([]);
+    setTagInputText('');
+  }, [props.curation]);
+
+  const onRemoveTag = useCallback((tag: Tag, index: number): void => {
+    const curation = props.curation;
+    if (curation) {
+      const tags = curation.meta.tags || [];
+      const tagIndex = tags.findIndex(t => t.id == tag.id);
+      if (tagIndex !== -1) {
+        const newTags = deepCopy(tags);
+        newTags.splice(tagIndex, 1);
+        props.dispatch({
+          type: 'edit-curation-meta',
+          payload: {
+            key: curation.key,
+            property: 'tags',
+            value: newTags
+          }
+        });
+      } 
+    }
+  }, [props.curation]);
   // Callbacks for the fields (onChange)
   const key                         = props.curation ? props.curation.key : undefined;
   const onTitleChange               = useOnInputChange('title',               key, props.dispatch);
-  const onAlternateTitlesChange     = useOnInputChange('alternateTitles',    key, props.dispatch);
+  const onAlternateTitlesChange     = useOnInputChange('alternateTitles',     key, props.dispatch);
   const onSeriesChange              = useOnInputChange('series',              key, props.dispatch);
   const onDeveloperChange           = useOnInputChange('developer',           key, props.dispatch);
   const onPublisherChange           = useOnInputChange('publisher',           key, props.dispatch);
-  const onTagsChange                = useOnInputChange('tags',                key, props.dispatch);
   const onPlayModeChange            = useOnInputChange('playMode',            key, props.dispatch);
   const onStatusChange              = useOnInputChange('status',              key, props.dispatch);
   const onVersionChange             = useOnInputChange('version',             key, props.dispatch);
@@ -94,7 +188,6 @@ export function CurateBox(props: CurateBoxProps) {
   // Callbacks for the fields (onItemSelect)
   const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
   const onStatusSelect              = useCallback(transformOnItemSelect(onStatusChange),          [onStatusChange]);
-  const onTagItemSelect             = useCallback(transformOnItemSelect(onTagsChange),            [onTagsChange]);
   const onPlatformItemSelect        = useCallback(transformOnItemSelect(onPlatformChange),        [onPlatformChange]);
   const onApplicationPathItemSelect = useCallback(transformOnItemSelect(onApplicationPathChange), [onPlatformChange]);
   // Callback for the fields (onInputKeyDown)
@@ -325,7 +418,7 @@ export function CurateBox(props: CurateBoxProps) {
           .catch((error) => { /* No file is okay, ignore error */ });
         // Save working meta
         const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, props.tagCategories, curation.addApps));
         const statusProgress = newProgress(props.curation.key, progressDispatch);
         ProgressDispatch.setText(statusProgress, 'Exporting Curation...');
         ProgressDispatch.setUsePercentDone(statusProgress, false);
@@ -356,7 +449,7 @@ export function CurateBox(props: CurateBoxProps) {
         },
       });
     }
-  }, [props.curation]);
+  }, [props.curation, props.tagCategories]);
 
   // Image callbacks
   const onAddThumbnailClick  = useAddImageCallback('logo.png', strings, props.curation);
@@ -586,14 +679,17 @@ export function CurateBox(props: CurateBoxProps) {
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.tags + ':'}>
-            <DropdownInputField
-              text={props.curation && props.curation.meta.tags || ''}
-              placeholder={strings.browse.noTags}
-              onChange={onTagsChange}
-              items={props.suggestions && props.suggestions.tags || []}
-              onItemSelect={onTagItemSelect}
-              className={(warnings.unusedTags && warnings.unusedTags.length > 0) ? 'input-field--warn' : ''}
-              { ...sharedInputProps } />
+            <TagInputField
+              placeholder={strings.browse.enterTag}
+              text={tagInputText}
+              editable={editable}
+              tags={props.curation ? (props.curation.meta.tags ? props.curation.meta.tags : []) : []}
+              categories={props.tagCategories}
+              suggestions={tagSuggestions}
+              onChange={onCurrentTagChange}
+              onTagSuggestionSelect={onAddTagSuggestion}
+              onTagSubmit={onAddTagByString}
+              onTagEditableSelect={onRemoveTag} />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.playMode + ':'}>
             <DropdownInputField
@@ -790,7 +886,8 @@ export function CurateBox(props: CurateBoxProps) {
       </div>
       {progressComponent}
     </div>
-  ), [props.curation, strings, disabled, warnings, onImportClick, progressComponent]);
+  ), [props.curation, strings, disabled, warnings, onImportClick, progressComponent,
+      tagInputText, tagSuggestions]);
 }
 
 function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
@@ -1067,7 +1164,6 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   const releaseDate = curation.meta.releaseDate;
   if (releaseDate) { warns.releaseDateInvalid = !isValidDate(releaseDate); }
   // Check for unused values (with suggestions)
-  warns.unusedTags = listValuesNotSuggested(curation, suggestions, 'tags', ';');
   warns.unusedPlatform = !isValueSuggested(curation, suggestions, 'platform');
   warns.unusedApplicationPath = !isValueSuggested(curation, suggestions, 'applicationPath');
   warns.nonContentFolders = curation.unusedDirs;

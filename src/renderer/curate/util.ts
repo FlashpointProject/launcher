@@ -7,6 +7,7 @@ import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
+import * as YAML from 'yaml';
 import { setGameMetaDefaults } from '../components/pages/CuratePage';
 import { createCurationIndexImage } from './importCuration';
 
@@ -31,11 +32,13 @@ export async function createCurationImage(filePath: string): Promise<CurationInd
 export async function readCurationMeta(filePath: string, defaultMetaData?: GameMetaDefaults): Promise<ParsedCurationMeta> {
   const metaFileData = await readFile(filePath);
   if (filePath.toLowerCase().endsWith('.txt')) {
-    const parsedMeta = parseCurationMetaOld(stripBOM(metaFileData.toString()));
+    const parsedMeta = await parseCurationMetaOld(stripBOM(metaFileData.toString()));
     setGameMetaDefaults(parsedMeta.game, defaultMetaData);
     return parsedMeta;
   } else if (filePath.toLowerCase().endsWith('.yaml') || filePath.toLowerCase().endsWith('.yml')) {
-    const parsedMeta = parseCurationMetaNew(stripBOM(metaFileData.toString()));
+    // Will fail to call during parseCurationMetaNew for some reason?
+    const rawMeta = YAML.parse(stripBOM(metaFileData.toString()));
+    const parsedMeta = await parseCurationMetaNew(rawMeta);
     setGameMetaDefaults(parsedMeta.game, defaultMetaData);
     return parsedMeta;
   } else {

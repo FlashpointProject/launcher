@@ -5,6 +5,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackOut, MergeTagData, TagCategoriesChangeData, TagSuggestion } from '@shared/back/types';
+import { getRandomHexColor } from '@shared/Util';
 import { getManager, Like, Not } from 'typeorm';
 import { GameManager } from './GameManager';
 
@@ -194,19 +195,37 @@ export namespace TagManager {
     return tags;
   }
 
-  export async function createTag(name: string): Promise<Tag | undefined> {
+  export async function createTag(name: string, categoryName?: string): Promise<Tag | undefined> {
     const tagRepository = getManager().getRepository(Tag);
     const tagAliasRepostiory = getManager().getRepository(TagAlias);
     const tagCategoryRepository = getManager().getRepository(TagCategory);
+    let category: TagCategory | undefined = undefined;
 
-    let defaultCategory = await tagCategoryRepository.findOne();
-    if (!defaultCategory) {
-        defaultCategory = await createTagCategory('default', '#FFFFFF');
+    // If category is defined, find/make it
+    if (categoryName) {
+      category = await tagCategoryRepository.findOne({
+        where: {
+          name: categoryName
+        }
+      });
+      if (!category) {
+        category = await createTagCategory(categoryName, getRandomHexColor());
+      }
+    } else {
+      // No tag category name given, use default
+      category = await tagCategoryRepository.findOne({
+        where: {
+          name: 'default'
+        }
+      });
+      if (!category) {
+        category = await createTagCategory('default', '#FFFFFF');
+      }
     }
 
-    if (defaultCategory) {
+    if (category) {
       // Create tag and alias
-      const tag = tagRepository.create({ category: defaultCategory });
+      const tag = tagRepository.create({ category: category });
       // Save the newly created tag, return it
       let savedTag = await tagRepository.save(tag);
       const tagAlias = tagAliasRepostiory.create();

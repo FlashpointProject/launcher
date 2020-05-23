@@ -1,3 +1,4 @@
+import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, ImportCurationData, ImportCurationResponseData } from '@shared/back/types';
 import { ARCADE } from '@shared/constants';
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
@@ -38,7 +39,7 @@ type OwnProps = {
   libraries: string[];
 };
 
-export type CuratePageProps = OwnProps & WithPreferencesProps;
+export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
 
 const progressKey = 'curate-page';
 
@@ -167,7 +168,7 @@ export function CuratePage(props: CuratePageProps) {
               .then(async (parsedMeta) => {
                 console.log(parsedMeta);
                 const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
-                const newMetaData = YAML.stringify(convertParsedToCurationMeta(parsedMeta));
+                const newMetaData = YAML.stringify(convertParsedToCurationMeta(parsedMeta, props.tagCategories));
                 await fs.writeFile(newMetaPath, newMetaData);
                 // Remove old style meta file
                 await fs.unlink(fullPath);
@@ -210,7 +211,7 @@ export function CuratePage(props: CuratePageProps) {
         }
       }
     }
-  }, [dispatch, localState, defaultGameMetaValues]);
+  }, [dispatch, localState, defaultGameMetaValues, props.tagCategories]);
 
   const updateCurationDir = useCallback(async (fullPath) => {
     const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
@@ -311,7 +312,7 @@ export function CuratePage(props: CuratePageProps) {
         // Save if not marked
         } else {
           const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
-          const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+          const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, props.tagCategories, curation.addApps));
           try {
             fs.writeFileSync(metaPath, meta);
           } catch (error) {
@@ -321,7 +322,7 @@ export function CuratePage(props: CuratePageProps) {
         }
       }
     };
-  }, []);
+  }, [props.tagCategories]);
 
   // Import a curation callback
   const importCurationCallback = useCallback((curation: EditCuration, log?: boolean, date?: Date) => {
@@ -674,7 +675,8 @@ export function CuratePage(props: CuratePageProps) {
           dispatch={dispatch}
           suggestions={props.suggestions}
           libraryOptions={libraryOptions()}
-          libraries={props.libraries} />
+          libraries={props.libraries}
+          tagCategories={props.tagCategories} />
       ));
     } else {
       return (

@@ -1,6 +1,7 @@
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
+import { TagCategory } from '@database/entity/TagCategory';
 import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
@@ -42,6 +43,7 @@ type ImportCurationOpts = {
   imageFolderPath: string;
   openDialog: OpenDialogFunc;
   openExternal: OpenExternalFunc;
+  tagCategories: TagCategory[];
 }
 
 /**
@@ -125,7 +127,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       if (saveCuration) {
         // Save working meta
         const metaPath = path.join(getCurationFolder(curation, fpPath), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, opts.tagCategories, curation.addApps));
         await writeFile(metaPath, meta);
         // Date in form 'YYYY-MM-DD' for folder sorting
         const date = new Date();
@@ -206,7 +208,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     playMode:            gameMeta.playMode            || '',
     status:              gameMeta.status              || '',
     notes:               gameMeta.notes               || '',
-    tags:                [],
+    tags:                gameMeta.tags                || [],
     source:              gameMeta.source              || '',
     applicationPath:     gameMeta.applicationPath     || '',
     launchCommand:       gameMeta.launchCommand       || '',
@@ -224,9 +226,6 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     placeholder: false
   };
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
-  if (gameMeta.tags) {
-    game.tags = await createTagsFromLegacy(gameMeta.tags);
-  }
   return game;
 }
 

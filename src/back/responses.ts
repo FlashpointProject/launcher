@@ -410,7 +410,7 @@ export function registerRequestCallbacks(state: BackState): void {
         try {
           await writeFile(
             reqData.metaOnly ? reqData.location : path.join(reqData.location, 'meta.txt'),
-            stringifyCurationFormat(convertToCurationMeta(game)));
+            stringifyCurationFormat(convertToCurationMeta(game, await TagManager.findTagCategories())));
         } catch (e) { console.error(e); }
 
         // Copy images
@@ -819,11 +819,12 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, async (event, req) => {
-    const name = req.data.trim();
+    const name = req.data.tag.trim();
+    const category = req.data.tagCategory ? req.data.tagCategory.trim() : undefined;
     let tag = await TagManager.findTag(name);
     if (!tag) {
       // Tag doesn't exist, make a new one
-      tag = await TagManager.createTag(name);
+      tag = await TagManager.createTag(name, category);
     }
     respond<Tag>(event.target,  {
       id: req.id,
@@ -919,6 +920,7 @@ export function registerRequestCallbacks(state: BackState): void {
         imageFolderPath: state.config.imageFolderPath,
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
+        tagCategories: await TagManager.findTagCategories()
       });
       state.queries = {};
     } catch (e) {

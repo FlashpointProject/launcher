@@ -6,7 +6,7 @@ import { findElementAncestor, gameScaleSpan } from '@renderer/Util';
 import { LangContext } from '@renderer/util/lang';
 import { BackIn, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, WrappedResponse } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
-import { deepCopy } from '@shared/Util';
+import { deepCopy, getRandomHexColor } from '@shared/Util';
 import * as React from 'react';
 import { ResizableSidebar } from '../ResizableSidebar';
 import { SimpleButton } from '../SimpleButton';
@@ -56,16 +56,16 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
       <div className='tags-page simple-scroll'>
         <div className='tags-page__browser'>
           <div className='tags-browser__center'>
-            <SimpleButton
-                className='tag-category__new-button'
-                onClick={this.createNewCategory}
-                value={strings.newCategory}/>
             <TagCategoriesList
               categories={this.props.tagCategories}
               categoriesTotal={this.props.tagCategories.length}
               rowHeight={rowHeight}
               onCategorySelect={this.onCategorySelect}
               selectedCategoryId={this.state.selectedCategoryId} />
+            <SimpleButton
+              className='tag-category__new-button'
+              onClick={this.createNewCategory}
+              value={strings.newCategory}/>
           </div>
           <ResizableSidebar
             hide={!!this.state.currentCategory}
@@ -142,7 +142,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
       // Tag category shouldn't exist, safe to call
       const newCat = new TagCategory();
       newCat.name = name;
-      newCat.color = '#FFFFFF';
+      newCat.color = getRandomHexColor();
       newCat.tags = [];
       saveTagCategory(newCat);
     }

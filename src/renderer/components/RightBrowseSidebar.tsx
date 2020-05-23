@@ -850,7 +850,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onAddTagByString = (text: string): void => {
     if (text != '') {
-      window.Shared.back.send<TagGetOrCreateResponse, TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, text, (res) => {
+      window.Shared.back.send<TagGetOrCreateResponse, TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, { tag: text }, (res) => {
         const tag = res.data;
         if (tag) {
           const game = this.props.currentGame;

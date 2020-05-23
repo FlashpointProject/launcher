@@ -148,7 +148,7 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       if (index >= 0) {
         // Copy the previous curation (and the nested meta object)
         const prevCuration = nextCurations[index];
-        const nextCuration = { ...prevCuration, meta: { ...prevCuration.meta } };
+        const nextCuration: any = { ...prevCuration, meta: { ...prevCuration.meta } };
         // Replace the value (in the copied meta)
         nextCuration.meta[action.payload.property] = action.payload.value;
         // Replace the previous curation with the new (in the copied array)
