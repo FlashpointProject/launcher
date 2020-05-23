@@ -34,9 +34,9 @@
     "showDeveloperTab": "Mostra Scheda Sviluppatore",
     "showDeveloperTabDesc": "Mostra la scheda 'Sviluppatore'. Molto probabilmente utile solo per sviluppatori e curatori.",
     "server": "Server",
-    "serverDesc": "Which Server Process to run at launcher startup.",
-    "metadataServerHost": "Metadata Server Host",
-    "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "serverDesc": "Quale Processo Server da eseguire all'avvio del launcher.",
+    "metadataServerHost": "Host Server Metadati",
+    "metadataServerHostDesc": "Host di un server di metadati. Utilizzato per sincronizzare le informazioni di gioco nuove e aggiornate al launcher.",
     "saveAndRestart": "Salva e Riavvia"
   },
   "home": {
@@ -82,8 +82,8 @@
   "app": {
     "home": "Home",
     "browse": "Sfoglia",
-    "tags": "Tags",
-    "categories": "Categories",
+    "tags": "Etichette",
+    "categories": "Categorie",
     "logs": "Registro Eventi",
     "config": "Impostazioni",
     "about": "Informazioni",
@@ -102,7 +102,7 @@
   },
   "filter": {
     "dateAdded": "Data aggiunta",
-    "dateModified": "Date Modified",
+    "dateModified": "Data Modifica",
     "platform": "Piattaforma",
     "series": "Serie",
     "title": "Titolo",
@@ -134,8 +134,8 @@
     "renameImagesIdToTitleDesc": "Trova tutte le immagini digioco con l'ID nel loro nome e rinominale per usarne il titolo",
     "createMissingFolders": "Crea Cartelle Mancanti",
     "createMissingFoldersDesc": "Trova tutte le cartelle mancanti nella struttura della cartella Flashpoint e creale",
-    "importLegacyPlatforms": "Import Legacy Platforms",
-    "importLegacyPlatformsDesc": "Imports Legacy Platforms from `Data/Platforms/` - WARNING: Will overwrite conflicting games",
+    "importLegacyPlatforms": "Importa Piattaforme Legacy",
+    "importLegacyPlatformsDesc": "Imports Legacy Platforms from `Data/Platforms/` - ATTENZIONE: Sovrascriverà i giochi in conflitto",
     "importLegacyPlaylists": "Import Legacy Playlists",
     "importLegacyPlaylistsDesc": "Imports Legacy Playlists from `/Data/Playlists`",
     "importMetaEdits": "Import Meta Edits",
