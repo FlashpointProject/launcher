@@ -1,386 +1,518 @@
-import * as fastXmlParser from 'fast-xml-parser';
-import * as fs from 'fs';
-import * as path from 'path';
-import { promisify } from 'util';
-import { GameParser } from '@shared/game/GameParser';
-import { IAdditionalApplicationInfo, IGameCollection, IGameInfo, MetaUpdate } from '@shared/game/interfaces';
-import { GamePlatform, IRawPlatformFile } from '@shared/platform/interfaces';
-import { copyError } from '../util/misc';
-import { GameManagerState, LoadPlatformError } from './types';
+import { chunkArray } from '@back/util/misc';
+import { validateSqlName, validateSqlOrder } from '@back/util/sql';
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
+import { PlaylistGame } from '@database/entity/PlaylistGame';
+import { Tag } from '@database/entity/Tag';
+import { TagAlias } from '@database/entity/TagAlias';
+import { PageKeyset, PageTuple, RequestGameRange, ResponseGameRange, ViewGame } from '@shared/back/types';
+import { VIEW_PAGE_SIZE } from '@shared/constants';
+import { FilterGameOpts } from '@shared/game/GameFilter';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { Coerce } from '@shared/utils/Coerce';
+import { Brackets, FindOneOptions, getManager, SelectQueryBuilder } from 'typeorm';
 
-const mkdir = promisify(fs.mkdir);
-const readdir = promisify(fs.readdir);
-const readFile = promisify(fs.readFile);
-const stat = promisify(fs.stat);
-const writeFile = promisify(fs.writeFile);
-
-const LOG = false;
-
-const UNKNOWN_LIBRARY = 'unknown';
-const UNKNOWN_PLATFORM = 'unknown';
+const exactFields = [ 'broken', 'extreme', 'library' ];
+enum flatGameFields {
+  'id', 'title', 'alternateTitles', 'developer', 'publisher', 'dateAdded', 'dateModified', 'series',
+  'platform', 'broken', 'extreme', 'playMode', 'status', 'notes', 'source', 'applicationPath', 'launchCommand', 'releaseDate',
+  'version', 'originalDescription', 'language', 'library'
+}
 
 export namespace GameManager {
-  export async function loadPlatforms(state: GameManagerState): Promise<LoadPlatformError[]> {
-    // Find the paths of all platform files
-    const platforms: GamePlatform[] = [];
-    try {
-      const libraryNames = await readdir(state.platformsPath);
-      for (let libraryName of libraryNames) {
-        // Check each library for platforms
-        try {
-          const libraryPath = path.join(state.platformsPath, libraryName);
-          if ((await stat(libraryPath)).isDirectory()) {
-            // Library file was a directory, read files inside
-            const platformFiles = await readdir(libraryPath);
-            for (let platformFile of platformFiles) {
-              // Find each platform file
-              const platformPath = path.join(libraryPath, platformFile);
-              const platformFileExt = path.extname(platformFile);
-              if ((await stat(platformPath)).isFile() && platformFileExt.toLowerCase().endsWith('.xml')) {
-                platforms.push({
-                  name: path.basename(platformFile, platformFileExt),
-                  filePath: platformPath,
-                  library: libraryName,
-                  data: { LaunchBox: {} },
-                  collection: { games: [], additionalApplications: [] },
-                });
-              }
-            }
+  export async function countGames(): Promise<number> {
+    const gameRepository = getManager().getRepository(Game);
+    return gameRepository.count();
+  }
+
+  /** Find the game with the specified ID. */
+  export async function findGame(id?: string, filter?: FindOneOptions<Game>): Promise<Game | undefined> {
+    if (id || filter) {
+      const gameRepository = getManager().getRepository(Game);
+      const game = await gameRepository.findOne(id, filter);
+      if (game) {
+        game.tags.sort((tagA, tagB) => {
+          const catIdA = tagA.category ? tagA.category.id : tagA.categoryId;
+          const catIdB = tagB.category ? tagB.category.id : tagB.categoryId;
+          if (catIdA && catIdB) {
+            if (catIdA > catIdB) { return 1;  }
+            if (catIdB > catIdA) { return -1; }
           }
-        } catch (e) { console.log(e); }
-      }
-    } catch (e) { console.log(e); }
-
-    // Read and parse all platform files
-    const errors: LoadPlatformError[] = [];
-    await Promise.all(platforms.map(async (platform) => {
-      try {
-        const data = await readFile(platform.filePath);
-        const platformData: IRawPlatformFile | undefined = fastXmlParser.parse(data.toString(), {
-          ignoreAttributes: true,
-          ignoreNameSpace: true,
-          parseNodeValue: true,
-          parseAttributeValue: false,
-          parseTrueNumberOnly: true,
-          // @TODO Look into which settings are most appropriate
-        });
-        if (!platformData) { throw new Error(`Failed to parse XML file: ${platform.filePath}`); }
-
-        // Make sure the sub-object exists
-        if (!platformData.LaunchBox) { platformData.LaunchBox = {}; }
-
-        // Populate platform
-        platform.data = platformData;
-        platform.collection = GameParser.parse(platformData, platform.library);
-
-        // Success!
-        state.platforms.push(platform);
-      } catch (e) {
-        errors.push({
-          ...copyError(e),
-          filePath: platform.filePath,
+          if (tagA.primaryAlias.name > tagB.primaryAlias.name) { return 1;  }
+          if (tagB.primaryAlias.name > tagA.primaryAlias.name) { return -1; }
+          return 0;
         });
       }
-    }));
-
-    return errors;
-  }
-
-  /** (Similar to Array.find(), but it looks through all platforms) */
-  export function findGame(platforms: GamePlatform[], predicate: (this: undefined, game: IGameInfo, index: number) => boolean): IGameInfo | undefined {
-    for (let i = 0; i < platforms.length; i++) {
-      const game = platforms[i].collection.games.find(predicate);
-      if (game) { return game; }
+      return game;
     }
   }
 
-  export function updateMetas(state: GameManagerState, request: MetaUpdate): Promise<void> {
-    const edited: GamePlatform[] = []; // All platforms that were edited and need to be saved
+  export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
+    if (orderBy) { validateSqlName(orderBy); }
 
-    // Games
-    gameUpdateLoop:
-    for (let game of request.games) {
-      // Make sure the library and platform exist, replacing with unknown defaults if not
-      const newLibrary = game.library || UNKNOWN_LIBRARY;
-      const newPlatform = game.platform || UNKNOWN_PLATFORM;
+    const startTime = Date.now();
+    const gameRepository = getManager().getRepository(Game);
 
-      // Find existing platform and library to update if exists
-      const gamePlatform = state.platforms.find(p => p.name === newPlatform && p.library === newLibrary);
-      if (gamePlatform) {
-        // Attempt to update game in existing platform
-        if (updateGame(game, gamePlatform)) {
-          if (request.saveToDisk) { edited.push(gamePlatform); }
-          if (LOG) { console.log('updated ' + game.id); }
-          continue gameUpdateLoop;
-        }
-        // Game not found in platform, follow process assuming it's a new game, or moved to another platform.
-      }
+    const subQ = gameRepository.createQueryBuilder('game')
+      .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
+    if (index) {
+      if (!orderBy) { throw new Error('Failed to get game row. "index" is set but "orderBy" is missing.'); }
+      subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
+    }
+    if (filterOpts) {
+      applyFlatGameFilters('game', subQ, filterOpts, index ? 1 : 0);
+    }
+    if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
 
-      // Game has moved or is new
-      const oldAddApps: IAdditionalApplicationInfo[] = [];
-      for (let platform of state.platforms) {
-        if (removeGame(game.id, platform)) {
-          if (request.saveToDisk) { edited.push(platform); }
-          // Game removed from platform, store add apps to move later
-          let addAppIndex = -1;
-          while ((addAppIndex = platform.collection.additionalApplications.findIndex(a => a.gameId === game.id)) !== -1) {
-            // Remove from platform and push to list to add later
-            const oldAddApp = platform.collection.additionalApplications[addAppIndex];
-            removeAddApp(oldAddApp.id, platform);
-            oldAddApps.push(oldAddApp);
-          }
-        }
-      }
+    const query = getManager().createQueryBuilder()
+      .setParameters(subQ.getParameters())
+      .select('row_num')
+      .from('(' + subQ.getQuery() + ')', 'g')
+      .where('g.id = :gameId', { gameId: gameId });
 
-      if (gamePlatform) {
-        if (request.saveToDisk) { edited.push(gamePlatform); }
-        // Platform matching found, add to it
-        addGame(game, gamePlatform);
-        // Add additional apps
-        for (let addApp of oldAddApps) {
-          addAddApp(addApp, gamePlatform);
-        }
+    const raw = await query.getRawOne();
+    // console.log(`${Date.now() - startTime}ms for row`);
+    return raw ? Coerce.num(raw.row_num) : -1; // Coerce it, even though it is probably of type number or undefined
+  }
+
+  export async function findRandomGames(count: number, extreme: boolean, broken: boolean): Promise<Game[]> {
+    const gameRepository = getManager().getRepository(Game);
+    const query = gameRepository.createQueryBuilder('game');
+    if (!extreme) { query.andWhere('extreme = false'); }
+    if (!broken)  { query.andWhere('broken = false');  }
+    query.orderBy('RANDOM()').take(count);
+    return query.getMany();
+  }
+
+  export type GetPageKeysetResult = {
+    keyset: PageKeyset;
+    total: number;
+  }
+
+  export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<GetPageKeysetResult> {
+    const startTime = Date.now();
+
+    validateSqlName(orderBy);
+    validateSqlOrder(direction);
+
+    // console.log('FindGamePageKeyset:');
+
+    const subQ = await getGameQuery('sub', filterOpts, orderBy, direction);
+    subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy} ${direction}, sub.title ${direction}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
+    subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
+
+    const query = getManager().createQueryBuilder()
+      .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
+      .from('(' + subQ.getQuery() + ')', 'g')
+      .where('g.page_boundary = 1')
+      .setParameters(subQ.getParameters());
+
+    const raw = await query.getRawMany();
+    const keyset: PageKeyset = {};
+    for (let r of raw) {
+      keyset[r['page_number']] = {orderVal: Coerce.str(r[orderBy]), title: Coerce.str(r['title']), id: Coerce.str(r['id'])};
+    }
+
+    // console.log(`  Keyset: ${Date.now() - startTime}ms`);
+
+    // Count games
+    let total = -1;
+    if (true) {
+      const startTime = Date.now();
+
+      const query = await getGameQuery('sub', filterOpts, orderBy, direction, 0, undefined, undefined);
+
+      query.skip(0);
+      query.select('COUNT(*)');
+      const result = await query.getRawOne();
+      if (result) {
+        total = Coerce.num(result['COUNT(*)']); // Coerce it, even though it is probably of type number or undefined
       } else {
-        // No platform found, make a new one
-        const newCollection: IGameCollection = {
-          games: [game],
-          additionalApplications: oldAddApps
-        };
-        const platform: GamePlatform = {
-          filePath: path.join(state.platformsPath, newLibrary, newPlatform + '.xml'),
-          name: newPlatform,
-          library: newLibrary,
-          collection: newCollection,
-          data: createRawFromCollection(newCollection)
-        };
-        // Add to working array
-        state.platforms.push(platform);
-        if (request.saveToDisk) { edited.push(platform); }
+        console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
       }
+
+      // console.log(`  Count: ${Date.now() - startTime}ms`);
     }
 
-    // AddApps
-    addAppLoop:
-    for (let addApp of request.addApps) {
-      // Find platform of parent game
-      for (let platform of state.platforms) {
-        if (updateAddApp(addApp, platform)) {
-          // App found and updated, move onto the next one
-          if (request.saveToDisk) { edited.push(platform); }
-          continue addAppLoop;
-        }
-      }
-
-      // Add App not found, create new entry in games platform
-      for (let platform of state.platforms) {
-        // Find parent games platform
-        const gameIndex = platform.collection.games.findIndex(g => g.id === addApp.gameId);
-        if (gameIndex !== -1) {
-          // Game platform found, add in here then continue
-          addAddApp(addApp, platform);
-          if (request.saveToDisk) { edited.push(platform); }
-          continue addAppLoop;
-        }
-      }
-      // No parent game found, and no add app entry found. This shouldn't be reachable.
-    }
-
-    // Save all edited platforms
-    return serial(removeDupes(edited).map(p => () => savePlatformToFile(state, p)));
-  }
-
-  /** Remove an addapp in a platform */
-  export function removeAddApp(id: string, platform: GamePlatform): boolean {
-    // Find and remove from platform addApps if exists
-    const appIndex = platform.collection.additionalApplications.findIndex(a => a.id === id);
-    if (appIndex !== -1) {
-      // Found Add App in platform, remove
-      platform.collection.additionalApplications.splice(appIndex, 1);
-      // Find and remove from raw platform if exists
-      let addApps = platform.data.LaunchBox.AdditionalApplication;
-      if (addApps) {
-        // Convert to array if single Add App in platform
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
-        // Remove from raw Add App array if exists
-        const rawIndex = addApps.findIndex(a => a.Id === id);
-        if (rawIndex >= 0) {
-          addApps.splice(rawIndex, 1);
-          platform.data.LaunchBox.AdditionalApplication = addApps;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-
-  export async function savePlatformToFile(state: GameManagerState, platform: GamePlatform): Promise<void> {
-    // Parse data into XML
-    const parser = new fastXmlParser.j2xParser({
-      ignoreAttributes: true, // Attributes are never used, this might increase performance?
-      supressEmptyNode: true, // Empty tags are self closed ("<Tag />" instead of "<Tag></Tag>")
-      format: true,           // Breaks XML into multiple lines and indents it
-    });
-    const parsedData = parser.parse(platform.data);
-    // Save data to the platform's file
-    return state.saveQueue.push(
-      mkdir(path.dirname(platform.filePath), { recursive: true })
-      .then(() => writeFile(platform.filePath, parsedData))
-    , true).catch(console.error);
-  }
-
-  /** Update a game in a platform */
-  function updateGame(game: IGameInfo, platform: GamePlatform): boolean {
-    // Find game in platform
-    const gameIndex = platform.collection.games.findIndex(g => g.id === game.id);
-    if (gameIndex !== -1) {
-      // Game found, update collection
-      platform.collection.games[gameIndex] = game;
-      // Update raw
-      let games = platform.data.LaunchBox.Game;
-      if (games) {
-        // Convert to array if single game present.
-        if (!Array.isArray(games)) { games = [ games ]; }
-        const rawIndex = games.findIndex(g => g.ID === game.id);
-        if (rawIndex !== 1) {
-          games[rawIndex] = GameParser.reverseParseGame(game);
-          platform.data.LaunchBox.Game = games;
-        }
-      } else {
-        // Games not defined. This shouldn't ever be reachable.
-        platform.data.LaunchBox.Game = GameParser.reverseParseGame(game);
-      }
-      return true;
-    }
-    // No game found to update
-    return false;
-  }
-
-  /** Update an add app in a platform */
-  function updateAddApp(addApp: IAdditionalApplicationInfo, platform: GamePlatform): boolean {
-    const addAppIndex = platform.collection.additionalApplications.findIndex(a => a.id === addApp.id);
-    if (addAppIndex !== -1) {
-      // Add app found, update collection
-      platform.collection.additionalApplications[addAppIndex] = addApp;
-      // Update raw
-      let addApps = platform.data.LaunchBox.AdditionalApplication;
-      if (addApps) {
-        // Convert to array if single game present. This shouldn't ever be true but better safe than sorry
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
-        const rawIndex = addApps.findIndex(a => a.Id === addApp.id);
-        if (rawIndex !== 1) {
-          addApps[rawIndex] = GameParser.reverseParseAdditionalApplication(addApp);
-          platform.data.LaunchBox.AdditionalApplication = addApps;
-        }
-      } else {
-        // Add apps not defined. This shouldn't ever be reachable either.
-        platform.data.LaunchBox.AdditionalApplication = GameParser.reverseParseAdditionalApplication(addApp);
-      }
-      return true;
-    }
-    // No add app found to update
-    return false;
-  }
-
-  /** Add a game to a platform */
-  function addGame(game: IGameInfo, platform: GamePlatform) {
-    // Add collection entry
-    platform.collection.games.push(game);
-    // Add raw entry
-    let games = platform.data.LaunchBox.Game;
-      if (games) {
-        // Convert to array if single game in platform
-        if (!Array.isArray(games)) { games = [ games ]; }
-        // Add game to array
-        games.push(GameParser.reverseParseGame(game));
-        platform.data.LaunchBox.Game = games;
-      } else {
-        // Games not defined, add on its own
-        platform.data.LaunchBox.Game = GameParser.reverseParseGame(game);
-      }
-  }
-
-  /** Add a game to a platform */
-  function addAddApp(addApp: IAdditionalApplicationInfo, platform: GamePlatform) {
-    // Add collection entry
-    platform.collection.additionalApplications.push(addApp);
-    // Add raw entry
-    let addApps = platform.data.LaunchBox.AdditionalApplication;
-      if (addApps) {
-        // Convert to array if single game in platform
-        if (!Array.isArray(addApps)) { addApps = [ addApps ]; }
-        // Add game to array
-        addApps.push(GameParser.reverseParseAdditionalApplication(addApp));
-        platform.data.LaunchBox.AdditionalApplication = addApps;
-      } else {
-        // AddApps not defined, add on its own
-        platform.data.LaunchBox.AdditionalApplication = GameParser.reverseParseAdditionalApplication(addApp);
-      }
-  }
-
-  /** Remove a game in a platform */
-  export function removeGame(id: string, platform: GamePlatform): IGameInfo | undefined {
-    // Find and remove from platform games if exists
-    if (LOG) { console.log('finding ' + id +  ' ' + id.length); }
-    const gameIndex = platform.collection.games.findIndex(g => g.id === id);
-    if (gameIndex !== -1) {
-      // Found game in platform, store return and remove
-      const returnGame = platform.collection.games.splice(gameIndex, 1)[0];
-      // Find and remove from raw platform if exists
-      let games = platform.data.LaunchBox.Game;
-      if (games) {
-        // Array of raw games, find game
-        if (Array.isArray(games)) {
-          for (let game of games) {
-            if (LOG) { console.log('ID ' + game.ID + ' ' + game.ID.length); }
-          }
-          const rawIndex = games.findIndex(g => g.ID === id);
-          if (LOG) { console.log(rawIndex); }
-          if (rawIndex !== -1) {
-            if (LOG) { console.log('found ' + id + ' at ' + rawIndex); }
-            games.splice(rawIndex, 1);
-          }
-        } else {
-          // Single game, check if matches and remove if does
-          if (games.ID === id) { platform.data.LaunchBox.Game = undefined; }
-        }
-      }
-      if (LOG) { console.log(`deleted ${id} from ${platform.name}`); }
-      return returnGame;
-    }
-  }
-
-  /** Create a new raw platform with the same data as a parsed platform */
-  function createRawFromCollection(collection: IGameCollection) : IRawPlatformFile {
     return {
-      LaunchBox: {
-        Game: collection.games.map(game => GameParser.reverseParseGame(game)),
-        AdditionalApplication: collection.additionalApplications.map(addApp => GameParser.reverseParseAdditionalApplication(addApp))
-      }
+      keyset,
+      total,
     };
   }
-}
 
-/**
- * Copy an array and remove all duplicates of values.
- * All values that are strictly equal to another value will be removed, except for the one with the lowest index.
- * Example: [1, 2, 3, 1] => [1, 2, 3]
- */
-function removeDupes<T>(array: T[]): T[] {
-  const result = array.slice();
-  for (let i = 0; i < result.length; i++) {
-    const a = result[i];
-    let j = i + 1;
-    while (j < result.length) {
-      if (result[j] === a) { result.splice(j, 1); }
-      else { j++; }
+  export type FindGamesOpts = {
+    /** Ranges of games to fetch (all games are fetched if undefined). */
+    ranges?: RequestGameRange[];
+    filter?: FilterGameOpts;
+    orderBy?: GameOrderBy;
+    direction?: GameOrderReverse;
+    getTotal?: boolean;
+  }
+
+  /** Search the database for games. */
+  export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<ResponseGameRange<T>[]> {
+    const ranges = opts.ranges || [{ start: 0, length: undefined }];
+    const rangesOut: ResponseGameRange<T>[] = [];
+
+    // console.log('FindGames:');
+
+    let query: SelectQueryBuilder<Game> | undefined;
+    for (let i = 0; i < ranges.length; i++) {
+      const startTime = Date.now();
+
+      const range = ranges[i];
+      query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, range.start, range.length, range.index);
+
+      // Select games
+      // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
+      // @PERF When multiple pages are requested as individual ranges, select all of them with a single query then split them up
+      rangesOut.push({
+        start: range.start,
+        length: range.length,
+        games: ((shallow)
+          ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher').getRawMany()) as ViewGame[]
+          : await query.getMany()
+        ) as (T extends true ? ViewGame[] : Game[]),
+      });
+
+      // console.log(`  Query: ${Date.now() - startTime}ms (start: ${range.start}, length: ${range.length}${range.index ? ', with index' : ''})`);
+    }
+
+    return rangesOut;
+  }
+
+  async function getGameQuery(
+    alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, offset?: number, limit?: number, index?: PageTuple
+  ): Promise<SelectQueryBuilder<Game>> {
+    validateSqlName(alias);
+    if (orderBy) { validateSqlName(orderBy); }
+    if (direction) { validateSqlOrder(direction); }
+
+    let whereCount = 0;
+
+    const query = getManager().getRepository(Game).createQueryBuilder(alias);
+
+    // Use Page Index (If Given)
+    if (index) {
+      const comparator = direction === 'ASC' ? '>' : '<';
+      if (!orderBy) { throw new Error('Failed to get game query. "index" is set but "orderBy" is missing.'); }
+      query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) ${comparator} (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
+      whereCount++;
+    }
+    // Apply all flat game filters
+    if (filterOpts) {
+      whereCount = applyFlatGameFilters(alias, query, filterOpts, whereCount);
+    }
+
+    // Order By + Limit
+    if (orderBy) { query.orderBy(`${alias}.${orderBy} ${direction}, ${alias}.title`, direction); }
+    if (!index && offset) { query.skip(offset); }
+    if (limit) { query.take(limit); }
+    // Playlist filtering
+    if (filterOpts && filterOpts.playlistId) {
+      query.innerJoin(PlaylistGame, 'pg', `pg.gameId = ${alias}.id`);
+      query.orderBy('pg.order');
+      if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+      else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+    }
+    // Tag filtering
+    if (filterOpts && filterOpts.searchQuery) {
+      const aliasWhitelist = filterOpts.searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
+      const aliasBlacklist = filterOpts.searchQuery.blacklist.filter(f => f.field === 'tag').map(f => f.value);
+
+      if (aliasWhitelist.length > 0) {
+        await applyTagFilters(aliasWhitelist, alias, query, whereCount, true);
+        whereCount++;
+      }
+      if (aliasBlacklist.length > 0) {
+        await applyTagFilters(aliasBlacklist, alias, query, whereCount, false);
+        whereCount++;
+      }
+    }
+
+    return query;
+  }
+
+  /** Find an add apps with the specified ID. */
+  export async function findAddApp(id?: string, filter?: FindOneOptions<AdditionalApp>): Promise<AdditionalApp | undefined> {
+    if (id || filter) {
+      const addAppRepository = getManager().getRepository(AdditionalApp);
+      return addAppRepository.findOne(id, filter);
     }
   }
-  return result;
+
+  export async function findPlatformAppPaths(platform: string): Promise<string[]> {
+    const gameRepository = getManager().getRepository(Game);
+    const values = await gameRepository.createQueryBuilder('game')
+      .select('game.applicationPath')
+      .distinct()
+      .where('game.platform = :platform', {platform: platform})
+      .groupBy('game.applicationPath')
+      .orderBy('COUNT(*)', 'DESC')
+      .getRawMany();
+    return Coerce.strArray(values.map(v => v['game_applicationPath']));
+  }
+
+  export async function findUniqueValues(entity: any, column: string): Promise<string[]> {
+    validateSqlName(column);
+
+    const repository = getManager().getRepository(entity);
+    const values = await repository.createQueryBuilder('entity')
+      .select(`entity.${column}`)
+      .distinct()
+      .getRawMany();
+    return Coerce.strArray(values.map(v => v[`entity_${column}`]));
+  }
+
+  export async function findUniqueValuesInOrder(entity: any, column: string): Promise<string[]> {
+    validateSqlName(column);
+
+    const repository = getManager().getRepository(entity);
+    const values = await repository.createQueryBuilder('entity')
+      .select(`entity.${column}`)
+      .distinct()
+      .getRawMany();
+    return Coerce.strArray(values.map(v => v[`entity_${column}`]));
+  }
+
+  export async function findPlatforms(library: string): Promise<string[]> {
+    const gameRepository = getManager().getRepository(Game);
+    const libraries = await gameRepository.createQueryBuilder('game')
+      .where('game.library = :library', {library: library})
+      .select('game.platform')
+      .distinct()
+      .getRawMany();
+    return Coerce.strArray(libraries.map(l => l.game_platform));
+  }
+
+  export async function updateGames(games: Game[]): Promise<void> {
+    const chunks = chunkArray(games, 2000);
+    for (let chunk of chunks) {
+      await getManager().transaction(async transEntityManager => {
+        for (let game of chunk) {
+          await transEntityManager.save(Game, game);
+        }
+      });
+    }
+  }
+
+  export async function updateGame(game: Game): Promise<Game> {
+    const gameRepository = getManager().getRepository(Game);
+    return gameRepository.save(game);
+  }
+
+  export async function removeGameAndAddApps(gameId: string): Promise<Game | undefined> {
+    const gameRepository = getManager().getRepository(Game);
+    const addAppRepository = getManager().getRepository(AdditionalApp);
+    const game = await GameManager.findGame(gameId);
+    if (game) {
+      for (let addApp of game.addApps) {
+        await addAppRepository.remove(addApp);
+      }
+      await gameRepository.remove(game);
+    }
+    return game;
+  }
+
+  export async function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | undefined> {
+    const opts: FindOneOptions<Playlist> = join ? { relations: ['games'] } : {};
+    const playlistRepository = getManager().getRepository(Playlist);
+    return playlistRepository.findOne(playlistId, opts);
+  }
+
+  /** Find playlists given a filter. @TODO filter */
+  export async function findPlaylists(): Promise<Playlist[]> {
+    const playlistRepository = getManager().getRepository(Playlist);
+    return await playlistRepository.find();
+  }
+
+  /** Removes a playlist */
+  export async function removePlaylist(playlistId: string): Promise<Playlist | undefined> {
+    const playlistRepository = getManager().getRepository(Playlist);
+    const playlistGameRepository = getManager().getRepository(PlaylistGame);
+    const playlist = await GameManager.findPlaylist(playlistId, true);
+    if (playlist) {
+      for (let game of playlist.games) {
+        await playlistGameRepository.remove(game);
+      }
+      playlist.games = [];
+      return playlistRepository.remove(playlist);
+    }
+  }
+
+  /** Updates a playlist */
+  export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
+    const playlistRepository = getManager().getRepository(Playlist);
+    return playlistRepository.save(playlist);
+  }
+
+  /** Finds a Playlist Game */
+  export async function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined> {
+    const playlistGameRepository = getManager().getRepository(PlaylistGame);
+    return await playlistGameRepository.findOne({
+      where: {
+        gameId: gameId,
+        playlistId: playlistId
+      }
+    });
+  }
+
+  /** Removes a Playlist Game */
+  export async function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined> {
+    const playlistGameRepository = getManager().getRepository(PlaylistGame);
+    const playlistGame = await findPlaylistGame(playlistId, gameId);
+    if (playlistGame) {
+      return playlistGameRepository.remove(playlistGame);
+    }
+  }
+
+  /** Updates a Playlist Game */
+  export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
+    const playlistGameRepository = getManager().getRepository(PlaylistGame);
+    return playlistGameRepository.save(playlistGame);
+  }
+
+  export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
+    const gameIds = (await getManager().createQueryBuilder()
+      .select('game_tag.gameId as gameId')
+      .distinct()
+      .from('game_tags_tag', 'game_tag')
+      .where('game_tag.tagId = :id', { id: tag.id })
+      .getRawMany()).map(g => g['gameId']);
+
+    return chunkedFindByIds(gameIds);
+  }
 }
 
-/** Run a series of asynchronous functions one at a time. */
-async function serial(funcs: Array<() => void>): Promise<void> {
-  for (let i = 0; i < funcs.length; i++) {
-    await funcs[i]();
+async function chunkedFindByIds(gameIds: string[]): Promise<Game[]> {
+  const gameRepository = getManager().getRepository(Game);
+
+  const chunks = chunkArray(gameIds, 100);
+  const gamesFound: Game[] = [];
+  for (const chunk of chunks) {
+    gamesFound.concat(await gameRepository.findByIds(chunk));
+  }
+
+  return gamesFound;
+}
+
+function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, filterOpts: FilterGameOpts, whereCount: number): number {
+  if (filterOpts) {
+    // Search results
+    if (filterOpts.searchQuery) {
+      const searchQuery = filterOpts.searchQuery;
+      const flatGameFieldObjs = Object.values(flatGameFields);
+      // Whitelists are often more restrictive, do these first
+      for (let filter of searchQuery.whitelist) {
+        if (flatGameFieldObjs.includes(filter.field)) {
+          doWhereField(alias, query, filter.field, filter.value, whereCount, true);
+          whereCount++;
+        }
+      }
+      for (let filter of searchQuery.blacklist) {
+        if (flatGameFieldObjs.includes(filter.field)) {
+          doWhereField(alias, query, filter.field, filter.value, whereCount, false);
+          whereCount++;
+        }
+      }
+      for (let phrase of searchQuery.genericWhitelist) {
+        doWhereTitle(alias, query, phrase, whereCount, true);
+        whereCount++;
+      }
+      for (let phrase of searchQuery.genericBlacklist) {
+        doWhereTitle(alias, query, phrase, whereCount, false);
+        whereCount++;
+      }
+    }
+  }
+  return whereCount;
+}
+
+function doWhereTitle(alias: string, query: SelectQueryBuilder<Game>, value: string, count: number, whitelist: boolean): void {
+  validateSqlName(alias);
+
+  const formedValue = '%' + value + '%';
+  let comparator: string;
+  if (whitelist) { comparator = 'like'; }
+  else           { comparator = 'not like'; }
+
+  // console.log(`W: ${count} - C: ${comparator} - F: GENERIC - V:${value}`);
+
+  const and = (count !== 0);
+
+  const where = new Brackets(qb => {
+    const q = and ? qb : query;
+    const ref = `generic-${count}`;
+    q.where(  `${alias}.title ${comparator} :${ref}`,           { [ref]: formedValue });
+    q.orWhere(`${alias}.alternateTitles ${comparator} :${ref}`, { [ref]: formedValue });
+    q.orWhere(`${alias}.developer ${comparator} :${ref}`,       { [ref]: formedValue });
+    q.orWhere(`${alias}.publisher ${comparator} :${ref}`,       { [ref]: formedValue });
+  });
+
+  if (and) {
+    query.andWhere(where);
+  } else {
+    query.where(where);
+  }
+}
+
+function doWhereField(alias: string, query: SelectQueryBuilder<Game>, field: string, value: any, count: number, whitelist: boolean) {
+  // Create comparator
+  const typing = typeof value;
+  const exact = !(typing === 'string') || exactFields.includes(field);
+  let comparator: string;
+  if (!exact && value.length != '') {
+    if (whitelist) { comparator = 'like'; }
+    else           { comparator = 'not like'; }
+  } else {
+    if (whitelist) { comparator = '=';  }
+    else           { comparator = '!='; }
+  }
+
+  // Create formed value
+  let formedValue: any = value;
+  if (!exact && value.length != '') {
+    formedValue = '%' + value + '%';
+  }
+
+  // console.log(`W: ${count} - C: ${comparator} - F: ${field} - V:${value}`);
+  // Do correct 'where' call
+  const ref = `field-${count}`;
+  if (count === 0) {
+    query.where(`${alias}.${field} ${comparator} :${ref}`, { [ref]: formedValue });
+  } else {
+    query.andWhere(`${alias}.${field} ${comparator} :${ref}`, { [ref]: formedValue });
+  }
+}
+
+async function applyTagFilters(aliases: string[], alias: string, query: SelectQueryBuilder<Game>, whereCount: number, whitelist: boolean) {
+  validateSqlName(alias);
+
+  const tagAliasRepository = getManager().getRepository(TagAlias);
+  const comparator = whitelist ? 'IN' : 'NOT IN';
+
+  const tagIds = (await tagAliasRepository.createQueryBuilder('tag_alias')
+    .where('tag_alias.name IN (:...aliases)', { aliases: aliases })
+    .select('tag_alias.tagId')
+    .distinct()
+    .getRawMany()).map(r => r['tag_alias_tagId']);
+
+  for (let i = 0; i < tagIds.length; i++) {
+    const filterName = `tag_filter_${whereCount}_${i}`;
+
+    const tagId = tagIds[i];
+    const subQuery = getManager().createQueryBuilder()
+      .select('game_tag.gameId')
+      .distinct()
+      .from('game_tags_tag', 'game_tag')
+      .where(`game_tag.tagId = :${filterName}`, { [filterName]: tagId });
+    if (whereCount == 0 && i == 0) {
+      query.where(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
+      query.setParameters(subQuery.getParameters());
+    } else {
+      query.andWhere(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
+      query.setParameters(subQuery.getParameters());
+    }
   }
 }

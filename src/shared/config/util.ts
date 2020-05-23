@@ -1,5 +1,5 @@
 import { IAppConfigData } from '@shared/config/interfaces';
-import { deepCopy, parseVarStr, fixSlashes } from '@shared/Util';
+import { deepCopy, fixSlashes, parseVarStr } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
 
@@ -18,10 +18,10 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   jsonFolderPath: 'Data',
   platformFolderPath: 'Data/Platforms',
   themeFolderPath: 'Data/Themes',
+  metaEditsFolderPath: 'Data/MetaEdits',
   useCustomTitlebar: false,
   startServer: true,
-  startRedirector: true,
-  useFiddler: false,
+  server: '',
   disableExtremeGames: false,
   showBrokenGames: false,
   backPortMin: 12001,
@@ -29,6 +29,8 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   imagesPortMin: 12101,
   imagesPortMax: 12200,
   nativePlatforms: [],
+  metadataServerHost: '',
+  lastSync: 0,
 });
 
 /**
@@ -79,17 +81,19 @@ export function overwriteConfigData(
   parser.prop('jsonFolderPath',      v => source.jsonFolderPath      = parseVarStr(str(v)));
   parser.prop('platformFolderPath',  v => source.platformFolderPath  = parseVarStr(str(v)));
   parser.prop('themeFolderPath',     v => source.themeFolderPath     = parseVarStr(str(v)));
-  parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
-  parser.prop('startServer',         v => source.startServer         = !!v);
-  parser.prop('startRedirector',     v => source.startRedirector     = !!v);
-  parser.prop('useFiddler',          v => source.useFiddler          = !!v);
-  parser.prop('disableExtremeGames', v => source.disableExtremeGames = !!v);
-  parser.prop('showBrokenGames',     v => source.showBrokenGames     = !!v);
-  parser.prop('nativePlatforms',     v => source.nativePlatforms     = strArray(v));
-  parser.prop('backPortMin',         v => source.backPortMin         = num(v));
-  parser.prop('backPortMax',         v => source.backPortMax         = num(v));
-  parser.prop('imagesPortMin',       v => source.imagesPortMin       = num(v));
-  parser.prop('imagesPortMax',       v => source.imagesPortMax       = num(v));
+  parser.prop('metaEditsFolderPath', v => source.metaEditsFolderPath = parseVarStr(str(v)));
+  parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar    = !!v);
+  parser.prop('startServer',         v => source.startServer          = !!v);
+  parser.prop('disableExtremeGames', v => source.disableExtremeGames  = !!v);
+  parser.prop('showBrokenGames',     v => source.showBrokenGames      = !!v);
+  parser.prop('nativePlatforms',     v => source.nativePlatforms      = strArray(v));
+  parser.prop('backPortMin',         v => source.backPortMin          = num(v));
+  parser.prop('backPortMax',         v => source.backPortMax          = num(v));
+  parser.prop('imagesPortMin',       v => source.imagesPortMin        = num(v));
+  parser.prop('imagesPortMax',       v => source.imagesPortMax        = num(v));
+  parser.prop('metadataServerHost',  v => source.metadataServerHost   = str(v)); // Server Host, won't contain vars
+  parser.prop('lastSync',            v => source.lastSync             = num(v));
+  parser.prop('server',              v => source.server               = str(v));
   // Do some alterations
   source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)
   // Return

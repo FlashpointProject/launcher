@@ -14,6 +14,8 @@ export type IAppConfigData = {
   platformFolderPath: string;
   /** Path to the theme folder (relative to the flashpoint path) */
   themeFolderPath: string;
+  /** Path of the meta edits folder (relative to the flashpoint path) */
+  metaEditsFolderPath: string;
   /** If the custom title bar should be used in MainWindow */
   useCustomTitlebar: boolean;
   /**
@@ -21,13 +23,8 @@ export type IAppConfigData = {
    * The "server" is defined in "services.json".
    */
   startServer: boolean;
-  /**
-   * If the Redirector should be started, and closed, together with this application.
-   * The "redirector" (and "fiddler") is defined in "services.json".
-   */
-  startRedirector: boolean;
-  /** If Fiddler should be used instead of the Redirector (Windows only) */
-  useFiddler: boolean;
+  // Name of the Server process to run
+  server: string;
   /** If games flagged as "extreme" should be hidden (mainly for parental control) */
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
@@ -42,4 +39,8 @@ export type IAppConfigData = {
   imagesPortMin: number;
   /** Upper limit of the range of ports that the back image server should listen on. */
   imagesPortMax: number;
+  /** Metadata Server Host (For Online Sync) */
+  metadataServerHost: string;
+  /** Last time the Metadata Server Host was synced with */
+  lastSync: number;
 };

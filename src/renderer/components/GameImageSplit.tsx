@@ -1,6 +1,6 @@
-import * as React from 'react';
 import { LangContainer } from '@shared/lang';
 import { formatString } from '@shared/utils/StringFormatter';
+import * as React from 'react';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { ImagePreview } from './ImagePreview';
@@ -127,7 +127,7 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
       const item: HTMLElement | null = elements.item(i) as any;
       if (item) {
         const val = item.style.backgroundImage;
-        item.style.backgroundImage = null;
+        item.style.backgroundImage = '';
         item.style.backgroundImage = val;
       }
     }

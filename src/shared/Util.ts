@@ -3,7 +3,7 @@ import * as path from 'path';
 import { parseVariableString } from './utils/VariableString';
 
 export function getFileServerURL() {
-  return `http://${window.External.backUrl.hostname}:${window.External.fileServerPort}`;
+  return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
 }
 
 type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | undefined | null;
@@ -11,8 +11,8 @@ type ReadFileOptions = { encoding?: string | null; flag?: string; } | string | u
 /**
  * Read and parse a JSON file asynchronously.
  * Wrapper around "fs.readFile()" plus "JSON.parse()".
- * @param path Path of the JSON file
- * @param options Options for reading the file
+ * @param path Path of the JSON file.
+ * @param options Options for reading the file.
  */
 export function readJsonFile(path: string, options?: ReadFileOptions): Promise<any> {
   return new Promise<any>((resolve, reject) => {
@@ -20,14 +20,25 @@ export function readJsonFile(path: string, options?: ReadFileOptions): Promise<a
       // Check if reading file failed
       if (error) { return reject(error); }
       // Try to parse json (and callback error if it fails)
-      const jsonOrError: string | Error = tryParseJSON(data as string);
-      if (jsonOrError instanceof Error) {
-        return reject(jsonOrError);
+      try {
+        const jsonData = JSON.parse(data as string);
+        return resolve(jsonData);
+      } catch (error) {
+        return reject(error);
       }
-      // Success!
-      return resolve(jsonOrError);
     });
   });
+}
+
+/**
+ * Read and parse a JSON file synchronously.
+ * Wrapper around "fs.readFileSync()" plus "JSON.parse()".
+ * Throws an error if either the read or parsing fails.
+ * @param path Path of the JSON file.
+ * @param options Options for reading the file.
+ */
+export function readJsonFileSync(path: string, options?: ReadFileOptions): any {
+  return JSON.parse(fs.readFileSync(path, options) as string);
 }
 
 /**
@@ -73,14 +84,14 @@ export function padStart(str: string|number, length: number): string {
   return ' '.repeat(Math.max(0, length - str.length)) + str;
 }
 
-type StringifyArrayOpts = {
+export type StringifyArrayOpts = {
   /** If spaces and new lines should be trimmed from the start and end of strings in the array. */
   trimStrings?: boolean;
 };
 
 /**
  * Write an array to a string in a pretty and readable way
- * Ex. [0,'test',null] => "[ 0, 'test', null ]"
+ * Ex. [0,'test',null] => '[ 0, "test", null ]'
  * @param array Array to "stringify"
  * @returns Readable text representation of the array
  */
@@ -113,7 +124,7 @@ function trim(str: string): string {
   // Find the last non-space non-new-line character
   for (let i = str.length - 1; i >= first; i--) {
     if (!isSpaceOrNewLine(str[i])) {
-      last = i;
+      last = i+1;
       break;
     }
   }
@@ -128,24 +139,9 @@ function isSpaceOrNewLine(char: string): boolean {
     default:   return false;
   }
 }
-
-/**
- * Get the ISO formatted time stamp from a date object.
- * ("yyyy-MM-ddThh:mm:ss.fff+00:00")
- */
-export function formatDate(d: Date): string {
-  return `${pad(d.getFullYear(), 4)}-${pad(d.getMonth()+1, 2)}-${pad(d.getDate(), 2)}`+
-         `T${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}:${pad(d.getSeconds(), 2)}`+
-         `.${pad(d.getMilliseconds(), 3)}${timezone(d.getTimezoneOffset())}`;
-}
 // (Pads the beginning of a string with "0"s until it reaches a specified length)
 function pad(str: string|number, len: number): string {
   return '0'.repeat(Math.max(0, len - (str+'').length)) + str;
-}
-// (Converts a timestamp (in minutes, not milliseconds) to the timezone part of the ISO date string ("(+/-)hh:mm"))
-function timezone(time: number): string {
-  const t = Math.abs(time);
-  return `${(time < 0)?'+':'-'}${pad(Math.floor(t / 60), 2)}:${pad(t % 60, 2)}`;
 }
 
 /**
@@ -220,17 +216,6 @@ export function deepCopy<T>(source: T): T {
     copy[key] = val;
   }
   return copy;
-}
-
-/** Try parsing a JSON string into an object and return that object, or an error if one occurred */
-export function tryParseJSON(jsonString: string): any|Error {
-  let ret: any|Error;
-  try {
-    ret = JSON.parse(jsonString);
-  } catch (error) {
-    ret = error;
-  }
-  return ret;
 }
 
 /**
@@ -359,6 +344,8 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
  * Parse a variable string using a generic get variable value function.
  * @param str String to parse.
  */
+// @TODO: Make better variables. Why are we using cwd() ?
+/* istanbul ignore next */
 export function parseVarStr(str: string) {
   return parseVariableString(str, (name) => {
     switch (name) {
@@ -416,6 +403,7 @@ export function canReadWrite(folder: string): Promise<boolean> {
     fs.open(testPath, 'w', (err, fd) => {
       if (err) {
         resolve(false);
+        return;
       }
       // Cleanup file after testing
       fs.close(fd, () => {

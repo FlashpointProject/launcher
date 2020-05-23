@@ -5,6 +5,8 @@ export type IconProps = {
   icon: OpenIconType;
   /** CSS class name(s) of the <svg> element. */
   className?: string;
+  /** Color to fill the SVG with */
+  color?: string;
   /** CSS class name(s) of the <use> element. */
   useClassName?: string;
   /** Shape rendering attribute of the <svg> element. */
@@ -23,6 +25,7 @@ export function OpenIcon (props: IconProps) {
       { ...props.props }>
       <use
         xlinkHref={`svg/open-iconic.svg#${props.icon}`}
+        style={{ fill: props.color }}
         className={`icon__use icon__use--${props.icon} ${props.useClassName || ''}`} />
     </svg>
   );

@@ -1,7 +1,16 @@
 /* Tests for src/renderer/uuid.test.ts */
 import { validateSemiUUID, uuid } from '@renderer/util/uuid';
+import * as nodeCrypto from 'crypto';
 
 describe('uuid.uuid()', function () {
+  // crypto is undefined in jsdom, make our own function
+  Object.defineProperty(window, 'crypto', {
+    writable: false,
+    value: {
+      getRandomValues: (buf: Uint8Array) => nodeCrypto.randomFillSync(buf)
+    }
+  });
+
   test('Returns string of proper length?', () => {
     expect(uuid()).toHaveLength(36);
   });

@@ -39,6 +39,10 @@ const langTemplate = {
     'advancedHeader',
     'showDeveloperTab',
     'showDeveloperTabDesc',
+    'server',
+    'serverDesc',
+    'metadataServerHost',
+    'metadataServerHostDesc',
     'saveAndRestart',
     'browse',
   ] as const,
@@ -85,6 +89,8 @@ const langTemplate = {
   app: [
     'home',
     'browse',
+    'tags',
+    'categories',
     'logs',
     'config',
     'about',
@@ -103,7 +109,7 @@ const langTemplate = {
   ] as const,
   filter: [
     'dateAdded',
-    'tags',
+    'dateModified',
     'platform',
     'series',
     'title',
@@ -135,6 +141,18 @@ const langTemplate = {
     'renameImagesIdToTitleDesc',
     'createMissingFolders',
     'createMissingFoldersDesc',
+    'importLegacyPlatforms',
+    'importLegacyPlatformsDesc',
+    'importLegacyPlaylists',
+    'importLegacyPlaylistsDesc',
+    'fixPrimaryAliases',
+    'fixPrimaryAliasesDesc',
+    'fixCommaTags',
+    'fixCommaTagsDesc',
+    'forceGameMetaSync',
+    'forceGameMetaSyncDesc',
+    'importMetaEdits',
+    'importMetaEditsDesc',
     'servicesHeader',
     'servicesMissing',
     'running',
@@ -170,6 +188,7 @@ const langTemplate = {
     'noAlternateTitles',
     'tags',
     'noTags',
+    'enterTag',
     'series',
     'noSeries',
     'publisher',
@@ -189,6 +208,7 @@ const langTemplate = {
     'language',
     'noLanguage',
     'dateAdded',
+    'dateModified',
     'brokenInInfinity',
     'extreme',
     'playlistNotes',
@@ -225,6 +245,7 @@ const langTemplate = {
     'editGame',
     'allGames',
     'newPlaylist',
+    'importPlaylist',
     'emptyPlaylist',
     'noGamesFound',
     'dropGameOnLeft',
@@ -238,8 +259,31 @@ const langTemplate = {
     'noGameMatchedDesc',
     'noGameMatchedSearch',
     'thereAreNoGames',
+    'searching',
     'library',
     'defaultLibrary',
+  ] as const,
+  tags: [
+    'noName',
+    'description',
+    'noDescription',
+    'category',
+    'noCategory',
+    'newCategory',
+    'enterAlias',
+    'aliases',
+    'editTag',
+    'color',
+    'noTagSelected',
+    'clickToSelectTag',
+    'deleteTagAlias',
+    'setPrimaryAlias',
+    'mergeIntoTag',
+    'mergeTag',
+    'makeAliasWhenMerged',
+    'deleteTag',
+    'deleteTagCategory',
+    'locked'
   ] as const,
   curate: [
     'importAll',
@@ -305,6 +349,9 @@ const langTemplate = {
     'discardDesc',
     'edit',
     'editDesc',
+    'changeIcon',
+    'duplicatePlaylistDesc',
+    'exportPlaylistDesc',
     'delete',
     'deleteDesc',
     'areYouSure',
@@ -312,7 +359,7 @@ const langTemplate = {
     'titlePlaceholder',
     'noAuthor',
     'authorPlaceholder',
-    'filename',
+    'id',
     'by',
   ] as const,
   misc: [
@@ -325,6 +372,8 @@ const langTemplate = {
     'extracting',
     'installingFiles',
     'complete',
+    'exportMetaEditTitle',
+    'exportMetaEditDesc',
   ] as const,
   menu: [
     'viewThumbnailInFolder',
@@ -334,6 +383,9 @@ const langTemplate = {
     'duplicateMetaAndImages',
     'exportMetaOnly',
     'exportMetaAndImages',
+    'exportMetaEdit',
+    'duplicatePlaylist',
+    'exportPlaylist'
   ] as const,
   dialog: [
     'programNotFound',
@@ -343,8 +395,12 @@ const langTemplate = {
     'fileNotFound',
     'flashpointPathInvalid',
     'pathNotFound',
+    'playlistConflict',
+    'importedPlaylistAlreadyExists',
+    'mergeOrStaySeperate',
     'selectFileToExportMeta',
     'selectFolderToExportMetaAndImages',
+    'selectFileToExportPlaylist',
     'replaceFilesQuestion',
     'exportedAlreadyExistsYesNo',
     'selectFolder',
@@ -354,6 +410,7 @@ const langTemplate = {
     'selectCurationFolder',
     'selectCurationArchive',
     'selectCurationMeta',
+    'selectPlaylistToImport',
     'errorParsingPlatforms',
     'errorParsingPlatformsMessage',
     'dataRequired',
@@ -364,7 +421,10 @@ const langTemplate = {
     'pickAnotherFolder',
     'restartNow',
     'restartToApplyUpgrade',
-    'areYouSure'
+    'areYouSure',
+    'cancel',
+    'mergePlaylists',
+    'newPlaylist'
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
@@ -462,6 +522,7 @@ export function getDefaultLocalization(): LangContainer {
   lang.misc.deleteAllBlankImages += ' {0}';
   lang.dialog.errorParsingPlatformsMessage = '{0} ' + lang.dialog.errorParsingPlatformsMessage;
   lang.dialog.upgradeWillInstallTo = '{0} ' + lang.dialog.upgradeWillInstallTo;
+  lang.dialog.importedPlaylistAlreadyExists = lang.dialog.importedPlaylistAlreadyExists + ' - "{0}"';
   // Return object
   return lang;
 }

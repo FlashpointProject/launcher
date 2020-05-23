@@ -2,7 +2,7 @@ export interface SearchQuery {
   text: string;
 }
 
-export const enum SearchActionTypes {
+export const enum SearchActions {
   SET_QUERY = '@@search/SET_QUERY',
 }
 

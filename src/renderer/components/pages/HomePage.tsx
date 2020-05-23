@@ -1,14 +1,14 @@
+import { Playlist } from '@database/entity/Playlist';
+import { ARCADE, THEATRE } from '@shared/constants';
+import { wrapSearchTerm } from '@shared/game/GameFilter';
+import { LangContainer } from '@shared/lang';
+import { getUpgradeString } from '@shared/upgrade/util';
+import { formatString } from '@shared/utils/StringFormatter';
 import { remote } from 'electron';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as path from 'path';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { ARCADE, THEATRE } from '@shared/constants';
-import { wrapSearchTerm } from '@shared/game/GameFilter';
-import { GamePlaylist } from '@shared/interfaces';
-import { LangContainer } from '@shared/lang';
-import { getUpgradeString } from '@shared/upgrade/util';
-import { formatString } from '@shared/utils/StringFormatter';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { WithSearchProps } from '../../containers/withSearch';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
@@ -24,7 +24,7 @@ import { SizeProvider } from '../SizeProvider';
 
 type OwnProps = {
   platforms: Record<string, string[]>;
-  playlists: GamePlaylist[];
+  playlists: Playlist[];
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
   onSelectPlaylist: (library: string, playlistId: string | undefined) => void;
@@ -63,13 +63,13 @@ export function HomePage(props: HomePageProps) {
   }, [props.onLaunchGame]);
 
   const onHelpClick = React.useCallback(() => {
-    remote.shell.openItem(path.join(window.External.config.fullFlashpointPath, 'readme.txt'));
-  }, [window.External.config.fullFlashpointPath]);
+    remote.shell.openItem(path.join(window.Shared.config.fullFlashpointPath, 'readme.txt'));
+  }, [window.Shared.config.fullFlashpointPath]);
 
   const onHallOfFameClick = React.useCallback(() => {
     const playlist = props.playlists.find(p => p.title === 'Flashpoint Hall of Fame');
     if (playlist) {
-      props.onSelectPlaylist(ARCADE, playlist.filename);
+      props.onSelectPlaylist(ARCADE, playlist.id);
       props.clearSearch();
     }
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
@@ -77,7 +77,7 @@ export function HomePage(props: HomePageProps) {
   const onFavoriteClick = React.useCallback(() => {
     const playlist = props.playlists.find(p => p.title === '*Favorites*');
     if (playlist) {
-      props.onSelectPlaylist(ARCADE, playlist.filename);
+      props.onSelectPlaylist(ARCADE, playlist.id);
       props.clearSearch();
     }
   }, [props.playlists, props.onSelectPlaylist, props.clearSearch]);
@@ -146,7 +146,7 @@ export function HomePage(props: HomePageProps) {
   // -- Render the boxes --
 
   const renderedUpdates = React.useMemo(() => {
-    if (window.External.installed) {
+    if (window.Shared.installed) {
       return (
         <div className='home-page__box'>
           <div className='home-page__box-head'>{strings.updateHeader}</div>
@@ -294,7 +294,7 @@ export function HomePage(props: HomePageProps) {
         <div className='home-page__random-games__inner'>
           <p className='home-page__random-games__title'>{strings.randomPicks}</p>
             <RandomGames
-              broken={window.External.config.data.showBrokenGames}
+              broken={window.Shared.config.data.showBrokenGames}
               extreme={props.preferencesData.browsePageShowExtreme}
               onLaunchGame={onLaunchGame} />
         </div>

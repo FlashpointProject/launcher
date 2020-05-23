@@ -1,11 +1,11 @@
-import { remote } from 'electron';
-import * as React from 'react';
-import { setInterval } from 'timers';
 import { BackIn, ServiceActionData } from '@shared/back/types';
 import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
 import { escapeHTML, formatTime, padLines, timeChars } from '@shared/Log/LogCommon';
+import { remote } from 'electron';
+import * as React from 'react';
+import { setInterval } from 'timers';
 import { LangContext } from '../util/lang';
 import { LogData } from './LogData';
 import { SimpleButton } from './SimpleButton';
@@ -22,7 +22,7 @@ export function ServiceBox(props: ServiceBoxProps) {
   const lang = React.useContext(LangContext);
   const strings = lang.developer;
   // Log
-  const entries = window.External.log.entries;
+  const entries = window.Shared.log.entries;
   const logData = React.useMemo(() => {
     return stringifyServiceLogEntries(entries, service.name);
   }, [entries, entries.length, service.name]);
@@ -147,7 +147,7 @@ function displayDetails(info: IBackProcessInfo): void {
  */
 function useProcessActionCallback(action: ProcessAction, id: string): () => void {
   return React.useCallback(() => {
-    window.External.back.send<any, ServiceActionData>(BackIn.SERVICE_ACTION, { id, action });
+    window.Shared.back.send<any, ServiceActionData>(BackIn.SERVICE_ACTION, { id, action });
   }, [id]);
 }
 

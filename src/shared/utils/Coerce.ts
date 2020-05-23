@@ -11,6 +11,15 @@ export namespace Coerce {
   }
 
   /**
+   * Coerce a value to a string.
+   * If the value is undefined, an empty string is returned instead.
+   * @param value Value to coerce.
+   */
+  export function strArray(value: any[]): string[] {
+    return value.map(val => str(val));
+  }
+
+  /**
    * Coere a value to a number.
    * If the coerced value is NaN, 0 will be returned instead.
    * @param value Value to coerce.
@@ -21,25 +30,13 @@ export namespace Coerce {
 
   /**
    * Convert a string to a boolean (case insensitive).
-   * @param str String to convert ("Yes" is true, "No" is false).
+   * @param str String to convert ("true" and "yes" is true, "false" and "no" is false).
    * @param defaultVal Value returned if the string is neither true nor false.
    */
   export function strToBool(str: string, defaultVal: boolean = false): boolean {
     const lowerStr = str.toLowerCase();
-    if (lowerStr === 'yes') { return true;  }
-    if (lowerStr === 'no' ) { return false; }
-    return defaultVal;
-  }
-
-  /**
-   * Convert a string to a boolean (case insensitive).
-   * @param str String to convert ("True" is true, "False" is false).
-   * @param defaultVal Value returned if the string is neither true nor false.
-   */
-  export function strToBool2(str: string, defaultVal: boolean = false): boolean {
-    const lowerStr = str.toLowerCase();
-    if (lowerStr === 'true')  { return true;  }
-    if (lowerStr === 'false') { return false; }
+    if (lowerStr === 'yes' || lowerStr === 'true') { return true;  }
+    if (lowerStr === 'no' || lowerStr === 'false') { return false; }
     return defaultVal;
   }
 }

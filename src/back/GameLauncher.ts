@@ -1,20 +1,20 @@
-import { ChildProcess, exec, ExecOptions } from 'child_process';
-import { EventEmitter } from 'events';
-import * as path from 'path';
-import { IAdditionalApplicationInfo, IGameInfo } from '@shared/game/interfaces';
-import { ExecMapping } from '@shared/interfaces';
+import { AdditionalApp } from '@database/entity/AdditionalApp';
+import { Game } from '@database/entity/Game';
+import { ExecMapping, Omit } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
+import { ChildProcess, exec, execFile } from 'child_process';
+import { EventEmitter } from 'events';
+import * as path from 'path';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
-  addApp: IAdditionalApplicationInfo;
+  addApp: AdditionalApp;
   native: boolean;
 }
 
 export type LaunchGameOpts = LaunchBaseOpts & {
-  game: IGameInfo;
-  addApps?: IAdditionalApplicationInfo[];
+  game: Game;
   native: boolean;
 }
 
@@ -34,13 +34,14 @@ export namespace GameLauncher {
     // @FIXTHIS It is not possible to open dialog windows from the back process (all electron APIs are undefined).
     switch (opts.addApp.applicationPath) {
       case ':message:':
-        return opts.openDialog({
-          type: 'info',
-          title: 'About This Game',
-          message: opts.addApp.launchCommand,
-          buttons: ['Ok'],
-        }).then();
-
+        return new Promise((resolve, reject) => {
+          opts.openDialog({
+            type: 'info',
+            title: 'About This Game',
+            message: opts.addApp.launchCommand,
+            buttons: ['Ok'],
+          }).finally(() => resolve());
+        });
       case ':extras:':
         const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.addApp.launchCommand)));
         return opts.openExternal(folderPath, { activate: true })
@@ -59,11 +60,12 @@ export namespace GameLauncher {
       default:
         const appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
         const appArgs: string = opts.addApp.launchCommand;
-        const proc = launch(
-          createCommand(appPath, appArgs),
-          { env: getEnvironment(opts.fpPath) },
-          opts.log
+        const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
+        const proc = exec(
+          createCommand(appPath, appArgs, useWine),
+          { env: getEnvironment(opts.fpPath) }
         );
+        logProcessOutput(proc, opts.log);
         opts.log({
           source: logSource,
           content: `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,
@@ -86,7 +88,7 @@ export namespace GameLauncher {
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
-    if (opts.addApps) {
+    if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
         fpPath: opts.fpPath,
         native: opts.native,
@@ -96,7 +98,7 @@ export namespace GameLauncher {
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
       };
-      for (let addApp of opts.addApps) {
+      for (let addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
           const promise = launchAdditionalApplication({ ...addAppOpts, addApp });
           if (addApp.waitForExit) { await promise; }
@@ -104,33 +106,58 @@ export namespace GameLauncher {
       }
     }
     // Launch game
-    const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
-    const gameArgs: string = opts.game.launchCommand;
-    const command: string = createCommand(gamePath, gameArgs);
-    const proc = launch(command, { env: getEnvironment(opts.fpPath) }, opts.log);
-    opts.log({
-      source: logSource,
-      content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
-               `    applicationPath: "${opts.game.applicationPath}",\n`+
-               `    launchCommand:   "${opts.game.launchCommand}",\n`+
-               `    command:         "${command}" ]`
-    });
-    // Show popups for Unity games
-    // (This is written specifically for the "startUnity.bat" batch file)
-    if (opts.game.platform === 'Unity' && proc.stdout) {
-      let textBuffer: string = ''; // (Buffer of text, if its multi-line)
-      proc.stdout.on('data', function(text: string): void {
-        // Add text to buffer
-        textBuffer += text;
-        // Check for exact messages and show the appropriate popup
-        for (let response of unityOutputResponses) {
-          if (textBuffer.endsWith(response.text)) {
-            response.fn(proc, opts.openDialog);
-            textBuffer = '';
-            break;
-          }
+    const appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)
+    switch (appPath) {
+      case ':flash:': {
+        const env = getEnvironment(opts.fpPath);
+        if ('ELECTRON_RUN_AS_NODE' in env) {
+          delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
         }
-      });
+        const proc = execFile(
+          process.execPath, // path.join(__dirname, '../main/index.js'),
+          [path.join(__dirname, '../main/index.js'), 'flash=true', opts.game.launchCommand],
+          { env, cwd: process.cwd() }
+        );
+        logProcessOutput(proc, opts.log);
+        opts.log({
+          source: logSource,
+          content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+                  `    applicationPath: "${appPath}",\n`+
+                  `    launchCommand:   "${opts.game.launchCommand}" ]`
+        });
+      } break;
+      default: {
+        const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
+        const gameArgs: string = opts.game.launchCommand;
+        const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
+        const command: string = createCommand(gamePath, gameArgs, useWine);
+        const proc = exec(command, { env: getEnvironment(opts.fpPath) });
+        logProcessOutput(proc, opts.log);
+        opts.log({
+          source: logSource,
+          content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+                   `    applicationPath: "${opts.game.applicationPath}",\n`+
+                   `    launchCommand:   "${opts.game.launchCommand}",\n`+
+                   `    command:         "${command}" ]`
+        });
+        // Show popups for Unity games
+        // (This is written specifically for the "startUnity.bat" batch file)
+        if (opts.game.platform === 'Unity' && proc.stdout) {
+          let textBuffer: string = ''; // (Buffer of text, if its multi-line)
+          proc.stdout.on('data', function(text: string): void {
+            // Add text to buffer
+            textBuffer += text;
+            // Check for exact messages and show the appropriate popup
+            for (let response of unityOutputResponses) {
+              if (textBuffer.endsWith(response.text)) {
+                response.fn(proc, opts.openDialog);
+                textBuffer = '';
+                break;
+              }
+            }
+          });
+        }
+      } break;
     }
   }
 
@@ -180,27 +207,25 @@ export namespace GameLauncher {
     };
   }
 
-  function createCommand(filename: string, args: string): string {
-    // Escape filename and args
-    let escFilename: string = filename;
-    let escArgs: string = args;
+  function createCommand(filename: string, args: string, useWine: boolean): string {
+    // This whole escaping thing is horribly broken. We probably want to switch
+    // to an array representing the argv instead and not have a shell
+    // in between.
     switch (process.platform) {
       case 'win32':
-        escFilename = filename;
-        escArgs = escapeWin(args);
-        break;
+        return `"${filename}" ${escapeWin(args)}`;
+      case 'darwin':
       case 'linux':
-        escFilename = filename;
-        escArgs = escapeLinuxArgs(args);
-        break;
+        if (useWine) {
+          return `wine start /unix "${filename}" ${escapeLinuxArgs(args)}`;
+        }
+        return `"${filename}" ${escapeLinuxArgs(args)}`;
+      default:
+        throw Error("Unsupported platform");
     }
-    // Return
-    return `"${escFilename}" ${escArgs}`;
   }
 
-  function launch(command: string, opts: ExecOptions, log: LogFunc): ChildProcess {
-    // Run
-    const proc = exec(command, opts);
+  function logProcessOutput(proc: ChildProcess, log: LogFunc): void {
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     const logStuff = (event: string, args: any[]): void => {
@@ -212,8 +237,6 @@ export namespace GameLauncher {
     doStuffs(proc, [/* 'close', */ 'disconnect', 'error', 'exit', 'message'], logStuff);
     if (proc.stdout) { proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); }); }
     if (proc.stderr) { proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); }); }
-    // Return process
-    return proc;
   }
 }
 
@@ -240,6 +263,20 @@ function escapeWin(str: string): string {
     .reduce((acc, val, i) => acc + ((i % 2 === 0)
       ? val.replace(/[\^&<>|]/g, '^$&')
       : `"${val}"`
+    ), '')
+  );
+}
+
+/**
+ * Escape arguments that will be used in a Linux shell (command line)
+ * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
+ */
+function escapeLinuxArgs(str: string): string {
+  return (
+    splitQuotes(str)
+    .reduce((acc, val, i) => acc + ((i % 2 === 0)
+      ? val.replace(/[~`#$&*()\\|[\]{};<>?!]/g, '\\$&')
+      : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
     ), '')
   );
 }
@@ -272,14 +309,6 @@ function splitQuotes(str: string): string[] {
     splits.push(str.substring(start, str.length));
   }
   return splits;
-}
-
-/**
- * Escape arguments that will be used in a Linux shell (command line)
- * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
- */
-function escapeLinuxArgs(str: string): string {
-  return str.replace(/((?![a-zA-Z0-9,._+:@%-]).)/g, '\\$&'); // $& means the whole matched string
 }
 
 type UnityOutputResponse = {

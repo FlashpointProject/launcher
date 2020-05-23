@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { IAdditionalApplicationInfo } from '@shared/game/interfaces';
+import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { LangContainer } from '@shared/lang';
+import * as React from 'react';
 import { LangContext } from '../util/lang';
 import { CheckBox } from './CheckBox';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
@@ -9,7 +9,7 @@ import { OpenIcon } from './OpenIcon';
 
 export type RightBrowseSidebarAddAppProps = {
   /** Additional Application to show and edit */
-  addApp: IAdditionalApplicationInfo;
+  addApp: AdditionalApp;
   /** Called when a field is edited */
   onEdit?: () => void;
   /** Called when a field is edited */
@@ -137,7 +137,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
   }
 
   /** Create a wrapper for a EditableTextWrap's onEditDone callback (this is to reduce redundancy). */
-  wrapOnTextChange(func: (addApp: IAdditionalApplicationInfo, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
+  wrapOnTextChange(func: (addApp: AdditionalApp, text: string) => void): (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => void {
     return (event) => {
       const addApp = this.props.addApp;
       if (addApp) {
@@ -148,7 +148,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
   }
 
   /** Create a wrapper for a CheckBox's onChange callback (this is to reduce redundancy). */
-  wrapOnCheckBoxChange(func: (addApp: IAdditionalApplicationInfo) => void) {
+  wrapOnCheckBoxChange(func: (addApp: AdditionalApp) => void) {
     return () => {
       if (!this.props.editDisabled) {
         func(this.props.addApp);

@@ -1,10 +1,3 @@
-import { remote } from 'electron';
-import * as fs from 'fs-extra';
-import { add } from 'node-7z';
-import * as path from 'path';
-import * as React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import * as YAML from 'yaml';
 import { BackIn, LaunchCurationData } from '@shared/back/types';
 import { htdocsPath } from '@shared/constants';
 import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
@@ -14,6 +7,13 @@ import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, sizeToString } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
+import { remote } from 'electron';
+import * as fs from 'fs-extra';
+import { add } from 'node-7z';
+import * as path from 'path';
+import * as React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import * as YAML from 'yaml';
 import { ProgressData } from '../containers/withProgress';
 import { CurationAction } from '../context/CurationContext';
 import { newProgress, ProgressContext, ProgressDispatch } from '../context/ProgressContext';
@@ -89,7 +89,7 @@ export function CurateBox(props: CurateBoxProps) {
   const onLibraryChange             = useOnInputChange('library',             key, props.dispatch);
   const onNotesChange               = useOnInputChange('notes',               key, props.dispatch);
   const onOriginalDescriptionChange = useOnInputChange('originalDescription', key, props.dispatch);
-  const onAuthorNotesChange         = useOnInputChange('authorNotes',         key, props.dispatch);
+  const onCurationNotesChange       = useOnInputChange('curationNotes',       key, props.dispatch);
   const onExtremeChange             = useOnCheckboxToggle('extreme',          key, props.dispatch);
   // Callbacks for the fields (onItemSelect)
   const onPlayModeSelect            = useCallback(transformOnItemSelect(onPlayModeChange),        [onPlayModeChange]);
@@ -191,7 +191,7 @@ export function CurateBox(props: CurateBoxProps) {
       const statusProgress = newProgress(props.curation.key, progressDispatch);
       ProgressDispatch.setText(statusProgress, 'Launching Curation...');
       ProgressDispatch.setUsePercentDone(statusProgress, false);
-      await window.External.back.sendP<any, LaunchCurationData>(BackIn.LAUNCH_CURATION, {
+      await window.Shared.back.sendP<any, LaunchCurationData>(BackIn.LAUNCH_CURATION, {
         key: props.curation.key,
         meta: props.curation.meta,
         addApps: props.curation.addApps.map(addApp => addApp.meta),
@@ -304,7 +304,7 @@ export function CurateBox(props: CurateBoxProps) {
         }
       }
       // Choose where to save the file
-      const defaultPath = path.join(window.External.config.fullFlashpointPath, 'Curations', '_Exports');
+      const defaultPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', '_Exports');
       await fs.ensureDir(defaultPath);
       const filePath = remote.dialog.showSaveDialogSync({
         title: strings.dialog.selectFileToExportMeta,
@@ -514,7 +514,7 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation && progressState[props.curation.key]]);
 
   // Meta
-  const authorNotes = props.curation && props.curation.meta.authorNotes || '';
+  const curationNotes = props.curation && props.curation.meta.curationNotes || '';
   // Misc
   const sharedInputProps = {
     editable: editable,
@@ -688,11 +688,11 @@ export function CurateBox(props: CurateBoxProps) {
           </CurateBoxRow>
           <CurateBoxRow title={strings.curate.curationNotes + ':'}>
             <InputField
-              text={authorNotes}
+              text={curationNotes}
               placeholder={strings.curate.noCurationNotes}
-              onChange={onAuthorNotesChange}
+              onChange={onCurationNotesChange}
               multiline={true}
-              className={authorNotes.length > 0 ? 'input-field--info' : ''}
+              className={curationNotes.length > 0 ? 'input-field--info' : ''}
               { ...sharedInputProps } />
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.extreme + ':'}>
@@ -865,7 +865,7 @@ function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | und
 
 function useAddImageCallback(filename: string, strings: LangContainer, curation: EditCuration | undefined): () => void {
   return useCallback(() => {
-    const filePaths = window.External.showOpenDialogSync({
+    const filePaths = window.Shared.showOpenDialogSync({
       title: strings.dialog.selectScreenshot,
       properties: ['openFile'],
       filters: [{ extensions: ['png', 'PNG'], name: 'Image File' }]
@@ -1018,7 +1018,7 @@ function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string,
     let lc = match[1] || match[0];
     // Extract protocol from potential URL
     console.log(lc);
-    let protocol = lc.match(/(.+):\/\//);
+    let protocol = lc.match(/(.+?):\/\//);
     console.log(protocol);
     if (protocol) {
       // Protocol found, must be URL
@@ -1078,22 +1078,22 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
 }
 
 function getContentFolderByKey2(key: string) {
-  return getContentFolderByKey(key, window.External.config.fullFlashpointPath);
+  return getContentFolderByKey(key, window.Shared.config.fullFlashpointPath);
 }
 
 function getCurationFolder2(curation: EditCuration | CurationIndex) {
-  return getCurationFolder(curation, window.External.config.fullFlashpointPath);
+  return getCurationFolder(curation, window.Shared.config.fullFlashpointPath);
 }
 
 function isPlatformNativeLocked(platform: string) {
-  return window.External.config.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
+  return window.Shared.config.data.nativePlatforms.findIndex((item) => { return item === platform; }) != -1;
 }
 
 function getPathOfHtdocsUrl(url: string): string | undefined {
   const urlObj = toForcedURL(url);
   if (urlObj) {
     return path.join(
-      window.External.config.fullFlashpointPath,
+      window.Shared.config.fullFlashpointPath,
       htdocsPath,
       decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname))
     );

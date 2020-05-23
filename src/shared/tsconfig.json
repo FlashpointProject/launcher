@@ -5,6 +5,6 @@
   "extends": "../../tsconfig.json",
   "include": [
     "../../typings/**/*",
-    "./**/*"
+    "./**/*", "../database/entity/Game.ts", "../database/entity/AdditionalApp.ts"
   ]
 }

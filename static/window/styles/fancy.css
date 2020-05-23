@@ -280,6 +280,19 @@ body {
 }
 
 
+/* ------ Meta Edit Exporter ------ */
+.meta-edit-exporter {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.meta-edit-exporter__inner {
+  border-radius: 0.25rem;
+  background-color: var(--layout__quaternary-background);
+}
+.meta-edit-exporter__row:hover {
+  background-color: var(--layout__secondary-background);
+}
+
+
 /* ------ Main Layout ------ */
 .root {
   background-color: var(--layout__tertiary-background);
@@ -850,4 +863,80 @@ body {
 }
 .splash-screen__status {
   color: var(--layout__primary-text-color);
+}
+
+/* ----- Tag Related Elements ----- */
+.tag:hover {
+  color: var(--layout__browse-right-sidebar-searchable-hover)
+}
+.tag-editable:hover {
+  color: var(--layout__warning-bright-color)
+}
+.tag_alias-joiner {
+  color: var(--layout__secondary-text-color)
+}
+.tag-count {
+  color: var(--layout__secondary-text-color)
+}
+.tag-primary {
+  font-weight: bold;
+}
+.tag-primary__right {
+  font-style: italic;
+  color: var(--layout__secondary-text-color);
+}
+
+.tag-list-item {
+  list-style: none;
+  background-color: var(--layout__primary-background);
+  color: var(--layout__game-item-color);
+}
+.tag-list-item--even {
+  background-color: var(--layout__game-list-item-background-even);
+}
+.tag-list-item:hover {
+  background-color: var(--layout__game-item-background-hover);
+  color: var(--layout__game-item-color-hover);
+}
+.tag-list-item--selected {
+  background-color: var(--layout__game-item-background-selected);
+  color: var(--layout__game-item-color-selected);
+}
+.tag-list-item--selected:hover {
+  background-color: var(--layout__game-item-background-selected-hover);
+  color: var(--layout__game-item-color-selected-hover);
+}
+.tag-alias__buttons-delete:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.tag-alias__buttons-delete--active:hover .icon__use {
+  fill: var(--layout__warning-medium-color);
+}
+.tag-alias__buttons-primary:hover .icon__use {
+  fill: var(--layout__confirm-color);
+}
+
+.tag-list-header-column__divider {
+  background: var(--layout__browse-sidebar-divider-background);
+}
+.tag-list-header__scroll-fill {
+  background: linear-gradient(to left, var(--layout__tertiary-background), #00000000);
+}
+/* GameList Header Column */
+.tag-list-header-column--icon {
+  background: linear-gradient(to right, var(--layout__tertiary-background), #00000000);
+}
+
+
+.browse-right-sidebar__row .sketch-picker {
+  margin: 0 0.5rem;
+}
+.sketch-picker {
+  background-color: var(--layout__secondary-background) !important;
+}
+.sketch-picker * {
+  color: var(--layout__primary-text-color) !important;
+}
+.sketch-picker input {
+  background-color: var(--layout__quaternary-background);
 }

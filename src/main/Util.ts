@@ -28,3 +28,15 @@ export const isDev: boolean = (function() {
   const isEnvSet = 'ELECTRON_IS_DEV' in process.env;
   return isEnvSet ? getFromEnv : (process.defaultApp || /node_modules[\\/]electron[\\/]/.test(process.execPath));
 }());
+
+/**
+ * Get the path of the folder containing the config and preferences files.
+ * @param installed If the application is installed (instead of portable).
+ */
+export function getMainFolderPath(installed: boolean | undefined): string {
+  return installed
+    ? path.join(app.getPath('appData'), 'flashpoint-launcher') // Installed
+    : isDev
+      ? process.cwd() // Dev
+      : path.dirname(app.getPath('exe')); // Portable
+}
