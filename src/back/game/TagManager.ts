@@ -208,10 +208,8 @@ export namespace TagManager {
           name: categoryName
         }
       });
-      if (!category) {
-        category = await createTagCategory(categoryName, getRandomHexColor());
-      }
-    } else {
+    }
+    if (!category) {
       // No tag category name given, use default
       category = await tagCategoryRepository.findOne({
         where: {
