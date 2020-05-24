@@ -164,7 +164,8 @@
     "version": "버전",
     "license": "라이센스",
     "licenseInfo": "MIT (더 많은 정보를 원한다면 'LICENSE' 라는 제목의 파일을 읽어보세요)",
-    "creditsHeader": "크레딧"
+    "creditsHeader": "크레딧",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "제목 없음",
