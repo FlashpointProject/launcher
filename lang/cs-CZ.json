@@ -167,7 +167,7 @@
     "license": "Licence",
     "licenseInfo": "MIT (Pro více informací si přečtěte soubor 'LICENSE')",
     "creditsHeader": "Poděkování",
-    "specialThanks": "Special Thanks"
+    "specialThanks": "Zvláštní poděkování"
   },
   "browse": {
     "noTitle": "Bez názvu",
@@ -252,9 +252,9 @@
   "tags": {
     "noName": "No Name",
     "description": "Description",
-    "noDescription": "No Description",
-    "category": "Category",
-    "noCategory": "No Category",
+    "noDescription": "Žádný popis",
+    "category": "Kategorie",
+    "noCategory": "Bez kategorie",
     "newCategory": "New Category",
     "enterAlias": "Enter Alias",
     "aliases": "Aliases",
@@ -332,8 +332,8 @@
     "saveDesc": "Uloží provedené změny a ukončí editaci",
     "discard": "Zahodit",
     "discardDesc": "Zahodí provedené změny a ukončit editaci",
-    "edit": "Edit",
-    "editDesc": "Edit this playlist",
+    "edit": "Upravit",
+    "editDesc": "Upravit tento playlist",
     "delete": "Smazat",
     "deleteDesc": "Smaže tento seznam",
     "changeIcon": "Change Playlist Icon",
@@ -369,8 +369,8 @@
     "exportMetaOnly": "Exportovat (pouze metadata)",
     "exportMetaAndImages": "Exportovat (metadata a obrázky)",
     "exportMetaEdit": "Export Meta Edit",
-    "duplicatePlaylist": "Duplicate Playlist",
-    "exportPlaylist": "Export Playlist"
+    "duplicatePlaylist": "Duplikovat playlist",
+    "exportPlaylist": "Exportovat playlist"
   },
   "dialog": {
     "programNotFound": "Program nebyl nalezen!",
@@ -405,8 +405,8 @@
     "restartNow": "Chcete nyní restartovat?",
     "restartToApplyUpgrade": "Tento upgrade nebude aplikován dokud aplikaci nerestartujete.\nPřejete si ji nyní restartovat?",
     "areYouSure": "Jste si jisti?",
-    "cancel": "Cancel",
-    "mergePlaylists": "Merge Playlists",
+    "cancel": "Zrušit",
+    "mergePlaylists": "Sloučit playlisty",
     "newPlaylist": "Stay Seperate"
   },
   "libraries": {
