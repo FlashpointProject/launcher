@@ -58,7 +58,7 @@
     "configInfo": "Хоћеш ли да промениш нешто? Иди на {0}.",
     "config": "Подешавања",
     "helpInfo": "Треба ти помоћ? {0}.",
-    "help": "Прочитај README",
+    "help": "Read the manual",
     "upgradesHeader": "Надоградњe",
     "installComplete": "Инсталација је готова",
     "alreadyInstalled": "Већ инсталирано",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Филтрирај по платформама",
     "plannedFeatures": "Погледајте наше планиране одлике!",
     "notesHeader": "Напомене",
-    "notes": "Не заборави да прочиташ README ако имаш проблема.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Проблеми на Линуксу? {0}",
     "linuxSupportLinkText": "Отвори FAQ",
-    "randomPicks": "Насумични избори"
+    "randomPicks": "Насумични избори",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Филтери",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Игре",
-    "theatre": "Анимације"
+    "arcadePlural": "All Games",
+    "theatre": "Анимације",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
