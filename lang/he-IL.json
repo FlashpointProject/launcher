@@ -58,7 +58,7 @@
     "configInfo": "רוצה לשנות משהו? לך אל {0}.",
     "config": "הגדרות",
     "helpInfo": "צריך עזרה? {0}.",
-    "help": "תקרא/תקראי את readme",
+    "help": "Read the manual",
     "upgradesHeader": "שידרוגים",
     "installComplete": "התקנה הושלמה",
     "alreadyInstalled": "כבר מותקן",
@@ -71,10 +71,11 @@
     "filterByPlatform": "פלייר דרך הפלטפורמה",
     "plannedFeatures": "Check out our planned features!",
     "notesHeader": "הערות",
-    "notes": "לא לשכוח לקרוא את קובץ הreadme אם נתקלת בבעיות.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "בעיות בלינוקס? {0}",
     "linuxSupportLinkText": "שאלות פופולריות פתוחות",
-    "randomPicks": "בחירות אקראיות"
+    "randomPicks": "בחירות אקראיות",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "מסננים",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Games",
-    "theatre": "Animations"
+    "arcadePlural": "All Games",
+    "theatre": "Animations",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
