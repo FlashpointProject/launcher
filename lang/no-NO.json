@@ -37,8 +37,8 @@
     "showDeveloperTabDesc": "Viser utviklerfanen. Dette er sannsynligvis bare nyttig for utviklere og kuratorer.",
     "server": "Server",
     "serverDesc": "Hvilken Server-Prosess som skal kjøres ved oppstart av launcheren.",
-    "metadataServerHost": "Metadata Server Host",
-    "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "metadataServerHost": "Metadataserver-vert",
+    "metadataServerHostDesc": "Verten av en metadateserver. Brukes til å synkronisere nytt og oppdatert spillinfo til launcheren.",
     "saveAndRestart": "Lagre og Start På Nytt"
   },
   "home": {
@@ -85,8 +85,8 @@
   "app": {
     "home": "Hjem",
     "browse": "Bla gjennom",
-    "tags": "Tags",
-    "categories": "Categories",
+    "tags": "Emner",
+    "categories": "Kategorier",
     "logs": "Logger",
     "config": "Konfigurer",
     "about": "Om",
@@ -105,7 +105,7 @@
   },
   "filter": {
     "dateAdded": "Date Added",
-    "dateModified": "Date Modified",
+    "dateModified": "Endringsdato",
     "platform": "Platform",
     "series": "Series",
     "title": "Title",
@@ -137,7 +137,7 @@
     "renameImagesIdToTitleDesc": "Find all game images with the games ID in their filename and rename them to use its title instead",
     "createMissingFolders": "Create Missing Folders",
     "createMissingFoldersDesc": "Find all missing folders in the Flashpoint folder structure and create them",
-    "importLegacyPlatforms": "Import Legacy Platforms",
+    "importLegacyPlatforms": "Importer eldre plattformer",
     "importLegacyPlatformsDesc": "Imports Legacy Platforms from `Data/Platforms/` - WARNING: Will overwrite conflicting games",
     "importLegacyPlaylists": "Import Legacy Playlists",
     "importLegacyPlaylistsDesc": "Imports Legacy Playlists from `/Data/Playlists`",
