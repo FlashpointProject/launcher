@@ -58,7 +58,7 @@
     "configInfo": "Хотите что-нибудь настроить? Вам в {0}.",
     "config": "Настройки",
     "helpInfo": "Нужна помощь? {0}.",
-    "help": "Прочтите readme",
+    "help": "Read the manual",
     "upgradesHeader": "Улучшения",
     "installComplete": "Установка завершено",
     "alreadyInstalled": "Установлено",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Сортировать по платформе",
     "plannedFeatures": "Ознакомьтесь с запланированными функциями!",
     "notesHeader": "Примечание",
-    "notes": "Не забудьте прочитать readme, если у вас есть какие-то вопросы.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Проблемы на Linux? {0}",
     "linuxSupportLinkText": "Открыть FAQ",
-    "randomPicks": "Случайные игры"
+    "randomPicks": "Случайные игры",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Фильтры",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Игры",
-    "theatre": "Анимации"
+    "arcadePlural": "All Games",
+    "theatre": "Анимации",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
