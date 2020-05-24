@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Zobrazovat hry se sexuálním, násilným nebo jiným obsahem, který není vhodný pro děti.",
     "enableEditing": "Povolit upravování",
     "enableEditingDesc": "Povolí editaci her, doplňkových aplikací a seznamů. Také zobrazí záložku 'Kurátor'.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Jazyk",
     "currentLanguageDesc": "Jazyk, který bude program primárně používat.",
     "fallbackLanguage": "Záložní jazyk",
