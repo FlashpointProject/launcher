@@ -58,7 +58,7 @@
     "configInfo": "Haluatko muuttaa asetuksia? Testaa {0}.",
     "config": "Asetukset",
     "helpInfo": "Oletko hukassa? Avun löydät {0}.",
-    "help": "Lue ohjeet",
+    "help": "Read the manual",
     "upgradesHeader": "Päivitykset",
     "installComplete": "Asennus valmis",
     "alreadyInstalled": "Asennettu valmiiksi",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Suodata alustan mukaan",
     "plannedFeatures": "Lue tulevista ominaisuuksista!",
     "notesHeader": "Muista",
-    "notes": "Muista lukea readme-tiedosto jos sinulla on vaikeuksia.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Ongelmia Linuxin kanssa? {0}",
     "linuxSupportLinkText": "Avaa UKK-tiedosto",
-    "randomPicks": "Sattumanvaraiset valinnat"
+    "randomPicks": "Sattumanvaraiset valinnat",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Suodattimet",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Pelit",
-    "theatre": "Animaatiot"
+    "arcadePlural": "All Games",
+    "theatre": "Animaatiot",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
