@@ -270,7 +270,7 @@
     "makeAliasWhenMerged": "Sigur doriți să stabiliți acest pseudonim ca numele etichetei?",
     "deleteTag": "Ştergeți eticheta",
     "deleteTagCategory": "Ștergeți categoria de etichete",
-    "locked": "Locked while processing..."
+    "locked": "Blocate în timpul procesării..."
   },
   "curate": {
     "importAll": "Importați tot",
@@ -333,13 +333,13 @@
     "saveDesc": "Salvați modificările făcute și încheiați editarea",
     "discard": "Renunțare",
     "discardDesc": "Renunțați la modificări și încheiați editarea",
-    "edit": "Edit",
-    "editDesc": "Edit this playlist",
+    "edit": "Modificați",
+    "editDesc": "Modificați această listă de joc",
     "delete": "Ștergere",
     "deleteDesc": "Șterge această listă",
-    "changeIcon": "Change Playlist Icon",
-    "duplicatePlaylistDesc": "Duplicate Playlist",
-    "exportPlaylistDesc": "Export playlist to a file",
+    "changeIcon": "Modificați iconița listei de joc",
+    "duplicatePlaylistDesc": "Listă de joc duplicat",
+    "exportPlaylistDesc": "Exportă lista de joc într-un fișier",
     "areYouSure": "Sunteți sigur(ă)?",
     "noTitle": "Fără titlu",
     "titlePlaceholder": "Introduceți un titlu...",
@@ -358,8 +358,8 @@
     "extracting": "Se extrage",
     "installingFiles": "Se instalează fișierele...",
     "complete": "Finalizat",
-    "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditTitle": "Exportați modificări ale datelor meta",
+    "exportMetaEditDesc": "Selectați proprietățile de exportat:"
   },
   "menu": {
     "viewThumbnailInFolder": "Vizualizați imaginea în dosar",
@@ -369,9 +369,9 @@
     "duplicateMetaAndImages": "Dublare (date Meta și imagini)",
     "exportMetaOnly": "Exportare (numai date Meta)",
     "exportMetaAndImages": "Exportați (date Meta și imagini)",
-    "exportMetaEdit": "Export Meta Edit",
-    "duplicatePlaylist": "Duplicate Playlist",
-    "exportPlaylist": "Export Playlist"
+    "exportMetaEdit": "Exportați modificări ale datelor meta",
+    "duplicatePlaylist": "Listă de joc duplicat",
+    "exportPlaylist": "Exportați lista de joc"
   },
   "dialog": {
     "programNotFound": "Programul nu a fost găsit.",
@@ -381,7 +381,7 @@
     "fileNotFound": "Fișierul nu a fost găsit.",
     "flashpointPathInvalid": "Destinație invalidă pentru Flashpoint.",
     "pathNotFound": "Calea nu a fost găsită.",
-    "playlistConflict": "Playlist Conflict",
+    "playlistConflict": "Conflict de listă de joc",
     "importedPlaylistAlreadyExists": "Imported playlist already exists! - '{0}'",
     "mergeOrStaySeperate": "Should they merge into one, or stay as seperate playlists?",
     "selectFileToExportMeta": "Selectați un fișier pentru salvarea datelor Meta",
