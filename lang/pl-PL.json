@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Pokaż gry zawierające przemoc, seks lub inną zawartość nie nadającą się dla dzieci.",
     "enableEditing": "Uruchom tryb Edycji",
     "enableEditingDesc": "Pozwala na edytowanie gier, dodatkowych aplikacji i playlist. Pokazuje także zakładkę 'Dodaj do Flashpointa'.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Język",
     "currentLanguageDesc": "Główny język używany w Laucherze.",
     "fallbackLanguage": "Drugi Język",
