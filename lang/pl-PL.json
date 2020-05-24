@@ -58,7 +58,7 @@
     "configInfo": "Masz ochotę coś zmienić? Przejdź do {0}.",
     "config": "Konfiguracja",
     "helpInfo": "Potrzebujesz pomocy? {0}.",
-    "help": "Przeczytaj plik readme",
+    "help": "Read the manual",
     "upgradesHeader": "Komponenty",
     "installComplete": "Instalacja Zakończona",
     "alreadyInstalled": "Już Zainstalowany",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Filtruj według platform",
     "plannedFeatures": "Zobacz planowane funkcje!",
     "notesHeader": "Notatki",
-    "notes": "Pamiętaj o przeczytaniu readme, jeżeli coś nie działa.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Problemy na Linuxie? {0}",
     "linuxSupportLinkText": "Otwórz FAQ",
-    "randomPicks": "Losowe Gry"
+    "randomPicks": "Losowe Gry",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Filtry",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Gry",
-    "theatre": "Animacje"
+    "arcadePlural": "All Games",
+    "theatre": "Animacje",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
