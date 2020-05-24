@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Cinsellik, şiddet içeren ya da çocuklar için uygunsuz olan oyunları göster.",
     "enableEditing": "Değişikliklere İzin Ver",
     "enableEditingDesc": "Oyunlarda, ekstra uygulamalara ve oynatma listelerinde değişikliklere izin verir. Ayrıca 'Yarat' panelini gösterir.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Dil",
     "currentLanguageDesc": "Temel olarak hangi dil kullanıldığını gösterir.",
     "fallbackLanguage": "İkincil Dil",
