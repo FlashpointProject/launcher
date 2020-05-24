@@ -58,7 +58,7 @@
     "configInfo": "启动器选项修改: {0}",
     "config": "设置",
     "helpInfo": "获取帮助: {0}",
-    "help": "ReadMe帮助文档",
+    "help": "Read the manual",
     "upgradesHeader": "升级",
     "installComplete": "全部下载(279G以上，确保有足够空间)",
     "alreadyInstalled": "已下载",
@@ -71,10 +71,11 @@
     "filterByPlatform": "按平台筛选",
     "plannedFeatures": "查看计划更新的功能！",
     "notesHeader": "注: ",
-    "notes": "若有问题(issue)，建议首先查看ReadMe帮助文档",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "关于Linux的问题(issue)？ {0}",
     "linuxSupportLinkText": "FAQ",
-    "randomPicks": "随机游戏"
+    "randomPicks": "随机游戏",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "筛选器",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "游戏",
-    "theatre": "动画"
+    "arcadePlural": "All Games",
+    "theatre": "动画",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
