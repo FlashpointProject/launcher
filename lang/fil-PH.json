@@ -58,7 +58,7 @@
     "configInfo": "May gusto kang baguhin? Pumunta sa {0}.",
     "config": "Config",
     "helpInfo": "Kailangan mo ng tulong? {0}.",
-    "help": "Basahin muna ang readme file",
+    "help": "Read the manual",
     "upgradesHeader": "I-upgrade",
     "installComplete": "Nakompleto na ang pag-install",
     "alreadyInstalled": "Naka-install na",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Filter ayon sa platform",
     "plannedFeatures": "Tingnan ang aming planong features!",
     "notesHeader": "Paalala",
-    "notes": "Huwag kalimutang basahin ang readme kapag ikaw ay may problema.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "May problema sa Linux? {0}",
     "linuxSupportLinkText": "Buksan ang FAQ",
-    "randomPicks": "Random Picks"
+    "randomPicks": "Random Picks",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Filters",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Laro",
-    "theatre": "Animasyon"
+    "arcadePlural": "All Games",
+    "theatre": "Animasyon",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
