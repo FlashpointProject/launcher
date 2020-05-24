@@ -221,11 +221,16 @@ body {
 .input-dropdown__input-field__input__inner {
   background: none;
 }
+.input-dropdown__input-field__button:before {
+  content: "▾";
+}
 .input-dropdown__input-field__button {
   position: relative;
   width: 1.25em;
   flex: 0 0 auto;
   cursor: pointer;
+  text-align: center;
+  font-size: 0.75rem;
 }
 .input-dropdown--disabled .input-dropdown__input-field__button {
   cursor: default;
