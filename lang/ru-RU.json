@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Показывать игры с сексуальным, насильственным или другим неподходящим для детей содержанием.",
     "enableEditing": "Включить редактирование",
     "enableEditingDesc": "Включить редактирование игр, дополнительные приложения и списки игр. Так же отображает вкладку 'Кураторам'.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Язык",
     "currentLanguageDesc": "Язык, который лаунчер будет использовать по умолчанию.",
     "fallbackLanguage": "Резервный язык",
