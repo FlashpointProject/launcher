@@ -58,7 +58,7 @@
     "configInfo": "뭔가 바꾸고 싶은게 있으신가요? {0} 로 이동해보세요.",
     "config": "설정",
     "helpInfo": "도움이 필요하신가요? {0}.",
-    "help": "Readme 파일을 읽어보세요",
+    "help": "Read the manual",
     "upgradesHeader": "업그레이드",
     "installComplete": "설치 완료",
     "alreadyInstalled": "이미 설치 됨",
@@ -71,10 +71,11 @@
     "filterByPlatform": "플랫폼 별로 분류",
     "plannedFeatures": "계획되어있는 기능들을 확인해보세요!",
     "notesHeader": "참고사항",
-    "notes": "문제가 생겼다면 readme 파일을 읽는 걸 잊지 마세요.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "리눅스에서 문제가 생겼나요? {0}",
     "linuxSupportLinkText": "FAQ를 확인해보세요",
-    "randomPicks": "무작위로 선택"
+    "randomPicks": "무작위로 선택",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "필터",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "게임",
-    "theatre": "애니메이션"
+    "arcadePlural": "All Games",
+    "theatre": "애니메이션",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "플래시포인트 인피니티",
