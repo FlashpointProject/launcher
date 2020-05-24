@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Mostrar jogos com conteúdo sexual, violento ou que seja inadequado para crianças.",
     "enableEditing": "Habilitar Edição",
     "enableEditingDesc": "Habilita a edição de jogos, aplicações extra e playlists. Também revela a guia de 'Curar'.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Língua",
     "currentLanguageDesc": "Qual é a língua que o launcher vai usar principalmente.",
     "fallbackLanguage": "Língua de reserva",
