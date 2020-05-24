@@ -178,6 +178,7 @@ const langTemplate = {
     'license',
     'licenseInfo',
     'creditsHeader',
+    'specialThanks',
   ] as const,
   browse: [
     'noTitle',
