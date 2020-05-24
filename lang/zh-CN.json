@@ -8,6 +8,8 @@
     "extremeGamesDesc": "显示含有色情，暴力或其他不适合儿童的元素的游戏",
     "enableEditing": "启用编辑",
     "enableEditingDesc": "启用对游戏，其他应用程序和播放列表的编辑，也显示'Curate'标签",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "首选语言",
     "currentLanguageDesc": "将哪种语言作为主要显示语言",
     "fallbackLanguage": "第二语言",
