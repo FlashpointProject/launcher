@@ -10,7 +10,7 @@ import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { Theme } from '@shared/ThemeFile';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { EventEmitter } from 'events';
-import { Server } from 'http';
+import { IncomingMessage, Server, ServerResponse } from 'http';
 import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
 import { GameManagerState } from './game/types';
@@ -18,7 +18,6 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -28,6 +27,10 @@ export type BackState = {
   socketServer: SocketServer;
   fileServer: Server;
   fileServerPort: number;
+  fileServerDownloads: {
+    queue: ImageDownloadItem[];
+    current: ImageDownloadItem[];
+  };
   preferences: IAppPreferencesData;
   config: IAppConfigData;
   configFolder: string;
@@ -73,6 +76,15 @@ export type BackQuery = {
 type InitEmitter = (
   EmitterPart<BackInit, () => void>
 ) & EventEmitter
+
+/** Data related to an image being downloaded on-demand. */
+export type ImageDownloadItem = {
+  subPath: string;
+  req: IncomingMessage;
+  res: ServerResponse;
+  /** If the request has been cancelled by the client. */
+  cancelled: boolean;
+}
 
 /** Declarations for a single event in an event emitter (in all the different related functions). */
 export interface EmitterPart<E extends string | number | Symbol, F extends (...args: any[]) => void> {

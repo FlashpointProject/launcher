@@ -51,6 +51,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
     maximized: false,
   }),
   saveImportedCurations: true,
+  onDemandImages: false,
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
@@ -82,7 +83,7 @@ export function overwritePreferenceData(
   parser.prop('browsePageShowRightSidebar',  v => source.browsePageShowRightSidebar  = !!v);
   parser.prop('browsePageLeftSidebarWidth',  v => source.browsePageLeftSidebarWidth  = num(v));
   parser.prop('browsePageRightSidebarWidth', v => source.browsePageRightSidebarWidth = num(v));
-  parser.prop('curatePageLeftSidebarWidth',  v => source.curatePageLeftSidebarWidth = num(v));
+  parser.prop('curatePageLeftSidebarWidth',  v => source.curatePageLeftSidebarWidth  = num(v));
   parser.prop('showDeveloperTab',            v => source.showDeveloperTab            = !!v);
   parser.prop('currentTheme',                v => source.currentTheme                = str(v), true);
   parser.prop('lastSelectedLibrary',         v => source.lastSelectedLibrary         = str(v));
@@ -90,6 +91,7 @@ export function overwritePreferenceData(
   parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ASC'));
   parser.prop('defaultLibrary',              v => source.defaultLibrary              = str(v));
   parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
+  parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);

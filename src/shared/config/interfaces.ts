@@ -43,4 +43,6 @@ export type IAppConfigData = {
   metadataServerHost: string;
   /** Last time the Metadata Server Host was synced with */
   lastSync: number;
+  /** Base URL of the server to download missing thumbnails/screenshots from. */
+  onDemandBaseUrl: string;
 };

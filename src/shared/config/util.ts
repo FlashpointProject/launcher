@@ -31,6 +31,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   nativePlatforms: [],
   metadataServerHost: '',
   lastSync: 0,
+  onDemandBaseUrl: 'https://unstable.life/Flashpoint/Data/Images/',
 });
 
 /**
@@ -82,18 +83,19 @@ export function overwriteConfigData(
   parser.prop('platformFolderPath',  v => source.platformFolderPath  = parseVarStr(str(v)));
   parser.prop('themeFolderPath',     v => source.themeFolderPath     = parseVarStr(str(v)));
   parser.prop('metaEditsFolderPath', v => source.metaEditsFolderPath = parseVarStr(str(v)));
-  parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar    = !!v);
-  parser.prop('startServer',         v => source.startServer          = !!v);
-  parser.prop('disableExtremeGames', v => source.disableExtremeGames  = !!v);
-  parser.prop('showBrokenGames',     v => source.showBrokenGames      = !!v);
-  parser.prop('nativePlatforms',     v => source.nativePlatforms      = strArray(v));
-  parser.prop('backPortMin',         v => source.backPortMin          = num(v));
-  parser.prop('backPortMax',         v => source.backPortMax          = num(v));
-  parser.prop('imagesPortMin',       v => source.imagesPortMin        = num(v));
-  parser.prop('imagesPortMax',       v => source.imagesPortMax        = num(v));
-  parser.prop('metadataServerHost',  v => source.metadataServerHost   = str(v)); // Server Host, won't contain vars
-  parser.prop('lastSync',            v => source.lastSync             = num(v));
-  parser.prop('server',              v => source.server               = str(v));
+  parser.prop('useCustomTitlebar',   v => source.useCustomTitlebar   = !!v);
+  parser.prop('startServer',         v => source.startServer         = !!v);
+  parser.prop('disableExtremeGames', v => source.disableExtremeGames = !!v);
+  parser.prop('showBrokenGames',     v => source.showBrokenGames     = !!v);
+  parser.prop('nativePlatforms',     v => source.nativePlatforms     = strArray(v));
+  parser.prop('backPortMin',         v => source.backPortMin         = num(v));
+  parser.prop('backPortMax',         v => source.backPortMax         = num(v));
+  parser.prop('imagesPortMin',       v => source.imagesPortMin       = num(v));
+  parser.prop('imagesPortMax',       v => source.imagesPortMax       = num(v));
+  parser.prop('metadataServerHost',  v => source.metadataServerHost  = str(v)); // Server Host, won't contain vars
+  parser.prop('lastSync',            v => source.lastSync            = num(v));
+  parser.prop('server',              v => source.server              = str(v));
+  parser.prop('onDemandBaseUrl',     v => source.onDemandBaseUrl     = parseVarStr(str(v)));
   // Do some alterations
   source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)
   // Return

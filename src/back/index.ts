@@ -14,15 +14,15 @@ import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '@shared/Theme
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as http from 'http';
+import * as https from 'https';
 import * as mime from 'mime';
 import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
 import 'sqlite3';
 import { ConnectionOptions, createConnection } from 'typeorm';
-import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
@@ -30,12 +30,10 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
-import { BackState } from './types';
+import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { createContainer, exit, log, procToService } from './util/misc';
-
-const readFile  = util.promisify(fs.readFile);
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -43,12 +41,18 @@ const send: Required<typeof process.send> = process.send
   ? process.send.bind(process)
   : (() => { throw new Error('process.send is undefined.'); });
 
+const CONCURRENT_IMAGE_DOWNLOADS = 6;
+
 const state: BackState = {
   isInit: false,
   isExit: false,
   socketServer: new SocketServer(),
   fileServer: new http.Server(onFileServerRequest),
   fileServerPort: -1,
+  fileServerDownloads: {
+    queue: [],
+    current: [],
+  },
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
   configFolder: createErrorProxy('configFolder'),
@@ -281,7 +285,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
             const entryPath = path.join(themeFolder, folderName, filename);
             let meta: Partial<ThemeMeta> | undefined;
             try {
-              const data = await readFile(entryPath, 'utf8');
+              const data = await fs.readFile(entryPath, 'utf8');
               meta = parseThemeMetaData(data) || {};
             } catch (error) { console.warn(`Failed to load theme entry file (File: "${entryPath}")`, error); }
             if (meta) {
@@ -447,9 +451,60 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
       // Image folder
       case 'images': {
         const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-        const filePath = path.join(imageFolder, urlPath.substr(index + 1));
+        const fileSubPath = urlPath.substr(index + 1);
+        const filePath = path.join(imageFolder, fileSubPath);
         if (filePath.startsWith(imageFolder)) {
-          serveFile(req, res, filePath);
+          if (req.method === 'GET' || req.method === 'HEAD') {
+            fs.stat(filePath, (error, stats) => {
+              if (error && error.code !== 'ENOENT') {
+                res.writeHead(404);
+                res.end();
+              } else if (stats && stats.isFile()) {
+                // Respond with file
+                res.writeHead(200, {
+                  'Content-Type': mime.getType(path.extname(filePath)) || '',
+                  'Content-Length': stats.size,
+                });
+                if (req.method === 'GET') {
+                  const stream = fs.createReadStream(filePath);
+                  stream.on('error', error => {
+                    console.warn(`File server failed to stream file. ${error}`);
+                    stream.destroy(); // Calling "destroy" inside the "error" event seems like it could case an endless loop (although it hasn't thus far)
+                    if (!res.finished) { res.end(); }
+                  });
+                  stream.pipe(res);
+                } else {
+                  res.end();
+                }
+              } else if (state.preferences.onDemandImages) {
+                // Remove any older duplicate requests
+                const index = state.fileServerDownloads.queue.findIndex(v => v.subPath === fileSubPath);
+                if (index >= 0) {
+                  const item = state.fileServerDownloads.queue[index];
+                  item.res.writeHead(404);
+                  item.res.end();
+                  state.fileServerDownloads.queue.splice(index, 1);
+                }
+
+                // Add to download queue
+                const item: ImageDownloadItem = {
+                  subPath: fileSubPath,
+                  req: req,
+                  res: res,
+                  cancelled: false,
+                };
+                state.fileServerDownloads.queue.push(item);
+                req.once('close', () => { item.cancelled = true; });
+                updateFileServerDownloadQueue();
+              } else {
+                res.writeHead(404);
+                res.end();
+              }
+            });
+          } else {
+            res.writeHead(404);
+            res.end();
+          }
         }
       } break;
 
@@ -596,4 +651,74 @@ function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
       emitter.on(event, listener);
     }
   });
+}
+
+function updateFileServerDownloadQueue() {
+  // @NOTE This will fail to stream the image to the client if it fails to save it to the disk.
+
+  // Fill all available current slots
+  while (state.fileServerDownloads.current.length < CONCURRENT_IMAGE_DOWNLOADS) {
+    const item = state.fileServerDownloads.queue.pop();
+
+    if (!item) { break; } // Queue is empty
+
+    if (item.cancelled) { continue; }
+
+    state.fileServerDownloads.current.push(item);
+
+    // Start download
+    const url = state.config.onDemandBaseUrl + (state.config.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
+    const protocol = url.startsWith('https://') ? https : http;
+    try {
+      protocol.get(url, async (res) => {
+        try {
+          if (res.statusCode === 200) {
+            const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
+            const filePath = path.join(imageFolder, item.subPath);
+
+            await fs.ensureDir(path.dirname(filePath));
+            const fileStream = fs.createWriteStream(filePath);
+
+            res.on('data', (chunk: Buffer) => {
+              fileStream.write(chunk);
+              item.res.write(chunk);
+            });
+            res.once('close', () => {
+              fileStream.end();
+              removeFileServerDownloadItem(item);
+            });
+            res.once('end', () => {
+              fileStream.end();
+              removeFileServerDownloadItem(item);
+            });
+            res.once('error', error => {
+              console.error('An error occurred while downloading an image on demand.', error);
+              fileStream.end();
+              fs.unlink(filePath).catch(error => { console.error(`Failed to delete incomplete on demand image file (filepath: "${filePath}")`, error); });
+              removeFileServerDownloadItem(item);
+            });
+          } else {
+            // throw new Error(`The status code is not 200 (status code: ${res.statusCode})`);
+            removeFileServerDownloadItem(item); // (This way it doesn't clog up the console when displaying games without an image)
+          }
+        } catch (error) {
+          console.error('Failed to download an image on demand.', error);
+          removeFileServerDownloadItem(item);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to download an image on demand.', error);
+      removeFileServerDownloadItem(item);
+    }
+  }
+}
+
+function removeFileServerDownloadItem(item: ImageDownloadItem): void {
+  item.res.end();
+
+  // Remove item from current
+  const index = state.fileServerDownloads.current.indexOf(item);
+  if (index >= 0) { state.fileServerDownloads.current.splice(index, 1); }
+
+  updateFileServerDownloadQueue();
 }
