@@ -16,7 +16,6 @@ export namespace CreditsFile {
     });
     parser.prop('profiles').array(item => parsed.profiles.push(parseProfile(item)));
     parser.prop('roles').array(item => parsed.roles.push(parseRole(item)));
-    console.log(parsed);
     return parsed;
   }
 
@@ -47,10 +46,4 @@ export namespace CreditsFile {
     parser.prop('roles', true).arrayRaw(role => parsed.roles.push(str(role)));
     return parsed;
   }
-}
-
-function strArray(array: any): string[] {
-  return Array.isArray(array)
-    ? Array.prototype.map.call(array, v => str(v)) as string[]
-    : [];
 }

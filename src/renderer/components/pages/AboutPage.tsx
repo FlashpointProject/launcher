@@ -35,13 +35,11 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     const { creditsData, creditsDoneLoading } = this.props;
 
     const roles: CreditsDataRole[] = creditsData ? creditsData.roles.filter(role => role.noCategory != true) : [{ name: strings.specialThanks }];
-    console.log(roles);
     let creditBlocks: CreditsBlock[] = [];
     creditBlocks.push({ role: { name: strings.specialThanks }, profiles: [] });
 
     // Populate credit blocks
     if (creditsData) {
-      console.log(roles);
       profileLoop:
       for (const profile of creditsData.profiles) {
         for (const role of roles) {
@@ -129,29 +127,23 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
                   <div className='about-page__credits__profiles'>
                     { (creditsDoneLoading) ? (
                       creditBlocks.map((block, index) => (
-                        <>
-                          <div
-                            key={index}
-                            className='about-page__credits__role' >
-                            <div
-                              key={index*2}
-                              className='about-page__credits__role-name'>
+                        <React.Fragment key={index}>
+                          <div className='about-page__credits__role' >
+                            <div className='about-page__credits__role-name'>
                               {block.role.name}
                             </div>
-                            <div
-                              key={index*3}
-                              className='about-page__credits__role-description'>
+                            <div className='about-page__credits__role-description'>
                               {block.role.description}
                             </div>
                           </div>
-                          {block.profiles.map((profile, index) => (
+                          {block.profiles.map((profile, i) => (
                             <CreditsIcon
-                              key={index}
+                              key={i}
                               profile={profile}
                               onMouseEnter={this.onMouseEnterCreditsIcon}
                               onMouseLeave={this.onMouseLeaveCreditsIcon} />
                           ))}
-                        </>
+                        </React.Fragment>
                       ))
                     ) : ('...') }
                   </div>
