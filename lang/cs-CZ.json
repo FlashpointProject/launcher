@@ -164,7 +164,8 @@
     "version": "Verze",
     "license": "Licence",
     "licenseInfo": "MIT (Pro více informací si přečtěte soubor 'LICENSE')",
-    "creditsHeader": "Poděkování"
+    "creditsHeader": "Poděkování",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Bez názvu",
