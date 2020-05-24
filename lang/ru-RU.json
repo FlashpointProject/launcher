@@ -164,7 +164,8 @@
     "version": "Версия",
     "license": "Лицензия",
     "licenseInfo": "MIT (Прочтите файл 'LICENSE' для получения дополнительной информации)",
-    "creditsHeader": "Над проектом работают"
+    "creditsHeader": "Над проектом работают",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Без названия",
