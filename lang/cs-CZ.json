@@ -58,7 +58,7 @@
     "configInfo": "Chcete něco změnit? Běžte do {0}.",
     "config": "Nastavení",
     "helpInfo": "Potřebujete pomoc? {0}.",
-    "help": "Přečtěte si 'ČTIMĚ'",
+    "help": "Read the manual",
     "upgradesHeader": "Vylepšení",
     "installComplete": "Instalace dokončena",
     "alreadyInstalled": "Již nainstalováno",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Filtrovat podle platformy",
     "plannedFeatures": "Mrkněte na naše plánované funkce!",
     "notesHeader": "Poznámky",
-    "notes": "Pokud máte problémy, nezapomeňte si nejprve projít 'ČTIMĚ'.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Problémy na Linuxu? {0}",
     "linuxSupportLinkText": "Otevřít FAQ",
-    "randomPicks": "Náhodný výběr"
+    "randomPicks": "Náhodný výběr",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Filtry",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Hry",
-    "theatre": "Animace"
+    "arcadePlural": "All Games",
+    "theatre": "Animace",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
