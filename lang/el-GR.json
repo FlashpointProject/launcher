@@ -58,7 +58,7 @@
     "configInfo": "Θέλετε να αλλάξετε κάτι; Πηγαίνετε στις {0}.",
     "config": "Ρυθμίσεις",
     "helpInfo": "Χρειάζεστε βοήθεια; {0}.",
-    "help": "Διαβάστε το αρχείο βοηθειών readme",
+    "help": "Read the manual",
     "upgradesHeader": "Αναβαθμίσεις",
     "installComplete": "Η εγκατάσταση ολοκληρώθηκε",
     "alreadyInstalled": "Είναι Ήδη Εγκατεστημένη",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Φίλτρα ανά πλατφόρμα",
     "plannedFeatures": "Δείτε τα χαρακτηριστικά που ετοιμάζουμε για το μέλλον!",
     "notesHeader": "Σημειώσεις",
-    "notes": "Μην ξεχάσετε να διαβάσετε το αρχείο οδηγιών αν έχετε προβλήματα.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Προβλήματα στο Λίνουξ; {0}",
     "linuxSupportLinkText": "Άνοιγμα Ερωταποκρίσεων",
-    "randomPicks": "Τυχαίες Επιλογές"
+    "randomPicks": "Τυχαίες Επιλογές",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Φίλτρα",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Παιχνίδια",
-    "theatre": "Κινούμενα Σχέδια"
+    "arcadePlural": "All Games",
+    "theatre": "Κινούμενα Σχέδια",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Φλάσποϊντ Ινφίνιτυ",
