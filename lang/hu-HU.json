@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Szexuális, erőszakos tartalmú vagy egyéb, gyerekek számára nem való játékok megjelenítése",
     "enableEditing": "Szerkesztés engedélyezése",
     "enableEditingDesc": "Játékok, egyéb alkalmazások és játéklisták szerkesztését engedélyezi. Ez láthatóvá teszi a \"Kurátor\" lapot is.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Nyelv",
     "currentLanguageDesc": "Ezt a nyelvet fogja a felület használni elsődlegesen.",
     "fallbackLanguage": "Tartalék nyelv",
