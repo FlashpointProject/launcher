@@ -164,7 +164,8 @@
     "version": "Version",
     "license": "Lizenz",
     "licenseInfo": "MIT (Lies die Datei mit dem Namen \"LICENSE\" für weitere Informationen)",
-    "creditsHeader": "Mitwirkende"
+    "creditsHeader": "Mitwirkende",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Kein Titel",
