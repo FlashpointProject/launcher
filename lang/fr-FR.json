@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Afficher les jeux à contenu sexuel, violent ou autre ne convenant pas aux enfants.",
     "enableEditing": "Activer le mode édition",
     "enableEditingDesc": "Permet l'édition de jeux, d'applications supplémentaires et de listes de lecture. Affiche également l'onglet 'Préserver'.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Langue",
     "currentLanguageDesc": "La langue qui sera principalement utilisée par le lanceur.",
     "fallbackLanguage": "Langue de secours",
