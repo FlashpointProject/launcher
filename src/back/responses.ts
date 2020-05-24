@@ -13,6 +13,7 @@ import { defaultPreferencesData, overwritePreferenceData } from '@shared/prefere
 import { deepCopy, readJsonFile } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as fs from 'fs';
+import { ensureDir } from 'fs-extra';
 import * as path from 'path';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
@@ -1057,11 +1058,17 @@ export function registerRequestCallbacks(state: BackState): void {
         }
 
         const folderPath = path.join(state.config.flashpointPath, state.config.metaEditsFolderPath);
-        if (await pathExists(folderPath)) {
+        try {
+          await ensureDir(folderPath);
           await writeFile(
             path.join(folderPath, game.id + '.json'),
             JSON.stringify(output, null, '\t')
           );
+        } catch (error) {
+          log(state, {
+            source: 'Launcher',
+            content: `Failed to export meta edit.\nError: ${error.message || error}`,
+          });
         }
       }
     }
