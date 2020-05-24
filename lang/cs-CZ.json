@@ -85,7 +85,7 @@
     "home": "Domů",
     "browse": "Procházet",
     "tags": "Tags",
-    "categories": "Categories",
+    "categories": "Kategorie",
     "logs": "Logy",
     "config": "Nastavení",
     "about": "Podrobnosti",
@@ -104,7 +104,7 @@
   },
   "filter": {
     "dateAdded": "Datum přidání",
-    "dateModified": "Date Modified",
+    "dateModified": "Datum změny",
     "platform": "Platforma",
     "series": "Série",
     "title": "Název",
