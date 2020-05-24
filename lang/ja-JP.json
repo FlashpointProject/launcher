@@ -8,6 +8,8 @@
     "extremeGamesDesc": "性的、暴力的、またはその他の不適切な要素を含むゲームを表示します。",
     "enableEditing": "カスタムを有効にする",
     "enableEditingDesc": "ゲーム、追加アプリケーション、プレイリストの編集を有効にし、'Curate'タブを表示します。",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "言語",
     "currentLanguageDesc": "ランチャーで主に使用する言語",
     "fallbackLanguage": "代替言語",
