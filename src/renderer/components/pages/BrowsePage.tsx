@@ -187,6 +187,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           width={this.props.preferencesData.browsePageLeftSidebarWidth}
           onResize={this.onLeftSidebarResize}>
           <ConnectedLeftBrowseSidebar
+            library={this.props.gameLibrary}
             playlists={this.props.playlists}
             selectedPlaylistID={selectedPlaylistId || ''}
             isEditing={this.state.isEditingPlaylist}

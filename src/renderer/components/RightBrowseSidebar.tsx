@@ -396,26 +396,38 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     {dateModified}
                   </p>
                 </div>
-                <div className='browse-right-sidebar__row'>
-                  <div
-                    className='browse-right-sidebar__row__check-box-wrapper'
-                    onClick={this.onBrokenChange}>
-                    <CheckBox
-                      checked={game.broken}
-                      className='browse-right-sidebar__row__check-box' />
-                    <p> {strings.brokenInInfinity}</p>
+                { game.broken || editable ? (
+                  <div className='browse-right-sidebar__row'>
+                    <div
+                      className='browse-right-sidebar__row__check-box-wrapper'
+                      onClick={this.onBrokenChange}>
+                      { editable ? (
+                        <>
+                        <CheckBox
+                          checked={game.broken}
+                          className='browse-right-sidebar__row__check-box' />
+                        <p> {strings.brokenInInfinity}</p>
+                        </>
+                      ) : (<b> {strings.brokenInInfinity}</b>) }
+                    </div>
                   </div>
-                </div>
-                <div className='browse-right-sidebar__row'>
-                  <div
-                    className='browse-right-sidebar__row__check-box-wrapper'
-                    onClick={this.onExtremeChange}>
-                    <CheckBox
-                      checked={game.extreme}
-                      className='browse-right-sidebar__row__check-box' />
-                    <p> {strings.extreme}</p>
+                ) : undefined }
+                { game.extreme || editable ? (
+                  <div className='browse-right-sidebar__row'>
+                    <div
+                      className='browse-right-sidebar__row__check-box-wrapper'
+                      onClick={this.onExtremeChange}>
+                      { editable ? (
+                        <>
+                        <CheckBox
+                          checked={game.extreme}
+                          className='browse-right-sidebar__row__check-box' />
+                        <p> {strings.extreme}</p>
+                        </>
+                      ) : ( <b> {strings.extreme}</b> ) }
+                    </div>
                   </div>
-                </div>
+                ) : undefined }
               </div>
             </>
           ) }

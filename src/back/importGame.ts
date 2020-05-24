@@ -2,6 +2,7 @@ import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { validateSemiUUID } from '@renderer/util/uuid';
 import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
@@ -95,7 +96,20 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     contentToMove.push([path.join(getCurationFolder(curation, fpPath), 'Extras'), path.join(fpPath, 'Extras', extrasAddApp.meta.launchCommand)]);
   }
   // Create and add game and additional applications
-  const gameId = uuid();
+  const gameId = validateSemiUUID(curation.key) ? curation.key : uuid();
+  const oldGame = await GameManager.findGame(gameId);
+  if (oldGame) {
+    const response = await opts.openDialog({
+      title: 'Overwriting Game',
+      message: 'There is already a game using this id. Importing will override it.\nContinue importing this curation?\n\n'
+              + `Curation:\n\tTitle: ${curation.meta.title}\n\tLaunch Command: ${curation.meta.launchCommand}\n\tPlatform: ${curation.meta.platform}\n\n`
+              + `Existing Game:\n\tTitle: ${oldGame.title}\n\tLaunch Command: ${oldGame.launchCommand}\n\tPlatform: ${oldGame.platform}`,
+      buttons: ['Yes', 'No']
+    });
+    if (response === 1) {
+      throw new Error('User Cancelled Import');
+    }
+  }
   const game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
   // Make a copy if not deleting the curation afterwards
   const moveFiles = !saveCuration;

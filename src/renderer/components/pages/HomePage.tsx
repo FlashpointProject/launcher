@@ -63,7 +63,7 @@ export function HomePage(props: HomePageProps) {
   }, [props.onLaunchGame]);
 
   const onHelpClick = React.useCallback(() => {
-    remote.shell.openItem(path.join(window.Shared.config.fullFlashpointPath, 'readme.txt'));
+    remote.shell.openItem(path.join(window.Shared.config.fullFlashpointPath, 'Manual.pdf'));
   }, [window.Shared.config.fullFlashpointPath]);
 
   const onHallOfFameClick = React.useCallback(() => {
@@ -227,7 +227,7 @@ export function HomePage(props: HomePageProps) {
         </QuickStartItem>
         <QuickStartItem icon='list'>
           <a
-            href='http://bluemaxima.org/flashpoint/datahub/Genres'
+            href='http://bluemaxima.org/flashpoint/datahub/Tags'
             target='_top'>
             {strings.tagList}
           </a>
@@ -290,15 +290,10 @@ export function HomePage(props: HomePageProps) {
 
   const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
-      <div className='home-page__random-games'>
-        <div className='home-page__random-games__inner'>
-          <p className='home-page__random-games__title'>{strings.randomPicks}</p>
-            <RandomGames
-              broken={window.Shared.config.data.showBrokenGames}
-              extreme={props.preferencesData.browsePageShowExtreme}
-              onLaunchGame={onLaunchGame} />
-        </div>
-      </div>
+      <RandomGames
+        broken={window.Shared.config.data.showBrokenGames}
+        extreme={props.preferencesData.browsePageShowExtreme}
+        onLaunchGame={onLaunchGame} />
     </SizeProvider>
   ), [strings, onLaunchGame]);
 
