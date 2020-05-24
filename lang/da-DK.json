@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Vis spil med sexuelt, voldeligt eller andet indhold ikke for børn.",
     "enableEditing": "Tænd Redigering",
     "enableEditingDesc": "Tænd redigering af spil, additonelle applikationer eller playlister. Viser også 'Kuration' fanen.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Sprog",
     "currentLanguageDesc": "Hvliket sprog vil launcheren bruge primært.",
     "fallbackLanguage": "Alternativt Sprog",
