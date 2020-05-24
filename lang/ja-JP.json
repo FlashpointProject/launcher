@@ -58,7 +58,7 @@
     "configInfo": "何か変更したいことがありますか？: {0}",
     "config": "設定",
     "helpInfo": "ヘルプが必要ですか？: {0}",
-    "help": "Readmeを読む",
+    "help": "Read the manual",
     "upgradesHeader": "アップグレード",
     "installComplete": "インストール完了",
     "alreadyInstalled": "既にインストールされています",
@@ -71,10 +71,11 @@
     "filterByPlatform": "プラットフォーム別",
     "plannedFeatures": "計画中の機能をチェック！",
     "notesHeader": "メモ",
-    "notes": "問題が発生したら、まずはReadmeを読んでください。",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Issues on Linux? {0}",
     "linuxSupportLinkText": "FAQ",
-    "randomPicks": "ランダムなゲーム"
+    "randomPicks": "ランダムなゲーム",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "フィルター",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "ゲーム",
-    "theatre": "アニメーション"
+    "arcadePlural": "All Games",
+    "theatre": "アニメーション",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
