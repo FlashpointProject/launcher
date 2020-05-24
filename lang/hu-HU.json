@@ -164,7 +164,8 @@
     "version": "Verzió",
     "license": "Licensz",
     "licenseInfo": "MIT (Olvassa el a LICENSE' nevű fájlt további információért)",
-    "creditsHeader": "Készítők"
+    "creditsHeader": "Készítők",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Nincs cím",
