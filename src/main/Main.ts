@@ -61,6 +61,7 @@ export function main(init: Init): void {
   // -- Functions --
 
   function startup() {
+    app.allowRendererProcessReuse = true;
     // Add app event listener(s)
     app.once('ready', onAppReady);
     app.once('window-all-closed', onAppWindowAllClosed);

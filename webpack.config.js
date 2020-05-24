@@ -27,6 +27,7 @@ module.exports = {
       }
     ]
   },
+  devtool: 'eval-source-map', // TODO: Put in Development config
   externals: {
     fsevents: 'require(\'fsevents\')',
     'react-native-sqlite-storage': 'react-native-sqlite-storage'
