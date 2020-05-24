@@ -1,8 +1,10 @@
-import * as path from 'path';
+import { Tag } from '@database/entity/Tag';
+import { BackIn, TagGetOrCreateData, TagGetOrCreateResponse } from '@shared/back/types';
 import * as fs from 'fs';
-import { CurationIndex, EditCuration, IndexedContent } from './types';
+import * as path from 'path';
 import { promisify } from 'util';
 import { fixSlashes } from '../Util';
+import { CurationIndex, EditCuration, IndexedContent } from './types';
 
 const access = promisify(fs.access);
 const lstat = promisify(fs.lstat);
@@ -63,4 +65,21 @@ export async function recursiveFolderIndex(folderPath: string, basePath: string,
       });
     }
   }
+}
+
+export async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string): Promise<Tag[]> {
+  const allTags: Tag[] = [];
+  const splitTags = tagsStr.split(';');
+  const splitCategories = tagCategoriesStr.split(';');
+
+  for (let i = 0; i < splitTags.length; i++) {
+    const trimTag = splitTags[i].trim();
+    const trimTagCategory = splitCategories[i] ? splitCategories[i].trim() : undefined;
+    const res = await window.Shared.back.sendP<TagGetOrCreateResponse, TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, { tag: trimTag, tagCategory: trimTagCategory });
+    if (res.data) {
+      allTags.push(res.data);
+    }
+  }
+
+  return allTags.filter((v,i) => allTags.findIndex(v2 => v2.id == v.id) == i); // remove dupes
 }

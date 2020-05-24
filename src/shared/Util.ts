@@ -413,3 +413,9 @@ export function canReadWrite(folder: string): Promise<boolean> {
     });
   });
 }
+
+// Courtesy of https://www.paulirish.com/2009/random-hex-color-code-snippets/
+export function getRandomHexColor(): string {
+  const num = '#'+(Math.random()*(1<<24)|0).toString(16);
+  return num.padEnd(7, '0');
+}

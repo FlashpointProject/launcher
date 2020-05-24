@@ -1,6 +1,7 @@
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
+import { TagCategory } from '@database/entity/TagCategory';
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
@@ -43,6 +44,7 @@ type ImportCurationOpts = {
   imageFolderPath: string;
   openDialog: OpenDialogFunc;
   openExternal: OpenExternalFunc;
+  tagCategories: TagCategory[];
 }
 
 /**
@@ -139,7 +141,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       if (saveCuration) {
         // Save working meta
         const metaPath = path.join(getCurationFolder(curation, fpPath), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, opts.tagCategories, curation.addApps));
         await writeFile(metaPath, meta);
         // Date in form 'YYYY-MM-DD' for folder sorting
         const date = new Date();
@@ -220,7 +222,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     playMode:            gameMeta.playMode            || '',
     status:              gameMeta.status              || '',
     notes:               gameMeta.notes               || '',
-    tags:                [],
+    tags:                gameMeta.tags                || [],
     source:              gameMeta.source              || '',
     applicationPath:     gameMeta.applicationPath     || '',
     launchCommand:       gameMeta.launchCommand       || '',
@@ -238,9 +240,6 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     placeholder: false
   };
   game.addApps = addApps.map(addApp => createAddAppFromCurationMeta(addApp, game));
-  if (gameMeta.tags) {
-    game.tags = await createTagsFromLegacy(gameMeta.tags);
-  }
   return game;
 }
 
@@ -467,7 +466,7 @@ export async function createTagsFromLegacy(tags: string): Promise<Tag[]> {
   for (let t of tags.split(';')) {
     const trimTag = t.trim();
     let tag = await TagManager.findTag(trimTag);
-    if (!tag && trimTag != '') {
+    if (!tag && trimTag !== '') {
       // Tag doesn't exist, make a new one
       tag = await TagManager.createTag(trimTag);
     }

@@ -1,4 +1,5 @@
 import { Game } from '@database/entity/Game';
+import { TagCategory } from '@database/entity/TagCategory';
 import { ParsedCurationMeta } from './parse';
 import { EditAddAppCuration, EditCurationMeta } from './types';
 
@@ -7,8 +8,12 @@ import { EditAddAppCuration, EditCurationMeta } from './types';
  * @param game Game to convert.
  * @param addApps Additional applications of the game.
  */
-export function convertToCurationMeta(game: Game): CurationFormatMeta {
+export function convertToCurationMeta(game: Game, categories: TagCategory[]): CurationFormatMeta {
   const parsed: CurationFormatMeta = {};
+  const tagCategories = game.tags.map(t => {
+    const cat = categories.find(c => c.id === t.categoryId);
+    return cat ? cat.name : 'default';
+  });
   // Game meta
   parsed['Title']                = game.title;
   parsed['Series']               = game.series;
@@ -19,7 +24,8 @@ export function convertToCurationMeta(game: Game): CurationFormatMeta {
   parsed['Version']              = game.version;
   parsed['Languages']            = game.language;
   parsed['Extreme']              = game.extreme ? 'Yes' : 'No';
-  parsed['Tags']                 = game.tags.map(t => t.aliases[0].name).join('; ');
+  parsed['Tags']                 = game.tags.map(t => t.primaryAlias.name).join('; ');
+  parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = game.source;
   parsed['Platform']             = game.platform;
   parsed['Status']               = game.status;
@@ -68,8 +74,12 @@ export function convertToCurationMeta(game: Game): CurationFormatMeta {
  * @param curation Curation to convert.
  * @param addApps Additional applications of the curation.
  */
-export function convertEditToCurationMeta(curation: EditCurationMeta, addApps?: EditAddAppCuration[]): CurationFormatMeta {
+export function convertEditToCurationMeta(curation: EditCurationMeta, categories: TagCategory[], addApps?: EditAddAppCuration[]): CurationFormatMeta {
   const parsed: CurationFormatMeta = {};
+  const tagCategories = curation.tags ? curation.tags.map(t => {
+    const cat = categories.find(c => c.id === t.categoryId);
+    return cat ? cat.name : 'default';
+  }) : [''];
   // Edit curation meta
   parsed['Title']                = curation.title;
   parsed['Alternate Titles']     = curation.alternateTitles;
@@ -82,7 +92,8 @@ export function convertEditToCurationMeta(curation: EditCurationMeta, addApps?: 
   parsed['Version']              = curation.version;
   parsed['Languages']            = curation.language;
   parsed['Extreme']              = curation.extreme;
-  parsed['Tags']                 = curation.tags;
+  parsed['Tags']                 = curation.tags ? curation.tags.map(t => t.primaryAlias.name).join('; ') : '';
+  parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.source;
   parsed['Platform']             = curation.platform;
   parsed['Status']               = curation.status;
@@ -136,8 +147,12 @@ export function convertEditToCurationMeta(curation: EditCurationMeta, addApps?: 
  * @param curation Parsed meta to convert.
  * @param addApps Additional applications of the curation.
  */
-export function convertParsedToCurationMeta(curation: ParsedCurationMeta): CurationFormatMeta {
+export function convertParsedToCurationMeta(curation: ParsedCurationMeta, categories: TagCategory[]): CurationFormatMeta {
   const parsed: CurationFormatMeta = {};
+  const tagCategories = curation.game.tags ? curation.game.tags.map(t => {
+    const cat = categories.find(c => c.id === t.categoryId);
+    return cat ? cat.name : 'default';
+  }) : [''];
   // Edit curation meta
   parsed['Title']                = curation.game.title;
   parsed['Alternate Titles']     = curation.game.alternateTitles;
@@ -150,7 +165,8 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta): Curat
   parsed['Version']              = curation.game.version;
   parsed['Languages']            = curation.game.language;
   parsed['Extreme']              = curation.game.extreme;
-  parsed['Tags']                 = curation.game.tags;
+  parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.primaryAlias.name).join('; ') : '';
+  parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.game.source;
   parsed['Platform']             = curation.game.platform;
   parsed['Status']               = curation.game.status;
@@ -215,6 +231,7 @@ type CurationFormatMeta = {
   'Source'?: string;
   'Status'?: string;
   'Tags'?: string;
+  'Tag Categories'?: string;
   'Title'?: string;
   'Alternate Titles'?: string;
   'Library'?: string;
