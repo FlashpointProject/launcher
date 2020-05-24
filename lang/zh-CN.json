@@ -164,7 +164,8 @@
     "version": "版本",
     "license": "声明 (License)",
     "licenseInfo": "MIT (详请阅读'LICENSE'文件)",
-    "creditsHeader": "创作者名单(Credits)"
+    "creditsHeader": "创作者名单(Credits)",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "无标题",
