@@ -72,7 +72,8 @@
     "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Issues on Linux? {0}",
     "linuxSupportLinkText": "Open FAQ",
-    "randomPicks": "Random Picks"
+    "randomPicks": "Random Picks",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Filters",

@@ -290,15 +290,10 @@ export function HomePage(props: HomePageProps) {
 
   const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
-      <div className='home-page__random-games'>
-        <div className='home-page__random-games__inner'>
-          <p className='home-page__random-games__title'>{strings.randomPicks}</p>
-            <RandomGames
-              broken={window.Shared.config.data.showBrokenGames}
-              extreme={props.preferencesData.browsePageShowExtreme}
-              onLaunchGame={onLaunchGame} />
-        </div>
-      </div>
+      <RandomGames
+        broken={window.Shared.config.data.showBrokenGames}
+        extreme={props.preferencesData.browsePageShowExtreme}
+        onLaunchGame={onLaunchGame} />
     </SizeProvider>
   ), [strings, onLaunchGame]);
 

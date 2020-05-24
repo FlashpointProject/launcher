@@ -1,4 +1,5 @@
 import { Game } from '@database/entity/Game';
+import { LangContext } from '@renderer/util/lang';
 import { BackIn, RandomGamesData, RandomGamesResponseData } from '@shared/back/types';
 import { LOGOS } from '@shared/constants';
 import * as React from 'react';
@@ -6,6 +7,7 @@ import { useState } from 'react';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
+import { SimpleButton } from './SimpleButton';
 
 type RandomGamesProps = {
   broken: boolean;
@@ -16,21 +18,26 @@ type RandomGamesProps = {
 /** A small "grid" of randomly selected games. */
 export function RandomGames(props: RandomGamesProps) {
   const [games, setGames] = useState<Game[]>([]);
+  const [mounted, setMounted] = useState(true);
+  const strings = React.useContext(LangContext);
 
-  React.useEffect(() => {
-    let unmounted = false;
 
+  const rollRandomGames = React.useCallback(() => {
     window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
-      count: 6,
+      count: 5,
       broken: props.broken,
       extreme: props.extreme,
     }, (res) => {
-      if (res.data && !unmounted) {
+      if (res.data && mounted) {
         setGames(res.data);
       }
     });
+  }, []);
 
-    return () => { unmounted = true; }
+  React.useEffect(() => {
+    rollRandomGames();
+
+    return () => { setMounted(false); };
   }, []);
 
   const onLaunchGame = React.useCallback((event: React.MouseEvent, gameId: string) => {
@@ -51,12 +58,20 @@ export function RandomGames(props: RandomGamesProps) {
   ), [games]);
 
   return (
-    <GameItemContainer
-      className='random-games'
-      onGameLaunch={onLaunchGame}
-      findGameId={findGameId}>
-      { gameItems }
-    </GameItemContainer>
+    <div className='home-page__box home-page__box--random_picks'>
+      <div className='home-page__box-head'>{strings.home.randomPicks}</div>
+      <ul className='home-page__box-body'>
+        <GameItemContainer
+          className='random-games'
+          onGameLaunch={onLaunchGame}
+          findGameId={findGameId}>
+          { gameItems }
+        </GameItemContainer>
+        <SimpleButton
+          value={strings.home.rerollPicks}
+          onClick={rollRandomGames} />
+      </ul>
+    </div>
   );
 }
 

@@ -80,6 +80,7 @@ const langTemplate = {
     'linuxSupport',
     'linuxSupportLinkText',
     'randomPicks',
+    'rerollPicks'
   ] as const,
   logs: [
     'filters',

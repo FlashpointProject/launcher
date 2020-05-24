@@ -674,9 +674,11 @@ body {
   padding: 0.15rem 0.3rem;
   border-bottom: 1px solid;
   font-weight: bold;
+  text-align: left;
 }
 .home-page__box-body {
   padding: 0.3rem;
+  text-align: center;
 }
 .home-page__box-item {
   display: flex;
