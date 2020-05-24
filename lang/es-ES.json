@@ -164,7 +164,8 @@
     "version": "Versión",
     "license": "Licencia",
     "licenseInfo": "MIT (Leer el archivo llamado 'LICENSE' para más información)",
-    "creditsHeader": "Créditos"
+    "creditsHeader": "Créditos",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Sin título",
