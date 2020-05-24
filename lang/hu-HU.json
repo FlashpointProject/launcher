@@ -58,7 +58,7 @@
     "configInfo": "Valamit meg szeretne változtatni? Menjen a.",
     "config": "Beállítások",
     "helpInfo": "Segítség kell?",
-    "help": "Olvassel megnyitása",
+    "help": "Read the manual",
     "upgradesHeader": "Frissítések",
     "installComplete": "Telepítés befejezve",
     "alreadyInstalled": "Már telepítve",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Platform szerinti szűrés",
     "plannedFeatures": "Nézze meg a tervezett funkcióinkat!",
     "notesHeader": "Megjegyzések",
-    "notes": "Ne felejtse el a readme fájlt elolvasni ha problémákba fut.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Problémák Linux alatt? {0}",
     "linuxSupportLinkText": "GYIK Megnyitása",
-    "randomPicks": "Véletlenszerű választások"
+    "randomPicks": "Véletlenszerű választások",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Szűrők",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Játékok",
-    "theatre": "Animációk"
+    "arcadePlural": "All Games",
+    "theatre": "Animációk",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
