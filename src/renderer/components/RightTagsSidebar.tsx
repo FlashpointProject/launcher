@@ -258,7 +258,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     const newTag = event.currentTarget.value;
     let newSuggestions: TagSuggestion[] = this.state.tagMergeSuggestions;
 
-    if (newTag != '') {
+    if (newTag !== '') {
       // Delayed set
       window.Shared.back.send<any, any>(BackIn.GET_TAG_SUGGESTIONS, newTag, (res) => {
         if (res.data) {
@@ -329,7 +329,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   }
 
   onAddTagAliasByString = (text: string): void => {
-    if (text != '') {
+    if (text !== '') {
       window.Shared.back.send<TagGetResponse, TagGetData>(BackIn.GET_TAG, text, (res) => {
         if (res.data) {
           // Tag alias exists

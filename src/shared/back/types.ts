@@ -494,7 +494,10 @@ export type TagSuggestion = {
   tag: Tag;
 }
 
-export type TagGetOrCreateData = string;
+export type TagGetOrCreateData = {
+  tag: string,
+  tagCategory?: string
+};
 
 export type TagGetOrCreateResponse = Tag;
 

@@ -1,3 +1,4 @@
+import { Tag } from '@database/entity/Tag';
 import { ParsedCurationMeta } from './parse';
 
 /** Data of a curation in the curation importer. */
@@ -40,7 +41,7 @@ export type EditCurationMeta = Partial<{
   publisher: string;
   status: string;
   extreme: string;
-  tags: string;
+  tags: Tag[];
   source: string;
   launchCommand: string;
   library: string;

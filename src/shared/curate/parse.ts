@@ -4,6 +4,7 @@ import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
 import { EditAddAppCurationMeta, EditCurationMeta } from './types';
+import { getTagsFromStr } from './util';
 
 const { str } = Coerce;
 
@@ -19,25 +20,24 @@ export type ParsedCurationMeta = {
  * Parse a string containing meta for an old style curation
  * @param text A string of curation meta.
  */
-export function parseCurationMetaOld(text: string): ParsedCurationMeta {
+export async function parseCurationMetaOld(text: string): Promise<ParsedCurationMeta> {
   // Try parsing the meta text
   let tokens: CFTokenizer.AnyToken[] | undefined = undefined;
   let rawMeta: CurationFormatObject | undefined = undefined;
   tokens = tokenizeCurationFormat(text);
   rawMeta = parseCurationFormat(tokens);
   // Convert the raw meta to a programmer friendly object
-  return convertMeta(rawMeta);
+  return await convertMeta(rawMeta);
 }
 
 /**
  * Parse a string containing meta for an new style (YAML) curation
  * @param text A string of curation meta.
  */
-export function parseCurationMetaNew(text: string): ParsedCurationMeta {
+export async function parseCurationMetaNew(rawMeta: any): Promise<ParsedCurationMeta> {
   // Try parsing yaml file
-  const rawMeta = YAML.parse(text);
   // Convert raw meta into a ParsedCurationMeta object
-  return convertMeta(rawMeta);
+  return await convertMeta(rawMeta);
 }
 
 /**
@@ -45,7 +45,7 @@ export function parseCurationMetaNew(text: string): ParsedCurationMeta {
  * @param data "Raw" meta object to convert.
  * @param onError Called whenever an error occurs.
  */
-export function convertMeta(data: any, onError?: (error: string) => void): ParsedCurationMeta {
+export async function convertMeta(data: any, onError?: (error: string) => void): Promise<ParsedCurationMeta> {
   // Default parsed data
   const parsed: ParsedCurationMeta = {
     game: {},
@@ -70,7 +70,6 @@ export function convertMeta(data: any, onError?: (error: string) => void): Parse
   });
   // -- Old curation format --
   parser.prop('author notes',         v => parsed.game.curationNotes       = str(v));
-  parser.prop('genre',                v => parsed.game.tags                = arrayStr(v));
   parser.prop('notes',                v => parsed.game.notes               = str(v));
   // -- New curation format --
   // Single value properties
@@ -79,7 +78,6 @@ export function convertMeta(data: any, onError?: (error: string) => void): Parse
   parser.prop('developer',            v => parsed.game.developer           = arrayStr(v));
   parser.prop('extreme',              v => parsed.game.extreme             = str(v));
   parser.prop('game notes',           v => parsed.game.notes               = str(v));
-  parser.prop('genres',               v => parsed.game.tags                = arrayStr(v));
   parser.prop('languages',            v => parsed.game.language            = str(v));
   parser.prop('launch command',       v => parsed.game.launchCommand       = str(v));
   parser.prop('original description', v => parsed.game.originalDescription = str(v));
@@ -90,11 +88,13 @@ export function convertMeta(data: any, onError?: (error: string) => void): Parse
   parser.prop('series',               v => parsed.game.series              = str(v));
   parser.prop('source',               v => parsed.game.source              = str(v));
   parser.prop('status',               v => parsed.game.status              = str(v));
-  parser.prop('tags',                 v => parsed.game.tags                = arrayStr(v));
   parser.prop('title',                v => parsed.game.title               = str(v));
   parser.prop('alternate titles',     v => parsed.game.alternateTitles     = arrayStr(v));
   parser.prop('version',              v => parsed.game.version             = str(v));
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
+  if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(str(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
+  if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(str(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
+  if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(str(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps
