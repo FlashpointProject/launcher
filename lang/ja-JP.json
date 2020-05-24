@@ -164,7 +164,8 @@
     "version": "バージョン",
     "license": "ライセンス",
     "licenseInfo": "MIT (詳しくは「LICENSE」ファイルをお読みください。)",
-    "creditsHeader": "クレジット"
+    "creditsHeader": "クレジット",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "タイトルなし",
