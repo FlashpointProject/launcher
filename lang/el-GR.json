@@ -164,7 +164,8 @@
     "version": "Έκδοση",
     "license": "Άδεια",
     "licenseInfo": "ΜΙΤ (Διάβασε το αρχείο ονόματι «ΑΔΕΙΑ» για περισσότερες πληροφορίες)",
-    "creditsHeader": "Συντελεστές"
+    "creditsHeader": "Συντελεστές",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Χωρίς Τίτλο",
