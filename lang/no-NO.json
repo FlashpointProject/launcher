@@ -164,7 +164,8 @@
     "version": "Versjon",
     "license": "Lisens",
     "licenseInfo": "MIT (Les filen kalt 'LICENSE' for mer informasjon)",
-    "creditsHeader": "Anerkjennelser"
+    "creditsHeader": "Anerkjennelser",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Ingen tittel",
