@@ -36,7 +36,7 @@
     "showDeveloperTab": "Vis Utviklerfanen",
     "showDeveloperTabDesc": "Viser utviklerfanen. Dette er sannsynligvis bare nyttig for utviklere og kuratorer.",
     "server": "Server",
-    "serverDesc": "Which Server Process to run at launcher startup.",
+    "serverDesc": "Hvilken Server-Prosess som skal kjøres ved oppstart av launcheren.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
     "saveAndRestart": "Lagre og Start På Nytt"
