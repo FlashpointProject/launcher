@@ -791,6 +791,7 @@ body {
 }
 .about-page__columns {
   margin: auto;
+  display: flex;
 }
 .about-page__columns__left {
   margin-top: 2rem;

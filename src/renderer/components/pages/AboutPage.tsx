@@ -42,22 +42,26 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     if (creditsData) {
       profileLoop:
       for (const profile of creditsData.profiles) {
-        for (const role of roles) {
-          // Add Profile to block based on highest role and order
-          if (profile.roles.includes(role.name)) {
+        // Assign profile to block
+        for (const roleName of profile.roles) {
+          const role = roles.find(role => role.name === roleName);
+          if (role) {
+            // Role exists, find/create block for it
             const block = creditBlocks.find(block => block.role === role);
-            if (block) {
+            if (block && !block.role.noCategory) {
+              // Block found, add profile
               block.profiles.push(profile);
             } else {
+              // No block for role yet, create a new one
               const newBlock: CreditsBlock = { role: role, profiles: [] };
               newBlock.profiles.push(profile);
               creditBlocks.push(newBlock);
             }
-            // Added, move to next profile
+            // Added to a block, go to next profile
             continue profileLoop;
           }
         }
-        // No role found, use default
+        // No matching roles found, add to default
         creditBlocks[0].profiles.push(profile);
       }
     }
