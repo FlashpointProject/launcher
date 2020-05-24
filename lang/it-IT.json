@@ -8,8 +8,8 @@
     "extremeGamesDesc": "Mostra giochi con contenuti sessuali, violenti o di altro tipo non adatti ai bambini.",
     "enableEditing": "Abilita Modifica",
     "enableEditingDesc": "Abilita la modifica di giochi, applicazioni aggiuntive e playlist. Mostra anche la scheda 'Curate'.",
-    "onDemandImages": "On Demand Images",
-    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
+    "onDemandImages": "Immagini Su Richiesta",
+    "onDemandImagesDesc": "Scaricare e salvare loghi e schermate mancanti in quanto necessari.",
     "currentLanguage": "Lingua",
     "currentLanguageDesc": "Quale lingua verrà utilizzata in prevalenza nel launcher.",
     "fallbackLanguage": "Lingua di riserva",
@@ -58,7 +58,7 @@
     "configInfo": "Vuoi cambiare qualcosa? Vai a {0}.",
     "config": "Impostazioni",
     "helpInfo": "Serve una mano? {0}.",
-    "help": "Read the manual",
+    "help": "Leggi il manuale",
     "upgradesHeader": "Potenziamenti",
     "installComplete": "Installazione Completata",
     "alreadyInstalled": "Già Installato",
@@ -71,11 +71,11 @@
     "filterByPlatform": "Filtra per piattaforma",
     "plannedFeatures": "Scopri le funzioni su cui stiamo lavorando!",
     "notesHeader": "Note",
-    "notes": "Don't forget to read the manual if you're having issues.",
+    "notes": "Non dimenticare di leggere il manuale se hai problemi.",
     "linuxSupport": "Problemi su Linux? {0}",
     "linuxSupportLinkText": "Apri FAQ",
     "randomPicks": "Selezioni casuali",
-    "rerollPicks": "Re-Roll Picks"
+    "rerollPicks": "Rilaminare le scelte"
   },
   "logs": {
     "filters": "Filtri",
@@ -168,7 +168,7 @@
     "license": "Licenza",
     "licenseInfo": "MIT (Leggi il file chiamato \"LICENSE\" per maggiori informazioni)",
     "creditsHeader": "Ringraziamenti",
-    "specialThanks": "Special Thanks"
+    "specialThanks": "Ringraziamenti speciali"
   },
   "browse": {
     "noTitle": "Nessun titolo",
@@ -412,9 +412,9 @@
   },
   "libraries": {
     "arcade": "Giochi",
-    "arcadePlural": "All Games",
+    "arcadePlural": "Tutti i Giochi",
     "theatre": "Animazioni",
-    "theatrePlural": "All Animations"
+    "theatrePlural": "Tutte le Animazioni"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
