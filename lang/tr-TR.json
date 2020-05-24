@@ -58,7 +58,7 @@
     "configInfo": "Bir şeyi mi değiştirmek istiyorsun? {0}'a git.",
     "config": "Yapılandırma",
     "helpInfo": "Yardım mı lazım? {0}.",
-    "help": "Benioku'yu Oku",
+    "help": "Read the manual",
     "upgradesHeader": "Güncellemeler",
     "installComplete": "İndirme Tamamlandı",
     "alreadyInstalled": "Zaten Yüklü",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Platforma göre filtrele",
     "plannedFeatures": "Planladığımız içeriklere göz at!",
     "notesHeader": "Notlar",
-    "notes": "Eğer sıkıntılarınız varsa benioku'yu okumayı unutmayın.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Linux'ta Sıkıntı? {0}",
     "linuxSupportLinkText": "SSS'i Aç",
-    "randomPicks": "Rastgele Seçimler"
+    "randomPicks": "Rastgele Seçimler",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Filtreler",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Oyunlar",
-    "theatre": "Animasyonlar"
+    "arcadePlural": "All Games",
+    "theatre": "Animasyonlar",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
