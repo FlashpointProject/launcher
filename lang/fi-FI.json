@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Näytä pelit joissa on seksuaalista, väkivaltaista tai muuta lapsille sopimatonta sisältöä.",
     "enableEditing": "Muokkaustila",
     "enableEditingDesc": "Muokkaustila antaa mahdollisuuden luoda soittolistoa, lisätä ohjelmia, muokata niiden tietoja ja lisäksi paljastaa 'kuratointi'-välilehden.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Kieli",
     "currentLanguageDesc": "Mitä kieltä ohjelma käyttää ensisijaisesti.",
     "fallbackLanguage": "Toissijainen kieli",
