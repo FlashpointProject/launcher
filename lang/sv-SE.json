@@ -58,7 +58,7 @@
     "configInfo": "Är det någonting du vill ändra på? Gå till {0}.",
     "config": "Inställningar",
     "helpInfo": "Behöver du hjälp? {0}.",
-    "help": "Läs vår readme",
+    "help": "Read the manual",
     "upgradesHeader": "Uppgraderingar",
     "installComplete": "Installationen är klar",
     "alreadyInstalled": "Redan installerad",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Filtrera efter plattform",
     "plannedFeatures": "Ta en titt på våra planerade funktioner!",
     "notesHeader": "Kommentarer",
-    "notes": "Glöm inte att läsa vår readme om du har problem.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Problem i Linux? {0}",
     "linuxSupportLinkText": "Visa frågor och svar",
-    "randomPicks": "Slumpvalda spel"
+    "randomPicks": "Slumpvalda spel",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Filter",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Spel",
-    "theatre": "Animationer"
+    "arcadePlural": "All Games",
+    "theatre": "Animationer",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
