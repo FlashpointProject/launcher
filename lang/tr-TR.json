@@ -164,7 +164,8 @@
     "version": "Sürüm",
     "license": "Lisans",
     "licenseInfo": "MIT (daha fazla bilgi için 'LICENSE' dosyasını oku)",
-    "creditsHeader": "Teşekkürler"
+    "creditsHeader": "Teşekkürler",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Başlık Yok",
