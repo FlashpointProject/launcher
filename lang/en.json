@@ -56,7 +56,7 @@
     "configInfo": "Want to change something? Go to {0}.",
     "config": "Config",
     "helpInfo": "Need help? {0}.",
-    "help": "Read the readme",
+    "help": "Read the manual",
     "upgradesHeader": "Upgrades",
     "installComplete": "Install Complete",
     "alreadyInstalled": "Already Installed",
@@ -69,7 +69,7 @@
     "filterByPlatform": "Filter by platform",
     "plannedFeatures": "Check out our planned features!",
     "notesHeader": "Notes",
-    "notes": "Don't forget to read the readme if you're having issues.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Issues on Linux? {0}",
     "linuxSupportLinkText": "Open FAQ",
     "randomPicks": "Random Picks"
@@ -408,7 +408,9 @@
   },
   "libraries": {
     "arcade": "Games",
-    "theatre": "Animations"
+    "arcadePlural": "All Games",
+    "theatre": "Animations",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",

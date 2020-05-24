@@ -11,6 +11,7 @@ import { PlaylistItemContent } from './PlaylistContent';
 import { PlaylistItem } from './PlaylistItem';
 
 type OwnProps = {
+  library: string;
   playlists: Playlist[];
   /** ID of the playlist that is selected (empty string if none). */
   selectedPlaylistID: string;
@@ -46,6 +47,7 @@ export interface LeftBrowseSidebar {
 /** Sidebar on the left side of BrowsePage. */
 export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
   render() {
+    const allStrings = this.context;
     const strings = this.context.browse;
     const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, preferencesData, selectedPlaylistID } = this.props;
     const editingDisabled = !preferencesData.enableEditing;
@@ -60,7 +62,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
               <OpenIcon icon='eye' />
             </div>
             <div className='playlist-list-fake-item__inner'>
-              <p className='playlist-list-fake-item__inner__title'>{strings.allGames}</p>
+              <p className='playlist-list-fake-item__inner__title'>{allStrings.libraries[this.props.library + 'Plural'] || 'All ' + this.props.library}</p>
             </div>
           </div>
           {/* List all playlists */}
