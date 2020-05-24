@@ -164,7 +164,8 @@
     "version": "Bersyon",
     "license": "Lisensya",
     "licenseInfo": "MIT (Basahin ang file 'LICENSE' para sa karagdagang impormasyon)",
-    "creditsHeader": "Mga Kredito"
+    "creditsHeader": "Mga Kredito",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Walang Titulo",
