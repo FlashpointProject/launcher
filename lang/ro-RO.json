@@ -9,7 +9,7 @@
     "enableEditing": "Activați editarea",
     "enableEditingDesc": "Activați editarea jocurilor, aplicațiilor suplimentare și listelor cu jocuri. Arată și butonul „Repară“.",
     "onDemandImages": "Imagini la cerere",
-    "onDemandImagesDesc": "Descarcă logo-uri lipsă și capturi de ecran când e nevoie.",
+    "onDemandImagesDesc": "Descarcă și salvează logo-uri lipsă și capturi de ecran când e cazul.",
     "currentLanguage": "Limba principală",
     "currentLanguageDesc": "Limba principală a lansatorului.",
     "fallbackLanguage": "Limba secundară",
@@ -36,7 +36,7 @@
     "showDeveloperTab": "Arătați butonul „Dezvoltator“",
     "showDeveloperTabDesc": "Se va arăta butonul „Dezvoltator“. Cel mai folositor va fi pentru dezvoltatori și reparatori.",
     "server": "Server",
-    "serverDesc": "Which Server Process to run at launcher startup.",
+    "serverDesc": "Procesul pentru sever care rulează la pornirea lansatorului.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
     "saveAndRestart": "Salvare și repornire"
