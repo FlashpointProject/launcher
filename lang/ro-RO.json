@@ -58,7 +58,7 @@
     "configInfo": "Doriți să modificați ceva? Treceți la {0}.",
     "config": "configurări",
     "helpInfo": "Aveți nevoie de ajutor? {0}.",
-    "help": "Citiți fișierul de asistență",
+    "help": "Read the manual",
     "upgradesHeader": "Suplimente",
     "installComplete": "Instalare completă",
     "alreadyInstalled": "Instalat deja",
@@ -71,10 +71,11 @@
     "filterByPlatform": "Filtrați în funcție de platformă",
     "plannedFeatures": "Vedeți ce funcționalități am planificat pentru dvs!",
     "notesHeader": "Note",
-    "notes": "Citiți fișierul de asistență, în cazul în care aveți dificultăți.",
+    "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Apar probleme pe Linux? {0}",
     "linuxSupportLinkText": "Vizitați FAQ",
-    "randomPicks": "Alese la întâmplare"
+    "randomPicks": "Alese la întâmplare",
+    "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
     "filters": "Filtre",
@@ -411,7 +412,9 @@
   },
   "libraries": {
     "arcade": "Jocuri",
-    "theatre": "Animații"
+    "arcadePlural": "All Games",
+    "theatre": "Animații",
+    "theatrePlural": "All Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
