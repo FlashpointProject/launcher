@@ -164,7 +164,8 @@
     "version": "Versiunea",
     "license": "Licența",
     "licenseInfo": "MIT (citiți fișierul „Licență“ pentru informații suplimentare)",
-    "creditsHeader": "Acreditări"
+    "creditsHeader": "Acreditări",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Nu este introdus niciun titlu",
