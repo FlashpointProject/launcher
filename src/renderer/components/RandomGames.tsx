@@ -3,7 +3,7 @@ import { LangContext } from '@renderer/util/lang';
 import { BackIn, RandomGamesData, RandomGamesResponseData } from '@shared/back/types';
 import { LOGOS } from '@shared/constants';
 import * as React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { findElementAncestor, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
@@ -18,9 +18,8 @@ type RandomGamesProps = {
 /** A small "grid" of randomly selected games. */
 export function RandomGames(props: RandomGamesProps) {
   const [games, setGames] = useState<Game[]>([]);
-  const [mounted, setMounted] = useState(true);
+  const unmounted = useRef(false);
   const strings = React.useContext(LangContext);
-
 
   const rollRandomGames = React.useCallback(() => {
     window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
@@ -28,7 +27,7 @@ export function RandomGames(props: RandomGamesProps) {
       broken: props.broken,
       extreme: props.extreme,
     }, (res) => {
-      if (res.data && mounted) {
+      if (res.data && !unmounted.current) {
         setGames(res.data);
       }
     });
@@ -37,7 +36,7 @@ export function RandomGames(props: RandomGamesProps) {
   React.useEffect(() => {
     rollRandomGames();
 
-    return () => { setMounted(false); };
+    return () => { unmounted.current = true; };
   }, []);
 
   const onLaunchGame = React.useCallback((event: React.MouseEvent, gameId: string) => {
