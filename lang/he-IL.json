@@ -8,6 +8,8 @@
     "extremeGamesDesc": "הצג משחקים בעלי תוכן מיני, אלים או כל תוכן אחר שלא מתאים לילדים.",
     "enableEditing": "אפשר עריכה",
     "enableEditingDesc": "אפשר עריכה של משחקים, יישומים נוספים ופלייליסטים. מראה גם את לשונית ה-'Curate'.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "שפה",
     "currentLanguageDesc": "באיזו שפה ישתמש המריץ בעיקר.",
     "fallbackLanguage": "שפת בסיס",
