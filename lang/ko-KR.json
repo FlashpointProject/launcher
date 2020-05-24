@@ -8,6 +8,8 @@
     "extremeGamesDesc": "성적인 요소, 폭력적인 요소 및 어린이들에게 부적합한 컨텐츠를 활성화합니다.",
     "enableEditing": "편집 허용하기",
     "enableEditingDesc": "게임, 애플리케이션과 플레이리스트 편집을 허용합니다. 그리고 '큐레이트' 탭을 보이게 합니다.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "언어",
     "currentLanguageDesc": "런처가 주로 사용하는 언어입니다.",
     "fallbackLanguage": "대체어",
