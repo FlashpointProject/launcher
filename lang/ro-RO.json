@@ -8,6 +8,8 @@
     "extremeGamesDesc": "Arătați jocuri cu conținut sexual, violent sau alte tipuri de conținut inadecvat pentru copii.",
     "enableEditing": "Activați editarea",
     "enableEditingDesc": "Activați editarea jocurilor, aplicațiilor suplimentare și listelor cu jocuri. Arată și butonul „Repară“.",
+    "onDemandImages": "On Demand Images",
+    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
     "currentLanguage": "Limba principală",
     "currentLanguageDesc": "Limba principală a lansatorului.",
     "fallbackLanguage": "Limba secundară",
