@@ -164,7 +164,8 @@
     "version": "Versio",
     "license": "Lisenssi",
     "licenseInfo": "MIT (Lue tiedosto 'LICENSE' lisatietojen saamiseksi)",
-    "creditsHeader": "Lopputekstit"
+    "creditsHeader": "Lopputekstit",
+    "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "Ei otsikkoa",
