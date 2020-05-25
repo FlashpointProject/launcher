@@ -358,8 +358,8 @@
     "extracting": "Extrayendo",
     "installingFiles": "Instalando archivos...",
     "complete": "Completado",
-    "exportMetaEditTitle": "Exportar Correcciones del Metadatos",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditTitle": "Exportar correcciones del metadatos",
+    "exportMetaEditDesc": "Selecciona todas las propiedades a exportar:"
   },
   "menu": {
     "viewThumbnailInFolder": "Ver miniatura en la carpeta",
@@ -370,8 +370,8 @@
     "exportMetaOnly": "Exportar (Solo Metadatos)",
     "exportMetaAndImages": "Exportar (Metadatos e Imágenes)",
     "exportMetaEdit": "Export Meta Edit",
-    "duplicatePlaylist": "Duplicate Playlist",
-    "exportPlaylist": "Export Playlist"
+    "duplicatePlaylist": "Duplicar lista de reproducción",
+    "exportPlaylist": "Exportar lista de reproducción"
   },
   "dialog": {
     "programNotFound": "¡Programa no encontrado!",
@@ -381,9 +381,9 @@
     "fileNotFound": "¡Archivo no encontrado!",
     "flashpointPathInvalid": "¡Ruta de Flashpoint inválida!",
     "pathNotFound": "¡Ruta no encontrada!",
-    "playlistConflict": "Playlist Conflict",
-    "importedPlaylistAlreadyExists": "Imported playlist already exists! - '{0}'",
-    "mergeOrStaySeperate": "Should they merge into one, or stay as seperate playlists?",
+    "playlistConflict": "Conflicto en la lista de reproducción",
+    "importedPlaylistAlreadyExists": "¡La lista de reproducción a importar ya existe! - '{0}'",
+    "mergeOrStaySeperate": "¿Deberían fusionarse en una, o permanecer como listas de reproducción separadas?",
     "selectFileToExportMeta": "Seleccionar archivo para guardar metadatos",
     "selectFolderToExportMetaAndImages": "Seleccionar carpeta para guardar metadatos e imágenes",
     "replaceFilesQuestion": "¿Reemplazar archivos?",
@@ -395,7 +395,7 @@
     "selectCurationFolder": "Seleccionar carpeta(s) de curaciones",
     "selectCurationArchive": "Seleccionar archivo(s) de curaciones",
     "selectCurationMeta": "Seleccionar archivo(s) de metadatos de curación",
-    "selectPlaylistToImport": "Select Playlist to Import",
+    "selectPlaylistToImport": "Seleccione la lista de reproducción a importar",
     "selectFileToExportPlaylist": "Select file to save the Playlist to",
     "errorParsingPlatforms": "¡Error al analizar plataformas!",
     "errorParsingPlatformsMessage": "{0} Error(es) encontrado(s) mientras se analizaban los 'XMLs' de las plataformas \nPor favor mira el registro para los detalles.",
