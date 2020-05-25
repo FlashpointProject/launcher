@@ -58,6 +58,7 @@ const state: BackState = {
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
+  version: createErrorProxy('version'),
   gameManager: {
     platformsPath: '',
     saveQueue: new EventQueue(),
@@ -100,6 +101,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.configFolder = content.configFolder;
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
+  state.version = content.version;
 
   state.socketServer.secret = content.secret;
 

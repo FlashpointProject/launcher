@@ -150,6 +150,8 @@ export type BackInitArgs = {
   exePath: string;
   /** If the back should accept remote clients to connect (renderers from different machines). */
   acceptRemote: boolean;
+  /** Semver of the launcher. */
+  version: string;
 }
 
 export enum BackInit {

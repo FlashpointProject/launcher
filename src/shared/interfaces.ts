@@ -250,10 +250,22 @@ export type MetaEditFlags = {
   [key in MetaEditProperties]: boolean;
 }
 
-/** Partial game meta that has been exported and can be imported. */
+/** Data stored in a meta edit file. */
 export type MetaEdit = {
+  meta: MetaEditMeta;
+  /**
+   * Version of the launcher that exported the meta edit.
+   * Could be used to parse or apply the meta edit differently in case something changes in a later version.
+   */
+  launcherVersion: string;
+}
+
+/** Partial game meta in a meta edit. */
+export type MetaEditMeta = {
   [key in MetaEditProperties]?: key extends 'tags' ? string[] : Game[key];
 } & {
+  /** ID of the game. */
   id: string;
+  /** Parent ID of the game. */
   parentGameId: string | undefined;
 }

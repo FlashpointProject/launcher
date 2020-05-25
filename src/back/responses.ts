@@ -1041,8 +1041,11 @@ export function registerRequestCallbacks(state: BackState): void {
       const game = await GameManager.findGame(req.data.id);
       if (game) {
         const output: MetaEdit = {
-          id: game.id,
-          parentGameId: game.parentGameId,
+          meta: {
+            id: game.id,
+            parentGameId: game.parentGameId,
+          },
+          launcherVersion: state.version,
         };
 
         const keys = Object.keys(req.data.properties) as (keyof typeof req.data.properties)[];
@@ -1050,9 +1053,9 @@ export function registerRequestCallbacks(state: BackState): void {
           const key = keys[i];
           if (req.data.properties[key]) {
             if (key === 'tags') {
-              output.tags = game.tags.map(tag => tag.primaryAlias.name);
+              output.meta.tags = game.tags.map(tag => tag.primaryAlias.name);
             } else {
-              (output as any)[key] = game[key]; // (I wish typescript could understand this...)
+              (output.meta as any)[key] = game[key]; // (I wish typescript could understand this...)
             }
           }
         }
@@ -1097,22 +1100,22 @@ export function registerRequestCallbacks(state: BackState): void {
         results.push(result);
 
         try {
-          const rawMeta = await readJsonFile(path.join(folderPath, filename));
-          const meta = parseMetaEdit(rawMeta);
-          result.meta = meta;
+          const rawMetaEdit = await readJsonFile(path.join(folderPath, filename));
+          const metaEdit = parseMetaEdit(rawMetaEdit);
+          result.meta = metaEdit;
 
-          const game = await GameManager.findGame(meta.id);
+          const game = await GameManager.findGame(metaEdit.meta.id);
           if (game) {
-            const keys = Object.keys(meta) as (keyof typeof meta)[];
+            const keys = Object.keys(metaEdit.meta) as (keyof typeof metaEdit.meta)[];
             for (let i = 0; i < keys.length; i++) {
               const key = keys[i];
 
               if (key === 'tags') {
-                if (!Array.isArray(meta.tags)) { throw new Error(`Import aborted. "tags" is missing or not an array (launcher bug) (ID: ${meta.id})`); }
+                if (!Array.isArray(metaEdit.meta.tags)) { throw new Error(`Import aborted. "tags" is missing or not an array (launcher bug) (ID: ${metaEdit.meta.id})`); }
 
                 // Replace all tags of the game
                 const newTags: Tag[] = [];
-                for (const tagName of meta.tags) {
+                for (const tagName of metaEdit.meta.tags) {
                   if (!game.tags.find(t => t.primaryAlias.name === tagName)) {
                     let tag = await TagManager.findTag(tagName);
                     if (!tag) { tag = await TagManager.createTag(tagName); }
@@ -1122,7 +1125,7 @@ export function registerRequestCallbacks(state: BackState): void {
                 }
                 game.tags = newTags;
               } else {
-                (game as any)[key] = meta[key]; // (I wish typescript could understand this...)
+                (game as any)[key] = metaEdit.meta[key]; // (I wish typescript could understand this...)
               }
             }
 

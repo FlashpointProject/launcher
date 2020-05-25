@@ -1,6 +1,6 @@
-import { MetaEdit } from "@shared/interfaces";
+import { MetaEdit, MetaEditMeta } from "@shared/interfaces";
 import { Coerce } from "@shared/utils/Coerce";
-import { ObjectParser } from "@shared/utils/ObjectParser";
+import { IObjectParserProp, ObjectParser } from "@shared/utils/ObjectParser";
 
 const { str, strToBool } = Coerce;
 
@@ -11,6 +11,18 @@ export function parseMetaEdit(data: any, onError?: (error: string) => void): Met
   });
 
   const parsed: MetaEdit = {
+    meta: parseMetaEditMeta(parser.prop('meta')),
+    launcherVersion: '',
+  };
+
+  parser.prop('launcherVersion', v => parsed.launcherVersion = str(v));
+
+  return parsed;
+}
+
+
+function parseMetaEditMeta(parser: IObjectParserProp<any>) : MetaEditMeta {
+  const parsed: MetaEditMeta = {
     id: '',
     parentGameId: undefined,
   };
