@@ -38,7 +38,7 @@
     "server": "Servidor",
     "serverDesc": "Cual Proceso de Servidor se ejecutará al iniciar el lanzador.",
     "metadataServerHost": "Host del Servidor de Metadatos",
-    "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "metadataServerHostDesc": "Host del servidor de metadatos. Utilizado para sincronizar información nueva y actualizada de los juegos al lanzador.",
     "saveAndRestart": "Guardar y reiniciar"
   },
   "home": {
@@ -58,7 +58,7 @@
     "configInfo": "¿Quieres cambiar algo? Ve a {0}.",
     "config": "Configuración",
     "helpInfo": "¿Necesitas Ayuda? {0}.",
-    "help": "Read the manual",
+    "help": "Lee el manual",
     "upgradesHeader": "Mejoras",
     "installComplete": "Instalación completada",
     "alreadyInstalled": "Ya instalado",
@@ -71,11 +71,11 @@
     "filterByPlatform": "Filtrar por plataforma",
     "plannedFeatures": "¡Echa un vistazo a nuestras características planificadas!",
     "notesHeader": "Notas",
-    "notes": "Don't forget to read the manual if you're having issues.",
+    "notes": "No olvides leer el manual si estás teniendo problemas.",
     "linuxSupport": "¿Problemas en Linux? {0}",
     "linuxSupportLinkText": "Abrir preguntas frecuentes (FAQ)",
     "randomPicks": "Selección aleatoria",
-    "rerollPicks": "Re-Roll Picks"
+    "rerollPicks": "Volver a rodar las Selecciones"
   },
   "logs": {
     "filters": "Filtros",
@@ -85,8 +85,8 @@
   "app": {
     "home": "Inicio",
     "browse": "Navegar",
-    "tags": "Tags",
-    "categories": "Categories",
+    "tags": "Etiquetas",
+    "categories": "Categorias",
     "logs": "Registro",
     "config": "Configuración",
     "about": "Acerca de",
@@ -105,7 +105,7 @@
   },
   "filter": {
     "dateAdded": "Fecha de adición",
-    "dateModified": "Date Modified",
+    "dateModified": "Fecha de Modificación",
     "platform": "Plataforma",
     "series": "Serie",
     "title": "Título",
@@ -137,10 +137,10 @@
     "renameImagesIdToTitleDesc": "Encuentra todas las imágenes de juegos con el ID del juego en su nombre de archivo y los renombra para usar su título en su lugar",
     "createMissingFolders": "Crear carpetas faltantes",
     "createMissingFoldersDesc": "Encuentra todas las carpetas faltantes en la estructura de carpetas de Flashpoint y las crea",
-    "importLegacyPlatforms": "Import Legacy Platforms",
-    "importLegacyPlatformsDesc": "Imports Legacy Platforms from `Data/Platforms/` - WARNING: Will overwrite conflicting games",
-    "importLegacyPlaylists": "Import Legacy Playlists",
-    "importLegacyPlaylistsDesc": "Imports Legacy Playlists from `/Data/Playlists`",
+    "importLegacyPlatforms": "Importar Plataformas Existentes",
+    "importLegacyPlatformsDesc": "Importa Plataformas Existentes de 'Data/Platforms' - PRECAUCIÓN: Se sobreescribirá juegos en conflicto",
+    "importLegacyPlaylists": "Importar Listas de Reproducción Existentes",
+    "importLegacyPlaylistsDesc": "Importa Listas de Reproducción Existentes de '/Data/Playlists'",
     "importMetaEdits": "Import Meta Edits",
     "importMetaEditsDesc": "Imports ALL Meta Edits from `/Data/MetaEdits`",
     "servicesHeader": "Servicios en segundo plano",
