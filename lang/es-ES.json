@@ -270,7 +270,7 @@
     "makeAliasWhenMerged": "¿Hacer esto una alias de la etiqueta?",
     "deleteTag": "Eliminar Etiqueta",
     "deleteTagCategory": "Eliminar Categoría de Etiqueta",
-    "locked": "Locked while processing..."
+    "locked": "Bloqueado mientras se procesa..."
   },
   "curate": {
     "importAll": "Importar todo",
@@ -333,13 +333,13 @@
     "saveDesc": "Guardar cambios realizados y dejar de editar",
     "discard": "Descartar",
     "discardDesc": "Descartar cambios realizados y dejar de editar",
-    "edit": "Edit",
-    "editDesc": "Edit this playlist",
+    "edit": "Editar",
+    "editDesc": "Editar esta lista de reproducción",
     "delete": "Borrar",
     "deleteDesc": "Eliminar esta lista de reproducción",
-    "changeIcon": "Change Playlist Icon",
-    "duplicatePlaylistDesc": "Duplicate Playlist",
-    "exportPlaylistDesc": "Export playlist to a file",
+    "changeIcon": "Cambiar Icono de la Lista de Reproducción",
+    "duplicatePlaylistDesc": "Duplicar Lista de Reproducción",
+    "exportPlaylistDesc": "Exportar lista de reproducción a un archivo",
     "areYouSure": "¿Estás seguro(a)?",
     "noTitle": "Sin Título",
     "titlePlaceholder": "Título...",
@@ -358,7 +358,7 @@
     "extracting": "Extrayendo",
     "installingFiles": "Instalando archivos...",
     "complete": "Completado",
-    "exportMetaEditTitle": "Export Meta Edit",
+    "exportMetaEditTitle": "Exportar Correcciones del Metadatos",
     "exportMetaEditDesc": "Select all properties to export:"
   },
   "menu": {
