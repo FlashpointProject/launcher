@@ -264,7 +264,11 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
           text += `\nErrors (${res.data.errors.length}):\n`;
           for (const error of res.data.errors) {
-            text += `  ${error}\n`;
+            text += `  ${error.name || 'Error'}:\n` +
+                    `    Message: ${error.message}\n`;
+            if (typeof error.stack === 'string') {
+              text += `    Stack: ${error.stack.replace(/\n */g, '\n      ')}\n`
+            }
           }
         }
         this.setState({ text });
