@@ -35,7 +35,7 @@
     "advancedHeader": "Напредно",
     "showDeveloperTab": "Прикажи картицу Програмер",
     "showDeveloperTabDesc": "Прикажи картицу 'Програмер'. Ово је највероватније једино корисно за програмере и кустосе.",
-    "server": "Server",
+    "server": "Сервер",
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
