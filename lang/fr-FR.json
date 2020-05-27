@@ -324,7 +324,7 @@
     "nonExistingLibrary": "Le champ 'Bibliothèque' ne correspond à aucune bibliothèque existante ! (La bibliothèque par défaut sera utilisée)",
     "nonContentFolders": "D'autres types de dossier été trouvés dans le dossier des curations. Sont-ils censés y être ?",
     "ilc_notHttp": "Utiliser HTTP.",
-    "ilc_nonExistant": "Pointez sur un fichier existant dans le dossier «content» de votre curation."
+    "ilc_nonExistant": "Indiquez un fichier existant dans votre dossier de curations."
   },
   "playlist": {
     "enterDescriptionHere": "Entre une description ici...",
