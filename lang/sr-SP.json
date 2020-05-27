@@ -168,7 +168,7 @@
     "license": "Лиценца",
     "licenseInfo": "MIT (Прочитај фајл под називом 'LICENSE' за још информација)",
     "creditsHeader": "Заслуге",
-    "specialThanks": "Special Thanks"
+    "specialThanks": "Посебна захвалност"
   },
   "browse": {
     "noTitle": "Без наслова",
@@ -198,7 +198,7 @@
     "language": "Језик",
     "noLanguage": "Нема језика",
     "dateAdded": "Датум додавања",
-    "dateModified": "Date Modified",
+    "dateModified": "Датум измене",
     "brokenInInfinity": "Покварен (у Infinity)",
     "extreme": "Екстремно",
     "playlistNotes": "Напомене плејлисте",
@@ -216,7 +216,7 @@
     "noApplicationPath": "Нема путање апликације",
     "launchCommand": "Команда покретања",
     "noLaunchCommand": "Нема команде покретања",
-    "searching": "Searching...",
+    "searching": "Тражим...",
     "library": "Библиотека",
     "defaultLibrary": "Уобичајена библиотека",
     "thumbnail": "Симболична слика",
@@ -260,7 +260,7 @@
     "enterAlias": "Enter Alias",
     "aliases": "Aliases",
     "editTag": "Edit Tag",
-    "color": "Color",
+    "color": "Боја",
     "noTagSelected": "No Tag Selected",
     "clickToSelectTag": "Click to select Tag",
     "deleteTagAlias": "Delete Tag Alias",
