@@ -1,16 +1,17 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportMetaEditData, ExportPlaylistData, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportMetaEditResponseData, ImportMetaEditResult, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, MergeTagData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportMetaEditData, ExportPlaylistData, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportMetaEditResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, MergeTagData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { DeepPartial, GamePropSuggestions, IService, MetaEdit, ProcessAction } from '@shared/interfaces';
+import { DeepPartial, GamePropSuggestions, IService, ProcessAction } from '@shared/interfaces';
+import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { defaultPreferencesData, overwritePreferenceData } from '@shared/preferences/util';
-import { deepCopy, readJsonFile } from '@shared/Util';
+import { deepCopy } from '@shared/Util';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as fs from 'fs';
 import { ensureDir } from 'fs-extra';
@@ -23,15 +24,14 @@ import { TagManager } from './game/TagManager';
 import { GameLauncher } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
-import { parseMetaEdit } from './MetaEdit';
+import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
 import { BackState } from './types';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, ErrorCopy, exit, log, pathExists, procToService } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
 const copyFile  = util.promisify(fs.copyFile);
-const readdir   = util.promisify(fs.readdir);
 const stat      = util.promisify(fs.stat);
 const unlink    = util.promisify(fs.unlink);
 const writeFile = util.promisify(fs.writeFile);
@@ -1036,16 +1036,13 @@ export function registerRequestCallbacks(state: BackState): void {
     });
     exit(state);
   });
+
   state.socketServer.register<ExportMetaEditData>(BackIn.EXPORT_META_EDIT, async (event, req) => {
     if (req.data) {
       const game = await GameManager.findGame(req.data.id);
       if (game) {
-        const output: MetaEdit = {
-          meta: {
-            id: game.id,
-            parentGameId: game.parentGameId,
-          },
-          launcherVersion: state.version,
+        const meta: MetaEditMeta = {
+          id: game.id,
         };
 
         const keys = Object.keys(req.data.properties) as (keyof typeof req.data.properties)[];
@@ -1053,12 +1050,17 @@ export function registerRequestCallbacks(state: BackState): void {
           const key = keys[i];
           if (req.data.properties[key]) {
             if (key === 'tags') {
-              output.meta.tags = game.tags.map(tag => tag.primaryAlias.name);
+              meta.tags = game.tags.map(tag => tag.primaryAlias.name);
             } else {
-              (output.meta as any)[key] = game[key]; // (I wish typescript could understand this...)
+              (meta as any)[key] = game[key]; // (I wish typescript could understand this...)
             }
           }
         }
+
+        const output: MetaEditFile = {
+          metas: [meta],
+          launcherVersion: state.version,
+        };
 
         const folderPath = path.join(state.config.flashpointPath, state.config.metaEditsFolderPath);
         try {
@@ -1083,67 +1085,15 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<undefined>(BackIn.IMPORT_META_EDITS, async (event, req) => {
-    // @TODO Only upate a game if the value of at least one property was changed (to avoid updating "Date Modified")
-    //       Maybe just copy the game before editing and compare it with a generic function (could be re-used when editing a game)?
-    const errors: ErrorCopy[] = []; // (normal errors are not always serializable)
-    const results: ImportMetaEditResult[] = [];
-
-    try {
-      const folderPath = path.join(state.config.flashpointPath, state.config.metaEditsFolderPath);
-      const filenames = await readdir(folderPath);
-
-      for (let filename of filenames) {
-        const result: ImportMetaEditResult = {
-          filename,
-          success: false,
-        };
-        results.push(result);
-
-        try {
-          const rawMetaEdit = await readJsonFile(path.join(folderPath, filename));
-          const metaEdit = parseMetaEdit(rawMetaEdit);
-          result.meta = metaEdit;
-
-          const game = await GameManager.findGame(metaEdit.meta.id);
-          if (game) {
-            const keys = Object.keys(metaEdit.meta) as (keyof typeof metaEdit.meta)[];
-            for (let i = 0; i < keys.length; i++) {
-              const key = keys[i];
-
-              if (key === 'tags') {
-                if (!Array.isArray(metaEdit.meta.tags)) { throw new Error(`Import aborted. "tags" is missing or not an array (launcher bug) (ID: ${metaEdit.meta.id})`); }
-
-                // Replace all tags of the game
-                const newTags: Tag[] = [];
-                for (const tagName of metaEdit.meta.tags) {
-                  if (!game.tags.find(t => t.primaryAlias.name === tagName)) {
-                    let tag = await TagManager.findTag(tagName);
-                    if (!tag) { tag = await TagManager.createTag(tagName); }
-                    if (!tag) { throw new Error(`Import aborted. Failed to find/create tag for game (tag: "${tagName}").`); }
-                    newTags.push(tag);
-                  }
-                }
-                game.tags = newTags;
-              } else {
-                (game as any)[key] = metaEdit.meta[key]; // (I wish typescript could understand this...)
-              }
-            }
-
-            await GameManager.updateGame(game);
-
-            result.success = true;
-          }
-        } catch (error) { errors.push(copyError(error)); }
-      }
-    } catch (error) { errors.push(copyError(error)); }
+    const result = await importAllMetaEdits(
+      path.join(state.config.flashpointPath, state.config.metaEditsFolderPath),
+      state.socketServer.openDialog(event.target),
+    );
 
     respond<ImportMetaEditResponseData>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
-      data: {
-        errors,
-        results,
-      },
+      data: result,
     });
   });
 }

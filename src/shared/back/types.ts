@@ -4,8 +4,8 @@ import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { FilterGameOpts } from '@shared/game/GameFilter';
-import { MetaEdit, MetaEditFlags } from '@shared/interfaces';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
+import { ChangedMeta, MetaEditFile, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
@@ -567,13 +567,17 @@ export type ExportMetaEditData = {
   properties: MetaEditFlags;
 }
 
-export type ImportMetaEditResponseData = {
-  errors: Error[];
-  results: ImportMetaEditResult[];
-}
+export type ImportMetaEditResponseData = ImportMetaEditResult;
 
 export type ImportMetaEditResult = {
-  filename: string;
-  success: boolean;
-  meta?: MetaEdit;
+  /** If the import was aborted (either by the user or by the launcher). */
+  aborted: boolean;
+  errors?: Error[];
+  changedMetas?: ChangedMeta[];
+  gameNotFound?: MetaEditGameNotFound[];
+}
+
+export type MetaEditGameNotFound = {
+  filenames: string[];
+  id: string;
 }
