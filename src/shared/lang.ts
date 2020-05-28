@@ -427,7 +427,11 @@ const langTemplate = {
     'areYouSure',
     'cancel',
     'mergePlaylists',
-    'newPlaylist'
+    'newPlaylist',
+    'overwriteFileTitle',
+    'overwriteFileMessage',
+    'overwriteFileDetail',
+    '',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

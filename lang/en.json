@@ -408,7 +408,10 @@
     "areYouSure": "Are you sure?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "overwriteFileTitle": "File already exists!",
+    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
+    "overwriteFileDetail": "File path:"
   },
   "libraries": {
     "arcade": "Games",

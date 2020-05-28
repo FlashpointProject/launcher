@@ -1063,12 +1063,28 @@ export function registerRequestCallbacks(state: BackState): void {
         };
 
         const folderPath = path.join(state.config.flashpointPath, state.config.metaEditsFolderPath);
+        const filePath = path.join(folderPath, game.id + '.json');
         try {
-          await ensureDir(folderPath);
-          await writeFile(
-            path.join(folderPath, game.id + '.json'),
-            JSON.stringify(output, null, '\t')
-          );
+          let save = true;
+
+          if (await pathExists(filePath)) {
+            const strings = state.languageContainer;
+            const result = await state.socketServer.openDialog(event.target)({
+              type: 'warning',
+              title: strings.dialog.overwriteFileTitle,
+              message: strings.dialog.overwriteFileMessage,
+              detail: `${strings.dialog.overwriteFileDetail}\n${filePath}`,
+              buttons: [strings.misc.yes, strings.misc.no],
+              cancelId: 1,
+            });
+
+            if (result === 1) { save = false; }
+          }
+
+          if (save) {
+            await ensureDir(folderPath);
+            await writeFile(filePath, JSON.stringify(output, null, '\t'));
+          }
         } catch (error) {
           log(state, {
             source: 'Launcher',
