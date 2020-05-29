@@ -160,15 +160,15 @@
   "about": {
     "aboutHeader": "À propos",
     "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "Le projet de préservation pour lequel ce lanceur à été conçu envisage d'être une archive, un musée et une collection de jeux Internet.",
-    "website": "Site Internet",
+    "flashpointDesc": "Le but de ce projet est d'être une archive, un musée et une collection jouable de jeux jouables sur Internet.",
+    "website": "Site internet",
     "flashpointLauncher": "Flashpoint Launcher",
     "flashpointLauncherDesc": "Une application de bureau open-source permettant de parcourir, gérer et jouer à des jeux provenant du projet Flashpoint.",
     "version": "Version",
     "license": "Licence",
     "licenseInfo": "MIT (Lisez le fichier 'LICENSE' pour plus d'informations)",
     "creditsHeader": "Crédits",
-    "specialThanks": "Special Thanks"
+    "specialThanks": "Remerciement particuliers"
   },
   "browse": {
     "noTitle": "Aucun titre",
