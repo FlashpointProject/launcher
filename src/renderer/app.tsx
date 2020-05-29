@@ -931,7 +931,7 @@ export class App extends React.Component<AppProps, AppState> {
             ranges: pages.map(index => ({
               start: index * VIEW_PAGE_SIZE,
               length: VIEW_PAGE_SIZE,
-              index: view.meta && view.meta.pageKeyset[index],
+              index: view.meta && view.meta.pageKeyset[index + 1], // Page keyset indices are one-indexed (start at 1 instead of 0)
             })),
             library: library,
             query: view.query,
