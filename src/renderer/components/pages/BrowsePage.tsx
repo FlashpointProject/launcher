@@ -601,7 +601,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onStartEditClick = (): void => {
-    this.setState({ isEditingGame: true });
+    if (this.props.preferencesData.enableEditing) {
+      this.setState({ isEditingGame: true });
+    }
   }
 
   onDiscardEditClick = (): void => {
