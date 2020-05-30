@@ -293,7 +293,7 @@ body {
   /*--columns: <Number of columns>;*/
   /*--column-width: <Width of each column>;*/
   /*--column-gutter: <Margin on the left and right side of each column>;*/
-  max-width: calc(var(--columns) * var(--column-width) + var(--column-gutter) * min(0, var(--columns) - 1));
+  max-width: calc(var(--columns) * (var(--column-width) + var(--column-gutter)));
   text-align: center;
 }
 .simple-columns__column {
@@ -796,7 +796,6 @@ body {
 }
 .about-page__columns {
   margin: auto;
-  display: flex;
 }
 .about-page__columns__left {
   margin-top: 2rem;
