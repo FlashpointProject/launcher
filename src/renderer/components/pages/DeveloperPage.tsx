@@ -67,7 +67,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       <div className='developer-page simple-scroll'>
         <div className='developer-page__inner'>
           <h1 className='developer-page__title'>{strings.developerHeader}</h1>
-          {strings.developerDesc}
+          <p className='developer-page__description'>{strings.developerDesc}</p>
           <div className='developer-page__buttons'>
             {/* Top Buttons */}
             <SimpleButton

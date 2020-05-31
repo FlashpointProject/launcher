@@ -81,7 +81,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
           <h1 className='config-page__title'>{strings.configHeader}</h1>
-          <i>{strings.configDesc}</i>
+          <p className='config-page__description'>{strings.configDesc}</p>
 
           {/* -- Preferences -- */}
             <div className='setting'>

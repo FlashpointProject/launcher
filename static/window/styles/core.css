@@ -507,6 +507,7 @@ body {
 }
 .header__menu__item {
   display: inline-block;
+  user-select: none;
 }
 .header__menu__item__link {
   display: inline-block;
@@ -674,6 +675,7 @@ body {
   margin-bottom: 1rem;
   width: 30em;
   border: 1px solid;
+  user-select: none;
 }
 .home-page__box-head {
   padding: 0.15rem 0.3rem;
@@ -785,14 +787,16 @@ body {
 }
 .about-page__bottom__quote {
   font-style: italic;
+  user-select: none;
 }
 .about-page__bottom__author {
-
+  user-select: none;
 }
 .about-page__title {
   font-size: 2.5em;
   margin-bottom: 0.5rem;
   text-align: center;
+  user-select: none;
 }
 .about-page__columns {
   margin: auto;
@@ -804,6 +808,7 @@ body {
 }
 .about-page__section {
   margin-bottom: 2rem;
+  user-select: none;
 }
 .about-page__section__title {
   font-size: 1.4rem;
@@ -828,6 +833,7 @@ body {
 .about-page__credits__title {
   font-size: 1.75rem;
   margin-bottom: 0.25rem;
+  user-select: none;
 }
 .about-page__credits__role {
   display: flex;
@@ -836,10 +842,12 @@ body {
 .about-page__credits__role-name {
   font-size: 1.25em;
   margin: 0.25rem 0rem 0.25rem 0rem;
+  user-select: none;
 }
 .about-page__credits__role-description {
   font-size: 0.85em;
   margin: 0.25rem 0rem 0.25rem 0.5rem;
+  user-select: none;
 }
 .about-page__credits__profiles {}
 .about-page__credits__profile {
@@ -862,6 +870,7 @@ body {
   pointer-events: none;
   z-index: 1;
   border: 1px solid;
+  user-select: none;
 }
 .about-page__credits__tooltip__roles {
   --indent: 0.5em;
@@ -924,6 +933,7 @@ body {
 .curate-page__checkbox-text {
   text-align: center;
   margin: 0 0.2rem;
+  user-select: none;
 }
 /* Curate Page Left Sidebar */
 .curate-page__left-sidebar-item {
@@ -982,6 +992,7 @@ body {
   color: var(--layout__disabled-text-color);
   font-style: italic;
   text-align: center;
+  user-select: none;
 }
 /* Curate Box Images */
 .curate-box-images {
@@ -1383,12 +1394,14 @@ body {
 .game-image-split__not-found {
   display: inline-block;
   margin-left: 0.1rem;
+  user-select: none;
 }
 /* Browse Right Sidebar Empty (when no game is selected) */
 .browse-right-sidebar-empty {
   padding: 1em 0;
   text-align: center;
   text-align: center;
+  user-select: none;
 }
 .browse-right-sidebar-empty h1 {
   font-size: 1.3rem;
@@ -1450,6 +1463,7 @@ body {
   height: 100%;
   padding: 1em;
   text-align: center;
+  user-select: none;
 }
 .game-list__no-games__title {
   font-size: 1.5rem;
@@ -1725,6 +1739,7 @@ body {
   min-height: 5rem;
   resize: vertical;
   white-space: pre-wrap;
+  user-select: none;
 }
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
@@ -1780,6 +1795,10 @@ body {
 }
 .developer-page__title {
   font-size: 2.5em;
+  user-select: none;
+}
+.developer-page__description {
+  user-select: none;
 }
 .developer-page__buttons > * {
   margin: 0.25rem;
@@ -1795,6 +1814,7 @@ body {
   flex: 0 1 auto;
   font-size: 2em;
   font-weight: bold;
+  user-select: none;
 }
 /* Service Box */
 .service-box {
@@ -1809,10 +1829,12 @@ body {
 }
 .service-box__title {
   flex: 1 1 auto;
+  user-select: none;
 }
 .service-box__status {
   flex: 0 1 auto;
   float: right;
+  user-select: none;
 }
 .service-box__head-bottom {
   display: flex;
@@ -1828,6 +1850,7 @@ body {
 .service-box__uptime {
   flex: 0 1 auto;
   float: right;
+  user-select: none;
 }
 .service-box__log {
   margin-top: 0.4rem;
@@ -1851,6 +1874,11 @@ body {
 }
 .config-page__title {
   font-size: 2.5em;
+  user-select: none;
+}
+.config-page__description {
+  font-style: italic;
+  user-select: none;
 }
 /* ... */
 .config-page p {
@@ -1878,6 +1906,7 @@ body {
   margin: 0.2em 0;
   font-size: 1.2em;
   font-weight: bold;
+  user-select: none;
 }
 .setting__body {
   /* Pimp */
@@ -1900,11 +1929,13 @@ body {
   font-size: 0.8em;
   font-style: italic;
   text-align: left;
+  user-select: none;
 }
 .setting__row__title {
   flex: 0 1 auto;
   font-size: 1.15em;
   font-weight: bold;
+  user-select: none;
 }
 .setting__row__content {
   flex: 1 1 auto;
