@@ -345,7 +345,7 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
  * Parse a variable string using a generic get variable value function.
  * @param str String to parse.
  */
-// @TODO: Make better variables. Why are wfPAe using cwd() ?
+// @TODO: Make better variables. Why are we using cwd() ?
 /* istanbul ignore next */
 export function parseVarStr(str: string, config?: IAppConfigData) {
   return parseVariableString(str, (name) => {
