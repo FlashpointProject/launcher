@@ -127,6 +127,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   try {
     state.serviceInfo = await ServicesFile.readFile(
       path.join(state.config.flashpointPath, state.config.jsonFolderPath),
+      state.config,
       error => { log(state, { source: SERVICES_SOURCE, content: error.toString() }); }
     );
   } catch (error) { /* @TODO Do something about this error */ }

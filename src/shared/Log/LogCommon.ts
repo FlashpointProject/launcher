@@ -10,16 +10,19 @@ export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string
   let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0 };
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    const entryFilter = filter[entry.source];
-    if (entryFilter === true || entryFilter === undefined) {
-      str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
-      if (entry.source) {
-        str += (entry.source !== prevEntry.source) ?
-              `<span class="log__source log__source--${getClassModifier(entry.source)}">${padStart(escapeHTML(entry.source), sourceChars)}:</span> ` :
-              ' '.repeat(sourceChars + 2);
+    // Temp fix for array gaps
+    if (entry) {
+      const entryFilter = filter[entry.source];
+      if (entryFilter === true || entryFilter === undefined) {
+        str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
+        if (entry.source) {
+          str += (!prevEntry || entry.source !== prevEntry.source) ?
+                `<span class="log__source log__source--${getClassModifier(entry.source)}">${padStart(escapeHTML(entry.source), sourceChars)}:</span> ` :
+                ' '.repeat(sourceChars + 2);
+        }
+        str += padLines(escapeHTML(entry.content), timeChars + sourceChars + 2);
+        str += '\n';
       }
-      str += padLines(escapeHTML(entry.content), timeChars + sourceChars + 2);
-      str += '\n';
     }
     prevEntry = entry;
   }
