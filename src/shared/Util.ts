@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseVariableString } from './utils/VariableString';
+import { IAppConfigData } from './config/interfaces';
 
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
@@ -344,13 +345,14 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
  * Parse a variable string using a generic get variable value function.
  * @param str String to parse.
  */
-// @TODO: Make better variables. Why are we using cwd() ?
+// @TODO: Make better variables. Why are wfPAe using cwd() ?
 /* istanbul ignore next */
-export function parseVarStr(str: string) {
+export function parseVarStr(str: string, config?: IAppConfigData) {
   return parseVariableString(str, (name) => {
     switch (name) {
       default: return '';
       case 'cwd': return fixSlashes(process.cwd());
+      case 'fpPath': return config ? fixSlashes(config.flashpointPath) : '';
     }
   });
 }

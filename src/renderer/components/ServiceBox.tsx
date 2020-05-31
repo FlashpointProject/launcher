@@ -173,7 +173,8 @@ function stringifyServiceLogEntries(entries: ILogEntry[], source: string): strin
   let str = '';
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    if (entry.source === source) {
+    // Temp fix for array gap
+    if (entry && (entry.source === source)) {
       str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
       str += padLines(escapeHTML(entry.content), timeChars + 2);
       str += '\n';
