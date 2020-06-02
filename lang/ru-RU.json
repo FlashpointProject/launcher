@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Фильтры",
     "copyText": "Копировать текст",
-    "clearLog": "Очистить лог"
+    "clearLog": "Очистить лог",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Главная",
@@ -408,7 +410,8 @@
     "areYouSure": "Вы уверены?",
     "cancel": "Отмена",
     "mergePlaylists": "Объединить плейлисты",
-    "newPlaylist": "Оставить раздельно"
+    "newPlaylist": "Оставить раздельно",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Игры",
