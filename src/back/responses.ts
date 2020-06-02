@@ -1036,7 +1036,6 @@ export function registerRequestCallbacks(state: BackState): void {
     // Upload to log server
     const entries = state.log.filter(e => e !== undefined);
     const postUrl = url.resolve(state.config.logsBaseUrl, 'logdata');
-    console.log(postUrl);
     // Server responds with log id e.g ABC123
     const res = await axios.post(postUrl, { entries: entries });
     const id = res.data;
