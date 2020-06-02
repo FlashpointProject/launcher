@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Filtere",
     "copyText": "Kopier Tekst",
-    "clearLog": "Ryd log-filen"
+    "clearLog": "Ryd log-filen",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Hjem",
@@ -408,7 +410,8 @@
     "areYouSure": "Er du sikker?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Spil",
