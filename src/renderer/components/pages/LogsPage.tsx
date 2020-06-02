@@ -1,10 +1,11 @@
-import { BackOut, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, UploadLogResponse, WrappedResponse } from '@shared/back/types';
 import { ArgumentTypesOf } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { shallowStrictEquals } from '@shared/Util';
+import { clipboard, remote } from 'electron';
 import * as React from 'react';
 import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';
@@ -24,13 +25,28 @@ const labels = [
   'Curation',
 ];
 
+export type LogsPageState = {
+  // Whether an upload is in progress
+  uploaded: boolean;
+  // Whether an upload has completed
+  uploading: boolean;
+}
+
 export interface LogsPage {
   context: LangContainer;
 }
 
 /** Page displaying this launcher's log. */
-export class LogsPage extends React.Component<LogsPageProps> {
+export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
   stringifyLogEntriesMemo = memoizeOne(stringifyLogEntries, stringifyLogEntriesEquals);
+
+  constructor(props: LogsPageProps) {
+    super(props);
+    this.state = {
+      uploaded: false,
+      uploading: false
+    };
+  }
 
   getLogString() {
     const logEntries = [ ...window.Shared.log.entries ];
@@ -101,6 +117,17 @@ export class LogsPage extends React.Component<LogsPageProps> {
                       className='simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
+                {/* Upload Logs Button */}
+                <div className='log-page__bar__wrap'>
+                  <div className='simple-center'>
+                    <input
+                      type='button'
+                      disabled={this.state.uploading || this.state.uploaded}
+                      value={this.state.uploaded ? strings.copiedToClipboard : strings.uploadLog}
+                      onClick={this.onUploadClick}
+                      className='simple-button simple-center__vertical-inner' />
+                  </div>
+                </div>
                 {/* Add more right stuff here ... */}
               </div>
             </div>
@@ -125,6 +152,29 @@ export class LogsPage extends React.Component<LogsPageProps> {
     window.Shared.log.offset += window.Shared.log.entries.length;
     window.Shared.log.entries = [];
     this.forceUpdate();
+  }
+
+  onUploadClick = async (): Promise<void> => {
+    this.setState({ uploading: true });
+    const strings = this.context;
+    // IMPORTANT - Make sure they want to *publically* post their info
+    const res = await remote.dialog.showMessageBox({
+      title: strings.dialog.areYouSure,
+      message: strings.dialog.uploadPrivacyWarning,
+      buttons: [strings.misc.yes, strings.misc.no]
+    });
+    if (res.response === 0) {
+      // Ask backend to upload logs, sends back a log URL
+      window.Shared.back.send<UploadLogResponse, any>(BackIn.UPLOAD_LOG, undefined, (res) => {
+        this.setState({ uploaded: true, uploading: false });
+        if (res.data) {
+          // Write log URL to clipboard
+          clipboard.writeText(res.data);
+        }
+      });
+    } else {
+      this.setState({ uploading: false });
+    }
   }
 
   onCheckboxClick = (index: number): void => {

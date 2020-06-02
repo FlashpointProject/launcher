@@ -88,6 +88,8 @@ const langTemplate = {
     'filters',
     'copyText',
     'clearLog',
+    'uploadLog',
+    'copiedToClipboard',
   ] as const,
   app: [
     'home',
@@ -427,7 +429,9 @@ const langTemplate = {
     'areYouSure',
     'cancel',
     'mergePlaylists',
-    'newPlaylist'
+    'newPlaylist',
+    'noDownloadsAvailable',
+    'uploadPrivacyWarning',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;

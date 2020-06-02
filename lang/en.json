@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Filters",
     "copyText": "Copy Text",
-    "clearLog": "Clear Log"
+    "clearLog": "Clear Log",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Home",
@@ -408,7 +410,9 @@
     "areYouSure": "Are you sure?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "noDownloadsAvailable": "There are no downloads available for this game.\nAre you sure you want to delete the installer?",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Games",

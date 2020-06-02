@@ -45,4 +45,6 @@ export type IAppConfigData = {
   lastSync: number;
   /** Base URL of the server to download missing thumbnails/screenshots from. */
   onDemandBaseUrl: string;
+  /** Base URL of the server to do pastes of the Logs to. */
+  logsBaseUrl: string;
 };
