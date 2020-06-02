@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Filter",
     "copyText": "Text kopieren",
-    "clearLog": "Protokoll löschen"
+    "clearLog": "Protokoll löschen",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Start",
@@ -408,7 +410,8 @@
     "areYouSure": "Bist du sicher?",
     "cancel": "Abbrechen",
     "mergePlaylists": "Playlists zusammenführen",
-    "newPlaylist": "Separat bleiben"
+    "newPlaylist": "Separat bleiben",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Spiele",
