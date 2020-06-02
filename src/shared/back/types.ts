@@ -87,6 +87,8 @@ export enum BackIn {
   // Meta edits
   EXPORT_META_EDIT,
   IMPORT_META_EDITS,
+  // Misc
+  UPLOAD_LOG,
 }
 
 export enum BackOut {
@@ -120,6 +122,7 @@ export enum BackOut {
   FIX_TAG_PRIMARY_ALIASES,
   SYNC_GAME_METADATA,
   QUIT,
+  UPLOAD_LOG,
 }
 
 export type WrappedRequest<T = any> = {
@@ -575,3 +578,5 @@ export type ImportMetaEditResult = {
   success: boolean;
   meta?: MetaEdit;
 }
+
+export type UploadLogResponse = string | undefined;
