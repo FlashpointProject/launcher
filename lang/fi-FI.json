@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Suodattimet",
     "copyText": "Kopioi teksti",
-    "clearLog": "Tyhjennä lokitiedosto"
+    "clearLog": "Tyhjennä lokitiedosto",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Koti",
@@ -408,7 +410,8 @@
     "areYouSure": "Oletko varma?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Pelit",
