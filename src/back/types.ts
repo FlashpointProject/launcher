@@ -36,6 +36,7 @@ export type BackState = {
   configFolder: string;
   exePath: string;
   localeCode: string;
+  version: string;
   gameManager: GameManagerState;
   messageQueue: WebSocket.MessageEvent[];
   isHandling: boolean;

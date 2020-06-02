@@ -7,6 +7,7 @@ import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_GameManager } from '@shared/legacy/GameManager';
+import { stringifyMetaValue } from '@shared/MetaEdit';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as React from 'react';
@@ -250,23 +251,71 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     setTimeout(async () => {
       this.setState({ text: 'Importing meta edits...' });
       window.Shared.back.sendP<ImportMetaEditResponseData, undefined>(BackIn.IMPORT_META_EDITS, undefined).then((res) => {
-        let text = 'Meta edits imported!\n\n';
+        let text = 'Meta edit import complete!\n\n\n\n';
+
         if (res.data) {
-          text += `Results (${res.data.results.length}):\n`;
-          for (const result of res.data.results) {
-            const meta = result.meta
-              ? JSON.stringify(result.meta, undefined, 2).replace(/\n/g, '\n    ')
-              : 'nope';
-            text += `  "${result.filename}"\n` + 
-                    `    Success: ${result.success}\n` +
-                    `    Meta: ${meta}\n`;
+          // Aborted
+          if (res.data.aborted) {
+            text += 'IMPORT ABORTED!\n\n\n\n';
           }
 
-          text += `\nErrors (${res.data.errors.length}):\n`;
-          for (const error of res.data.errors) {
-            text += `  ${error}\n`;
+          if (res.data.changedMetas) {
+            // Applied
+            const applied = res.data.changedMetas.filter(v => v.apply.length > 0);
+            text += `Applied changes (${applied.reduce((a, v) => a + v.apply.length, 0)} changes in ${applied.length} games):\n\n`;
+            for (const changedMeta of applied) {
+              text += `  ${changedMeta.title} (${changedMeta.id})\n`;
+              for (const change of changedMeta.apply) {
+                text += `    ${change.property}:\n` +
+                        `      from: ${stringifyMetaValue(change.prevValue)}\n` +
+                        `      to:   ${stringifyMetaValue(change.value)}\n`;
+              }
+              text += '\n';
+            }
+            text += '\n\n';
+
+            // Discarded
+            const discarded = res.data.changedMetas.filter(v => v.discard.length > 0);
+            text += `Discarded changes (${discarded.reduce((a, v) => a + v.discard.length, 0)} changes in ${discarded.length} games):\n\n`;
+            for (const changedMeta of discarded) {
+              text += `  ${changedMeta.title} (${changedMeta.id})\n`;
+              for (const change of changedMeta.discard) {
+                text += `    ${change.property}: ${stringifyMetaValue(change.value)}\n`;
+              }
+              text += '\n';
+            }
+            text += '\n\n';
           }
+
+          // Games not found
+          if (res.data.gameNotFound) {
+            text += `Games not found (${res.data.gameNotFound.length}):\n\n`;
+            for (const notFound of res.data.gameNotFound) {
+              text += `  ${notFound.id}\n` +
+                      `    Files (${notFound.filenames.length}):\n` +
+                      notFound.filenames.map(filename => `      ${filename}\n`) + '\n';
+            }
+            if (res.data.gameNotFound.length === 0) { text += '\n'; }
+            text += '\n\n';
+          }
+
+          // Errors
+          if (res.data.errors) {
+            text += `Errors (${res.data.errors.length}):\n\n`;
+            for (let i = 0; i < res.data.errors.length; i++) {
+              const error = res.data.errors[i];
+              text += `  ${error.name || 'Error'}: #${i + 1}\n` +
+                      `    Message: ${error.message}\n`;
+              if (typeof error.stack === 'string') {
+                text += `    Stack: ${error.stack.replace(/\n */g, '\n      ')}\n`
+              }
+              text += '\n';
+            }
+          }
+        } else {
+          text += 'Response data is missing. Launcher bug!\n';
         }
+
         this.setState({ text });
       });
     });

@@ -1,5 +1,5 @@
 import { LangContext } from '@renderer/util/lang';
-import { MetaEditFlags } from '@shared/interfaces';
+import { MetaEditFlags } from '@shared/MetaEdit';
 import { LangContainer } from '@shared/lang';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -89,8 +89,6 @@ function initProperties(): MetaEditFlags {
     series: false,
     developer: false,
     publisher: false,
-    dateAdded: false,
-    dateModified: false,
     tags: false,
     platform: false,
     broken: false,
@@ -119,8 +117,6 @@ function getGameString(key: keyof MetaEditFlags, strings: LangContainer): string
     case 'series':              return strings.browse.series;
     case 'developer':           return strings.filter.developer;
     case 'publisher':           return strings.browse.publisher;
-    case 'dateAdded':           return strings.browse.dateAdded;
-    case 'dateModified':        return strings.browse.dateModified;
     case 'tags':                return strings.browse.tags;
     case 'platform':            return strings.browse.platform;
     case 'broken':              return strings.browse.brokenInInfinity;
