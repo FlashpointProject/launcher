@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Filtreler",
     "copyText": "Metni Kopyala",
-    "clearLog": "Kayıtları Temizle"
+    "clearLog": "Kayıtları Temizle",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Ev",
@@ -408,7 +410,8 @@
     "areYouSure": "Emin misin?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Oyunlar",
