@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Filtre",
     "copyText": "Copiați textul",
-    "clearLog": "Goliți jurnalul"
+    "clearLog": "Goliți jurnalul",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Pag. principală",
@@ -408,7 +410,8 @@
     "areYouSure": "Sunteți sigur(ă)?",
     "cancel": "Revocare",
     "mergePlaylists": "Îmbinați liste de jocuri",
-    "newPlaylist": "Păstrați listele separat"
+    "newPlaylist": "Păstrați listele separat",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Jocuri",
