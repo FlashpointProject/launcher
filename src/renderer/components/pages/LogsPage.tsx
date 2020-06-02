@@ -26,9 +26,9 @@ const labels = [
 ];
 
 export type LogsPageState = {
-  // Whether an upload is in progress
+  /** Whether an upload has completed */
   uploaded: boolean;
-  // Whether an upload has completed
+  /** Whether an upload is in progress */
   uploading: boolean;
 }
 
@@ -161,6 +161,7 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     const res = await remote.dialog.showMessageBox({
       title: strings.dialog.areYouSure,
       message: strings.dialog.uploadPrivacyWarning,
+      cancelId: 1,
       buttons: [strings.misc.yes, strings.misc.no]
     });
     if (res.response === 0) {
