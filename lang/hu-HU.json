@@ -401,7 +401,10 @@
     "cancel": "Mégsem",
     "mergePlaylists": "Lejátszólisták összevonása",
     "newPlaylist": "Maradjon külön",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "overwriteFileTitle": "File already exists!",
+    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
+    "overwriteFileDetail": "File path:"
   },
   "libraries": {
     "arcade": "Játékok",
