@@ -24,9 +24,6 @@ const langTemplate = {
     'flashpointHeader',
     'flashpointPath',
     'flashpointPathDesc',
-    'redirector',
-    'redirectorFiddler',
-    'redirectorDesc',
     'useWine',
     'useWineDesc',
     'platforms',
@@ -82,7 +79,7 @@ const langTemplate = {
     'linuxSupport',
     'linuxSupportLinkText',
     'randomPicks',
-    'rerollPicks'
+    'rerollPicks',
   ] as const,
   logs: [
     'filters',
@@ -150,12 +147,12 @@ const langTemplate = {
     'importLegacyPlatformsDesc',
     'importLegacyPlaylists',
     'importLegacyPlaylistsDesc',
-    'fixPrimaryAliases',
-    'fixPrimaryAliasesDesc',
-    'fixCommaTags',
-    'fixCommaTagsDesc',
-    'forceGameMetaSync',
-    'forceGameMetaSyncDesc',
+    'fixPrimaryAliases', // @NOT_ASSIGNED
+    'fixPrimaryAliasesDesc', // @NOT_ASSIGNED
+    'fixCommaTags', // @NOT_ASSIGNED
+    'fixCommaTagsDesc', // @NOT_ASSIGNED
+    'forceGameMetaSync', // @NOT_ASSIGNED
+    'forceGameMetaSyncDesc', // @NOT_ASSIGNED
     'importMetaEdits',
     'importMetaEditsDesc',
     'servicesHeader',
@@ -239,9 +236,6 @@ const langTemplate = {
     'dropImageHere',
     'noGameSelected',
     'clickToSelectGame',
-    'failedToLoadPlaylistFolder',
-    'checkLogForInfo',
-    'loadingPlaylists',
     'deleteAdditionalApplication',
     'deleteGameAndAdditionalApps',
     'removeGameFromPlaylist',
@@ -260,7 +254,6 @@ const langTemplate = {
     'config',
     'noteSaveAndRestart',
     'saveAndRestart',
-    'loadingGames',
     'noGameMatchedDesc',
     'noGameMatchedSearch',
     'thereAreNoGames',
@@ -288,7 +281,7 @@ const langTemplate = {
     'makeAliasWhenMerged',
     'deleteTag',
     'deleteTagCategory',
-    'locked'
+    'locked',
   ] as const,
   curate: [
     'importAll',
@@ -343,7 +336,7 @@ const langTemplate = {
     'nonExistingLibrary',
     'nonContentFolders',
     'ilc_notHttp',
-    'ilc_nonExistant'
+    'ilc_nonExistant',
   ] as const,
   playlist: [
     'enterDescriptionHere',
@@ -390,75 +383,71 @@ const langTemplate = {
     'exportMetaAndImages',
     'exportMetaEdit',
     'duplicatePlaylist',
-    'exportPlaylist'
+    'exportPlaylist',
   ] as const,
   dialog: [
     'programNotFound',
     'phpNotFound',
-    'wineNotFound',
+    'wineNotFound', // @UNUSED
     'flashpointPathNotFound',
     'fileNotFound',
     'flashpointPathInvalid',
-    'pathNotFound',
+    'pathNotFound', // @UNUSED
     'playlistConflict',
     'importedPlaylistAlreadyExists',
     'mergeOrStaySeperate',
     'selectFileToExportMeta',
     'selectFolderToExportMetaAndImages',
     'selectFileToExportPlaylist',
-    'replaceFilesQuestion',
-    'exportedAlreadyExistsYesNo',
+    'replaceFilesQuestion', // @UNUSED
+    'exportedAlreadyExistsYesNo', // @UNUSED
     'selectFolder',
     'selectScreenshot',
     'selectThumbnail',
-    'selectThemeFile',
     'selectCurationFolder',
     'selectCurationArchive',
     'selectCurationMeta',
     'selectPlaylistToImport',
-    'errorParsingPlatforms',
-    'errorParsingPlatformsMessage',
     'dataRequired',
     'dataRequiredDesc',
     'upgradeWillInstallTo',
     'verifyPathSelection',
-    'badFolderPerms',
-    'pickAnotherFolder',
+    'badFolderPerms', // @NOT_ASSIGNED
+    'pickAnotherFolder', // @NOT_ASSIGNED
     'restartNow',
     'restartToApplyUpgrade',
     'areYouSure',
     'cancel',
     'mergePlaylists',
     'newPlaylist',
-    'noDownloadsAvailable',
     'uploadPrivacyWarning',
   ] as const,
   // libraries: [], // (This is dynamically populated in run-time)
 } as const;
 
 /** Language template (short-hand). */
-type LangTemplate = typeof langTemplate;
+type LangTemplate = typeof langTemplate
 
 /** A language category (based on a language template category). */
 type LangCategory<T extends readonly string[]> = {
   -readonly [K in T[number]]: string;
-};
+}
 
 /** A dynamic and partial language category. */
 type DynamicLangCategory = {
   [key: string]: string | undefined;
-};
+}
 
 /** Base type of LangContainer (). */
 export type BaseLangContainer = {
   -readonly [key in keyof LangTemplate]: LangCategory<LangTemplate[key]>;
-};
+}
 
 /** Container of all language strings used by the launcher. */
 export type LangContainer = BaseLangContainer & {
   libraries: DynamicLangCategory;
   upgrades: DynamicLangCategory;
-};
+}
 
 /**
  * Create a language category object from a language template category.
@@ -499,13 +488,13 @@ export type LangFile = {
   code: string;
   /** Contents of the language file. */
   data: RecursivePartial<LangFileContent>;
-};
+}
 
 /** Contents of a language file. */
 export type LangFileContent = LangContainer & {
   /** Name of the language (this will be displayed in the drop-down). */
   name: string;
-};
+}
 
 /** Magic string used to reference "automatic language selection". */
 export const autoCode: string = '<auto>';
@@ -527,7 +516,6 @@ export function getDefaultLocalization(): LangContainer {
   lang.misc.noBlankFound = '{0} ' + lang.misc.noBlankFound;
   lang.misc.addBlank += ' {0}';
   lang.misc.deleteAllBlankImages += ' {0}';
-  lang.dialog.errorParsingPlatformsMessage = '{0} ' + lang.dialog.errorParsingPlatformsMessage;
   lang.dialog.upgradeWillInstallTo = '{0} ' + lang.dialog.upgradeWillInstallTo;
   lang.dialog.importedPlaylistAlreadyExists = lang.dialog.importedPlaylistAlreadyExists + ' - "{0}"';
   // Return object
