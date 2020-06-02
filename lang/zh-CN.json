@@ -80,7 +80,9 @@
   "logs": {
     "filters": "筛选器",
     "copyText": "复制文本",
-    "clearLog": "清除日志(Log)"
+    "clearLog": "清除日志(Log)",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "主页",
@@ -408,7 +410,8 @@
     "areYouSure": "确定吗？",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "游戏",
