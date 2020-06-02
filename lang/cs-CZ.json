@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Filtry",
     "copyText": "Zkopírovat text",
-    "clearLog": "Vymazat logy"
+    "clearLog": "Vymazat logy",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Domů",
@@ -408,7 +410,8 @@
     "areYouSure": "Jste si jisti?",
     "cancel": "Zrušit",
     "mergePlaylists": "Sloučit playlisty",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Hry",
