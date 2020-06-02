@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Szűrők",
     "copyText": "Szöveg másolása",
-    "clearLog": "Napló törlése"
+    "clearLog": "Napló törlése",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Kezdőlap",
@@ -408,7 +410,8 @@
     "areYouSure": "Biztos benne?",
     "cancel": "Mégsem",
     "mergePlaylists": "Lejátszólisták összevonása",
-    "newPlaylist": "Maradjon külön"
+    "newPlaylist": "Maradjon külön",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Játékok",
