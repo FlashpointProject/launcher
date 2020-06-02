@@ -80,7 +80,9 @@
   "logs": {
     "filters": "Филтери",
     "copyText": "Копирај текст",
-    "clearLog": "Очисти запис"
+    "clearLog": "Очисти запис",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Почетак",
@@ -408,7 +410,8 @@
     "areYouSure": "Да ли си сигуран?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "Игре",
