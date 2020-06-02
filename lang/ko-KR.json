@@ -80,7 +80,9 @@
   "logs": {
     "filters": "필터",
     "copyText": "텍스트 복사",
-    "clearLog": "기록 삭제"
+    "clearLog": "기록 삭제",
+    "uploadLog": "Upload Log",
+    "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "홈",
@@ -408,7 +410,8 @@
     "areYouSure": "확실하십니까?",
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate"
+    "newPlaylist": "Stay Seperate",
+    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?"
   },
   "libraries": {
     "arcade": "게임",
