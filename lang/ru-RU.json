@@ -78,8 +78,8 @@
     "filters": "Фильтры",
     "copyText": "Копировать текст",
     "clearLog": "Очистить лог",
-    "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "uploadLog": "Журнал загрузки",
+    "copiedToClipboard": "Скопировано в буфер обмена"
   },
   "app": {
     "home": "Главная",
