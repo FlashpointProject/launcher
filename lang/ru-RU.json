@@ -401,10 +401,10 @@
     "cancel": "Отмена",
     "mergePlaylists": "Объединить плейлисты",
     "newPlaylist": "Оставить раздельно",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
-    "overwriteFileTitle": "File already exists!",
-    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "uploadPrivacyWarning": "Это сделает ваш журнал общедоступным.\nСсылка будет скопирована в буфер обмена.\n\nВы уверены?",
+    "overwriteFileTitle": "Файл уже существует!",
+    "overwriteFileMessage": "Файл с таким именем уже существует. Вы хотите перезаписать его?",
+    "overwriteFileDetail": "Путь к файлу:"
   },
   "libraries": {
     "arcade": "Игры",
