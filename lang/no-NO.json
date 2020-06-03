@@ -79,7 +79,7 @@
     "copyText": "Copy Text",
     "clearLog": "Tøm logg",
     "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "copiedToClipboard": "Kopiert til utklippstavlen"
   },
   "app": {
     "home": "Hjem",
@@ -401,7 +401,7 @@
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
     "newPlaylist": "Stay Seperate",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "uploadPrivacyWarning": "Dette gjør loggene dine tilgjengelige for alle.\nEn link vil bli kopiert til utklippstavlen din.\n\nEr du sikker?",
     "overwriteFileTitle": "File already exists!",
     "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
     "overwriteFileDetail": "File path:"
