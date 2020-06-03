@@ -78,8 +78,8 @@
     "filters": "Filter",
     "copyText": "Text kopieren",
     "clearLog": "Protokoll löschen",
-    "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "uploadLog": "Log hochladen",
+    "copiedToClipboard": "In Zwischenablage kopiert"
   },
   "app": {
     "home": "Start",
@@ -401,10 +401,10 @@
     "cancel": "Abbrechen",
     "mergePlaylists": "Playlists zusammenführen",
     "newPlaylist": "Separat bleiben",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
-    "overwriteFileTitle": "File already exists!",
-    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "uploadPrivacyWarning": "Dadurch werden deine Logs öffentlich zugänglich gemacht.\nEin Link wird in deine Zwischenablage kopiert.\n\nBist du sicher?",
+    "overwriteFileTitle": "Datei existiert bereits!",
+    "overwriteFileMessage": "Eine Datei mit dem gleichen Namen existiert bereits. Möchtest du sie überschreiben?",
+    "overwriteFileDetail": "Dateipfad:"
   },
   "libraries": {
     "arcade": "Spiele",
