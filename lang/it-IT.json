@@ -78,8 +78,8 @@
     "filters": "Filtri",
     "copyText": "Copia testo",
     "clearLog": "Svuota Registro Eventi",
-    "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "uploadLog": "Carica Log",
+    "copiedToClipboard": "Copiato negli appunti"
   },
   "app": {
     "home": "Home",
@@ -401,10 +401,10 @@
     "cancel": "Cancel",
     "mergePlaylists": "Merge Playlists",
     "newPlaylist": "Stay Seperate",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
-    "overwriteFileTitle": "File already exists!",
-    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "uploadPrivacyWarning": "Questo renderà i tuoi log disponibili pubblicamente.\nUn link sarà copiato negli appunti.\n\nSei sicuro?",
+    "overwriteFileTitle": "Il file esiste già!",
+    "overwriteFileMessage": "Un file con lo stesso nome esiste già, desideri sovrascriverlo?",
+    "overwriteFileDetail": "Percorso del file:"
   },
   "libraries": {
     "arcade": "Giochi",
