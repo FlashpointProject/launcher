@@ -1,4 +1,3 @@
-import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { OpenDialogOptions } from 'electron';
@@ -147,7 +146,10 @@ export enum WindowIPC {
 /** IPC channels used to relay game manager events from  */
 
 export type INamedBackProcessInfo = IBackProcessInfo & {
-  name: string;
+  /** Name of the server */
+  name?: string;
+  /** Whether to use this service when toggling MAD4FP */
+  mad4fp?: boolean;
 }
 
 export type IBackProcessInfo = {

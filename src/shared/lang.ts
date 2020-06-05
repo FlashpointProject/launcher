@@ -322,6 +322,7 @@ const langTemplate = {
     'openFolder',
     'indexContent',
     'run',
+    'runWithMAD4FP',
     'export',
     'import',
     'contentFiles',

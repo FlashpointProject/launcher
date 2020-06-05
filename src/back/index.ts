@@ -7,7 +7,7 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1583180635980 } from '@database/migration/1583180635980-Initial';
 import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData, ThemeChangeData, ThemeListChangeData } from '@shared/back/types';
-import { IBackProcessInfo, IService, RecursivePartial } from '@shared/interfaces';
+import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
@@ -26,14 +26,13 @@ import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
-import { ManagedChildProcess } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { createContainer, exit, log, procToService } from './util/misc';
+import { createContainer, exit, log, runService } from './util/misc';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -141,7 +140,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // Run processes
     if (state.serviceInfo.server.length > 0) {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
-      state.services.server = runService('server', 'Server', chosenServer || state.serviceInfo.server[0]);
+      state.services.server = runService(state, 'server', 'Server', chosenServer || state.serviceInfo.server[0]);
     }
   }
 
@@ -401,35 +400,6 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Respond
   send(state.socketServer.port);
-
-  function runService(id: string, name: string, info: IBackProcessInfo): ManagedChildProcess {
-    const proc = new ManagedChildProcess(
-      id,
-      name,
-      path.join(state.config.flashpointPath, info.path),
-      false,
-      true,
-      info
-    );
-    proc.on('output', log.bind(undefined, state));
-    proc.on('change', () => {
-      state.socketServer.broadcast<IService>({
-        id: '',
-        type: BackOut.SERVICE_CHANGE,
-        data: procToService(proc),
-      });
-    });
-    try {
-      proc.spawn();
-    } catch (error) {
-      log(state, {
-        source: SERVICES_SOURCE,
-        content: `An unexpected error occurred while trying to run the background process "${proc.name}".`+
-                 `  ${error.toString()}`
-      });
-    }
-    return proc;
-  }
 }
 
 function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {

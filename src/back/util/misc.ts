@@ -6,7 +6,7 @@ import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { BackOut } from '@shared/back/types';
-import { IBackProcessInfo, IService } from '@shared/interfaces';
+import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
 import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
@@ -273,4 +273,46 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   }
 
   return chunks;
+}
+
+export function runService(state: BackState, id: string, name: string, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+  const proc = new ManagedChildProcess(
+    id,
+    name,
+    path.join(state.config.flashpointPath, info.path),
+    false,
+    true,
+    info
+  );
+  proc.on('output', log.bind(undefined, state));
+  proc.on('change', () => {
+    state.socketServer.broadcast<IService>({
+      id: '',
+      type: BackOut.SERVICE_CHANGE,
+      data: procToService(proc),
+    });
+  });
+  try {
+    proc.spawn();
+  } catch (error) {
+    log(state, {
+      source: SERVICES_SOURCE,
+      content: `An unexpected error occurred while trying to run the background process "${proc.name}".`+
+               `  ${error.toString()}`
+    });
+  }
+  return proc;
+}
+
+export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
+  if (service.getState() != ProcessState.STOPPED) {
+    return new Promise(resolve => {
+      service.on('change', () => {
+        if (service.getState() === ProcessState.STOPPED) {
+          resolve();
+        }
+      });
+      service.kill();
+    });
+  }
 }

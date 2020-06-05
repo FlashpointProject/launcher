@@ -6,7 +6,8 @@ import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { DeepPartial, GamePropSuggestions, IService, ProcessAction } from '@shared/interfaces';
+import { getContentFolderByKey } from '@shared/curate/util';
+import { DeepPartial, GamePropSuggestions, INamedBackProcessInfo, IService, ProcessAction } from '@shared/interfaces';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -29,7 +30,7 @@ import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
 import { BackState } from './types';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -71,7 +72,7 @@ export function registerRequestCallbacks(state: BackState): void {
     );
 
     const libraries = await GameManager.findUniqueValues(Game, 'library');
-    const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name) : [];
+    const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
     let platforms: Record<string, string[]> = {};
     for (let library of libraries) {
       platforms[library] = await GameManager.findPlatforms(library);
@@ -944,6 +945,28 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register<LaunchCurationData>(BackIn.LAUNCH_CURATION, async (event, req) => {
     try {
+      if (state.serviceInfo) {
+        // Make sure all 3 relevant server infos are present before considering MAD4FP opt
+        const configServer = state.serviceInfo.server.find(s => s.name === state.config.server);
+        const mad4fpServer = state.serviceInfo.server.find(s => s.mad4fp);
+        const activeServer: INamedBackProcessInfo | undefined = state.services.server && state.services.server.info;
+        if (activeServer && configServer && mad4fpServer) {
+        if (req.data.mad4fp && !activeServer.mad4fp) {
+          // Swap to mad4fp server
+          await waitForServiceDeath(state.services.server);
+          const mad4fpServerCopy = deepCopy(mad4fpServer);
+          // Set the content folder path as the final parameter
+          mad4fpServerCopy.arguments = mad4fpServer.arguments.concat([getContentFolderByKey(req.data.key, state.config.flashpointPath)]);
+          state.services.server = runService(state, 'server', 'Server', mad4fpServerCopy);
+        }
+          else if (!req.data.mad4fp && activeServer.mad4fp && !configServer.mad4fp) {
+            // Swap to mad4fp server
+            await waitForServiceDeath(state.services.server);
+            state.services.server = runService(state, 'server', 'Server', configServer);
+          }
+        }
+      }
+
       await launchCuration(req.data.key, req.data.meta, req.data.addApps, {
         fpPath: path.resolve(state.config.flashpointPath),
         native: state.config.nativePlatforms.some(p => p === req.data.meta.platform),

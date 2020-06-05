@@ -270,7 +270,7 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.dispatch, props.curation, props.importCuration]);
   // Callback for testing a curation works
-  const onRun = useCallback(async () => {
+  const doRun = useCallback(async (mad4fp: boolean) => {
     if (props.curation) {
       // Lock the curation while copying files
       props.dispatch({
@@ -287,6 +287,7 @@ export function CurateBox(props: CurateBoxProps) {
         key: props.curation.key,
         meta: props.curation.meta,
         addApps: props.curation.addApps.map(addApp => addApp.meta),
+        mad4fp: mad4fp
       });
       ProgressDispatch.finished(statusProgress);
       // Unlock the curation
@@ -299,6 +300,12 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation, strings.dialog]);
+  const onRunWithMAD4FP = async () => {
+    doRun(true);
+  };
+  const onRun = async () => {
+    doRun(false);
+  };
   // Callback for when the index content button is clicked
   const onIndexContent = useCallback(async () => {
     if (props.curation) {
@@ -864,6 +871,11 @@ export function CurateBox(props: CurateBoxProps) {
             className='curate-box-buttons__button'
             value={strings.curate.run}
             onClick={onRun}
+            disabled={disabled} />
+          <SimpleButton
+            className='curate-box-buttons__button'
+            value={strings.curate.runWithMAD4FP}
+            onClick={onRunWithMAD4FP}
             disabled={disabled} />
         </div>
         <div className='curate-box-buttons__right'>

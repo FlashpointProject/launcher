@@ -1,9 +1,9 @@
+import { IAppConfigData } from '@shared/config/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { parseVarStr, readJsonFile } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as path from 'path';
-import { IAppConfigData } from '@shared/config/interfaces';
 
 const { str } = Coerce;
 
@@ -39,7 +39,6 @@ export namespace ServicesFile {
     parser.prop('server').array(item => parsed.server.push(parseNamedBackProcessInfo(item, config)));
     parser.prop('start').array(item => parsed.start.push(parseBackProcessInfo(item, config)));
     parser.prop('stop').array(item  => parsed.stop.push(parseBackProcessInfo(item, config)));
-    parsed.server.sort((a, b) => (a.name > b.name) ? 1 : -1);
     return parsed;
   }
 
@@ -47,10 +46,12 @@ export namespace ServicesFile {
     const backProcessInfo = parseBackProcessInfo(parser, config);
     const parsed: INamedBackProcessInfo = {
       ...backProcessInfo,
-      name: ''
+      name: '',
+      mad4fp: false
     };
 
-    parser.prop('name', v => parsed.name = str(v));
+    parser.prop('name',   v => parsed.name   = str(v));
+    parser.prop('mad4fp', v => parsed.mad4fp = !!v);
     return parsed;
   }
 
