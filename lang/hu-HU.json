@@ -72,7 +72,7 @@
     "linuxSupport": "Problémák Linux alatt? {0}",
     "linuxSupportLinkText": "GYIK Megnyitása",
     "randomPicks": "Véletlenszerű választások",
-    "rerollPicks": "Re-Roll Picks"
+    "rerollPicks": "Választások újrapörgetése"
   },
   "logs": {
     "filters": "Szűrők",
@@ -408,9 +408,9 @@
   },
   "libraries": {
     "arcade": "Játékok",
-    "arcadePlural": "All Games",
+    "arcadePlural": "Összes Játék",
     "theatre": "Animációk",
-    "theatrePlural": "All Animations"
+    "theatrePlural": "Összes Animáció"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
