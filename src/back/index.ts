@@ -45,6 +45,7 @@ const CONCURRENT_IMAGE_DOWNLOADS = 6;
 const state: BackState = {
   isInit: false,
   isExit: false,
+  isDev: false,
   socketServer: new SocketServer(),
   fileServer: new http.Server(onFileServerRequest),
   fileServerPort: -1,
@@ -84,6 +85,7 @@ const state: BackState = {
   themeFiles: [],
   playlists: [],
   execMappings: [],
+  lastLinkedCurationKey: '',
   connection: undefined,
 };
 
@@ -97,6 +99,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   state.isInit = true;
 
   const content: BackInitArgs = JSON.parse(message);
+  state.isDev = content.isDev;
   state.configFolder = content.configFolder;
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;

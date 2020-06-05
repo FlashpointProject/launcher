@@ -188,6 +188,8 @@ export function registerRequestCallbacks(state: BackState): void {
         native: addApp.parentGame && state.config.nativePlatforms.some(p => p === platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
+        isDev: state.isDev,
+        exePath: state.exePath,
         log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
@@ -212,6 +214,8 @@ export function registerRequestCallbacks(state: BackState): void {
         native: state.config.nativePlatforms.some(p => p === game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
+        isDev: state.isDev,
+        exePath: state.exePath,
         log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
@@ -944,6 +948,8 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<LaunchCurationData>(BackIn.LAUNCH_CURATION, async (event, req) => {
+    let skipLink = req.data.key === state.lastLinkedCurationKey;
+    state.lastLinkedCurationKey = req.data.key;
     try {
       if (state.serviceInfo) {
         // Make sure all 3 relevant server infos are present before considering MAD4FP opt
@@ -967,11 +973,13 @@ export function registerRequestCallbacks(state: BackState): void {
         }
       }
 
-      await launchCuration(req.data.key, req.data.meta, req.data.addApps, {
+      await launchCuration(req.data.key, req.data.meta, req.data.addApps, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         native: state.config.nativePlatforms.some(p => p === req.data.meta.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
+        isDev: state.isDev,
+        exePath: state.exePath,
         log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
@@ -991,12 +999,16 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<LaunchCurationAddAppData>(BackIn.LAUNCH_CURATION_ADDAPP, async (event, req) => {
+    let skipLink = req.data.curationKey === state.lastLinkedCurationKey;
+    state.lastLinkedCurationKey = req.data.curationKey;
     try {
-      await launchAddAppCuration(req.data.curationKey, req.data.curation, {
+      await launchAddAppCuration(req.data.curationKey, req.data.curation, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         native: state.config.nativePlatforms.some(p => p === req.data.platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
+        isDev: state.isDev,
+        exePath: state.exePath,
         log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),

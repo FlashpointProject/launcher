@@ -139,7 +139,7 @@ export function main(init: Init): void {
           isDev: Util.isDev,
           // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
           localeCode: localeCode,
-          exePath: path.dirname(app.getPath('exe')),
+          exePath: app.getPath('exe'),
           acceptRemote: !!init.args['host-remote'],
           version: app.getVersion(), // @TODO Manually load this from the package.json file while in a dev enviroment (so it doesn't use Electron's version)
         };
