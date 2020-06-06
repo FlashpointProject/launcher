@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Bu kürasyonu sil (Dosyalar geri alınamaz)",
     "openFolder": "Klasörü Aç",
     "run": "Çalıştır",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Dışa aktar",
     "import": "İçe aktar",
     "contentFiles": "İçerik Dosyaları",
