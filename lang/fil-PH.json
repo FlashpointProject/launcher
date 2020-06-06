@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Tanggalin itong curation (Hindi na pwedeng ibalik pa)",
     "openFolder": "Buksan ang folder",
     "run": "I-run",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "I-export",
     "import": "I-import",
     "contentFiles": "Content Files",
