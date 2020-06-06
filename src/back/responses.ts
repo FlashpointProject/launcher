@@ -210,6 +210,17 @@ export function registerRequestCallbacks(state: BackState): void {
     const game = await GameManager.findGame(reqData.id);
 
     if (game) {
+      // Make sure Server is set to configured server - Curations may have changed it
+      const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
+      if (configServer) {
+        const info: INamedBackProcessInfo = state.services.server.info;
+        if (info.name !== configServer.name) {
+          // Server is different, change now
+          await waitForServiceDeath(state.services.server);
+          state.services.server = runService(state, 'server', 'Server', configServer);
+        }
+      }
+      // Launch game
       GameLauncher.launchGame({
         game,
         fpPath: path.resolve(state.config.flashpointPath),
