@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Kuráció törlése (A fájlok nem állíthatók vissza)",
     "openFolder": "Mappa megnyitása",
     "run": "Futtatás",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Exportálás",
     "import": "Importálás",
     "contentFiles": "Tartalom fájlok",
