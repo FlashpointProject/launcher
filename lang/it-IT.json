@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Elimina questa curatela (i file non possono essere recuperati)",
     "openFolder": "Apri cartella",
     "run": "Avvia",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Esporta",
     "import": "Importa",
     "contentFiles": "File di contenuto",
