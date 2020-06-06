@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Tuhoa tämä kuratointi (Tiedostoja ei voi pelastaa jälkikäteen)",
     "openFolder": "Avaa kansio",
     "run": "Käynnistä",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Vie",
     "import": "Tuo",
     "contentFiles": "Sisältötiedostot",
