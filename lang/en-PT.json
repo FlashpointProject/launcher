@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Delete this curation (Files can not be recovered)",
     "openFolder": "Open Folder",
     "run": "Run",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Export",
     "import": "Import",
     "contentFiles": "Content Files",
