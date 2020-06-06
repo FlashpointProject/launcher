@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Smazat tuto kuraci (soubory nelze obnovit)",
     "openFolder": "Otevřít složku",
     "run": "Spustit",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Exportovat",
     "import": "Importovat",
     "contentFiles": "Soubory s obsahem",
