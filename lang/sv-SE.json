@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Ta bort den här kurationen (Filerna kan inte återställas)",
     "openFolder": "Öppna mapp",
     "run": "Kör",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Exportera",
     "import": "Importera",
     "contentFiles": "Innehållande filer",
