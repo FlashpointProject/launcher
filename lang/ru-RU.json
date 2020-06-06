@@ -306,7 +306,7 @@
     "deleteCurationDesc": "Удалить это курирование (Файлы не могут быть восстановлены)",
     "openFolder": "Открыть папку",
     "run": "Запуск",
-    "runWithMAD4FP": "Run with MAD4FP",
+    "runWithMAD4FP": "Запустить с помощью MAD4FP",
     "export": "Экспорт",
     "import": "Импортировать",
     "contentFiles": "Файлы содержания",
