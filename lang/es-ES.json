@@ -306,7 +306,7 @@
     "deleteCurationDesc": "Eliminar esta curación (Los archivos no pueden ser recuperados)",
     "openFolder": "Abrir carpeta",
     "run": "Ejecutar",
-    "runWithMAD4FP": "Run with MAD4FP",
+    "runWithMAD4FP": "Ejecutar con MAD4FP",
     "export": "Exportar",
     "import": "Importar",
     "contentFiles": "Archivos de contenido",
