@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Usuń tą archiwizowaną grę (Pliki nie mogą zostać odzyskane)",
     "openFolder": "Otwórz Folder",
     "run": "Uruchom",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Eksportuj",
     "import": "Importuj",
     "contentFiles": "Pliki Zawartości",
