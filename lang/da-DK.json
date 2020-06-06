@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Delete this curation (Files can not be recovered)",
     "openFolder": "Åbn Mappe",
     "run": "Kør",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Eksport",
     "import": "Importer",
     "contentFiles": "Indhold Filer",
