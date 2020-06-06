@@ -51,7 +51,7 @@
     "redux": "4.0.5",
     "redux-devtools-extension": "2.13.8",
     "reflect-metadata": "0.1.10",
-    "sqlite3": "4.1.1",
+    "sqlite3": "4.2.0",
     "typeorm": "0.2.22",
     "typesafe-actions": "4.4.2",
     "uuid": "3.3.2",

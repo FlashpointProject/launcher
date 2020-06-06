@@ -22,6 +22,8 @@ type LaunchBaseOpts = {
   fpPath: string;
   execMappings: ExecMapping[];
   lang: LangContainer;
+  isDev: boolean;
+  exePath: string;
   log: LogFunc;
   openDialog: OpenDialogFunc;
   openExternal: OpenExternalFunc;
@@ -94,6 +96,8 @@ export namespace GameLauncher {
         native: opts.native,
         execMappings: opts.execMappings,
         lang: opts.lang,
+        isDev: opts.isDev,
+        exePath: opts.exePath,
         log: opts.log,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,

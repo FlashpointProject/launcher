@@ -1,8 +1,8 @@
-import { ChildProcess, spawn } from 'child_process';
-import { EventEmitter } from 'events';
-import { IBackProcessInfo, ProcessState } from '@shared/interfaces';
+import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
+import { ChildProcess, spawn } from 'child_process';
+import { EventEmitter } from 'events';
 
 const { str } = Coerce;
 
@@ -24,7 +24,7 @@ export class ManagedChildProcess extends EventEmitter {
   // @TODO Add timeouts for restarting and killing the process (it should give up after some time, like 10 seconds) maybe?
 
   public id: string;
-  public info: IBackProcessInfo;
+  public info: INamedBackProcessInfo | IBackProcessInfo;
   /** Process that this is wrapping/managing. */
   private process?: ChildProcess;
   /** If the process is currently being restarted. */
@@ -42,7 +42,7 @@ export class ManagedChildProcess extends EventEmitter {
   /** State of the process. */
   private state: ProcessState = ProcessState.STOPPED;
 
-  constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: IBackProcessInfo) {
+  constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: INamedBackProcessInfo | IBackProcessInfo) {
     super();
     this.id = id;
     this.name = name;

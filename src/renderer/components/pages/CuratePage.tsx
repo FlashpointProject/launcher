@@ -37,6 +37,7 @@ type OwnProps = {
   suggestions: Partial<GamePropSuggestions>;
   appPaths: { [platform: string]: string; };
   libraries: string[];
+  mad4fpEnabled: boolean;
 };
 
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
@@ -676,7 +677,8 @@ export function CuratePage(props: CuratePageProps) {
           suggestions={props.suggestions}
           libraryOptions={libraryOptions()}
           libraries={props.libraries}
-          tagCategories={props.tagCategories} />
+          tagCategories={props.tagCategories}
+          mad4fpEnabled={props.mad4fpEnabled} />
       ));
     } else {
       return (

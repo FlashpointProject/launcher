@@ -50,6 +50,7 @@ type CurateBoxProps = {
   libraryOptions: JSX.Element[];
   libraries: string[];
   tagCategories: TagCategory[];
+  mad4fpEnabled: boolean;
 }
 
 /** A box that displays and lets the user edit a curation. */
@@ -270,7 +271,7 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.dispatch, props.curation, props.importCuration]);
   // Callback for testing a curation works
-  const onRun = useCallback(async () => {
+  const doRun = useCallback(async (mad4fp: boolean) => {
     if (props.curation) {
       // Lock the curation while copying files
       props.dispatch({
@@ -287,6 +288,7 @@ export function CurateBox(props: CurateBoxProps) {
         key: props.curation.key,
         meta: props.curation.meta,
         addApps: props.curation.addApps.map(addApp => addApp.meta),
+        mad4fp: mad4fp
       });
       ProgressDispatch.finished(statusProgress);
       // Unlock the curation
@@ -299,6 +301,12 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation, strings.dialog]);
+  const onRunWithMAD4FP = useCallback(() => {
+    doRun(true);
+  }, [doRun]);
+  const onRun = useCallback(() => {
+    doRun(false);
+  }, [doRun]);
   // Callback for when the index content button is clicked
   const onIndexContent = useCallback(async () => {
     if (props.curation) {
@@ -865,6 +873,13 @@ export function CurateBox(props: CurateBoxProps) {
             value={strings.curate.run}
             onClick={onRun}
             disabled={disabled} />
+          { props.mad4fpEnabled ? (
+            <SimpleButton
+              className='curate-box-buttons__button'
+              value={strings.curate.runWithMAD4FP}
+              onClick={onRunWithMAD4FP}
+              disabled={disabled} />
+          ) : undefined}
         </div>
         <div className='curate-box-buttons__right'>
           <ConfirmElement

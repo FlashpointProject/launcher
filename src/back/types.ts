@@ -24,6 +24,7 @@ export type BackState = {
   // @TODO Write comments for these properties
   isInit: boolean;
   isExit: boolean;
+  isDev: boolean;
   socketServer: SocketServer;
   fileServer: Server;
   fileServerPort: number;
@@ -55,6 +56,7 @@ export type BackState = {
   themeFiles: ThemeListItem[];
   playlists: Playlist[];
   execMappings: ExecMapping[];
+  lastLinkedCurationKey: string;
   connection: Connection | undefined;
 }
 

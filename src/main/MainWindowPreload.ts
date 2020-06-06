@@ -83,6 +83,7 @@ window.Shared = {
   initialPlaylists: createErrorProxy('initialPlaylists'),
   initialLibraries: createErrorProxy('initialLibraries'),
   initialServerNames: createErrorProxy('initialServerNames'),
+  initialMad4fpEnabled: createErrorProxy('initialMad4fpEnabled'),
   initialPlatforms: createErrorProxy('initialPlatforms'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
   initialTagCategories: createErrorProxy('initialTagCategories'),
@@ -128,6 +129,7 @@ const onInit = (async () => {
       window.Shared.initialPlaylists = response.data.playlists;
       window.Shared.initialLibraries = response.data.libraries;
       window.Shared.initialServerNames = response.data.serverNames;
+      window.Shared.initialMad4fpEnabled = response.data.mad4fpEnabled;
       window.Shared.initialPlatforms = response.data.platforms;
       window.Shared.initialLocaleCode = response.data.localeCode;
       window.Shared.initialTagCategories = response.data.tagCategories;

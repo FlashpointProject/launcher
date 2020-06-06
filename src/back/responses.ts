@@ -6,7 +6,8 @@ import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertToCurationMeta } from '@shared/curate/metaToMeta';
-import { DeepPartial, GamePropSuggestions, IService, ProcessAction } from '@shared/interfaces';
+import { getContentFolderByKey } from '@shared/curate/util';
+import { DeepPartial, GamePropSuggestions, INamedBackProcessInfo, IService, ProcessAction } from '@shared/interfaces';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -29,7 +30,7 @@ import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
 import { BackState } from './types';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -71,7 +72,8 @@ export function registerRequestCallbacks(state: BackState): void {
     );
 
     const libraries = await GameManager.findUniqueValues(Game, 'library');
-    const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name) : [];
+    const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
+    const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
     let platforms: Record<string, string[]> = {};
     for (let library of libraries) {
       platforms[library] = await GameManager.findPlatforms(library);
@@ -92,6 +94,7 @@ export function registerRequestCallbacks(state: BackState): void {
         playlists: await GameManager.findPlaylists(),
         libraries: libraries,
         serverNames: serverNames,
+        mad4fpEnabled: mad4fpEnabled,
         platforms: platforms,
         localeCode: state.localeCode,
         tagCategories: await TagManager.findTagCategories()
@@ -187,6 +190,8 @@ export function registerRequestCallbacks(state: BackState): void {
         native: addApp.parentGame && state.config.nativePlatforms.some(p => p === platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
+        isDev: state.isDev,
+        exePath: state.exePath,
         log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
@@ -205,12 +210,25 @@ export function registerRequestCallbacks(state: BackState): void {
     const game = await GameManager.findGame(reqData.id);
 
     if (game) {
+      // Make sure Server is set to configured server - Curations may have changed it
+      const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
+      if (configServer) {
+        const info: INamedBackProcessInfo = state.services.server.info;
+        if (info.name !== configServer.name) {
+          // Server is different, change now
+          await waitForServiceDeath(state.services.server);
+          state.services.server = runService(state, 'server', 'Server', configServer);
+        }
+      }
+      // Launch game
       GameLauncher.launchGame({
         game,
         fpPath: path.resolve(state.config.flashpointPath),
         native: state.config.nativePlatforms.some(p => p === game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
+        isDev: state.isDev,
+        exePath: state.exePath,
         log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
@@ -943,12 +961,37 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<LaunchCurationData>(BackIn.LAUNCH_CURATION, async (event, req) => {
+    const skipLink = (req.data.key === state.lastLinkedCurationKey);
+    state.lastLinkedCurationKey = req.data.key;
     try {
-      await launchCuration(req.data.key, req.data.meta, req.data.addApps, {
+      if (state.serviceInfo) {
+        // Make sure all 3 relevant server infos are present before considering MAD4FP opt
+        const configServer = state.serviceInfo.server.find(s => s.name === state.config.server);
+        const mad4fpServer = state.serviceInfo.server.find(s => s.mad4fp);
+        const activeServer: INamedBackProcessInfo | undefined = state.services.server?.info;
+        if (activeServer && configServer && mad4fpServer) {
+          if (req.data.mad4fp && !activeServer.mad4fp) {
+            // Swap to mad4fp server
+            await waitForServiceDeath(state.services.server);
+            const mad4fpServerCopy = deepCopy(mad4fpServer);
+            // Set the content folder path as the final parameter
+            mad4fpServerCopy.arguments.push(getContentFolderByKey(req.data.key, state.config.flashpointPath));
+            state.services.server = runService(state, 'server', 'Server', mad4fpServerCopy);
+          } else if (!req.data.mad4fp && activeServer.mad4fp && !configServer.mad4fp) {
+            // Swap to mad4fp server
+            await waitForServiceDeath(state.services.server);
+            state.services.server = runService(state, 'server', 'Server', configServer);
+          }
+        }
+      }
+
+      await launchCuration(req.data.key, req.data.meta, req.data.addApps, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         native: state.config.nativePlatforms.some(p => p === req.data.meta.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
+        isDev: state.isDev,
+        exePath: state.exePath,
         log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
@@ -968,12 +1011,16 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<LaunchCurationAddAppData>(BackIn.LAUNCH_CURATION_ADDAPP, async (event, req) => {
+    const skipLink = (req.data.curationKey === state.lastLinkedCurationKey);
+    state.lastLinkedCurationKey = req.data.curationKey;
     try {
-      await launchAddAppCuration(req.data.curationKey, req.data.curation, {
+      await launchAddAppCuration(req.data.curationKey, req.data.curation, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
         native: state.config.nativePlatforms.some(p => p === req.data.platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
+        isDev: state.isDev,
+        exePath: state.exePath,
         log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),

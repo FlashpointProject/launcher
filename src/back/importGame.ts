@@ -9,29 +9,19 @@ import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCur
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { sizeToString } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
-import { exec } from 'child_process';
-import * as fs from 'fs';
-import { copy } from 'fs-extra';
+import { execFile } from 'child_process';
+import * as fs from 'fs-extra';
 import * as path from 'path';
-import { promisify } from 'util';
 import * as YAML from 'yaml';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
+import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
 
 const { strToBool } = Coerce;
-
-const access = promisify(fs.access);
-const copyFile = promisify(fs.copyFile);
-const lstat = promisify(fs.lstat);
-const readFile = promisify(fs.readFile);
-const rename = promisify(fs.rename);
-const rmdir = promisify(fs.rmdir);
-const symlink = promisify(fs.symlink);
-const writeFile = promisify(fs.writeFile);
 
 type ImportCurationOpts = {
   curation: EditCuration;
@@ -142,7 +132,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         // Save working meta
         const metaPath = path.join(getCurationFolder(curation, fpPath), 'meta.yaml');
         const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, opts.tagCategories, curation.addApps));
-        await writeFile(metaPath, meta);
+        await fs.writeFile(metaPath, meta);
         // Date in form 'YYYY-MM-DD' for folder sorting
         const date = new Date();
         const dateStr = date.getFullYear().toString() + '-' +
@@ -177,8 +167,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], opts: Omit<LaunchGameOpts, 'game'|'addApps'>) {
-  await linkContentFolder(key, opts.fpPath);
+export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>) {
+  if (!skipLink) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath); }
   curationLog(opts.log, `Launching Curation ${meta.title}`);
   GameLauncher.launchGame({
     ...opts,
@@ -191,8 +181,8 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
  * @param curationKey Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, opts: Omit<LaunchAddAppOpts, 'addApp'>) {
-  await linkContentFolder(curationKey, opts.fpPath);
+export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>) {
+  if (!skipLink) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath); }
   GameLauncher.launchAdditionalApplication({
     ...opts,
     addApp: createAddAppFromCurationMeta(appCuration, createPlaceholderGame()),
@@ -267,7 +257,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
       }
       // Check if the image is extracted
       else if (image.fileName !== undefined && image.rawData !== undefined) {
-        await writeFile(imagePath, image.rawData);
+        await fs.writeFile(imagePath, image.rawData);
       }
     }
   }
@@ -276,48 +266,33 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
 /** Symlinks (or copies if unavailble) a curations `content` folder to `htdocs\content`
  * @param curationKey Key of the (game) curation to link
  */
-async function linkContentFolder(curationKey: string, fpPath: string) {
+async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string) {
   const curationPath = path.join(fpPath, 'Curations', curationKey);
   const htdocsContentPath = path.join(fpPath, htdocsPath, 'content');
   // Clear out old folder if exists
   console.log('Removing old Server/htdocs/content ...');
-  await access(htdocsContentPath, fs.constants.F_OK)
-    .then(() => rmdir(htdocsContentPath))
+  await fs.access(htdocsContentPath, fs.constants.F_OK)
+    .then(() => fs.remove(htdocsContentPath))
     .catch((error) => { /* No file is okay, ignore error */ });
   const contentPath = path.join(curationPath, 'content');
-  console.log('Building new Server/htdocs/content ...');
+  console.log('Linking new Server/htdocs/content ...');
   if (fs.existsSync(contentPath)) {
     if (process.platform === 'win32') {
-      // Use symlinks on windows if running as Admin - Much faster than copying
+      console.log('Linking...');
+      // Start an elevated Batch script to do the link - Windows needs admin!
+      const mklinkBatPath = getMklinkBatPath(isDev, exePath);
+      const mklinkDir = path.dirname(mklinkBatPath);
       await new Promise((resolve, reject) => {
-        exec('NET SESSION', async (err, so, se) => {
-          if (se.length === 0) {
-            console.log('Linking...');
-            try {
-              await symlink(contentPath, htdocsContentPath);
-              console.log('Linked!!');
-              resolve();
-            } catch (error) {
-              console.log('Link failed!');
-              reject(error);
-            }
-          } else {
-            console.log('Copying...');
-            try {
-              await copy(contentPath, htdocsContentPath);
-              console.log('Copied!');
-              resolve();
-            } catch (error) {
-              console.log('Copy failed!');
-              reject(error);
-            }
-          }
+        execFile('mklink.bat', [`"${htdocsContentPath}"`, `"${contentPath}"`], { cwd: mklinkDir, shell: true }, (err, stdout, stderr) => {
+          if (err) { reject();  }
+          else     { resolve(); }
         });
       });
+      console.log('Linked!');
     } else {
-      console.log('Copying...');
-      await copy(contentPath, htdocsContentPath);
-      console.log('Copied!');
+      console.log('Linking...');
+      await fs.symlink(contentPath, htdocsContentPath);
+      console.log('Linked!');
     }
   }
 }
@@ -338,7 +313,7 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
       const dest = path.join(outFolder, content.filePath);
       // Ensure that the folders leading up to the file exists
       await fs.promises.mkdir(path.dirname(dest), { recursive: true });
-      await access(dest, fs.constants.F_OK)
+      await fs.access(dest, fs.constants.F_OK)
       .then(async () => {
         // Ask to overwrite if file already exists
         const filesDifferent = !(await equalFileHashes(source, dest));
@@ -348,8 +323,8 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
             await copyOrMoveFile(source, dest, move, log);
             return;
           }
-          const newStats = await lstat(source);
-          const currentStats = await lstat(dest);
+          const newStats = await fs.lstat(source);
+          const currentStats = await fs.lstat(dest);
           const response = await openDialog({
             type: 'warning',
             title: 'Import Warning',
@@ -388,14 +363,14 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
 
 async function copyOrMoveFile(source: string, dest: string, move: boolean, log: LogFunc | undefined) {
   try {
-    if (move) { await rename(source, dest); } // @TODO Make sure this overwrites files
-    else      { await copyFile(source, dest); }
+    if (move) { await fs.rename(source, dest); } // @TODO Make sure this overwrites files
+    else      { await fs.copyFile(source, dest); }
   } catch (error) {
     curationLog(log, `Error copying file '${source}' to '${dest}' - ${error.message}`);
     if (move) {
       curationLog(log, 'Attempting to copy file instead of move...');
       try {
-        await copyFile(source, dest);
+        await fs.copyFile(source, dest);
       } catch (error) {
         curationLog(log, 'Copy unsuccessful');
         throw error;
@@ -422,8 +397,8 @@ function curationLog(log: LogFunc | undefined, content: string): void {
  */
 async function equalFileHashes(filePath: string, secondFilePath: string) {
   // Hash first file
-  const buffer = await readFile(filePath);
-  const secondBuffer = await readFile(secondFilePath);
+  const buffer = await fs.readFile(filePath);
+  const secondBuffer = await fs.readFile(secondFilePath);
   return buffer.equals(secondBuffer);
 }
 

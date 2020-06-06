@@ -5,7 +5,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
-import { ChangedMeta, MetaEditFile, MetaEditFlags } from '@shared/MetaEdit';
+import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
@@ -185,6 +185,7 @@ export type GetRendererInitDataResponse = {
   themes: Theme[];
   libraries: string[];
   serverNames: string[];
+  mad4fpEnabled: boolean;
   platforms: Record<string, string[]>;
   playlists: Playlist[];
   localeCode: string;
@@ -485,6 +486,7 @@ export type LaunchCurationData = {
   key: string;
   meta: EditCurationMeta;
   addApps: EditAddAppCurationMeta[];
+  mad4fp: boolean;
 }
 
 export type LaunchCurationAddAppData = {
