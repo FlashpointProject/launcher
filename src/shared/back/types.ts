@@ -185,6 +185,7 @@ export type GetRendererInitDataResponse = {
   themes: Theme[];
   libraries: string[];
   serverNames: string[];
+  mad4fpEnabled: boolean;
   platforms: Record<string, string[]>;
   playlists: Playlist[];
   localeCode: string;

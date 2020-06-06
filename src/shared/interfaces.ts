@@ -90,6 +90,7 @@ export interface IMainWindowExternal {
   initialPlaylists?: Playlist[];
   initialLibraries: string[];
   initialServerNames: string[];
+  initialMad4fpEnabled: boolean;
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
   initialTagCategories: TagCategory[];

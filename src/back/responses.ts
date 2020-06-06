@@ -73,6 +73,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
     const libraries = await GameManager.findUniqueValues(Game, 'library');
     const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
+    const mad4fpEnabled = state.serviceInfo ? state.serviceInfo.server.findIndex(s => s.mad4fp === true) != -1 : false;
     let platforms: Record<string, string[]> = {};
     for (let library of libraries) {
       platforms[library] = await GameManager.findPlatforms(library);
@@ -93,6 +94,7 @@ export function registerRequestCallbacks(state: BackState): void {
         playlists: await GameManager.findPlaylists(),
         libraries: libraries,
         serverNames: serverNames,
+        mad4fpEnabled: mad4fpEnabled,
         platforms: platforms,
         localeCode: state.localeCode,
         tagCategories: await TagManager.findTagCategories()

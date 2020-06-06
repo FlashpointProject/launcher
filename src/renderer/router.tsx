@@ -41,6 +41,7 @@ export type AppRouterProps = {
   playlistIconCache: Record<string, string>;
   libraries: string[];
   serverNames: string[];
+  mad4fpEnabled: boolean;
   localeCode: string;
 
   upgrades: UpgradeStage[];
@@ -120,6 +121,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       suggestions: this.props.suggestions,
       appPaths: this.props.appPaths,
       libraries: this.props.libraries,
+      mad4fpEnabled: this.props.mad4fpEnabled,
     };
     const developerProps: DeveloperPageProps = {
       platforms: this.props.platformsFlat,

@@ -84,6 +84,7 @@ export type AppState = {
   views: Record<string, View | undefined>; // views[id] = view
   libraries: string[];
   serverNames: string[];
+  mad4fpEnabled: boolean;
   playlists: Playlist[];
   playlistIconCache: Record<string, string>; // [PLAYLIST_ID] = ICON_BLOB_URL
   suggestions: Partial<GamePropSuggestions>;
@@ -136,6 +137,7 @@ export class App extends React.Component<AppProps, AppState> {
     // Prepare libraries
     const libraries = window.Shared.initialLibraries.sort();
     const serverNames = window.Shared.initialServerNames.sort();
+    const mad4fpEnabled = window.Shared.initialMad4fpEnabled;
     const views: Record<string, View> = {};
     for (let library of libraries) {
       views[library] = {
@@ -163,6 +165,7 @@ export class App extends React.Component<AppProps, AppState> {
       views: views,
       libraries: libraries,
       serverNames: serverNames,
+      mad4fpEnabled: mad4fpEnabled,
       playlists: window.Shared.initialPlaylists || [],
       playlistIconCache: {},
       suggestions: {},
@@ -571,6 +574,7 @@ export class App extends React.Component<AppProps, AppState> {
       onOpenExportMetaEdit: this.onOpenExportMetaEdit,
       libraries: this.state.libraries,
       serverNames: this.state.serverNames,
+      mad4fpEnabled: this.state.mad4fpEnabled,
       localeCode: this.state.localeCode,
       upgrades: this.state.upgrades,
       creditsData: this.state.creditsData,

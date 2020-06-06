@@ -50,6 +50,7 @@ type CurateBoxProps = {
   libraryOptions: JSX.Element[];
   libraries: string[];
   tagCategories: TagCategory[];
+  mad4fpEnabled: boolean;
 }
 
 /** A box that displays and lets the user edit a curation. */
@@ -872,11 +873,13 @@ export function CurateBox(props: CurateBoxProps) {
             value={strings.curate.run}
             onClick={onRun}
             disabled={disabled} />
-          <SimpleButton
-            className='curate-box-buttons__button'
-            value={strings.curate.runWithMAD4FP}
-            onClick={onRunWithMAD4FP}
-            disabled={disabled} />
+          { props.mad4fpEnabled ? (
+            <SimpleButton
+              className='curate-box-buttons__button'
+              value={strings.curate.runWithMAD4FP}
+              onClick={onRunWithMAD4FP}
+              disabled={disabled} />
+          ) : undefined}
         </div>
         <div className='curate-box-buttons__right'>
           <ConfirmElement
