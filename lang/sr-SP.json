@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Избриши ову галерију (Фајлови не могу бити повраћени)",
     "openFolder": "Отвори фасциклу",
     "run": "Покрени",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Извези",
     "import": "Увези",
     "contentFiles": "Фајлови у садржају",
