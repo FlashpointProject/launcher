@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Ștergeți această reparație (fișierele nu pot fi recuperate)",
     "openFolder": "Deschideți dosarul reparațiilor",
     "run": "Executare",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Exportare",
     "import": "Importare",
     "contentFiles": "Fișiere",
