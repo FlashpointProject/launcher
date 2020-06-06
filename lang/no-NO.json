@@ -306,7 +306,7 @@
     "deleteCurationDesc": "Slett denne kurasjonen (Filer kan ikke bli gjennopprettet)",
     "openFolder": "Åpne mappen",
     "run": "Run",
-    "runWithMAD4FP": "Run with MAD4FP",
+    "runWithMAD4FP": "Kjør med MAD4FP",
     "export": "Export",
     "import": "Import",
     "contentFiles": "Content Files",
