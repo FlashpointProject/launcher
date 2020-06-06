@@ -306,6 +306,7 @@
     "deleteCurationDesc": "이 큐레이션을 삭제합니다 (파일들은 회복할수 없습니다)",
     "openFolder": "폴더 열기",
     "run": "실행",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "내보내기",
     "import": "가져오기",
     "contentFiles": "컨텐츠 파일",
