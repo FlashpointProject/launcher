@@ -301,12 +301,12 @@ export function CurateBox(props: CurateBoxProps) {
       });
     }
   }, [props.dispatch, props.curation, strings.dialog]);
-  const onRunWithMAD4FP = async () => {
+  const onRunWithMAD4FP = useCallback(() => {
     doRun(true);
-  };
-  const onRun = async () => {
+  }, [doRun]);
+  const onRun = useCallback(() => {
     doRun(false);
-  };
+  }, [doRun]);
   // Callback for when the index content button is clicked
   const onIndexContent = useCallback(async () => {
     if (props.curation) {

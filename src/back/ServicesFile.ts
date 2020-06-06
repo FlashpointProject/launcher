@@ -47,7 +47,7 @@ export namespace ServicesFile {
     const parsed: INamedBackProcessInfo = {
       ...backProcessInfo,
       name: '',
-      mad4fp: false
+      mad4fp: false,
     };
 
     parser.prop('name',   v => parsed.name   = str(v));

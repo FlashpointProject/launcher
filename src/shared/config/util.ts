@@ -21,7 +21,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   metaEditsFolderPath: 'Data/MetaEdits',
   useCustomTitlebar: false,
   startServer: true,
-  server: 'Apache Webserver', // TODO: Read from IServiceInfos to find first valid
+  server: 'Apache Webserver', // @TODO Read from IServiceInfos to find first valid
   disableExtremeGames: false,
   showBrokenGames: false,
   backPortMin: 12001,

@@ -73,7 +73,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
     const libraries = await GameManager.findUniqueValues(Game, 'library');
     const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
-    const mad4fpEnabled = state.serviceInfo ? state.serviceInfo.server.findIndex(s => s.mad4fp === true) != -1 : false;
+    const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
     let platforms: Record<string, string[]> = {};
     for (let library of libraries) {
       platforms[library] = await GameManager.findPlatforms(library);
@@ -961,24 +961,23 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<LaunchCurationData>(BackIn.LAUNCH_CURATION, async (event, req) => {
-    let skipLink = req.data.key === state.lastLinkedCurationKey;
+    const skipLink = (req.data.key === state.lastLinkedCurationKey);
     state.lastLinkedCurationKey = req.data.key;
     try {
       if (state.serviceInfo) {
         // Make sure all 3 relevant server infos are present before considering MAD4FP opt
         const configServer = state.serviceInfo.server.find(s => s.name === state.config.server);
         const mad4fpServer = state.serviceInfo.server.find(s => s.mad4fp);
-        const activeServer: INamedBackProcessInfo | undefined = state.services.server && state.services.server.info;
+        const activeServer: INamedBackProcessInfo | undefined = state.services.server?.info;
         if (activeServer && configServer && mad4fpServer) {
-        if (req.data.mad4fp && !activeServer.mad4fp) {
-          // Swap to mad4fp server
-          await waitForServiceDeath(state.services.server);
-          const mad4fpServerCopy = deepCopy(mad4fpServer);
-          // Set the content folder path as the final parameter
-          mad4fpServerCopy.arguments = mad4fpServer.arguments.concat([getContentFolderByKey(req.data.key, state.config.flashpointPath)]);
-          state.services.server = runService(state, 'server', 'Server', mad4fpServerCopy);
-        }
-          else if (!req.data.mad4fp && activeServer.mad4fp && !configServer.mad4fp) {
+          if (req.data.mad4fp && !activeServer.mad4fp) {
+            // Swap to mad4fp server
+            await waitForServiceDeath(state.services.server);
+            const mad4fpServerCopy = deepCopy(mad4fpServer);
+            // Set the content folder path as the final parameter
+            mad4fpServerCopy.arguments.push(getContentFolderByKey(req.data.key, state.config.flashpointPath));
+            state.services.server = runService(state, 'server', 'Server', mad4fpServerCopy);
+          } else if (!req.data.mad4fp && activeServer.mad4fp && !configServer.mad4fp) {
             // Swap to mad4fp server
             await waitForServiceDeath(state.services.server);
             state.services.server = runService(state, 'server', 'Server', configServer);
@@ -1012,7 +1011,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<LaunchCurationAddAppData>(BackIn.LAUNCH_CURATION_ADDAPP, async (event, req) => {
-    let skipLink = req.data.curationKey === state.lastLinkedCurationKey;
+    const skipLink = (req.data.curationKey === state.lastLinkedCurationKey);
     state.lastLinkedCurationKey = req.data.curationKey;
     try {
       await launchAddAppCuration(req.data.curationKey, req.data.curation, skipLink, {

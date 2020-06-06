@@ -305,14 +305,17 @@ export function runService(state: BackState, id: string, name: string, info: INa
 }
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
-  if (service.getState() != ProcessState.STOPPED) {
+  if (service.getState() !== ProcessState.STOPPED) {
     return new Promise(resolve => {
-      service.on('change', () => {
+      service.on('change', onChange);
+      service.kill();
+
+      function onChange() {
         if (service.getState() === ProcessState.STOPPED) {
+          service.off('change', onChange);
           resolve();
         }
-      });
-      service.kill();
+      }
     });
   }
 }
