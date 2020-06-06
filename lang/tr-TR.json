@@ -79,7 +79,7 @@
     "copyText": "Metni Kopyala",
     "clearLog": "Kayıtları Temizle",
     "uploadLog": "Kayıtları Yükle",
-    "copiedToClipboard": "Copied to Clipboard"
+    "copiedToClipboard": "Panoya Kopyalandı"
   },
   "app": {
     "home": "Ev",
@@ -252,14 +252,14 @@
     "category": "Kategori",
     "noCategory": "Kategori Yok",
     "newCategory": "Yeni Kategori",
-    "enterAlias": "Enter Alias",
-    "aliases": "Aliases",
+    "enterAlias": "İsim Girin",
+    "aliases": "İsimler",
     "editTag": "Etiketi Düzenle",
     "color": "Renk",
     "noTagSelected": "Seçili Etiket Yok",
     "clickToSelectTag": "Etiket Seçmek için Tıkla",
-    "deleteTagAlias": "Delete Tag Alias",
-    "setPrimaryAlias": "Set Primary Alias",
+    "deleteTagAlias": "İsim Etiketlerini Sil",
+    "setPrimaryAlias": "Temel İsimler Ayarla",
     "mergeIntoTag": "Etiketleri Birleştir",
     "mergeTag": "Etiketi Birleştir",
     "makeAliasWhenMerged": "Make this an alias of the tag?",
@@ -355,7 +355,7 @@
     "installingFiles": "Dosyalar Yükleniyor...",
     "complete": "Tamamlandı",
     "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditDesc": "Dışa aktarılacak tüm özellikleri seç:"
   },
   "menu": {
     "viewThumbnailInFolder": "Klasördeki küçükresmi İncele",
