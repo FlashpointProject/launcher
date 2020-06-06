@@ -306,6 +306,7 @@
     "deleteCurationDesc": "Διαγραφή αυτής της επιμέλειας (Τα αρχεία δεν μπορούν να ανακτηθούν)",
     "openFolder": "Άνοιγμα Φακέλου",
     "run": "Εκτέλεση",
+    "runWithMAD4FP": "Run with MAD4FP",
     "export": "Εξαγωγή",
     "import": "Εισαγωγή",
     "contentFiles": "Αρχεία Περιεχομένου",
