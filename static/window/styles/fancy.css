@@ -91,6 +91,7 @@
   --layout__log-source-redirector:          #00ffff;
   --layout__log-source-router:              #00ff00;
   --layout__log-source-curation:            #efff00;
+  --layout__log-source-log-watcher:         #b80303;
   /* Credits */
   --layout__credits-tooltip-border:           #000000;
   --layout__credits-tooltip-background:       #000000DD;

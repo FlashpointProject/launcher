@@ -23,6 +23,7 @@ const labels = [
   'Redirector',
   'Router',
   'Curation',
+  'Log Watcher'
 ];
 
 export type LogsPageState = {

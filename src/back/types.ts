@@ -103,6 +103,8 @@ export type ServiceFileData = {
   start: IBackProcessInfo[];
   /** Processes to run when the launcher closes. */
   stop: IBackProcessInfo[];
+  /** Files to watch and run continous logging on */
+  watch: string[];
 };
 
 export type ThemeListItem = Theme & {
