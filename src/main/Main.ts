@@ -61,13 +61,22 @@ export function main(init: Init): void {
   // -- Functions --
 
   function startup() {
-    app.allowRendererProcessReuse = true;
+    app.allowRendererProcessReuse = true; // Hides the "new default value" warning message (remove this line after upgrading to electron 9)
+
+    // Single process
+    // No more than one "main" instance should exist at any time. Mutliple "flash" instances are fine.
+    if (!app.requestSingleInstanceLock()) {
+      app.exit();
+      return;
+    }
+
     // Add app event listener(s)
     app.once('ready', onAppReady);
     app.once('window-all-closed', onAppWindowAllClosed);
     app.once('will-quit', onAppWillQuit);
     app.once('web-contents-created', onAppWebContentsCreated);
     app.on('activate', onAppActivate);
+    app.on('second-instance', onAppSecondInstance);
 
     // Add IPC event listener(s)
     ipcMain.on(InitRendererChannel, onInit);
@@ -182,10 +191,12 @@ export function main(init: Init): void {
         ws.send(JSON.stringify(req));
       }), TIMEOUT_DELAY))
       // Create main window
-      .then(() => (
-        app.whenReady()
-        .then(() => { createMainWindow(); })
-      ));
+      .then(() => app.whenReady())
+      .then(() => {
+        if (!state.window) {
+          state.window = createMainWindow();
+        }
+      });
     }
     // Catch errors
     p.catch((error) => {
@@ -289,7 +300,20 @@ export function main(init: Init): void {
   function onAppActivate(): void {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (!state.window) { createMainWindow(); }
+    if (!state.window) {
+      state.window = createMainWindow();
+    }
+  }
+
+  function onAppSecondInstance(event: Electron.Event, argv: string[], workingDirectory: string): void {
+    if (state.window) {
+      // Focus the window
+      // (this is a hacky work around because focusing is kinda broken in win10, see https://github.com/electron/electron/issues/2867 )
+      state.window.setAlwaysOnTop(true);
+      state.window.show();
+      state.window.setAlwaysOnTop(false);
+      app.focus();
+    }
   }
 
   function onInit(event: IpcMainEvent) {
