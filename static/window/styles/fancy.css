@@ -89,9 +89,9 @@
   --layout__log-source-game-launcher:       #e67e22;
   --layout__log-source-language:            #b157ec;
   --layout__log-source-redirector:          #00ffff;
-  --layout__log-source-router:              #00ff00;
+  --layout__log-source-server:              #00ff00;
   --layout__log-source-curation:            #efff00;
-  --layout__log-source-log-watcher:         #b80303;
+  --layout__log-source-log-watcher:         #cf0000;
   /* Credits */
   --layout__credits-tooltip-border:           #000000;
   --layout__credits-tooltip-background:       #000000DD;
@@ -267,11 +267,14 @@ body {
 .log__source--redirector {
   color: var(--layout__log-source-redirector);
 }
-.log__source--router {
-  color: var(--layout__log-source-router);
+.log__source--server {
+  color: var(--layout__log-source-server);
 }
 .log__source--curation {
   color: var(--layout__log-source-curation);
+}
+.log__source--log-watcher {
+  color: var(--layout__log-source-log-watcher);
 }
 
 

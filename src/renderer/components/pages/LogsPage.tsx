@@ -21,7 +21,7 @@ const labels = [
   'Game Launcher',
   'Language',
   'Redirector',
-  'Router',
+  'Server',
   'Curation',
   'Log Watcher'
 ];
