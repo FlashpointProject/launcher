@@ -416,9 +416,9 @@
   "upgrades": {
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "Fichiers requis. Ajoute la prise en charge des jeux Flash.",
-    "tech": "Autres Technologies",
-    "techDesc": "Ajoute le support de toutes les autres technologies - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos et Captures D'Écran",
-    "screenshotsDesc": "Ajoute des logos pour la vue grille et des captures d'écran pour tous les jeux."
+    "tech": "Autres technologies",
+    "techDesc": "Ajoute la prise en charge de toutes les autres technologies - Shockwave, Unity, Java, HTML5, etc.",
+    "screenshots": "Logos et captures d'écran",
+    "screenshotsDesc": "Ajoute des logos pour la vue en grille et des captures d'écran pour tous les jeux."
   }
 }
