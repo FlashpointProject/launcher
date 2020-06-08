@@ -78,6 +78,7 @@
     "filters": "フィルター",
     "copyText": "テキストをコピー",
     "clearLog": "ログを消去",
+    "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
     "copiedToClipboard": "Copied to Clipboard"
   },
