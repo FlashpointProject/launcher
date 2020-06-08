@@ -78,6 +78,7 @@
     "filters": "Filter",
     "copyText": "Kopiera text",
     "clearLog": "Rensa logg",
+    "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
     "copiedToClipboard": "Copied to Clipboard"
   },
