@@ -78,6 +78,7 @@
     "filters": "Филтери",
     "copyText": "Копирај текст",
     "clearLog": "Очисти запис",
+    "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
     "copiedToClipboard": "Copied to Clipboard"
   },
