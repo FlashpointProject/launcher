@@ -78,6 +78,7 @@
     "filters": "Фильтры",
     "copyText": "Копировать текст",
     "clearLog": "Очистить лог",
+    "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Журнал загрузки",
     "copiedToClipboard": "Скопировано в буфер обмена"
   },
