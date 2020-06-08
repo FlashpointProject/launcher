@@ -78,6 +78,7 @@
     "filters": "Filtros",
     "copyText": "Copiar texto",
     "clearLog": "Limpiar el registro",
+    "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Subir registro",
     "copiedToClipboard": "Copiado al portapapeles"
   },
