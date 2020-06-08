@@ -85,6 +85,7 @@ const langTemplate = {
     'filters',
     'copyText',
     'clearLog',
+    'copy404Urls',
     'uploadLog',
     'copiedToClipboard',
   ] as const,
