@@ -16,13 +16,15 @@ type OwnProps = {};
 
 export type LogsPageProps = OwnProps & WithPreferencesProps;
 
+const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www\.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w\-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[.!/\\\w]*))?)/;
 const labels = [
   'Background Services',
   'Game Launcher',
   'Language',
   'Redirector',
-  'Router',
+  'Server',
   'Curation',
+  'Log Watcher',
 ];
 
 export type LogsPageState = {
@@ -117,6 +119,16 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
                       className='simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
+                {/* Copy 404 URLs Button */}
+                <div className='log-page__bar__wrap'>
+                  <div className='simple-center'>
+                    <input
+                      type='button'
+                      value={strings.copy404Urls}
+                      onClick={this.onCopy404Click}
+                      className='simple-button simple-center__vertical-inner' />
+                  </div>
+                </div>
                 {/* Upload Logs Button */}
                 <div className='log-page__bar__wrap'>
                   <div className='simple-center'>
@@ -152,6 +164,23 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     window.Shared.log.offset += window.Shared.log.entries.length;
     window.Shared.log.entries = [];
     this.forceUpdate();
+  }
+
+  onCopy404Click = (): void => {
+    // Store found URLs
+    const urls: string[] = [];
+    for (const entry of window.Shared.log.entries) {
+      // All 404 entries start with 404
+      if (entry && entry.content.startsWith('404')) {
+        // Extract URL with regex
+        const match = urlRegex.exec(entry.content);
+        if (match && match.length > 0) {
+          urls.push(match[1]);
+        }
+      }
+    }
+    // Copy with each URL on a new line
+    clipboard.writeText(urls.join('\n'));
   }
 
   onUploadClick = async (): Promise<void> => {

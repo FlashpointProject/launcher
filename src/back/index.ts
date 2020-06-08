@@ -22,6 +22,7 @@ import * as path from 'path';
 import 'reflect-metadata';
 // Required for the DB Models to function
 import 'sqlite3';
+import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
@@ -32,7 +33,7 @@ import { SocketServer } from './SocketServer';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { createContainer, exit, log, runService } from './util/misc';
+import { createContainer, exit, log, newLogEntry, runService } from './util/misc';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -144,6 +145,22 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     if (state.serviceInfo.server.length > 0) {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
       state.services.server = runService(state, 'server', 'Server', chosenServer || state.serviceInfo.server[0]);
+    }
+    // Start file watchers
+    for (let i = 0; i < state.serviceInfo.watch.length; i++) {
+      const filePath = state.serviceInfo.watch[i];
+      try {
+        const tail = new Tail(filePath, { follow: true });
+        tail.on('line', (data) => {
+          log(state, newLogEntry('Log Watcher', data));
+        });
+        tail.on('error', (error) => {
+          log(state, newLogEntry('Log Watcher', `Error while watching file "${filePath}" - ${error}`));
+        });
+        log(state, newLogEntry('Log Watcher', `Watching file "${filePath}"`));
+      } catch (error) {
+        log(state, newLogEntry('Log Watcher', `Failed to watch file "${filePath}" - ${error}`));
+      }
     }
   }
 

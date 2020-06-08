@@ -4,6 +4,7 @@ import { parseVarStr, readJsonFile } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as path from 'path';
+import { ServiceFileData } from './types';
 
 const { str } = Coerce;
 
@@ -31,6 +32,7 @@ export namespace ServicesFile {
       server: [],
       start: [],
       stop: [],
+      watch: [],
     };
     const parser = new ObjectParser({
       input: data,
@@ -39,6 +41,7 @@ export namespace ServicesFile {
     parser.prop('server').array(item => parsed.server.push(parseNamedBackProcessInfo(item, config)));
     parser.prop('start').array(item => parsed.start.push(parseBackProcessInfo(item, config)));
     parser.prop('stop').array(item  => parsed.stop.push(parseBackProcessInfo(item, config)));
+    parser.prop('watch').arrayRaw(item => parsed.watch.push(parseVarStr(str(item), config)));
     return parsed;
   }
 
@@ -68,12 +71,4 @@ export namespace ServicesFile {
     parser.prop('arguments').arrayRaw(item => parsed.arguments.push(parseVarStr(str(item), config)));
     return parsed;
   }
-}
-
-export type ServiceFileData = {
-  server: INamedBackProcessInfo[];
-  /** Processes to run before the launcher starts. */
-  start: IBackProcessInfo[];
-  /** Processes to run when the launcher closes. */
-  stop: IBackProcessInfo[];
 }

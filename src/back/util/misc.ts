@@ -319,3 +319,10 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
     });
   }
 }
+
+export function newLogEntry(source: string, content: string): ILogPreEntry {
+  return {
+    source: source,
+    content: content
+  };
+}
