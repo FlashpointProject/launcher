@@ -78,6 +78,7 @@
     "filters": "Φίλτρα",
     "copyText": "Αντιγραφή Κειμένου",
     "clearLog": "Εκκαθάριση Αρχείου Καταγραφών",
+    "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
     "copiedToClipboard": "Copied to Clipboard"
   },
