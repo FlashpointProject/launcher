@@ -78,6 +78,7 @@
     "filters": "Filtere",
     "copyText": "Kopier Tekst",
     "clearLog": "Ryd log-filen",
+    "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
     "copiedToClipboard": "Copied to Clipboard"
   },
