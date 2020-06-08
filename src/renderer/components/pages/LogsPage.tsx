@@ -24,7 +24,7 @@ const labels = [
   'Redirector',
   'Server',
   'Curation',
-  'Log Watcher'
+  'Log Watcher',
 ];
 
 export type LogsPageState = {

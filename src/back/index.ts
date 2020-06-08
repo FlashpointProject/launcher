@@ -154,12 +154,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         tail.on('line', (data) => {
           log(state, newLogEntry('Log Watcher', data));
         });
-        tail.on('error', (data) => {
-          log(state, newLogEntry('Log Watcher', `Error while watching file - ${filePath} - ERROR: ${data}`));
+        tail.on('error', (error) => {
+          log(state, newLogEntry('Log Watcher', `Error while watching file "${filePath}" - ${error}`));
         });
-        log(state, newLogEntry('Log Watcher', `Watching file ${filePath}`));
+        log(state, newLogEntry('Log Watcher', `Watching file "${filePath}"`));
       } catch (error) {
-        log(state, newLogEntry('Log Watcher', `Log file not found, not watching - ${filePath}`));
+        log(state, newLogEntry('Log Watcher', `Failed to watch file "${filePath}" - ${error}`));
       }
     }
   }
