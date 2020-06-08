@@ -78,6 +78,7 @@
     "filters": "Szűrők",
     "copyText": "Szöveg másolása",
     "clearLog": "Napló törlése",
+    "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Log feltöltése",
     "copiedToClipboard": "Vágólapra másolva"
   },
