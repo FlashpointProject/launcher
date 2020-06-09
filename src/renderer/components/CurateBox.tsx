@@ -2,7 +2,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackIn, LaunchCurationData, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagGetOrCreateResponse, TagSuggestion, TagSuggestionsData, TagSuggestionsResponse } from '@shared/back/types';
 import { htdocsPath } from '@shared/constants';
-import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
+import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
@@ -425,7 +425,7 @@ export function CurateBox(props: CurateBoxProps) {
           .catch((error) => { /* No file is okay, ignore error */ });
         // Save working meta
         const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, props.tagCategories, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories, curation.addApps));
         const statusProgress = newProgress(props.curation.key, progressDispatch);
         ProgressDispatch.setText(statusProgress, 'Exporting Curation...');
         ProgressDispatch.setUsePercentDone(statusProgress, false);
@@ -800,7 +800,7 @@ export function CurateBox(props: CurateBoxProps) {
           </CurateBoxRow>
           <CurateBoxRow title={strings.browse.extreme + ':'}>
             <CheckBox
-              checked={strToBool(props.curation && props.curation.meta.extreme || '')}
+              checked={props.curation && props.curation.meta.extreme}
               onToggle={onExtremeChange}
               disabled={disabled} />
           </CurateBoxRow>
@@ -966,7 +966,7 @@ function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | und
         payload: {
           key: key,
           property: property,
-          value: checked ? 'Yes' : 'No', // Note: This is hard-coded in english because it is written to the meta file
+          value: checked
         }
       });
     }

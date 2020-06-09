@@ -4,7 +4,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { validateSemiUUID } from '@renderer/util/uuid';
 import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
-import { convertEditToCurationMeta } from '@shared/curate/metaToMeta';
+import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { sizeToString } from '@shared/Util';
@@ -131,7 +131,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       if (saveCuration) {
         // Save working meta
         const metaPath = path.join(getCurationFolder(curation, fpPath), 'meta.yaml');
-        const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, opts.tagCategories, curation.addApps));
+        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, opts.tagCategories, curation.addApps));
         await fs.writeFile(metaPath, meta);
         // Date in form 'YYYY-MM-DD' for folder sorting
         const date = new Date();
@@ -223,7 +223,7 @@ async function createGameFromCurationMeta(gameId: string, gameMeta: EditCuration
     dateAdded:           date.toISOString(),
     dateModified:        date.toISOString(),
     broken:              false,
-    extreme:             !!strToBool(gameMeta.extreme || ''),
+    extreme:             gameMeta.extreme || false,
     library:             gameMeta.library || '',
     orderTitle: '', // This will be set when saved
     addApps: [],

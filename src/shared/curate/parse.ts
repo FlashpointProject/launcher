@@ -1,5 +1,4 @@
 import { Coerce } from '@shared/utils/Coerce';
-import * as YAML from 'yaml';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
@@ -27,7 +26,7 @@ export async function parseCurationMetaOld(text: string): Promise<ParsedCuration
   tokens = tokenizeCurationFormat(text);
   rawMeta = parseCurationFormat(tokens);
   // Convert the raw meta to a programmer friendly object
-  return await convertMeta(rawMeta);
+  return await parseCurationMetaFile(rawMeta);
 }
 
 /**
@@ -37,7 +36,7 @@ export async function parseCurationMetaOld(text: string): Promise<ParsedCuration
 export async function parseCurationMetaNew(rawMeta: any): Promise<ParsedCurationMeta> {
   // Try parsing yaml file
   // Convert raw meta into a ParsedCurationMeta object
-  return await convertMeta(rawMeta);
+  return await parseCurationMetaFile(rawMeta);
 }
 
 /**
@@ -45,7 +44,7 @@ export async function parseCurationMetaNew(rawMeta: any): Promise<ParsedCuration
  * @param data "Raw" meta object to convert.
  * @param onError Called whenever an error occurs.
  */
-export async function convertMeta(data: any, onError?: (error: string) => void): Promise<ParsedCurationMeta> {
+export async function parseCurationMetaFile(data: any, onError?: (error: string) => void): Promise<ParsedCurationMeta> {
   // Default parsed data
   const parsed: ParsedCurationMeta = {
     game: {},
@@ -76,7 +75,7 @@ export async function convertMeta(data: any, onError?: (error: string) => void):
   parser.prop('application path',     v => parsed.game.applicationPath     = str(v));
   parser.prop('curation notes',       v => parsed.game.curationNotes       = str(v));
   parser.prop('developer',            v => parsed.game.developer           = arrayStr(v));
-  parser.prop('extreme',              v => parsed.game.extreme             = str(v));
+  parser.prop('extreme',              v => parsed.game.extreme             = v === 'Yes' ? true : false);
   parser.prop('game notes',           v => parsed.game.notes               = str(v));
   parser.prop('languages',            v => parsed.game.language            = str(v));
   parser.prop('launch command',       v => parsed.game.launchCommand       = str(v));

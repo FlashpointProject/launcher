@@ -2,7 +2,7 @@ import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { BackIn, ImportCurationData, ImportCurationResponseData } from '@shared/back/types';
 import { ARCADE } from '@shared/constants';
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
-import { convertEditToCurationMeta, convertParsedToCurationMeta } from '@shared/curate/metaToMeta';
+import { convertEditToCurationMetaFile, convertParsedToCurationMeta } from '@shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { GamePropSuggestions } from '@shared/interfaces';
@@ -313,7 +313,7 @@ export function CuratePage(props: CuratePageProps) {
         // Save if not marked
         } else {
           const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
-          const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, props.tagCategories, curation.addApps));
+          const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories, curation.addApps));
           try {
             fs.writeFileSync(metaPath, meta);
           } catch (error) {

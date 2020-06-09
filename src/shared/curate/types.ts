@@ -40,7 +40,7 @@ export type EditCurationMeta = Partial<{
   developer: string;
   publisher: string;
   status: string;
-  extreme: string;
+  extreme: boolean;
   tags: Tag[];
   source: string;
   launchCommand: string;
