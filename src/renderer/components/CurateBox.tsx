@@ -959,7 +959,6 @@ function useOnInputChange(property: keyof EditCurationMeta, key: string | undefi
 }
 
 function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | undefined, dispatch: React.Dispatch<CurationAction>) {
-  const strings = React.useContext(LangContext);
   return useCallback((checked: boolean) => {
     if (key !== undefined) {
       dispatch({
@@ -967,7 +966,7 @@ function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | und
         payload: {
           key: key,
           property: property,
-          value: boolToString(checked, strings.misc)
+          value: checked ? 'Yes' : 'No', // Note: This is hard-coded in english because it is written to the meta file
         }
       });
     }
@@ -1100,14 +1099,6 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
   try      { value = await promise; }
   catch (e) { error = e;             }
   return [value, error];
-}
-
-/**
- * Convert a boolean to a string ("Yes" or "No").
- * @param bool Boolean to convert.
- */
-function boolToString(bool: boolean, strings: LangContainer['misc']): string {
-  return bool ? strings.yes : strings.no;
 }
 
 /**
