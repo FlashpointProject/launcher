@@ -1,4 +1,4 @@
-import { Tag } from "@database/entity/Tag"
+import { Tag } from '@database/entity/Tag';
 
 /** Game properties that can be partially exported/imported. */
 export type MetaEditMetaMap = Partial<{

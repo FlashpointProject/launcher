@@ -1,16 +1,16 @@
-import { Game } from "@database/entity/Game";
-import { Tag } from "@database/entity/Tag";
-import { ImportMetaEditResult, MetaEditGameNotFound } from "@shared/back/types";
-import { ChangedMeta, MetaChange, MetaChangeBase, MetaEditFile, MetaEditMeta, MetaEditMetaMap, stringifyMetaValue } from "@shared/MetaEdit";
-import { readJsonFile, shallowStrictEquals } from "@shared/Util";
-import { Coerce } from "@shared/utils/Coerce";
-import { IObjectParserProp, ObjectParser } from "@shared/utils/ObjectParser";
-import * as fs from "fs";
-import * as path from "path";
-import { GameManager } from "./game/GameManager";
-import { TagManager } from "./game/TagManager";
-import { OpenDialogFunc } from "./types";
-import { copyError } from "./util/misc";
+import { Game } from '@database/entity/Game';
+import { Tag } from '@database/entity/Tag';
+import { ImportMetaEditResult, MetaEditGameNotFound } from '@shared/back/types';
+import { ChangedMeta, MetaChange, MetaChangeBase, MetaEditFile, MetaEditMeta, MetaEditMetaMap, stringifyMetaValue } from '@shared/MetaEdit';
+import { readJsonFile, shallowStrictEquals } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
+import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
+import * as fs from 'fs';
+import * as path from 'path';
+import { GameManager } from './game/GameManager';
+import { TagManager } from './game/TagManager';
+import { OpenDialogFunc } from './types';
+import { copyError } from './util/misc';
 
 const { str, strToBool } = Coerce;
 
@@ -25,7 +25,7 @@ export function parseMetaEdit(data: any, onError?: (error: string) => void): Met
     launcherVersion: '',
   };
 
-  parser.prop('metas').array(v => parsed.metas.push(parseMetaEditMeta(v)))
+  parser.prop('metas').array(v => parsed.metas.push(parseMetaEditMeta(v)));
   parser.prop('launcherVersion', v => parsed.launcherVersion = str(v));
 
   return parsed;
@@ -59,7 +59,7 @@ function parseMetaEditMeta(parser: IObjectParserProp<any>) : MetaEditMeta {
 
   parser.prop('tags', v => parsed.tags = (v !== undefined) ? [] : undefined, true).arrayRaw(v => {
     if (!parsed.tags) { throw new Error('"parsed.tags" is missing (bug)'); }
-    parsed.tags.push(str(v))
+    parsed.tags.push(str(v));
   });
 
   return parsed;
@@ -92,7 +92,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
   const files: LoadedMetaEditFile[] = [];
   try {
     const filenames = await fs.promises.readdir(fullMetaEditsFolderPath);
-    
+
     for (const filename of filenames) {
       try {
         const fullFilename = path.join(fullMetaEditsFolderPath, filename);
@@ -101,15 +101,15 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
 
         const raw = await readJsonFile(fullFilename);
         const parsed = parseMetaEdit(raw);
-        
+
         files.push({
           filename: filename,
           mtime: stats.mtimeMs,
           content: parsed,
         });
-      } catch (error) { errors.push(error); }   
+      } catch (error) { errors.push(error); }
     }
-  } catch (error) { errors.push(error); }   
+  } catch (error) { errors.push(error); }
 
   // Abort if any file failed to load
   if (errors.length > 0) {
@@ -167,7 +167,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
       games[id] = await GameManager.findGame(id);
     } else { // Game not found
       const combined = combinedMetas[id];
-      if (!combined) { throw new Error(`Failed to check for collisions. "combined meta" is missing (id: "${id}") (bug)`); }      
+      if (!combined) { throw new Error(`Failed to check for collisions. "combined meta" is missing (id: "${id}") (bug)`); }
 
       // List all filenames that edits the game
       const filenames: string[] = [];
@@ -203,7 +203,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
     for (const property of keys) {
       const values = combined[property];
       if (!values) { throw new Error(`Failed to check for collisions. "values" is missing (id: "${id}", property: "${property}") (bug)`); }
-      
+
       if (values.length > 1) { // Collision
         const buttonIndex = await openDialog({
           type: 'question',

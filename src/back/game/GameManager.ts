@@ -91,7 +91,7 @@ export namespace GameManager {
   }
 
   export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<GetPageKeysetResult> {
-    const startTime = Date.now();
+    let startTime = Date.now();
 
     validateSqlName(orderBy);
     validateSqlOrder(direction);
@@ -102,7 +102,7 @@ export namespace GameManager {
     subQ.select(`sub.${orderBy}, sub.title, sub.id, case row_number() over(order by sub.${orderBy} ${direction}, sub.title ${direction}, sub.id) % ${VIEW_PAGE_SIZE} when 0 then 1 else 0 end page_boundary`);
     subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
 
-    const query = getManager().createQueryBuilder()
+    let query = getManager().createQueryBuilder()
       .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
       .from('(' + subQ.getQuery() + ')', 'g')
       .where('g.page_boundary = 1')
@@ -118,22 +118,19 @@ export namespace GameManager {
 
     // Count games
     let total = -1;
-    if (true) {
-      const startTime = Date.now();
+    startTime = Date.now();
+    query = await getGameQuery('sub', filterOpts, orderBy, direction, 0, undefined, undefined);
 
-      const query = await getGameQuery('sub', filterOpts, orderBy, direction, 0, undefined, undefined);
-
-      query.skip(0);
-      query.select('COUNT(*)');
-      const result = await query.getRawOne();
-      if (result) {
-        total = Coerce.num(result['COUNT(*)']); // Coerce it, even though it is probably of type number or undefined
-      } else {
-        console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
-      }
-
-      // console.log(`  Count: ${Date.now() - startTime}ms`);
+    query.skip(0);
+    query.select('COUNT(*)');
+    const result = await query.getRawOne();
+    if (result) {
+      total = Coerce.num(result['COUNT(*)']); // Coerce it, even though it is probably of type number or undefined
+    } else {
+      console.error(`Failed to get total number of games. No result from query (Query: "${query.getQuery()}").`);
     }
+
+    // console.log(`  Count: ${Date.now() - startTime}ms`);
 
     return {
       keyset,

@@ -50,7 +50,7 @@ export function flash(init: Init): void {
         extension = '.so';
         break;
       case 'darwin':
-        extension = '.plugin'
+        extension = '.plugin';
         break;
       default:
         console.error(`No plugin file extension is assigned to the current operating system (platform: "${process.platform}").`);

@@ -307,7 +307,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               text += `  ${error.name || 'Error'}: #${i + 1}\n` +
                       `    Message: ${error.message}\n`;
               if (typeof error.stack === 'string') {
-                text += `    Stack: ${error.stack.replace(/\n */g, '\n      ')}\n`
+                text += `    Stack: ${error.stack.replace(/\n */g, '\n      ')}\n`;
               }
               text += '\n';
             }

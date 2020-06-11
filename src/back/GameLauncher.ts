@@ -110,7 +110,7 @@ export namespace GameLauncher {
       }
     }
     // Launch game
-    const appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)
+    const appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
     switch (appPath) {
       case ':flash:': {
         const env = getEnvironment(opts.fpPath);
@@ -225,7 +225,7 @@ export namespace GameLauncher {
         }
         return `"${filename}" ${escapeLinuxArgs(args)}`;
       default:
-        throw Error("Unsupported platform");
+        throw Error('Unsupported platform');
     }
   }
 
