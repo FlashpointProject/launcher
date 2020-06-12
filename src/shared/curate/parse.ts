@@ -75,7 +75,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('application path',     v => parsed.game.applicationPath     = str(v));
   parser.prop('curation notes',       v => parsed.game.curationNotes       = str(v));
   parser.prop('developer',            v => parsed.game.developer           = arrayStr(v));
-  parser.prop('extreme',              v => parsed.game.extreme             = v === 'Yes' ? true : false);
+  parser.prop('extreme',              v => parsed.game.extreme             = str(v).toLowerCase() === 'yes' ? true : false);
   parser.prop('game notes',           v => parsed.game.notes               = str(v));
   parser.prop('languages',            v => parsed.game.language            = str(v));
   parser.prop('launch command',       v => parsed.game.launchCommand       = str(v));
