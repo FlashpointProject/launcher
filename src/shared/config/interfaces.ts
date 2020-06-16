@@ -47,4 +47,6 @@ export type IAppConfigData = {
   onDemandBaseUrl: string;
   /** Base URL of the server to do pastes of the Logs to. */
   logsBaseUrl: string;
+  /** Whether to notify that launcher updates are available */
+  updatesEnabled: boolean;
 };

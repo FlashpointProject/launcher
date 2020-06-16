@@ -452,8 +452,10 @@ export class App extends React.Component<AppProps, AppState> {
         });
       });
       autoUpdater.on('update-downloaded', onUpdateDownloaded);
-      autoUpdater.checkForUpdates()
-      .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
+      if (window.Shared.config.data.updatesEnabled) {
+        autoUpdater.checkForUpdates()
+        .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
+      }
       console.log('Checking for updates...');
     }
 

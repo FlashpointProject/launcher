@@ -58,7 +58,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
     // Render input field
     const inputField = (
       <InputField
-        { ...this.props }
+        { ...this.props } 
         className={(className || '') + ' input-dropdown__input-field__input__inner'}
         onChange={this.onInputChange}
         onKeyDown={this.onInputKeyDown}
