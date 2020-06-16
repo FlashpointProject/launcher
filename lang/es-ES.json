@@ -35,7 +35,7 @@
     "server": "Servidor",
     "serverDesc": "Cual proceso de servidor se ejecutará al iniciar la aplicación.",
     "metadataServerHost": "Servidor de metadatos anfitrión",
-    "metadataServerHostDesc": "Host del servidor de metadatos. Utilizado para sincronizar información nueva y actualizada de los juegos a la aplicación.",
+    "metadataServerHostDesc": "Anfitrión del servidor de metadatos. Utilizado para sincronizar información nueva y actualizada de los juegos a la aplicación.",
     "saveAndRestart": "Guardar y reiniciar"
   },
   "home": {
@@ -380,7 +380,7 @@
     "pathNotFound": "¡Ruta no encontrada!",
     "playlistConflict": "Conflicto en la lista de reproducción",
     "importedPlaylistAlreadyExists": "La lista de reproducción importada ya existe! - '{0}'",
-    "mergeOrStaySeperate": "¿Deberían fusionarse en una, o mantenerlas como listas de reproducción separadas?",
+    "mergeOrStaySeperate": "¿Deberían fusionarse en una, o permanecer como listas de reproducción separadas?",
     "selectFileToExportMeta": "Seleccionar archivo para guardar metadatos",
     "selectFolderToExportMetaAndImages": "Seleccionar carpeta para guardar metadatos e imágenes",
     "replaceFilesQuestion": "¿Reemplazar archivos?",
