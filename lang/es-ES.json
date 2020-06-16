@@ -33,9 +33,9 @@
     "showDeveloperTab": "Mostrar la pestaña Desarrollador",
     "showDeveloperTabDesc": "Mostrar la pestaña 'Desarrollador'. Esta es muy probable que sólo sea útil para desarrolladores y curadores.",
     "server": "Servidor",
-    "serverDesc": "Cual proceso de servidor se ejecutará al iniciar el lanzador.",
+    "serverDesc": "Cual proceso de servidor se ejecutará al iniciar la aplicación.",
     "metadataServerHost": "Servidor de metadatos anfitrión",
-    "metadataServerHostDesc": "Host del servidor de metadatos. Utilizado para sincronizar información nueva y actualizada de los juegos al lanzador.",
+    "metadataServerHostDesc": "Host del servidor de metadatos. Utilizado para sincronizar información nueva y actualizada de los juegos a la aplicación.",
     "saveAndRestart": "Guardar y reiniciar"
   },
   "home": {
@@ -379,7 +379,7 @@
     "flashpointPathInvalid": "¡Ruta de Flashpoint inválida!",
     "pathNotFound": "¡Ruta no encontrada!",
     "playlistConflict": "Conflicto en la lista de reproducción",
-    "importedPlaylistAlreadyExists": "¡La lista de reproducción a importar ya existe! - '{0}'",
+    "importedPlaylistAlreadyExists": "La lista de reproducción importada ya existe! - '{0}'",
     "mergeOrStaySeperate": "¿Deberían fusionarse en una, o mantenerlas como listas de reproducción separadas?",
     "selectFileToExportMeta": "Seleccionar archivo para guardar metadatos",
     "selectFolderToExportMetaAndImages": "Seleccionar carpeta para guardar metadatos e imágenes",
