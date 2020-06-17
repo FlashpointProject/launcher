@@ -5,7 +5,7 @@ type HTMLDivProps = React.HTMLAttributes<HTMLDivElement>;
 
 export type GameItemContainerProps = HTMLDivProps & {
   /** Reference to the underlying DIV element. */
-  realRef?: JSX.IntrinsicElements['div']["ref"];
+  realRef?: JSX.IntrinsicElements['div']['ref'];
   onGameSelect?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string | undefined) => void;
   onGameLaunch?:      (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
   onGameContextMenu?: (event: React.MouseEvent<HTMLDivElement>, gameId: string) => void;
@@ -33,8 +33,9 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
         onDoubleClick={this.onDoubleClick}
         onContextMenu={this.onContextMenu}
         onDragStart={this.onDragStart}
-        onDragEnd={this.onDragEnd}
-        children={this.props.children} />
+        onDragEnd={this.onDragEnd} >
+        {this.props.children}
+      </div>
     );
   }
 

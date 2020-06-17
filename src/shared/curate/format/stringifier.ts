@@ -15,7 +15,7 @@ export function stringifyCurationFormat(value: any): string {
 function stringifyObject(obj: any, indent: number): string {
   const indentStr = createIndent(indent);
   let str = '';
-  for (let key in obj) {
+  for (const key in obj) {
     const val = obj[key];
     // Don't include values with certain values
     if (val === undefined || val === null) { continue; }
@@ -43,7 +43,7 @@ function stringifyObject(obj: any, indent: number): string {
           str += `\n${stringifyObject(val, indent + 1)}`;
         }
         break;
-      case 'string':
+      case 'string': {
         let index = val.indexOf('\n');
         if (index >= 0) { // (Multi-line)
           // Split the string into a multi-line string declaration
@@ -61,6 +61,7 @@ function stringifyObject(obj: any, indent: number): string {
           str += ` ${val}\n`;
         }
         break;
+      }
     }
   }
   return str;

@@ -212,14 +212,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                           { currentPlaylistEntry ? (
                             <ConfirmElement
                               onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
-                              children={this.renderRemoveFromPlaylistButton}
+                              render={this.renderRemoveFromPlaylistButton}
                               extra={strings} />
                           ) : undefined }
                           {/* "Delete Game" Button */}
                           { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
                             <ConfirmElement
                               onConfirm={this.onDeleteGameClick}
-                              children={this.renderDeleteGameButton}
+                              render={this.renderDeleteGameButton}
                               extra={strings} />
                           ) }
                         </>
@@ -403,10 +403,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onClick={this.onBrokenChange}>
                       { editable ? (
                         <>
-                        <CheckBox
-                          checked={game.broken}
-                          className='browse-right-sidebar__row__check-box' />
-                        <p> {strings.brokenInInfinity}</p>
+                          <CheckBox
+                            checked={game.broken}
+                            className='browse-right-sidebar__row__check-box' />
+                          <p> {strings.brokenInInfinity}</p>
                         </>
                       ) : (<b> {strings.brokenInInfinity}</b>) }
                     </div>
@@ -419,10 +419,10 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                       onClick={this.onExtremeChange}>
                       { editable ? (
                         <>
-                        <CheckBox
-                          checked={game.extreme}
-                          className='browse-right-sidebar__row__check-box' />
-                        <p> {strings.extreme}</p>
+                          <CheckBox
+                            checked={game.extreme}
+                            className='browse-right-sidebar__row__check-box' />
+                          <p> {strings.extreme}</p>
                         </>
                       ) : ( <b> {strings.extreme}</b> ) }
                     </div>
@@ -781,7 +781,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       }
       function copyArrayLike<T>(arrayLike: { [key: number]: T }): Array<T> {
         const array: T[] = [];
-        for (let key in arrayLike) {
+        for (const key in arrayLike) {
           array[key] = arrayLike[key];
         }
         return array;

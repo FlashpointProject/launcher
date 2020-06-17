@@ -47,6 +47,21 @@
       "args": "none"
     }],
     "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-empty-function": ["warn", { "allow": ["arrowFunctions"] }],
+    "@typescript-eslint/ban-types": ["warn", {
+      "types": {
+        "{}": false
+      },
+      "extendDefaults": true
+    }],
+    "react/no-unescaped-entities": ["error", {"forbid": [{
+      "char": ">",
+      "alternatives": ["&gt;"]
+    }, {
+      "char": "}",
+      "alternatives": ["&#125;"]
+    }]}],
     "curly": ["warn", "all"],
     "for-direction": "warn",
     "getter-return": "warn",
@@ -54,6 +69,7 @@
     "no-compare-neg-zero": "warn",
     "no-cond-assign": "warn",
     "no-constant-condition": ["warn", { "checkLoops": false }],
+    "no-control-regex": "off",
     "no-debugger": "warn",
     "no-delete-var": "warn",
     "no-dupe-args": "warn",
@@ -67,6 +83,7 @@
     "no-extra-semi": "warn",
     "no-func-assign": "warn",
     "no-global-assign": "warn",
+    "no-inner-declarations": "off",
     "no-invalid-regexp": "warn",
     "no-irregular-whitespace": "warn",
     "no-mixed-spaces-and-tabs": "warn",

@@ -95,7 +95,7 @@ export class RightBrowseSidebarAddApp extends React.Component<RightBrowseSidebar
               { !editDisabled ? (
                 <ConfirmElement
                   onConfirm={this.onDeleteClick}
-                  children={this.renderDeleteButton}
+                  render={this.renderDeleteButton}
                   extra={strings} />
               ) : undefined}
             </div>

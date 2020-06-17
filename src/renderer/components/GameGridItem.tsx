@@ -25,7 +25,7 @@ export function GameGridItem(props: GameGridItemProps) {
   ), [platform]);
   // Pick class names
   const className = React.useMemo(() => {
-    let className: string = 'game-grid-item';
+    let className = 'game-grid-item';
     if (isSelected) { className += ' game-grid-item--selected'; }
     if (isDragged)  { className += ' game-grid-item--dragged';  }
     return className;
@@ -65,7 +65,7 @@ export function GameGridItem(props: GameGridItemProps) {
 
 export namespace GameGridItem { // eslint-disable-line no-redeclare
   /** ID of the attribute used to store the game's id. */
-  export const idAttribute: string = 'data-game-id';
+  export const idAttribute = 'data-game-id';
 
   /**
    * Get the id of the game displayed in a GameGridItem element (or throw an error if it fails).

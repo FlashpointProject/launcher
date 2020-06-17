@@ -101,7 +101,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   /** Reference of the game grid/list element. */
   gameGridOrListRef: HTMLDivElement | null = null;
   /** A timestamp of the previous the the quick search string was updated */
-  _prevQuickSearchUpdate: number = 0;
+  _prevQuickSearchUpdate = 0;
   gameBrowserRef: React.RefObject<HTMLDivElement> = React.createRef();
   /** The "setState" function but bound to this instance. */
   boundSetState = this.setState.bind(this);
@@ -299,20 +299,20 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             <p>{formatString(strings.dropGameOnLeft, <i>{strings.leftSidebar}</i>)}</p>
           </>
         ) : this.props.gamesTotal != undefined ? (
-            <>
+          <>
             <h1 className='game-list__no-games__title'>{strings.noGamesFound}</h1>
             <br/>
-              { this.props.gamesTotal > 1 ? (
-                <>
-                  {strings.noGameMatchedDesc}
-                  <br/>
-                  {strings.noGameMatchedSearch}
-                </>
-              ) : (
-                <>{strings.thereAreNoGames}</>
-              ) }
-            </>
-          ) : <h1 className='game-list__no-games__title'>{strings.searching}</h1> }
+            { this.props.gamesTotal > 1 ? (
+              <>
+                {strings.noGameMatchedDesc}
+                <br/>
+                {strings.noGameMatchedSearch}
+              </>
+            ) : (
+              <>{strings.thereAreNoGames}</>
+            ) }
+          </>
+        ) : <h1 className='game-list__no-games__title'>{strings.searching}</h1> }
       </div>
     );
   });
@@ -481,7 +481,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         this.setState({ quickSearch: newString });
       } else if (key.length === 1) { // (Single character - add it to the search string)
         const timedOut = updateTime.call(this);
-        let newString: string = (timedOut ? '' : this.state.quickSearch) + key;
+        const newString: string = (timedOut ? '' : this.state.quickSearch) + key;
         this.setState({ quickSearch: newString });
       }
     }
@@ -569,7 +569,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           ...this.state.currentPlaylistEntry,
           notes: text
         }
-       });
+      });
     }
   }
 
@@ -755,9 +755,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       const gameId = event.dataTransfer.getData(gameIdDataType);
       if (gameId) {
         const newPlaylistEntry = createPlaylistGame(gameId, playlistId, 0);
-        window.Shared.back.send<SavePlaylistGameResponse, SavePlaylistGameData>(BackIn.SAVE_PLAYLIST_GAME, newPlaylistEntry, entry =>{
-
-        });
+        window.Shared.back.send<SavePlaylistGameResponse, SavePlaylistGameData>(BackIn.SAVE_PLAYLIST_GAME, newPlaylistEntry);
       }
     }
   }

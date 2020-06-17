@@ -53,8 +53,8 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       for (let i = 0; i < parsedMeta.addApps.length; i++) {
         const meta = parsedMeta.addApps[i];
         nextCuration.addApps.push({
-            key: uuid(),
-            meta: meta
+          key: uuid(),
+          meta: meta
         });
       }
       nextCurations[index] = nextCuration;

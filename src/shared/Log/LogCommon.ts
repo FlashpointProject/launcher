@@ -17,8 +17,8 @@ export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string
         str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
         if (entry.source) {
           str += (!prevEntry || entry.source !== prevEntry.source) ?
-                `<span class="log__source log__source--${getClassModifier(entry.source)}">${padStart(escapeHTML(entry.source), sourceChars)}:</span> ` :
-                ' '.repeat(sourceChars + 2);
+            `<span class="log__source log__source--${getClassModifier(entry.source)}">${padStart(escapeHTML(entry.source), sourceChars)}:</span> ` :
+            ' '.repeat(sourceChars + 2);
         }
         str += padLines(escapeHTML(entry.content), timeChars + sourceChars + 2);
         str += '\n';
@@ -40,8 +40,8 @@ export function stringifyLogEntriesRaw(entries: ILogEntry[], filter: { [key: str
       str += `[${(new Date(entry.timestamp)).toLocaleString()}] `;
       if (entry.source) {
         str += (entry.source !== prevEntry.source) ?
-              `${padStart(escapeHTML(entry.source), sourceChars)} | ` :
-              ' '.repeat(sourceChars + 2);
+          `${padStart(escapeHTML(entry.source), sourceChars)} | ` :
+          ' '.repeat(sourceChars + 2);
       }
       str += padLines(entry.content, timeChars + sourceChars + 2);
       str += '\n';
@@ -72,9 +72,9 @@ export function escapeHTML(str: string): string {
 function getClassModifier(source: string): string {
   return (
     source
-      .toLowerCase()
-      .replace(/ /g, '-')
-      .replace(/[^a-z-]/gi, '') // (Only allow a-z and "-")
+    .toLowerCase()
+    .replace(/ /g, '-')
+    .replace(/[^a-z-]/gi, '') // (Only allow a-z and "-")
   );
 }
 

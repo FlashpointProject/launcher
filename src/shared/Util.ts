@@ -101,7 +101,7 @@ export function stringifyArray(array: Array<any>, opts?: StringifyArrayOpts): st
   // Build string
   let str = '[ ';
   for (let i = 0; i < array.length; i++) {
-    let element = array[i];
+    const element = array[i];
     if (isString(element)) {
       str += `"${trimStrings ? trim(element) : element}"`;
     } else { str += element; }
@@ -113,7 +113,7 @@ export function stringifyArray(array: Array<any>, opts?: StringifyArrayOpts): st
 
 /** Remove all spaces and new line characters at the start and end of the string. */
 function trim(str: string): string {
-  let first: number = 0;
+  let first = 0;
   let last: number = str.length;
   // Find the first non-space non-new-line character
   for (let i = 0; i < str.length; i++) {
@@ -161,12 +161,12 @@ export function stringifyJsonDataFile(data: any): string {
  * @param second
  */
 export function shallowStrictEquals(first: any, second: any): boolean {
-  for (let key in first) {
+  for (const key in first) {
     if (!(key in second) || first[key] !== second[key]) {
       return false;
     }
   }
-  for (let key in second) {
+  for (const key in second) {
     if (!(key in first) || first[key] !== second[key]) {
       return false;
     }
@@ -184,7 +184,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
   // Skip if source is missing
   if (!source) { return target; }
   // Go through all properties of target
-  for (let key in source) {
+  for (const key in source) {
     // Check if data has a property of the same name
     if (key in target) {
       const val = source[key];
@@ -209,7 +209,7 @@ export function recursiveReplace<T = any>(target: T, source: any): T {
  */
 export function deepCopy<T>(source: T): T {
   const copy: any = Array.isArray(source) ? [] : {};
-  for (let key in source) {
+  for (const key in source) {
     let val = source[key];
     if (val !== null && typeof val === 'object') {
       val = deepCopy(val);
@@ -335,7 +335,7 @@ export function versionNumberToText(version: number): string {
  */
 export function clearArray<T>(array: Array<T | undefined>): Array<T> {
   const clear: T[] = [];
-  for (let val of array) {
+  for (const val of array) {
     if (val !== undefined) { clear.push(val); }
   }
   return clear;
@@ -383,7 +383,7 @@ export function isErrorProxy(object: any) {
  * @param size Size in bytes.
  * @returns Size, but in a more human readable format.
  */
-export function sizeToString(size: number, precision: number = 3): string {
+export function sizeToString(size: number, precision = 3): string {
   if (size < 1000)       { return `${size}B`; }
   if (size < 1000000)    { return `${(size / 1000).toPrecision(precision)}KB`; }
   if (size < 1000000000) { return `${(size / 1000000).toPrecision(precision)}MB`; }
@@ -409,7 +409,7 @@ export function canReadWrite(folder: string): Promise<boolean> {
       }
       // Cleanup file after testing
       fs.close(fd, () => {
-        fs.unlink(testPath, () => {});
+        fs.promises.unlink(testPath);
       });
       resolve(true);
     });

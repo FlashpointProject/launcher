@@ -113,7 +113,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
   map(func: ObjectParserMapFunc<P>): this {
     const prop = this._property;
     if (typeof prop === 'object' && prop !== null && !Array.isArray(prop)) {
-      for (let label in prop) {
+      for (const label in prop) {
         const item = new ObjectParserProp(prop[label], this._context, createStack(this._stack, label));
         func(item, label, prop);
       }
@@ -126,7 +126,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
   mapRaw(func: ObjectParserMapRawFunc<P>): this {
     const prop = this._property;
     if (typeof prop === 'object' && prop !== null && !Array.isArray(prop)) {
-      for (let label in prop) {
+      for (const label in prop) {
         func(prop[label], label, prop);
       }
     } else {
@@ -163,7 +163,7 @@ class ObjectParserProp<P> implements IObjectParserProp<P> {
   prop<L extends keyof P>(label: L, funcOrOptional?: ((prop: P[L]) => void) | boolean, optional?: boolean): IObjectParserProp<P[L]> {
     // Figure out which argument is used for what purpose
     let func: ((prop: P[L]) => void)|undefined; // ("func" from parameter)
-    let isOptional: boolean = false; // ("optional" from parameter)
+    let isOptional = false; // ("optional" from parameter)
     if (typeof funcOrOptional === 'function') {
       func = funcOrOptional;
       isOptional = !!optional;
@@ -235,6 +235,8 @@ export class ObjectParser<T> extends ObjectParserProp<T> {
  * @param stack Stack to add element to.
  * @param label Label to put at the end of the stack.
  */
+// symbol cannot be used for addition, Symbol can?
+// eslint-disable-next-line @typescript-eslint/ban-types
 function createStack(stack: string[], label: string | number | Symbol): string[] {
   const newStack = stack.slice();
   newStack.push(label + '');

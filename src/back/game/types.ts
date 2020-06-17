@@ -3,7 +3,6 @@ import { Playlist } from '@database/entity/Playlist';
 import { OrderGamesOpts } from '@shared/game/GameFilter';
 import { EventQueue } from '../util/EventQueue';
 import { ErrorCopy } from '../util/misc';
-import { Tag } from '@database/entity/Tag';
 
 export type UpdateMetaOptions = {
   /** Game entry to add or edit. */

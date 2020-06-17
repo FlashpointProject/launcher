@@ -74,8 +74,8 @@ export function registerRequestCallbacks(state: BackState): void {
     const libraries = await GameManager.findUniqueValues(Game, 'library');
     const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
     const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
-    let platforms: Record<string, string[]> = {};
-    for (let library of libraries) {
+    const platforms: Record<string, string[]> = {};
+    for (const library of libraries) {
       platforms[library] = await GameManager.findPlatforms(library);
     }
 
@@ -104,7 +104,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register(BackIn.INIT_LISTEN, (event, req) => {
     const done: BackInit[] = [];
-    for (let key in state.init) {
+    for (const key in state.init) {
       const init: BackInit = key as any;
       if (state.init[init]) {
         done.push(init);
@@ -137,7 +137,7 @@ export function registerRequestCallbacks(state: BackState): void {
       library: await GameManager.findUniqueValues(Game, 'library'),
     };
     const appPaths: {[platform: string]: string} = {};
-    for (let platform of suggestions.platform) {
+    for (const platform of suggestions.platform) {
       appPaths[platform] = (await GameManager.findPlatformAppPaths(platform))[0] || '';
     }
     console.log(Date.now() - startTime);
@@ -369,10 +369,10 @@ export function registerRequestCallbacks(state: BackState): void {
         });
         console.log(result);
         switch (result) {
-          case 0:
-            let topOrder = existingPlaylist.games.reduce((highest, cur) => highest = Math.max(highest, cur.order), 0);
+          case 0: {
+            const topOrder = existingPlaylist.games.reduce((highest, cur) => highest = Math.max(highest, cur.order), 0);
             let addedGames = 0;
-            for (let game of newPlaylist.games) {
+            for (const game of newPlaylist.games) {
               if (existingPlaylist.games.findIndex(g => g.gameId === game.gameId) === -1) {
                 game.order = topOrder + addedGames + 1;
                 existingPlaylist.games.push(game);
@@ -381,7 +381,8 @@ export function registerRequestCallbacks(state: BackState): void {
             }
             newPlaylist.games = existingPlaylist.games;
             break;
-          case 1:
+          }
+          case 1: {
             const newPlaylistId = uuid();
             newPlaylist.id = newPlaylistId;
             newPlaylist.title += ' - Copy';
@@ -391,6 +392,7 @@ export function registerRequestCallbacks(state: BackState): void {
               return g;
             });
             break;
+          }
           default:
             throw 'User Cancelled';
         }
@@ -594,10 +596,10 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.CLEANUP_TAGS, async (event, req) => {
     const allTags = await TagManager.findTags();
     const commaTags = allTags.filter(t => t.primaryAlias.name.includes(','));
-    for (let oldTag of commaTags) {
+    for (const oldTag of commaTags) {
       const allAliases = oldTag.primaryAlias.name.split(',').map(a => a.trim());
       const tagsToAdd: Tag[] = [];
-      for (let alias of allAliases) {
+      for (const alias of allAliases) {
         let tag = await TagManager.findTag(alias);
         if (!tag) {
           // Tag doesn't exist, make a new one
@@ -620,7 +622,7 @@ export function registerRequestCallbacks(state: BackState): void {
           game.tags.splice(oldTagIndex, 1);
         }
         // Add new tags
-        for (let newTag of tagsToAdd) {
+        for (const newTag of tagsToAdd) {
           if (game.tags.findIndex(t => t.id == newTag.id) == -1) {
             game.tags.push(newTag);
           }
@@ -916,7 +918,7 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register<SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, async (event, req) => {
     const platform = req.data;
     const translatedGames = [];
-    for (let game of platform.collection.games) {
+    for (const game of platform.collection.games) {
       const addApps = platform.collection.additionalApplications.filter(a => a.gameId === game.id);
       const translatedGame = await createGameFromLegacy(game);
       translatedGame.addApps = createAddAppFromLegacy(addApps, translatedGame);
@@ -1057,11 +1059,11 @@ export function registerRequestCallbacks(state: BackState): void {
     }
 
     // Top level games
-    for (let game of syncableGames.games.filter(g => g.parentGameId === g.id)) {
+    for (const game of syncableGames.games.filter(g => g.parentGameId === g.id)) {
       await GameManager.updateGame(game);
     }
     // Child games, Constraint will throw if parent game is missing
-    for (let game of syncableGames.games.filter(g => g.parentGameId !== g.id)) {
+    for (const game of syncableGames.games.filter(g => g.parentGameId !== g.id)) {
       try {
         await GameManager.updateGame(game);
       } catch (error) {
@@ -1195,7 +1197,7 @@ export function registerRequestCallbacks(state: BackState): void {
  */
 function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | undefined {
   let dif: DeepPartial<T> | undefined;
-  for (let key in template) {
+  for (const key in template) {
     if (a[key] !== b[key] && b[key] !== undefined) {
       if (typeof template[key] === 'object' && typeof a[key] === 'object' && typeof b[key] === 'object') {
         // Note: TypeScript doesn't understand that it is not possible for b[key] to be undefined here

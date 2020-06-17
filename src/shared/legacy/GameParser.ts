@@ -181,7 +181,7 @@ const escapeHTML = (function() {
     '\'' : '#39'
   };
   let regexString = '[';
-  for (let key in escapeChars) {
+  for (const key in escapeChars) {
     regexString += key;
   }
   regexString += ']';

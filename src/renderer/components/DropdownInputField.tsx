@@ -58,7 +58,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
     // Render input field
     const inputField = (
       <InputField
-        { ...this.props } 
+        { ...this.props }
         className={(className || '') + ' input-dropdown__input-field__input__inner'}
         onChange={this.onInputChange}
         onKeyDown={this.onInputKeyDown}
@@ -158,7 +158,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
         const element = document.activeElement;
         if (element && checkIfAncestor(element, this.contentRef.current)) {
           const next: any = (key === 'ArrowUp') ? element.previousSibling :
-                                                  element.nextElementSibling;
+            element.nextElementSibling;
           if (next && next.focus) {
             next.focus();
             event.preventDefault();

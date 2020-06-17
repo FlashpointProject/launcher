@@ -22,9 +22,9 @@ export const themeEntryFilename = 'theme.css';
  * @param content Content of a theme file.
  */
 export function parseThemeMetaData(content: string): ThemeMeta | undefined {
-  let comment = getContentOfFirstComment(content);
+  const comment = getContentOfFirstComment(content);
   if (comment !== undefined) {
-    let block = getContentOfThemeBlock(comment);
+    const block = getContentOfThemeBlock(comment);
     if (block !== undefined) {
       return getMetaDataFromThemeBlock(block);
     }
@@ -79,7 +79,7 @@ function getMetaDataFromThemeBlock(content: string): ThemeMeta {
   const rawMetaData = getRawMetaDataFromThemeBlock(content);
   // Convert raw meta data to a programmer friendly format
   const metaData: ThemeMeta = {};
-  for (let key in rawMetaData) {
+  for (const key in rawMetaData) {
     const val = rawMetaData[key];
     switch (key) {
       case 'name':             metaData.name            = val; break;

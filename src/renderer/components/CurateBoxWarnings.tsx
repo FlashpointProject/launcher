@@ -39,10 +39,10 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
       const obj = warnings[key as keyof CurationWarnings];
       // Reason obj to a string[] or boolean, format differently for each
       const listObj = obj && obj !== true ? obj : undefined;
-      if (listObj && listObj.length > 0){ 
-        const suffix = '\t' + listObj.join("\n\t") + '\n';
+      if (listObj && listObj.length > 0) {
+        const suffix = '\t' + listObj.join('\n\t') + '\n';
         return `- ${strings[key as keyof CurationWarnings]}\n${suffix}`;
-      } else if (!listObj && obj){
+      } else if (!listObj && obj) {
         return `- ${strings[key as keyof CurationWarnings]}\n`;
       }
     });
@@ -80,7 +80,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
  * Return a reducer that counts the number of "true-y" values of an object.
  * @param obj Object to iterate over.
  */
-function createCountTrueReducer<T extends object>(obj: T) {
+function createCountTrueReducer<T>(obj: T) {
   return (previousValue: number, currentValue: string): number => (
     previousValue + (obj[currentValue as keyof T] ? 1 : 0)
   );

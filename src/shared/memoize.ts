@@ -21,7 +21,7 @@ type EqualsCheck<T extends any[]> = (newArgs: T, prevArgs: T) => boolean;
 export function memoizeOne<T extends AnyFunction>(func: T, equalsFunc: EqualsCheck<ArgumentTypesOf<T>> = defaultEqualsFunc): CallableWrap<T> {
   let prevArgs: ArgumentTypesOf<T>;
   let prevReturn: ReturnTypeOf<T>;
-  let firstCall: boolean = true;
+  let firstCall = true;
 
   const memo: CallableWrap<T> = (...args) => {
     // Figure out if the function has to be called or if the previous return value should be used

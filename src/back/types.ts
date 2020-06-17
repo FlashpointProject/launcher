@@ -90,7 +90,7 @@ export type ImageDownloadItem = {
 }
 
 /** Declarations for a single event in an event emitter (in all the different related functions). */
-export interface EmitterPart<E extends string | number | Symbol, F extends (...args: any[]) => void> {
+export interface EmitterPart<E extends string | number | symbol, F extends (...args: any[]) => void> {
   on(event: E, listener: F): this;
   once(event: E, listener: F): this;
   off(event: E, listener: F): this;

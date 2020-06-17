@@ -1,4 +1,3 @@
-import { AddLogData, BackIn } from '@shared/back/types';
 import { ConnectedRouter } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
 import * as React from 'react';
@@ -26,7 +25,8 @@ import { ProgressContext } from './context/ProgressContext';
   // Create Redux store
   const store = configureStore(history);
   // Render the application
-  ReactDOM.render((
+  ReactDOM.render(
+    (
       <Provider store={store}>
         <PreferencesContextProvider>
           <ContextReducerProvider context={CurationContext}>
@@ -42,10 +42,3 @@ import { ProgressContext } from './context/ProgressContext';
     document.getElementById('root')
   );
 })();
-
-function log(content: string): void {
-  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
-    source: 'Launcher',
-    content: content,
-  });
-}

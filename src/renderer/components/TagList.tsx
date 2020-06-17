@@ -11,7 +11,6 @@ import { TagListItem } from './TagListItem';
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
 const RENDERER_OVERSCAN = 15;
-const BACK_OVERSCAN = 100;
 
 export type TagListProps = {
   /** All tags that will be shown in the list. */

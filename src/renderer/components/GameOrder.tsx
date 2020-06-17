@@ -1,9 +1,8 @@
-import * as React from 'react';
+import { Game } from '@database/entity/Game';
 import { LangContainer } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import * as React from 'react';
 import { LangContext } from '../util/lang';
-import { ModelUtils } from '@shared/game/util';
-import { Game } from '@database/entity/Game';
 
 export type GameOrderProps = {
   /** Called when the either the property to order by, or what way to order in, is changed. */

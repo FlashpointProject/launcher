@@ -75,8 +75,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
     return (
       <div
         className={'input-dropdown' + (this.props.disabled ? ' input-dropdown--disabled' : '')}
-        ref={this.rootRef}
-        onBlur={this.onBlur}>
+        ref={this.rootRef} >
         { editable ? inputField : undefined }
         { suggestions.length > 0 ?
           <div
@@ -84,7 +83,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
             ref={this.contentRef}>
             { this.renderSuggestions(suggestions) }
           </div>
-        : undefined }
+          : undefined }
         <div
           className={'tag-input-dropdown__content'}
           onClick={this.onListItemClick}
@@ -214,7 +213,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         const element = document.activeElement;
         if (element && checkIfAncestor(element, this.contentRef.current)) {
           const next: any = (key === 'ArrowUp') ? element.previousSibling :
-                                                  element.nextElementSibling;
+            element.nextElementSibling;
           if (next && next.focus) {
             next.focus();
             event.preventDefault();
@@ -222,10 +221,6 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         }
       }
     }
-  }
-
-  onBlur = (event: React.FocusEvent): void => {
-    const { relatedTarget } = event;
   }
 
   onInputChange = (event: React.ChangeEvent<InputElement>): void => {

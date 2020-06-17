@@ -33,7 +33,7 @@ export function OpenIcon (props: IconProps) {
 
 /** An icon from the "Open Iconic" collection. */
 export type OpenIconType = (
-    'account-login'
+  'account-login'
   | 'account-logout'
   | 'action-redo'
   | 'action-undo'

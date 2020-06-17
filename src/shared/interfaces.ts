@@ -209,7 +209,7 @@ export type ExecMapping = {
 
 /** Game properties that will have suggestions gathered and displayed. */
 export type SuggestionProps = (
-    'tags'
+  'tags'
   | 'platform'
   | 'playMode'
   | 'status'

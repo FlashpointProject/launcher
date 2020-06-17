@@ -10,9 +10,9 @@ const { str } = Coerce;
 
 export namespace ServicesFile {
   /** Path to the background services file (relative to the flashpoint root folder) */
-  const filePath: string = './services.json';
+  const filePath = './services.json';
   /** Encoding used by background services file */
-  const fileEncoding: string = 'utf8';
+  const fileEncoding = 'utf8';
 
   /**
    * Read and parse the file asynchronously.
@@ -28,7 +28,7 @@ export namespace ServicesFile {
   }
 
   function parseServiceFileData(data: any, config: IAppConfigData, onError?: (error: string) => void): ServiceFileData {
-    let parsed: ServiceFileData = {
+    const parsed: ServiceFileData = {
       server: [],
       start: [],
       stop: [],
@@ -59,7 +59,7 @@ export namespace ServicesFile {
   }
 
   function parseBackProcessInfo(parser: IObjectParserProp<any>, config: IAppConfigData): IBackProcessInfo {
-    let parsed: IBackProcessInfo = {
+    const parsed: IBackProcessInfo = {
       path: '',
       filename: '',
       arguments: [],

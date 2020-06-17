@@ -84,7 +84,7 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
                   {/* Delete Button */}
                   <ConfirmElement
                     onConfirm={props.onDelete}
-                    children={renderDeleteButton}
+                    render={renderDeleteButton}
                     extra={strings} />
                 </>
               ) }

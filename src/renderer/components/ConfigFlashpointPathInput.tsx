@@ -19,7 +19,7 @@ export class ConfigFlashpointPathInput extends React.Component<ConfigFlashpointP
 
   render() {
     const { input, isValid } = this.props;
-    let className: string = 'flashpoint-path__input';
+    let className = 'flashpoint-path__input';
     if (isValid !== undefined) {
       className += isValid ? ' flashpoint-path__input--valid' : ' flashpoint-path__input--invalid';
     }

@@ -18,7 +18,7 @@ export namespace ConfigFile {
 
   export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<IAppConfigData> {
     let error: Error | undefined,
-        data: IAppConfigData | undefined;
+      data: IAppConfigData | undefined;
 
     try {
       data = await readFile(filePath, onError);
@@ -36,7 +36,7 @@ export namespace ConfigFile {
 
   export function readOrCreateFileSync(filePath: string, onError?: (error: string) => void): IAppConfigData {
     let error: Error | undefined,
-        data: IAppConfigData | undefined;
+      data: IAppConfigData | undefined;
 
     try {
       data = readFileSync(filePath, onError);

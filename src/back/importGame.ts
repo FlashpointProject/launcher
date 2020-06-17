@@ -52,7 +52,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     imageFolderPath: imagePath,
   } = opts;
 
-  const logMsg = logMessage || noop;
+  const logMsg = logMessage;
 
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
@@ -121,7 +121,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   curationLog(log, 'Importing Curation Content');
   await (async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
-    for (let pair of contentToMove) {
+    for (const pair of contentToMove) {
       await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
   })()
@@ -192,8 +192,6 @@ export async function launchAddAppCuration(curationKey: string, appCuration: Edi
 function logMessage(text: string, curation: EditCuration): void {
   console.log(`- ${text}\n  (id: ${curation.key})`);
 }
-
-function noop(...args: any) {}
 
 /**
  * Create a game info from a curation.
@@ -272,8 +270,8 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
   // Clear out old folder if exists
   console.log('Removing old Server/htdocs/content ...');
   await fs.access(htdocsContentPath, fs.constants.F_OK)
-    .then(() => fs.remove(htdocsContentPath))
-    .catch((error) => { /* No file is okay, ignore error */ });
+  .then(() => fs.remove(htdocsContentPath))
+  .catch((error) => { /* No file is okay, ignore error */ });
   const contentPath = path.join(curationPath, 'content');
   console.log('Linking new Server/htdocs/content ...');
   if (fs.existsSync(contentPath)) {
@@ -438,7 +436,7 @@ function createPlaceholderGame(): Game {
 export async function createTagsFromLegacy(tags: string): Promise<Tag[]> {
   const allTags: Tag[] = [];
 
-  for (let t of tags.split(';')) {
+  for (const t of tags.split(';')) {
     const trimTag = t.trim();
     let tag = await TagManager.findTag(trimTag);
     if (!tag && trimTag !== '') {

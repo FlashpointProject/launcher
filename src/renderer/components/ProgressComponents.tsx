@@ -39,7 +39,7 @@ export function StatusBar(props: ProgressComponentProps) {
         <div className='status-bar__bottom-text'>
           {props.progressData.secondaryText}
         </div>
-      : undefined }
+        : undefined }
     </div>
   );
 }
@@ -61,7 +61,7 @@ export function ProgressBar(props: ProgressComponentProps) {
         <div className='progress-bar__bottom-text'>
           {props.progressData.text}
         </div>
-      : undefined }
+        : undefined }
     </div>
   );
 }

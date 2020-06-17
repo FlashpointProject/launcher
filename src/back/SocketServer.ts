@@ -21,14 +21,14 @@ export class SocketServer {
   /** Underlying WebSocket server. */
   public server?: WebSocket.Server;
   /** Port the server is listening on (-1 if not listening). */
-  public port: number = -1;
+  public port = -1;
   /** Secret value used for authentication. */
   public secret: any;
 
   private registered: Record<BackIn, RequestCallback<any> | undefined> = {} as any;
   private emitter: SocketEmitter = new EventEmitter();
   private queue: QueuedMessage<any>[] = [];
-  private isHandling: boolean = false;
+  private isHandling = false;
 
 
   /**

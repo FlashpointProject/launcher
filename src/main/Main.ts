@@ -134,7 +134,7 @@ export function main(init: Init): void {
           }
         });
         // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
-        let localeCode: string = 'en';
+        let localeCode = 'en';
         if (process.platform === 'win32' && !app.isReady()) {
           localeCode = 'en';
         } else {
@@ -422,7 +422,7 @@ export function main(init: Init): void {
     });
   }
 
-  function noop() {}
+  function noop() { /* Do nothing. */ }
 }
 
 /**

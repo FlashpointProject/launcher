@@ -13,7 +13,7 @@ export class EventQueue {
   /** Queue of functions. */
   private queue: EventFunction[] = [];
   /** If this is currently executing an event (flag). */
-  private isExecuting: boolean = false;
+  private isExecuting = false;
   /** Called whenever an error occurs. */
   public onError: (error: any) => void = noop;
 
@@ -106,4 +106,4 @@ function wrapEvent(event: EventFunction): [ () => Promise<void>, Promise<void> ]
   return [wrappedEvent, promise];
 }
 
-function noop() {}
+function noop() { /* Do nothing. */ }

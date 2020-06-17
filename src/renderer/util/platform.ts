@@ -4,7 +4,7 @@ import { Game } from '@database/entity/Game';
 export function getPlatforms(games: Game[]): string [] {
   // Get the values from the game collection
   const map: { [key: string]: true } = {};
-  for (let game of games) {
+  for (const game of games) {
     getGamePropValues(map, game.platform);
   }
   // Create a more usable object to store the values in
@@ -15,7 +15,7 @@ export function getPlatforms(games: Game[]): string [] {
 function getGamePropValues(dict: { [key: string]: true }, value: string) {
   if (value.indexOf(';') >= 0) { // (Multiple values)
     const values = value.split(';');
-    for (let v of values) { dict[v.trim()] = true; }
+    for (const v of values) { dict[v.trim()] = true; }
   } else { // (Single value)
     dict[value] = true;
   }

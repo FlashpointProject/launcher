@@ -93,7 +93,7 @@ window.Shared = {
   }
 };
 
-let isInitDone: boolean = false;
+let isInitDone = false;
 const onInit = (async () => {
   // Fetch data from main process
   const data: InitRendererData = electron.ipcRenderer.sendSync(InitRendererChannel);

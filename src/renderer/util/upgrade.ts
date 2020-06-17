@@ -40,8 +40,8 @@ export type UpgradeStatusTask = 'downloading' | 'extracting' | 'installing' | 'n
 
 export class UpgradeStatus extends EventEmitter {
   public currentTask: UpgradeStatusTask = 'none';
-  public downloadProgress: number = 0;
-  public extractProgress: number = 0;
+  public downloadProgress = 0;
+  public extractProgress = 0;
 
   /** Get the estimated progress of the whole process (from 0 to 1) */
   public getEstimatedProgress(): number {
@@ -62,9 +62,9 @@ interface UpgradeDownloadStatus {
 }
 class UpgradeDownloadStatus extends EventEmitter {
   /** Number of bytes downloaded */
-  bytesDownloaded: number = 0;
+  bytesDownloaded = 0;
   /** Number of bytes to download (in total) */
-  contentLength: number = 0;
+  contentLength = 0;
 }
 
 export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgradeOpts): UpgradeStatus {
@@ -95,7 +95,7 @@ export function downloadAndInstallUpgrade(upgrade: UpgradeStage, opts: IGetUpgra
         status.currentTask = 'installing';
         status.emit('progress');
         // Delete paths if required by Upgrade
-        for (let p of upgrade.deletePaths) {
+        for (const p of upgrade.deletePaths) {
           try {
             const realPath = path.join(opts.installPath, p);
             await fs.remove(realPath);
@@ -159,7 +159,7 @@ function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offse
         else        { status.emit('error', new Error('File does not exist.')); }
       });
     } else { // (Network resource)
-      let protocol: any = urlOrPath.startsWith('https://') ? https : http;
+      const protocol: any = urlOrPath.startsWith('https://') ? https : http;
       try {
         protocol.get(urlOrPath, (res: IncomingMessage) => {
           const { statusCode, headers } = res;
@@ -168,10 +168,10 @@ function downloadUpgrade(upgrade: UpgradeStage, filename: string, onData: (offse
             const filePath = path.posix.join(os.tmpdir(), filename);
             const fileStream = fs.createWriteStream(filePath);
             res.pipe(createMiddleStream(length => {
-                  status.bytesDownloaded += length;
-                  status.emit('progress');
-                }))
-                .pipe(fileStream);
+              status.bytesDownloaded += length;
+              status.emit('progress');
+            }))
+            .pipe(fileStream);
             res.once('error', (error) => { status.emit('error', error); });
             fileStream.on('close', () => { status.emit('done', filePath); });
           } else { status.emit('error', new Error(`File request failed. Server responded with code: ${res.statusCode}`)); }

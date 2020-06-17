@@ -22,14 +22,14 @@ export namespace Legacy_GameManager {
     const platforms: Legacy_GamePlatform[] = [];
     try {
       const libraryNames = await readdir(platformsPath);
-      for (let libraryName of libraryNames) {
+      for (const libraryName of libraryNames) {
         // Check each library for platforms
         try {
           const libraryPath = path.join(platformsPath, libraryName);
           if ((await stat(libraryPath)).isDirectory()) {
             // Library file was a directory, read files inside
             const platformFiles = await readdir(libraryPath);
-            for (let platformFile of platformFiles) {
+            for (const platformFile of platformFiles) {
               // Find each platform file
               const platformPath = path.join(libraryPath, platformFile);
               const platformFileExt = path.extname(platformFile);

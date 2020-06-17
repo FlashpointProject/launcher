@@ -57,14 +57,14 @@ export class GameGrid extends React.Component<GameGridProps> {
   /** Most recently reference passed to the "gridRef" callback prop. */
   prevWrapperRef: HTMLDivElement | null = null;
   /** Number of columns in the grid from the most recent render. */
-  columns: number = 0;
+  columns = 0;
   /** Current value of the "width" css variable. */
-  currentWidth: number = 0;
+  currentWidth = 0;
   /** Current value of the "height" css variable. */
-  currentHeight: number = 0;
+  currentHeight = 0;
   /** Currently displayed games. */
   currentGames: ViewGameSet | undefined;
-  currentGamesCount: number = 0;
+  currentGamesCount = 0;
   // Used for the "view update hack"
   grid: React.RefObject<Grid> = React.createRef();
 
@@ -124,8 +124,8 @@ export class GameGrid extends React.Component<GameGridProps> {
             const { columns, rows } = this.calculateSize(this.props.gamesTotal || 0, width);
             this.columns = columns;
             // Calculate column and row of selected item
-            let scrollToColumn: number = -1;
-            let scrollToRow: number = -1;
+            let scrollToColumn = -1;
+            let scrollToRow = -1;
             if (this.props.selectedGameId) {
               const index: number = findGameIndex(this.props.games, this.props.selectedGameId);
               if (index >= 0) {
@@ -168,7 +168,7 @@ export class GameGrid extends React.Component<GameGridProps> {
                       pass_orderBy={this.props.orderBy}
                       pass_orderReverse={this.props.orderReverse}
                       pass_currentGamesCount={this.currentGamesCount}
-                      />
+                    />
                   );
                 }}
               </ArrowKeyStepper>
@@ -350,7 +350,7 @@ export class GameGrid extends React.Component<GameGridProps> {
 
 function findGameIndex(games: ViewGameSet | undefined, gameId: string | undefined): number {
   if (gameId !== undefined && games) {
-    for (let index in games) {
+    for (const index in games) {
       const game = games[index];
       if (game && game.id === gameId) { return (index as any) | 0; }
     }

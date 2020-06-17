@@ -11,8 +11,9 @@ describe('Confirm Button', () => {
     const mockCallback = jest.fn();
     const component = shallow(
       <ConfirmButton
-        onConfirm={mockCallback}
-        >EXAMPLE</ConfirmButton>
+        onConfirm={mockCallback}>
+        EXAMPLE
+      </ConfirmButton>
     );
     // Click twice to confirm
     component.simulate('click');
@@ -27,8 +28,9 @@ describe('Confirm Button', () => {
     const component = shallow(
       <ConfirmButton
         onConfirm={mockCallback}
-        skipConfirm={true}
-        >EXAMPLE</ConfirmButton>
+        skipConfirm={true} >
+        EXAMPLE
+      </ConfirmButton>
     );
     // Click twice to confirm
     component.simulate('click');
@@ -40,8 +42,9 @@ describe('Confirm Button', () => {
     const mockCallback = jest.fn();
     const component = shallow(
       <ConfirmButton
-        onConfirm={mockCallback}
-        >EXAMPLE</ConfirmButton>
+        onConfirm={mockCallback} >
+        EXAMPLE
+      </ConfirmButton>
     );
     // Click twice to confirm
     component.simulate('click');

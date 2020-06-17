@@ -24,17 +24,17 @@ export function SplashScreen(props: SplashScreenProps) {
           <div className='splash-screen__status'>
             Upgrades
           </div>
-        : undefined}
+          : undefined }
         {!creditsLoaded ?
           <div className='splash-screen__status'>
             Credits
           </div>
-        : undefined}
+          : undefined }
         {!miscLoaded ?
           <div className='splash-screen__status'>
             Misc
           </div>
-        : undefined}
+          : undefined }
       </div>
     </div>
   );

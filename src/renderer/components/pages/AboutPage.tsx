@@ -35,7 +35,7 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     const { creditsData, creditsDoneLoading } = this.props;
 
     const roles: CreditsDataRole[] = creditsData ? creditsData.roles.filter(role => role.noCategory != true) : [{ name: strings.specialThanks }];
-    let creditBlocks: CreditsBlock[] = [];
+    const creditBlocks: CreditsBlock[] = [];
     creditBlocks.push({ role: { name: strings.specialThanks }, profiles: [] });
 
     // Populate credit blocks

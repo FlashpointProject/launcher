@@ -1,5 +1,5 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
-import { AddLogData, BackIn, UpdateConfigData } from '@shared/back/types';
+import { BackIn, UpdateConfigData } from '@shared/back/types';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -84,89 +84,89 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           <i>{strings.configDesc}</i>
 
           {/* -- Preferences -- */}
-            <div className='setting'>
-              <p className='setting__title'>{strings.preferencesHeader}</p>
-              <div className='setting__body'>
-                {/* Show Extreme Games */}
-                {((!window.Shared.config.data.disableExtremeGames)) ? (
-                  <div className='setting__row'>
-                    <div className='setting__row__top'>
-                      <div className='setting__row__title'>
-                        <p>{strings.extremeGames}</p>
-                      </div>
-                      <div className='setting__row__content setting__row__content--toggle'>
-                        <div>
-                          <CheckBox
-                            checked={this.props.preferencesData.browsePageShowExtreme}
-                            onToggle={this.onShowExtremeChange} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className='setting__row__bottom'>
-                      <p>{strings.extremeGamesDesc}</p>
-                    </div>
-                  </div>
-                ) : undefined }
-                {/* Enable Editing */}
+          <div className='setting'>
+            <p className='setting__title'>{strings.preferencesHeader}</p>
+            <div className='setting__body'>
+              {/* Show Extreme Games */}
+              {((!window.Shared.config.data.disableExtremeGames)) ? (
                 <div className='setting__row'>
                   <div className='setting__row__top'>
                     <div className='setting__row__title'>
-                      <p>{strings.enableEditing}</p>
+                      <p>{strings.extremeGames}</p>
                     </div>
                     <div className='setting__row__content setting__row__content--toggle'>
                       <div>
                         <CheckBox
-                          checked={this.props.preferencesData.enableEditing}
-                          onToggle={this.onEnableEditingChange} />
+                          checked={this.props.preferencesData.browsePageShowExtreme}
+                          onToggle={this.onShowExtremeChange} />
                       </div>
                     </div>
                   </div>
                   <div className='setting__row__bottom'>
-                    <p>{strings.enableEditingDesc}</p>
+                    <p>{strings.extremeGamesDesc}</p>
                   </div>
                 </div>
-                {/* On Demand Images */}
-                <div className='setting__row'>
-                  <div className='setting__row__top'>
-                    <div className='setting__row__title'>
-                      <p>{strings.onDemandImages}</p>
-                    </div>
-                    <div className='setting__row__content setting__row__content--toggle'>
-                      <div>
-                        <CheckBox
-                          checked={this.props.preferencesData.onDemandImages}
-                          onToggle={this.onOnDemandImagesChange} />
-                      </div>
-                    </div>
+              ) : undefined }
+              {/* Enable Editing */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.enableEditing}</p>
                   </div>
-                  <div className='setting__row__bottom'>
-                    <p>{strings.onDemandImagesDesc}</p>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <CheckBox
+                        checked={this.props.preferencesData.enableEditing}
+                        onToggle={this.onEnableEditingChange} />
+                    </div>
                   </div>
                 </div>
-                {/* Current Language */}
-                <div className='setting__row'>
-                  <div className='setting__row__top'>
-                    <div className='setting__row__title'>
-                      <p>{strings.currentLanguage}</p>
-                    </div>
-                    <div className='setting__row__content setting__row__content--toggle'>
-                      <div>
-                        <select
-                          className='simple-selector'
-                          value={this.props.preferencesData.currentLanguage || ''}
-                          onChange={this.onCurrentLanguageSelect}>
-                          <option value={autoCode}>{autoString}</option>
-                          {langOptions}
-                        </select>
-                      </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.enableEditingDesc}</p>
+                </div>
+              </div>
+              {/* On Demand Images */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.onDemandImages}</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <CheckBox
+                        checked={this.props.preferencesData.onDemandImages}
+                        onToggle={this.onOnDemandImagesChange} />
                     </div>
                   </div>
-                  <div className='setting__row__bottom'>
-                    <p>{strings.currentLanguageDesc}</p>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.onDemandImagesDesc}</p>
+                </div>
+              </div>
+              {/* Current Language */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.currentLanguage}</p>
                   </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <select
+                        className='simple-selector'
+                        value={this.props.preferencesData.currentLanguage || ''}
+                        onChange={this.onCurrentLanguageSelect}>
+                        <option value={autoCode}>{autoString}</option>
+                        {langOptions}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.currentLanguageDesc}</p>
                 </div>
               </div>
             </div>
+          </div>
           {/* -- Flashpoint -- */}
           <div className='setting'>
             <p className='setting__title'>{strings.flashpointHeader}</p>
@@ -261,8 +261,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                       editable={true}
                       items={[ ...this.props.themeList.map(formatThemeItemName), 'No Theme' ]}
                       onItemSelect={this.onCurrentThemeItemSelect}
-                      inputRef={this.currentThemeInputRefFunc}
-                      />
+                      inputRef={this.currentThemeInputRefFunc} />
                   </div>
                 </div>
                 <div className='setting__row__bottom'>
@@ -487,11 +486,4 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 /** Format a theme item into a displayable name for the themes drop-down. */
 function formatThemeItemName(item: Theme): string {
   return `${item.meta.name} (${item.entryPath})`;
-}
-
-function log(content: string): void {
-  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
-    source: 'Game Launcher',
-    content: content,
-  });
 }

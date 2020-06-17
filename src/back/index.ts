@@ -177,7 +177,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       });
     });
     // Add initial files
-    for (let filename of state.languageWatcher.filenames) {
+    for (const filename of state.languageWatcher.filenames) {
       onLangAddOrChange(filename, '');
     }
     // Functions
@@ -282,11 +282,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       });
     });
     // Add initial files
-    for (let filename of state.themeWatcher.filenames) {
+    for (const filename of state.themeWatcher.filenames) {
       onThemeAdd(filename, '', false);
     }
     // Functions
-    function onThemeAdd(filename: string, offsetPath: string, doBroadcast: boolean = true) {
+    function onThemeAdd(filename: string, offsetPath: string, doBroadcast = true) {
       state.themeQueue.push(async () => {
         const item = findOwner(filename, offsetPath);
         if (item) {
@@ -605,18 +605,6 @@ function readLangFile(filepath: string): Promise<RecursivePartial<LangFileConten
   });
 }
 
-/** Get the file extension of a file path (efterything after the last dot, or an empty string if the filename has no dots). */
-function getFileExtension(filename: string): string {
-  for (let i = filename.length - 1; i >= 0; i--) {
-    switch (filename[i]) {
-      case '/':
-      case '\\': return '';
-      case '.': return filename.substr(i + 1);
-    }
-  }
-  return '';
-}
-
 /**
  * Create a promise that resolves when the emitter emits one of the given events.
  * @param emitter Emitter to listen on.
@@ -632,7 +620,7 @@ function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
       if (!isResolved) {
         isResolved = true;
 
-        for (let event of safeEvents) {
+        for (const event of safeEvents) {
           emitter.off(event, listener);
         }
 
@@ -640,7 +628,7 @@ function awaitEvents(emitter: EventEmitter, events: string[]): Promise<void> {
       }
     };
 
-    for (let event of safeEvents) {
+    for (const event of safeEvents) {
       emitter.on(event, listener);
     }
   });

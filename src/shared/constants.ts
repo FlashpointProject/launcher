@@ -1,5 +1,5 @@
 /** Title of the main window. */
-export const APP_TITLE: string = 'Flashpoint Launcher';
+export const APP_TITLE = 'Flashpoint Launcher';
 
 // Flashpoint libraries
 export const ARCADE = 'arcade';

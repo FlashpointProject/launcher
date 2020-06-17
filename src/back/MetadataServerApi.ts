@@ -13,7 +13,7 @@ export namespace MetadataServerApi {
 
   export async function getUpdatedGames(host: string, lastSync: number): Promise<SyncableGames> {
     const syncGames: Game[] = [];
-    let syncedCount: number = 0;
+    let syncedCount = 0;
     // Get games modified after the last sync
     const mainUrl = host + `/games?modifiedAfter=${lastSync}`;
 
@@ -50,7 +50,7 @@ export type SyncableGames = {
 
 // data - JSON response
 async function parseGame(data: any, onError?: (error: string) => void): Promise<Game> {
-  let parsed = new Game();
+  const parsed = new Game();
   const parser = new ObjectParser({
     input: data,
     onError: onError && (e => { onError(`Error while parsing Game from Metadata Host Response: ${e.toString()}`); })
