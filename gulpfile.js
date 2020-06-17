@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const builder = require('electron-builder');

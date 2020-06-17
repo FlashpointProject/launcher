@@ -16,11 +16,35 @@
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "plugins": [
+    "react",
     "@typescript-eslint"
   ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "root": true,
   "rules": {
+    "@typescript-eslint/indent": ["error", 2, { 
+      "MemberExpression": 0,
+      "SwitchCase": 1
+    }],
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/prefer-interface": "off",
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", {
+      "vars": "all",
+      "args": "none"
+    }],
+    "@typescript-eslint/explicit-module-boundary-types": "off",
     "curly": ["warn", "all"],
     "for-direction": "warn",
     "getter-return": "warn",
