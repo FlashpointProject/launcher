@@ -52,9 +52,6 @@ body {
   width: 1rem;
   height: 1rem;
 }
-.icon--magnifying-glass {
-  opacity: 0.3;
-}
 
 /* ------ Generic & Re-usable ------ */
 /* Simple Center */
@@ -549,6 +546,9 @@ body {
 .header__search__icon {
   width: 0.9em;
   height: 0.9em;
+}
+.header__search__icon.icon--magnifying-glass {
+  opacity: 0.4;
 }
 .header__search__input,
 .header__search__input:active {
@@ -1986,7 +1986,7 @@ body {
 }
 .setting__row__content--input-field .input-dropdown__input-field,
 .setting__row__content--input-field .input-dropdown__content {
-  border: 1px solid;
+  border: 0px;
 }
 
 /** ----- Progress Components ------ **/

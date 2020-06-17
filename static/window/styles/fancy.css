@@ -423,9 +423,6 @@ body {
 
 
 /* ------ About ------ */
-.about-page__section__title {
-  /* background-color: var(--layout__tertiary-background); */
-}
 /* Credits */
 .about-page__credits__tooltip {
   border-color: var(--layout__credits-tooltip-border);
@@ -521,10 +518,6 @@ body {
 }
 .browse-right-sidebar--edit-disabled .browse-right-sidebar__searchable:hover {
   color: var(--layout__browse-right-sidebar-searchable-hover);
-}
-/* Browse-Right-Sidebar Additional-Application */
-.browse-right-sidebar__additional-application:nth-child(2n) {
-  /* background-color: var(--layout__tertiary-background); */
 }
 /* BrowseSidebar Title-Row Buttons */
 .browse-right-sidebar__title-row__buttons .icon__use {
