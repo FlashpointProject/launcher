@@ -72,13 +72,13 @@
     "linuxSupport": "¿Problemas en Linux? {0}",
     "linuxSupportLinkText": "Abrir preguntas frecuentes (FAQ)",
     "randomPicks": "Selección aleatoria",
-    "rerollPicks": "Volver a rodar selecciones"
+    "rerollPicks": "Volver a rodar las selecciones"
   },
   "logs": {
     "filters": "Filtros",
     "copyText": "Copiar texto",
     "clearLog": "Limpiar el registro",
-    "copy404Urls": "Copiar los URLs 404",
+    "copy404Urls": "Copiar las URLs 404",
     "uploadLog": "Subir registro",
     "copiedToClipboard": "Copiado al portapapeles"
   },
@@ -261,7 +261,7 @@
     "clickToSelectTag": "Clicar para seleccionar etiqueta",
     "deleteTagAlias": "Eliminar alias de la etiqueta",
     "setPrimaryAlias": "Asignar alias primario",
-    "mergeIntoTag": "Fusionar con la etiqueta",
+    "mergeIntoTag": "Fusionar en la etiqueta",
     "mergeTag": "Fusionar etiqueta",
     "makeAliasWhenMerged": "¿Hacer esto una alias de la etiqueta?",
     "deleteTag": "Eliminar etiqueta",
