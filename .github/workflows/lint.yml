@@ -28,5 +28,5 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           reporter: github-pr-review
-          fail-on-error: true
+          fail_on_error: true
           eslint_flags: 'src/ tests/ ./gulpfile.js'
