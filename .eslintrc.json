@@ -63,6 +63,7 @@
       "alternatives": ["&#125;"]
     }]}],
     "curly": ["warn", "all"],
+    "eol-last": "warn",
     "for-direction": "warn",
     "getter-return": "warn",
     "keyword-spacing": "warn",
