@@ -334,7 +334,7 @@ export function CuratePage(props: CuratePageProps) {
         date: date,
         saveCuration: props.preferencesData.saveImportedCurations,
       }
-    ).then<void>(res => new Promise((resolve, reject) => {
+    ).then<undefined>(res => new Promise((resolve, reject) => {
       if (res.data && res.data.error) {
         reject(res.data.error);
       } else {

@@ -29,8 +29,6 @@ export type TagCategoriesPageState = {
   selectedCategoryId?: number;
   /** Whether we're editing a tag or not */
   isEditing: boolean;
-  /** Current total tag results  */
-  categoriesTotal: number;
 }
 
 export interface TagCategoriesPage {
@@ -43,8 +41,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
   constructor(props: TagCategoriesPageProps) {
     super(props);
     this.state = {
-      isEditing: false,
-      categoriesTotal: 0
+      isEditing: false
     };
   }
 

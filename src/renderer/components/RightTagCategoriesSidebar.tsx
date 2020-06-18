@@ -25,7 +25,6 @@ type OwnProps = {
 export type RightTagCategoriesSidebarProps = OwnProps & WithPreferencesProps;
 
 type RRightTagCategoriesSidebarState = {
-  currentTagInput: string;
 };
 
 export interface RightTagCategoriesSidebar {
@@ -39,9 +38,6 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
 
   constructor(props: RightTagCategoriesSidebarProps) {
     super(props);
-    this.state = {
-      currentTagInput: ''
-    };
   }
 
   componentDidMount() {
@@ -195,10 +191,6 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
 
   onColorChange = (color: ColorResult) => {
     this.props.onEditCategory({ color: color.hex });
-  }
-
-  onCurrentTagChange = (event: React.ChangeEvent<InputElement>) => {
-    this.setState({ currentTagInput: event.currentTarget.value });
   }
 
   /** When a key is pressed while an input field is selected (except for multiline fields) */

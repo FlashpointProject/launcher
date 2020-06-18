@@ -48,6 +48,7 @@
     }],
     "@typescript-eslint/no-empty-function": ["warn", { "allow": ["arrowFunctions"] }],
     "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-invalid-void-type": ["warn", { "allowInGenericTypeArguments": true }],
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/no-unused-vars": ["warn", {
       "vars": "all",
@@ -55,13 +56,19 @@
     }],
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/prefer-interface": "off",
-    "react/no-unescaped-entities": ["error", {"forbid": [{
+    //"react/no-access-state-in-setstate": "warn", (requires restructuring of "app.tsx")
+    "react/no-direct-mutation-state": "warn",
+    "react/no-render-return-value": "warn",
+    "react/no-string-refs": "warn",
+    "react/no-unescaped-entities": ["warn", {"forbid": [{
       "char": ">",
       "alternatives": ["&gt;"]
     }, {
       "char": "}",
       "alternatives": ["&#125;"]
     }]}],
+    "react/no-unused-prop-types": "warn",
+    "react/no-unused-state": "warn",
     "curly": ["warn", "all"],
     "eol-last": "warn",
     "for-direction": "warn",
