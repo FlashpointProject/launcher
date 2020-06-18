@@ -5,7 +5,7 @@ import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewInde
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
-import { convertToCurationMeta } from '@shared/curate/metaToMeta';
+import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { DeepPartial, GamePropSuggestions, INamedBackProcessInfo, IService, ProcessAction } from '@shared/interfaces';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
@@ -432,7 +432,7 @@ export function registerRequestCallbacks(state: BackState): void {
         try {
           await writeFile(
             reqData.metaOnly ? reqData.location : path.join(reqData.location, 'meta.txt'),
-            stringifyCurationFormat(convertToCurationMeta(game, await TagManager.findTagCategories())));
+            stringifyCurationFormat(convertGameToCurationMetaFile(game, await TagManager.findTagCategories())));
         } catch (e) { console.error(e); }
 
         // Copy images

@@ -8,8 +8,8 @@ import { EditAddAppCuration, EditCurationMeta } from './types';
  * @param game Game to convert.
  * @param addApps Additional applications of the game.
  */
-export function convertToCurationMeta(game: Game, categories: TagCategory[]): CurationFormatMeta {
-  const parsed: CurationFormatMeta = {};
+export function convertGameToCurationMetaFile(game: Game, categories: TagCategory[]): CurationMetaFile {
+  const parsed: CurationMetaFile = {};
   const tagCategories = game.tags.map(t => {
     const cat = categories.find(c => c.id === t.categoryId);
     return cat ? cat.name : 'default';
@@ -74,8 +74,8 @@ export function convertToCurationMeta(game: Game, categories: TagCategory[]): Cu
  * @param curation Curation to convert.
  * @param addApps Additional applications of the curation.
  */
-export function convertEditToCurationMeta(curation: EditCurationMeta, categories: TagCategory[], addApps?: EditAddAppCuration[]): CurationFormatMeta {
-  const parsed: CurationFormatMeta = {};
+export function convertEditToCurationMetaFile(curation: EditCurationMeta, categories: TagCategory[], addApps?: EditAddAppCuration[]): CurationMetaFile {
+  const parsed: CurationMetaFile = {};
   const tagCategories = curation.tags ? curation.tags.map(t => {
     const cat = categories.find(c => c.id === t.categoryId);
     return cat ? cat.name : 'default';
@@ -91,7 +91,7 @@ export function convertEditToCurationMeta(curation: EditCurationMeta, categories
   parsed['Release Date']         = curation.releaseDate;
   parsed['Version']              = curation.version;
   parsed['Languages']            = curation.language;
-  parsed['Extreme']              = curation.extreme;
+  parsed['Extreme']              = curation.extreme ? 'Yes' : 'No';
   parsed['Tags']                 = curation.tags ? curation.tags.map(t => t.primaryAlias.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.source;
@@ -147,8 +147,8 @@ export function convertEditToCurationMeta(curation: EditCurationMeta, categories
  * @param curation Parsed meta to convert.
  * @param addApps Additional applications of the curation.
  */
-export function convertParsedToCurationMeta(curation: ParsedCurationMeta, categories: TagCategory[]): CurationFormatMeta {
-  const parsed: CurationFormatMeta = {};
+export function convertParsedToCurationMeta(curation: ParsedCurationMeta, categories: TagCategory[]): CurationMetaFile {
+  const parsed: CurationMetaFile = {};
   const tagCategories = curation.game.tags ? curation.game.tags.map(t => {
     const cat = categories.find(c => c.id === t.categoryId);
     return cat ? cat.name : 'default';
@@ -164,7 +164,7 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta, catego
   parsed['Release Date']         = curation.game.releaseDate;
   parsed['Version']              = curation.game.version;
   parsed['Languages']            = curation.game.language;
-  parsed['Extreme']              = curation.game.extreme;
+  parsed['Extreme']              = curation.game.extreme ? 'Yes' : 'No';
   parsed['Tags']                 = curation.game.tags ? curation.game.tags.map(t => t.primaryAlias.name).join('; ') : '';
   parsed['Tag Categories']       = tagCategories.join('; ');
   parsed['Source']               = curation.game.source;
@@ -215,7 +215,7 @@ export function convertParsedToCurationMeta(curation: ParsedCurationMeta, catego
   return parsed;
 }
 
-type CurationFormatMeta = {
+type CurationMetaFile = {
   'Application Path'?: string;
   'Developer'?: string;
   'Extreme'?: string;
