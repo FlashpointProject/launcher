@@ -380,8 +380,7 @@ export function registerRequestCallbacks(state: BackState): void {
               }
             }
             newPlaylist.games = existingPlaylist.games;
-            break;
-          }
+          } break;
           case 1: {
             const newPlaylistId = uuid();
             newPlaylist.id = newPlaylistId;
@@ -391,8 +390,7 @@ export function registerRequestCallbacks(state: BackState): void {
               g.playlistId = newPlaylistId;
               return g;
             });
-            break;
-          }
+          } break;
           default:
             throw 'User Cancelled';
         }

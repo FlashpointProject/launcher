@@ -33,7 +33,7 @@ export class GameItemContainer extends React.Component<GameItemContainerProps> {
         onDoubleClick={this.onDoubleClick}
         onContextMenu={this.onContextMenu}
         onDragStart={this.onDragStart}
-        onDragEnd={this.onDragEnd} >
+        onDragEnd={this.onDragEnd}>
         {this.props.children}
       </div>
     );

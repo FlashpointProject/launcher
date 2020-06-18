@@ -75,7 +75,7 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
     return (
       <div
         className={'input-dropdown' + (this.props.disabled ? ' input-dropdown--disabled' : '')}
-        ref={this.rootRef} >
+        ref={this.rootRef}>
         { editable ? inputField : undefined }
         { suggestions.length > 0 ?
           <div

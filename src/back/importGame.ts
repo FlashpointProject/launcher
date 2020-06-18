@@ -52,8 +52,6 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     imageFolderPath: imagePath,
   } = opts;
 
-  const logMsg = logMessage;
-
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
   if (curation.meta.launchCommand) {
@@ -105,17 +103,17 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   const moveFiles = !saveCuration;
   curationLog(log, 'Importing Curation Meta');
   // Copy/extract content and image files
-  GameManager.updateGame(game).then(() => logMsg('Meta Added', curation));
+  GameManager.updateGame(game).then(() => logMessage('Meta Added', curation));
 
   // Copy Thumbnail
   curationLog(log, 'Importing Curation Thumbnail');
   await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath), log)
-  .then(() => { if (log) { logMsg('Thumbnail Copied', curation); } });
+  .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
 
   // Copy Screenshot
   curationLog(log, 'Importing Curation Screenshot');
   await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath), log)
-  .then(() => { if (log) { logMsg('Screenshot Copied', curation); } });
+  .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
 
   // Copy content and Extra files
   curationLog(log, 'Importing Curation Content');
@@ -142,7 +140,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog, log);
       }
       if (log) {
-        logMsg('Content Copied', curation);
+        logMessage('Content Copied', curation);
       }
     } catch (error) {
       curationLog(log, `Error importing ${curation.meta.title} - Informing user...`);

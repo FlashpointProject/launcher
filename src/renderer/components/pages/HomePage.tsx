@@ -153,10 +153,10 @@ export function HomePage(props: HomePageProps) {
           <ul className='home-page__box-body home-page__update-box'>
             {strings.currentVersion} - {remote.app.getVersion()}
             <br/>
-            { props.updateInfo !== undefined ?
+            { props.updateInfo !== undefined ? (
               <>
                 <p>{strings.nextVersion} - {props.updateInfo.version}</p>
-                { updateStarted ? undefined :
+                { updateStarted ? undefined : (
                   <SimpleButton
                     value={strings.updateAvailable}
                     onClick={() => {
@@ -177,10 +177,10 @@ export function HomePage(props: HomePageProps) {
                       }
                     }}>
                   </SimpleButton>
-                }
+                ) }
                 { updateProgressComponent }
               </>
-              : strings.upToDate }
+            ) : strings.upToDate }
           </ul>
         </div>
       );

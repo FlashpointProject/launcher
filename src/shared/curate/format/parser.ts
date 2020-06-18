@@ -148,8 +148,9 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
               } else {
                 throw createError(
                   'Failed to assign value to identifier. '+
-                  (nextToken.delta > 0) ? 'Index Token has a delta higher than 1.' :
-                    'Indent Token has a delta of 0.',
+                  (nextToken.delta > 0)
+                    ? 'Index Token has a delta higher than 1.'
+                    : 'Indent Token has a delta of 0.',
                   nextToken
                 );
               }

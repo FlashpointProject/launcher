@@ -2,6 +2,7 @@ import { AddLogData, BackIn } from '@shared/back/types';
 import { indexContentFolder } from '@shared/curate/util';
 import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
+import { http, https } from 'follow-redirects';
 import * as fs from 'fs-extra';
 import { IncomingMessage } from 'http';
 import { extractFull } from 'node-7z';
@@ -11,8 +12,6 @@ import * as stream from 'stream';
 import { curationLog } from '../curate/util';
 import { UpgradeStage } from '../upgrade/types';
 import { pathTo7z } from './SevenZip';
-const http  = require('follow-redirects').http;
-const https = require('follow-redirects').https;
 
 interface IGetUpgradeOpts {
   /** Path to install the upgrade to */

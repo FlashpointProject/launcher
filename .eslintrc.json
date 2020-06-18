@@ -34,27 +34,27 @@
   "root": true,
   "rules": {
     "@typescript-eslint/adjacent-overload-signatures": "off",
-    "@typescript-eslint/indent": ["warn", 2, { 
-      "MemberExpression": 0,
-      "SwitchCase": 1
-    }],
-    "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/prefer-interface": "off",
-    "@typescript-eslint/no-use-before-define": "off",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-unused-vars": ["warn", {
-      "vars": "all",
-      "args": "none"
-    }],
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-namespace": "off",
-    "@typescript-eslint/no-empty-function": ["warn", { "allow": ["arrowFunctions"] }],
     "@typescript-eslint/ban-types": ["warn", {
       "types": {
         "{}": false
       },
       "extendDefaults": true
     }],
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/indent": ["warn", 2, { 
+      "MemberExpression": 0,
+      "SwitchCase": 1
+    }],
+    "@typescript-eslint/no-empty-function": ["warn", { "allow": ["arrowFunctions"] }],
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", {
+      "vars": "all",
+      "args": "none"
+    }],
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/prefer-interface": "off",
     "react/no-unescaped-entities": ["error", {"forbid": [{
       "char": ">",
       "alternatives": ["&gt;"]

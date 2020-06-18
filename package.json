@@ -64,6 +64,7 @@
     "@types/enzyme": "3.10.5",
     "@types/enzyme-adapter-react-16": "1.0.6",
     "@types/enzyme-to-json": "1.5.3",
+    "@types/follow-redirects": "1.8.0",
     "@types/fs-extra": "8.1.0",
     "@types/jest": "24.0.17",
     "@types/mime": "2.0.1",

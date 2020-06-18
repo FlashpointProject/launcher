@@ -136,8 +136,7 @@ export class GameList extends React.Component<GameListProps> {
                       // (If any property is changed the list is re-rendered, even these)
                       pass_orderBy={this.props.orderBy}
                       pass_orderReverse={this.props.orderReverse}
-                      pass_gamesChanged={gamesChanged}
-                    />
+                      pass_gamesChanged={gamesChanged} />
                   )}
                 </ArrowKeyStepper>
               );

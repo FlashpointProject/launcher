@@ -233,7 +233,7 @@ export async function recursiveDirectory(options: IRecursiveDirectoryOptions): P
 }
 
 async function innerRecursiveDirectory(shared: IRecursiveDirectorySharedObject, dirPath: string): Promise<void> {
-  return new Promise<void>(async function(resolve, reject) {
+  return new Promise<void>(function(resolve, reject) {
     // Full path to the current folder
     const fullDirPath: string = path.join(shared.options.directoryPath, dirPath);
     // Get the names of all files and sub-folders

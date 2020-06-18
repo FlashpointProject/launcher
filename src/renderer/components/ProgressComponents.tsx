@@ -35,11 +35,11 @@ export function StatusBar(props: ProgressComponentProps) {
   return (
     <div className={(props.wrapperClass ? ' ' + props.wrapperClass : '') + 'progress-component__wrapper'}>
       <div className='status-bar__top-text'>{props.progressData.text}</div>
-      { props.progressData.secondaryText ?
+      { props.progressData.secondaryText ? (
         <div className='status-bar__bottom-text'>
           {props.progressData.secondaryText}
         </div>
-        : undefined }
+      ) : undefined }
     </div>
   );
 }
@@ -57,11 +57,11 @@ export function ProgressBar(props: ProgressComponentProps) {
       <div className='progress-bar__bar'>
         <div className='progress-bar__bar__inner' style={barCssProps} />
       </div>
-      { props.progressData.text ?
+      { props.progressData.text ? (
         <div className='progress-bar__bottom-text'>
           {props.progressData.text}
         </div>
-        : undefined }
+      ) : undefined }
     </div>
   );
 }

@@ -25,20 +25,17 @@ import { ProgressContext } from './context/ProgressContext';
   // Create Redux store
   const store = configureStore(history);
   // Render the application
-  ReactDOM.render(
-    (
-      <Provider store={store}>
-        <PreferencesContextProvider>
-          <ContextReducerProvider context={CurationContext}>
-            <ContextReducerProvider context={ProgressContext}>
-              <ConnectedRouter history={history}>
-                <ConnectedApp />
-              </ConnectedRouter>
-            </ContextReducerProvider>
+  ReactDOM.render((
+    <Provider store={store}>
+      <PreferencesContextProvider>
+        <ContextReducerProvider context={CurationContext}>
+          <ContextReducerProvider context={ProgressContext}>
+            <ConnectedRouter history={history}>
+              <ConnectedApp />
+            </ConnectedRouter>
           </ContextReducerProvider>
-        </PreferencesContextProvider>
-      </Provider>
-    ),
-    document.getElementById('root')
-  );
+        </ContextReducerProvider>
+      </PreferencesContextProvider>
+    </Provider>
+  ), document.getElementById('root'));
 })();

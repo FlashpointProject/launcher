@@ -60,8 +60,7 @@ function stringifyObject(obj: any, indent: number): string {
         } else { // (Single-line)
           str += ` ${val}\n`;
         }
-        break;
-      }
+      } break;
     }
   }
   return str;

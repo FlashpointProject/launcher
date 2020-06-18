@@ -167,8 +167,7 @@ export class GameGrid extends React.Component<GameGridProps> {
                       // (If any property is changed the grid is re-rendered, even these)
                       pass_orderBy={this.props.orderBy}
                       pass_orderReverse={this.props.orderReverse}
-                      pass_currentGamesCount={this.currentGamesCount}
-                    />
+                      pass_currentGamesCount={this.currentGamesCount} />
                   );
                 }}
               </ArrowKeyStepper>

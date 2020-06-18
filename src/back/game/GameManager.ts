@@ -51,8 +51,7 @@ export namespace GameManager {
   export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
     if (orderBy) { validateSqlName(orderBy); }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const startTime = Date.now();
+    // const startTime = Date.now();
     const gameRepository = getManager().getRepository(Game);
 
     const subQ = gameRepository.createQueryBuilder('game')
@@ -92,7 +91,7 @@ export namespace GameManager {
   }
 
   export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<GetPageKeysetResult> {
-    let startTime = Date.now();
+    // let startTime = Date.now();
 
     validateSqlName(orderBy);
     validateSqlOrder(direction);
@@ -119,8 +118,7 @@ export namespace GameManager {
 
     // Count games
     let total = -1;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    startTime = Date.now();
+    // startTime = Date.now();
     query = await getGameQuery('sub', filterOpts, orderBy, direction, 0, undefined, undefined);
 
     query.skip(0);
@@ -158,8 +156,7 @@ export namespace GameManager {
 
     let query: SelectQueryBuilder<Game> | undefined;
     for (let i = 0; i < ranges.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const startTime = Date.now();
+      // const startTime = Date.now();
 
       const range = ranges[i];
       query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, range.start, range.length, range.index);

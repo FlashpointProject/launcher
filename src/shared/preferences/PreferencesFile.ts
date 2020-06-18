@@ -14,8 +14,8 @@ export namespace PreferencesFile {
    * @param onError Called for each error that occurs while parsing.
    */
   export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<IAppPreferencesData> {
-    let error: Error | undefined,
-      data: IAppPreferencesData | undefined;
+    let error: Error | undefined;
+    let data: IAppPreferencesData | undefined;
     // Try to get the data from the file
     try {
       data = await readFile(filePath, onError);

@@ -79,7 +79,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
           disabled={disabled}
           onKeyDown={props.onInputKeyDown} />
       </CurateBoxRow>
-      {specialType ? undefined :
+      { specialType ? undefined : (
         <CurateBoxRow title={strings.browse.applicationPath + ':'}>
           <InputField
             text={props.curation && props.curation.meta.applicationPath || ''}
@@ -89,7 +89,7 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
             disabled={disabled}
             onKeyDown={props.onInputKeyDown} />
         </CurateBoxRow>
-      }
+      ) }
       <CurateBoxRow title={lcString + ':'}>
         <InputField
           text={props.curation && props.curation.meta.launchCommand || ''}

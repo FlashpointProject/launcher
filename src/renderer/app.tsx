@@ -363,7 +363,7 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.TAG_CATEGORIES_CHANGE: {
           const resData: TagCategoriesChangeData = res.data;
           this.props.setTagCategories(resData);
-        }
+        } break;
       }
     });
 

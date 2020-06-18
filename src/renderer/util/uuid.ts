@@ -5,6 +5,7 @@
 //
 // See
 //  https://github.com/kelektiv/node-uuid/issues/189
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const guid = require('uuid/v4') as (options?: { random?: Buffer }) => string;
 
 /**

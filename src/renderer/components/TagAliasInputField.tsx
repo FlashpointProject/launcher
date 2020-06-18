@@ -75,7 +75,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     return (
       <div
         className={'input-dropdown' + (this.props.disabled ? ' input-dropdown--disabled' : '')}
-        ref={this.rootRef} >
+        ref={this.rootRef}>
         { editable ? inputField : undefined }
         <div
           className={'tag-input-dropdown__content'}
@@ -112,7 +112,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
               <p className={'tag-primary__right'} >
                 Primary
               </p>
-            ): undefined }
+            ) : undefined }
             { this.props.editable && tagAlias.id != this.props.primaryAliasId ? (
               <div className='tag-alias__buttons'>
                 <div
