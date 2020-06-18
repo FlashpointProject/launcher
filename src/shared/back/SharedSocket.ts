@@ -29,13 +29,13 @@ export interface SharedSocket<T extends Socket> {
 }
 
 export class SharedSocket<T extends Socket> extends EventEmitter {
-  url: string = '';
-  secret: string = '';
+  url = '';
+  secret = '';
   socket: T | undefined;
   /** Constructor of the socket used by this. */
   socketCon: SocketConstructor<T>;
   /** If the socket should be kept open. */
-  keepOpen: boolean = false;
+  keepOpen = false;
 
   constructor(socketCon: SocketConstructor<T>) {
     super();

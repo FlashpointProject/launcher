@@ -20,12 +20,12 @@ function truncate(string: string, byteLength: number): string {
     throw new Error('Input must be string');
   }
 
-  var charLength = string.length;
-  var curByteLength = 0;
-  var codePoint;
-  var segment;
+  const charLength = string.length;
+  let curByteLength = 0;
+  let codePoint;
+  let segment;
 
-  for (var i = 0; i < charLength; i += 1) {
+  for (let i = 0; i < charLength; i += 1) {
     codePoint = string.charCodeAt(i);
     segment = string[i];
 
@@ -76,22 +76,22 @@ function truncate(string: string, byteLength: number): string {
  * @return {String}         Sanitized filename
  */
 
-var illegalRe = /[/?<>\\:*|"]/g;
-var controlRe = /[\x00-\x1f\x80-\x9f]/g;
-var reservedRe = /^\.+$/;
-var windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
-var windowsTrailingRe = /[. ]+$/;
+const illegalRe = /[/?<>\\:*|"]/g;
+const controlRe = /[\x00-\x1f\x80-\x9f]/g;
+const reservedRe = /^\.+$/;
+const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
+const windowsTrailingRe = /[. ]+$/;
 
 export function sanitizeFilename(input: string, replacement = '') {
   if (typeof input !== 'string') {
     throw new Error('Input must be string');
   }
-  var sanitized = input
-    .replace(illegalRe, replacement)
-    .replace(controlRe, replacement)
-    .replace(reservedRe, replacement)
-    .replace(windowsReservedRe, replacement)
-    .replace(windowsTrailingRe, replacement);
+  const sanitized = input
+  .replace(illegalRe, replacement)
+  .replace(controlRe, replacement)
+  .replace(reservedRe, replacement)
+  .replace(windowsReservedRe, replacement)
+  .replace(windowsTrailingRe, replacement);
   return truncate(sanitized, 255);
 }
 
@@ -99,10 +99,10 @@ export function sanitizeFoldername(input: string, replacement = '') {
   if (typeof input !== 'string') {
     throw new Error('Input must be string');
   }
-  var sanitized = input
-    .replace(illegalRe, replacement)
-    .replace(controlRe, replacement)
-    .replace(reservedRe, replacement)
-    .replace(windowsTrailingRe, replacement);
+  const sanitized = input
+  .replace(illegalRe, replacement)
+  .replace(controlRe, replacement)
+  .replace(reservedRe, replacement)
+  .replace(windowsTrailingRe, replacement);
   return truncate(sanitized, 255);
 }

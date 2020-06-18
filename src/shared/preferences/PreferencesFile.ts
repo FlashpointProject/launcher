@@ -6,7 +6,7 @@ import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../Util';
 /** Static class with methods for saving, loading and parsing the Preferences file */
 export namespace PreferencesFile {
   /** Encoding used by preferences file. */
-  const fileEncoding: string = 'utf8';
+  const fileEncoding = 'utf8';
 
   /**
    * Attempt to read and parse the preferences file, then return the result.
@@ -14,8 +14,8 @@ export namespace PreferencesFile {
    * @param onError Called for each error that occurs while parsing.
    */
   export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<IAppPreferencesData> {
-    let error: Error | undefined,
-        data: IAppPreferencesData | undefined;
+    let error: Error | undefined;
+    let data: IAppPreferencesData | undefined;
     // Try to get the data from the file
     try {
       data = await readFile(filePath, onError);
@@ -26,7 +26,7 @@ export namespace PreferencesFile {
     if (error || !data) {
       data = deepCopy(defaultPreferencesData);
       await saveFile(filePath, data)
-            .catch(() => console.log('Failed to save default preferences file!'));
+      .catch(() => console.log('Failed to save default preferences file!'));
     }
     // Return
     return data;

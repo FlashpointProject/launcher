@@ -1,19 +1,12 @@
-import { Tag } from '@database/entity/Tag';
-import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, TagGetData, TagGetResponse } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
-import { deepCopy } from '@shared/Util';
-import { remote } from 'electron';
 import * as React from 'react';
+import { ColorResult, SketchPicker } from 'react-color';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
-import { DropdownInputField } from './DropdownInputField';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
-import { TagAliasInputField } from './TagAliasInputField';
-import { SketchPicker, ColorResult } from 'react-color';
 
 type OwnProps = {
   /** Currently selected tag category (if any) */
@@ -32,7 +25,6 @@ type OwnProps = {
 export type RightTagCategoriesSidebarProps = OwnProps & WithPreferencesProps;
 
 type RRightTagCategoriesSidebarState = {
-  currentTagInput: string;
 };
 
 export interface RightTagCategoriesSidebar {
@@ -46,9 +38,6 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
 
   constructor(props: RightTagCategoriesSidebarProps) {
     super(props);
-    this.state = {
-      currentTagInput: ''
-    };
   }
 
   componentDidMount() {
@@ -105,16 +94,16 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
                       ) : ( /* While NOT Editing */
                         <>
                           {/* "Edit" Button */}
-                        <div
-                          className='browse-right-sidebar__title-row__buttons__edit-button'
-                          title={strings.editTag}
-                          onClick={this.props.onEditClick}>
-                          <OpenIcon icon='pencil' />
-                        </div>
-                        <ConfirmElement
-                          onConfirm={this.onDeleteCategoryClick}
-                          children={this.renderDeleteCategoryButton}
-                          extra={allStrings.tags} />
+                          <div
+                            className='browse-right-sidebar__title-row__buttons__edit-button'
+                            title={strings.editTag}
+                            onClick={this.props.onEditClick}>
+                            <OpenIcon icon='pencil' />
+                          </div>
+                          <ConfirmElement
+                            onConfirm={this.onDeleteCategoryClick}
+                            render={this.renderDeleteCategoryButton}
+                            extra={allStrings.tags} />
                         </>
                       ) }
                     </>
@@ -202,10 +191,6 @@ export class RightTagCategoriesSidebar extends React.Component<RightTagCategorie
 
   onColorChange = (color: ColorResult) => {
     this.props.onEditCategory({ color: color.hex });
-  }
-
-  onCurrentTagChange = (event: React.ChangeEvent<InputElement>) => {
-    this.setState({ currentTagInput: event.currentTarget.value });
   }
 
   /** When a key is pressed while an input field is selected (except for multiline fields) */

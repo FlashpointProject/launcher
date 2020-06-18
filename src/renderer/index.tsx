@@ -1,4 +1,3 @@
-import { AddLogData, BackIn } from '@shared/back/types';
 import { ConnectedRouter } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
 import * as React from 'react';
@@ -27,25 +26,16 @@ import { ProgressContext } from './context/ProgressContext';
   const store = configureStore(history);
   // Render the application
   ReactDOM.render((
-      <Provider store={store}>
-        <PreferencesContextProvider>
-          <ContextReducerProvider context={CurationContext}>
-            <ContextReducerProvider context={ProgressContext}>
-              <ConnectedRouter history={history}>
-                <ConnectedApp />
-              </ConnectedRouter>
-            </ContextReducerProvider>
+    <Provider store={store}>
+      <PreferencesContextProvider>
+        <ContextReducerProvider context={CurationContext}>
+          <ContextReducerProvider context={ProgressContext}>
+            <ConnectedRouter history={history}>
+              <ConnectedApp />
+            </ConnectedRouter>
           </ContextReducerProvider>
-        </PreferencesContextProvider>
-      </Provider>
-    ),
-    document.getElementById('root')
-  );
+        </ContextReducerProvider>
+      </PreferencesContextProvider>
+    </Provider>
+  ), document.getElementById('root'));
 })();
-
-function log(content: string): void {
-  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
-    source: 'Launcher',
-    content: content,
-  });
-}

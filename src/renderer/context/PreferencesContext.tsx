@@ -20,8 +20,8 @@ export function PreferencesContextProvider(props: PreferencesContextProviderProp
   });
 
   return (
-    <PreferencesContext.Provider
-      value={state}
-      children={props.children} />
+    <PreferencesContext.Provider value={state}>
+      {props.children}
+    </PreferencesContext.Provider>
   );
 }

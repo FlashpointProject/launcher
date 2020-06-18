@@ -470,7 +470,7 @@ function createCategory<T extends readonly string[]>(tempCat: T): LangCategory<T
 /** Create a base language container from the template. */
 function createBaseLangContainer(): BaseLangContainer {
   const lang: BaseLangContainer = {} as any;
-  for (let key in langTemplate) {
+  for (const key in langTemplate) {
     lang[key as keyof LangTemplate] = createCategory(langTemplate[key as keyof LangTemplate]);
   }
   return lang;
@@ -502,7 +502,7 @@ export type LangFileContent = LangContainer & {
 }
 
 /** Magic string used to reference "automatic language selection". */
-export const autoCode: string = '<auto>';
+export const autoCode = '<auto>';
 
 export function getDefaultLocalization(): LangContainer {
   // Get the base language container

@@ -32,7 +32,7 @@ export type EventAggregatorOpts<T extends AnyFunction> = {
 export function eventAggregator<T extends AnyFunction>(callback: T, opts?: EventAggregatorOpts<T>): CallableCopy<T> {
   // Variables
   const buffer: BufferedEvent<T>[] = []; // Buffer of all recorded and not-yet-released events
-  let time: number = 50;
+  let time = 50;
   let equal: EqualsCheck<T> = defaultEqualsFunc;
 
   // Apply options
@@ -45,7 +45,7 @@ export function eventAggregator<T extends AnyFunction>(callback: T, opts?: Event
   const eventAggregator: CallableCopy<T> = function(...args) {
     // Check if equal arguments already are in the buffer
     let isUnique = true;
-    for (let item of buffer) {
+    for (const item of buffer) {
       if (equal(item.arguments, args)) {
         isUnique = false;
         break;

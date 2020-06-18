@@ -23,13 +23,14 @@ const confirmDefaultState: ConfirmState = Object.freeze({
 
 function confirmReducer(state: ConfirmState, action: ConfirmAction): ConfirmState {
   switch (action.type) {
-    case 'increment':
+    case 'increment': {
       let nextCount = state.count + 1;
       if (nextCount > action.limit) {
         action.confirm();
         nextCount = 0;
       }
       return { count: nextCount };
+    }
     case 'reset':
       return { count: 0 };
     default:

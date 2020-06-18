@@ -418,11 +418,11 @@ export function CurateBox(props: CurateBoxProps) {
         await fs.ensureDir(path.dirname(filePath));
         // Check if zip path already exists
         await fs.access(filePath, fs.constants.F_OK)
-          .then(() => {
-            // Remove old zip - 'Add' will expand zip if it exists
-            return fs.unlink(filePath);
-          })
-          .catch((error) => { /* No file is okay, ignore error */ });
+        .then(() => {
+          // Remove old zip - 'Add' will expand zip if it exists
+          return fs.unlink(filePath);
+        })
+        .catch((error) => { /* No file is okay, ignore error */ });
         // Save working meta
         const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
         const meta = YAML.stringify(convertEditToCurationMeta(curation.meta, props.tagCategories, curation.addApps));
@@ -480,23 +480,23 @@ export function CurateBox(props: CurateBoxProps) {
   // Render additional application elements
   const addApps = useMemo(() => (
     <>
-    { strings.browse.additionalApplications }:
-    { props.curation && props.curation.addApps.length > 0 ? (
-      <table className="curate-box-table">
-        <tbody>
-          { props.curation.addApps.map(addApp => (
-            <CurateBoxAddApp
-              key={addApp.key}
-              curationKey={props.curation && props.curation.key || ''}
-              curation={addApp}
-              dispatch={props.dispatch}
-              disabled={disabled}
-              platform={props.curation && props.curation.meta.platform}
-              onInputKeyDown={onInputKeyDown} />
-          )) }
-        </tbody>
-      </table>
-    ) : undefined }
+      { strings.browse.additionalApplications } :
+      { props.curation && props.curation.addApps.length > 0 ? (
+        <table className="curate-box-table">
+          <tbody>
+            { props.curation.addApps.map(addApp => (
+              <CurateBoxAddApp
+                key={addApp.key}
+                curationKey={props.curation && props.curation.key || ''}
+                curation={addApp}
+                dispatch={props.dispatch}
+                disabled={disabled}
+                platform={props.curation && props.curation.meta.platform}
+                onInputKeyDown={onInputKeyDown} />
+            )) }
+          </tbody>
+        </table>
+      ) : undefined }
     </>
   ), [
     props.curation && props.curation.addApps,
@@ -565,8 +565,7 @@ export function CurateBox(props: CurateBoxProps) {
             onAddClick={onAddThumbnailClick}
             onRemoveClick={onRemoveThumbnailClick}
             disabled={disabled}
-            onDrop={onDropThumbnail}
-            />
+            onDrop={onDropThumbnail} />
           <GameImageSplit
             text={strings.browse.screenshot}
             imgSrc={screenshotPath}
@@ -574,8 +573,7 @@ export function CurateBox(props: CurateBoxProps) {
             onAddClick={onAddScreenshotClick}
             onRemoveClick={onRemoveScreenshotClick}
             disabled={disabled}
-            onDrop={onDropScreenshot}
-            />
+            onDrop={onDropScreenshot} />
         </>
       );
     }
@@ -884,7 +882,7 @@ export function CurateBox(props: CurateBoxProps) {
         <div className='curate-box-buttons__right'>
           <ConfirmElement
             onConfirm={onRemoveClick}
-            children={renderRemoveButton}
+            render={renderRemoveButton}
             extra={[strings.curate, disabled]} />
           <SimpleButton
             className='curate-box-buttons__button'
@@ -901,7 +899,7 @@ export function CurateBox(props: CurateBoxProps) {
       {progressComponent}
     </div>
   ), [props.curation, strings, disabled, warnings, onImportClick, progressComponent,
-      tagInputText, tagSuggestions]);
+    tagInputText, tagSuggestions]);
 }
 
 function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
@@ -1031,34 +1029,6 @@ function isValueSuggested<T extends keyof Partial<GamePropSuggestions>>(curation
   return suggestions ? (suggestions.indexOf(value) >= 0) : false;
 }
 
-/**
- * Check if a list value of a field is in the suggestions for that field.
- * @param props Properties of the CurateBox
- * @param key Key of the field to check
- * @param delimiter String delimiter between values
- * @returns List of values not found in suggestions
- */
-function listValuesNotSuggested<T extends keyof Partial<GamePropSuggestions>>(curation: EditCuration, _suggestions: Partial<GamePropSuggestions> | undefined, key: T & string, delimiter: string): string[] {
-  // Get the values used
-  // (the dumb compiler doesn't understand that this is a string >:((( )
-  const value = (curation.meta[key] || '') as string;
-  const suggestions = _suggestions && _suggestions[key];
-  const unusedValues: string[] = [];
-  // Delimiter given, split string
-  if (suggestions && value.length > 0) {
-    const values = value.split(delimiter);
-    // If any split values don't exist in suggestions, return false
-    for (let i = 0; i < values.length; i++) {
-      const trimmedValue = values[i].trim();
-      if (suggestions.indexOf(trimmedValue) === -1) {
-        unusedValues.push(trimmedValue);
-      }
-    }
-    // All values found in suggestions
-  }
-  return unusedValues;
-}
-
 /** Data about a file that collided with a content file from a curation. */
 type ContentCollision = {
   fileName: string;
@@ -1079,7 +1049,7 @@ async function checkCollisions(content: IndexedContent[]) {
     };
     collisions[i] = collision;
     if (collision.fileName !== undefined) {
-      const [stats, error] = await safeAwait(fs.stat(collision.fileName));
+      const [stats] = await safeAwait(fs.stat(collision.fileName));
       if (stats) {
         collision.fileSize = stats.size;
         collision.fileExists = true;
@@ -1101,26 +1071,17 @@ async function safeAwait<T, E = Error>(promise: Promise<T>): Promise<[T | undefi
   return [value, error];
 }
 
-/**
- * Check if string is a http url
- * @param str String to check.
- */
-function isHttpUrl(str: string): boolean {
-  try { return new URL(str).protocol.toLowerCase() === 'http:'; }
-  catch (e) { return false; }
-}
-
 function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string, strings: LangContainer['curate']): string[] {
   // Keep list of warns for end
   const warns: string[] = [];
   // Extract first string from launch command via regex
-  let match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
+  const match = launchCommand.match(/[^\s"']+|"([^"]*)"|'([^']*)'/);
   if (match) {
     // Match 1 - Inside quotes, Match 0 - No Quotes Found
     let lc = match[1] || match[0];
     // Extract protocol from potential URL
     console.log(lc);
-    let protocol = lc.match(/(.+?):\/\//);
+    const protocol = lc.match(/(.+?):\/\//);
     console.log(protocol);
     if (protocol) {
       // Protocol found, must be URL

@@ -160,7 +160,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
   // Find games (& check for missing games)
   const games: Partial<Record<string, Game>> = {};
   const notFound: MetaEditGameNotFound[] = [];
-  for (let id of combinedMetasKeys) {
+  for (const id of combinedMetasKeys) {
     const game = await GameManager.findGame(id);
 
     if (game) {
@@ -238,7 +238,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
 
   // Discard all values that are identical to the current values
   const changedMetas: ChangedMeta[] = [];
-  for (let id of combinedMetasKeys) {
+  for (const id of combinedMetasKeys) {
     const combined = combinedMetas[id];
     if (!combined) { throw new Error(`Failed to GIDDY UP PARTNER. "combined meta" is missing (id: "${id}") (bug)`); }
 
@@ -254,7 +254,7 @@ export async function importAllMetaEdits(fullMetaEditsFolderPath: string, openDi
     changedMetas.push(changedMeta);
 
     const keys = Object.keys(combined) as (keyof typeof combined)[];
-    for (let property of keys) {
+    for (const property of keys) {
       const values = combined[property];
       if (!values || !values[0]) { throw new Error(`Failed to GIDDY UP PARTNER. "values" is missing (id: "${id}", property: "${property}") (bug)`); }
 

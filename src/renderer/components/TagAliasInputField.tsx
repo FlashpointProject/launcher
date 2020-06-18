@@ -75,8 +75,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
     return (
       <div
         className={'input-dropdown' + (this.props.disabled ? ' input-dropdown--disabled' : '')}
-        ref={this.rootRef}
-        onBlur={this.onBlur}>
+        ref={this.rootRef}>
         { editable ? inputField : undefined }
         <div
           className={'tag-input-dropdown__content'}
@@ -113,7 +112,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
               <p className={'tag-primary__right'} >
                 Primary
               </p>
-            ): undefined }
+            ) : undefined }
             { this.props.editable && tagAlias.id != this.props.primaryAliasId ? (
               <div className='tag-alias__buttons'>
                 <div
@@ -124,7 +123,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
                 </div>
                 <ConfirmElement
                   onConfirm={() => this.onDeleteAliasClick(tagAlias, index)}
-                  children={this.renderDeleteButton}
+                  render={this.renderDeleteButton}
                   extra={this.context.tags} />
               </div>
             ) : undefined }
@@ -202,8 +201,7 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
       if (key === 'ArrowUp' || key === 'ArrowDown') {
         const element = document.activeElement;
         if (element && checkIfAncestor(element, this.contentRef.current)) {
-          const next: any = (key === 'ArrowUp') ? element.previousSibling :
-                                                  element.nextElementSibling;
+          const next: any = (key === 'ArrowUp') ? element.previousSibling : element.nextElementSibling;
           if (next && next.focus) {
             next.focus();
             event.preventDefault();
@@ -211,10 +209,6 @@ export class TagAliasInputField extends React.Component<TagAliasInputFieldProps,
         }
       }
     }
-  }
-
-  onBlur = (event: React.FocusEvent): void => {
-    const { relatedTarget } = event;
   }
 
   onInputChange = (event: React.ChangeEvent<InputElement>): void => {
@@ -261,13 +255,4 @@ function getListItemIndex(target: any): number {
     return parseInt(target.getAttribute('data-dropdown-index') || '-1', 10);
   }
   return -1;
-}
-
-/** Check if two arrays are of equal length and contains the exact same items in the same order. */
-function checkIfArraysAreEqual(a: Array<any>, b: Array<any>): boolean {
-  if (a.length !== b.length) { return false; }
-  for (let i = a.length; i >= 0; i--) {
-    if (a[i] !== b[i]) { return false; }
-  }
-  return true;
 }

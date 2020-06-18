@@ -16,7 +16,7 @@ export type ConfirmElementArgs<T = undefined> = {
 
 export type ConfirmElementProps<T = undefined> = {
   /** Function that renders the element (render prop). */
-  children?: (args: ConfirmElementArgs<T>) => JSX.Element | void;
+  render?: (args: ConfirmElementArgs<T>) => JSX.Element | undefined;
   /** Number of activations needed to confirm. */
   activationLimit?: number;
   /** Called when confirmed. */
@@ -34,7 +34,7 @@ export function ConfirmElement<T = undefined>(props: ConfirmElementProps<T>) {
   // Hooks
   const [count, activate, confirm, reset] = useConfirm(props.activationLimit, props.onConfirm);
   // Render
-  return props.children && props.children({
+  return props.render && props.render({
     activate: activate,
     activationCounter: count,
     confirm: confirm,

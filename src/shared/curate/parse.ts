@@ -1,5 +1,4 @@
 import { Coerce } from '@shared/utils/Coerce';
-import * as YAML from 'yaml';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { CurationFormatObject, parseCurationFormat } from './format/parser';
 import { CFTokenizer, tokenizeCurationFormat } from './format/tokenizer';
@@ -58,7 +57,7 @@ export async function convertMeta(data: any, onError?: (error: string) => void):
   }
   // Treat field names case-insensitively
   const lowerCaseData: any = {};
-  for (let key of Object.keys(data)) {
+  for (const key of Object.keys(data)) {
     if (data[key]) {
       // Don't copy undefined data - will convert to string, bad!
       lowerCaseData[key.toLowerCase()] = data[key];

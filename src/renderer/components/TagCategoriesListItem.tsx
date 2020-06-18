@@ -14,7 +14,7 @@ export function TagCategoriesListItem(props: TagCategoriesListItemProps) {
   const { category, isSelected, index, style } = props;
   // Pick class names
   const className = React.useMemo(() => {
-    let className: string = 'tag-list-item';
+    let className = 'tag-list-item';
     if (index % 2 === 0) { className += ' tag-list-item--even';     }
     if (isSelected)      { className += ' tag-list-item--selected'; }
     return className;
@@ -53,7 +53,7 @@ export function TagCategoriesListItem(props: TagCategoriesListItemProps) {
 
 export namespace TagCategoriesListItem { // eslint-disable-line no-redeclare
   /** ID of the attribute used to store the game's id. */
-  export const idAttribute: string = 'data-tag-id';
+  export const idAttribute = 'data-tag-id';
 
   /**
    * Get the id of the game displayed in a GameListItem element (or throw an error if it fails).

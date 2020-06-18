@@ -1,9 +1,9 @@
 /* Tests for src/main/renderer/Util.ts */
-import { shuffle, joinLibraryRoute, getGameImageURL, getPlatformIconURL, toForcedURL, toURL, openConfirmDialog, isFlashpointValidCheck, easterEgg, findElementAncestor } from '@renderer/Util';
-import * as Util from '@shared/Util';
-import * as path from 'path';
-import { STATIC_PATH } from '@tests/setup';
+import { easterEgg, getGameImageURL, getPlatformIconURL, isFlashpointValidCheck, joinLibraryRoute, shuffle, toForcedURL, toURL } from '@renderer/Util';
 import { SharedSocket } from '@shared/back/SharedSocket';
+import * as Util from '@shared/Util';
+import { STATIC_PATH } from '@tests/setup';
+import * as path from 'path';
 
 jest.mock('@shared/Util');
 
@@ -15,23 +15,23 @@ describe('Util.shuffle()', function () {
 describe('Util.joinLibraryRoute()', function () {
 
   test('Empty Route', () => {
-    const route: string = '';
+    const route = '';
     expect(joinLibraryRoute(route)).toBe('/browse');
   });
   test('Passing a route', () => {
-    const route: string = 'arcade';
+    const route = 'arcade';
     expect(joinLibraryRoute(route)).toBe('/browse/arcade');
   });
   test('Lots of slashes', () => {
-    const route: string = 'arcade/flash/plugin/shockwa///ve';
+    const route = 'arcade/flash/plugin/shockwa///ve';
     expect(joinLibraryRoute(route)).toBe('/browse/arcadeflashpluginshockwave');
   });
   test('Double dots', () => {
-    const route: string = '..';
+    const route = '..';
     expect(joinLibraryRoute(route)).toBe('/browse');
   });
   test('Double dots with slashes', () => {
-    const route: string = 'a/../b//c';
+    const route = 'a/../b//c';
     expect(joinLibraryRoute(route)).toBe('/browse/a..bc');
   });
 });

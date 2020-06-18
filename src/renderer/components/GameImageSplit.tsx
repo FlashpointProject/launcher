@@ -80,14 +80,13 @@ export class GameImageSplit extends React.Component<GameImageSplitProps, GameIma
             {showHeaders ? <p>{text}</p> : undefined}
             <ConfirmElement
               onConfirm={this.onRemoveClick}
-              children={renderDeleteImageButton}
+              render={renderDeleteImageButton}
               extra={[strings, text, !!disabled]} />
-            { showPreview ?
+            { showPreview ? (
               <ImagePreview
                 src={this.props.imgSrc}
-                onCancel={this.onPreviewCancel}
-                />
-            : undefined }
+                onCancel={this.onPreviewCancel} />
+            ) : undefined }
           </div>
         ) }
       </div>

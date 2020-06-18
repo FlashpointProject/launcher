@@ -48,15 +48,15 @@ export class FolderWatcher extends WrappedEventEmitter {
   /** Path of the folder this is managing. */
   protected _folderPath: string | undefined;
   /** How deep this will recursively watch sub-folders (0 for no recursion, -1 for infinite recursion). */
-  protected _recursionDepth: number = 0;
+  protected _recursionDepth = 0;
   /** Watchers for the sub-folders (empty if the recursion depth is 0) */
   protected _childWatchers: IMap<string, FolderWatcher> = {};
   /** If this is watching a folder. */
-  protected _isWatching: boolean = false;
+  protected _isWatching = false;
   /** Watcher of the "parent" folder (undefined if this is the root watcher). */
   protected _parentWatcher: FolderWatcher | undefined = undefined;
   /** Relative path from the root's folder to this' folder. It's an empty string for the root folder. */
-  protected _pathOffset: string = '';
+  protected _pathOffset = '';
 
   /** The file names of all files in the folder. */
   get filenames(): string[] {
@@ -143,7 +143,7 @@ export class FolderWatcher extends WrappedEventEmitter {
       this._watcher.close();
     }
     // Abort sub-watchers
-    for (let key in this._childWatchers) {
+    for (const key in this._childWatchers) {
       this._childWatchers[key].abort();
     }
     this._childWatchers = {};
@@ -151,6 +151,7 @@ export class FolderWatcher extends WrappedEventEmitter {
   }
 
   getFile(filepath: string[]): fs.Stats | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let folder: FolderWatcher | undefined = this;
     const length = filepath.length - 1;
     for (let i = 0; i < length; i++) {

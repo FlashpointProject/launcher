@@ -104,6 +104,7 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
             // Assign a list
             case CFTokenizer.TokenType.LIST_ITEM: {
               const list: string[] = [];
+              // eslint-disable-next-line no-var
               for (var i = nextTokenIndex; i < tokens.length; i++) {
                 const itemToken = tokens[i];
                 if (itemToken.type === CFTokenizer.TokenType.LIST_ITEM) {
@@ -147,8 +148,9 @@ function parseObject(tokens: CFTokenizer.AnyToken[], state: ParseState): Curatio
               } else {
                 throw createError(
                   'Failed to assign value to identifier. '+
-                  (nextToken.delta > 0) ? 'Index Token has a delta higher than 1.' :
-                                          'Indent Token has a delta of 0.',
+                  (nextToken.delta > 0)
+                    ? 'Index Token has a delta higher than 1.'
+                    : 'Indent Token has a delta of 0.',
                   nextToken
                 );
               }
@@ -196,7 +198,7 @@ type ParseState = {
  * @param startIndex First index to check.
  * @returns The index of the first non-comment token, or -1 if none was found.
  */
-function indexOfNonComment(tokens: CFTokenizer.AnyToken[], startIndex: number = 0): number {
+function indexOfNonComment(tokens: CFTokenizer.AnyToken[], startIndex = 0): number {
   for (let i = startIndex; i < tokens.length; i++) {
     if (tokens[i].type !== CFTokenizer.TokenType.COMMENT) { return i; }
   }

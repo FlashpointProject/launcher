@@ -12,7 +12,7 @@ type ExecMappingFile = {
 }
 
 /** Relative path to exec mappings file */
-const filePath: string = 'execs.json';
+const filePath = 'execs.json';
 
 /**
  * Load exec mapping file
@@ -27,7 +27,7 @@ export function loadExecMappingsFile(jsonFolder: string, onError?: (error: strin
 }
 
 function parseExecMappingsFile(data: any, onError?: (error: string) => void) : ExecMappingFile {
-  let parsed: ExecMappingFile = {
+  const parsed: ExecMappingFile = {
     execs: [],
   };
   const parser = new ObjectParser({
@@ -39,7 +39,7 @@ function parseExecMappingsFile(data: any, onError?: (error: string) => void) : E
 }
 
 function parseExecMapping(parser: IObjectParserProp<any>) : ExecMapping {
-  let parsed: ExecMapping = {
+  const parsed: ExecMapping = {
     win32: '',
     linux: undefined,
     darwin: undefined,

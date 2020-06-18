@@ -3,16 +3,14 @@ import { GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps } from 'react-virtualized';
 import { findElementAncestor } from '../Util';
-import { TagItemContainer } from './TagItemContainer';
-import { TagListHeader } from './TagListHeader';
-import { TagListItem } from './TagListItem';
-import { TagCategoriesListItem } from './TagCategoriesListItem';
 import { TagCategoriesListHeader } from './TagCategoriesListHeader';
+import { TagCategoriesListItem } from './TagCategoriesListItem';
+import { TagItemContainer } from './TagItemContainer';
+import { TagListItem } from './TagListItem';
 /** A function that receives an HTML element. */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
 
 const RENDERER_OVERSCAN = 15;
-const BACK_OVERSCAN = 100;
 
 export type TagCategoriesProps = {
   /** All tags that will be shown in the list. */

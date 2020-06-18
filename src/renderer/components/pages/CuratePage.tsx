@@ -145,50 +145,50 @@ export function CuratePage(props: CuratePageProps) {
           case 'meta.yaml':
           case 'meta.yml': {
             await readCurationMeta(fullPath, defaultGameMetaValues)
-              .then(async (parsedMeta) => {
-                dispatch({
-                  type: 'set-curation-meta',
-                  payload: {
-                    key: key,
-                    parsedMeta: parsedMeta
-                  }
-                });
-              })
-              .catch((error) => {
-                const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}`;
-                console.error(error);
-                curationLog(formedMessage);
-                showWarningBox(formedMessage);
+            .then(async (parsedMeta) => {
+              dispatch({
+                type: 'set-curation-meta',
+                payload: {
+                  key: key,
+                  parsedMeta: parsedMeta
+                }
               });
+            })
+            .catch((error) => {
+              const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}`;
+              console.error(error);
+              curationLog(formedMessage);
+              showWarningBox(formedMessage);
+            });
             break;
           }
           case 'meta.txt': {
             // Immediately save an old style file as new
             // Parse file then save back as a new style (YAML) file
             await readCurationMeta(fullPath, defaultGameMetaValues)
-              .then(async (parsedMeta) => {
-                console.log(parsedMeta);
-                const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
-                const newMetaData = YAML.stringify(convertParsedToCurationMeta(parsedMeta, props.tagCategories));
-                await fs.writeFile(newMetaPath, newMetaData);
-                // Remove old style meta file
-                await fs.unlink(fullPath);
-              })
-              .catch(async (error) => {
-                const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}\n\n` +
-                                      'A default meta has been loaded.\n' +
-                                      'You may edit your meta.txt in the curation folder to be valid, this will then replace the loaded meta automatically.';
-                console.error(error);
-                curationLog(formedMessage);
-                showWarningBox(formedMessage);
-                const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
-                await fs.access(newMetaPath, fs.constants.F_OK)
-                  .catch((error) => {
-                    // File doesn't exist yet, make an empty one
-                    return fs.createFile(newMetaPath);
-                  });
-                // Leave errored meta.txt intact
+            .then(async (parsedMeta) => {
+              console.log(parsedMeta);
+              const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
+              const newMetaData = YAML.stringify(convertParsedToCurationMeta(parsedMeta, props.tagCategories));
+              await fs.writeFile(newMetaPath, newMetaData);
+              // Remove old style meta file
+              await fs.unlink(fullPath);
+            })
+            .catch(async (error) => {
+              const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}\n\n` +
+                                    'A default meta has been loaded.\n' +
+                                    'You may edit your meta.txt in the curation folder to be valid, this will then replace the loaded meta automatically.';
+              console.error(error);
+              curationLog(formedMessage);
+              showWarningBox(formedMessage);
+              const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
+              await fs.access(newMetaPath, fs.constants.F_OK)
+              .catch((error) => {
+                // File doesn't exist yet, make an empty one
+                return fs.createFile(newMetaPath);
               });
+              // Leave errored meta.txt intact
+            });
             break;
           }
           case 'logo.png':
@@ -276,7 +276,7 @@ export function CuratePage(props: CuratePageProps) {
   React.useEffect(() => {
     localState.state = state;
     // Process any unindexed curations
-    for (let curation of state.curations) {
+    for (const curation of state.curations) {
       if (indexedCurations.findIndex(i => i === curation.key) === -1) {
         indexedCurations.push(curation.key);
         // Don't attempt to index a deleted curation
@@ -304,7 +304,7 @@ export function CuratePage(props: CuratePageProps) {
       watcher.close();
       const state = localState.state;
       // Save all working curation metas
-      for (let curation of state.curations) {
+      for (const curation of state.curations) {
         // Delete if marked
         if (curation.delete) {
           const curationPath = getCurationFolder2(curation);
@@ -334,7 +334,7 @@ export function CuratePage(props: CuratePageProps) {
         date: date,
         saveCuration: props.preferencesData.saveImportedCurations,
       }
-    ).then<void>(res => new Promise((resolve, reject) => {
+    ).then<undefined>(res => new Promise((resolve, reject) => {
       if (res.data && res.data.error) {
         reject(res.data.error);
       } else {
@@ -470,7 +470,7 @@ export function CuratePage(props: CuratePageProps) {
 
   // Delete all curations
   const onDeleteAllClick = useCallback(() => {
-    for (let curation of state.curations) {
+    for (const curation of state.curations) {
       dispatch({
         type: 'remove-curation',
         payload: { key: curation.key }
@@ -506,7 +506,7 @@ export function CuratePage(props: CuratePageProps) {
       ProgressDispatch.setText(statusProgress, `Loading Curation ${filesCounted} of ${filePaths.length}`);
       // Don't use percentDone
       ProgressDispatch.setUsePercentDone(statusProgress, false);
-      for (let archivePath of filePaths) {
+      for (const archivePath of filePaths) {
         // Mark as indexed so can index ourselves after extraction
         const key = uuid();
         indexedCurations.push(key);
@@ -630,7 +630,7 @@ export function CuratePage(props: CuratePageProps) {
   // Libraries an options list
   const libraryOptions = memoizeOne(() => {
     // Map library routes to options
-    let options = props.libraries.map((library, index) => (
+    const options = props.libraries.map((library, index) => (
       <option
         key={index}
         value={library}>
@@ -669,16 +669,16 @@ export function CuratePage(props: CuratePageProps) {
     if (state.curations.length > 0) {
       return state.curations.map((curation, index) => (
         curation.delete ? undefined :
-        <CurateBox
-          key={index}
-          importCuration={importCurationCallback}
-          curation={curation}
-          dispatch={dispatch}
-          suggestions={props.suggestions}
-          libraryOptions={libraryOptions()}
-          libraries={props.libraries}
-          tagCategories={props.tagCategories}
-          mad4fpEnabled={props.mad4fpEnabled} />
+          <CurateBox
+            key={index}
+            importCuration={importCurationCallback}
+            curation={curation}
+            dispatch={dispatch}
+            suggestions={props.suggestions}
+            libraryOptions={libraryOptions()}
+            libraries={props.libraries}
+            tagCategories={props.tagCategories}
+            mad4fpEnabled={props.mad4fpEnabled} />
       ));
     } else {
       return (
@@ -695,15 +695,15 @@ export function CuratePage(props: CuratePageProps) {
       const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform) : '';
       return (
         curation.delete ? undefined :
-        <div
-          key={index}
-          className='curate-page__left-sidebar-item'
-          onClick={() => { scrollToDiv(curation.key); }}>
+          <div
+            key={index}
+            className='curate-page__left-sidebar-item'
+            onClick={() => { scrollToDiv(curation.key); }}>
             <div
               className='curate-page__left-sidebar-item__icon'
               style={{backgroundImage: `url(${platformIconPath})`}}/>
             {curation.meta.title ? curation.meta.title : 'No Title'}
-        </div>
+          </div>
       );
     });
   }, [state.curations]);
@@ -717,7 +717,7 @@ export function CuratePage(props: CuratePageProps) {
         divider='after'
         width={props.preferencesData.curatePageLeftSidebarWidth}
         onResize={onLeftSidebarResize}>
-          {curateIndex}
+        {curateIndex}
       </ResizableSidebar>
       <div className='curate-page__inner simple-scroll'>
         <div className='curate-page__left'>
@@ -733,8 +733,7 @@ export function CuratePage(props: CuratePageProps) {
             <SimpleButton
               value={strings.curate.newCuration}
               title={strings.curate.newCurationDesc}
-              onClick={onNewCurationClick}
-              />
+              onClick={onNewCurationClick} />
             <SimpleButton
               value={strings.curate.loadMeta}
               title={strings.curate.loadMetaDesc}
@@ -763,29 +762,28 @@ export function CuratePage(props: CuratePageProps) {
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
               onConfirm={onImportAllClick}
-              children={renderImportAllButton}
+              render={renderImportAllButton}
               extra={[strings.curate, allLock]} />
             <div className='curate-page__floating-box__divider'/>
             <ConfirmElement
               onConfirm={onDeleteAllClick}
-              children={renderDeleteAllButton}
+              render={renderDeleteAllButton}
               extra={[strings.curate, allLock]} />
             <div className='curate-page__floating-box__divider'/>
             <div className='curate-page__checkbox'>
               <div className='curate-page__checkbox-text'>{strings.curate.saveImportedCurations}</div>
               <CheckBox
                 onToggle={onSaveImportsToggle}
-                checked={props.preferencesData.saveImportedCurations}
-                />
+                checked={props.preferencesData.saveImportedCurations} />
             </div>
           </div>
         </div>
       </div>
     </div>
   ), [curateBoxes, progressComponent, strings, state.curations.length,
-     onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
-     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar,
-     props.preferencesData.saveImportedCurations]);
+    onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
+    props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar,
+    props.preferencesData.saveImportedCurations]);
 }
 
 function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {
@@ -837,7 +835,7 @@ function initialIndexedCurations(curations: EditCuration[]) {
   return () => {
     // indexedCurations is wiped on unmount - Mark any curations with content as indexed already
     const indexedCurations: string[] = [];
-    for (let curation of curations) {
+    for (const curation of curations) {
       if (curation.content.length > 0) {
         indexedCurations.push(curation.key);
       }

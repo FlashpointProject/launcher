@@ -18,7 +18,7 @@ export function formatString<T extends Arg[]   >(str: string, ...args: T): any[]
  * @param args Arguments to replace "{N}" instances with.
  */
 export function formatString<T extends Arg[]>(str: string, ...args: T): any[] | string {
-  let onlyStrings: boolean = true;
+  let onlyStrings = true;
   const map = splitVariableString(str, opts).map((val, index) => {
     if (index % 2 === 1) {
       const i = parseInt(val, 10);

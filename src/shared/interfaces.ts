@@ -8,13 +8,16 @@ import { ILogEntry } from './Log/interface';
 import { IAppPreferencesData } from './preferences/interfaces';
 import { Theme } from './ThemeFile';
 
+/** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
+type ObjectLike = Record<string, unknown> | Record<number, unknown>
+
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
-  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+  [K in keyof T]?: T[K] extends ObjectLike ? DeepPartial<T[K]> : T[K];
 }
 
 /** Subtract the properties of U from T. */
-export type Subtract<T, U extends object> = Pick<T, Exclude<keyof T, keyof U>>;
+export type Subtract<T, U extends ObjectLike> = Pick<T, Exclude<keyof T, keyof U>>;
 
 export interface IMainWindowExternal {
   /** If the launcher is installed (instead of being portable). */
@@ -209,7 +212,7 @@ export type ExecMapping = {
 
 /** Game properties that will have suggestions gathered and displayed. */
 export type SuggestionProps = (
-    'tags'
+  | 'tags'
   | 'platform'
   | 'playMode'
   | 'status'

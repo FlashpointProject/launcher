@@ -105,7 +105,7 @@ export class GameList extends React.Component<GameListProps> {
           <AutoSizer>
             {({ width, height }) => {
               // Calculate column and row of selected item
-              let scrollToIndex: number = -1;
+              let scrollToIndex = -1;
               if (this.props.selectedGameId) {
                 scrollToIndex = findGameIndex(games, this.props.selectedGameId);
               }
@@ -136,8 +136,7 @@ export class GameList extends React.Component<GameListProps> {
                       // (If any property is changed the list is re-rendered, even these)
                       pass_orderBy={this.props.orderBy}
                       pass_orderReverse={this.props.orderReverse}
-                      pass_gamesChanged={gamesChanged}
-                      />
+                      pass_gamesChanged={gamesChanged} />
                   )}
                 </ArrowKeyStepper>
               );
@@ -241,7 +240,7 @@ export class GameList extends React.Component<GameListProps> {
 
 function findGameIndex(games: ViewGameSet | undefined, gameId: string | undefined): number {
   if (gameId !== undefined && games) {
-    for (let index in games) {
+    for (const index in games) {
       const game = games[index];
       if (game && game.id === gameId) { return (index as any) | 0; }
     }

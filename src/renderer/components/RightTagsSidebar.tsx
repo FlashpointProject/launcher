@@ -119,16 +119,16 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
                       ) : ( /* While NOT Editing */
                         <>
                           {/* "Edit" Button */}
-                        <div
-                          className='browse-right-sidebar__title-row__buttons__edit-button'
-                          title={strings.editTag}
-                          onClick={this.props.onEditClick}>
-                          <OpenIcon icon='pencil' />
-                        </div>
-                        <ConfirmElement
-                          onConfirm={this.onDeleteTagClick}
-                          children={this.renderDeleteTagButton}
-                          extra={allStrings.tags} />
+                          <div
+                            className='browse-right-sidebar__title-row__buttons__edit-button'
+                            title={strings.editTag}
+                            onClick={this.props.onEditClick}>
+                            <OpenIcon icon='pencil' />
+                          </div>
+                          <ConfirmElement
+                            onConfirm={this.onDeleteTagClick}
+                            render={this.renderDeleteTagButton}
+                            extra={allStrings.tags} />
                         </>
                       ) }
                     </>
@@ -141,8 +141,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
                 items={this.props.tagCategories.map(c => c.name)}
                 editable={this.props.isEditing}
                 onItemSelect={this.onSelectCategory}
-                text={category ? category.name : ''}
-                />
+                text={category ? category.name : ''} />
             </div>
             <div className='browse-right-sidebar__section'>
               <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -186,8 +185,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
                     <p>{strings.makeAliasWhenMerged} </p>
                     <CheckBox
                       checked={this.state.makeAliasWhenMerged}
-                      onToggle={this.onMakeAliasWhenMergedToggle}
-                      />
+                      onToggle={this.onMakeAliasWhenMergedToggle} />
                   </div>
                   <SimpleButton
                     value={strings.mergeTag}

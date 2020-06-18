@@ -39,13 +39,13 @@ export async function importCurationFolder(filePath: string, key: string = uuid(
     const index: IndexedContent[] = [];
     await recursiveFolderIndex(filePath, filePath, index);
     ProgressDispatch.setTotalItems(progress, index.length);
-    for (let file of index) {
+    for (const file of index) {
       // Copy file from import folder to curation folder, increment progress (if available)
       const sourcePath = path.join(filePath, file.filePath);
       const destPath = path.join(curationPath, file.filePath);
       await fs.ensureDir(path.dirname(destPath));
       await fs.copyFile(sourcePath, destPath);
-     ProgressDispatch.countItem(progress);
+      ProgressDispatch.countItem(progress);
     }
   } catch (error) {
     curationLog('Error importing curation folder - ' + error.message);
@@ -74,7 +74,7 @@ export async function importCurationArchive(filePath: string, key: string = uuid
     const rootPath = await getRootPath(extractPath);
     if (rootPath) {
       // Move all files out of the root folder and into the curation folder
-      for (let file of await fs.readdir(rootPath)) {
+      for (const file of await fs.readdir(rootPath)) {
         const fileSource = path.join(rootPath, file);
         const fileDest = path.join(curationPath, file);
         await fs.move(fileSource, fileDest);
@@ -143,7 +143,7 @@ async function getRootPath(dir: string): Promise<string | undefined> {
 }
 
 function endsWithList(str: string, list: string[]): boolean {
-  for (let s of list) {
+  for (const s of list) {
     if (str.endsWith(s)) {
       return true;
     }

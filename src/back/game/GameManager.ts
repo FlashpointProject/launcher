@@ -51,11 +51,11 @@ export namespace GameManager {
   export async function findGameRow(gameId: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, index?: PageTuple): Promise<number> {
     if (orderBy) { validateSqlName(orderBy); }
 
-    const startTime = Date.now();
+    // const startTime = Date.now();
     const gameRepository = getManager().getRepository(Game);
 
     const subQ = gameRepository.createQueryBuilder('game')
-      .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
+    .select(`game.id, row_number() over (order by game.${orderBy}) row_num`);
     if (index) {
       if (!orderBy) { throw new Error('Failed to get game row. "index" is set but "orderBy" is missing.'); }
       subQ.where(`(game.${orderBy}, game.id) > (:orderVal, :id)`, { orderVal: index.orderVal, id: index.id });
@@ -66,10 +66,10 @@ export namespace GameManager {
     if (orderBy) { subQ.orderBy(`game.${orderBy}`, direction); }
 
     const query = getManager().createQueryBuilder()
-      .setParameters(subQ.getParameters())
-      .select('row_num')
-      .from('(' + subQ.getQuery() + ')', 'g')
-      .where('g.id = :gameId', { gameId: gameId });
+    .setParameters(subQ.getParameters())
+    .select('row_num')
+    .from('(' + subQ.getQuery() + ')', 'g')
+    .where('g.id = :gameId', { gameId: gameId });
 
     const raw = await query.getRawOne();
     // console.log(`${Date.now() - startTime}ms for row`);
@@ -91,7 +91,7 @@ export namespace GameManager {
   }
 
   export async function findGamePageKeyset(filterOpts: FilterGameOpts, orderBy: GameOrderBy, direction: GameOrderReverse): Promise<GetPageKeysetResult> {
-    let startTime = Date.now();
+    // let startTime = Date.now();
 
     validateSqlName(orderBy);
     validateSqlOrder(direction);
@@ -103,14 +103,14 @@ export namespace GameManager {
     subQ.orderBy(`sub.${orderBy} ${direction}, sub.title`, direction);
 
     let query = getManager().createQueryBuilder()
-      .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
-      .from('(' + subQ.getQuery() + ')', 'g')
-      .where('g.page_boundary = 1')
-      .setParameters(subQ.getParameters());
+    .select(`g.${orderBy}, g.title, g.id, row_number() over(order by g.${orderBy} ${direction}, g.title ${direction}) + 1 page_number`)
+    .from('(' + subQ.getQuery() + ')', 'g')
+    .where('g.page_boundary = 1')
+    .setParameters(subQ.getParameters());
 
     const raw = await query.getRawMany();
     const keyset: PageKeyset = {};
-    for (let r of raw) {
+    for (const r of raw) {
       keyset[r['page_number']] = {orderVal: Coerce.str(r[orderBy]), title: Coerce.str(r['title']), id: Coerce.str(r['id'])};
     }
 
@@ -118,7 +118,7 @@ export namespace GameManager {
 
     // Count games
     let total = -1;
-    startTime = Date.now();
+    // startTime = Date.now();
     query = await getGameQuery('sub', filterOpts, orderBy, direction, 0, undefined, undefined);
 
     query.skip(0);
@@ -156,7 +156,7 @@ export namespace GameManager {
 
     let query: SelectQueryBuilder<Game> | undefined;
     for (let i = 0; i < ranges.length; i++) {
-      const startTime = Date.now();
+      // const startTime = Date.now();
 
       const range = ranges[i];
       query = await getGameQuery('game', opts.filter, opts.orderBy, opts.direction, range.start, range.length, range.index);
@@ -179,58 +179,6 @@ export namespace GameManager {
     return rangesOut;
   }
 
-  async function getGameQuery(
-    alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, offset?: number, limit?: number, index?: PageTuple
-  ): Promise<SelectQueryBuilder<Game>> {
-    validateSqlName(alias);
-    if (orderBy) { validateSqlName(orderBy); }
-    if (direction) { validateSqlOrder(direction); }
-
-    let whereCount = 0;
-
-    const query = getManager().getRepository(Game).createQueryBuilder(alias);
-
-    // Use Page Index (If Given)
-    if (index) {
-      const comparator = direction === 'ASC' ? '>' : '<';
-      if (!orderBy) { throw new Error('Failed to get game query. "index" is set but "orderBy" is missing.'); }
-      query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) ${comparator} (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
-      whereCount++;
-    }
-    // Apply all flat game filters
-    if (filterOpts) {
-      whereCount = applyFlatGameFilters(alias, query, filterOpts, whereCount);
-    }
-
-    // Order By + Limit
-    if (orderBy) { query.orderBy(`${alias}.${orderBy} ${direction}, ${alias}.title`, direction); }
-    if (!index && offset) { query.skip(offset); }
-    if (limit) { query.take(limit); }
-    // Playlist filtering
-    if (filterOpts && filterOpts.playlistId) {
-      query.innerJoin(PlaylistGame, 'pg', `pg.gameId = ${alias}.id`);
-      query.orderBy('pg.order');
-      if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
-      else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
-    }
-    // Tag filtering
-    if (filterOpts && filterOpts.searchQuery) {
-      const aliasWhitelist = filterOpts.searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
-      const aliasBlacklist = filterOpts.searchQuery.blacklist.filter(f => f.field === 'tag').map(f => f.value);
-
-      if (aliasWhitelist.length > 0) {
-        await applyTagFilters(aliasWhitelist, alias, query, whereCount, true);
-        whereCount++;
-      }
-      if (aliasBlacklist.length > 0) {
-        await applyTagFilters(aliasBlacklist, alias, query, whereCount, false);
-        whereCount++;
-      }
-    }
-
-    return query;
-  }
-
   /** Find an add apps with the specified ID. */
   export async function findAddApp(id?: string, filter?: FindOneOptions<AdditionalApp>): Promise<AdditionalApp | undefined> {
     if (id || filter) {
@@ -242,12 +190,12 @@ export namespace GameManager {
   export async function findPlatformAppPaths(platform: string): Promise<string[]> {
     const gameRepository = getManager().getRepository(Game);
     const values = await gameRepository.createQueryBuilder('game')
-      .select('game.applicationPath')
-      .distinct()
-      .where('game.platform = :platform', {platform: platform})
-      .groupBy('game.applicationPath')
-      .orderBy('COUNT(*)', 'DESC')
-      .getRawMany();
+    .select('game.applicationPath')
+    .distinct()
+    .where('game.platform = :platform', {platform: platform})
+    .groupBy('game.applicationPath')
+    .orderBy('COUNT(*)', 'DESC')
+    .getRawMany();
     return Coerce.strArray(values.map(v => v['game_applicationPath']));
   }
 
@@ -256,9 +204,9 @@ export namespace GameManager {
 
     const repository = getManager().getRepository(entity);
     const values = await repository.createQueryBuilder('entity')
-      .select(`entity.${column}`)
-      .distinct()
-      .getRawMany();
+    .select(`entity.${column}`)
+    .distinct()
+    .getRawMany();
     return Coerce.strArray(values.map(v => v[`entity_${column}`]));
   }
 
@@ -267,27 +215,27 @@ export namespace GameManager {
 
     const repository = getManager().getRepository(entity);
     const values = await repository.createQueryBuilder('entity')
-      .select(`entity.${column}`)
-      .distinct()
-      .getRawMany();
+    .select(`entity.${column}`)
+    .distinct()
+    .getRawMany();
     return Coerce.strArray(values.map(v => v[`entity_${column}`]));
   }
 
   export async function findPlatforms(library: string): Promise<string[]> {
     const gameRepository = getManager().getRepository(Game);
     const libraries = await gameRepository.createQueryBuilder('game')
-      .where('game.library = :library', {library: library})
-      .select('game.platform')
-      .distinct()
-      .getRawMany();
+    .where('game.library = :library', {library: library})
+    .select('game.platform')
+    .distinct()
+    .getRawMany();
     return Coerce.strArray(libraries.map(l => l.game_platform));
   }
 
   export async function updateGames(games: Game[]): Promise<void> {
     const chunks = chunkArray(games, 2000);
-    for (let chunk of chunks) {
+    for (const chunk of chunks) {
       await getManager().transaction(async transEntityManager => {
-        for (let game of chunk) {
+        for (const game of chunk) {
           await transEntityManager.save(Game, game);
         }
       });
@@ -304,7 +252,7 @@ export namespace GameManager {
     const addAppRepository = getManager().getRepository(AdditionalApp);
     const game = await GameManager.findGame(gameId);
     if (game) {
-      for (let addApp of game.addApps) {
+      for (const addApp of game.addApps) {
         await addAppRepository.remove(addApp);
       }
       await gameRepository.remove(game);
@@ -330,7 +278,7 @@ export namespace GameManager {
     const playlistGameRepository = getManager().getRepository(PlaylistGame);
     const playlist = await GameManager.findPlaylist(playlistId, true);
     if (playlist) {
-      for (let game of playlist.games) {
+      for (const game of playlist.games) {
         await playlistGameRepository.remove(game);
       }
       playlist.games = [];
@@ -372,11 +320,11 @@ export namespace GameManager {
 
   export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
     const gameIds = (await getManager().createQueryBuilder()
-      .select('game_tag.gameId as gameId')
-      .distinct()
-      .from('game_tags_tag', 'game_tag')
-      .where('game_tag.tagId = :id', { id: tag.id })
-      .getRawMany()).map(g => g['gameId']);
+    .select('game_tag.gameId as gameId')
+    .distinct()
+    .from('game_tags_tag', 'game_tag')
+    .where('game_tag.tagId = :id', { id: tag.id })
+    .getRawMany()).map(g => g['gameId']);
 
     return chunkedFindByIds(gameIds);
   }
@@ -401,23 +349,23 @@ function applyFlatGameFilters(alias: string, query: SelectQueryBuilder<Game>, fi
       const searchQuery = filterOpts.searchQuery;
       const flatGameFieldObjs = Object.values(flatGameFields);
       // Whitelists are often more restrictive, do these first
-      for (let filter of searchQuery.whitelist) {
+      for (const filter of searchQuery.whitelist) {
         if (flatGameFieldObjs.includes(filter.field)) {
           doWhereField(alias, query, filter.field, filter.value, whereCount, true);
           whereCount++;
         }
       }
-      for (let filter of searchQuery.blacklist) {
+      for (const filter of searchQuery.blacklist) {
         if (flatGameFieldObjs.includes(filter.field)) {
           doWhereField(alias, query, filter.field, filter.value, whereCount, false);
           whereCount++;
         }
       }
-      for (let phrase of searchQuery.genericWhitelist) {
+      for (const phrase of searchQuery.genericWhitelist) {
         doWhereTitle(alias, query, phrase, whereCount, true);
         whereCount++;
       }
-      for (let phrase of searchQuery.genericBlacklist) {
+      for (const phrase of searchQuery.genericBlacklist) {
         doWhereTitle(alias, query, phrase, whereCount, false);
         whereCount++;
       }
@@ -490,20 +438,20 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
   const comparator = whitelist ? 'IN' : 'NOT IN';
 
   const tagIds = (await tagAliasRepository.createQueryBuilder('tag_alias')
-    .where('tag_alias.name IN (:...aliases)', { aliases: aliases })
-    .select('tag_alias.tagId')
-    .distinct()
-    .getRawMany()).map(r => r['tag_alias_tagId']);
+  .where('tag_alias.name IN (:...aliases)', { aliases: aliases })
+  .select('tag_alias.tagId')
+  .distinct()
+  .getRawMany()).map(r => r['tag_alias_tagId']);
 
   for (let i = 0; i < tagIds.length; i++) {
     const filterName = `tag_filter_${whereCount}_${i}`;
 
     const tagId = tagIds[i];
     const subQuery = getManager().createQueryBuilder()
-      .select('game_tag.gameId')
-      .distinct()
-      .from('game_tags_tag', 'game_tag')
-      .where(`game_tag.tagId = :${filterName}`, { [filterName]: tagId });
+    .select('game_tag.gameId')
+    .distinct()
+    .from('game_tags_tag', 'game_tag')
+    .where(`game_tag.tagId = :${filterName}`, { [filterName]: tagId });
     if (whereCount == 0 && i == 0) {
       query.where(`${alias}.id ${comparator} (${subQuery.getQuery()})`);
       query.setParameters(subQuery.getParameters());
@@ -512,4 +460,56 @@ async function applyTagFilters(aliases: string[], alias: string, query: SelectQu
       query.setParameters(subQuery.getParameters());
     }
   }
+}
+
+async function getGameQuery(
+  alias: string, filterOpts?: FilterGameOpts, orderBy?: GameOrderBy, direction?: GameOrderReverse, offset?: number, limit?: number, index?: PageTuple
+): Promise<SelectQueryBuilder<Game>> {
+  validateSqlName(alias);
+  if (orderBy) { validateSqlName(orderBy); }
+  if (direction) { validateSqlOrder(direction); }
+
+  let whereCount = 0;
+
+  const query = getManager().getRepository(Game).createQueryBuilder(alias);
+
+  // Use Page Index (If Given)
+  if (index) {
+    const comparator = direction === 'ASC' ? '>' : '<';
+    if (!orderBy) { throw new Error('Failed to get game query. "index" is set but "orderBy" is missing.'); }
+    query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) ${comparator} (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
+    whereCount++;
+  }
+  // Apply all flat game filters
+  if (filterOpts) {
+    whereCount = applyFlatGameFilters(alias, query, filterOpts, whereCount);
+  }
+
+  // Order By + Limit
+  if (orderBy) { query.orderBy(`${alias}.${orderBy} ${direction}, ${alias}.title`, direction); }
+  if (!index && offset) { query.skip(offset); }
+  if (limit) { query.take(limit); }
+  // Playlist filtering
+  if (filterOpts && filterOpts.playlistId) {
+    query.innerJoin(PlaylistGame, 'pg', `pg.gameId = ${alias}.id`);
+    query.orderBy('pg.order');
+    if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+    else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+  }
+  // Tag filtering
+  if (filterOpts && filterOpts.searchQuery) {
+    const aliasWhitelist = filterOpts.searchQuery.whitelist.filter(f => f.field === 'tag').map(f => f.value);
+    const aliasBlacklist = filterOpts.searchQuery.blacklist.filter(f => f.field === 'tag').map(f => f.value);
+
+    if (aliasWhitelist.length > 0) {
+      await applyTagFilters(aliasWhitelist, alias, query, whereCount, true);
+      whereCount++;
+    }
+    if (aliasBlacklist.length > 0) {
+      await applyTagFilters(aliasBlacklist, alias, query, whereCount, false);
+      whereCount++;
+    }
+  }
+
+  return query;
 }

@@ -26,7 +26,7 @@ export function GameListItem(props: GameListItemProps) {
   ), [platform]);
   // Pick class names
   const className = React.useMemo(() => {
-    let className: string = 'game-list-item';
+    let className = 'game-list-item';
     if (index % 2 === 0) { className += ' game-list-item--even';     }
     if (isSelected)      { className += ' game-list-item--selected'; }
     if (isDragged)       { className += ' game-list-item--dragged';  }
@@ -78,7 +78,7 @@ export function GameListItem(props: GameListItemProps) {
 
 export namespace GameListItem { // eslint-disable-line no-redeclare
   /** ID of the attribute used to store the game's id. */
-  export const idAttribute: string = 'data-game-id';
+  export const idAttribute = 'data-game-id';
 
   /**
    * Get the id of the game displayed in a GameListItem element (or throw an error if it fails).

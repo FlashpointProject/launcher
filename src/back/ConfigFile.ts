@@ -1,7 +1,7 @@
-import * as fs from 'fs';
 import { IAppConfigData } from '@shared/config/interfaces';
-import { deepCopy, readJsonFile, stringifyJsonDataFile, readJsonFileSync } from '@shared/Util';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
+import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '@shared/Util';
+import * as fs from 'fs';
 
 export namespace ConfigFile {
   export function readFile(filePath: string, onError?: (error: string) => void): Promise<IAppConfigData> {
@@ -17,8 +17,8 @@ export namespace ConfigFile {
   }
 
   export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<IAppConfigData> {
-    let error: Error | undefined,
-        data: IAppConfigData | undefined;
+    let error: Error | undefined;
+    let data: IAppConfigData | undefined;
 
     try {
       data = await readFile(filePath, onError);
@@ -35,8 +35,8 @@ export namespace ConfigFile {
   }
 
   export function readOrCreateFileSync(filePath: string, onError?: (error: string) => void): IAppConfigData {
-    let error: Error | undefined,
-        data: IAppConfigData | undefined;
+    let error: Error | undefined;
+    let data: IAppConfigData | undefined;
 
     try {
       data = readFileSync(filePath, onError);

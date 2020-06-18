@@ -80,7 +80,7 @@ export function CurateBoxWarnings(props: CurateBoxWarningsProps) {
  * Return a reducer that counts the number of "true-y" values of an object.
  * @param obj Object to iterate over.
  */
-function createCountTrueReducer<T extends object>(obj: T) {
+function createCountTrueReducer<T>(obj: T) {
   return (previousValue: number, currentValue: string): number => (
     previousValue + (obj[currentValue as keyof T] ? 1 : 0)
   );

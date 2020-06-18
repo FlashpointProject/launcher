@@ -137,7 +137,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
       window.Shared.back.send<TagSaveResponse, TagSaveData>(BackIn.SAVE_TAG, this.state.currentTag, (res) => {
         if (res.data) {
           const newTags = deepCopy(this.state.tags);
-          for (let key in newTags) {
+          for (const key in newTags) {
             const oldTag = newTags[key];
             if (oldTag && oldTag.id == res.data.id) {
               newTags[key] = res.data;

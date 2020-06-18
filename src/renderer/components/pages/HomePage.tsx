@@ -127,7 +127,7 @@ export function HomePage(props: HomePageProps) {
   }, [props.platforms]);
 
   // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-  const height: number = 140;
+  const height = 140;
   const width: number = (height * 0.666) | 0;
 
   // Render all owned ProgressData as components
@@ -153,34 +153,34 @@ export function HomePage(props: HomePageProps) {
           <ul className='home-page__box-body home-page__update-box'>
             {strings.currentVersion} - {remote.app.getVersion()}
             <br/>
-            { props.updateInfo !== undefined ?
-            <>
-              <p>{strings.nextVersion} - {props.updateInfo.version}</p>
-              { updateStarted ? undefined :
-                <SimpleButton
-                  value={strings.updateAvailable}
-                  onClick={() => {
-                    if (props.updateInfo) {
-                      const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
-                      if (updateNow) {
-                        const updateProgressState = newProgress(updateProgressKey, progressDispatch);
-                        ProgressDispatch.setText(updateProgressState, strings.downloadingUpdate);
-                        props.autoUpdater.on('download-progress', (progress) => {
-                          ProgressDispatch.setPercentDone(updateProgressState, Math.floor(progress.percent));
-                        });
-                        props.autoUpdater.once('update-downloaded', (info) => {
-                          ProgressDispatch.finished(updateProgressState);
-                        });
-                        props.autoUpdater.downloadUpdate();
-                        setUpdateStarted(true);
+            { props.updateInfo !== undefined ? (
+              <>
+                <p>{strings.nextVersion} - {props.updateInfo.version}</p>
+                { updateStarted ? undefined : (
+                  <SimpleButton
+                    value={strings.updateAvailable}
+                    onClick={() => {
+                      if (props.updateInfo) {
+                        const updateNow = onUpdateDownload(props.updateInfo, props.autoUpdater.downloadUpdate);
+                        if (updateNow) {
+                          const updateProgressState = newProgress(updateProgressKey, progressDispatch);
+                          ProgressDispatch.setText(updateProgressState, strings.downloadingUpdate);
+                          props.autoUpdater.on('download-progress', (progress) => {
+                            ProgressDispatch.setPercentDone(updateProgressState, Math.floor(progress.percent));
+                          });
+                          props.autoUpdater.once('update-downloaded', (info) => {
+                            ProgressDispatch.finished(updateProgressState);
+                          });
+                          props.autoUpdater.downloadUpdate();
+                          setUpdateStarted(true);
+                        }
                       }
-                    }
-                  }}>
-                </SimpleButton>
-              }
-              { updateProgressComponent }
-            </>
-            : strings.upToDate }
+                    }}>
+                  </SimpleButton>
+                ) }
+                { updateProgressComponent }
+              </>
+            ) : strings.upToDate }
           </ul>
         </div>
       );
@@ -328,7 +328,7 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   return (
     <li className={'home-page__box-item simple-center ' + (props.className||'')}>
       { props.icon ? (
-         <div className='home-page__box-item-icon simple-center__vertical-inner'>
+        <div className='home-page__box-item-icon simple-center__vertical-inner'>
           <OpenIcon icon={props.icon} />
         </div>
       ) : undefined }

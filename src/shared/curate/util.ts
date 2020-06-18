@@ -31,18 +31,18 @@ export function getContentFolderByKey(key: string, fpPath: string): string {
 export async function indexContentFolder(contentPath: string, log: (content: string) => void): Promise<IndexedContent[]> {
   const content: IndexedContent[] = [];
   await access(contentPath, fs.constants.F_OK)
-    .then(() => {
-      return recursiveFolderIndex(contentPath, contentPath, content)
-        .catch((error) => {
-          log('Error indexing folder - ' + error.message);
-          console.error(error);
-        });
-    })
+  .then(() => {
+    return recursiveFolderIndex(contentPath, contentPath, content)
     .catch((error) => {
-      const msg = `Content folder given doesn't exist, skipping... (${contentPath})`;
-      log(msg);
-      console.log(msg);
+      log('Error indexing folder - ' + error.message);
+      console.error(error);
     });
+  })
+  .catch((error) => {
+    const msg = `Content folder given doesn't exist, skipping... (${contentPath})`;
+    log(msg);
+    console.log(msg);
+  });
   return content;
 }
 
@@ -50,7 +50,7 @@ export async function recursiveFolderIndex(folderPath: string, basePath: string,
   // List all sub-files (and folders)
   const files = await readdir(folderPath);
   // Run a promise on each file (and wait for all to finish)
-  for (let fileName of files) {
+  for (const fileName of files) {
     const filePath = path.join(folderPath, fileName);
     const stats = await lstat(filePath);
     const isDirectory = stats.isDirectory();

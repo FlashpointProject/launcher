@@ -16,18 +16,68 @@
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
-  "plugins": [
-    "@typescript-eslint"
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "only-warn"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "root": true,
   "rules": {
+    "@typescript-eslint/adjacent-overload-signatures": "off",
+    "@typescript-eslint/ban-types": ["warn", {
+      "types": {
+        "{}": false
+      },
+      "extendDefaults": true
+    }],
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/indent": ["warn", 2, { 
+      "MemberExpression": 0,
+      "SwitchCase": 1
+    }],
+    "@typescript-eslint/no-empty-function": ["warn", { "allow": ["arrowFunctions"] }],
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-invalid-void-type": ["warn", { "allowInGenericTypeArguments": true }],
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", {
+      "vars": "all",
+      "args": "none"
+    }],
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/prefer-interface": "off",
+    //"react/no-access-state-in-setstate": "warn", (requires restructuring of "app.tsx")
+    "react/no-direct-mutation-state": "warn",
+    "react/no-render-return-value": "warn",
+    "react/no-string-refs": "warn",
+    "react/no-unescaped-entities": ["warn", {"forbid": [{
+      "char": ">",
+      "alternatives": ["&gt;"]
+    }, {
+      "char": "}",
+      "alternatives": ["&#125;"]
+    }]}],
+    "react/no-unused-prop-types": "warn",
+    "react/no-unused-state": "warn",
     "curly": ["warn", "all"],
+    "eol-last": "warn",
     "for-direction": "warn",
     "getter-return": "warn",
     "keyword-spacing": "warn",
     "no-compare-neg-zero": "warn",
     "no-cond-assign": "warn",
     "no-constant-condition": ["warn", { "checkLoops": false }],
+    "no-control-regex": "off",
     "no-debugger": "warn",
     "no-delete-var": "warn",
     "no-dupe-args": "warn",
@@ -41,6 +91,7 @@
     "no-extra-semi": "warn",
     "no-func-assign": "warn",
     "no-global-assign": "warn",
+    "no-inner-declarations": "off",
     "no-invalid-regexp": "warn",
     "no-irregular-whitespace": "warn",
     "no-mixed-spaces-and-tabs": "warn",

@@ -9,7 +9,7 @@ import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
 import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
 
-export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send: boolean = true) {
+export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
   // @TODO Figure out the delta change of the object tree, and only send the changes
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
@@ -116,7 +116,7 @@ function parseMainWindow(parser: IObjectParserProp<any>, output: IAppPreferences
  */
 function strOpt<T extends string>(value: any, options: T[], defaultOption: T): T {
   value = str(value);
-  for (let option of options) {
+  for (const option of options) {
     if (value === option) { return value; }
   }
   return defaultOption;

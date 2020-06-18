@@ -11,6 +11,7 @@ export function SplashScreen(props: SplashScreenProps) {
   const extraClass = (upgradesLoaded && creditsLoaded && miscLoaded)
     ? ' splash-screen--fade-out'
     : '';
+
   return (
     <div className={'splash-screen' + extraClass}>
       <div className='splash-screen__logo fp-logo-box'>
@@ -20,21 +21,21 @@ export function SplashScreen(props: SplashScreenProps) {
         <div className='splash-screen__status-header'>
           Loading
         </div>
-        {!upgradesLoaded ?
+        { !upgradesLoaded ? (
           <div className='splash-screen__status'>
             Upgrades
           </div>
-        : undefined}
-        {!creditsLoaded ?
+        ) : undefined }
+        { !creditsLoaded ? (
           <div className='splash-screen__status'>
             Credits
           </div>
-        : undefined}
-        {!miscLoaded ?
+        ) : undefined }
+        { !miscLoaded ? (
           <div className='splash-screen__status'>
             Misc
           </div>
-        : undefined}
+        ) : undefined }
       </div>
     </div>
   );

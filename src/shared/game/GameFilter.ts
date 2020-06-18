@@ -35,7 +35,7 @@ export function parseSearchText(text: string): ParsedSearch {
     if (match[1]) {
       const field = match[1];
       const phrase = match[2] || match[3];
-      let inverse = preIndex >= 0 && text.charAt(preIndex) === '-';
+      const inverse = preIndex >= 0 && text.charAt(preIndex) === '-';
       if (field && phrase) {
         handleFieldFilter(field, phrase, inverse, parsed);
       }
@@ -53,7 +53,7 @@ export function parseSearchText(text: string): ParsedSearch {
             tempPhrase = text.charAt(i) + tempPhrase;
             i--;
           }
-          let inverse = preIndex >= 0 && text.charAt(preIndex) === '-';
+          const inverse = preIndex >= 0 && text.charAt(preIndex) === '-';
           // Get quick search from created temp phrase (If undefined, there is no quick search)
           const filter = parseQuickSearch(tempPhrase.substr(1));
           // Process as a field filter

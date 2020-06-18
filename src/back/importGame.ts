@@ -52,8 +52,6 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     imageFolderPath: imagePath,
   } = opts;
 
-  const logMsg = logMessage || noop;
-
   // TODO: Consider moving this check outside importCuration
   // Warn if launch command is already present on another game
   if (curation.meta.launchCommand) {
@@ -105,23 +103,23 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   const moveFiles = !saveCuration;
   curationLog(log, 'Importing Curation Meta');
   // Copy/extract content and image files
-  GameManager.updateGame(game).then(() => logMsg('Meta Added', curation));
+  GameManager.updateGame(game).then(() => logMessage('Meta Added', curation));
 
   // Copy Thumbnail
   curationLog(log, 'Importing Curation Thumbnail');
   await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath), log)
-  .then(() => { if (log) { logMsg('Thumbnail Copied', curation); } });
+  .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
 
   // Copy Screenshot
   curationLog(log, 'Importing Curation Screenshot');
   await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath), log)
-  .then(() => { if (log) { logMsg('Screenshot Copied', curation); } });
+  .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
 
   // Copy content and Extra files
   curationLog(log, 'Importing Curation Content');
   await (async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
-    for (let pair of contentToMove) {
+    for (const pair of contentToMove) {
       await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
   })()
@@ -142,7 +140,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog, log);
       }
       if (log) {
-        logMsg('Content Copied', curation);
+        logMessage('Content Copied', curation);
       }
     } catch (error) {
       curationLog(log, `Error importing ${curation.meta.title} - Informing user...`);
@@ -192,8 +190,6 @@ export async function launchAddAppCuration(curationKey: string, appCuration: Edi
 function logMessage(text: string, curation: EditCuration): void {
   console.log(`- ${text}\n  (id: ${curation.key})`);
 }
-
-function noop(...args: any) {}
 
 /**
  * Create a game info from a curation.
@@ -272,8 +268,8 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
   // Clear out old folder if exists
   console.log('Removing old Server/htdocs/content ...');
   await fs.access(htdocsContentPath, fs.constants.F_OK)
-    .then(() => fs.remove(htdocsContentPath))
-    .catch((error) => { /* No file is okay, ignore error */ });
+  .then(() => fs.remove(htdocsContentPath))
+  .catch((error) => { /* No file is okay, ignore error */ });
   const contentPath = path.join(curationPath, 'content');
   console.log('Linking new Server/htdocs/content ...');
   if (fs.existsSync(contentPath)) {
@@ -438,7 +434,7 @@ function createPlaceholderGame(): Game {
 export async function createTagsFromLegacy(tags: string): Promise<Tag[]> {
   const allTags: Tag[] = [];
 
-  for (let t of tags.split(';')) {
+  for (const t of tags.split(';')) {
     const trimTag = t.trim();
     let tag = await TagManager.findTag(trimTag);
     if (!tag && trimTag !== '') {

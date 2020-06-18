@@ -5,7 +5,6 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackOut, MergeTagData, TagCategoriesChangeData, TagSuggestion } from '@shared/back/types';
-import { getRandomHexColor } from '@shared/Util';
 import { getManager, Like, Not } from 'typeorm';
 import { GameManager } from './GameManager';
 
@@ -21,10 +20,10 @@ export namespace TagManager {
 
     if (!skipWarn) {
       const gameCount = (await getManager().createQueryBuilder()
-        .select('COUNT(*)')
-        .from('game_tags_tag', 'game_tag')
-        .where('game_tag.tagId = :id', { id: tagId })
-        .getRawOne())['COUNT(*)'];
+      .select('COUNT(*)')
+      .from('game_tags_tag', 'game_tag')
+      .where('game_tag.tagId = :id', { id: tagId })
+      .getRawOne())['COUNT(*)'];
 
       if (gameCount > 0) {
         const res = await openDialog({
@@ -61,11 +60,11 @@ export namespace TagManager {
     }
 
     return tagRepository.createQueryBuilder('tag')
-      .leftJoinAndSelect('tag.aliases', 'alias')
-      .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias')
-      .whereInIds(aliases.map(a => a.tagId))
-      .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
-      .getMany();
+    .leftJoinAndSelect('tag.aliases', 'alias')
+    .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias')
+    .whereInIds(aliases.map(a => a.tagId))
+    .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
+    .getMany();
   }
 
   // @TODO : Localize
@@ -120,8 +119,8 @@ export namespace TagManager {
   export async function cleanupTagAliases() {
     const tagAliasRepostiory = getManager().getRepository(TagAlias);
     const q = tagAliasRepostiory.createQueryBuilder('tag_alias')
-      .delete()
-      .where('tag_alias.tagId IS NULL');
+    .delete()
+    .where('tag_alias.tagId IS NULL');
     return q.execute();
   }
 
@@ -148,20 +147,20 @@ export namespace TagManager {
     const tagAliasRepostiory = getManager().getRepository(TagAlias);
 
     const subQuery = tagAliasRepostiory.createQueryBuilder('tag_alias')
-      .leftJoin(Tag, 'tag', 'tag_alias.tagId = tag.id')
-      .select('tag.id, tag.categoryId, tag.primaryAliasId, tag_alias.name')
-      .where('tag_alias.name like :partial', { partial: name + '%' })
-      .limit(25);
+    .leftJoin(Tag, 'tag', 'tag_alias.tagId = tag.id')
+    .select('tag.id, tag.categoryId, tag.primaryAliasId, tag_alias.name')
+    .where('tag_alias.name like :partial', { partial: name + '%' })
+    .limit(25);
 
     const tagAliases = await getManager().createQueryBuilder()
-      .select('sugg.id, sugg.categoryId, sugg.name, COUNT(game_tag.gameId) as gameCount, primary_alias.name as primaryName')
-      .from(`(${ subQuery.getQuery() })`, 'sugg')
-      .leftJoin(TagAlias, 'primary_alias', 'sugg.primaryAliasId = primary_alias.id')
-      .leftJoin('game_tags_tag', 'game_tag', 'game_tag.tagId = sugg.id')
-      .groupBy('sugg.name')
-      .orderBy('COUNT(game_tag.gameId) DESC, sugg.name', 'ASC') // Hacky
-      .setParameters(subQuery.getParameters())
-      .getRawMany();
+    .select('sugg.id, sugg.categoryId, sugg.name, COUNT(game_tag.gameId) as gameCount, primary_alias.name as primaryName')
+    .from(`(${ subQuery.getQuery() })`, 'sugg')
+    .leftJoin(TagAlias, 'primary_alias', 'sugg.primaryAliasId = primary_alias.id')
+    .leftJoin('game_tags_tag', 'game_tag', 'game_tag.tagId = sugg.id')
+    .groupBy('sugg.name')
+    .orderBy('COUNT(game_tag.gameId) DESC, sugg.name', 'ASC') // Hacky
+    .setParameters(subQuery.getParameters())
+    .getRawMany();
 
     const suggestions: TagSuggestion[] = tagAliases.map(ta => {
       const alias = ta.name != ta.primaryName ? ta.name : undefined;
@@ -181,16 +180,16 @@ export namespace TagManager {
     const tagRepository = getManager().getRepository(Tag);
 
     const subQuery = getManager().createQueryBuilder()
-      .select('game_tag.tagId')
-      .from('game_tags_tag', 'game_tag')
-      .where('game_tag.gameId = :gameId', { gameId: gameId });
+    .select('game_tag.tagId')
+    .from('game_tags_tag', 'game_tag')
+    .where('game_tag.gameId = :gameId', { gameId: gameId });
 
     const tags = await tagRepository.createQueryBuilder('tag')
-      .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias', 'primaryAlias.id = tag.primaryAliasId')
-      .where(`tag.id IN (${subQuery.getQuery()})`)
-      .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
-      .setParameters(subQuery.getParameters())
-      .getMany();
+    .leftJoinAndSelect('tag.primaryAlias', 'primaryAlias', 'primaryAlias.id = tag.primaryAliasId')
+    .where(`tag.id IN (${subQuery.getQuery()})`)
+    .orderBy('tag.categoryId DESC, primaryAlias.name', 'ASC')
+    .setParameters(subQuery.getParameters())
+    .getMany();
 
     return tags;
   }
@@ -272,9 +271,9 @@ export namespace TagManager {
     const tags = await tagRepository.find({ where: [{ primaryAliasId: null }] });
     const tagChunks = chunkArray(tags, 2000);
 
-    for (let chunk of tagChunks) {
+    for (const chunk of tagChunks) {
       await getManager().transaction(async transEntityManager => {
-        for (let tag of chunk) {
+        for (const tag of chunk) {
           if (tag.aliases.length > 0) {
             tag.primaryAliasId = tag.aliases[0].id;
             await transEntityManager.save(tag);
@@ -306,7 +305,7 @@ export namespace TagManager {
       });
       if (res == 2) { return false; }
       if (res == 1) {
-        for (let tag of attachedTags) {
+        for (const tag of attachedTags) {
           if (tag.id) {
             await TagManager.deleteTag(tag.id, openDialog, true);
           }
@@ -320,11 +319,11 @@ export namespace TagManager {
           ]
         });
         if (!defaultCategory) {
-            defaultCategory = await createTagCategory('default', '#FFFFFF');
+          defaultCategory = await createTagCategory('default', '#FFFFFF');
         }
 
         if (defaultCategory) {
-          for (let tag of attachedTags) {
+          for (const tag of attachedTags) {
             tag.categoryId = defaultCategory.id;
             await TagManager.saveTag(tag);
           }

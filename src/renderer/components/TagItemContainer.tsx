@@ -25,8 +25,9 @@ export class TagItemContainer extends React.Component<TagItemContainerProps> {
       <div
         { ...filterDivProps(this.props) }
         ref={this.props.realRef}
-        onClick={this.onClick}
-        children={this.props.children} />
+        onClick={this.onClick}>
+        {this.props.children}
+      </div>
     );
   }
 

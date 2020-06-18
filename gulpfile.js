@@ -1,13 +1,13 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const fs = require('fs-extra');
 const gulp = require('gulp');
 const builder = require('electron-builder');
-const { Platform, archFromString } = require('electron-builder');
 const { exec } = require('child_process');
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json'));
 const config = {
   buildVersion: Date.now().toString(),
-  isRelease: process.env.NODE_ENV === 'production',
+  isRelease: !!process.env.PUBLISH,
   isStaticInstall: packageJson.config.installed,
   static: {
     src: './static',
@@ -21,6 +21,57 @@ const config = {
     src: './src/back',
   }
 };
+// Files to copy after packing
+const copyFiles = [
+  { // Only copy 7zip execs for packed platform
+    from: './extern/7zip-bin',
+    to: './extern/7zip-bin',
+    filter: ['${os}/**/*']
+  },
+  './lang',
+  './licenses',
+  './.installed',
+  'ormconfig.json',
+  {
+    from: './LICENSE',
+    to: './licenses/LICENSE'
+  },
+  { // Copy the OS specific upgrade file
+    from: './upgrade/${os}.json',
+    to: './upgrade.json'
+  }
+];
+// Options to append when releasing
+const extraOptions = {
+  win: {
+    target: [
+      {
+        target: 'nsis-web',
+        arch: ['x64', 'ia32']
+      },
+      {
+        target: '7z',
+        arch: ['x64', 'ia32']
+      }
+    ],
+    icon: './icons/icon.ico'
+  },
+  mac: {
+    target: ['dmg', '7z'],
+    icon: './icons/icon.icns'
+  },
+  linux: {
+    target: ['deb', '7z'],
+    category: 'games'
+  }
+};
+// Publish info for electron builder
+const publishInfo = [
+  {
+    provider: 'github',
+    vPrefixedTagName: false
+  }
+];
 
 /* ------ Watch ------ */
 
@@ -68,12 +119,12 @@ gulp.task('config-version', (done) => {
 /* ------ Pack ------ */
 
 gulp.task('pack', (done) => {
-  const targets = createBuildTargets(process.env.PACK_PLATFORM, process.env.PACK_ARCH);
-  const publish = process.env.PUBLISH ? createPublishInfo() : []; // Uses Git repo for unpublished builds
-  const copyFiles = getCopyFiles();
-  console.log(publish);
+  const publish = config.isRelease ? publishInfo : []; // Uses Git repo for unpublished builds
+  const extraOpts = config.isRelease ? extraOptions : {};
+  console.log(config.isRelease);
+  console.log(extraOpts);
   builder.build({
-    config: {
+    config: Object.assign({
       appId: 'com.bluemaxima.flashpoint-launcher',
       productName: 'Flashpoint',
       directories: {
@@ -85,20 +136,22 @@ gulp.task('pack', (done) => {
       ],
       extraFiles: copyFiles, // Files to copy to the build folder
       compression: 'maximum', // Only used if a compressed target (like 7z, nsis, dmg etc)
-      target: 'dir', // Keep unpacked versions of every pack
-      asar: config.isRelease,
+      target: 'dir',
+      asar: true,
       publish: publish,
+      artifactName: '${productName}-${version}_${os}-${arch}.${ext}',
       win: {
-        icon: './icons/icon.ico',
+        target: 'dir',
+        icon: './icons/icon.ico'
       },
       mac: {
+        target: 'dir',
         icon: './icons/icon.icns'
       },
       linux: {
-        category: 'games'
+        target: 'dir'
       }
-    },
-    targets: targets
+    }, extraOpts)
   })
   .then(()         => { console.log('Pack - Done!');         })
   .catch((error)   => { console.log('Pack - Error!', error); })
@@ -120,46 +173,4 @@ function execute(command, callback) {
   if (callback) {
     child.once('exit', () => { callback(); });
   }
-}
-
-function createBuildTargets(os, arch) {
-  switch (os) {
-    case 'win32':
-      return Platform.WINDOWS.createTarget('nsis', archFromString(arch));
-    case 'darwin':
-      return Platform.MAC.createTarget('dmg');
-    case 'linux':
-      return Platform.LINUX.createTarget('dir', archFromString(arch));
-  }
-}
-
-function getCopyFiles() {
-  return [
-    { // Only copy 7zip execs for packed platform
-      from: './extern/7zip-bin',
-      to: './extern/7zip-bin',
-      filter: ['${os}/**/*']
-    },
-    './lang',
-    './licenses',
-    './.installed',
-    'ormconfig.json',
-    {
-      from: './LICENSE',
-      to: './licenses/LICENSE'
-    },
-    { // Copy the OS specific upgrade file
-      from: './upgrade/${os}.json',
-      to: './upgrade.json'
-    }
-  ];
-}
-
-function createPublishInfo() {
-  return [
-    {
-      provider: 'generic',
-      url: 'https://download.unstable.life/${name}/${os}/${arch}/${channel}/'
-    }
-  ];
 }

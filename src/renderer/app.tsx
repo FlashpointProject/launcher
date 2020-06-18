@@ -139,7 +139,7 @@ export class App extends React.Component<AppProps, AppState> {
     const serverNames = window.Shared.initialServerNames.sort();
     const mad4fpEnabled = window.Shared.initialMad4fpEnabled;
     const views: Record<string, View> = {};
-    for (let library of libraries) {
+    for (const library of libraries) {
       views[library] = {
         query: this.rebuildQuery(library, undefined, order),
         pageRequests: {},
@@ -156,7 +156,7 @@ export class App extends React.Component<AppProps, AppState> {
 
     // Prepare platforms
     const platforms: Record<string, string[]> = {};
-    for (let library of libraries) {
+    for (const library of libraries) {
       platforms[library] = window.Shared.initialPlatforms[library].slice().sort();
     }
 
@@ -209,7 +209,7 @@ export class App extends React.Component<AppProps, AppState> {
       window.onbeforeunload = (event: BeforeUnloadEvent) => {
         const { upgrades } = this.state;
         let stillDownloading = false;
-        for (let stage of upgrades) {
+        for (const stage of upgrades) {
           if (stage.state.isInstalling) {
             stillDownloading = true;
             break;
@@ -255,7 +255,7 @@ export class App extends React.Component<AppProps, AppState> {
     window.Shared.back.send<InitEventData>(BackIn.INIT_LISTEN, undefined, res => {
       if (!res.data) { throw new Error('INIT_LISTEN response is missing data.'); }
       const nextLoaded = { ...this.state.loaded };
-      for (let key of res.data.done) {
+      for (const key of res.data.done) {
         nextLoaded[key] = true;
       }
       this.setState({ loaded: nextLoaded });
@@ -283,7 +283,7 @@ export class App extends React.Component<AppProps, AppState> {
           const resData: InitEventData = res.data;
 
           const loaded = { ...this.state.loaded };
-          for (let index of resData.done) {
+          for (const index of resData.done) {
             loaded[index] = true;
 
             switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
@@ -358,12 +358,12 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.PLAYLISTS_CHANGE: {
           const resData: PlaylistsChangeData = res.data;
           this.setState({ playlists: resData });
-        }
+        } break;
 
         case BackOut.TAG_CATEGORIES_CHANGE: {
           const resData: TagCategoriesChangeData = res.data;
           this.props.setTagCategories(resData);
-        }
+        } break;
       }
     });
 
@@ -374,14 +374,14 @@ export class App extends React.Component<AppProps, AppState> {
 
     // Load Upgrades
     const folderPath = window.Shared.isDev
-        ? process.cwd()
-        : path.dirname(remote.app.getPath('exe'));
+      ? process.cwd()
+      : path.dirname(remote.app.getPath('exe'));
     const upgradeCatch = (error: Error) => { console.warn(error); };
     Promise.all([UpgradeFile.readFile(folderPath, log), UpgradeFile.readFile(fullJsonFolderPath, log)].map(p => p.catch(upgradeCatch)))
     .then(async (fileData) => {
       // Combine all file data
       let allData: UpgradeStage[] = [];
-      for (let data of fileData) {
+      for (const data of fileData) {
         if (data) {
           allData = allData.concat(data);
         }
@@ -452,8 +452,10 @@ export class App extends React.Component<AppProps, AppState> {
         });
       });
       autoUpdater.on('update-downloaded', onUpdateDownloaded);
-      autoUpdater.checkForUpdates()
-      .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
+      if (window.Shared.config.data.updatesEnabled) {
+        autoUpdater.checkForUpdates()
+        .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
+      }
       console.log('Checking for updates...');
     }
 
@@ -490,7 +492,7 @@ export class App extends React.Component<AppProps, AppState> {
     // Check if renderer finished initializing
     if (isInitDone(this.state) && !isInitDone(prevState)) {
       // Pre-request all libraries
-      for (let library of this.state.libraries) {
+      for (const library of this.state.libraries) {
         this.requestMeta(library);
       }
     }
@@ -814,7 +816,7 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     // Clear view caches (that use this playlist)
-    for (let library in this.state.views) {
+    for (const library in this.state.views) {
       const view = this.state.views[library];
       if (view && (view.selectedPlaylistId === playlist.id)) {
         this.requestMeta(library);
@@ -946,7 +948,7 @@ export class App extends React.Component<AppProps, AppState> {
               if (view && view.meta) {
                 const newGames = (view.isDirty) ? {} : { ...view.games };
 
-                for (let range of res.data.ranges) {
+                for (const range of res.data.ranges) {
                   const length = Math.min(range.games.length, view.meta.total);
                   for (let i = 0; i < length; i++) {
                     newGames[range.start + i] = range.games[i];
@@ -1134,7 +1136,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
   });
   // Grab filename from url
 
-  for (let source of stage.sources) {
+  for (const source of stage.sources) {
     const filename = stage.id + '__' + source.split('/').pop() || 'unknown';
     let lastUpdateType = '';
     // Start download and installation

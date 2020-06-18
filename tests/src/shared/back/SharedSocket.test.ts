@@ -1,11 +1,11 @@
 import { SharedSocket } from '@shared/back/SharedSocket';
+import { BackIn, GetGameData, WrappedRequest } from '@shared/back/types';
 import { WS } from 'jest-websocket-mock';
-import { BackIn, GetGameData, WrappedResponse, BackOut, WrappedRequest } from '@shared/back/types';
 
 describe('Shared Socket', () => {
   const socketHref = 'ws://localhost:1234';
   let mockServer: WS;
-  let client: SharedSocket<WebSocket> = new SharedSocket(WebSocket);
+  const client: SharedSocket<WebSocket> = new SharedSocket(WebSocket);
 
   beforeEach(async () => {
     console.log('--SETUP--');

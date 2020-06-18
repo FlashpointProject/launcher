@@ -140,7 +140,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               <ServiceBox
                 key={index}
                 service={item} />
-          ))) : (
+            ))) : (
             <p>{strings.servicesMissing}</p>
           )}
         </div>
@@ -334,7 +334,7 @@ function checkGameIDs(games: Game[]): string {
   text += `Checked games for duplicate and invalid IDs (in ${timeEnd - timeStart}ms)\n`;
   text += '\n';
   text += `Games with duplicate IDs (${Object.keys(dupes).length}):\n`;
-  for (let id in dupes) {
+  for (const id in dupes) {
     text += `ID: "${id}" | Games (${dupes[id].length}): ${dupes[id].map(game => `${game.id}`).join(', ')}\n`;
   }
   text += '\n';
@@ -349,7 +349,7 @@ function checkGameTitles(games: Game[]): string {
   const timeStart = Date.now(); // Start timing
   const gamesPerPlatform = categorizeByProp(games, 'platform');
   const dupesPerPlatform: Map<string, Map<string, Game[]>> = {};
-  for (let key in gamesPerPlatform) {
+  for (const key in gamesPerPlatform) {
     dupesPerPlatform[key] = checkDupes(gamesPerPlatform[key], game => game.title.toUpperCase());
   }
   const timeEnd = Date.now(); // End timing
@@ -402,7 +402,7 @@ function checkGameEmptyFields(games: Game[]): string {
   text += '\n';
   text += 'Summary:\n';
   text += '\n';
-  for (let field in empty) {
+  for (const field in empty) {
     const array = empty[field as GameKeys];
     if (array) {
       text += `"${field}" has ${array.length} games with missing values.\n`;
@@ -411,7 +411,7 @@ function checkGameEmptyFields(games: Game[]): string {
   text += '\n';
   text += 'Detailed list:\n';
   text += '\n';
-  for (let field in empty) {
+  for (const field in empty) {
     const array = empty[field as GameKeys];
     if (array) {
       text += `Field "${field}" has ${array.length} games with missing values:\n`;
@@ -516,7 +516,7 @@ function checkGameEmptyFields(games: Game[]): string {
 
 // Find and list any used executables missing an entry in the exec mapping file
 function checkMissingExecMappings(games: Game[], execMappings: ExecMapping[]): string {
-  let allExecs: string[] = [];
+  const allExecs: string[] = [];
   let text = '';
   // Gather list of all unique execs
   for (let i = 0; i < games.length; i++) {
@@ -597,9 +597,9 @@ function checkFileLocation(games: Game[]): string {
   const timeStart = Date.now(); // Start timing
   const pathFailed: Game[] = []; // (Games that it failed to get the path from)
   const pathError: [ Game, Error ][] = []; // (Games that it threw an error while attempting to get the path)
-  let skippedCount: number = 0; // (Number of skipped games)
+  let skippedCount = 0; // (Number of skipped games)
   // Try getting the path from all games
-  for (let game of games) {
+  for (const game of games) {
     if (game.broken) { skippedCount += 1; }
     else {
       try {
@@ -621,12 +621,12 @@ function checkFileLocation(games: Game[]): string {
   text += `Games skipped (all "broken" games are skipped): ${skippedCount}\n`;
   text += '\n';
   text += `Path not found (${pathFailed.length}):\n`;
-  for (let game of pathFailed) {
+  for (const game of pathFailed) {
     text += `"${game.title}" (Platform: "${game.platform}", ID: ${game.id})\n`;
   }
   text += '\n';
   text += `Error while getting path (${pathError.length}):\n`;
-  for (let [ game, error ] of pathError) {
+  for (const [ game, error ] of pathError) {
     text += `"${game.title}" (Platform: "${game.platform}", ID: "${game.id}")\n`+
             `    ${error.toString()}\n`;
   }
@@ -671,7 +671,7 @@ async function createMissingFolders(): Promise<string> {
   return str;
 
   /** Create all the folders that are missing in a folder structure. */
-  async function createFolderStructure(rootPath: string, structure: FolderStructure, log: (text: string) => void, depth: number = 0) {
+  async function createFolderStructure(rootPath: string, structure: FolderStructure, log: (text: string) => void, depth = 0) {
     const pad = '| '.repeat(depth - 1);
     if (Array.isArray(structure)) {
       for (let i = 0; i < structure.length; i++) {
@@ -681,7 +681,7 @@ async function createMissingFolders(): Promise<string> {
         log(folderLogMessage(folderName, success));
       }
     } else {
-      for (let key in structure) {
+      for (const key in structure) {
         const folderPath = path.join(rootPath, key);
         const success = await createMissingFolder(folderPath);
         log(folderLogMessage(key, success));
@@ -731,20 +731,20 @@ function fetchAllGames(): Promise<Game[]> {
 }
 
 async function importLegacyPlatforms(config: IAppConfigData, setText: (text: string) => void): Promise<void> {
-  let text: string[] = [];
+  const text: string[] = [];
   text.push('Finding XMLs...');
   setText(text.join('\n'));
 
   const platformsPath = path.join(config.flashpointPath, config.platformFolderPath);
   const { platforms, errors } = await Legacy_GameManager.loadPlatforms(platformsPath);
   if (errors.length > 0) {
-    for (let error of errors) {
+    for (const error of errors) {
       text.push(`File - ${error.filePath}\nStack\n ${error.stack}`);
     }
     text.push('\nErrors detected in some platforms, aborting');
   } else {
     const startTime = new Date();
-    for (let platform of platforms) {
+    for (const platform of platforms) {
       text.push(`\nAdding Platform ${platform.library} - ${platform.name} - ${platform.collection.games.length} Games`);
       setText(text.join('\n'));
       await window.Shared.back.sendP<any, SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, platform);
@@ -762,7 +762,7 @@ async function importLegacyPlaylists(config: IAppConfigData): Promise<number> {
   const playlistsPath = path.join(config.flashpointPath, config.playlistFolderPath);
   const files = await fs.promises.readdir(playlistsPath);
   console.log(files);
-  for (let file of files) {
+  for (const file of files) {
     if (file.toLowerCase().endsWith('.json')) {
       const fullPath = path.join(playlistsPath, file);
       await window.Shared.back.sendP<any, ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, fullPath);

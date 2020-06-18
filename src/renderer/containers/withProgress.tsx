@@ -53,7 +53,7 @@ export function withProgress<T extends WithProgressProps>(Component: React.Compo
     }, [setItemCount]);
 
     // Set progress as done, unless specified as false
-    const setIsDoneCallback = useCallback((isDone: boolean = true) => {
+    const setIsDoneCallback = useCallback((isDone = true) => {
       setIsDone(isDone);
     }, [setIsDone]);
 

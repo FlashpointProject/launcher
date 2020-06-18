@@ -157,8 +157,9 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
       if (key === 'ArrowUp' || key === 'ArrowDown') {
         const element = document.activeElement;
         if (element && checkIfAncestor(element, this.contentRef.current)) {
-          const next: any = (key === 'ArrowUp') ? element.previousSibling :
-                                                  element.nextElementSibling;
+          const next: any = (key === 'ArrowUp')
+            ? element.previousSibling
+            : element.nextElementSibling;
           if (next && next.focus) {
             next.focus();
             event.preventDefault();

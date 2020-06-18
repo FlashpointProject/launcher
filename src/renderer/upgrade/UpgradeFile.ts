@@ -9,8 +9,8 @@ import { UpgradeStage } from './types';
 const { str } = Coerce;
 
 export namespace UpgradeFile {
-  const filePath: string = './upgrade.json';
-  const fileEncoding: string = 'utf8';
+  const filePath = './upgrade.json';
+  const fileEncoding = 'utf8';
 
   /**
    * Read and parse the file asynchronously.
@@ -31,7 +31,7 @@ export namespace UpgradeFile {
       onError: onError && (e => { onError(`Error while parsing Upgrades: ${e.toString()}`); })
     });
     const stages: UpgradeStage[] = [];
-    for (let key in data) {
+    for (const key in data) {
       stages.push(parseUpgradeStage(parser.prop(key), key, onError));
     }
     return stages;

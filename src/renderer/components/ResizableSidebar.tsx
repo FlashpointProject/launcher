@@ -80,9 +80,9 @@ export class ResizableSidebar extends React.Component<ResizableSidebarProps, Res
 
   renderDivider() {
     return (
-      <div className='game-browser__sidebar__divider'
-           onMouseDown={this.onDividerMouseDown}>
-      </div>
+      <div
+        className='game-browser__sidebar__divider'
+        onMouseDown={this.onDividerMouseDown} />
     );
   }
 

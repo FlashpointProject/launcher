@@ -28,7 +28,7 @@ export class ManagedChildProcess extends EventEmitter {
   /** Process that this is wrapping/managing. */
   private process?: ChildProcess;
   /** If the process is currently being restarted. */
-  private _isRestarting: boolean = false;
+  private _isRestarting = false;
   /** Display name of the service. */
   public readonly name: string;
   /** The current working directory of the process. */
@@ -38,7 +38,7 @@ export class ManagedChildProcess extends EventEmitter {
   /** If the process should be restarted if it exits unexpectedly. */
   private autoRestart: boolean;
   /** A timestamp of when the process was started. */
-  private startTime: number = 0;
+  private startTime = 0;
   /** State of the process. */
   private state: ProcessState = ProcessState.STOPPED;
 

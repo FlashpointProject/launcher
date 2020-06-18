@@ -44,7 +44,7 @@ export namespace GameLauncher {
             buttons: ['Ok'],
           }).finally(() => resolve());
         });
-      case ':extras:':
+      case ':extras:': {
         const folderPath = fixSlashes(path.join(opts.fpPath, path.posix.join('Extras', opts.addApp.launchCommand)));
         return opts.openExternal(folderPath, { activate: true })
         .catch(error => {
@@ -58,8 +58,8 @@ export namespace GameLauncher {
             });
           }
         });
-
-      default:
+      }
+      default: {
         const appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
@@ -79,6 +79,7 @@ export namespace GameLauncher {
             proc.once('error', error => { reject(error); });
           }
         });
+      }
     }
   }
 
@@ -102,7 +103,7 @@ export namespace GameLauncher {
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
       };
-      for (let addApp of opts.game.addApps) {
+      for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
           const promise = launchAdditionalApplication({ ...addAppOpts, addApp });
           if (addApp.waitForExit) { await promise; }
@@ -147,12 +148,12 @@ export namespace GameLauncher {
         // Show popups for Unity games
         // (This is written specifically for the "startUnity.bat" batch file)
         if (opts.game.platform === 'Unity' && proc.stdout) {
-          let textBuffer: string = ''; // (Buffer of text, if its multi-line)
+          let textBuffer = ''; // (Buffer of text, if its multi-line)
           proc.stdout.on('data', function(text: string): void {
             // Add text to buffer
             textBuffer += text;
             // Check for exact messages and show the appropriate popup
-            for (let response of unityOutputResponses) {
+            for (const response of unityOutputResponses) {
               if (textBuffer.endsWith(response.text)) {
                 response.fn(proc, opts.openDialog);
                 textBuffer = '';

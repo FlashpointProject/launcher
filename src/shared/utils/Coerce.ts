@@ -33,7 +33,7 @@ export namespace Coerce {
    * @param str String to convert ("true" and "yes" is true, "false" and "no" is false).
    * @param defaultVal Value returned if the string is neither true nor false.
    */
-  export function strToBool(str: string, defaultVal: boolean = false): boolean {
+  export function strToBool(str: string, defaultVal = false): boolean {
     const lowerStr = str.toLowerCase();
     if (lowerStr === 'yes' || lowerStr === 'true') { return true;  }
     if (lowerStr === 'no' || lowerStr === 'false') { return false; }

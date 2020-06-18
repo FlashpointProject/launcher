@@ -1,5 +1,3 @@
-import { Game } from '@database/entity/Game';
-
 /** Generic associative array with strings as keys and values. */
 type StringMap = {
   [key: string]: string;

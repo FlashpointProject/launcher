@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Paths } from './Paths';
 
-export const gameIdDataType: string = 'text/game-id';
+export const gameIdDataType = 'text/game-id';
 
 /** How much the maximum/minimum game scale will scale the games up/down */
 export const gameScaleSpan = 0.6;
@@ -70,7 +70,7 @@ export type ElementAncestorFunction<T extends ElementBase<T>> = (target: T, coun
  * @param checkElement If the input element should also be checked. Defaults to false.
  * @returns The found ancestor, or undefined if "fn" returned false for all ancestors (or if the element has no ancestors).
  */
-export function findElementAncestor<T extends ElementBase<T>>(element: T, fn: ElementAncestorFunction<T>, checkElement: boolean = false): T | undefined {
+export function findElementAncestor<T extends ElementBase<T>>(element: T, fn: ElementAncestorFunction<T>, checkElement = false): T | undefined {
   let current = checkElement ? element : element.parentElement;
   let count = 0;
   while (true) {
@@ -233,7 +233,7 @@ export function toURL(str: string): URL | undefined {
 }
 
 /** Open a confirmation box, returning true if Yes, false if No, throwing if Cancelled. */
-export async function openConfirmDialog(title: string, message: string, cancel: boolean = false): Promise<boolean> {
+export async function openConfirmDialog(title: string, message: string, cancel = false): Promise<boolean> {
   const buttons = ['Yes', 'No'];
   if (cancel) { buttons.push('Cancel'); }
   const res = await remote.dialog.showMessageBox({
