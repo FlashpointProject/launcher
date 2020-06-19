@@ -5,8 +5,8 @@ The launcher for BlueMaxima's Flashpoint (the web preservation project).
 
 ### Status
 
-[![Flashpoint Launcher](https://github.com/FlashpointProject/launcher/workflows/Build%20and%20Release%20Status/badge.svg)](https://github.com/FlashpointProject/launcher)
-[![Flashpoint Launcher](https://github.com/FlashpointProject/launcher/workflows/Build%20Status/badge.svg)](https://github.com/FlashpointProject/launcher)
+[![Release Status](https://github.com/FlashpointProject/launcher/workflows/Release%20Status/badge.svg)](https://github.com/FlashpointProject/launcher)
+[![Build Status](https://github.com/FlashpointProject/launcher/workflows/Build%20Status/badge.svg)](https://github.com/FlashpointProject/launcher)
 [![Coverage Status](https://coveralls.io/repos/github/FlashpointProject/launcher/badge.svg?branch=master)](https://coveralls.io/github/FlashpointProject/launcher?branch=master)
 [![Crowdin](https://badges.crowdin.net/flashpoint-launcher/localized.svg)](https://crowdin.com/project/flashpoint-launcher)
 
@@ -57,12 +57,12 @@ Short descriptions of what the scripts in ``package.json`` do:
 * ``watch`` - Build the launcher and incrementally rebuild it when the source or static files change
 * ``pack`` - Pack the latest build (and put the packaged file with the executable electron app in ``./dist/``)
 * ``snapshot`` - Build then pack the launcher (same as running ``build`` then ``pack``)
-* ``release`` - Build then pack the launcher in release mode (same as ``snapshot`` but with a release flag set)
+* ``release`` - Build then pack the launcher in release mode (same as ``snapshot`` but it also creates installers, build artifacts etc.)
 * ``start`` - Run the latest build of the launcher
 * ``test`` - Run the test suite (to find out if anything covered by the tests has been broken)
 * ``lint`` - Run the linter
 
-``pack`` and ``release`` will by default pack for the OS and architecture of the machine that runs it.
+``pack`` / ``snapshot`` / ``release`` will by default pack for the OS and architecture of the machine that runs it.
 
 To pack for a specific OS / architecture use the handy package scripts (such as ``pack:linux`` or ``release:win32``) or set the environment variables ``PACK_PLATFORM`` / ``PACK_ARCH``.
 
