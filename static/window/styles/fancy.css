@@ -267,6 +267,17 @@ body {
 .log__source--log-watcher {
   color: var(--layout__log-source-log-watcher);
 }
+/* Generic Box */
+.home-page__box,
+.curate-page__floating-box,
+.curate-box,
+.developer-page__log,
+.service-box {
+  background-color: var(--layout__quaternary-background);
+  border-color: var(--layout__tertiary-background);
+  box-shadow: 0 0.15em 0.2em 0 #09090a;
+  border-radius: 0.3em;
+}
 
 
 /* ------ Image Preview ------ */
@@ -399,17 +410,6 @@ body {
   background-color: var(--layout__slider-background-active);
 }
 
-/* ------ Generic Box ------ */
-.home-page__box,
-.curate-page__floating-box,
-.curate-box,
-.developer-page__log,
-.service-box {
-  background-color: var(--layout__quaternary-background);
-  border-color: var(--layout__tertiary-background);
-  box-shadow: 0 0.15em 0.2em 0 #09090a;
-  border-radius: 0.3em;
-}
 
 /* ------ Home ------ */
 /* HomePage Box */

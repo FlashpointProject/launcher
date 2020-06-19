@@ -66,7 +66,7 @@ body {
 }
 .simple-center__vertical-inner {
   display: inline-block;
-  margin: 0 0.1em;
+  margin: 0 0.1em; /* This should be removed and applied separately (not all centered things needs a margin!) */
 }
 /* Simple Button */
 .simple-button {
@@ -176,8 +176,7 @@ body {
 }
 .simple-dropdown__select-box {
   width: 100%;
-  padding: 0 0.1em 0 0.2em;
-  text-align: left;
+  padding: 0 0.2em;
   /* Pimp */
   appearance: menulist-button;
   -webkit-appearance: menulist-button;
@@ -442,7 +441,7 @@ body {
   flex: 1;
   position: relative;
   top: -2px;
-  left: 2px;
+  padding-left: 2px;
   overflow: hidden;
   /* Text */
   font-size: 16px;
@@ -622,7 +621,6 @@ body {
   --slider-size: 1em;
   display: inline-block;
   position: relative;
-  right: 0.2em;
   height: var(--slider-size);
   cursor: pointer;
 }
@@ -703,13 +701,8 @@ body {
   margin-bottom: 0.1rem;
 }
 .home-page__box-item-icon {
-  margin-right: 0.35rem;
-}
-.home-page__box .icon {
-  vertical-align: -0.225em;
-}
-.home-page__box--extras .icon {
-  vertical-align: -0.25em;
+  display: flex;
+  margin: auto 0.35rem auto 0;
 }
 /* HomePage Box - Upgrades */
 .home-page__box--upgrades b,
@@ -906,7 +899,7 @@ body {
 .curate-page input[type="checkbox"] {
   width: 1rem;
   height: 1rem;
-  margin-left: 0.4em;
+  margin-left: 0.4rem;
 }
 /* (Edit how other classes appear in this page) */
 .curate-page .input-dropdown__content {
@@ -1072,7 +1065,7 @@ body {
 .curate-box-buttons {
   justify-content: space-between;
   display: flex;
-  margin-top: 0.3em;
+  margin-top: 0.3rem;
 }
 .curate-box-buttons__button {
   margin: 0 0.2rem;
@@ -1459,7 +1452,7 @@ body {
 .game-list-item__field {
   display: inline-block;
   width: 100%;
-  font-size: calc(0.8 * 1px * var(--height));
+  font-size: calc(0.8px * var(--height));
   vertical-align: top;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1500,6 +1493,8 @@ body {
   font-size: calc(0.8px * var(--height));
 }
 .game-list-header-column__divider {
+  display: none; /* Hidden because Wumbo think they are ugly :( */
+  width: 2px;
   height: auto;
 }
 /* GameList Item & GameList Header Column (Size) */
@@ -1599,8 +1594,8 @@ body {
 .game-grid__no-games__title {
   font-size: 2em;
 }
-/* GameGrid Align */
-.ReactVirtualized__Grid__innerScrollContainer {
+/* GameGrid ReactVirtualized-Grid */
+.game-grid .ReactVirtualized__Grid__innerScrollContainer {
   margin: 0 auto;
 }
 
@@ -1805,8 +1800,8 @@ body {
 .developer-page__title {
   font-size: 2.5em;
 }
-.developer-page__buttons {
-  margin: 0.25rem;
+.developer-page__buttons > * {
+  margin: 0.2rem;
 }
 .developer-page__log {
   flex: 1 1 auto;

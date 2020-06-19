@@ -809,22 +809,26 @@ export function CurateBox(props: CurateBoxProps) {
       <hr className='curate-box-divider' />
       {/* Additional Application */}
       <div className='curate-box-add-apps'>
-        {addApps}
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value={strings.curate.newAddApp}
-          onClick={onNewAddApp}
-          disabled={disabled} />
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value={strings.curate.addExtras}
-          onClick={onAddExtras}
-          disabled={disabled} />
-        <SimpleButton
-          className='curate-box-buttons__button'
-          value={strings.curate.addMessage}
-          onClick={onAddMessage}
-          disabled={disabled} />
+        <div className='curate-box-buttons'>
+          <div className='curate-box-buttons__left'>
+            <span>{addApps}</span>
+            <SimpleButton
+              className='curate-box-buttons__button'
+              value={strings.curate.newAddApp}
+              onClick={onNewAddApp}
+              disabled={disabled} />
+            <SimpleButton
+              className='curate-box-buttons__button'
+              value={strings.curate.addExtras}
+              onClick={onAddExtras}
+              disabled={disabled} />
+            <SimpleButton
+              className='curate-box-buttons__button'
+              value={strings.curate.addMessage}
+              onClick={onAddMessage}
+              disabled={disabled} />
+          </div>
+        </div>
         <hr className='curate-box-divider' />
       </div>
       {/* Content */}
