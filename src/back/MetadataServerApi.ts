@@ -6,7 +6,7 @@ import * as axiosImport from 'axios';
 import { TagManager } from './game/TagManager';
 
 const { str } = Coerce;
-const userAgentHeader = { 'User-Agent': 'Flashpoint Launcher 8.0.0' };
+const userAgentHeader = { 'User-Agent': 'Flashpoint Launcher 9.0.0' };
 
 export namespace MetadataServerApi {
   const axios = axiosImport.default;

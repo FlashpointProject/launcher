@@ -3,7 +3,7 @@ name: Release Status
 on:
   push:
     branches:
-      - master
+      - [master, release/*]
 
 jobs:
   release:
