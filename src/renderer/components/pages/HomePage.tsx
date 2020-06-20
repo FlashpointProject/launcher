@@ -328,7 +328,7 @@ function QuickStartItem(props: { icon?: OpenIconType, className?: string, childr
   return (
     <li className={'home-page__box-item simple-center ' + (props.className||'')}>
       { props.icon ? (
-        <div className='home-page__box-item-icon simple-center__vertical-inner'>
+        <div className='home-page__box-item-icon'>
           <OpenIcon icon={props.icon} />
         </div>
       ) : undefined }
