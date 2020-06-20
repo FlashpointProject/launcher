@@ -3,10 +3,11 @@ name: Test Coveralls
 on:
   pull_request:
     branches: 
-      - *
+      - '*'
   push:
     branches:
-      - [master, develop]
+      - master
+      - develop
 
 jobs:
 
