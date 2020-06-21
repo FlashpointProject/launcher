@@ -9,6 +9,7 @@ import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
+import { delayedThrottle } from '@shared/utils/throttle';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import { add } from 'node-7z';
@@ -62,6 +63,7 @@ export function CurateBox(props: CurateBoxProps) {
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
   // Content file collisions
   const [contentCollisions, setContentCollisions] = useState<ContentCollision[] | undefined>(undefined);
+
   // Check for content file collisions
   useEffect(() => {
     if (props.curation) {
@@ -76,6 +78,19 @@ export function CurateBox(props: CurateBoxProps) {
       return () => { isAborted = true; };
     }
   }, [props.curation && props.curation.content]);
+
+  // Saves a curation after a 15 second timer, throttled
+  const saveCuration = useCallback(delayedThrottle(() => {
+    if (props.curation) {
+      const metaPath = path.join(getCurationFolder2(props.curation), 'meta.yaml');
+      const meta = YAML.stringify(convertEditToCurationMetaFile(props.curation.meta, props.tagCategories, props.curation.addApps));
+      fs.writeFile(metaPath, meta);
+    }
+  }, 15000), []);
+
+  // Save whenever the curation meta changes - Throttled to once every 15s
+  useEffect(saveCuration, [props.curation && props.curation.meta]);
+
   // Tag Input Field funcs
   const onCurrentTagChange = useCallback((event: React.ChangeEvent<InputElement>) => {
     const newTag = event.currentTarget.value;

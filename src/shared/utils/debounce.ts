@@ -1,4 +1,4 @@
-import { AnyFunction, ArgumentTypesOf } from '@shared/interfaces';
+import { AnyFunction, ArgumentTypesOf } from '../interfaces';
 
 /** A callable object that has the same argument types as T (and void as the return type). */
 interface CallableCopy<T extends AnyFunction> extends Function {

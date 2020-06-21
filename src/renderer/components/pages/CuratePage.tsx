@@ -130,6 +130,24 @@ export function CuratePage(props: CuratePageProps) {
     }
   }, [dispatch]);
 
+  const tryLoadMetadata = useCallback(async (key, metaPath) => {
+    if (state.curations.findIndex(c => c.key === key) === -1) {
+      return fs.access(metaPath, fs.constants.F_OK)
+      .then(async () => {
+        return readCurationMeta(metaPath, defaultGameMetaValues)
+        .then(async (parsedMeta) => {
+          dispatch({
+            type: 'set-curation-meta',
+            payload: {
+              key: key,
+              parsedMeta: parsedMeta
+            }
+          });
+        });
+      });
+    }
+  }, [state, dispatch]);
+
   // Callback for added/changed file (watcher)
   const updateCurationFile = useCallback(async (fullPath: string) => {
     const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
@@ -140,6 +158,7 @@ export function CuratePage(props: CuratePageProps) {
       const key = splitPath.shift();
       const filePath = path.join(splitPath.join(path.sep));
       if (key) {
+        const metaPath = path.join(curationsPath, key, 'meta.yaml');
         // Send update based on filename
         switch (filePath.toLowerCase()) {
           case 'meta.yaml':
@@ -192,6 +211,7 @@ export function CuratePage(props: CuratePageProps) {
             break;
           }
           case 'logo.png':
+            tryLoadMetadata(key, metaPath);
             dispatch({
               type: 'set-curation-logo',
               payload: {
@@ -201,6 +221,7 @@ export function CuratePage(props: CuratePageProps) {
             });
             break;
           case 'ss.png':
+            tryLoadMetadata(key, metaPath);
             dispatch({
               type: 'set-curation-screenshot',
               payload: {
