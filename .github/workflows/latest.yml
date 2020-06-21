@@ -42,4 +42,4 @@ jobs:
       run: npm run release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        EP_PRE_RELEASE: true
+        EP_DRAFT: true
