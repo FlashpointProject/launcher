@@ -125,6 +125,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       migrations: [Initial1583180635980]
     };
     state.connection = await createConnection(options);
+    await state.connection.query('PRAGMA foreign_keys=off;');
     state.connection.synchronize();
   }
 

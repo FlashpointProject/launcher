@@ -30,7 +30,7 @@ import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
 import { BackState } from './types';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, newLogEntry, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -395,13 +395,19 @@ export function registerRequestCallbacks(state: BackState): void {
             throw 'User Cancelled';
         }
       }
+      const games = newPlaylist.games;
+      newPlaylist.games = [];
+      console.log(newPlaylist.library);
       await GameManager.updatePlaylist(newPlaylist);
+      await GameManager.updatePlaylistGames(games);
+      log(state, newLogEntry('Launcher', `Imported playlist - ${newPlaylist.title}`));
       respond<PlaylistsChangeData>(event.target, {
         id: req.id,
         type: BackOut.PLAYLISTS_CHANGE,
         data: await GameManager.findPlaylists()
       });
     } catch (e) {
+      console.log(e);
       respond(event.target, {
         id: req.id,
         type: BackOut.GENERIC_RESPONSE

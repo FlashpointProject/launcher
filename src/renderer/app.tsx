@@ -358,6 +358,7 @@ export class App extends React.Component<AppProps, AppState> {
         case BackOut.PLAYLISTS_CHANGE: {
           const resData: PlaylistsChangeData = res.data;
           this.setState({ playlists: resData });
+          this.cachePlaylistIcons(resData);
         } break;
 
         case BackOut.TAG_CATEGORIES_CHANGE: {
@@ -556,7 +557,7 @@ export class App extends React.Component<AppProps, AppState> {
     const loaded = isInitDone(this.state);
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[libraryPath];
-    const playlists = this.filterAndOrderPlaylistsMemo(this.state.playlists, libraryPath);
+    const playlists = this.orderPlaylistsMemo(this.state.playlists);
 
     // Props to set to the router
     const routerProps: AppRouterProps = {
@@ -867,12 +868,9 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  filterAndOrderPlaylistsMemo = memoizeOne((playlists: Playlist[], library: string) => {
-    // @FIXTHIS "arcade" should not be hard coded as the "default" library
-    const lowerLibrary = library.toLowerCase();
+  orderPlaylistsMemo = memoizeOne((playlists: Playlist[]) => {
     return (
       playlists
-      .filter(p => p.library ? p.library.toLowerCase() === lowerLibrary : (lowerLibrary === '' || lowerLibrary === 'arcade'))
       .sort((a, b) => {
         if (a.title < b.title) { return -1; }
         if (a.title > b.title) { return  1; }

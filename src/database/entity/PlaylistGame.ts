@@ -1,7 +1,8 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Index } from 'typeorm';
 import { Game } from './Game';
 import { Playlist } from './Playlist';
 
+@Index('IDX_lookup_playlistId', ['playlistId'])
 @Entity()
 export class PlaylistGame {
   @PrimaryGeneratedColumn()

@@ -276,12 +276,9 @@ export namespace GameManager {
   export async function removePlaylist(playlistId: string): Promise<Playlist | undefined> {
     const playlistRepository = getManager().getRepository(Playlist);
     const playlistGameRepository = getManager().getRepository(PlaylistGame);
-    const playlist = await GameManager.findPlaylist(playlistId, true);
+    const playlist = await GameManager.findPlaylist(playlistId);
     if (playlist) {
-      for (const game of playlist.games) {
-        await playlistGameRepository.remove(game);
-      }
-      playlist.games = [];
+      await playlistGameRepository.delete({ playlistId: playlist.id });
       return playlistRepository.remove(playlist);
     }
   }
@@ -317,6 +314,16 @@ export namespace GameManager {
     const playlistGameRepository = getManager().getRepository(PlaylistGame);
     return playlistGameRepository.save(playlistGame);
   }
+
+  /** Updates a collection of Playlist Games */
+  export async function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void> {
+    return getManager().transaction(async transEntityManager => {
+      for (const game of playlistGames) {
+        await transEntityManager.save(PlaylistGame, game);
+      }
+    });
+  }
+
 
   export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
     const gameIds = (await getManager().createQueryBuilder()
