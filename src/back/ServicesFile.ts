@@ -54,7 +54,7 @@ export namespace ServicesFile {
     };
 
     parser.prop('name',   v => parsed.name   = str(v));
-    parser.prop('mad4fp', v => parsed.mad4fp = !!v);
+    parser.prop('mad4fp', v => parsed.mad4fp = !!v, true);
     return parsed;
   }
 

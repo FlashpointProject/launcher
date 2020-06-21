@@ -222,7 +222,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   });
   state.languageWatcher.on('error', console.error);
-  const langFolder = path.join(content.isDev ? process.cwd() : content.exePath, 'lang');
+  const langFolder = path.join(content.isDev ? process.cwd() : path.dirname(content.exePath), 'lang');
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
