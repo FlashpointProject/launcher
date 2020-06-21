@@ -5,6 +5,7 @@ import { BackState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
+import { Tag } from '@database/entity/Tag';
 import { BackOut } from '@shared/back/types';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
@@ -208,7 +209,7 @@ export function createAddAppFromLegacy(addApps: Legacy_IAdditionalApplicationInf
   });
 }
 
-export async function createGameFromLegacy(game: Legacy_IGameInfo): Promise<Game> {
+export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Record<string, Tag>): Promise<Game> {
   return {
     id: game.id,
     parentGameId: game.id,
@@ -225,7 +226,7 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo): Promise<Game
     playMode: game.playMode,
     status: game.status,
     notes: game.notes,
-    tags: await createTagsFromLegacy(game.tags),
+    tags: await createTagsFromLegacy(game.tags, tagCache),
     source: game.source,
     applicationPath: game.applicationPath,
     launchCommand: game.launchCommand,

@@ -922,9 +922,10 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register<SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, async (event, req) => {
     const platform = req.data;
     const translatedGames = [];
+    const tagCache: Record<string, Tag> = {};
     for (const game of platform.collection.games) {
       const addApps = platform.collection.additionalApplications.filter(a => a.gameId === game.id);
-      const translatedGame = await createGameFromLegacy(game);
+      const translatedGame = await createGameFromLegacy(game, tagCache);
       translatedGame.addApps = createAddAppFromLegacy(addApps, translatedGame);
       translatedGames.push(translatedGame);
     }

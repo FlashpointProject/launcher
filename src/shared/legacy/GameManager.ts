@@ -16,6 +16,99 @@ export type Legacy_AllPlatforms = {
   errors: Legacy_LoadPlatformError[]
 }
 
+type Legacy_GamePlatformPath = {
+  name: string;
+  path: string;
+  library: string;
+}
+
+export class Legacy_PlatformFileIterator {
+  platformsPath: string;
+  initialized: boolean;
+  done: boolean;
+  platformFilePaths: Legacy_GamePlatformPath[];
+  position: number;
+
+  constructor(platformsPath: string) {
+    this.platformsPath = platformsPath;
+    this.initialized = false;
+    this.done = false;
+    this.platformFilePaths = [];
+    this.position = 0;
+  }
+
+  async init() {
+    // Find the paths of all platform files
+    try {
+      const libraryNames = await readdir(this.platformsPath);
+      for (const libraryName of libraryNames) {
+        // Check each library for platforms
+        try {
+          const libraryPath = path.join(this.platformsPath, libraryName);
+          if ((await stat(libraryPath)).isDirectory()) {
+            // Library file was a directory, read files inside
+            const platformFiles = await readdir(libraryPath);
+            for (const platformFile of platformFiles) {
+              // Find each platform file
+              const platformPath = path.join(libraryPath, platformFile);
+              const platformFileExt = path.extname(platformFile);
+              if (platformFileExt.toLowerCase().endsWith('.xml') && (await stat(platformPath)).isFile()) {
+                this.platformFilePaths.push({
+                  name: path.basename(platformFile, platformFileExt),
+                  path: platformPath,
+                  library: libraryName
+                });
+              }
+            }
+            this.initialized = true;
+          }
+        } catch (e) { console.error(e); }
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  async next(): Promise<Legacy_GamePlatform | undefined> {
+    if (this.initialized && !this.done && this.position < this.platformFilePaths.length) {
+      const platformInfo = this.platformFilePaths[this.position];
+      this.position += 1;
+      if (this.position >= this.platformFilePaths.length) {
+        this.done = true;
+      }
+      const content = await readFile(platformInfo.path);
+      const data: any | undefined = fastXmlParser.parse(content.toString(), {
+        ignoreAttributes: true,
+        ignoreNameSpace: true,
+        parseNodeValue: true,
+        parseAttributeValue: false,
+        parseTrueNumberOnly: true,
+        // @TODO Look into which settings are most appropriate
+      });
+      if (!LaunchBox.formatPlatformFileData(data)) { throw new Error(`Failed to parse XML file: ${platformInfo.path}`); }
+
+      const gamePlatform: Legacy_GamePlatform = {
+        name: platformInfo.name,
+        filePath: platformInfo.path,
+        library: platformInfo.library,
+        data: {
+          LaunchBox: {
+            Game: [],
+            AdditionalApplication: [],
+          },
+        },
+        collection: {
+          games: [],
+          additionalApplications: [],
+        },
+      };
+      // Populate platform
+      gamePlatform.data = data;
+      gamePlatform.collection = Legacy_GameParser.parse(data, platformInfo.library);
+
+      return gamePlatform;
+    }
+  }
+}
+
 export namespace Legacy_GameManager {
   export async function loadPlatforms(platformsPath: string): Promise<Legacy_AllPlatforms> {
     // Find the paths of all platform files

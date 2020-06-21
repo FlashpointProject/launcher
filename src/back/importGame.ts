@@ -431,17 +431,24 @@ function createPlaceholderGame(): Game {
   };
 }
 
-export async function createTagsFromLegacy(tags: string): Promise<Tag[]> {
+export async function createTagsFromLegacy(tags: string, tagCache: Record<string, Tag>): Promise<Tag[]> {
   const allTags: Tag[] = [];
 
+  addTagLoop:
   for (const t of tags.split(';')) {
     const trimTag = t.trim();
+    const cachedTag = tagCache[trimTag];
+    if (cachedTag) {
+      allTags.push(cachedTag);
+      continue addTagLoop;
+    }
     let tag = await TagManager.findTag(trimTag);
     if (!tag && trimTag !== '') {
       // Tag doesn't exist, make a new one
       tag = await TagManager.createTag(trimTag);
     }
     if (tag) {
+      tagCache[trimTag] = tag;
       allTags.push(tag);
     }
   }

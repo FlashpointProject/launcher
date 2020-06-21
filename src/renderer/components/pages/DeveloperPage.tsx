@@ -6,7 +6,7 @@ import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { Legacy_GameManager } from '@shared/legacy/GameManager';
+import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
 import { stringifyMetaValue } from '@shared/MetaEdit';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -736,21 +736,21 @@ async function importLegacyPlatforms(config: IAppConfigData, setText: (text: str
   setText(text.join('\n'));
 
   const platformsPath = path.join(config.flashpointPath, config.platformFolderPath);
-  const { platforms, errors } = await Legacy_GameManager.loadPlatforms(platformsPath);
-  if (errors.length > 0) {
-    for (const error of errors) {
-      text.push(`File - ${error.filePath}\nStack\n ${error.stack}`);
-    }
-    text.push('\nErrors detected in some platforms, aborting');
-  } else {
+  const iterator = new Legacy_PlatformFileIterator(platformsPath);
+  await iterator.init();
+  if (iterator.initialized) {
     const startTime = new Date();
-    for (const platform of platforms) {
-      text.push(`\nAdding Platform ${platform.library} - ${platform.name} - ${platform.collection.games.length} Games`);
-      setText(text.join('\n'));
-      await window.Shared.back.sendP<any, SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, platform);
+    let totalGames = 0;
+    while (!iterator.done) {
+      const platform = await iterator.next();
+      if (platform) {
+        text.push(`\nAdding Platform ${platform.library} - ${platform.name} - ${platform.collection.games.length} Games`);
+        setText(text.join('\n'));
+        totalGames += platform.collection.games.length;
+        await window.Shared.back.sendP<any, SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, platform);
+      }
     }
     const timeTaken = Date.now() - startTime.getTime();
-    const totalGames = platforms.reduce((total, cur) => total += cur.collection.games.length, 0);
     text.push(`Finished! Took ${Math.floor((timeTaken / 1000) / 60)}m ${Math.round((timeTaken / 1000) % 60)}s to add ${totalGames} Games!`);
     text.push(`${Math.ceil(timeTaken / totalGames)}ms per game.`);
     setText(text.join('\n'));
