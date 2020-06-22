@@ -19,6 +19,9 @@ export interface ManagedChildProcess {
   emit(event: 'change'): boolean;
 }
 
+/** Number of times to auto restart - maximum */
+const MAX_RESTARTS = 5;
+
 /** Manages a single process. Wrapper around node's ChildProcess. */
 export class ManagedChildProcess extends EventEmitter {
   // @TODO Add timeouts for restarting and killing the process (it should give up after some time, like 10 seconds) maybe?
@@ -37,6 +40,8 @@ export class ManagedChildProcess extends EventEmitter {
   private detached: boolean;
   /** If the process should be restarted if it exits unexpectedly. */
   private autoRestart: boolean;
+  /** Number of times the process has auto restarted. Used to prevent infinite loops. */
+  private autoRestartCount: number;
   /** A timestamp of when the process was started. */
   private startTime = 0;
   /** State of the process. */
@@ -49,6 +54,7 @@ export class ManagedChildProcess extends EventEmitter {
     this.cwd = cwd;
     this.detached = detached;
     this.autoRestart = autoRestart;
+    this.autoRestartCount = 0;
     this.info = info;
   }
 
@@ -68,8 +74,12 @@ export class ManagedChildProcess extends EventEmitter {
   }
 
   /** Spawn process and keep track on it. */
-  public spawn(): void {
+  public spawn(auto?: boolean): void {
     if (!this.process && !this._isRestarting) {
+      // Reset the auto restart counter when we've manually / deliberately spawned the process
+      if (!auto) {
+        this.autoRestartCount = 0;
+      }
       // Spawn process
       this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached });
       // Set start timestamp
@@ -93,7 +103,12 @@ export class ManagedChildProcess extends EventEmitter {
         this.process = undefined;
         this.setState(ProcessState.STOPPED);
         if (this.autoRestart && wasRunning) {
-          this.spawn();
+          if (this.autoRestartCount < MAX_RESTARTS) {
+            this.autoRestartCount++;
+            this.spawn(true);
+          } else {
+            this.logContent(`${this.name} Service crashed too frequently, leaving stopped.`);
+          }
         }
       })
       .on('error', error => {
