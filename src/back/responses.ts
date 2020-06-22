@@ -396,11 +396,7 @@ export function registerRequestCallbacks(state: BackState): void {
             throw 'User Cancelled';
         }
       }
-      const games = newPlaylist.games;
-      newPlaylist.games = [];
-      console.log(newPlaylist.library);
       await GameManager.updatePlaylist(newPlaylist);
-      await GameManager.updatePlaylistGames(games);
       log(state, newLogEntry('Launcher', `Imported playlist - ${newPlaylist.title}`));
       respond<PlaylistsChangeData>(event.target, {
         id: req.id,
@@ -414,6 +410,18 @@ export function registerRequestCallbacks(state: BackState): void {
         type: BackOut.GENERIC_RESPONSE
       });
     }
+  });
+
+  state.socketServer.register(BackIn.DELETE_ALL_PLAYLISTS, async (event, req) => {
+    const playlists = await GameManager.findPlaylists();
+    for (const playlist of playlists) {
+      await GameManager.removePlaylist(playlist.id);
+    }
+    respond<PlaylistsChangeData>(event.target, {
+      id: req.id,
+      type: BackOut.PLAYLISTS_CHANGE,
+      data: await GameManager.findPlaylists()
+    });
   });
 
   state.socketServer.register<ExportPlaylistData>(BackIn.EXPORT_PLAYLIST, async (event, req) => {

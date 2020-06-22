@@ -118,6 +118,10 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.importLegacyPlaylistsDesc}
               onClick={this.onImportLegacyPlaylistsClick} />
             <SimpleButton
+              value={strings.deleteAllPlaylists}
+              title={strings.deleteAllPlaylistsDesc}
+              onClick={this.onDeleteAllPlaylistsClick} />
+            <SimpleButton
               value={strings.fixPrimaryAliases}
               title={strings.fixPrimaryAliasesDesc}
               onClick={this.onFixPrimaryAliases} />
@@ -216,10 +220,18 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onImportLegacyPlaylistsClick = () : void => {
     setTimeout(async () => {
-      this.setState({ text: 'Importing playlists...'});
+      this.setState({ text: 'Importing playlists...' });
       importLegacyPlaylists(window.Shared.config.data).then(num => {
-        this.setState({ text: `${num} Playlists Imported!`});
+        this.setState({ text: `${num} Playlists Imported!` });
       });
+    });
+  }
+
+  onDeleteAllPlaylistsClick = () : void => {
+    setTimeout(async () => {
+      this.setState({ text: 'Deleting playlist, please wait...' });
+      await window.Shared.back.sendP(BackIn.DELETE_ALL_PLAYLISTS, undefined);
+      this.setState({ text: 'Deleted all playlists!' });
     });
   }
 

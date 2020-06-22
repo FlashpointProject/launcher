@@ -152,6 +152,8 @@ const langTemplate = {
     'exportTagsDesc',
     'importTags',
     'importTagsDesc',
+    'deleteAllPlaylists',
+    'deleteAllPlaylistsDesc',
     'fixPrimaryAliases', // @NOT_ASSIGNED
     'fixPrimaryAliasesDesc', // @NOT_ASSIGNED
     'fixCommaTags', // @NOT_ASSIGNED
