@@ -810,7 +810,7 @@ async function importLegacyPlaylists(config: IAppConfigData): Promise<number> {
   for (const file of files) {
     if (file.toLowerCase().endsWith('.json')) {
       const fullPath = path.join(playlistsPath, file);
-      await window.Shared.back.sendP<any, ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, fullPath);
+      await window.Shared.back.sendP<any, ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, { filePath: fullPath });
       playlistsImported++;
     }
   }

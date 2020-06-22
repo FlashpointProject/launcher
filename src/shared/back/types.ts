@@ -107,6 +107,7 @@ export enum BackOut {
   SERVICE_CHANGE,
   LANGUAGE_CHANGE,
   LANGUAGE_LIST_CHANGE,
+  IMPORT_PLAYLIST,
   PLAYLISTS_CHANGE,
   THEME_CHANGE,
   THEME_LIST_CHANGE,
@@ -248,7 +249,10 @@ export type ExportGameData = {
 
 export type DuplicatePlaylistData = string;
 
-export type ImportPlaylistData = string;
+export type ImportPlaylistData = {
+  filePath: string;
+  library?: string;
+}
 
 export type ExportPlaylistData = {
   id: string;

@@ -1,4 +1,5 @@
 import { Game } from '@database/entity/Game';
+import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
@@ -355,9 +356,9 @@ export function registerRequestCallbacks(state: BackState): void {
 
   state.socketServer.register<ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, async (event, req) => {
     try {
-      const rawData = await fs.promises.readFile(req.data, 'utf-8');
+      const rawData = await fs.promises.readFile(req.data.filePath, 'utf-8');
       const jsonData = JSON.parse(rawData);
-      const newPlaylist = createPlaylist(jsonData);
+      const newPlaylist = createPlaylist(jsonData, req.data.library);
       const existingPlaylist = await GameManager.findPlaylist(jsonData['id'], true);
       if (existingPlaylist) {
         // Conflict, resolve with user
@@ -398,10 +399,15 @@ export function registerRequestCallbacks(state: BackState): void {
       }
       await GameManager.updatePlaylist(newPlaylist);
       log(state, newLogEntry('Launcher', `Imported playlist - ${newPlaylist.title}`));
-      respond<PlaylistsChangeData>(event.target, {
-        id: req.id,
+      state.socketServer.broadcast<PlaylistsChangeData>({
+        id: '',
         type: BackOut.PLAYLISTS_CHANGE,
         data: await GameManager.findPlaylists()
+      });
+      respond<Playlist>(event.target, {
+        id: req.id,
+        type: BackOut.IMPORT_PLAYLIST,
+        data: newPlaylist
       });
     } catch (e) {
       console.log(e);

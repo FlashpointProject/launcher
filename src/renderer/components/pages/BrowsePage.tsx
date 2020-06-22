@@ -696,7 +696,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       }]
     });
     if (filePath) {
-      window.Shared.back.send<any, ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, filePath[0]);
+      window.Shared.back.send<any, ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, { filePath: filePath[0], library: this.props.gameLibrary });
     }
   }
 

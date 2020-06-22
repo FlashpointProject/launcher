@@ -241,14 +241,14 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
   };
 }
 
-export function createPlaylist(jsonData: any): Playlist {
+export function createPlaylist(jsonData: any, library?: string): Playlist {
   const playlist: Playlist = {
     id: jsonData['id'] || uuid(),
     title: jsonData['title'] || 'No Name',
     description: jsonData['description'] || '',
     author: jsonData['author'] || '',
     icon: jsonData['icon'] || '',
-    library: jsonData['library'] || 'arcade',
+    library: library || jsonData['library'] || 'arcade',
     games: []
   };
 
