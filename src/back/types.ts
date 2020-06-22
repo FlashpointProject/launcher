@@ -1,5 +1,6 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
+import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
@@ -113,6 +114,18 @@ export type ThemeListItem = Theme & {
    * Format: X in "\X" or "\X\theme.css"
    */
   basename: string;
+}
+
+export type BareTag = {
+  categoryId: number;
+  description?: string;
+  primaryAlias: string;
+  aliases: string[];
+}
+
+export type TagsFile = {
+  categories: TagCategory[];
+  tags: BareTag[]
 }
 
 export type LogFunc = (entry: ILogPreEntry) => void;

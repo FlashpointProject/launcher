@@ -9,7 +9,6 @@ import { getManager, Like, Not } from 'typeorm';
 import { GameManager } from './GameManager';
 
 export namespace TagManager {
-
   export async function findTagCategories(): Promise<TagCategory[]> {
     return getManager().getRepository(TagCategory).find();
   }
@@ -194,7 +193,7 @@ export namespace TagManager {
     return tags;
   }
 
-  export async function createTag(name: string, categoryName?: string): Promise<Tag | undefined> {
+  export async function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | undefined> {
     const tagRepository = getManager().getRepository(Tag);
     const tagAliasRepostiory = getManager().getRepository(TagAlias);
     const tagCategoryRepository = getManager().getRepository(TagCategory);
@@ -220,6 +219,8 @@ export namespace TagManager {
       }
     }
 
+    const tagAliases: TagAlias[] = [];
+
     if (category) {
       // Create tag and alias
       const tag = tagRepository.create({ category: category });
@@ -228,9 +229,17 @@ export namespace TagManager {
       const tagAlias = tagAliasRepostiory.create();
       tagAlias.name = name;
       tagAlias.tagId = savedTag.id;
+      if (aliases) {
+        for (const a of aliases) {
+          const tagAlias = tagAliasRepostiory.create();
+          tagAlias.name = a;
+          tagAlias.tagId = savedTag.id;
+          tagAliases.push(await tagAliasRepostiory.save(tagAlias));
+        }
+      }
       savedTag.primaryAlias = tagAlias;
       savedTag = await tagRepository.save(savedTag);
-      savedTag.aliases = [await tagAliasRepostiory.save(tagAlias)];
+      savedTag.aliases = [await tagAliasRepostiory.save(tagAlias), ...tagAliases];
       return savedTag;
     }
   }

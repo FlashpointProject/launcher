@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
+import { TagCategory } from '@database/entity/TagCategory';
 import { AddLogData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportMetaEditData, ExportPlaylistData, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportMetaEditResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, MergeTagData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, UploadLogResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
@@ -29,7 +30,7 @@ import { importCuration, launchAddAppCuration, launchCuration } from './importGa
 import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
-import { BackState } from './types';
+import { BackState, BareTag, TagsFile } from './types';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, newLogEntry, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
@@ -934,6 +935,75 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE
     });
+  });
+
+  state.socketServer.register<string>(BackIn.EXPORT_TAGS, async (event, req) => {
+    const jsonTagsFile: TagsFile = { categories: [], tags: [] };
+    let res = 0;
+    try {
+      const allTagCategories = await TagManager.findTagCategories();
+      jsonTagsFile.categories = allTagCategories;
+      const allTags = await TagManager.findTags();
+      jsonTagsFile.tags = allTags.map(t => {
+        const primaryAlias = t.aliases.find(a => a.id === t.primaryAliasId);
+        const bareTag: BareTag = {
+          categoryId: t.categoryId || -1,
+          description: t.description,
+          primaryAlias: primaryAlias ? primaryAlias.name : 'ERROR',
+          aliases: t.aliases.map(a => a.name)
+        };
+        return bareTag;
+      });
+      await fs.promises.writeFile(req.data, JSON.stringify(jsonTagsFile, null, ' '), { encoding: 'utf8' });
+      res = allTags.length;
+    } catch (error) {
+      res = -1;
+    }
+    respond(event.target, {
+      id: req.id,
+      type: BackOut.EXPORT_TAGS,
+      data: res
+    });
+  });
+
+  state.socketServer.register<string>(BackIn.IMPORT_TAGS, async (event, req) => {
+    const json: TagsFile = JSON.parse(await fs.promises.readFile(req.data, 'utf8'));
+    let res = 0;
+    try {
+      // Map JSON category ids to real categories
+      const existingCats = await TagManager.findTagCategories();
+      const categories: Record<number, TagCategory> = {};
+      for (const rawCat of json.categories) {
+        const foundCat = existingCats.find(c => c.name.toLowerCase() === rawCat.name.toLowerCase());
+        if (foundCat) {
+          categories[rawCat.id] = foundCat;
+        } else {
+          const newCat = await TagManager.createTagCategory(rawCat.name, rawCat.color);
+          if (newCat) {
+            categories[rawCat.id] = newCat;
+          }
+        }
+      }
+      // Create and fill tags
+      for (const bareTag of json.tags) {
+        const existingTag = await TagManager.findTag(bareTag.primaryAlias);
+        if (existingTag) {
+          // TODO: Detect alias collisions
+          continue;
+        } else {
+          await TagManager.createTag(bareTag.primaryAlias, categories[bareTag.categoryId].name, bareTag.aliases.filter(a => a !== bareTag.primaryAlias));
+          res += 1;
+        }
+      }
+    } catch (error) {
+      res = -1;
+    }
+    respond(event.target, {
+      id: req.id,
+      type: BackOut.IMPORT_TAGS,
+      data: res
+    });
+    await TagManager.sendTagCategories(state.socketServer);
   });
 
   state.socketServer.register<ImportCurationData>(BackIn.IMPORT_CURATION, async (event, req) => {

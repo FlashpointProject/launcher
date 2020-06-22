@@ -8,7 +8,8 @@ import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
 import { stringifyMetaValue } from '@shared/MetaEdit';
-import * as fs from 'fs';
+import { remote } from 'electron';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { promisify } from 'util';
@@ -125,6 +126,14 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               title={strings.fixCommaTagsDesc}
               onClick={this.onFixCommaTags} />
             <SimpleButton
+              value={strings.exportTags}
+              title={strings.exportTagsDesc}
+              onClick={this.onExportTagsClick} />
+            <SimpleButton
+              value={strings.importTags}
+              title={strings.importTagsDesc}
+              onClick={this.onImportTagsClick} />
+            <SimpleButton
               value={strings.forceGameMetaSync}
               title={strings.forceGameMetaSyncDesc}
               onClick={this.onForceGameMetaSync} />
@@ -228,6 +237,30 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       this.setState({ text: 'Fixing tags, please wait...'});
       window.Shared.back.sendP(BackIn.CLEANUP_TAGS, undefined).then(() => {
         this.setState({ text: 'Tags Fixed!'});
+      });
+    });
+  }
+
+  onExportTagsClick = () : void => {
+    setTimeout(async () => {
+      exportTags((text) => this.setState({ text: text }))
+      .then((count) => {
+        this.setState({ text: `${count} Tags exported!`});
+      })
+      .catch((error) => {
+        this.setState({ text: `Tags Not Exported\nERROR - ${error}`});
+      });
+    });
+  }
+
+  onImportTagsClick = () : void => {
+    setTimeout(async () => {
+      importTags((text) => this.setState({ text: text }))
+      .then((count) => {
+        this.setState({ text: `${count} new or changed Tags imported!`});
+      })
+      .catch((error) => {
+        this.setState({ text: `Tags Not Imported\nERROR - ${error}`});
       });
     });
   }
@@ -775,4 +808,44 @@ async function importLegacyPlaylists(config: IAppConfigData): Promise<number> {
 async function fixPrimaryAliases(): Promise<number> {
   const res = await window.Shared.back.sendP<TagPrimaryFixResponse, TagPrimaryFixData>(BackIn.FIX_TAG_PRIMARY_ALIASES, null);
   return res.data || 0;
+}
+
+async function exportTags(setText: (text: string) => void): Promise<number> {
+  const defaultPath = path.join(window.Shared.config.fullFlashpointPath, 'Data');
+  await fs.ensureDir(defaultPath);
+  const filePath = remote.dialog.showSaveDialogSync({
+    title: 'Export Tags',
+    defaultPath: path.join(defaultPath, 'exported_tags.json'),
+    filters: [{
+      name: 'Tags file',
+      extensions: ['json'],
+    }]
+  });
+  if (filePath) {
+    setText('Exporting tags, please wait...');
+    const res = await window.Shared.back.sendP<number, string>(BackIn.EXPORT_TAGS, filePath);
+    return res.data || 0;
+  } else {
+    throw new Error('User Cancelled');
+  }
+}
+
+async function importTags(setText: (text: string) => void): Promise<number> {
+  const defaultPath = path.join(window.Shared.config.fullFlashpointPath, 'Data');
+  await fs.ensureDir(defaultPath);
+  const filePath = remote.dialog.showSaveDialogSync({
+    title: 'Import Tags',
+    defaultPath: path.join(defaultPath, 'exported_tags.json'),
+    filters: [{
+      name: 'Tags file',
+      extensions: ['json'],
+    }]
+  });
+  if (filePath) {
+    setText('Importing tags, please wait...');
+    const res = await window.Shared.back.sendP<number, string>(BackIn.IMPORT_TAGS, filePath);
+    return res.data || 0;
+  } else {
+    throw new Error('User Cancelled');
+  }
 }

@@ -148,6 +148,10 @@ const langTemplate = {
     'importLegacyPlatformsDesc',
     'importLegacyPlaylists',
     'importLegacyPlaylistsDesc',
+    'exportTags',
+    'exportTagsDesc',
+    'importTags',
+    'importTagsDesc',
     'fixPrimaryAliases', // @NOT_ASSIGNED
     'fixPrimaryAliasesDesc', // @NOT_ASSIGNED
     'fixCommaTags', // @NOT_ASSIGNED
