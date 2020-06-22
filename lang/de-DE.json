@@ -1,12 +1,12 @@
 {
-  "name": "English",
+  "name": "Deutsch",
   "config": {
     "configHeader": "Config",
-    "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
-    "preferencesHeader": "Preferences",
-    "extremeGames": "Extreme Games",
-    "extremeGamesDesc": "Show games with sexual, violent or other content unsuitable for children.",
-    "enableEditing": "Enable Editing",
+    "configDesc": "(Einige Änderungen erfordern einen Neustart)",
+    "preferencesHeader": "Einstellungen",
+    "extremeGames": "Extreme Spiele",
+    "extremeGamesDesc": "Zeige Spiele mit sexuellen, gewaltsamen oder anderen, nicht jugendfreien Inhalten.",
+    "enableEditing": "Bearbeiten Erlauben",
     "enableEditingDesc": "Enable editing of games, additional applications and playlists. Also shows the 'Curate' tab.",
     "onDemandImages": "On Demand Images",
     "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
