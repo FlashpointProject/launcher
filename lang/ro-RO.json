@@ -8,8 +8,8 @@
     "extremeGamesDesc": "Arătați jocuri cu conținut sexual, violent sau alte tipuri de conținut inadecvat pentru copii.",
     "enableEditing": "Activați editarea",
     "enableEditingDesc": "Activați editarea jocurilor, aplicațiilor suplimentare și listelor cu jocuri. Arată și butonul „Repară“.",
-    "onDemandImages": "On Demand Images",
-    "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
+    "onDemandImages": "Imagini la cerere",
+    "onDemandImagesDesc": "Descarcă și salvează logo-uri lipsă și capturi de ecran când e cazul.",
     "currentLanguage": "Limba principală",
     "currentLanguageDesc": "Limba principală a lansatorului.",
     "fallbackLanguage": "Limba secundară",
@@ -33,9 +33,9 @@
     "showDeveloperTab": "Arătați butonul „Dezvoltator“",
     "showDeveloperTabDesc": "Se va arăta butonul „Dezvoltator“. Cel mai folositor va fi pentru dezvoltatori și reparatori.",
     "server": "Server",
-    "serverDesc": "Which Server Process to run at launcher startup.",
-    "metadataServerHost": "Metadata Server Host",
-    "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "serverDesc": "Procesul pentru sever care rulează la pornirea lansatorului.",
+    "metadataServerHost": "Gazda serverului de date meta",
+    "metadataServerHostDesc": "Folosit pentru obținerea de informații actualizate ale jocurilor în lansator.",
     "saveAndRestart": "Salvare și repornire"
   },
   "home": {
@@ -72,21 +72,21 @@
     "linuxSupport": "Apar probleme pe Linux? {0}",
     "linuxSupportLinkText": "Vizitați FAQ",
     "randomPicks": "Alese la întâmplare",
-    "rerollPicks": "Re-Roll Picks"
+    "rerollPicks": "Alegeți din nou"
   },
   "logs": {
     "filters": "Filtre",
     "copyText": "Copiați textul",
     "clearLog": "Goliți jurnalul",
-    "copy404Urls": "Copy 404 URLs",
-    "uploadLog": "Upload Log",
+    "copy404Urls": "Copiază URL-urile 404",
+    "uploadLog": "Încarcă jurnalul",
     "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
     "home": "Pag. principală",
     "browse": "Răsfoire",
-    "tags": "Tags",
-    "categories": "Categories",
+    "tags": "Etichete",
+    "categories": "Categorii",
     "logs": "Jurnal",
     "config": "Configurări",
     "about": "Despre",
