@@ -141,6 +141,8 @@
     "importLegacyPlatformsDesc": "Imports Legacy Platforms from `Data/Platforms/` - WARNING: Will overwrite conflicting games",
     "importLegacyPlaylists": "Import Legacy Playlists",
     "importLegacyPlaylistsDesc": "Imports Legacy Playlists from `/Data/Playlists`",
+    "deleteAllPlaylists": "Delete All Playlists",
+    "deleteAllPlaylistsDesc": "DANGEROUS! Deletes all playlists.",
     "importMetaEdits": "Import Meta Edits",
     "importMetaEditsDesc": "Imports ALL Meta Edits from `/Data/MetaEdits`",
     "fixPrimaryAliases": "Fix Primary Aliases",
