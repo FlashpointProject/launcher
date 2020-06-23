@@ -43,7 +43,6 @@ export function parseSearchText(text: string): ParsedSearch {
     } else {
       const phrase = match[4] || match[5]; // Group 3 can appear, ignore, more confusing when search is wrong than invalid
       if (phrase) {
-        console.log(phrase);
         if (preIndex >= 0) {
           // Create temp phrase including preceding specials (e.g --!"sonic" -> --!sonic)
           let i = preIndex;
@@ -53,9 +52,9 @@ export function parseSearchText(text: string): ParsedSearch {
             tempPhrase = text.charAt(i) + tempPhrase;
             i--;
           }
-          const inverse = preIndex >= 0 && text.charAt(preIndex) === '-';
+          const inverse = tempPhrase.charAt(0) === '-';
           // Get quick search from created temp phrase (If undefined, there is no quick search)
-          const filter = parseQuickSearch(tempPhrase.substr(1));
+          const filter = parseQuickSearch(inverse ? tempPhrase.substr(1) : tempPhrase);
           // Process as a field filter
           if (filter) {
             if (inverse) { parsed.blacklist.push(filter); }
