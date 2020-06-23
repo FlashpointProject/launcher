@@ -385,7 +385,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <p
                     className='browse-right-sidebar__row__date-added'
                     title={dateAdded}>
-                    {dateAdded}
+                    {(new Date(dateAdded)).toUTCString()}
                   </p>
                 </div>
                 <div className='browse-right-sidebar__row browse-right-sidebar__row--one-line'>
@@ -393,7 +393,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                   <p
                     className='browse-right-sidebar__row__date-added'
                     title={dateModified}>
-                    {dateModified}
+                    {(new Date(dateModified)).toUTCString()}
                   </p>
                 </div>
                 { game.broken || editable ? (
