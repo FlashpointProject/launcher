@@ -1,7 +1,7 @@
 {
-  "name": "English",
+  "name": "الانجليزية",
   "config": {
-    "configHeader": "Config",
+    "configHeader": "الإعدادات",
     "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
     "preferencesHeader": "Preferences",
     "extremeGames": "Extreme Games",
