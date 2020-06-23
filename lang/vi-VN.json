@@ -1,5 +1,5 @@
 {
-  "name": "English",
+  "name": "Tiếng Anh",
   "config": {
     "configHeader": "Config",
     "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
@@ -10,7 +10,7 @@
     "enableEditingDesc": "Enable editing of games, additional applications and playlists. Also shows the 'Curate' tab.",
     "onDemandImages": "On Demand Images",
     "onDemandImagesDesc": "Download and save missing logos and screenshots as they are needed.",
-    "currentLanguage": "Language",
+    "currentLanguage": "Ngôn ngữ",
     "currentLanguageDesc": "Which language the launcher will use primarily.",
     "fallbackLanguage": "Fallback Language",
     "fallbackLanguageDesc": "Which language to use in place of an incomplete current language.",
@@ -92,7 +92,7 @@
     "about": "About",
     "curate": "Curate",
     "developer": "Developer",
-    "searchPlaceholder": "Search...",
+    "searchPlaceholder": "Tìm kiếm...",
     "hideRightSidebar": "Hide right sidebar",
     "showRightSidebar": "Show right sidebar",
     "hideLeftSidebar": "Hide left sidebar",
@@ -101,7 +101,7 @@
     "newGame": "New Game",
     "list": "List",
     "grid": "Grid",
-    "searchResults": "Search Results"
+    "searchResults": "Kết quả tìm kiếm"
   },
   "filter": {
     "dateAdded": "Date Added",
@@ -109,13 +109,13 @@
     "platform": "Platform",
     "series": "Series",
     "title": "Title",
-    "developer": "Developer",
-    "publisher": "Publisher",
+    "developer": "Nhà phát triển",
+    "publisher": "Nhà phát hành",
     "ascending": "Ascending",
     "descending": "Descending"
   },
   "developer": {
-    "developerHeader": "Developer",
+    "developerHeader": "Nhà phát triển",
     "developerDesc": "This is where all the useful developer tools will go.",
     "checkMissingImages": "Check Missing Images",
     "checkMissingImagesDesc": "List all games without a thumbnail or screenshot",
@@ -161,18 +161,18 @@
     "aboutHeader": "About",
     "flashpoint": "BlueMaxima's Flashpoint",
     "flashpointDesc": "The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.",
-    "website": "Website",
+    "website": "Trang mạng",
     "flashpointLauncher": "Flashpoint Launcher",
     "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint project.",
-    "version": "Version",
-    "license": "License",
+    "version": "Phiên bản",
+    "license": "Giấy phép",
     "licenseInfo": "MIT (Read the file named 'LICENSE' for more information)",
     "creditsHeader": "Credits",
     "specialThanks": "Special Thanks"
   },
   "browse": {
     "noTitle": "No Title",
-    "by": "by",
+    "by": "của",
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
     "noAlternateTitles": "No Alternate Titles",
@@ -191,7 +191,7 @@
     "noPlayMode": "No Play Mode",
     "status": "Status",
     "noStatus": "No Status",
-    "version": "Version",
+    "version": "Phiên bản",
     "noVersion": "No Version",
     "releaseDate": "Release Date",
     "noReleaseDate": "No Release Date",
@@ -343,14 +343,14 @@
     "noAuthor": "No Author",
     "authorPlaceholder": "Author...",
     "id": "ID",
-    "by": "by"
+    "by": "của"
   },
   "misc": {
     "noBlankFound": "No {0} Found",
     "addBlank": "Add {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
-    "yes": "Yes",
-    "no": "No",
+    "yes": "Vâng",
+    "no": "Không",
     "downloading": "Downloading",
     "extracting": "Extracting",
     "installingFiles": "Installing Files...",
