@@ -43,7 +43,7 @@ export class Game {
   /** Name of the publisher of the game */
   publisher: string;
 
-  @CreateDateColumn()
+  @Column({ type: 'datetime' })
   /** Date-time of when the game was added to collection */
   dateAdded: string;
 
