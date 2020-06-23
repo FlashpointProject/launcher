@@ -51,7 +51,6 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
     const strings = this.context.browse;
     const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, preferencesData, selectedPlaylistID } = this.props;
     const editingDisabled = !preferencesData.enableEditing;
-    const filteredPlaylists = playlists.filter(p => p.library === this.props.library);
     return (
       <div className='browse-left-sidebar'>
         <div className='playlist-list'>
@@ -67,7 +66,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
             </div>
           </div>
           {/* List all playlists */}
-          {this.renderPlaylistsMemo(filteredPlaylists, playlistIconCache, currentPlaylist, selectedPlaylistID, editingDisabled, isEditing, isEditingNew)}
+          {this.renderPlaylistsMemo(playlists, playlistIconCache, currentPlaylist, selectedPlaylistID, editingDisabled, isEditing, isEditingNew)}
           {/* Create New Playlist */}
           { editingDisabled ? undefined : (
             <div

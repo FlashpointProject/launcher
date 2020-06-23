@@ -557,7 +557,7 @@ export class App extends React.Component<AppProps, AppState> {
     const loaded = isInitDone(this.state);
     const libraryPath = getBrowseSubPath(this.props.location.pathname);
     const view = this.state.views[libraryPath];
-    const playlists = this.orderPlaylistsMemo(this.state.playlists);
+    const playlists = this.filterAndOrderPlaylistsMemo(this.state.playlists, libraryPath);
 
     // Props to set to the router
     const routerProps: AppRouterProps = {
@@ -868,9 +868,12 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
-  orderPlaylistsMemo = memoizeOne((playlists: Playlist[]) => {
+  filterAndOrderPlaylistsMemo = memoizeOne((playlists: Playlist[], library: string) => {
+    // @FIXTHIS "arcade" should not be hard coded as the "default" library
+    const lowerLibrary = library.toLowerCase();
     return (
       playlists
+      .filter(p => p.library ? p.library.toLowerCase() === lowerLibrary : (lowerLibrary === '' || lowerLibrary === 'arcade'))
       .sort((a, b) => {
         if (a.title < b.title) { return -1; }
         if (a.title > b.title) { return  1; }
