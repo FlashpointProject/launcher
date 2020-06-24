@@ -38,7 +38,7 @@ export class DropdownInputField extends React.Component<DropdownInputFieldProps,
 
   componentDidMount() {
     document.addEventListener('mousedown', this.onGlobalMouseDown);
-    document.addEventListener('keydown', this.onGlobalKeyDown);
+
     this.updatePropRefs();
   }
 

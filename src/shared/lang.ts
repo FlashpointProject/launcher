@@ -403,7 +403,7 @@ const langTemplate = {
     'pathNotFound', // @UNUSED
     'playlistConflict',
     'importedPlaylistAlreadyExists',
-    'mergeOrStaySeperate',
+    'importPlaylistAs',
     'selectFileToExportMeta',
     'selectFolderToExportMetaAndImages',
     'selectFileToExportPlaylist',

@@ -266,6 +266,17 @@ export namespace GameManager {
     return playlistRepository.findOne(playlistId, opts);
   }
 
+  export async function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | undefined> {
+    const opts: FindOneOptions<Playlist> = join ? {
+      relations: ['games'],
+      where: {
+        title: playlistName
+      }
+    } : {};
+    const playlistRepository = getManager().getRepository(Playlist);
+    return playlistRepository.findOne(opts);
+  }
+
   /** Find playlists given a filter. @TODO filter */
   export async function findPlaylists(): Promise<Playlist[]> {
     const playlistRepository = getManager().getRepository(Playlist);

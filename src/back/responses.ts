@@ -9,6 +9,7 @@ import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
+import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, INamedBackProcessInfo, IService, ProcessAction } from '@shared/interfaces';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
@@ -35,7 +36,6 @@ import { BackState, BareTag, TagsFile } from './types';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, newLogEntry, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
-import { FilterGameOpts } from '@shared/game/GameFilter';
 
 const axios = axiosImport.default;
 const copyFile  = util.promisify(fs.copyFile);
@@ -360,41 +360,24 @@ export function registerRequestCallbacks(state: BackState): void {
       const rawData = await fs.promises.readFile(req.data.filePath, 'utf-8');
       const jsonData = JSON.parse(rawData);
       const newPlaylist = createPlaylist(jsonData, req.data.library);
-      const existingPlaylist = await GameManager.findPlaylist(jsonData['id'], true);
+      const existingPlaylist = await GameManager.findPlaylistByName(newPlaylist.title, true);
       if (existingPlaylist) {
+        newPlaylist.title += ' - New';
         // Conflict, resolve with user
         const dialogFunc = state.socketServer.openDialog(event.target);
-        const strings = state.languageContainer.dialog;
+        const strings = state.languageContainer;
         const result = await dialogFunc({
-          title: strings.playlistConflict,
-          message:  `${formatString(strings.importedPlaylistAlreadyExists, existingPlaylist.title)}\n\n${strings.mergeOrStaySeperate}`,
-          buttons: [strings.mergePlaylists, strings.newPlaylist, strings.cancel]
+          title: strings.dialog.playlistConflict,
+          message:  `${formatString(strings.dialog.importedPlaylistAlreadyExists, existingPlaylist.title)}\n\n${strings.dialog.importPlaylistAs} ${newPlaylist.title}?`,
+          buttons: [strings.misc.yes, strings.misc.no, strings.dialog.cancel]
         });
-        console.log(result);
         switch (result) {
           case 0: {
-            const topOrder = existingPlaylist.games.reduce((highest, cur) => highest = Math.max(highest, cur.order), 0);
-            let addedGames = 0;
-            for (const game of newPlaylist.games) {
-              if (existingPlaylist.games.findIndex(g => g.gameId === game.gameId) === -1) {
-                game.order = topOrder + addedGames + 1;
-                existingPlaylist.games.push(game);
-                addedGames++;
-              }
-            }
-            newPlaylist.games = existingPlaylist.games;
-          } break;
-          case 1: {
-            const newPlaylistId = uuid();
-            newPlaylist.id = newPlaylistId;
-            newPlaylist.title += ' - Copy';
-            newPlaylist.games = newPlaylist.games.map(g => {
-              g.id = undefined; // New Entry
-              g.playlistId = newPlaylistId;
-              return g;
-            });
-          } break;
+            // Continue importing
+            break;
+          }
           default:
+            // Cancel or No
             throw 'User Cancelled';
         }
       }

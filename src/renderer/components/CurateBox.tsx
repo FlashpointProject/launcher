@@ -8,7 +8,6 @@ import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@s
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
 import { useDelayedThrottle } from '@shared/utils/throttle';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
@@ -35,8 +34,6 @@ import { InputField } from './InputField';
 import { AutoProgressComponent } from './ProgressComponents';
 import { SimpleButton } from './SimpleButton';
 import { TagInputField } from './TagInputField';
-
-const { strToBool } = Coerce;
 
 type CurateBoxProps = {
   /** Meta data of the curation to display. */
