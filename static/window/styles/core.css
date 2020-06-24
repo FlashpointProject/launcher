@@ -956,7 +956,7 @@ body {
 .curate-page__left-sidebar-item__icon {
   width: var(--image-size);
   height: var(--image-size);
-  margin: 0 0.2rem;
+  margin: 0.1rem 0.5rem 0.1rem 0.15rem;
   flex: none;
   background-size: contain;
   background-repeat: no-repeat;
@@ -1044,12 +1044,15 @@ body {
   white-space: nowrap;
 }
 .curate-box-row__content {
-  width: 100%
+  width: 100%;
 }
 /* Curate Box Add-App */
-.curate-box-add-app {
+.curate-box-add-apps {
   margin: 0.5rem 0;
   padding: 0.4rem;
+}
+.curate-box-add-apps .curate-box-buttons__left {
+  width: 100%;
 }
 /* Curate Box Files */
 .curate-box-files {
@@ -1085,7 +1088,6 @@ body {
   text-align: left;
 }
 .curate-box-buttons__right {
-
   text-align: right;
 }
 .curate-box-buttons__button:last-child {
@@ -1145,13 +1147,15 @@ body {
 
 
 /* ------ Browse ------ */
-.game-browser {
+.game-browser,
+.tags-browser {
   display: flex;
   width: 100%;
   height: 100%;
 }
 /* Center */
-.game-browser__center {
+.game-browser__center,
+.tags-browser__center {
   flex: 1 0 auto;
 }
 .game-browser__center-inner {
@@ -1427,42 +1431,50 @@ body {
 
 
 /* GameList Wrapper */
-.game-list-wrapper {
+.game-list-wrapper,
+.tags-list-wrapper {
   /* --height | Height of list items (in pixels) */
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 /* GameList */
-.game-list {}
+.game-list,
+.tag-list {}
 /* GameList Item */
-.game-list-item {
+.game-list-item,
+.tag-list-item {
   display: flex;
 }
-.game-list-item:hover {
+.game-list-item:hover,
+.tag-list-item:hover {
   cursor: pointer;
 }
 .game-list-item--dragged {
   opacity: 0.4;
 }
-.game-list-item * {
+.game-list-item *,
+.tag-list-item * {
   user-select: none;
 }
-.game-list-item__icon {
+.game-list-item__icon,
+.tag-list-icon {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   width: calc(0.8px * var(--height));
   height: calc(0.8px * var(--height));
-  margin: calc(0.09px * var(--height)) calc(0.2px * var(--height)) 0 calc(0.05px * var(--height));
+  margin: calc(0.09px * var(--height)) calc(0.2px * var(--height)) 0 calc(0.1px * var(--height));
 }
-.game-list-item__right {
+.game-list-item__right,
+.tag-list-item__right {
   flex: 1;
   display: block;
   width: 100%;
   overflow: hidden;
 }
-.game-list-item__field {
+.game-list-item__field,
+.tag-list-item__field {
   display: inline-block;
   width: 100%;
   font-size: calc(0.8px * var(--height));
@@ -1483,36 +1495,43 @@ body {
   font-size: 1.5rem;
 }
 /* GameList Header */
-.game-list-header {
+.game-list-header,
+.tag-list-header {
   display: flex;
   width: 100%;
 }
-.game-list-header__right {
+.game-list-header__right,
+.tag-list-header__right {
   display: flex;
   width: 100%;
 }
-.game-list-header__scroll-fill {
+.game-list-header__scroll-fill,
+.tag-list-header__scroll-fill {
   width: 1rem;
 }
 /* GameList Header Column */
-.game-list-header-column {
+.game-list-header-column,
+.tag-list-header-column {
   display: inline-flex;
   width: 100%;
 }
-.game-list-header-column__title {
+.game-list-header-column__title,
+.tag-list-header-column__title {
   flex: 1 1 auto;
   overflow: hidden;
   user-select: none;
   padding-left: 0.2rem;
   font-size: calc(0.8px * var(--height));
 }
-.game-list-header-column__divider {
+.game-list-header-column__divider,
+.tag-list-header-column__divider {
   display: none; /* Hidden because Wumbo think they are ugly :( */
   width: 2px;
   height: auto;
 }
 /* GameList Item & GameList Header Column (Size) */
-.game-list-header-column--icon {
+.game-list-header-column--icon,
+.tag-list-header-column--icon {
   flex: 1 0 auto;
   width: calc(1px * var(--height));
 }
@@ -2135,99 +2154,21 @@ body {
 .tag-alias-wrapper {
   display: flex;
 }
-.tag-list { }
-.tag-list-icon {
-  margin: 0 0.2rem 0 0.2rem;
-  height: 100%;
-}
-/* GameList Item */
-.tag-list-item {
-  display: flex;
-}
-.tag-list-item:hover {
-  cursor: pointer;
-}
-.tag-list-item * {
-  user-select: none;
-}
-.tag-list-item__right {
-  flex: 1;
-  display: block;
-  width: 100%;
-  overflow: hidden;
-}
-.tag-list-item__field {
-  display: inline-block;
-  width: 100%;
-  font-size: calc(0.8 * 1px * var(--height));
-  vertical-align: top;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
+/* TagList Item */
 
-.tags-browser {
-  display: flex;
-  width: 100%;
-  height: 100%;
-}
-.tags-browser__center {
-  flex: 1 0 auto;
-}
 .tag-alias__buttons {
   display: flex;
 }
 .tag-alias__buttons * {
   margin-left: 0.3rem;
 }
-.tag-list-header {
-  display: flex;
-  width: 100%;
-}
-.tag-list-header__right {
-  display: flex;
-  width: 100%;
-}
-.tag-list-header__scroll-fill {
-  width: 1rem;
-}
-.tag-list-header-column__divider {
-  width: 2px;
-  height: auto;
-}
-.tag-list-header-column {
-  display: inline-flex;
-  width: 100%;
-}
-.tag-list-header-column__title {
-  flex: 1 1 auto;
-  overflow: hidden;
-  user-select: none;
-  padding-left: 0.2rem;
-}
-.tag-list-header-column__divider {
-  width: 2px;
-  height: auto;
-}
-.tag-list-header-column--icon {
-  flex: 1 0 auto;
-  width: calc(1px * var(--height));
-}
-.tag-list-header-column--icon {
-  flex: 1 0 auto;
-  width: calc(1px * var(--height));
-}
 .tag-list-header-column--name,
 .tag-list-item__field--name {
-  max-width: 15%;
-}
-.tag-list-header-column--description,
-.tag-list-item__field--description {
-  max-width: 40%;
+  max-width: 50%;
 }
 .tag-list-header-column--aliases,
 .tag-list-item__field--aliases {
-  max-width: 30%;
+  max-width: 35%;
 }
 .tag-list-header-column--category,
 .tag-list-item__field--category {
@@ -2246,4 +2187,3 @@ body {
   bottom: 2rem;
   right: 0.5rem;
 }
-

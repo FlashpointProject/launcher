@@ -75,7 +75,13 @@
   --layout__game-image-split-hover-color:    #575757;
   --layout__game-image-split-disabled-color: #141414;
   /* Home Page */
-  --layout__home-page-box-border:     #444448;
+  --layout__home-page-box-border:     #3f3f3f;
+  --layout__home-page-box-background: #252525;
+  /* Curate Page */
+  --layout__curate-page-box-background: var(--layout__tertiary-background);
+  --layout__curate-page-box-border: var(--layout__primary-outline-color);
+  --layout__curate-page-floating-box-background: var(--layout__quaternary-background);
+  --layout__curate-page-floating-box-border: var(--layout__tertiary-background);
   /* Log (at the Log Page) */
   --layout__log-time-stamp:                 #857df3;
   --layout__log-source:                     #d4d4d4;
@@ -94,6 +100,9 @@
   --layout__log-page-bar-background: #222222;
   /* Curate Page */
   --layout__curate-entry-collision-color: #efef98;
+  /* Developer Page */
+  --layout__developer-page-log-background: #313133;
+  --layout__developer-page-log-border:     #353535;
   /* Simple Button */
   --layout__simple-button-background: #434346;
   --layout__simple-button-border: #6f6f75;
@@ -267,17 +276,6 @@ body {
 .log__source--log-watcher {
   color: var(--layout__log-source-log-watcher);
 }
-/* Generic Box */
-.home-page__box,
-.curate-page__floating-box,
-.curate-box,
-.developer-page__log,
-.service-box {
-  background-color: var(--layout__quaternary-background);
-  border-color: var(--layout__tertiary-background);
-  box-shadow: 0 0.15em 0.2em 0 #09090a;
-  border-radius: 0.3em;
-}
 
 
 /* ------ Image Preview ------ */
@@ -413,6 +411,10 @@ body {
 
 /* ------ Home ------ */
 /* HomePage Box */
+.home-page__box {
+  border-color: var(--layout__home-page-box-border);
+  background-color: var(--layout__home-page-box-background);
+}
 .home-page__box-head {
   border-bottom-color: var(--layout__home-page-box-border);
 }
@@ -438,6 +440,11 @@ body {
 
 
 /* ------ Curate ------ */
+/* Curate Page Top */
+.curate-page__floating-box {
+  border-color: var(--layout__curate-page-floating-box-border);
+  background-color: var(--layout__curate-page-floating-box-background);
+}
 /* Curate Page Left Sidebar Items */
 .curate-page__left-sidebar-item {
   background-color: var(--layout__playlist-list-fake-even-background);
@@ -450,6 +457,10 @@ body {
   background-color: var(--layout__playlist-list-item-drag-over-background);
 }
 /* Curate Box */
+.curate-box {
+  background-color: var(--layout__curate-page-box-background);
+  border-color: var(--layout__curate-page-box-border);
+}
 .curate-box input[type="checkbox"] {
   vertical-align: middle;
   transform: scale(1rem);
@@ -744,7 +755,16 @@ body {
 
 
 /** ------ Developer ------ */
+.developer-page__log {
+  background-color: var(--layout__developer-page-log-background);
+  border-color: var(--layout__developer-page-log-border);
+}
 /* Service Box */
+.service-box {
+  background-color: var(--layout__quaternary-background);
+  border-color: var(--layout__tertiary-background);
+  box-shadow: 0px 2px 4px 0px #09090a;
+}
 .service-box__log {
   background-color: var(--layout__primary-background);
 }
