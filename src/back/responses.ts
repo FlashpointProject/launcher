@@ -35,6 +35,7 @@ import { BackState, BareTag, TagsFile } from './types';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, newLogEntry, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
+import { FilterGameOpts } from '@shared/game/GameFilter';
 
 const axios = axiosImport.default;
 const copyFile  = util.promisify(fs.copyFile);
@@ -516,6 +517,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<BrowseViewKeysetData>(BackIn.BROWSE_VIEW_KEYSET, async (event, req) => {
+    req.data.query.filter = adjustGameFilter(req.data.query.filter);
     const result = await GameManager.findGamePageKeyset(req.data.query.filter, req.data.query.orderBy, req.data.query.orderReverse);
     respond<BrowseViewKeysetResponse>(event.target, {
       id: req.id,
@@ -528,6 +530,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, async (event, req) => {
+    req.data.query.filter = adjustGameFilter(req.data.query.filter);
     const results = await GameManager.findGames({
       ranges: req.data.ranges,
       filter: req.data.query.filter,
@@ -1302,4 +1305,21 @@ function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | u
     }
   }
   return dif;
+}
+
+function adjustGameFilter(filterOpts: FilterGameOpts): FilterGameOpts {
+  if (filterOpts && filterOpts.playlistId && filterOpts.searchQuery) {
+    // Remove library filter if viewing playlist
+    let index = filterOpts.searchQuery.whitelist.findIndex(f => f.field === 'library');
+    while (index > -1) {
+      filterOpts.searchQuery.whitelist.splice(index);
+      index = filterOpts.searchQuery.whitelist.findIndex(f => f.field === 'library');
+    }
+    index = filterOpts.searchQuery.blacklist.findIndex(f => f.field === 'library');
+    while (index > -1) {
+      filterOpts.searchQuery.blacklist.splice(index);
+      index = filterOpts.searchQuery.blacklist.findIndex(f => f.field === 'library');
+    }
+  }
+  return filterOpts;
 }
