@@ -279,7 +279,7 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
     if (this.props.currentTag) {
       this.props.onLockEdit(true);
       window.Shared.back.send<Tag, MergeTagData>(BackIn.MERGE_TAGS, {
-        toMerge: this.props.currentTag,
+        toMerge: this.props.currentTag.primaryAlias.name,
         mergeInto: this.state.currentTagMergeInput,
         makeAlias: this.state.makeAliasWhenMerged
       }, (res) => {

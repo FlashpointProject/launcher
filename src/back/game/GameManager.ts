@@ -341,9 +341,9 @@ async function chunkedFindByIds(gameIds: string[]): Promise<Game[]> {
   const gameRepository = getManager().getRepository(Game);
 
   const chunks = chunkArray(gameIds, 100);
-  const gamesFound: Game[] = [];
+  let gamesFound: Game[] = [];
   for (const chunk of chunks) {
-    gamesFound.concat(await gameRepository.findByIds(chunk));
+    gamesFound = gamesFound.concat(await gameRepository.findByIds(chunk));
   }
 
   return gamesFound;

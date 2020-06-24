@@ -68,13 +68,14 @@ export namespace TagManager {
 
   // @TODO : Localize
   export async function mergeTags(mergeData: MergeTagData, openDialog: OpenDialogFunc): Promise<Tag | undefined> {
+    const mergeSorc = await TagManager.findTag(mergeData.toMerge);
     const mergeDest = await TagManager.findTag(mergeData.mergeInto);
-    if (mergeDest) {
-      if (mergeDest.id !== mergeData.toMerge.id) {
+    if (mergeDest && mergeSorc) {
+      if (mergeDest.id !== mergeSorc.id) {
         // Confirm merge
         const res = await openDialog({
           title: 'Are you sure?',
-          message: 'Merge ' + mergeData.toMerge.primaryAlias.name + ' into ' + mergeData.mergeInto + '?',
+          message: 'Merge ' + mergeSorc.primaryAlias.name + ' into ' + mergeData.mergeInto + '?',
           buttons: [ 'Yes', 'No', 'Cancel' ]
         });
         if (res !== 0) {
@@ -82,22 +83,23 @@ export namespace TagManager {
         }
         // Move names first
         if (mergeData.makeAlias) {
-          for (const alias of mergeData.toMerge.aliases) {
+          for (const alias of mergeSorc.aliases) {
             mergeDest.aliases.push(alias);
           }
-          await TagManager.saveTag(mergeDest);
         }
         // Move game tag references next
-        const games = await GameManager.findGamesWithTag(mergeData.toMerge);
+        const games = await GameManager.findGamesWithTag(mergeSorc);
         for (const game of games) {
           if (game.tags.findIndex(t => t.id === mergeDest.id) === -1) {
             game.tags.push(mergeDest);
           }
         }
+        // Update games, delete source tag, then save dest tag
         await GameManager.updateGames(games);
-        if (mergeData.toMerge.id) {
-          await TagManager.deleteTag(mergeData.toMerge.id, openDialog, true);
+        if (mergeSorc.id) {
+          await TagManager.deleteTag(mergeSorc.id, openDialog, true);
         }
+        await TagManager.saveTag(mergeDest);
       } else {
         openDialog({
           title: 'Error!',

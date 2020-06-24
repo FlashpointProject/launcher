@@ -549,7 +549,7 @@ export type TagDeleteResponse = {
 }
 
 export type MergeTagData = {
-  toMerge: Tag;
+  toMerge: string;
   mergeInto: string;
   makeAlias: boolean;
 }
