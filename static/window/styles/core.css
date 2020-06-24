@@ -1051,9 +1051,6 @@ body {
   margin: 0.5rem 0;
   padding: 0.4rem;
 }
-.curate-box-add-apps .curate-box-buttons__left {
-  width: 100%;
-}
 /* Curate Box Files */
 .curate-box-files {
   margin-bottom: 0.2rem;
