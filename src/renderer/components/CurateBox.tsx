@@ -9,7 +9,7 @@ import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
-import { delayedThrottle } from '@shared/utils/throttle';
+import { useDelayedThrottle } from '@shared/utils/throttle';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import { add } from 'node-7z';
@@ -63,6 +63,8 @@ export function CurateBox(props: CurateBoxProps) {
   const [tagSuggestions, setTagSuggestions] = React.useState<TagSuggestion[]>([]);
   // Content file collisions
   const [contentCollisions, setContentCollisions] = useState<ContentCollision[] | undefined>(undefined);
+  // 10 second delayed throttle
+  const saveThrottle = useDelayedThrottle(10000);
 
   // Check for content file collisions
   useEffect(() => {
@@ -79,17 +81,17 @@ export function CurateBox(props: CurateBoxProps) {
     }
   }, [props.curation && props.curation.content]);
 
-  // Saves a curation after a 15 second timer, throttled
-  const saveCuration = useCallback(delayedThrottle(() => {
-    if (props.curation) {
-      const metaPath = path.join(getCurationFolder2(props.curation), 'meta.yaml');
-      const meta = YAML.stringify(convertEditToCurationMetaFile(props.curation.meta, props.tagCategories, props.curation.addApps));
-      fs.writeFile(metaPath, meta);
-    }
-  }, 15000), []);
-
-  // Save whenever the curation meta changes - Throttled to once every 15s
-  useEffect(saveCuration, [props.curation && props.curation.meta]);
+  // Save whenever the curation meta changes - Throttled to once every 10s
+  useEffect(() => {
+    saveThrottle(() => {
+      if (props.curation) {
+        const metaPath = path.join(getCurationFolder2(props.curation), 'meta.yaml');
+        const meta = YAML.stringify(convertEditToCurationMetaFile(props.curation.meta, props.tagCategories, props.curation.addApps));
+        fs.writeFile(metaPath, meta);
+        console.log('Auto-Saved Curation');
+      }
+    });
+  }, [props.curation && props.curation.meta]);
 
   // Tag Input Field funcs
   const onCurrentTagChange = useCallback((event: React.ChangeEvent<InputElement>) => {
@@ -1099,9 +1101,7 @@ function invalidLaunchCommandWarnings(folderPath: string, launchCommand: string,
     // Match 1 - Inside quotes, Match 0 - No Quotes Found
     let lc = match[1] || match[0];
     // Extract protocol from potential URL
-    console.log(lc);
     const protocol = lc.match(/(.+?):\/\//);
-    console.log(protocol);
     if (protocol) {
       // Protocol found, must be URL
       if (protocol[1] !== 'http') {

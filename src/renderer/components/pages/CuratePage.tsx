@@ -274,7 +274,10 @@ export function CuratePage(props: CuratePageProps) {
       depth: 1
     })
     .on('change', (fullPath) => {
-      updateCurationFile(fullPath);
+      // Prevents auto-save from reloading
+      if (!fullPath.endsWith('meta.yaml')) {
+        updateCurationFile(fullPath);
+      }
     })
     .on('add', (fullPath) => {
       updateCurationFile(fullPath);
