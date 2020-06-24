@@ -3,6 +3,8 @@ import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
 
 const blacklistFields = ['not', 'no', 'missing'];
 const whitelistFields = ['is', 'has'];
+const booleanFields = ['broken', 'extreme'];
+const falsePhrases = ['false', 'none', 'no'];
 
 /**
  * Parse a search query text into an object.
@@ -92,16 +94,22 @@ function parseQuickSearch(text: string): FieldFilter | undefined {
 
 /** Outputs the correct field filter onto `parsed` */
 function handleFieldFilter(field: string, phrase: string, inverse: boolean, parsed: ParsedSearch) {
+  // missing:field
   if (blacklistFields.includes(field)) {
-    parsed.whitelist.push({field: phrase, value: ''});
+    const formattedPhrase: string | boolean = booleanFields.includes(phrase) ? false : '';
+    parsed.whitelist.push({field: phrase, value: formattedPhrase});
+  // has:field
   } else if (whitelistFields.includes(field)) {
-    parsed.blacklist.push({field: phrase, value: ''});
+    const formattedPhrase: string | boolean = booleanFields.includes(phrase) ? false : '';
+    parsed.blacklist.push({field: phrase, value: formattedPhrase});
+  // field:phrase
   } else {
+    const formattedPhrase: string | boolean = booleanFields.includes(field) ? !falsePhrases.includes(phrase) : phrase;
     const gameField = field as keyof Game;
     if (inverse) {
-      parsed.blacklist.push({field: gameField, value: phrase});
+      parsed.blacklist.push({field: gameField, value: formattedPhrase});
     } else {
-      parsed.whitelist.push({field: gameField, value: phrase});
+      parsed.whitelist.push({field: gameField, value: formattedPhrase});
     }
   }
 }
