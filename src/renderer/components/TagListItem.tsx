@@ -45,11 +45,6 @@ export function TagListItem(props: TagListItemProps) {
             {tag.primaryAlias.name}
           </div>
           <div
-            className='tag-list-item__field tag-list-item__field--description'
-            title={tag.description}>
-            {tag.description}
-          </div>
-          <div
             className='tag-list-item__field tag-list-item__field--aliases'
             title={tag.aliases.map(a => a.name).join('; ')}>
             {tag.aliases.map(a => a.name).join('; ')}
