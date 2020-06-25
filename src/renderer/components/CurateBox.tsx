@@ -1,5 +1,6 @@
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { useDelayedThrottle } from '@renderer/hooks/useThrottle';
 import { BackIn, LaunchCurationData, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagGetOrCreateResponse, TagSuggestion, TagSuggestionsData, TagSuggestionsResponse } from '@shared/back/types';
 import { htdocsPath } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
@@ -8,7 +9,6 @@ import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@s
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy, fixSlashes, sizeToString } from '@shared/Util';
-import { useDelayedThrottle } from '@shared/utils/throttle';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import { add } from 'node-7z';
