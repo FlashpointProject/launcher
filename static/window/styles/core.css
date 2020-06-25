@@ -222,10 +222,6 @@ body {
   height: 100%;
   position: absolute;
   user-select: none;
-  cursor: default;
-  /* Pimp */
-  appearance: menulist-button;
-  -webkit-appearance: menulist-button;
   border: none;
 }
 .input-dropdown__input-field__input {
@@ -242,12 +238,8 @@ body {
   position: relative;
   width: 1.25em;
   flex: 0 0 auto;
-  cursor: pointer;
   text-align: center;
   font-size: 0.75rem;
-}
-.input-dropdown--disabled .input-dropdown__input-field__button {
-  cursor: default;
 }
 .input-dropdown__content {
   width: 100%;
