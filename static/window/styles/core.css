@@ -175,13 +175,24 @@ body {
   position: relative;
 }
 .simple-dropdown__select-box {
+  display: flex;
   width: 100%;
-  padding: 0 0.2em;
-  /* Pimp */
-  appearance: menulist-button;
-  -webkit-appearance: menulist-button;
   cursor: default;
   border: 1px solid;
+  padding: 1px; /* This makes it have the same size as <select> elements. Maybe it offsets the border? */
+  overflow: hidden;
+}
+.simple-dropdown__select-text {
+  padding-left: 0.2em;
+  flex: 1 0 auto;
+}
+.simple-dropdown__select-icon {
+  width: 1.25em;
+  flex: 0 0 auto;
+  margin-top: -0.125em;
+}
+.simple-dropdown__select-icon:before {
+  content: "▾";
 }
 .simple-dropdown__content {
   z-index: 10;

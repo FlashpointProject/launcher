@@ -40,7 +40,10 @@ export function Dropdown(props: DropdownProps) {
         className='simple-dropdown__select-box'
         onMouseDown={onMouseDown}
         tabIndex={0}>
-        { props.text }
+        <div className='simple-dropdown__select-text'>
+          { props.text }
+        </div>
+        <div className='simple-dropdown__select-icon' />
       </div>
       <div
         className={'simple-dropdown__content' + (expanded ? '' : ' simple-dropdown__content--hidden')}
