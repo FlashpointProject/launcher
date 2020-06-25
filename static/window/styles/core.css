@@ -940,7 +940,7 @@ body {
   border: 1px solid;
 }
 .curate-page__floating-box > * {
-  margin: 0.1rem 0;
+  margin: 0.125rem 0;
 }
 .curate-page__floating-box__divider {
   height: 1rem;
