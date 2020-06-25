@@ -494,7 +494,7 @@ export function CurateBox(props: CurateBoxProps) {
   // Render additional application elements
   const addApps = useMemo(() => (
     <>
-      { strings.browse.additionalApplications } :
+      { strings.browse.additionalApplications }:
       { props.curation && props.curation.addApps.length > 0 ? (
         <table className="curate-box-table">
           <tbody>
@@ -821,9 +821,9 @@ export function CurateBox(props: CurateBoxProps) {
       <hr className='curate-box-divider' />
       {/* Additional Application */}
       <div className='curate-box-add-apps'>
+        <span>{addApps}</span>
         <div className='curate-box-buttons'>
           <div className='curate-box-buttons__left'>
-            <span>{addApps}</span>
             <SimpleButton
               className='curate-box-buttons__button'
               value={strings.curate.newAddApp}
@@ -841,8 +841,8 @@ export function CurateBox(props: CurateBoxProps) {
               disabled={disabled} />
           </div>
         </div>
-        <hr className='curate-box-divider' />
       </div>
+      <hr className='curate-box-divider' />
       {/* Content */}
       <div className='curate-box-files'>
         <div className='curate-box-files__head'>

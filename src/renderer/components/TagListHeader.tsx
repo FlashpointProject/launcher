@@ -13,7 +13,6 @@ export function TagListHeader(props: TagListHeaderProps) {
       <Column modifier='icon' hideDivider={true} />
       <div className='tag-list-header__right'>
         <Column title='Name'        modifier='name'        hideDivider={true} />
-        <Column title='Description' modifier='description'                    />
         <Column title='Aliases'     modifier='aliases'                        />
         <Column title='Category'    modifier='category'                       />
       </div>
