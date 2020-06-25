@@ -31,7 +31,7 @@ Multiple roles can be assigned to multiple profiles. They can be given colors an
 
 **Color** - The color of the role. This can be any valid CSS color format.
 
-**noCategory** - (Optional) - Whether or not this should be a category.
+**No Category** - (Optional) - Whether or not this should be a category.
 
 ```json
 {
@@ -54,11 +54,14 @@ Profiles contain information on a user - Their title (name), what roles they hav
 **Icon** - Injected into CSS to display the icon. `url("<icon>")`.
 This can be a url to a local file but can also be a base64 encoded image in the form of `data:image/<type>;base64,<encodedImage>`
 
+**Top Role** - (Optional) - Overrides the profiles roles list and uses the Top Role as the category.
+
 ```json
 {
   "title": "ThatOneGuy",
   "roles": ["list", "of", "roles"],
   "note": "What he did",
-  "icon": "Icon"
+  "icon": "Icon",
+  "topRole": "Administrator"
 }
 ```

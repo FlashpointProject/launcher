@@ -38,12 +38,14 @@ export namespace CreditsFile {
       title: '',
       roles: [],
       note: undefined,
-      icon: undefined
+      icon: undefined,
+      topRole: undefined
     };
-    parser.prop('title', v => parsed.title = str(v));
-    parser.prop('icon',  v => parsed.icon  = str(v), true);
-    parser.prop('note',  v => parsed.note  = str(v), true);
+    parser.prop('title',    v => parsed.title   = str(v));
+    parser.prop('icon',     v => parsed.icon    = str(v), true);
+    parser.prop('note',     v => parsed.note    = str(v), true);
     parser.prop('roles', true).arrayRaw(role => parsed.roles.push(str(role)));
+    parser.prop('topRole',  v => parsed.topRole = str(v), true);
     return parsed;
   }
 }

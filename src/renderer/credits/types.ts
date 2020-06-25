@@ -31,4 +31,6 @@ export type CreditsDataProfile = {
   note?: string;
   /** Icon of the profile (Base64 encoded image). */
   icon?: string;
+  /** Role name to use as a category (override) */
+  topRole?: string;
 };
