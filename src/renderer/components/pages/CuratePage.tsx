@@ -356,7 +356,7 @@ export function CuratePage(props: CuratePageProps) {
         curation: curation,
         log: log,
         date: date,
-        saveCuration: props.preferencesData.saveImportedCurations,
+        saveCuration: props.preferencesData.saveImportedCurations
       }
     ).then<undefined>(res => new Promise((resolve, reject) => {
       if (res.data && res.data.error) {
@@ -642,6 +642,12 @@ export function CuratePage(props: CuratePageProps) {
     });
   }, []);
 
+  const onSymlinkCurationContentToggle = useCallback((isChecked: boolean) => {
+    updatePreferencesData({
+      symlinkCurationContent: isChecked
+    });
+  }, []);
+
   // On Left Sidebar Size change
   const onLeftSidebarResize = useCallback((event) => {
     const maxWidth = getDivWidth(pageRef) - 5;
@@ -702,7 +708,8 @@ export function CuratePage(props: CuratePageProps) {
             libraryOptions={libraryOptions()}
             libraries={props.libraries}
             tagCategories={props.tagCategories}
-            mad4fpEnabled={props.mad4fpEnabled} />
+            mad4fpEnabled={props.mad4fpEnabled}
+            symlinkCurationContent={props.preferencesData.symlinkCurationContent} />
       ));
     } else {
       return (
@@ -711,7 +718,8 @@ export function CuratePage(props: CuratePageProps) {
         </div>
       );
     }
-  }, [state.curations, props.suggestions, strings, props.preferencesData.saveImportedCurations]);
+  }, [state.curations, props.suggestions, strings, props.preferencesData.saveImportedCurations,
+    props.tagCategories, props.preferencesData.symlinkCurationContent]);
 
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
@@ -800,6 +808,13 @@ export function CuratePage(props: CuratePageProps) {
                 onToggle={onSaveImportsToggle}
                 checked={props.preferencesData.saveImportedCurations} />
             </div>
+            <div className='curate-page__floating-box__divider'/>
+            <div className='curate-page__checkbox'>
+              <div className='curate-page__checkbox-text'>{strings.curate.symlinkCurationContent}</div>
+              <CheckBox
+                onToggle={onSymlinkCurationContentToggle}
+                checked={props.preferencesData.symlinkCurationContent} />
+            </div>
           </div>
         </div>
       </div>
@@ -807,7 +822,7 @@ export function CuratePage(props: CuratePageProps) {
   ), [curateBoxes, progressComponent, strings, state.curations.length,
     onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar,
-    props.preferencesData.saveImportedCurations]);
+    props.preferencesData.saveImportedCurations, props.preferencesData.symlinkCurationContent]);
 }
 
 function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {

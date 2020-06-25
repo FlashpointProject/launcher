@@ -19,6 +19,8 @@ export type CurateBoxAddAppProps = {
   dispatch: React.Dispatch<CurationAction>;
   /** Platform of the game this belongs to. */
   platform?: string;
+  /** Whether to symlink curation content before running */
+  symlinkCurationContent: boolean;
   /** Callback for the "onKeyDown" event for all input fields. */
   onInputKeyDown?: (event: React.KeyboardEvent<InputElement>) => void;
 };
@@ -65,8 +67,9 @@ export function CurateBoxAddApp(props: CurateBoxAddAppProps) {
       curationKey: props.curationKey,
       curation: props.curation,
       platform: props.platform,
+      symlinkCurationContent: props.symlinkCurationContent
     });
-  }, [props.curation && props.curation.meta && props.curationKey]);
+  }, [props.curation && props.curation.meta && props.curationKey, props.symlinkCurationContent, props.platform]);
   // Render
   return (
     <tr className='curate-box-add-app'>

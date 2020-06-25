@@ -942,6 +942,9 @@ body {
 .curate-page__checkbox-text {
   text-align: center;
   margin: 0 0.2rem;
+  /* I'll be honest, not sure why this works */
+  flex-shrink: 10;
+  font-size: 0.75em;
   user-select: none;
 }
 /* Curate Page Left Sidebar */

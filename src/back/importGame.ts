@@ -8,7 +8,6 @@ import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { sizeToString } from '@shared/Util';
-import { Coerce } from '@shared/utils/Coerce';
 import { execFile } from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -20,8 +19,6 @@ import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
 import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
-
-const { strToBool } = Coerce;
 
 type ImportCurationOpts = {
   curation: EditCuration;
@@ -165,8 +162,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>) {
-  if (!skipLink) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath); }
+export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>) {
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
   curationLog(opts.log, `Launching Curation ${meta.title}`);
   GameLauncher.launchGame({
     ...opts,
@@ -179,8 +176,8 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
  * @param curationKey Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>) {
-  if (!skipLink) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath); }
+export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>) {
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
   GameLauncher.launchAdditionalApplication({
     ...opts,
     addApp: createAddAppFromCurationMeta(appCuration, createPlaceholderGame()),
@@ -262,7 +259,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
 /** Symlinks (or copies if unavailble) a curations `content` folder to `htdocs\content`
  * @param curationKey Key of the (game) curation to link
  */
-async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string) {
+async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, symlinkCurationContent: boolean) {
   const curationPath = path.join(fpPath, 'Curations', curationKey);
   const htdocsContentPath = path.join(fpPath, htdocsPath, 'content');
   // Clear out old folder if exists
@@ -273,21 +270,29 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
   const contentPath = path.join(curationPath, 'content');
   console.log('Linking new Server/htdocs/content ...');
   if (fs.existsSync(contentPath)) {
-    if (process.platform === 'win32') {
-      console.log('Linking...');
-      // Start an elevated Batch script to do the link - Windows needs admin!
-      const mklinkBatPath = getMklinkBatPath(isDev, exePath);
-      const mklinkDir = path.dirname(mklinkBatPath);
-      await new Promise((resolve, reject) => {
-        execFile('mklink.bat', [`"${htdocsContentPath}"`, `"${contentPath}"`], { cwd: mklinkDir, shell: true }, (err, stdout, stderr) => {
-          if (err) { reject();  }
-          else     { resolve(); }
+    if (symlinkCurationContent) {
+      // Symlink content
+      if (process.platform === 'win32') {
+        console.log('Linking...');
+        // Start an elevated Batch script to do the link - Windows needs admin!
+        const mklinkBatPath = getMklinkBatPath(isDev, exePath);
+        const mklinkDir = path.dirname(mklinkBatPath);
+        await new Promise((resolve, reject) => {
+          execFile('mklink.bat', [`"${htdocsContentPath}"`, `"${contentPath}"`], { cwd: mklinkDir, shell: true }, (err, stdout, stderr) => {
+            if (err) { reject();  }
+            else     { resolve(); }
+          });
         });
-      });
-      console.log('Linked!');
+        console.log('Linked!');
+      } else {
+        console.log('Linking...');
+        await fs.symlink(contentPath, htdocsContentPath);
+        console.log('Linked!');
+      }
     } else {
+      // Copy content
       console.log('Linking...');
-      await fs.symlink(contentPath, htdocsContentPath);
+      await fs.copy(contentPath, htdocsContentPath);
       console.log('Linked!');
     }
   }

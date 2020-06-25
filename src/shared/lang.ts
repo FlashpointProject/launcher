@@ -310,6 +310,7 @@ const langTemplate = {
     'loadFolder',
     'loadFolderDesc',
     'saveImportedCurations',
+    'symlinkCurationContent',
     'noCurations',
     'id',
     'heading',

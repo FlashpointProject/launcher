@@ -49,6 +49,7 @@ type CurateBoxProps = {
   libraries: string[];
   tagCategories: TagCategory[];
   mad4fpEnabled: boolean;
+  symlinkCurationContent: boolean;
 }
 
 /** A box that displays and lets the user edit a curation. */
@@ -302,7 +303,8 @@ export function CurateBox(props: CurateBoxProps) {
         key: props.curation.key,
         meta: props.curation.meta,
         addApps: props.curation.addApps.map(addApp => addApp.meta),
-        mad4fp: mad4fp
+        mad4fp: mad4fp,
+        symlinkCurationContent: props.symlinkCurationContent
       });
       ProgressDispatch.finished(statusProgress);
       // Unlock the curation
@@ -314,7 +316,7 @@ export function CurateBox(props: CurateBoxProps) {
         },
       });
     }
-  }, [props.dispatch, props.curation, strings.dialog]);
+  }, [props.dispatch, props.curation, strings.dialog, props.symlinkCurationContent]);
   const onRunWithMAD4FP = useCallback(() => {
     doRun(true);
   }, [doRun]);
@@ -506,6 +508,7 @@ export function CurateBox(props: CurateBoxProps) {
                 dispatch={props.dispatch}
                 disabled={disabled}
                 platform={props.curation && props.curation.meta.platform}
+                symlinkCurationContent={props.symlinkCurationContent}
                 onInputKeyDown={onInputKeyDown} />
             )) }
           </tbody>
@@ -515,6 +518,7 @@ export function CurateBox(props: CurateBoxProps) {
   ), [
     props.curation && props.curation.addApps,
     props.curation && props.curation.key,
+    props.symlinkCurationContent,
     props.dispatch,
     native,
     disabled
@@ -894,7 +898,7 @@ export function CurateBox(props: CurateBoxProps) {
               className='curate-box-buttons__button'
               value={strings.curate.runWithMAD4FP}
               onClick={onRunWithMAD4FP}
-              disabled={disabled} />
+              disabled={disabled || !props.symlinkCurationContent} />
           ) : undefined}
         </div>
         <div className='curate-box-buttons__right'>
@@ -917,7 +921,7 @@ export function CurateBox(props: CurateBoxProps) {
       {progressComponent}
     </div>
   ), [props.curation, strings, disabled, warnings, onImportClick, progressComponent,
-    tagInputText, tagSuggestions]);
+    tagInputText, tagSuggestions, onRun, onRunWithMAD4FP]);
 }
 
 function renderRemoveButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {

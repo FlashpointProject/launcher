@@ -496,12 +496,14 @@ export type LaunchCurationData = {
   meta: EditCurationMeta;
   addApps: EditAddAppCurationMeta[];
   mad4fp: boolean;
+  symlinkCurationContent: boolean;
 }
 
 export type LaunchCurationAddAppData = {
   curationKey: string;
   curation: EditAddAppCuration;
   platform?: string;
+  symlinkCurationContent: boolean;
 }
 
 export type TagSuggestion = {
