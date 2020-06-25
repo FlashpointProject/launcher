@@ -9,7 +9,7 @@ import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { formatString } from '@shared/utils/StringFormatter';
-import { Menu, MenuItemConstructorOptions, remote } from 'electron';
+import { clipboard, Menu, MenuItemConstructorOptions, remote } from 'electron';
 import * as fs from 'fs';
 import * as React from 'react';
 import { ConnectedLeftBrowseSidebar } from '../../containers/ConnectedLeftBrowseSidebar';
@@ -420,6 +420,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             }
           },
         }, {  type: 'separator' }, {
+          /* Copy Game UUID */
+          label: strings.menu.copyGameUUID,
+          enabled: true,
+          click : () => {
+            clipboard.writeText(gameId);
+          }
+        }, {
           /* Export Partial Meta */
           label: strings.menu.exportMetaEdit, // ("&&" will be shown as "&")
           enabled: !window.Shared.isBackRemote, // (Local "back" only)

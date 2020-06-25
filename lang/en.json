@@ -375,6 +375,7 @@
     "openFileLocation": "Open File Location",
     "duplicateMetaOnly": "Duplicate (Meta Only)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
+    "copyGameUUID": "Copy Game UUID",
     "exportMetaOnly": "Export (Meta Only)",
     "exportMetaAndImages": "Export (Meta && Images)",
     "exportMetaEdit": "Export Meta Edit",
