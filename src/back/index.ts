@@ -108,6 +108,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   state.socketServer.secret = content.secret;
 
+  log(state, { source: 'Launcher', content: `Starting Flashpoint Launcher ${content.version} ${content.isDev ? 'DEV' : ''}` });
+
   // Read configs & preferences
   const [pref, conf] = await (Promise.all([
     PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
@@ -127,7 +129,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.connection = await createConnection(options);
     // TypeORM forces on but breaks Playlist Game links to unimported games
     await state.connection.query('PRAGMA foreign_keys=off;');
-    state.connection.runMigrations();
+    await state.connection.runMigrations();
+    log(state, { source: 'Launcher', content: 'Database connection established' });
   }
 
   // Init services
