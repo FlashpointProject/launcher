@@ -5,7 +5,7 @@ import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { Initial1583180635980 } from '@database/migration/1583180635980-Initial';
+import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
 import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData, ThemeChangeData, ThemeListChangeData } from '@shared/back/types';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
@@ -122,11 +122,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       type: 'sqlite',
       database: path.join(state.config.flashpointPath, 'Data', 'flashpoint.sqlite'),
       entities: [Game, AdditionalApp, Playlist, PlaylistGame, Tag, TagAlias, TagCategory],
-      migrations: [Initial1583180635980]
+      migrations: [Initial1593172736527]
     };
     state.connection = await createConnection(options);
+    // TypeORM forces on but breaks Playlist Game links to unimported games
     await state.connection.query('PRAGMA foreign_keys=off;');
-    state.connection.synchronize();
+    state.connection.runMigrations();
   }
 
   // Init services
