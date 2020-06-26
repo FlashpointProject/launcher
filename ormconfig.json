@@ -5,7 +5,7 @@
    "username": "flashpoint",
    "password": "Rw5up8YYxYsbSr",
    "database": "flashpoint.sqlite",
-   "synchronize": true,
+   "synchronize": false,
    "logging": false,
    "timezone": "Z",
    "entities": [
