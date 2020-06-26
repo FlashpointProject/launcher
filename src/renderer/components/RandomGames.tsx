@@ -18,20 +18,35 @@ type RandomGamesProps = {
 /** A small "grid" of randomly selected games. */
 export function RandomGames(props: RandomGamesProps) {
   const [games, setGames] = useState<Game[]>([]);
+  const [requesting, setRequesting] = useState(false);
   const unmounted = useRef(false);
   const strings = React.useContext(LangContext);
 
   const rollRandomGames = React.useCallback(() => {
-    window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
-      count: 5,
-      broken: props.broken,
-      extreme: props.extreme,
-    }, (res) => {
-      if (res.data && !unmounted.current) {
-        setGames(res.data);
-      }
-    });
-  }, []);
+    /** If there are more games, shift them forward */
+    if (games.length >= 10) {
+      setGames(games.slice(5));
+    }
+    /** If there are less than 3 rolls on the queue, request 10 more */
+    if (games.length <= 15 && !requesting) {
+      setRequesting(true);
+      window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
+        count: 50,
+        broken: props.broken,
+        extreme: props.extreme,
+      }, (res) => {
+        setRequesting(false);
+        if (res.data && !unmounted.current) {
+          /** If we couldn't move the queue last time, do it now */
+          const newGames = [...games];
+          if (newGames.length >= 5) {
+            newGames.splice(0, 5);
+          }
+          setGames(newGames.concat(res.data));
+        }
+      });
+    }
+  }, [games]);
 
   React.useEffect(() => {
     rollRandomGames();
@@ -44,7 +59,8 @@ export function RandomGames(props: RandomGamesProps) {
   }, [props.onLaunchGame]);
 
   const gameItems = React.useMemo(() => (
-    games.map(game => (
+    /* Games is a long queue, only render front */
+    games.slice(0, 5).map(game => (
       <GameGridItem
         key={game.id}
         id={game.id}
