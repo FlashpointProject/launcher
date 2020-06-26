@@ -161,6 +161,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
       const dateAdded = game.dateAdded;
       const dateModified = game.dateModified;
       const screenshotSrc = getGameImageURL(SCREENSHOTS, game.id);
+
+      const removeGameFromPlaylistElement = (
+        <ConfirmElement
+          onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
+          render={this.renderRemoveFromPlaylistButton}
+          extra={strings} />
+      );
+
       return (
         <div
           className={'browse-right-sidebar ' + (editable ? 'browse-right-sidebar--edit-enabled' : 'browse-right-sidebar--edit-disabled')}
@@ -178,7 +186,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                     onKeyDown={this.onInputKeyDown} />
                 </div>
                 <div className='browse-right-sidebar__title-row__buttons'>
-                  { editDisabled ? undefined : (
+                  { editDisabled ? (
+                    <>
+                      {/* "Remove From Playlist" Button */}
+                      { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
+                    </>
+                  ) : (
                     <>
                       { isEditing ? ( /* While Editing */
                         <>
@@ -209,12 +222,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
                             </div>
                           ) }
                           {/* "Remove From Playlist" Button */}
-                          { currentPlaylistEntry ? (
-                            <ConfirmElement
-                              onConfirm={this.props.onRemoveSelectedGameFromPlaylist}
-                              render={this.renderRemoveFromPlaylistButton}
-                              extra={strings} />
-                          ) : undefined }
+                          { currentPlaylistEntry ? removeGameFromPlaylistElement : undefined }
                           {/* "Delete Game" Button */}
                           { (isPlaceholder || isNewGame || currentPlaylistEntry) ? undefined : (
                             <ConfirmElement

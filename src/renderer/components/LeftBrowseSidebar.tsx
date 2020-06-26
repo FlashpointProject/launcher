@@ -49,8 +49,8 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
   render() {
     const allStrings = this.context;
     const strings = this.context.browse;
-    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, preferencesData, selectedPlaylistID } = this.props;
-    const editingDisabled = !preferencesData.enableEditing;
+    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, selectedPlaylistID } = this.props;
+    const editingDisabled = false; // Left-over from when "Enable Editing" was required to edit playlists
     return (
       <div className='browse-left-sidebar'>
         <div className='playlist-list'>
@@ -156,13 +156,11 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
   })
 
   onPlaylistItemDragOver = (event: React.DragEvent): void => {
-    if (this.props.preferencesData.enableEditing) {
-      const types = event.dataTransfer.types;
-      if (types.length === 1 && types[0] === gameIdDataType) {
-        // Show the "You can drop here" cursor while dragging something droppable over this element
-        event.dataTransfer.dropEffect = 'copy';
-        event.preventDefault();
-      }
+    const types = event.dataTransfer.types;
+    if (types.length === 1 && types[0] === gameIdDataType) {
+      // Show the "You can drop here" cursor while dragging something droppable over this element
+      event.dataTransfer.dropEffect = 'copy';
+      event.preventDefault();
     }
   }
 
