@@ -66,15 +66,23 @@ export function CreditsTooltip(props: CreditsTooltipProps) {
 }
 
 function setPosition(element: HTMLElement, x: number, y: number): void {
-  if (element) {
-    if (x <= window.innerWidth * 0.5) {
-      element.style.left  = (x + 16) + 'px';
-      element.style.right = '';
-    } else {
-      element.style.left  = '';
-      element.style.right = (window.innerWidth - x + 16) + 'px';
-    }
-    element.style.top  = (y + 8) + 'px';
+  const innerWidth = window.innerWidth;
+  const innerHeight = window.innerHeight;
+
+  if (x <= innerWidth * 0.5) {
+    element.style.left  = (x + 16) + 'px';
+    element.style.right = '';
+  } else {
+    element.style.left  = '';
+    element.style.right = (innerWidth - x + 16) + 'px';
+  }
+
+  if (y <= innerHeight * 0.5) {
+    element.style.top    = (y + 8) + 'px';
+    element.style.bottom = '';
+  } else {
+    element.style.top    = '';
+    element.style.bottom = (innerHeight - y + 8) + 'px';
   }
 }
 
