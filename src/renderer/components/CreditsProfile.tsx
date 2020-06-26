@@ -6,22 +6,25 @@ export type CreditsIconProps = {
   /** Credits profile of the person to display. */
   profile: CreditsDataProfile;
   /** Called when the mouse enters the element. */
-  onMouseEnter: (profile: CreditsDataProfile) => void;
+  onMouseEnter: (event: React.MouseEvent, profile: CreditsDataProfile) => void;
   /** Called when the mouse leaves the element. */
   onMouseLeave: () => void;
 };
 
 /** Displays an icon from a credits profile. */
 export function CreditsIcon(props: CreditsIconProps) {
-  // Hooks
   const ref = useRef<HTMLDivElement>(null);
-  const onMouseEnter = useCallback(() => {
-    if (props.onMouseEnter) { props.onMouseEnter(props.profile); }
+
+  const onMouseEnter = useCallback((event: React.MouseEvent) => {
+    if (props.onMouseEnter) { props.onMouseEnter(event, props.profile); }
   }, [props.onMouseEnter, props.profile]);
+
   const onMouseLeave = useCallback(() => {
     if (props.onMouseLeave) { props.onMouseLeave(); }
   }, [props.onMouseLeave]);
-  useEffect(() => { // (Delay decoding the icon, this allows the browser to spread the work across multiple frames)
+
+  // (Delay decoding the icon, this allows the browser to spread the work across multiple frames)
+  useEffect(() => {
     let timeout = window.setTimeout(() => {
       timeout = -1;
       if (!ref.current) { throw new Error('CreditsIcon could not set profile image. Image element is missing.'); }
@@ -33,6 +36,7 @@ export function CreditsIcon(props: CreditsIconProps) {
       if (timeout >= 0) { window.clearTimeout(timeout); }
     };
   }, [props.profile]);
+
   // Render
   return (
     <div

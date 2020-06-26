@@ -7,19 +7,34 @@ export type CreditsTooltipProps = {
   roles?: CreditsDataRole[];
   /** Credits profile to show in the tooltip. If undefined, the tooltip will be hidden. */
   profile?: CreditsDataProfile;
+  /** Cursor's X position when entering the profile. */
+  profileX: number;
+  /** Cursor's Y position when entering the profile. */
+  profileY: number;
 };
 
 /** Tooltip that follows the cursor and displays information about a credits profile. */
 export function CreditsTooltip(props: CreditsTooltipProps) {
-  // Hooks
   const ref = useRef<HTMLDivElement>(null);
+
+  // Follow cursor
   useEffect(() => {
-    if (ref.current && props.profile) { // (Check if the tooltip is visible)
-      const onMouseMove = createOnMouseMove(ref.current);
-      window.addEventListener('mousemove', onMouseMove);
-      return () => { window.removeEventListener('mousemove', onMouseMove); };
+    if (!props.profile) { return; } // (Tooltip is not visible)
+
+    if (ref.current) {
+      setPosition(ref.current, props.profileX, props.profileY);
     }
-  }, [ref.current, props.profile]);
+
+    document.addEventListener('mousemove', onMouseMove);
+    return () => { document.removeEventListener('mousemove', onMouseMove); };
+
+    function onMouseMove(event: MouseEvent) {
+      if (ref.current) {
+        setPosition(ref.current, event.clientX, event.clientY);
+      }
+    }
+  }, [ref.current, props.profile, props.profileX, props.profileY]);
+
   // Render
   return (
     <div
@@ -45,23 +60,17 @@ export function CreditsTooltip(props: CreditsTooltipProps) {
   );
 }
 
-/**
- * Create an "on mouse move" event listener for the tooltip.
- * @param current Base tooltip element to move around.
- */
-function createOnMouseMove(current: HTMLElement): (event: MouseEvent) => void {
-  return (event) => {
-    if (current) {
-      if (event.clientX <= window.innerWidth * 0.5) {
-        current.style.left  = (event.clientX + 16)+'px';
-        current.style.right = '';
-      } else {
-        current.style.left  = '';
-        current.style.right = (window.innerWidth - event.clientX + 16)+'px';
-      }
-      current.style.top  = (event.clientY +  8)+'px';
+function setPosition(element: HTMLElement, x: number, y: number): void {
+  if (element) {
+    if (x <= window.innerWidth * 0.5) {
+      element.style.left  = (x + 16) + 'px';
+      element.style.right = '';
+    } else {
+      element.style.left  = '';
+      element.style.right = (window.innerWidth - x + 16) + 'px';
     }
-  };
+    element.style.top  = (y + 8) + 'px';
+  }
 }
 
 /**
@@ -69,8 +78,6 @@ function createOnMouseMove(current: HTMLElement): (event: MouseEvent) => void {
  * @param role Role to get the associated color for.
  */
 function getRoleColor(name: string, roles?: CreditsDataRole[]): string | undefined {
-  // @TODO Rewrite this function to return css class names, and define the colors the a stylesheet instead.
-  //       That way you can change the colors with a theme.
   if (roles) {
     const role = roles.find(role => role.name === name);
     if (role) {

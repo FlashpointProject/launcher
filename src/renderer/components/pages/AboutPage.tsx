@@ -16,6 +16,8 @@ export type AboutPageProps = {
 export type AboutPageState = {
   /** Currently "targeted" profile (the profile that the cursor is hovering over, if any). */
   profile?: CreditsDataProfile;
+  profileX: number;
+  profileY: number;
 };
 
 export interface AboutPage {
@@ -26,12 +28,15 @@ export interface AboutPage {
 export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
   constructor(props: AboutPageProps) {
     super(props);
-    this.state = {};
+    this.state = {
+      profileX: 0,
+      profileY: 0,
+    };
   }
 
   render() {
     const strings = this.context.about;
-    const { profile } = this.state;
+    const { profile, profileX, profileY } = this.state;
     const { creditsData, creditsDoneLoading } = this.props;
 
     const roles: CreditsDataRole[] = creditsData ? creditsData.roles.filter(role => role.noCategory != true) : [{ name: strings.specialThanks }];
@@ -102,7 +107,11 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
         <div className='about-page__inner'>
           <div className='about-page__top'>
             <h1 className='about-page__title'>{strings.aboutHeader}</h1>
-            <CreditsTooltip profile={profile} roles={creditsData && creditsData.roles} />
+            <CreditsTooltip
+              roles={creditsData && creditsData.roles}
+              profile={profile}
+              profileX={profileX}
+              profileY={profileY} />
             <div className='about-page__columns simple-columns'>
               {/* Left Column */}
               <div className='about-page__columns__left simple-columns__column'>
@@ -178,9 +187,13 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     );
   }
 
-  onMouseEnterCreditsIcon = (profile: CreditsDataProfile) => {
+  onMouseEnterCreditsIcon = (event: React.MouseEvent, profile: CreditsDataProfile) => {
     if (this.state.profile !== profile) {
-      this.setState({ profile });
+      this.setState({
+        profile,
+        profileX: event.clientX,
+        profileY: event.clientY,
+      });
     }
   }
 
