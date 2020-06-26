@@ -1,4 +1,5 @@
 import { LangContainer } from '@shared/lang';
+import { memoizeOne } from '@shared/memoize';
 import { versionNumberToText } from '@shared/Util';
 import * as React from 'react';
 import { CreditsBlock, CreditsData, CreditsDataProfile, CreditsDataRole } from '../../credits/types';
@@ -39,9 +40,99 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
     const { profile, profileX, profileY } = this.state;
     const { creditsData, creditsDoneLoading } = this.props;
 
-    const roles: CreditsDataRole[] = creditsData ? creditsData.roles.filter(role => role.noCategory != true) : [{ name: strings.specialThanks }];
+    const profileElements = creditsDoneLoading
+      ? this.renderProfileElements(this.context, creditsData)
+      : '...';
+
+    return (
+      <div className='about-page simple-scroll'>
+        <div className='about-page__inner'>
+          <div className='about-page__top'>
+            <h1 className='about-page__title'>{strings.aboutHeader}</h1>
+            <CreditsTooltip
+              roles={creditsData && creditsData.roles}
+              profile={profile}
+              profileX={profileX}
+              profileY={profileY} />
+            <div className='about-page__columns simple-columns'>
+              {/* Left Column */}
+              <div className='about-page__columns__left simple-columns__column'>
+                {/* About Flashpoint */}
+                <div className='about-page__section'>
+                  <p className='about-page__section__title'>{strings.flashpoint}</p>
+                  <div className='about-page__section__content'>
+                    <p className='about-page__section__content__description'>
+                      {strings.flashpointDesc}
+                    </p>
+                    <div className='about-page__section__links'>
+                      {link(strings.website, 'http://bluemaxima.org/flashpoint/')}
+                      {link('Discord', 'https://discord.gg/Nc3DScn')}
+                    </div>
+                  </div>
+                </div>
+                {/* About Flashpoint Launcher */}
+                <div className='about-page__section'>
+                  <p className='about-page__section__title'>{strings.flashpointLauncher}</p>
+                  <div className='about-page__section__content'>
+                    <p className='about-page__section__content__description'>
+                      {strings.flashpointLauncherDesc}
+                    </p>
+                    <p><b>{strings.version}:</b> {versionNumberToText(window.Shared.version)} ({window.Shared.version})</p>
+                    <p><b>{strings.license}:</b> {strings.licenseInfo}</p>
+                    <div className='about-page__section__links'>
+                      {link('Github', 'https://github.com/FlashpointProject/launcher')}
+                    </div>
+                  </div>
+                </div>
+                {/* Bottom */}
+                <div className='about-page__bottom'>
+                  <div className='about-page__bottom__inner'>
+                    <p className='about-page__bottom__quote'>"It's not up to us to decide what the future finds interesting"</p>
+                    <p className='about-page__bottom__author'>-Jason Scott</p>
+                  </div>
+                </div>
+              </div>
+              {/* Right Column */}
+              <div className='about-page__columns__right simple-columns__column'>
+                {/* Credits */}
+                <div className='about-page__credits'>
+                  <div className='about-page__credits__title'>{strings.creditsHeader}</div>
+                  <div className='about-page__credits__profiles'>
+                    {profileElements}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  onMouseEnterCreditsIcon = (event: React.MouseEvent, profile: CreditsDataProfile) => {
+    if (this.state.profile !== profile) {
+      this.setState({
+        profile,
+        profileX: event.clientX,
+        profileY: event.clientY,
+      });
+    }
+  }
+
+  onMouseLeaveCreditsIcon = () => {
+    if (this.state.profile !== undefined) {
+      this.setState({ profile: undefined });
+    }
+  }
+
+  renderProfileElements = memoizeOne((strings: LangContainer, creditsData: CreditsData | undefined) => {
+    const roles: CreditsDataRole[] = creditsData ?
+      creditsData.roles.filter(role => role.noCategory != true)
+      : [{ name: strings.about.specialThanks }];
+
     const creditBlocks: CreditsBlock[] = [];
-    creditBlocks.push({ role: { name: strings.specialThanks }, profiles: [] });
+
+    creditBlocks.push({ role: { name: strings.about.specialThanks }, profiles: [] });
 
     // Populate credit blocks
     if (creditsData) {
@@ -99,109 +190,29 @@ export class AboutPage extends React.Component<AboutPageProps, AboutPageState> {
       creditBlocks.sort((a, b) => {
         return roles.indexOf(a.role) - roles.indexOf(b.role);
       });
-      creditBlocks.push(creditBlocks.splice(0,1)[0]);
+      creditBlocks.push(creditBlocks.splice(0, 1)[0]);
     }
 
-    return (
-      <div className='about-page simple-scroll'>
-        <div className='about-page__inner'>
-          <div className='about-page__top'>
-            <h1 className='about-page__title'>{strings.aboutHeader}</h1>
-            <CreditsTooltip
-              roles={creditsData && creditsData.roles}
-              profile={profile}
-              profileX={profileX}
-              profileY={profileY} />
-            <div className='about-page__columns simple-columns'>
-              {/* Left Column */}
-              <div className='about-page__columns__left simple-columns__column'>
-                {/* About Flashpoint */}
-                <div className='about-page__section'>
-                  <p className='about-page__section__title'>{strings.flashpoint}</p>
-                  <div className='about-page__section__content'>
-                    <p className='about-page__section__content__description'>
-                      {strings.flashpointDesc}
-                    </p>
-                    <div className='about-page__section__links'>
-                      {link(strings.website, 'http://bluemaxima.org/flashpoint/')}
-                      {link('Discord', 'https://discord.gg/Nc3DScn')}
-                    </div>
-                  </div>
-                </div>
-                {/* About Flashpoint Launcher */}
-                <div className='about-page__section'>
-                  <p className='about-page__section__title'>{strings.flashpointLauncher}</p>
-                  <div className='about-page__section__content'>
-                    <p className='about-page__section__content__description'>
-                      {strings.flashpointLauncherDesc}
-                    </p>
-                    <p><b>{strings.version}:</b> {versionNumberToText(window.Shared.version)} ({window.Shared.version})</p>
-                    <p><b>{strings.license}:</b> {strings.licenseInfo}</p>
-                    <div className='about-page__section__links'>
-                      {link('Github', 'https://github.com/FlashpointProject/launcher')}
-                    </div>
-                  </div>
-                </div>
-                {/* Bottom */}
-                <div className='about-page__bottom'>
-                  <div className='about-page__bottom__inner'>
-                    <p className='about-page__bottom__quote'>"It's not up to us to decide what the future finds interesting"</p>
-                    <p className='about-page__bottom__author'>-Jason Scott</p>
-                  </div>
-                </div>
-              </div>
-              {/* Right Column */}
-              <div className='about-page__columns__right simple-columns__column'>
-                {/* Credits */}
-                <div className='about-page__credits'>
-                  <div className='about-page__credits__title'>{strings.creditsHeader}</div>
-                  <div className='about-page__credits__profiles'>
-                    { (creditsDoneLoading) ? (
-                      creditBlocks.map((block, index) => (
-                        <React.Fragment key={index}>
-                          <div className='about-page__credits__role' >
-                            <div className='about-page__credits__role-name'>
-                              {block.role.name}
-                            </div>
-                            <div className='about-page__credits__role-description'>
-                              {block.role.description}
-                            </div>
-                          </div>
-                          {block.profiles.map((profile, i) => (
-                            <CreditsIcon
-                              key={i}
-                              profile={profile}
-                              onMouseEnter={this.onMouseEnterCreditsIcon}
-                              onMouseLeave={this.onMouseLeaveCreditsIcon} />
-                          ))}
-                        </React.Fragment>
-                      ))
-                    ) : ('...') }
-                  </div>
-                </div>
-              </div>
-            </div>
+    return creditBlocks.map((block, index) => (
+      <React.Fragment key={index}>
+        <div className='about-page__credits__role' >
+          <div className='about-page__credits__role-name'>
+            {block.role.name}
+          </div>
+          <div className='about-page__credits__role-description'>
+            {block.role.description}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  onMouseEnterCreditsIcon = (event: React.MouseEvent, profile: CreditsDataProfile) => {
-    if (this.state.profile !== profile) {
-      this.setState({
-        profile,
-        profileX: event.clientX,
-        profileY: event.clientY,
-      });
-    }
-  }
-
-  onMouseLeaveCreditsIcon = () => {
-    if (this.state.profile !== undefined) {
-      this.setState({ profile: undefined });
-    }
-  }
+        {block.profiles.map((profile, i) => (
+          <CreditsIcon
+            key={i}
+            profile={profile}
+            onMouseEnter={this.onMouseEnterCreditsIcon}
+            onMouseLeave={this.onMouseLeaveCreditsIcon} />
+        ))}
+      </React.Fragment>
+    ));
+  });
 
   static contextType = LangContext;
 }
