@@ -47,7 +47,7 @@ const autoUpdater: AppUpdater = remote.require('electron-updater').autoUpdater;
 
 type View = {
   /** The most recent query used for this view. */
-  query: SearchGamesOpts;
+  query: ViewQuery;
   /** Flags of which pages have already been requested (undefined until fetched, then true). */
   pageRequests: Partial<Record<number, true>>;
   /** Most recent meta. */
@@ -71,6 +71,13 @@ type View = {
   lastStart: number;
   /** Most recent "count" of pages that has been viewed. */
   lastCount: number;
+}
+
+type ViewQuery = SearchGamesOpts & {
+  /** Query string. */
+  text: string;
+  /** If extreme games are included. */
+  extreme: boolean;
 }
 
 type AppOwnProps = {
@@ -501,12 +508,12 @@ export class App extends React.Component<AppProps, AppState> {
     if (view) {
       const prevPlaylist = prevView && prevView.selectedPlaylistId;
 
-      // Check if the search query has changed
-      if (prevProps.search.text                           !== this.props.search.text ||
-          prevProps.preferencesData.browsePageShowExtreme !== this.props.preferencesData.browsePageShowExtreme ||
-          prevState.order.orderBy                         !== this.state.order.orderBy ||
-          prevState.order.orderReverse                    !== this.state.order.orderReverse ||
-          prevPlaylist                                    !== view.selectedPlaylistId) {
+      // Check if the search query has changed (or is different from the current view's)
+      if (view.query.text              !== this.props.search.text ||
+          view.query.extreme           !== this.props.preferencesData.browsePageShowExtreme ||
+          prevState.order.orderBy      !== this.state.order.orderBy ||
+          prevState.order.orderReverse !== this.state.order.orderReverse ||
+          prevPlaylist                 !== view.selectedPlaylistId) {
         this.setState({
           views: {
             ...this.state.views,
@@ -900,13 +907,18 @@ export class App extends React.Component<AppProps, AppState> {
     return names;
   });
 
-  private rebuildQuery(library: string, selectedPlaylistId: string | undefined, order: GameOrderChangeEvent): SearchGamesOpts {
-    const searchQuery = parseSearchText(this.props.search.text);
+  private rebuildQuery(library: string, selectedPlaylistId: string | undefined, order: GameOrderChangeEvent): ViewQuery {
+    const text = this.props.search.text;
+    const extreme = this.props.preferencesData.browsePageShowExtreme;
+
+    const searchQuery = parseSearchText(text);
     searchQuery.whitelist.push({ field: 'library', value: library });
-    if (!this.props.preferencesData.browsePageShowExtreme) { searchQuery.whitelist.push({ field: 'extreme', value: false }); }
-    if (!window.Shared.config.data.showBrokenGames)        { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
+    if (!extreme)                                   { searchQuery.whitelist.push({ field: 'extreme', value: false }); }
+    if (!window.Shared.config.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
 
     return {
+      text: text,
+      extreme: extreme,
       filter: {
         searchQuery: searchQuery,
         playlistId: selectedPlaylistId,
