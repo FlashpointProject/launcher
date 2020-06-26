@@ -35,27 +35,32 @@ export function CreditsTooltip(props: CreditsTooltipProps) {
     }
   }, [ref.current, props.profile, props.profileX, props.profileY]);
 
+  // Render profile
+  const profileElement = React.useMemo(() => (
+    props.profile ? (
+      <>
+        <p className='about-page__credits__tooltip__title'>{props.profile.title}</p>
+        { props.profile.note ? (
+          <p className='about-page__credits__tooltip__note'>{props.profile.note}</p>
+        ) : undefined }
+        <ul className='about-page__credits__tooltip__roles'>
+          { props.profile.roles.map((role, index) => (
+            <li key={index} style={{ color: getRoleColor(role, props.roles) }}>
+              <p>{role}</p>
+            </li>
+          )) }
+        </ul>
+      </>
+    ) : undefined
+  ), [props.profile]);
+
   // Render
   return (
     <div
       className='about-page__credits__tooltip'
       ref={ref}
       style={{ display: props.profile ? undefined : 'none' }}>
-      { props.profile ? (
-        <>
-          <p className='about-page__credits__tooltip__title'>{props.profile.title}</p>
-          { props.profile.note ? (
-            <p className='about-page__credits__tooltip__note'>{props.profile.note}</p>
-          ) : undefined }
-          <ul className='about-page__credits__tooltip__roles'>
-            { props.profile.roles.map((role, index) => (
-              <li key={index} style={{ color: getRoleColor(role, props.roles) }}>
-                <p>{role}</p>
-              </li>
-            )) }
-          </ul>
-        </>
-      ) : undefined }
+      { profileElement }
     </div>
   );
 }
