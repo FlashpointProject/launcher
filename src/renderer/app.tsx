@@ -463,8 +463,10 @@ export class App extends React.Component<AppProps, AppState> {
       if (window.Shared.config.data.updatesEnabled) {
         autoUpdater.checkForUpdates()
         .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
+        log('Checking for updates...');
+      } else {
+        log('Update check disabled, skipping...');
       }
-      console.log('Checking for updates...');
     }
 
     // Check for Wine and PHP on Linux/Mac
