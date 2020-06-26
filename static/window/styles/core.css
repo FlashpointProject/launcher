@@ -578,6 +578,7 @@ body {
   padding: 0.05rem 0.2rem;
   /* Pimp */
   user-select: none;
+  z-index: 1;
 }
 .footer__wrap {
   padding: 0.025rem;
@@ -930,6 +931,7 @@ body {
   /* Border */
   border-radius: 0.2em;
   border: 1px solid;
+  max-width: 13rem;
 }
 .curate-page__floating-box > * {
   margin: 0.125rem 0;
@@ -945,10 +947,12 @@ body {
 .curate-page__checkbox-text {
   text-align: center;
   margin: 0 0.2rem;
-  /* I'll be honest, not sure why this works */
-  flex-shrink: 10;
+  flex-grow: 1;
   font-size: 0.75em;
   user-select: none;
+}
+.curate-page__checkbox input[type="checkbox"] {
+  min-width: 1rem;
 }
 /* Curate Page Left Sidebar */
 .curate-page__left-sidebar-item {
