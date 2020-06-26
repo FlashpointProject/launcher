@@ -885,12 +885,10 @@ body {
   user-select: none;
 }
 .about-page__credits__tooltip__roles {
-  --indent: 0.5em;
-  margin-left: calc(0.5rem + var(--indent));
-  text-indent: calc(0px    - var(--indent));
+  margin-left: 1em;
 }
 .about-page__credits__tooltip__roles p {
-  display: inline;
+  text-indent: -0.375em;
 }
 
 
