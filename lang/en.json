@@ -424,7 +424,9 @@
     "arcade": "Games",
     "arcadePlural": "All Games",
     "theatre": "Animations",
-    "theatrePlural": "All Animations"
+    "theatrePlural": "All Animations",
+    "auditorium": "NG Auditorium",
+    "auditoriumPlural": "All NG Animations"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
