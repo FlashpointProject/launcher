@@ -114,6 +114,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
       availableLangs: this.props.languages,
+      libraries: this.props.libraries,
       platforms: this.props.platformsFlat,
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,
