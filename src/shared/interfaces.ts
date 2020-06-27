@@ -87,6 +87,9 @@ export interface IMainWindowExternal {
   /** URL of the back websocket server. */
   backUrl: URL;
 
+  /** Custom version to display alongside launcher version (useful for packaged copies) */
+  customVersion?: string;
+
   initialLang: LangContainer;
   initialLangList: LangFile[];
   initialThemes: Theme[];

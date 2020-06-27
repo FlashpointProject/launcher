@@ -186,6 +186,7 @@ export type GetRendererInitDataResponse = {
   fileServerPort: number;
   log: ILogEntry[];
   services: IService[];
+  customVersion?: string;
   languages: LangFile[];
   language: LangContainer;
   themes: Theme[];

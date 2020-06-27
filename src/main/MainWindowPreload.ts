@@ -77,6 +77,8 @@ window.Shared = {
 
   backUrl: createErrorProxy('backUrl'),
 
+  customVersion: undefined,
+
   initialLang: createErrorProxy('initialLang'),
   initialLangList: createErrorProxy('initialLangList'),
   initialThemes: createErrorProxy('initialThemes'),
@@ -123,6 +125,7 @@ const onInit = (async () => {
       window.Shared.fileServerPort = response.data.fileServerPort;
       window.Shared.log.entries = response.data.log;
       window.Shared.services = response.data.services;
+      window.Shared.customVersion = response.data.customVersion;
       window.Shared.initialLang = response.data.language;
       window.Shared.initialLangList = response.data.languages;
       window.Shared.initialThemes = response.data.themes;
