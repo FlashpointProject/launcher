@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageKeyset, PlaylistsChangeData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { AddLogData, BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageKeyset, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { parseSearchText } from '@shared/game/GameFilter';
@@ -102,8 +102,14 @@ export type AppState = {
   gamesTotal: number;
   localeCode: string;
 
+  /** Random games for the Home page box */
+  randomGames: ViewGame[];
+  /** Whether we're currently requesting random games */
+  requestingRandomGames: boolean;
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
+  /** If the Random games have loaded - Masked as 'Games' */
+  gamesDoneLoading: boolean;
   /** If upgrades files have loaded */
   upgradesDoneLoading: boolean;
   /** Stop rendering to force component unmounts */
@@ -185,8 +191,11 @@ export class App extends React.Component<AppProps, AppState> {
       },
       themeList: window.Shared.initialThemes,
       gamesTotal: -1,
+      randomGames: [],
+      requestingRandomGames: false,
       localeCode: window.Shared.initialLocaleCode,
       upgrades: [],
+      gamesDoneLoading: false,
       upgradesDoneLoading: false,
       stopRender: false,
       creditsData: undefined,
@@ -487,6 +496,11 @@ export class App extends React.Component<AppProps, AppState> {
     this.props.setTagCategories(window.Shared.initialTagCategories);
   }
 
+  componentDidMount() {
+    // Call first batch of random games
+    if (this.state.randomGames.length < 5) { this.rollRandomGames(); }
+  }
+
   componentDidUpdate(prevProps: AppProps, prevState: AppState) {
     const { history, location, preferencesData } = this.props;
     const library = getBrowseSubPath(this.props.location.pathname);
@@ -571,6 +585,8 @@ export class App extends React.Component<AppProps, AppState> {
     // Props to set to the router
     const routerProps: AppRouterProps = {
       games: view && view.games || {},
+      randomGames: this.state.randomGames,
+      rollRandomGames: this.rollRandomGames,
       updateView: this.updateView,
       gamesTotal: view && view.total || 0,
       playlists: playlists,
@@ -616,6 +632,7 @@ export class App extends React.Component<AppProps, AppState> {
           <>
             {/* Splash screen */}
             <SplashScreen
+              gamesLoaded={this.state.gamesDoneLoading}
               upgradesLoaded={this.state.upgradesDoneLoading}
               creditsLoaded={this.state.creditsDoneLoading}
               miscLoaded={this.state.loaded[BackInit.EXEC]} />
@@ -1095,6 +1112,33 @@ export class App extends React.Component<AppProps, AppState> {
       properties: data.properties,
     });
   }
+
+  rollRandomGames = () => {
+    const { randomGames, requestingRandomGames } = this.state;
+    /** If there are more games, shift them forward */
+    if (randomGames.length >= 10) {
+      this.setState({ randomGames: randomGames.slice(5) });
+    }
+    /** If there are less than 3 rolls on the queue, request 10 more */
+    if (randomGames.length <= 15 && !requestingRandomGames) {
+      this.setState({ requestingRandomGames: true });
+      window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
+        count: 50,
+        broken: window.Shared.config.data.showBrokenGames,
+        extreme: this.props.preferencesData.browsePageShowExtreme,
+      }, (res) => {
+        this.setState({ requestingRandomGames: false, gamesDoneLoading: true });
+        if (res.data) {
+          /** If we couldn't move the queue last time, do it now */
+          const newGames = [...randomGames];
+          if (newGames.length >= 5) {
+            newGames.splice(0, 5);
+          }
+          this.setState({ randomGames: newGames.concat(res.data) });
+        }
+      });
+    }
+  };
 }
 
 async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: string, stage: Partial<UpgradeStageState>) => void, strings: LangContainer) {
@@ -1228,6 +1272,7 @@ function onUpdateDownloaded() {
 
 function isInitDone(state: AppState): boolean {
   return (
+    state.gamesDoneLoading &&
     state.upgradesDoneLoading &&
     state.creditsDoneLoading &&
     state.loaded[BackInit.EXEC]
