@@ -1,3 +1,9 @@
+# Release 9.0.1
+
+## New
+
+- A custom version can be shown in the Title Bar. Reads from `/version.txt` at the root of the Flashpoint data path.
+
 # Release 9.0.0
 
 ## New
