@@ -151,7 +151,7 @@
     "fixCommaTagsDesc": "Splits tags with commas into many tags and applies them to all applicable games",
     "exportTags": "Export Tags",
     "exportTagsDesc": "Creates a file full of tags and tag categories that can be used by 'Import Tags'",
-    "importTags": "Import Tags",
+    "importTags": "Tagek importálása",
     "importTagsDesc": "Imports Tags from an file created by 'Export Tags'",
     "servicesHeader": "Háttérszolgáltatások",
     "servicesMissing": "Nincs futó szolgáltatás",
