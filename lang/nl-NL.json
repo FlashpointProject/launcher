@@ -2,7 +2,7 @@
   "name": "Engels",
   "config": {
     "configHeader": "Instellingen",
-    "configDesc": "(U zult op 'Opslaan & Herstarten' moeten klikken om enkele wijzigingen door te voeren)",
+    "configDesc": "(Druk op 'Opslaan & Herstarten om enkele wijzigingen door te voeren)",
     "preferencesHeader": "Voorkeuren",
     "extremeGames": "Extreme spellen",
     "extremeGamesDesc": "Toon spellen met sexuele, gewelddadige of anderen die voor kinderen ongeschikte inhoud zijn.",
@@ -431,9 +431,9 @@
   "upgrades": {
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "Vereiste bestanden. Voegt ondersteuning voor Flash spellen.",
-    "tech": "Andere Technologieën",
-    "techDesc": "Voegt ondersteuning voor alle andere technologieën - Shockwave, Unity, Java, HTML5, enz.",
-    "screenshots": "Logo's & Schermafbeeldingen",
-    "screenshotsDesc": "Voegt logo's voor rasterweergave en schermafbeeldingen toe voor alle spellen."
+    "tech": "Andere technologieën",
+    "techDesc": "Voegt ondersteuning toe voor alle andere technologieën - Shockwave, Unity, Java, HTML5, enz.",
+    "screenshots": "Logo's & schermafbeeldingen",
+    "screenshotsDesc": "Voegt logo's voor Roosterweergave en schermafbeeldingen toe voor alle spellen."
   }
 }
