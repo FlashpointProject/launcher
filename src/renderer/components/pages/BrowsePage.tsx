@@ -469,8 +469,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onGameSelect = (gameId?: string): void => {
     if (this.props.selectedGameId !== gameId) {
       this.props.onSelectGame(gameId);
-      const playlistId = this.state.currentPlaylist ? this.state.currentPlaylist.id : undefined;
-      this.updateCurrentGame(gameId, playlistId);
     }
   }
 
