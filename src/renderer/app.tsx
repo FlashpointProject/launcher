@@ -620,9 +620,12 @@ export class App extends React.Component<AppProps, AppState> {
               creditsLoaded={this.state.creditsDoneLoading}
               miscLoaded={this.state.loaded[BackInit.EXEC]} />
             {/* Title-bar (if enabled) */}
-            { window.Shared.config.data.useCustomTitlebar ? (
-              <TitleBar title={`${APP_TITLE} (${remote.app.getVersion()})`} />
-            ) : undefined }
+            { window.Shared.config.data.useCustomTitlebar ?
+              window.Shared.customVersion ? (
+                <TitleBar title={window.Shared.customVersion} />
+              ) : (
+                <TitleBar title={`${APP_TITLE} (${remote.app.getVersion()})`} />
+              ) : undefined }
             {/* "Content" */}
             { loaded ? (
               <>

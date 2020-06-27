@@ -91,6 +91,7 @@ export function registerRequestCallbacks(state: BackState): void {
         fileServerPort: state.fileServerPort,
         log: state.log,
         services: services,
+        customVersion: state.customVersion,
         languages: state.languages,
         language: state.languageContainer,
         themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),

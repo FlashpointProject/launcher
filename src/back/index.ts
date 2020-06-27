@@ -60,6 +60,7 @@ const state: BackState = {
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
   version: createErrorProxy('version'),
+  customVersion: undefined,
   gameManager: {
     platformsPath: '',
     saveQueue: new EventQueue(),
@@ -117,6 +118,16 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   ]));
   state.preferences = pref;
   state.config = conf;
+
+  // Check for custom version to report
+  const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
+  await fs.access(versionFilePath, fs.constants.F_OK)
+  .then(async () => {
+    const data = await fs.readFile(versionFilePath, 'utf8');
+    state.customVersion = data;
+    log(state, { source: 'Launcher', content: `Data Version Detected: ${state.customVersion}`});
+  })
+  .catch(() => { /** File doesn't exist */ });
 
   // Setup DB
   if (!state.connection) {
