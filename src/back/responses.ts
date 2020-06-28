@@ -1267,27 +1267,59 @@ export function registerRequestCallbacks(state: BackState): void {
  * properties in object A and B. All properties that are not equal will be added to the returned object.
  * Missing properties, or those with the value undefined, in B will be ignored.
  * If all property values are equal undefined is returned.
+ * 
+ * __Note:__ Arrays work differently in order to preserve the types and indices.
+ * If the length of the arrays are not equal, or if not all items in the array are strictly equal (to the items of the other array),
+ * then the whole array will be added to the return object.
  * @param template Template object. Iteration will be done over this object.
  * @param a Compared to B.
  * @param b Compared to A. Values in the returned object is copied from this.
  */
 function difObjects<T>(template: T, a: T, b: DeepPartial<T>): DeepPartial<T> | undefined {
   let dif: DeepPartial<T> | undefined;
+
   for (const key in template) {
-    if (a[key] !== b[key] && b[key] !== undefined) {
-      if (typeof template[key] === 'object' && typeof a[key] === 'object' && typeof b[key] === 'object') {
-        // Note: TypeScript doesn't understand that it is not possible for b[key] to be undefined here
-        const subDif = difObjects(template[key], a[key], b[key] as any);
+    const tVal = template[key];
+    const aVal = a[key];
+    const bVal = b[key];
+
+    if (aVal !== bVal && bVal !== undefined) {
+      // Array
+      if (Array.isArray(tVal) && Array.isArray(aVal) && Array.isArray(bVal)) {
+        let notEqual = false;
+
+        if (aVal.length === bVal.length) {
+          for (let i = 0; i < aVal.length; i++) {
+            if (aVal[i] !== bVal[i]) {
+              notEqual = true;
+              break;
+            }
+          }
+        } else {
+          notEqual = true;
+        }
+
+        if (notEqual) {
+          if (!dif) { dif = {}; }
+          dif[key] = [ ...bVal ] as any;
+        }
+      }
+      // Object
+      else if (typeof tVal === 'object' && typeof aVal === 'object' && typeof bVal === 'object') {
+        const subDif = difObjects(tVal, aVal, bVal as any);
         if (subDif) {
           if (!dif) { dif = {}; }
-          dif[key] = (subDif as any);
+          dif[key] = subDif as any;
         }
-      } else {
+      }
+      // Other
+      else {
         if (!dif) { dif = {}; }
-        dif[key] = (b[key] as any);
+        dif[key] = bVal;
       }
     }
   }
+
   return dif;
 }
 

@@ -39,8 +39,6 @@ type ConfigPageState = {
   metadataServerHost: string;
   /** If the "use custom title bar" checkbox is checked. */
   useCustomTitlebar: boolean;
-  /** Array of libraries to exclude from random picks */
-  excludedRandomLibraries: string[];
   /** Array of native platforms */
   nativePlatforms: string[];
   /** Current Server */
@@ -69,7 +67,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: configData.flashpointPath,
       metadataServerHost: configData.metadataServerHost,
       useCustomTitlebar: configData.useCustomTitlebar,
-      excludedRandomLibraries: configData.excludedRandomLibraries,
       nativePlatforms: configData.nativePlatforms,
       server: configData.server
     };
@@ -79,7 +76,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const libraryStrings = this.context.libraries;
     const strings = this.context.config;
     const { platforms, libraries } = this.props;
-    const { nativePlatforms, excludedRandomLibraries } = this.state;
+    const { nativePlatforms } = this.state;
     const autoString = formatString(strings.auto, this.props.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     const serverOptions = this.renderServerOptionsMemo(this.props.serverNames);
@@ -210,7 +207,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                               {/** We flip the checked value so the render shows Included, but we keep them as Excluded */}
                               <input
                                 type='checkbox'
-                                checked={excludedRandomLibraries.findIndex((item) => item === library) === -1}
+                                checked={this.props.preferencesData.excludedRandomLibraries.findIndex((item) => item === library) === -1}
                                 onChange={() => { this.onExcludedLibraryCheckboxChange(library); }}
                                 className='simple-center__vertical-inner' />
                             </div>
@@ -457,15 +454,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onExcludedLibraryCheckboxChange = (library: string): void => {
-    const { excludedRandomLibraries } = this.state;
-    const index = excludedRandomLibraries.findIndex(item => item === library);
+    const excludedRandomLibraries = [ ...this.props.preferencesData.excludedRandomLibraries ];
 
+    const index = excludedRandomLibraries.findIndex(item => item === library);
     if (index !== -1) {
       excludedRandomLibraries.splice(index, 1);
     } else {
       excludedRandomLibraries.push(library);
     }
-    this.setState({ excludedRandomLibraries: excludedRandomLibraries });
+
+    updatePreferencesData({ excludedRandomLibraries });
   }
 
   onNativeCheckboxChange = (platform: string): void => {
@@ -529,7 +527,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       flashpointPath: this.state.flashpointPath,
       metadataServerHost: this.state.metadataServerHost,
       useCustomTitlebar: this.state.useCustomTitlebar,
-      excludedRandomLibraries: this.state.excludedRandomLibraries,
       nativePlatforms: this.state.nativePlatforms,
       server: this.state.server,
     }, () => { window.Shared.restart(); });

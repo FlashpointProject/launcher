@@ -29,8 +29,6 @@ export type IAppConfigData = {
   disableExtremeGames: boolean;
   /** If games flagged as "broken" should be hidden */
   showBrokenGames: boolean;
-  /** Array of libraries that should be excluded from random picks */
-  excludedRandomLibraries: string[];
   /** Array of native locked platforms */
   nativePlatforms: string[];
   /** Lower limit of the range of ports that the back should listen on. */

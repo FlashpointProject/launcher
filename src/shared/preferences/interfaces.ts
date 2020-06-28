@@ -52,6 +52,8 @@ export type IAppPreferencesData = {
   showLogSource: {
     [key: string]: boolean;
   }
+  /** Libraries that should be excluded from random picks. */
+  excludedRandomLibraries: string[];
 };
 
 export type IAppPreferencesDataMainWindow = {

@@ -1126,7 +1126,7 @@ export class App extends React.Component<AppProps, AppState> {
         count: 50,
         broken: window.Shared.config.data.showBrokenGames,
         extreme: this.props.preferencesData.browsePageShowExtreme,
-        excludedLibraries: window.Shared.config.data.excludedRandomLibraries
+        excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
       }, (res) => {
         this.setState({ requestingRandomGames: false, gamesDoneLoading: true });
         if (res.data) {
