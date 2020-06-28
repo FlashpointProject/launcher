@@ -728,11 +728,16 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onDiscardPlaylistClick = (): void => {
-    this.setState({
-      currentPlaylist: undefined,
+    const newState: Pick<BrowsePageState, 'isEditingPlaylist' | 'isNewPlaylist' | 'currentPlaylist'> = {
       isEditingPlaylist: false,
       isNewPlaylist: false,
-    });
+    };
+
+    if (this.state.isNewPlaylist) {
+      newState.currentPlaylist = undefined;
+    }
+
+    this.setState(newState);
   }
 
   onDeletePlaylist = (): void => {
