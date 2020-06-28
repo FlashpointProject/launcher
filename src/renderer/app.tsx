@@ -14,6 +14,7 @@ import { setTheme } from '@shared/Theme';
 import { Theme } from '@shared/ThemeFile';
 import { getUpgradeString } from '@shared/upgrade/util';
 import { canReadWrite, deepCopy, getFileServerURL, recursiveReplace } from '@shared/Util';
+import { arrayShallowStrictEquals } from '@shared/utils/compare';
 import { debounce } from '@shared/utils/debounce';
 import { formatString } from '@shared/utils/StringFormatter';
 import { ipcRenderer, remote } from 'electron';
@@ -573,6 +574,16 @@ export class App extends React.Component<AppProps, AppState> {
       } else {
         history.push(joinLibraryRoute(route));
       }
+    }
+
+    // Clear random picks queue
+    if (this.state.randomGames.length > 5 && (
+      this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
+      !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries)
+    )) {
+      this.setState({
+        randomGames: this.state.randomGames.slice(0, 5),
+      });
     }
   }
 
