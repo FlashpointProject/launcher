@@ -1,3 +1,10 @@
+# Release 9.0.3
+
+## Fixed
+
+- Adding a game to a playlist now puts it at the end of the playlist (instead of at the beginning).
+- It is no longer possible to add a game to a playlist it is already in.
+
 # Release 9.0.2
 
 ## New
