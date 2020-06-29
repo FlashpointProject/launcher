@@ -248,5 +248,5 @@ export async function openConfirmDialog(title: string, message: string, cancel =
 
 // @TODO Move this to the back process
 export function isFlashpointValidCheck(flashpointPath: string): Promise<boolean> {
-  return new Promise(resolve => fs.stat(path.join(flashpointPath, 'Data/Platforms'), error => resolve(!error)));
+  return new Promise(resolve => fs.stat(path.join(flashpointPath, 'FPSoftware'), error => resolve(!error)));
 }

@@ -56,6 +56,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
+  excludedRandomLibraries: [],
 });
 
 /**
@@ -94,6 +95,7 @@ export function overwritePreferenceData(
   parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
+  parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
@@ -122,4 +124,10 @@ function strOpt<T extends string>(value: any, options: T[], defaultOption: T): T
     if (value === option) { return value; }
   }
   return defaultOption;
+}
+
+function strArray(array: any): string[] {
+  return Array.isArray(array)
+    ? Array.prototype.map.call(array, v => str(v)) as string[]
+    : [];
 }

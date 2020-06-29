@@ -276,9 +276,10 @@ export type RandomGamesData = {
   count: number;
   broken: boolean;
   extreme: boolean;
+  excludedLibraries: string[];
 }
 
-export type RandomGamesResponseData = Game[];
+export type RandomGamesResponseData = ViewGame[];
 
 export type LaunchAddAppData = {
   id: string;

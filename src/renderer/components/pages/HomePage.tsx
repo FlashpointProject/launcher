@@ -21,6 +21,7 @@ import { AutoProgressComponent } from '../ProgressComponents';
 import { RandomGames } from '../RandomGames';
 import { SimpleButton } from '../SimpleButton';
 import { SizeProvider } from '../SizeProvider';
+import { ViewGame } from '@shared/back/types';
 
 type OwnProps = {
   platforms: Record<string, string[]>;
@@ -37,6 +38,10 @@ type OwnProps = {
   updateInfo: UpdateInfo | undefined;
   /** Callback to initiate the update */
   autoUpdater: AppUpdater;
+  /** Pass to Random Picks */
+  randomGames: ViewGame[];
+  /** Re-rolls the Random Games */
+  rollRandomGames: () => void;
 };
 
 export type HomePageProps = OwnProps & WithPreferencesProps & WithSearchProps;
@@ -291,11 +296,11 @@ export function HomePage(props: HomePageProps) {
   const renderedRandomGames = React.useMemo(() => (
     <SizeProvider width={width} height={height}>
       <RandomGames
-        broken={window.Shared.config.data.showBrokenGames}
-        extreme={props.preferencesData.browsePageShowExtreme}
+        games={props.randomGames}
+        rollRandomGames={props.rollRandomGames}
         onLaunchGame={onLaunchGame} />
     </SizeProvider>
-  ), [strings, onLaunchGame]);
+  ), [strings, props.randomGames, onLaunchGame, props.rollRandomGames]);
 
   // Render
   return React.useMemo(() => (

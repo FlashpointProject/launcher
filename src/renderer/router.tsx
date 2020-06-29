@@ -23,9 +23,12 @@ import { CreditsData } from './credits/types';
 import { UpdateView, ViewGameSet } from './interfaces';
 import { Paths } from './Paths';
 import { UpgradeStage } from './upgrade/types';
+import { ViewGame } from '@shared/back/types';
 
 export type AppRouterProps = {
   games: ViewGameSet;
+  randomGames: ViewGame[];
+  rollRandomGames: () => void;
   gamesTotal?: number;
   playlists: Playlist[];
   suggestions: Partial<GamePropSuggestions>;
@@ -75,7 +78,9 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onLaunchGame: this.props.onLaunchGame,
       onDownloadUpgradeClick: this.props.onDownloadUpgradeClick,
       updateInfo: this.props.updateInfo,
-      autoUpdater: this.props.autoUpdater
+      autoUpdater: this.props.autoUpdater,
+      randomGames: this.props.randomGames,
+      rollRandomGames: this.props.rollRandomGames,
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
@@ -109,6 +114,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
       availableLangs: this.props.languages,
+      libraries: this.props.libraries,
       platforms: this.props.platformsFlat,
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,

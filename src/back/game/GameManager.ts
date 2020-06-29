@@ -76,13 +76,17 @@ export namespace GameManager {
     return raw ? Coerce.num(raw.row_num) : -1; // Coerce it, even though it is probably of type number or undefined
   }
 
-  export async function findRandomGames(count: number, extreme: boolean, broken: boolean): Promise<Game[]> {
+  export async function findRandomGames(count: number, extreme: boolean, broken: boolean, excludedLibraries: string[]): Promise<ViewGame[]> {
     const gameRepository = getManager().getRepository(Game);
     const query = gameRepository.createQueryBuilder('game');
+    query.select('game.id, game.title, game.platform, game.developer, game.publisher');
     if (!extreme) { query.andWhere('extreme = false'); }
     if (!broken)  { query.andWhere('broken = false');  }
+    if (excludedLibraries.length > 0) {
+      query.andWhere('library NOT IN (:...libs)', { libs: excludedLibraries });
+    }
     query.orderBy('RANDOM()').take(count);
-    return query.getMany();
+    return (await query.getRawMany()) as ViewGame[];
   }
 
   export type GetPageKeysetResult = {

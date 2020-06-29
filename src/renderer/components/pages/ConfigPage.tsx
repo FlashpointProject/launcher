@@ -15,6 +15,8 @@ import { DropdownInputField } from '../DropdownInputField';
 import { InputField } from '../InputField';
 
 type OwnProps = {
+  /** List of all game libraries */
+  libraries: string[];
   /** List of all platforms */
   platforms: string[];
   /** Filenames of all files in the themes folder. */
@@ -71,8 +73,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   render() {
+    const libraryStrings = this.context.libraries;
     const strings = this.context.config;
-    const { platforms } = this.props;
+    const { platforms, libraries } = this.props;
     const { nativePlatforms } = this.state;
     const autoString = formatString(strings.auto, this.props.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
@@ -185,6 +188,42 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
                 <div className='setting__row__bottom'>
                   <p>{strings.flashpointPathDesc}</p>
+                </div>
+              </div>
+              {/* Random Libraries */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.randomLibraries}</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--toggle'>
+                    <div>
+                      <Dropdown text={strings.libraries}>
+                        { libraries.map((library, index) => (
+                          <label
+                            key={index}
+                            className='log-page__dropdown-item'>
+                            <div className='simple-center'>
+                              {/** We flip the checked value so the render shows Included, but we keep them as Excluded */}
+                              <input
+                                type='checkbox'
+                                checked={this.props.preferencesData.excludedRandomLibraries.findIndex((item) => item === library) === -1}
+                                onChange={() => { this.onExcludedLibraryCheckboxChange(library); }}
+                                className='simple-center__vertical-inner' />
+                            </div>
+                            <div className='simple-center'>
+                              <p className='simple-center__vertical-inner log-page__dropdown-item-text'>
+                                {libraryStrings[library] || library}
+                              </p>
+                            </div>
+                          </label>
+                        )) }
+                      </Dropdown>
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.randomLibrariesDesc}</p>
                 </div>
               </div>
               {/* Native Platforms */}
@@ -412,6 +451,19 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onFallbackLanguageSelect = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     updatePreferencesData({ fallbackLanguage: event.target.value });
+  }
+
+  onExcludedLibraryCheckboxChange = (library: string): void => {
+    const excludedRandomLibraries = [ ...this.props.preferencesData.excludedRandomLibraries ];
+
+    const index = excludedRandomLibraries.findIndex(item => item === library);
+    if (index !== -1) {
+      excludedRandomLibraries.splice(index, 1);
+    } else {
+      excludedRandomLibraries.push(library);
+    }
+
+    updatePreferencesData({ excludedRandomLibraries });
   }
 
   onNativeCheckboxChange = (platform: string): void => {
