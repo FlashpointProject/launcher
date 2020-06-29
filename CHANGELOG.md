@@ -1,3 +1,27 @@
+# Release 9.0.2
+
+## New
+
+- Added `Random Libraries` checkbox dropdown to the Config page.
+- Added `excludedRandomLibraries` to `preferences.json`.
+
+## Changed
+
+- Random Picks no longer re-rolls every time you visit the Home page.
+- Reduce the delay for the most recently selected game to appear in the right sidebar when changing selection rapidly.
+- A folder is now considered a valid "Flashpoint folder" if it contains a file or folder named ``FPSoftware``.
+  -  This is instead of checking for ``Data/Platforms`` (since that folder is getting dropped from Flashpoint).
+
+## Fixed
+
+- Playlists can now be edited after a previous edit of the same playlist has been discarded.
+
+# Release 9.0.1
+
+## New
+
+- A custom version can be shown in the Title Bar. Reads from `/version.txt` at the root of the Flashpoint data path.
+
 # Release 9.0.0
 
 ## New

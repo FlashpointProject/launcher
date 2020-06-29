@@ -19,6 +19,7 @@ import { UpdateView, ViewGameSet } from '../../interfaces';
 import { SearchQuery } from '../../store/search';
 import { gameIdDataType, gameScaleSpan, getGamePath } from '../../Util';
 import { LangContext } from '../../util/lang';
+import { queueOne } from '../../util/queue';
 import { uuid } from '../../util/uuid';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
@@ -469,8 +470,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onGameSelect = (gameId?: string): void => {
     if (this.props.selectedGameId !== gameId) {
       this.props.onSelectGame(gameId);
-      const playlistId = this.state.currentPlaylist ? this.state.currentPlaylist.id : undefined;
-      this.updateCurrentGame(gameId, playlistId);
     }
   }
 
@@ -580,10 +579,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     }
   }
 
-  /** Replace the "current game" with the selected game (in the appropriate circumstances) */
-  async updateCurrentGame(gameId?: string, playlistId?: string): Promise<void> {      // Find the selected game in the selected playlist
-    let gamePlaylistEntry: PlaylistGame | undefined;
+  /** Replace the "current game" with the selected game (in the appropriate circumstances). */
+  updateCurrentGame = queueOne(async (gameId?: string, playlistId?: string): Promise<void> => {
+    // Find the selected game in the selected playlist
     if (gameId) {
+      let gamePlaylistEntry: PlaylistGame | undefined;
+
       if (playlistId) {
         const res = await window.Shared.back.sendP<GetPlaylistGameResponse, GetPlaylistGameData>(BackIn.GET_PLAYLIST_GAME, {
           gameId: gameId,
@@ -605,7 +606,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         } else { console.log(`Failed to get game. Empty data in response (GameID: "${gameId}").`); }
       });
     }
-  }
+  });
 
   onStartEditClick = (): void => {
     if (this.props.preferencesData.enableEditing) {
@@ -727,11 +728,16 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onDiscardPlaylistClick = (): void => {
-    this.setState({
-      currentPlaylist: undefined,
+    const newState: Pick<BrowsePageState, 'isEditingPlaylist' | 'isNewPlaylist' | 'currentPlaylist'> = {
       isEditingPlaylist: false,
       isNewPlaylist: false,
-    });
+    };
+
+    if (this.state.isNewPlaylist) {
+      newState.currentPlaylist = undefined;
+    }
+
+    this.setState(newState);
   }
 
   onDeletePlaylist = (): void => {
