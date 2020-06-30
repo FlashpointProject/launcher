@@ -57,7 +57,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
     const rowHeight = calcScale(40, this.props.tagScale);
 
     return (
-      <div className='tags-page simple-scroll'>
+      <div className='tags-page'>
         <div className='tags-page__browser'>
           <div className='tags-browser__center'>
             <TagList
