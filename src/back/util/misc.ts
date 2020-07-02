@@ -10,7 +10,7 @@ import { BackOut } from '@shared/back/types';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
-import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
+import { ILogEntry, ILogPreEntry, LogLevel } from '@shared/Log/interface';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -155,6 +155,7 @@ export function log(state: BackState, preEntry: ILogPreEntry, id?: string): void
     source: preEntry.source,
     content: preEntry.content,
     timestamp: Date.now(),
+    logLevel: LogLevel.INFO
   };
 
   if (typeof entry.source !== 'string') {

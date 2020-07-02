@@ -33,8 +33,11 @@ import { SocketServer } from './SocketServer';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { createContainer, exit, log, newLogEntry, runService } from './util/misc';
+import { createContainer, exit, newLogEntry, runService } from './util/misc';
+import { registerLogPlugin } from '@back/plugin/loglevel-flashpoint';
+import { ILogEntry } from '@shared/Log/interface';
 
+global.log = require('loglevel');
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
 const send: Required<typeof process.send> = process.send
@@ -64,7 +67,7 @@ const state: BackState = {
   gameManager: {
     platformsPath: '',
     saveQueue: new EventQueue(),
-    log: (content) => log(state, { source: 'GameManager', content }),
+    log: (content) => global.log.info({ source: 'GameManager', content }),
   },
   messageQueue: [],
   isHandling: false,
@@ -91,6 +94,10 @@ const state: BackState = {
   connection: undefined,
 };
 
+registerLogPlugin(global.log, state.socketServer, (message: ILogEntry): number => {
+  return state.log.push(message) - 1;
+});
+global.log.enableAll();
 registerRequestCallbacks(state);
 
 process.on('message', onProcessMessage);
@@ -109,7 +116,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   state.socketServer.secret = content.secret;
 
-  log(state, { source: 'Launcher', content: `Starting Flashpoint Launcher ${content.version} ${content.isDev ? 'DEV' : ''}` });
+  global.log.info({ source: 'Launcher', content: `Starting Flashpoint Launcher ${content.version} ${content.isDev ? 'DEV' : ''}` });
 
   // Read configs & preferences
   const [pref, conf] = await (Promise.all([
@@ -125,7 +132,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   .then(async () => {
     const data = await fs.readFile(versionFilePath, 'utf8');
     state.customVersion = data;
-    log(state, { source: 'Launcher', content: `Data Version Detected: ${state.customVersion}`});
+    global.log.info({ source: 'Launcher', content: `Data Version Detected: ${state.customVersion}`});
   })
   .catch(() => { /** File doesn't exist */ });
 
@@ -141,7 +148,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // TypeORM forces on but breaks Playlist Game links to unimported games
     await state.connection.query('PRAGMA foreign_keys=off;');
     await state.connection.runMigrations();
-    log(state, { source: 'Launcher', content: 'Database connection established' });
+    global.log.info({ source: 'Launcher', content: 'Database connection established' });
   }
 
   // Init services
@@ -149,7 +156,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.serviceInfo = await ServicesFile.readFile(
       path.join(state.config.flashpointPath, state.config.jsonFolderPath),
       state.config,
-      error => { log(state, { source: SERVICES_SOURCE, content: error.toString() }); }
+      error => { global.log.info({ source: SERVICES_SOURCE, content: error.toString() }); }
     );
   } catch (error) { /* @TODO Do something about this error */ }
   if (state.serviceInfo) {
@@ -168,14 +175,14 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       try {
         const tail = new Tail(filePath, { follow: true });
         tail.on('line', (data) => {
-          log(state, newLogEntry('Log Watcher', data));
+          global.log.info(newLogEntry('Log Watcher', data));
         });
         tail.on('error', (error) => {
-          log(state, newLogEntry('Log Watcher', `Error while watching file "${filePath}" - ${error}`));
+          global.log.info(newLogEntry('Log Watcher', `Error while watching file "${filePath}" - ${error}`));
         });
-        log(state, newLogEntry('Log Watcher', `Watching file "${filePath}"`));
+        global.log.info(newLogEntry('Log Watcher', `Watching file "${filePath}"`));
       } catch (error) {
-        log(state, newLogEntry('Log Watcher', `Failed to watch file "${filePath}" - ${error}`));
+        global.log.info(newLogEntry('Log Watcher', `Failed to watch file "${filePath}" - ${error}`));
       }
     }
   }
@@ -242,11 +249,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   fs.stat(langFolder, (error) => {
     if (!error) { state.languageWatcher.watch(langFolder); }
     else {
-      log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+      global.log.info({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
       if (error.code === 'ENOENT') {
-        log(state, { source: 'Back', content: `Failed to watch language folder. Folder does not exist (Path: "${langFolder}")` });
+        global.log.info({ source: 'Back', content: `Failed to watch language folder. Folder does not exist (Path: "${langFolder}")` });
       } else {
-        log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        global.log.info({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
       }
     }
   });
@@ -359,22 +366,22 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   fs.stat(themeFolder, (error) => {
     if (!error) { state.themeWatcher.watch(themeFolder, { recursionDepth: -1 }); }
     else {
-      log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+      global.log.info({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
       if (error.code === 'ENOENT') {
-        log(state, { source: 'Back', content: `Failed to watch theme folder. Folder does not exist (Path: "${themeFolder}")` });
+        global.log.info({ source: 'Back', content: `Failed to watch theme folder. Folder does not exist (Path: "${themeFolder}")` });
       } else {
-        log(state, { source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
+        global.log.info({ source: 'Back', content: (typeof error.toString === 'function') ? error.toString() : (error + '') });
       }
     }
   });
 
   // Load Exec Mappings
-  loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log(state, { source: 'Launcher', content }))
+  loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => global.log.info({ source: 'Launcher', content }))
   .then(data => {
     state.execMappings = data;
   })
   .catch(error => {
-    log(state, {
+    global.log.info({
       source: 'Launcher',
       content: `Failed to load exec mappings file. Ignore if on Windows. - ${error}`,
     });
@@ -418,7 +425,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       state.fileServer.off('listening', onceListening);
       state.fileServer.off('error', onError);
       if (error) {
-        log(state, {
+        global.log.info({
           source: 'Back',
           content: 'Failed to open HTTP server.\n'+error,
         });
@@ -588,7 +595,7 @@ function serveFile(req: http.IncomingMessage, res: http.ServerResponse, filePath
  */
 async function execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void> {
   const cwd: string = path.join(state.config.flashpointPath, proc.path);
-  log(state, {
+  global.log.info({
     source: SERVICES_SOURCE,
     content: `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`
   });
@@ -600,7 +607,7 @@ async function execProcess(proc: IBackProcessInfo, sync?: boolean): Promise<void
       await awaitEvents(childProc, ['exit', 'error']);
     }
   } catch (error) {
-    log(state, {
+    global.log.info({
       source: SERVICES_SOURCE,
       content: `An unexpected error occurred while executing a command:\n  "${error}"`
     });

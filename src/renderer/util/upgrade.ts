@@ -1,4 +1,3 @@
-import { AddLogData, BackIn } from '@shared/back/types';
 import { indexContentFolder } from '@shared/curate/util';
 import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
@@ -252,7 +251,7 @@ async function getSha256FromFile(filePath: string): Promise<string> {
 }
 
 function log(content: string): void {
-  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+  window.log.info({
     source: 'Upgrade',
     content: content
   });

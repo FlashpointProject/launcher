@@ -38,6 +38,7 @@
     "fast-xml-parser": "3.16.0",
     "follow-redirects": "1.11.0",
     "fs-extra": "8.1.0",
+    "loglevel": "1.6.8",
     "mime": "2.4.4",
     "mysql": "2.14.1",
     "node-7z": "1.1.1",

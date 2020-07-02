@@ -1,4 +1,3 @@
-import { AddLogData, BackIn } from '@shared/back/types';
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '@shared/curate/parse';
 import { CurationIndexImage } from '@shared/curate/types';
@@ -57,7 +56,7 @@ export function showWarningBox(str: string): void {
 
 /** Log function for the 'Curation' heading */
 export function curationLog(content: string): void {
-  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
+  window.log.info({
     source: 'Curation',
     content: content
   });

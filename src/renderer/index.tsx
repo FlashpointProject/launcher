@@ -9,8 +9,11 @@ import { ContextReducerProvider } from './context-reducer/ContextReducerProvider
 import { CurationContext } from './context/CurationContext';
 import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
+import { registerLogPlugin } from './plugin/loglevel-flashpoint';
 
 (async () => {
+  window.log = require('loglevel');
+  registerLogPlugin(window.log, window.Shared.back);
   // Toggle DevTools when CTRL+SHIFT+I is pressed
   window.addEventListener('keypress', (event) => {
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyI') {

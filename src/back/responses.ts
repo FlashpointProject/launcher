@@ -49,7 +49,7 @@ const writeFile = util.promisify(fs.writeFile);
  */
 export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register<AddLogData>(BackIn.ADD_LOG, (event, req) => {
-    log(state, req.data, req.id);
+    global.log.log(req.data);
   });
 
   state.socketServer.register(BackIn.GET_MAIN_INIT_DATA, (event, req) => {
@@ -1267,7 +1267,7 @@ export function registerRequestCallbacks(state: BackState): void {
  * properties in object A and B. All properties that are not equal will be added to the returned object.
  * Missing properties, or those with the value undefined, in B will be ignored.
  * If all property values are equal undefined is returned.
- * 
+ *
  * __Note:__ Arrays work differently in order to preserve the types and indices.
  * If the length of the arrays are not equal, or if not all items in the array are strictly equal (to the items of the other array),
  * then the whole array will be added to the return object.

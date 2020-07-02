@@ -233,15 +233,22 @@ export namespace GameLauncher {
   function logProcessOutput(proc: ChildProcess, log: LogFunc): void {
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
-    const logStuff = (event: string, args: any[]): void => {
-      log({
+    const logInfo = (event: string, args: any[]): void => {
+      global.log.info({
         source: logSource,
         content: `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`,
       });
     };
-    doStuffs(proc, [/* 'close', */ 'disconnect', 'error', 'exit', 'message'], logStuff);
-    if (proc.stdout) { proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); }); }
-    if (proc.stderr) { proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); }); }
+    const logErr = (event: string, args: any[]): void => {
+      global.log.error({
+        source: logSource,
+        content: `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`,
+      });
+    };
+    registerEventListeners(proc, [/* 'close', */ 'disconnect', 'exit', 'message'], logInfo);
+    registerEventListeners(proc, ['error'], logErr);
+    if (proc.stdout) { proc.stdout.on('data', (data) => { logInfo('stdout', [data.toString('utf8')]); }); }
+    if (proc.stderr) { proc.stderr.on('data', (data) => { logErr('stderr', [data.toString('utf8')]); });  }
   }
 }
 
@@ -249,7 +256,7 @@ const stringifyArrayOpts = {
   trimStrings: true,
 };
 
-function doStuffs(emitter: EventEmitter, events: string[], callback: (event: string, args: any[]) => void): void {
+function registerEventListeners(emitter: EventEmitter, events: string[], callback: (event: string, args: any[]) => void): void {
   for (let i = 0; i < events.length; i++) {
     const e: string = events[i];
     emitter.on(e, (...args: any[]) => {

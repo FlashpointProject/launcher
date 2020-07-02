@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { AddLogData, BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageKeyset, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PageKeyset, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, SearchGamesOpts, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData, ViewGame } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { parseSearchText } from '@shared/game/GameFilter';
@@ -395,7 +395,10 @@ export class App extends React.Component<AppProps, AppState> {
       ? process.cwd()
       : path.dirname(remote.app.getPath('exe'));
     const upgradeCatch = (error: Error) => { console.warn(error); };
-    Promise.all([UpgradeFile.readFile(folderPath, log), UpgradeFile.readFile(fullJsonFolderPath, log)].map(p => p.catch(upgradeCatch)))
+    const launcherLogFunc = (message: string) => {
+      window.log.warn({ source: 'Launcher', content: message });
+    };
+    Promise.all([UpgradeFile.readFile(folderPath, launcherLogFunc), UpgradeFile.readFile(fullJsonFolderPath, launcherLogFunc)].map(p => p.catch(upgradeCatch)))
     .then(async (fileData) => {
       // Combine all file data
       let allData: UpgradeStage[] = [];
@@ -452,7 +455,7 @@ export class App extends React.Component<AppProps, AppState> {
     })
     .catch((error) => {
       console.warn(error);
-      log(`Failed to load credits.\n${error}`);
+      window.log.warn({ source: 'Launcher', content: `Failed to load credits.\n${error}` });
       this.setState({ creditsDoneLoading: true });
     });
 
@@ -463,7 +466,7 @@ export class App extends React.Component<AppProps, AppState> {
         console.log(error);
       });
       autoUpdater.on('update-available', (info) => {
-        log(`Update Available - ${info.version}`);
+        window.log.info({ source: 'Launcher', content: `Update Available - ${info.version}` });
         console.log(info);
         this.setState({
           updateInfo: info
@@ -472,10 +475,10 @@ export class App extends React.Component<AppProps, AppState> {
       autoUpdater.on('update-downloaded', onUpdateDownloaded);
       if (window.Shared.config.data.updatesEnabled) {
         autoUpdater.checkForUpdates()
-        .catch((error) => { log(`Error Fetching Update Info - ${error.message}`); });
-        log('Checking for updates...');
+        .catch((error) => { window.log.error({ source: 'Launcher', content: `Error Fetching Update Info - ${error.message}` }); });
+        window.log.log({ source: 'Launcher', content: 'Checking for updates...' });
       } else {
-        log('Update check disabled, skipping...');
+        window.log.log({ source: 'Launcher', content: 'Update check disabled, skipping...' });
       }
     }
 
@@ -483,7 +486,7 @@ export class App extends React.Component<AppProps, AppState> {
     if (process.platform !== 'win32') {
       which('php', function(err: Error | null) {
         if (err) {
-          log('Warning: PHP not found in path, may cause unexpected behaviour.');
+          window.log.warn({ source: 'Launcher', content: 'Warning: PHP not found in path, may cause unexpected behaviour.' });
           remote.dialog.showMessageBox({
             type: 'error',
             title: strings.dialog.programNotFound,
@@ -1248,7 +1251,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       setStageState(stage.id, {
         isInstalling: false,
       });
-      log(`Error installing '${stage.title}' - ${error.message}`);
+      window.log.error({ source: 'Launcher', content: `Error installing '${stage.title}' - ${error.message}` });
       console.error(error);
     })
     .on('warn', console.warn);
@@ -1289,11 +1292,4 @@ function isInitDone(state: AppState): boolean {
     state.creditsDoneLoading &&
     state.loaded[BackInit.EXEC]
   );
-}
-
-function log(content: string): void {
-  window.Shared.back.send<any, AddLogData>(BackIn.ADD_LOG, {
-    source: 'Launcher',
-    content: content,
-  });
 }
