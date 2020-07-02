@@ -56,8 +56,5 @@ export function showWarningBox(str: string): void {
 
 /** Log function for the 'Curation' heading */
 export function curationLog(content: string): void {
-  window.log.info({
-    source: 'Curation',
-    content: content
-  });
+  window.log.info('Curation', content);
 }

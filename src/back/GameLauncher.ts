@@ -234,16 +234,10 @@ export namespace GameLauncher {
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     const logInfo = (event: string, args: any[]): void => {
-      global.log.info({
-        source: logSource,
-        content: `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`,
-      });
+      global.log.info(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
     };
     const logErr = (event: string, args: any[]): void => {
-      global.log.error({
-        source: logSource,
-        content: `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`,
-      });
+      global.log.error(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
     };
     registerEventListeners(proc, [/* 'close', */ 'disconnect', 'exit', 'message'], logInfo);
     registerEventListeners(proc, ['error'], logErr);

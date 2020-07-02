@@ -396,7 +396,7 @@ export class App extends React.Component<AppProps, AppState> {
       : path.dirname(remote.app.getPath('exe'));
     const upgradeCatch = (error: Error) => { console.warn(error); };
     const launcherLogFunc = (message: string) => {
-      window.log.warn({ source: 'Launcher', content: message });
+      window.log.warn('Launcher', message);
     };
     Promise.all([UpgradeFile.readFile(folderPath, launcherLogFunc), UpgradeFile.readFile(fullJsonFolderPath, launcherLogFunc)].map(p => p.catch(upgradeCatch)))
     .then(async (fileData) => {
@@ -455,7 +455,7 @@ export class App extends React.Component<AppProps, AppState> {
     })
     .catch((error) => {
       console.warn(error);
-      window.log.warn({ source: 'Launcher', content: `Failed to load credits.\n${error}` });
+      window.log.warn('Launcher', `Failed to load credits.\n${error}`);
       this.setState({ creditsDoneLoading: true });
     });
 
@@ -466,7 +466,7 @@ export class App extends React.Component<AppProps, AppState> {
         console.log(error);
       });
       autoUpdater.on('update-available', (info) => {
-        window.log.info({ source: 'Launcher', content: `Update Available - ${info.version}` });
+        window.log.info('Launcher', `Update Available - ${info.version}`);
         console.log(info);
         this.setState({
           updateInfo: info
@@ -475,10 +475,10 @@ export class App extends React.Component<AppProps, AppState> {
       autoUpdater.on('update-downloaded', onUpdateDownloaded);
       if (window.Shared.config.data.updatesEnabled) {
         autoUpdater.checkForUpdates()
-        .catch((error) => { window.log.error({ source: 'Launcher', content: `Error Fetching Update Info - ${error.message}` }); });
-        window.log.log({ source: 'Launcher', content: 'Checking for updates...' });
+        .catch((error) => { window.log.error('Launcher', `Error Fetching Update Info - ${error.message}`); });
+        window.log.info('Launcher', 'Checking for updates...');
       } else {
-        window.log.log({ source: 'Launcher', content: 'Update check disabled, skipping...' });
+        window.log.info('Launcher', 'Update check disabled, skipping...');
       }
     }
 
@@ -486,7 +486,7 @@ export class App extends React.Component<AppProps, AppState> {
     if (process.platform !== 'win32') {
       which('php', function(err: Error | null) {
         if (err) {
-          window.log.warn({ source: 'Launcher', content: 'Warning: PHP not found in path, may cause unexpected behaviour.' });
+          window.log.warn('Launcher', 'Warning: PHP not found in path, may cause unexpected behaviour.');
           remote.dialog.showMessageBox({
             type: 'error',
             title: strings.dialog.programNotFound,
@@ -1251,7 +1251,7 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       setStageState(stage.id, {
         isInstalling: false,
       });
-      window.log.error({ source: 'Launcher', content: `Error installing '${stage.title}' - ${error.message}` });
+      window.log.error('Launcher', `Error installing '${stage.title}' - ${error.message}`);
       console.error(error);
     })
     .on('warn', console.warn);

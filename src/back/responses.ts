@@ -36,6 +36,7 @@ import { BackState, BareTag, TagsFile } from './types';
 import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, newLogEntry, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
+import { LogLevel } from '@shared/Log/interface';
 
 const axios = axiosImport.default;
 const copyFile  = util.promisify(fs.copyFile);
@@ -49,7 +50,23 @@ const writeFile = util.promisify(fs.writeFile);
  */
 export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register<AddLogData>(BackIn.ADD_LOG, (event, req) => {
-    global.log.log(req.data);
+    switch (req.data.logLevel) {
+      case LogLevel.TRACE:
+        global.log.trace(req.data.source, req.data.content);
+        break;
+      case LogLevel.DEBUG:
+        global.log.debug(req.data.source, req.data.content);
+        break;
+      case LogLevel.INFO:
+        global.log.info(req.data.source, req.data.content);
+        break;
+      case LogLevel.WARN:
+        global.log.warn(req.data.source, req.data.content);
+        break;
+      case LogLevel.ERROR:
+        global.log.error(req.data.source, req.data.content);
+        break;
+    }
   });
 
   state.socketServer.register(BackIn.GET_MAIN_INIT_DATA, (event, req) => {

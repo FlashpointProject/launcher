@@ -251,10 +251,7 @@ async function getSha256FromFile(filePath: string): Promise<string> {
 }
 
 function log(content: string): void {
-  window.log.info({
-    source: 'Upgrade',
-    content: content
-  });
+  window.log.info('Upgrade', content);
 }
 
 /** Create a transform stream that reads the length of the data being passed along */
