@@ -534,6 +534,14 @@ body {
 .header__search__left {
   flex: 1 1 auto;
 }
+/** TODO - Stop this being so awful to look at */
+.header__search__left > .input-dropdown {
+  width: 12rem;
+}
+.header__search__left > .input-dropdown > .input-dropdown__content {
+  position: fixed;
+  width: inherit;
+}
 .header__search__right {
   flex: 0 0 auto;
   display: flex;
@@ -558,8 +566,7 @@ body {
   font-size: 1em;
   width: 100%;
   background: none;
-  border: none;
-  outline: none;
+  padding: 0.1rem;
 }
 /* Header Toggle-Sidebar */
 .header__toggle-sidebar {

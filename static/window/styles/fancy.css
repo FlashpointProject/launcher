@@ -348,10 +348,13 @@ body {
 }
 .header__search {
   border: 1px solid var(--layout__primary-outline-color);
-  background-color: var(--layout__primary-background);
+  background-color: var(--layout__primary-background); 
 }
 .header__search__input {
   color: var(--layout__primary-text-color);
+  border-color: var(--layout__primary-outline-color);
+  /** Override simple-input **/
+  background-color: inherit !important;
 }
 .header__search__icon .icon__use {
   fill: var(--layout__primary-text-color);
