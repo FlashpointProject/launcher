@@ -2,11 +2,9 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { AddLogData, BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
-import { getLibraryItemTitle } from '@shared/library/util';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { setTheme } from '@shared/Theme';
@@ -40,7 +38,7 @@ import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
 import { UpgradeStage } from './upgrade/types';
 import { UpgradeFile } from './upgrade/UpgradeFile';
-import { isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
+import { getBrowseSubPath, isFlashpointValidCheck, joinLibraryRoute, openConfirmDialog } from './Util';
 import { LangContext } from './util/lang';
 import { checkUpgradeStateInstalled, checkUpgradeStateUpdated, downloadAndInstallUpgrade } from './util/upgrade';
 
@@ -286,19 +284,20 @@ export class App extends React.Component<AppProps> {
         }
       }));
     });
+
     // Load Credits
     fetch(`${getFileServerURL()}/credits.json`)
     .then(res => res.json())
     .then(async (data) => {
-      this.props.setMainState({
+      this.props.dispatchMain({
+        type: MainActionType.SET_CREDITS,
         creditsData: CreditsFile.parseCreditsData(data),
-        creditsDoneLoading: true
       });
     })
     .catch((error) => {
       console.warn(error);
       log(`Failed to load credits.\n${error}`);
-      this.props.setMainState({ creditsDoneLoading: true });
+      this.props.dispatchMain({ type: MainActionType.SET_CREDITS });
     });
 
     // Updater code - DO NOT run in development environment!
@@ -350,9 +349,7 @@ export class App extends React.Component<AppProps> {
   componentDidUpdate(prevProps: AppProps) {
     const { history, location, preferencesData } = this.props;
     const library = getBrowseSubPath(this.props.location.pathname);
-    const prevLibrary = getBrowseSubPath(prevProps.location.pathname);
     const view = this.props.main.views[library];
-    const prevView = prevProps.main.views[prevLibrary];
 
     // Check if theme changed
     if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
@@ -368,14 +365,11 @@ export class App extends React.Component<AppProps> {
     }
 
     if (view) {
-      const prevPlaylist = prevView && prevView.selectedPlaylistId;
-
       // Check if any parameters for the search query has changed (they don't match the current view's)
       if (view.query.text                   !== this.props.search.text ||
           view.query.extreme                !== this.props.preferencesData.browsePageShowExtreme ||
           view.query.orderBy                !== this.props.preferencesData.gamesOrderBy ||
           view.query.orderReverse           !== this.props.preferencesData.gamesOrder ||
-          prevPlaylist                      !== view.selectedPlaylistId ||
           prevProps.main.playlists          !== this.props.main.playlists) {
         this.setViewQuery(library);
       }
@@ -525,10 +519,8 @@ export class App extends React.Component<AppProps> {
       upgrades: this.props.main.upgrades,
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,
-      gameScale: this.props.main.gameScale,
-      gameLayout: this.props.main.gameLayout,
       selectedGameId: view && view.selectedGameId,
-      selectedPlaylistId: view && view.selectedPlaylistId,
+      selectedPlaylistId: view && view.query.filter.playlistId,
       onSelectGame: this.onSelectGame,
       onDeletePlaylist: this.onPlaylistDelete,
       onUpdatePlaylist: this.onUpdatePlaylist,
@@ -581,13 +573,7 @@ export class App extends React.Component<AppProps> {
                   </noscript>
                 </div>
                 {/* Footer */}
-                <ConnectedFooter
-                  totalCount={this.props.main.gamesTotal}
-                  currentLabel={libraryPath && getLibraryItemTitle(libraryPath, this.props.main.lang.libraries)}
-                  currentCount={view && view.total || 0}
-                  onScaleSliderChange={this.onScaleSliderChange} scaleSliderValue={this.props.main.gameScale}
-                  onLayoutChange={this.onLayoutSelectorChange} layout={this.props.main.gameLayout}
-                  onNewGameClick={this.onNewGameClick} />
+                <ConnectedFooter />
                 {/* Meta Edit Popup */}
                 { this.props.main.metaEditExporterOpen ? (
                   <MetaEditExporter
@@ -609,22 +595,6 @@ export class App extends React.Component<AppProps> {
       gamesOrderBy: event.orderBy,
       gamesOrder: event.orderReverse
     });
-  }
-
-  private onScaleSliderChange = (value: number): void => {
-    this.props.setMainState({ gameScale: value });
-    // Update Preferences Data (this is to make it get saved on disk)
-    updatePreferencesData({ browsePageGameScale: value });
-  }
-
-  private onLayoutSelectorChange = (value: BrowsePageLayout): void => {
-    this.props.setMainState({ gameLayout: value });
-    // Update Preferences Data (this is to make it get saved on disk)
-    updatePreferencesData({ browsePageLayout: value });
-  }
-
-  private onNewGameClick = (): void => {
-    this.props.setMainState({ wasNewGameClicked: true });
   }
 
   private onToggleLeftSidebarClick = (): void => {
@@ -651,25 +621,7 @@ export class App extends React.Component<AppProps> {
 
   /** Set the selected playlist for a single "browse route" */
   private onSelectPlaylist = (library: string, playlistId: string | undefined): void => {
-    const view = this.props.main.views[library];
-    if (view) {
-      this.props.dispatchMain({
-        type: MainActionType.SET_VIEW_STATE,
-        library: library,
-        state: {
-          selectedPlaylistId: playlistId,
-          selectedGameId: undefined,
-        },
-      });
-    }
-  }
-
-  /** Updates the playlists state */
-  private updatePlaylists = (playlists: Playlist[], cache: Record<string, string>): void => {
-    this.props.setMainState({
-      playlists: playlists,
-      playlistIconCache: cache
-    });
+    this.setViewQuery(library, playlistId);
   }
 
   private onDownloadUpgradeClick = (stage: UpgradeStage, strings: LangContainer) => {
@@ -742,7 +694,7 @@ export class App extends React.Component<AppProps> {
     // Clear view caches (that use this playlist)
     for (const library in this.props.main.views) {
       const view = this.props.main.views[library];
-      if (view && (view.selectedPlaylistId === playlist.id)) {
+      if (view && (view.query.filter.playlistId === playlist.id)) {
         this.setViewQuery(library);
       }
     }
@@ -820,7 +772,11 @@ export class App extends React.Component<AppProps> {
     return names;
   });
 
-  setViewQuery = async (library: string = getBrowseSubPath(this.props.location.pathname)): Promise<void> => {
+  /**
+   * Set the query of a view.
+   * Note: If there is only one argument (counted by length) then the playlistId will remain the same.
+   */
+  setViewQuery = (function(this: App, library: string = getBrowseSubPath(this.props.location.pathname), playlistId?: string): void {
     this.props.dispatchMain({
       type: MainActionType.SET_VIEW_QUERY,
       library: library,
@@ -828,8 +784,11 @@ export class App extends React.Component<AppProps> {
       showExtreme: this.props.preferencesData.browsePageShowExtreme,
       orderBy: this.props.preferencesData.gamesOrderBy,
       orderReverse: this.props.preferencesData.gamesOrder,
+      playlistId: (arguments.length >= 2)
+        ? playlistId
+        : null,
     });
-  }
+  }).bind(this);
 
   updateView: UpdateView = (start, count) => {
     this.props.dispatchMain({
@@ -988,16 +947,6 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
     })
     .on('warn', console.warn);
   }
-}
-
-/** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
-function getBrowseSubPath(urlPath: string): string {
-  if (urlPath.startsWith(Paths.BROWSE)) {
-    let str = urlPath.substr(Paths.BROWSE.length);
-    if (str[0] === '/') { str = str.substring(1); }
-    return str;
-  }
-  return '';
 }
 
 async function cacheIcon(icon: string): Promise<string> {

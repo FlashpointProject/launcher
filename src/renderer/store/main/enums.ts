@@ -17,6 +17,8 @@ export enum MainActionType {
   ADD_VIEW_PAGES = '@@main/ADD_VIEW_PAGES',
   /** Set the order. This is a "central order" used by all views. */
   SET_ORDER = '@@main/SET_ORDER',
+  /** Set the credits data (or at least flag it as done loading it). */
+  SET_CREDITS = '@@main/SET_CREDITS',
 }
 
 export enum RequestState {

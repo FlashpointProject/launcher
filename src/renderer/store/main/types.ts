@@ -3,7 +3,6 @@ import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -33,8 +32,6 @@ export type View = {
   isDirty: boolean;
   /** Total number of results in the query of the most recent game page response (used for games even if dirty). */
   total?: number;
-  /** ID of the selected playlist. */
-  selectedPlaylistId?: string;
   /** ID of the selected game. */
   selectedGameId?: string;
   /** Most recent "start" page index that has been viewed. */
@@ -82,10 +79,6 @@ export type MainState = {
   /** Credits data (if any). */
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
-  /** Scale of the games. */
-  gameScale: number;
-  /** Layout of the browse page */
-  gameLayout: BrowsePageLayout;
   /** If the "New Game" button was clicked (silly way of passing the event from the footer the the browse page). */
   wasNewGameClicked: boolean;
   /** Current language container. */
@@ -110,6 +103,8 @@ export type MainAction = {
   showExtreme: boolean;
   orderBy: GameOrderBy;
   orderReverse: GameOrderReverse;
+  /** The playlistId can be of type string or undefined. Null means it will remain the same as before. */
+  playlistId: string | undefined | null;
 } | {
   type: MainActionType.SET_VIEW_BOUNDRIES;
   library: string;
@@ -132,4 +127,7 @@ export type MainAction = {
   type: MainActionType.REQUEST_VIEW_PAGES;
   library: string;
   pages: number[];
+} | {
+  type: MainActionType.SET_CREDITS;
+  creditsData?: CreditsData;
 }

@@ -279,3 +279,13 @@ export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
     orderReverse: opts.order.orderReverse,
   };
 }
+
+/** Get the "library route" of a url (returns empty string if URL is not a valid "sub-browse path") */
+export function getBrowseSubPath(urlPath: string): string {
+  if (urlPath.startsWith(Paths.BROWSE)) {
+    let str = urlPath.substr(Paths.BROWSE.length);
+    if (str[0] === '/') { str = str.substring(1); }
+    return str;
+  }
+  return '';
+}

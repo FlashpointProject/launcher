@@ -43,10 +43,6 @@ type OwnProps = {
 
   /** Most recent search query. */
   search: SearchQuery;
-  /** Scale of the games. */
-  gameScale: number;
-  /** Layout of the games. */
-  gameLayout: BrowsePageLayout;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently selected playlist (if any). */
@@ -213,9 +209,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           className='game-browser__center'
           onKeyDown={this.onCenterKeyDown}>
           {(() => {
-            if (this.props.gameLayout === BrowsePageLayout.grid) {
+            if (this.props.preferencesData.browsePageLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-              const height: number = calcScale(350, this.props.gameScale);
+              const height: number = calcScale(350, this.props.preferencesData.browsePageGameScale);
               const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid
@@ -235,7 +231,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   gridRef={this.gameGridOrListRefFunc} />
               );
             } else {
-              const height: number = calcScale(30, this.props.gameScale);
+              const height: number = calcScale(30, this.props.preferencesData.browsePageGameScale);
               return (
                 <GameList
                   games={games}

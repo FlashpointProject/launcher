@@ -11,7 +11,6 @@ import { TagList } from '../TagList';
 import { TagListItem } from '../TagListItem';
 
 type OwnProps = {
-  tagScale: number;
 }
 
 export type TagsPageProps = OwnProps & WithTagCategoriesProps & WithPreferencesProps;
@@ -54,7 +53,7 @@ export class TagsPage extends React.Component<TagsPageProps, TagsPageState> {
   }
 
   render() {
-    const rowHeight = calcScale(40, this.props.tagScale);
+    const rowHeight = calcScale(40, this.props.preferencesData.browsePageGameScale);
 
     return (
       <div className='tags-page simple-scroll'>

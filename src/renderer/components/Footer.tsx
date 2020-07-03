@@ -1,30 +1,15 @@
-import { BrowsePageLayout, parseBrowsePageLayout, stringifyBrowsePageLayout } from '@shared/BrowsePageLayout';
+import { WithMainStateProps } from '@renderer/containers/withMainState';
+import { parseBrowsePageLayout, stringifyBrowsePageLayout } from '@shared/BrowsePageLayout';
 import { LangContainer } from '@shared/lang';
+import { getLibraryItemTitle } from '@shared/library/util';
+import { updatePreferencesData } from '@shared/preferences/util';
 import * as React from 'react';
+import { RouteComponentProps } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
-import { gameScaleSpan } from '../Util';
+import { gameScaleSpan, getBrowseSubPath } from '../Util';
 import { LangContext } from '../util/lang';
 
-type OwnProps = {
-  /** Total number of games. */
-  totalCount?: number;
-  /** Label of the current browse library (if any). */
-  currentLabel?: string;
-  /** Number of games in the current browse library (if there is a current browse library). */
-  currentCount?: number;
-  /** Value of the scale slider (between 0 and 1). */
-  scaleSliderValue: number;
-  /** Called when the value of the scale slider is changed (value is between 0 and 1). */
-  onScaleSliderChange?: (value: number) => void;
-  /** Current BrowsePage layout. */
-  layout: BrowsePageLayout;
-  /** Called when the value of the layout selector is changed. */
-  onLayoutChange?: (value: BrowsePageLayout) => void;
-  /** Called when the "New Game" button is clicked. */
-  onNewGameClick?: () => void;
-};
-
-export type FooterProps = OwnProps & WithPreferencesProps;
+export type FooterProps = RouteComponentProps & WithPreferencesProps & WithMainStateProps;
 
 export interface Footer {
   context: LangContainer;
@@ -46,19 +31,22 @@ export class Footer extends React.Component<FooterProps> {
 
   render() {
     const strings = this.context.app;
-    const { currentCount, currentLabel, layout, onNewGameClick, preferencesData, scaleSliderValue, totalCount } = this.props;
-    const scale = Math.min(Math.max(0, scaleSliderValue), 1);
+    const scale = Math.min(Math.max(0, this.props.preferencesData.browsePageGameScale), 1);
+    const libraryPath = getBrowseSubPath(this.props.location.pathname);
+    const currentLabel = libraryPath && getLibraryItemTitle(libraryPath, this.props.main.lang.libraries);
+    const view = this.props.main.views[libraryPath];
+
     return (
       <div className='footer'>
         {/* Left Side */}
         <div className='footer__wrap'>
           {/* Game Count */}
           <div className='footer__game-count'>
-            <p>{`${strings.total}: ${totalCount}`}</p>
+            <p>{`${strings.total}: ${this.props.main.gamesTotal}`}</p>
             { currentLabel && strings.searchResults ? (
               <>
                 <p>|</p>
-                <p>{`${strings.searchResults}: ${currentCount}`}</p>
+                <p>{`${strings.searchResults}: ${view && view.total || 0}`}</p>
               </>
             ) : undefined }
           </div>
@@ -68,13 +56,13 @@ export class Footer extends React.Component<FooterProps> {
           <div>
             <div className='footer__right__inner'>
               {/* New Game */}
-              { preferencesData.enableEditing ? (
+              { this.props.preferencesData.enableEditing ? (
                 <div className='footer__wrap'>
                   <div className='simple-center'>
                     <input
                       type='button'
                       value={strings.newGame}
-                      onClick={onNewGameClick}
+                      onClick={this.onNewGameClick}
                       className='footer__new-game simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
@@ -84,7 +72,7 @@ export class Footer extends React.Component<FooterProps> {
                 <div>
                   <select
                     className='footer__layout-selector simple-selector'
-                    value={stringifyBrowsePageLayout(layout)}
+                    value={stringifyBrowsePageLayout(this.props.preferencesData.browsePageLayout)}
                     onChange={this.onLayoutChange}>
                     <option value='list'>{strings.list}</option>
                     <option value='grid'>{strings.grid}</option>
@@ -122,16 +110,19 @@ export class Footer extends React.Component<FooterProps> {
     );
   }
 
+  onNewGameClick = () => {
+    // @TODO Replace this with an proper action (it should both change the location and state of the current or most recent view)
+    this.props.setMainState({ wasNewGameClicked: true });
+  }
+
   onScaleSliderChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    this.scaleSliderChange(event.target);
+    updatePreferencesData({ browsePageGameScale: +event.currentTarget.value / Footer.scaleSliderMax });
   }
 
   onLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    if (this.props.onLayoutChange) {
-      const value = parseBrowsePageLayout(event.target.value);
-      if (value === undefined) { throw new Error(`Layout selector option has an invalid value (${event.target.value})`); }
-      this.props.onLayoutChange(value);
-    }
+    const value = parseBrowsePageLayout(event.target.value);
+    if (value === undefined) { throw new Error(`Layout selector option has an invalid value (${event.target.value})`); }
+    updatePreferencesData({ browsePageLayout: value });
   }
 
   onGlobalKeydown = (event: KeyboardEvent): void => {
@@ -143,20 +134,10 @@ export class Footer extends React.Component<FooterProps> {
       event.preventDefault();
     }
     // Decrease Game Scale (CTRL MINUS)
-    if (event.ctrlKey && event.key === '-') {
+    else if (event.ctrlKey && event.key === '-') {
       const scale = this.props.preferencesData.browsePageGameScale;
       this.setScaleSliderValue(scale - scaleDif);
       event.preventDefault();
-    }
-  }
-
-  /**
-   * Call this after the scale slider element has changed value.
-   * @param element Scale slider element.
-   */
-  scaleSliderChange(element: HTMLInputElement): void {
-    if (this.props.onScaleSliderChange) {
-      this.props.onScaleSliderChange(element.valueAsNumber / Footer.scaleSliderMax);
     }
   }
 
@@ -167,8 +148,8 @@ export class Footer extends React.Component<FooterProps> {
   setScaleSliderValue(scale: number): void {
     if (this.scaleSliderRef.current) {
       const value = Math.min(Math.max(0, scale), 1) * Footer.scaleSliderMax;
-      this.scaleSliderRef.current.value = value+'';
-      this.scaleSliderChange(this.scaleSliderRef.current);
+      this.scaleSliderRef.current.value = value + '';
+      updatePreferencesData({ browsePageGameScale: scale });
     }
   }
 

@@ -19,6 +19,10 @@ export function mainStateReducer(state: MainState = createInitialState(), action
 
       if (!view) { return state; }
 
+      const playlistId = (action.playlistId !== null)
+        ? action.playlistId
+        : view.query.filter.playlistId;
+
       return {
         ...state,
         views: {
@@ -29,7 +33,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
               text: action.searchText,
               extreme: action.showExtreme,
               library: action.library,
-              playlistId: view.selectedPlaylistId,
+              playlistId: playlistId,
               order: {
                 orderBy: action.orderBy,
                 orderReverse: action.orderReverse,
@@ -186,6 +190,14 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         },
       };
     }
+
+    case MainActionType.SET_CREDITS: {
+      return {
+        ...state,
+        creditsDoneLoading: true,
+        creditsData: action.creditsData,
+      };
+    }
   }
 }
 
@@ -216,8 +228,6 @@ function createInitialState(): MainState {
     stopRender: false,
     creditsData: undefined,
     creditsDoneLoading: false,
-    gameScale: 1,
-    gameLayout: 1,
     lang: createLangContainer(),
     langList: [],
     wasNewGameClicked: false,

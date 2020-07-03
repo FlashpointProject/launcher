@@ -3,7 +3,6 @@ import { createMemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { GameOrderChangeEvent } from './components/GameOrder';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
@@ -53,11 +52,6 @@ import { rebuildQuery } from './Util';
 function createInitialMainState(): MainState {
   const preferencesData = window.Shared.preferences.data;
 
-  const order: GameOrderChangeEvent = {
-    orderBy: preferencesData.gamesOrderBy,
-    orderReverse: preferencesData.gamesOrder
-  };
-
   // Prepare libraries
   const libraries = window.Shared.initialLibraries.sort();
   const serverNames = window.Shared.initialServerNames.sort();
@@ -70,7 +64,10 @@ function createInitialMainState(): MainState {
         extreme: preferencesData.browsePageShowExtreme,
         library: library,
         playlistId: undefined,
-        order: order,
+        order: {
+          orderBy: preferencesData.gamesOrderBy,
+          orderReverse: preferencesData.gamesOrder
+        },
       }),
       pageState: {},
       meta: undefined,
@@ -79,7 +76,6 @@ function createInitialMainState(): MainState {
       queryId: 0,
       isDirty: false,
       total: undefined,
-      selectedPlaylistId: undefined,
       selectedGameId: undefined,
       lastStart: 0,
       lastCount: 0,
@@ -118,8 +114,6 @@ function createInitialMainState(): MainState {
     stopRender: false,
     creditsData: undefined,
     creditsDoneLoading: false,
-    gameScale: preferencesData.browsePageGameScale,
-    gameLayout: preferencesData.browsePageLayout,
     lang: window.Shared.initialLang,
     langList: window.Shared.initialLangList,
     wasNewGameClicked: false,

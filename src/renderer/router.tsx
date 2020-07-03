@@ -2,7 +2,6 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { Theme } from '@shared/ThemeFile';
@@ -17,8 +16,8 @@ import { ConnectedConfigPage, ConnectedConfigPageProps } from './containers/Conn
 import { ConnectedCuratePage, ConnectedCuratePageProps } from './containers/ConnectedCuratePage';
 import { ConnectedHomePage, ConnectedHomePageProps } from './containers/ConnectedHomePage';
 import { ConnectedLogsPage } from './containers/ConnectedLogsPage';
-import { ConnectedTagCategoriesPage, ConnectedTagCategoriesPageProps } from './containers/ConnectedTagCategoriesPage';
-import { ConnectedTagsPage, ConnectedTagsPageProps } from './containers/ConnectedTagsPage';
+import { ConnectedTagCategoriesPage } from './containers/ConnectedTagCategoriesPage';
+import { ConnectedTagsPage } from './containers/ConnectedTagsPage';
 import { CreditsData } from './credits/types';
 import { UpdateView, ViewGameSet } from './interfaces';
 import { Paths } from './Paths';
@@ -49,8 +48,6 @@ export type AppRouterProps = {
   upgrades: UpgradeStage[];
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
-  gameScale: number;
-  gameLayout: BrowsePageLayout;
   selectedGameId?: string;
   selectedPlaylistId?: string;
   onSelectGame: (gameId?: string) => void;
@@ -91,8 +88,6 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onDeleteGame: this.props.onDeleteGame,
       onQuickSearch: this.props.onQuickSearch,
       onOpenExportMetaEdit: this.props.onOpenExportMetaEdit,
-      gameScale: this.props.gameScale,
-      gameLayout: this.props.gameLayout,
       selectedGameId: this.props.selectedGameId,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
@@ -101,12 +96,6 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
-    };
-    const tagsProps: ConnectedTagsPageProps = {
-      tagScale: this.props.gameScale
-    };
-    const tagCategoriesProps: ConnectedTagCategoriesPageProps = {
-      tagScale: this.props.gameScale
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
@@ -143,12 +132,10 @@ export class AppRouter extends React.Component<AppRouterProps> {
           { ...browseProps } />
         <PropsRoute
           path={Paths.TAGS}
-          component={ConnectedTagsPage}
-          { ...tagsProps } />
+          component={ConnectedTagsPage} />
         <PropsRoute
           path={Paths.CATEGORIES}
-          component={ConnectedTagCategoriesPage}
-          { ...tagCategoriesProps } />
+          component={ConnectedTagCategoriesPage} />
         <PropsRoute
           path={Paths.LOGS}
           component={ConnectedLogsPage} />
