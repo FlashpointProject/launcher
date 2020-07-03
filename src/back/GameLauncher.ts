@@ -6,7 +6,7 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { ChildProcess, exec, execFile } from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
+import { OpenDialogFunc, OpenExternalFunc } from './types';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
@@ -24,7 +24,6 @@ type LaunchBaseOpts = {
   lang: LangContainer;
   isDev: boolean;
   exePath: string;
-  log: LogFunc;
   openDialog: OpenDialogFunc;
   openExternal: OpenExternalFunc;
 }
@@ -67,7 +66,7 @@ export namespace GameLauncher {
           createCommand(appPath, appArgs, useWine),
           { env: getEnvironment(opts.fpPath) }
         );
-        logProcessOutput(proc, opts.log);
+        logProcessOutput(proc);
         opts.log({
           source: logSource,
           content: `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,
@@ -123,7 +122,7 @@ export namespace GameLauncher {
           [path.join(__dirname, '../main/index.js'), 'flash=true', opts.game.launchCommand],
           { env, cwd: process.cwd() }
         );
-        logProcessOutput(proc, opts.log);
+        logProcessOutput(proc);
         opts.log({
           source: logSource,
           content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
@@ -137,7 +136,7 @@ export namespace GameLauncher {
         const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
         const command: string = createCommand(gamePath, gameArgs, useWine);
         const proc = exec(command, { env: getEnvironment(opts.fpPath) });
-        logProcessOutput(proc, opts.log);
+        logProcessOutput(proc);
         opts.log({
           source: logSource,
           content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
@@ -230,14 +229,14 @@ export namespace GameLauncher {
     }
   }
 
-  function logProcessOutput(proc: ChildProcess, log: LogFunc): void {
+  function logProcessOutput(proc: ChildProcess): void {
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
     const logInfo = (event: string, args: any[]): void => {
-      global.log.info(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
+      log.info(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
     };
     const logErr = (event: string, args: any[]): void => {
-      global.log.error(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
+      log.error(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
     };
     registerEventListeners(proc, [/* 'close', */ 'disconnect', 'exit', 'message'], logInfo);
     registerEventListeners(proc, ['error'], logErr);

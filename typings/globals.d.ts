@@ -19,6 +19,7 @@ declare global {
       log: LogFuncs;
     }
   }
+  let log: LogFuncs;
 }
 
 /** Add missing declarations ("polyfill" type information) */

@@ -11,6 +11,7 @@ import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, INamedBackProcessInfo, IService, ProcessAction } from '@shared/interfaces';
+import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -33,10 +34,9 @@ import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
 import { BackState, BareTag, TagsFile } from './types';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, log, newLogEntry, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
-import { LogLevel } from '@shared/Log/interface';
 
 const axios = axiosImport.default;
 const copyFile  = util.promisify(fs.copyFile);
@@ -52,19 +52,19 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register<AddLogData>(BackIn.ADD_LOG, (event, req) => {
     switch (req.data.logLevel) {
       case LogLevel.TRACE:
-        global.log.trace(req.data.source, req.data.content);
+        log.trace(req.data.source, req.data.content);
         break;
       case LogLevel.DEBUG:
-        global.log.debug(req.data.source, req.data.content);
+        log.debug(req.data.source, req.data.content);
         break;
       case LogLevel.INFO:
-        global.log.info(req.data.source, req.data.content);
+        log.info(req.data.source, req.data.content);
         break;
       case LogLevel.WARN:
-        global.log.warn(req.data.source, req.data.content);
+        log.warn(req.data.source, req.data.content);
         break;
       case LogLevel.ERROR:
-        global.log.error(req.data.source, req.data.content);
+        log.error(req.data.source, req.data.content);
         break;
     }
   });
@@ -213,7 +213,6 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
@@ -250,7 +249,6 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
@@ -400,7 +398,7 @@ export function registerRequestCallbacks(state: BackState): void {
         }
       }
       await GameManager.updatePlaylist(newPlaylist);
-      log(state, newLogEntry('Launcher', `Imported playlist - ${newPlaylist.title}`));
+      log.info('Launcher', `Imported playlist - ${newPlaylist.title}`);
       state.socketServer.broadcast<PlaylistsChangeData>({
         id: '',
         type: BackOut.PLAYLISTS_CHANGE,
@@ -722,10 +720,7 @@ export function registerRequestCallbacks(state: BackState): void {
         await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
         await writeFile(fullPath, Buffer.from(req.data.content, 'base64'));
       } catch (e) {
-        log(state, {
-          source: 'Launcher',
-          content: e + '',
-        });
+        log.error('Launcher', e + '');
       }
     }
 
@@ -771,7 +766,7 @@ export function registerRequestCallbacks(state: BackState): void {
     overwriteConfigData(newConfig, req.data);
 
     try { await ConfigFile.saveFile(path.join(state.configFolder, CONFIG_FILENAME), newConfig); }
-    catch (error) { log(state, { source: 'Launcher', content: error }); }
+    catch (error) { log.error('Launcher', error); }
 
     respond(event.target, {
       id: req.id,
@@ -1030,7 +1025,6 @@ export function registerRequestCallbacks(state: BackState): void {
       await importCuration({
         curation: req.data.curation,
         gameManager: state.gameManager,
-        log: req.data.log ? log.bind(undefined, state) : undefined,
         date: (req.data.date !== undefined) ? new Date(req.data.date) : undefined,
         saveCuration: req.data.saveCuration,
         fpPath: state.config.flashpointPath,
@@ -1087,15 +1081,11 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
     } catch (e) {
-      log(state, {
-        source: 'Launcher',
-        content: e + '',
-      });
+      log.error('Launcher', e + '');
     }
 
     respond(event.target, {
@@ -1116,15 +1106,11 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        log: log.bind(undefined, state),
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
     } catch (e) {
-      log(state, {
-        source: 'Launcher',
-        content: e + '',
-      });
+      log.error('Launcher', e + '');
     }
 
     respond(event.target, {
@@ -1251,10 +1237,7 @@ export function registerRequestCallbacks(state: BackState): void {
             await writeFile(filePath, JSON.stringify(output, null, '\t'));
           }
         } catch (error) {
-          log(state, {
-            source: 'Launcher',
-            content: `Failed to export meta edit.\nError: ${error.message || error}`,
-          });
+          log.error('Launcher', `Failed to export meta edit.\nError: ${error.message || error}`);
         }
       }
     }
