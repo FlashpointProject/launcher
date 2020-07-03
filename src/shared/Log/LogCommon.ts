@@ -5,15 +5,15 @@ export const timeChars = 11; // "[HH:MM:SS] "
 const sourceChars = 19; // "Background Services" (sometimes used with +2 to add the length of ": ")
 
 /** Create a HTML string of a number of entries */
-export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string]: boolean } = {}): string {
+export function stringifyLogEntries(entries: ILogEntry[], sourceFilter: { [key: string]: boolean } = {}, levelFilter: { [key in LogLevel]: boolean }): string {
   let str = '';
   let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0, logLevel: -1 };
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
     // Temp fix for array gaps
     if (entry) {
-      const entryFilter = filter[entry.source];
-      if (entryFilter === true || entryFilter === undefined) {
+      const entryFilter = (sourceFilter[entry.source] || true) && levelFilter[entry.logLevel];
+      if (entryFilter === true) {
         str += `${getLevelIcon(entry.logLevel)} `;
         str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
         if (entry.source) {
@@ -23,21 +23,21 @@ export function stringifyLogEntries(entries: ILogEntry[], filter: { [key: string
         }
         str += padLines(escapeHTML(entry.content), timeChars + sourceChars + 2);
         str += '\n';
+        prevEntry = entry;
       }
     }
-    prevEntry = entry;
   }
   return str;
 }
 
 /** Create a HTML string of a number of entries */
-export function stringifyLogEntriesRaw(entries: ILogEntry[], filter: { [key: string]: boolean } = {}): string {
+export function stringifyLogEntriesRaw(entries: ILogEntry[], sourceFilter: { [key: string]: boolean } = {}, levelFilter: { [key in LogLevel]: boolean }): string {
   let str = '';
   let prevEntry: ILogEntry = { source: '', content: '', timestamp: 0, logLevel: -1 };
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    const entryFilter = filter[entry.source];
-    if (entryFilter === true || entryFilter === undefined) {
+    const entryFilter = (sourceFilter[entry.source] || true) && levelFilter[entry.logLevel];
+    if (entryFilter === true) {
       str += `${getLevelIcon(entry.logLevel)} `;
       str += `[${(new Date(entry.timestamp)).toLocaleString()}] `;
       if (entry.source) {
@@ -47,8 +47,8 @@ export function stringifyLogEntriesRaw(entries: ILogEntry[], filter: { [key: str
       }
       str += padLines(entry.content, timeChars + sourceChars + 2);
       str += '\n';
+      prevEntry = entry;
     }
-    prevEntry = entry;
   }
   return str;
 }

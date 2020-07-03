@@ -1,11 +1,13 @@
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { GameOrderBy, GameOrderReverse } from '../order/interfaces';
+import { LogLevel } from '@shared/Log/interface';
 
 /**
  * Contains state of all non-config settings the user can change in the application.
  * This is the data contained in the Preferences file.
  */
 export type IAppPreferencesData = {
+  [key: string]: any;
   /** Scale of the games at the BrowsePage. */
   browsePageGameScale: number;
   /** If "Extreme" games should be shown at the BrowsePage. */
@@ -51,6 +53,10 @@ export type IAppPreferencesData = {
   /** Sources to show/hide in the log page. */
   showLogSource: {
     [key: string]: boolean;
+  }
+  /** Levels to show/hide in the log page. */
+  showLogLevel: {
+    [key in LogLevel]: boolean;
   }
   /** Libraries that should be excluded from random picks. */
   excludedRandomLibraries: string[];

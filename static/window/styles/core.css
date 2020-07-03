@@ -1122,6 +1122,12 @@ body {
   flex-direction: column;
   justify-content: center;
 }
+.log-page__bar__row {
+  display: flex;
+}
+.log-page__bar__row .simple-dropdown {
+  margin-right: 0.5rem;
+}
 .log-page__bar__right {
   flex-grow: 1;
 }

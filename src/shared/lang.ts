@@ -86,6 +86,7 @@ const langTemplate = {
   ] as const,
   logs: [
     'filters',
+    'logLevels',
     'copyText',
     'clearLog',
     'copy404Urls',

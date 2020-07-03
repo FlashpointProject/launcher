@@ -10,7 +10,6 @@ import { BackOut } from '@shared/back/types';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
-import { ILogPreEntry } from '@shared/Log/interface';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -282,11 +281,4 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
       }
     });
   }
-}
-
-export function newLogEntry(source: string, content: string): ILogPreEntry {
-  return {
-    source: source,
-    content: content
-  };
 }

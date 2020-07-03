@@ -124,7 +124,6 @@ const onInit = (async () => {
         fullJsonFolderPath: path.resolve(response.data.config.flashpointPath, response.data.config.jsonFolderPath),
       };
       window.Shared.fileServerPort = response.data.fileServerPort;
-      console.log(response.data.log);
       window.Shared.log.entries = response.data.log;
       window.Shared.services = response.data.services;
       window.Shared.customVersion = response.data.customVersion;
