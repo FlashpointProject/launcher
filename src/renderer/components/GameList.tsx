@@ -1,5 +1,4 @@
 import { VIEW_PAGE_SIZE } from '@shared/constants';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
 import { UpdateView, ViewGameSet } from '../interfaces';
@@ -36,9 +35,6 @@ export type GameListProps = {
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd: (event: React.DragEvent, gameId: string) => void;
   updateView: UpdateView;
-  // React-Virtualized pass-through props (their values are not used for anything other than updating the grid when changed)
-  orderBy?: GameOrderBy;
-  orderReverse?: GameOrderReverse;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   listRef?: RefFunc<HTMLDivElement>;
 };
@@ -134,8 +130,6 @@ export class GameList extends React.Component<GameListProps> {
                       onSectionRendered={onSectionRendered}
                       // Pass-through props (they have no direct effect on the list)
                       // (If any property is changed the list is re-rendered, even these)
-                      pass_orderBy={this.props.orderBy}
-                      pass_orderReverse={this.props.orderReverse}
                       pass_gamesChanged={gamesChanged} />
                   )}
                 </ArrowKeyStepper>

@@ -23,7 +23,6 @@ import { queueOne } from '../../util/queue';
 import { uuid } from '../../util/uuid';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
-import { GameOrderChangeEvent } from '../GameOrder';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
@@ -44,8 +43,6 @@ type OwnProps = {
 
   /** Most recent search query. */
   search: SearchQuery;
-  /** Current parameters for ordering games. */
-  order?: GameOrderChangeEvent;
   /** Scale of the games. */
   gameScale: number;
   /** Layout of the games. */
@@ -176,7 +173,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
     const { draggedGameId } = this.state;
-    const order = this.props.order || BrowsePage.defaultOrder;
     // Render
     return (
       <div
@@ -234,8 +230,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
-                  orderBy={order.orderBy}
-                  orderReverse={order.orderReverse}
                   cellWidth={width}
                   cellHeight={height}
                   gridRef={this.gameGridOrListRefFunc} />
@@ -255,8 +249,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   updateView={this.props.updateView}
-                  orderBy={order.orderBy}
-                  orderReverse={order.orderReverse}
                   rowHeight={height}
                   listRef={this.gameGridOrListRefFunc} />
               );
@@ -897,11 +889,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   gameGridOrListRefFunc = (ref: HTMLDivElement | null): void => {
     this.gameGridOrListRef = ref;
-  }
-
-  static defaultOrder: Readonly<GameOrderChangeEvent> = {
-    orderBy: 'title',
-    orderReverse: 'ASC',
   }
 
   static contextType = LangContext;

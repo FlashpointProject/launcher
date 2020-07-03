@@ -1,11 +1,14 @@
 import { Game } from '@database/entity/Game';
 import { AddLogData, BackIn } from '@shared/back/types';
 import { htdocsPath } from '@shared/constants';
+import { parseSearchText } from '@shared/game/GameFilter';
 import { getFileServerURL } from '@shared/Util';
 import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { GameOrderChangeEvent } from './components/GameOrder';
 import { Paths } from './Paths';
+import { ViewQuery } from './store/main/types';
 
 export const gameIdDataType = 'text/game-id';
 
@@ -249,4 +252,30 @@ export async function openConfirmDialog(title: string, message: string, cancel =
 // @TODO Move this to the back process
 export function isFlashpointValidCheck(flashpointPath: string): Promise<boolean> {
   return new Promise(resolve => fs.stat(path.join(flashpointPath, 'FPSoftware'), error => resolve(!error)));
+}
+
+type RebuildQueryOpts = {
+  text: string;
+  extreme: boolean;
+  library: string;
+  playlistId: string | undefined;
+  order: GameOrderChangeEvent;
+}
+
+export function rebuildQuery(opts: RebuildQueryOpts): ViewQuery {
+  const searchQuery = parseSearchText(opts.text);
+  searchQuery.whitelist.push({ field: 'library', value: opts.library });
+  if (!opts.extreme)                              { searchQuery.whitelist.push({ field: 'extreme', value: false }); }
+  if (!window.Shared.config.data.showBrokenGames) { searchQuery.whitelist.push({ field: 'broken',  value: false }); }
+
+  return {
+    text: opts.text,
+    extreme: opts.extreme,
+    filter: {
+      searchQuery: searchQuery,
+      playlistId: opts.playlistId,
+    },
+    orderBy: opts.order.orderBy,
+    orderReverse: opts.order.orderReverse,
+  };
 }

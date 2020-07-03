@@ -3,12 +3,16 @@ import { createMemoryHistory } from 'history';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
+import { GameOrderChangeEvent } from './components/GameOrder';
 import configureStore from './configureStore';
 import ConnectedApp from './containers/ConnectedApp';
 import { ContextReducerProvider } from './context-reducer/ContextReducerProvider';
 import { CurationContext } from './context/CurationContext';
 import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
+import { RequestState } from './store/main/enums';
+import { MainState, View } from './store/main/types';
+import { rebuildQuery } from './Util';
 
 (async () => {
   // Toggle DevTools when CTRL+SHIFT+I is pressed
@@ -18,12 +22,18 @@ import { ProgressContext } from './context/ProgressContext';
       event.preventDefault();
     }
   });
+
   // Wait for the preferences and config to initialize
   await window.Shared.waitUntilInitialized();
+
   // Create history
   const history = createMemoryHistory();
+
   // Create Redux store
-  const store = configureStore(history);
+  const store = configureStore(history, {
+    main: createInitialMainState(),
+  });
+
   // Render the application
   ReactDOM.render((
     <Provider store={store}>
@@ -39,3 +49,82 @@ import { ProgressContext } from './context/ProgressContext';
     </Provider>
   ), document.getElementById('root'));
 })();
+
+function createInitialMainState(): MainState {
+  const preferencesData = window.Shared.preferences.data;
+
+  const order: GameOrderChangeEvent = {
+    orderBy: preferencesData.gamesOrderBy,
+    orderReverse: preferencesData.gamesOrder
+  };
+
+  // Prepare libraries
+  const libraries = window.Shared.initialLibraries.sort();
+  const serverNames = window.Shared.initialServerNames.sort();
+  const mad4fpEnabled = window.Shared.initialMad4fpEnabled;
+  const views: Record<string, View> = {};
+  for (const library of libraries) {
+    views[library] = {
+      query: rebuildQuery({
+        text: '',
+        extreme: preferencesData.browsePageShowExtreme,
+        library: library,
+        playlistId: undefined,
+        order: order,
+      }),
+      pageState: {},
+      meta: undefined,
+      metaState: RequestState.WAITING,
+      games: {},
+      queryId: 0,
+      isDirty: false,
+      total: undefined,
+      selectedPlaylistId: undefined,
+      selectedGameId: undefined,
+      lastStart: 0,
+      lastCount: 0,
+    };
+  }
+
+  // Prepare platforms
+  const platforms: Record<string, string[]> = {};
+  for (const library of libraries) {
+    platforms[library] = window.Shared.initialPlatforms[library].slice().sort();
+  }
+
+  return {
+    views: views,
+    libraries: libraries,
+    serverNames: serverNames,
+    mad4fpEnabled: mad4fpEnabled,
+    playlists: window.Shared.initialPlaylists || [],
+    playlistIconCache: {},
+    suggestions: {},
+    appPaths: {},
+    platforms: platforms,
+    loaded: {
+      0: false,
+      1: false,
+      2: false,
+    },
+    themeList: window.Shared.initialThemes,
+    gamesTotal: -1,
+    randomGames: [],
+    requestingRandomGames: false,
+    localeCode: window.Shared.initialLocaleCode,
+    upgrades: [],
+    gamesDoneLoading: false,
+    upgradesDoneLoading: false,
+    stopRender: false,
+    creditsData: undefined,
+    creditsDoneLoading: false,
+    gameScale: preferencesData.browsePageGameScale,
+    gameLayout: preferencesData.browsePageLayout,
+    lang: window.Shared.initialLang,
+    langList: window.Shared.initialLangList,
+    wasNewGameClicked: false,
+    updateInfo: undefined,
+    metaEditExporterOpen: false,
+    metaEditExporterGameId: '',
+  };
+}

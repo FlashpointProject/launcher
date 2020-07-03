@@ -1,6 +1,5 @@
 import { BackOut, ImageChangeData, WrappedResponse } from '@shared/back/types';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
-import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, RenderedSection } from 'react-virtualized/dist/es/Grid';
@@ -44,9 +43,6 @@ export type GameGridProps = {
   /** Called when the user stops dragging a game (when they release it). */
   onGameDragEnd?: (event: React.DragEvent, gameId: string) => void;
   updateView: UpdateView;
-  // React-Virtualized pass-through props (their values are not used for anything other than updating the grid when changed)
-  orderBy?: GameOrderBy;
-  orderReverse?: GameOrderReverse;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   gridRef?: RefFunc<HTMLDivElement>;
 };
@@ -165,8 +161,6 @@ export class GameGrid extends React.Component<GameGridProps> {
                       onSectionRendered={(params: RenderedSection) => this.onSectionRendered(params, columns, onSectionRendered)}
                       // Pass-through props (they have no direct effect on the grid)
                       // (If any property is changed the grid is re-rendered, even these)
-                      pass_orderBy={this.props.orderBy}
-                      pass_orderReverse={this.props.orderReverse}
                       pass_currentGamesCount={this.currentGamesCount} />
                   );
                 }}
