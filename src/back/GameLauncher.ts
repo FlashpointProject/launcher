@@ -67,10 +67,7 @@ export namespace GameLauncher {
           { env: getEnvironment(opts.fpPath) }
         );
         logProcessOutput(proc);
-        opts.log({
-          source: logSource,
-          content: `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,
-        });
+        log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,);
         return new Promise((resolve, reject) => {
           if (proc.killed) { resolve(); }
           else {
@@ -98,7 +95,6 @@ export namespace GameLauncher {
         lang: opts.lang,
         isDev: opts.isDev,
         exePath: opts.exePath,
-        log: opts.log,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
       };
@@ -123,12 +119,9 @@ export namespace GameLauncher {
           { env, cwd: process.cwd() }
         );
         logProcessOutput(proc);
-        opts.log({
-          source: logSource,
-          content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+        log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
                   `    applicationPath: "${appPath}",\n`+
-                  `    launchCommand:   "${opts.game.launchCommand}" ]`
-        });
+                  `    launchCommand:   "${opts.game.launchCommand}" ]`);
       } break;
       default: {
         const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
@@ -137,13 +130,10 @@ export namespace GameLauncher {
         const command: string = createCommand(gamePath, gameArgs, useWine);
         const proc = exec(command, { env: getEnvironment(opts.fpPath) });
         logProcessOutput(proc);
-        opts.log({
-          source: logSource,
-          content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
                    `    applicationPath: "${opts.game.applicationPath}",\n`+
                    `    launchCommand:   "${opts.game.launchCommand}",\n`+
-                   `    command:         "${command}" ]`
-        });
+                   `    command:         "${command}" ]`);
         // Show popups for Unity games
         // (This is written specifically for the "startUnity.bat" batch file)
         if (opts.game.platform === 'Unity' && proc.stdout) {

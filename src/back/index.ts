@@ -101,7 +101,6 @@ global.log = {
   warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog),
   error: logFactory(LogLevel.ERROR, state.socketServer, addLog)
 };
-log.info('test', 'test');
 registerRequestCallbacks(state);
 
 process.on('message', onProcessMessage);

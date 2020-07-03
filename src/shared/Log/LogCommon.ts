@@ -54,20 +54,7 @@ export function stringifyLogEntriesRaw(entries: ILogEntry[], filter: { [key: str
 }
 
 function getLevelIcon(logLevel: LogLevel) {
-  switch (logLevel) {
-    case LogLevel.TRACE:
-      return 'T';
-    case LogLevel.DEBUG:
-      return 'D';
-    case LogLevel.INFO:
-      return 'I';
-    case LogLevel.WARN:
-      return 'W';
-    case LogLevel.ERROR:
-      return 'E';
-    default:
-      return '?';
-  }
+  return LogLevel[logLevel].padEnd(5) || '?????';
 }
 
 /** Formats a date to a string in the format "HH:MM:SS" */
