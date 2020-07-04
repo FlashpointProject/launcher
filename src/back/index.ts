@@ -49,6 +49,7 @@ const state: BackState = {
   isInit: false,
   isExit: false,
   isDev: false,
+  verbose: false,
   socketServer: new SocketServer(),
   fileServer: new http.Server(onFileServerRequest),
   fileServerPort: -1,
@@ -92,15 +93,6 @@ const state: BackState = {
   lastLinkedCurationKey: '',
   connection: undefined,
 };
-
-const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
-global.log = {
-  trace: logFactory(LogLevel.TRACE, state.socketServer, addLog),
-  debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog),
-  info:  logFactory(LogLevel.INFO,  state.socketServer, addLog),
-  warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog),
-  error: logFactory(LogLevel.ERROR, state.socketServer, addLog)
-};
 registerRequestCallbacks(state);
 
 process.on('message', onProcessMessage);
@@ -112,10 +104,20 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   const content: BackInitArgs = JSON.parse(message);
   state.isDev = content.isDev;
+  state.verbose = content.verbose;
   state.configFolder = content.configFolder;
   state.localeCode = content.localeCode;
   state.exePath = content.exePath;
   state.version = content.version;
+
+  const addLog = (entry: ILogEntry): number => { return state.log.push(entry) - 1; };
+  global.log = {
+    trace: logFactory(LogLevel.TRACE, state.socketServer, addLog, state.verbose),
+    debug: logFactory(LogLevel.DEBUG, state.socketServer, addLog, state.verbose),
+    info:  logFactory(LogLevel.INFO,  state.socketServer, addLog, state.verbose),
+    warn:  logFactory(LogLevel.WARN,  state.socketServer, addLog, state.verbose),
+    error: logFactory(LogLevel.ERROR, state.socketServer, addLog, state.verbose)
+  };
 
   state.socketServer.secret = content.secret;
 

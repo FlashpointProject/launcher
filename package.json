@@ -58,7 +58,8 @@
     "uuid-validate": "0.0.3",
     "which": "1.3.1",
     "ws": "7.2.5",
-    "yaml": "1.10.0"
+    "yaml": "1.10.0",
+    "yargs": "15.4.0"
   },
   "devDependencies": {
     "@types/electron-devtools-installer": "^2.2.0",
@@ -81,6 +82,7 @@
     "@types/uuid-validate": "0.0.1",
     "@types/which": "1.3.2",
     "@types/ws": "6.0.3",
+    "@types/yargs": "15.0.5",
     "@typescript-eslint/eslint-plugin": "3.3.0",
     "@typescript-eslint/parser": "3.3.0",
     "coveralls": "3.1.0",

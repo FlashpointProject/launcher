@@ -2,7 +2,7 @@ import { SocketServer } from '@back/SocketServer';
 import { BackOut, LogEntryAddedData } from '@shared/back/types';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 
-export function logFactory(logLevel: LogLevel, socketServer: SocketServer, addLog: (message: ILogEntry) => number) {
+export function logFactory(logLevel: LogLevel, socketServer: SocketServer, addLog: (message: ILogEntry) => number, verbose: boolean) {
   return function (source: string, content: string) {
     const levelName: string = LogLevel[logLevel] || '?????';
     const formedLog: ILogEntry = {
@@ -20,6 +20,6 @@ export function logFactory(logLevel: LogLevel, socketServer: SocketServer, addLo
         index: index,
       }
     });
-    console.log(`${levelName.padEnd(5)} - ${Date.now()} - ${content}`);
+    if (verbose) { console.log(`${levelName.padEnd(5)} - ${Date.now()} - ${content}`); }
   };
 }

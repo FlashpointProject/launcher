@@ -26,6 +26,7 @@ export type BackState = {
   isInit: boolean;
   isExit: boolean;
   isDev: boolean;
+  verbose: boolean;
   socketServer: SocketServer;
   fileServer: Server;
   fileServerPort: number;

@@ -155,6 +155,7 @@ export type BackInitArgs = {
   /** Secret string used for authentication. */
   secret: string;
   isDev: boolean;
+  verbose: boolean;
   localeCode: string;
   exePath: string;
   /** If the back should accept remote clients to connect (renderers from different machines). */
