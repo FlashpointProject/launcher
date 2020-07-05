@@ -14,7 +14,8 @@ export function stringifyLogEntries(entries: ILogEntry[], sourceFilter: { [key: 
     if (entry) {
       const entryFilter = (sourceFilter[entry.source] || true) && levelFilter[entry.logLevel];
       if (entryFilter === true) {
-        str += `${getLevelIcon(entry.logLevel)} `;
+        // E.G log__level-WARN, log__level-DEBUG
+        str += `<span class="log__level-${LogLevel[entry.logLevel]}">${getLevelText(entry.logLevel)}</span> `;
         str += `<span class="log__time-stamp">[${formatTime(new Date(entry.timestamp))}]</span> `;
         if (entry.source) {
           str += (!prevEntry || entry.source !== prevEntry.source)
@@ -38,7 +39,7 @@ export function stringifyLogEntriesRaw(entries: ILogEntry[], sourceFilter: { [ke
     const entry = entries[i];
     const entryFilter = (sourceFilter[entry.source] || true) && levelFilter[entry.logLevel];
     if (entryFilter === true) {
-      str += `${getLevelIcon(entry.logLevel)} `;
+      str += `${getLevelText(entry.logLevel)} `;
       str += `[${(new Date(entry.timestamp)).toLocaleString()}] `;
       if (entry.source) {
         str += (entry.source !== prevEntry.source)
@@ -53,7 +54,7 @@ export function stringifyLogEntriesRaw(entries: ILogEntry[], sourceFilter: { [ke
   return str;
 }
 
-function getLevelIcon(logLevel: LogLevel) {
+function getLevelText(logLevel: LogLevel) {
   return LogLevel[logLevel].padEnd(5) || '?????';
 }
 
