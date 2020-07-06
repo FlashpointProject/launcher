@@ -16,7 +16,6 @@ import { promisify } from 'util';
 import * as WebSocket from 'ws';
 import { Init } from './types';
 import * as Util from './Util';
-import * as yargs from 'yargs';
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -63,16 +62,6 @@ export function main(init: Init): void {
   // -- Functions --
 
   function startup() {
-    // Define arguments -
-    const argv = yargs
-    .usage('Usage: $0 [options]')
-    .alias('v', 'verbose')
-    .boolean('v')
-    .describe('v', 'Enable verbose logging', )
-    .alias('h', 'help')
-    .help('h')
-    .argv;
-
     app.allowRendererProcessReuse = true; // Hides the "new default value" warning message (remove this line after upgrading to electron 9)
 
     // Single process
@@ -158,7 +147,7 @@ export function main(init: Init): void {
           configFolder: state.mainFolderPath,
           secret: state._secret,
           isDev: Util.isDev,
-          verbose: !!argv.verbose,
+          verbose: !!init.args['verbose'],
           // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
           localeCode: localeCode,
           exePath: app.getPath('exe'),

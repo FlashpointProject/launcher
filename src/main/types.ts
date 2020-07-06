@@ -13,6 +13,8 @@ export type InitArgs = Partial<{
   'height': number;
   /** Filename of the flash plugin file to use (without the file extension). */
   'plugin': string;
+  /** Whether to enable verbose printing */
+  'verbose': boolean;
 }>;
 
 export type Init = {
