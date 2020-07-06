@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2018 - 2020, Jesper Gustafsson, Noah Loomans and Colin Berry
+Copyright (c) 2015 - present Microsoft Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,14 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Some elements of the Flashpoint Launcher are licensed from others, see below -
-
-Microsoft - Visual Studio Code - /licenses/vscode      (MIT)
-  Modifications of their Extensions code and util functions
-
-Iconic    - Open Iconic        - /licenses/open-iconic (MIT)
-  Icons used in parts of the frontend
-
-7zip      - 7zip               - /licenses/7zip        (LGPL)
-  (Un)Packing of archive files

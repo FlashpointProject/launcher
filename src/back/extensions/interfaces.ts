@@ -21,7 +21,6 @@ export interface IExtension {
 }
 
 export interface IExtensionService {
-  init(): Promise<void>;
-  getExtensions(): IExtension[];
-  getExtension(id: string): IExtension | undefined;
+  getExtensions(): Promise<IExtension[]>;
+  getExtension(id: string): Promise<IExtension | undefined>;
 }

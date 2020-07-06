@@ -159,9 +159,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Init extensions
   state.extensionsService = new ExtensionService(state.config);
-  state.extensionsService.init()
-  .then(() => {
-    state.extensionsService.getExtensions().forEach(ext => console.log(JSON.stringify(ext, null, 2)));
+  await state.extensionsService.getExtensions()
+  .then((exts) => {
+    exts.forEach(ext => console.log(JSON.stringify(ext, null, 2)));
   });
 
   // Init services
