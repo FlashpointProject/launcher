@@ -286,6 +286,11 @@ function getBoolean(value?: boolean): boolean {
 
 type ArgsType = ArgumentTypesOf<typeof stringifyLogEntries>;
 function stringifyLogEntriesEquals(newArgs: ArgsType, prevArgs: ArgsType): boolean {
-  return (newArgs[0].length === prevArgs[0].length) && // (Only compare lengths of log entry arrays)
-         shallowStrictEquals(newArgs[1], prevArgs[1]); // (Do a proper compare of the filters)
+  return (
+    // Only compare lengths of log entry arrays (to save performance)
+    (newArgs[0].length === prevArgs[0].length) &&
+    // Do a proper compare of the filters
+    shallowStrictEquals(newArgs[1], prevArgs[1]) &&
+    shallowStrictEquals(newArgs[2], prevArgs[2])
+  );
 }
