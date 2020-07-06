@@ -93,6 +93,7 @@
   --layout__log-source-server:              #00ff00;
   --layout__log-source-curation:            #efff00;
   --layout__log-source-log-watcher:         #cf0000;
+  --layout__log-source-extensions:          #209603;
   --layout__log-level-TRACE:                #000000;
   --layout__log-level-DEBUG:                #5fa4f3;
   --layout__log-level-INFO:                 var(--layout__primary-background);
@@ -307,7 +308,9 @@ body {
 .log__source--log-watcher {
   color: var(--layout__log-source-log-watcher);
 }
-
+.log__source--extensions {
+  color: var(--layout__log-source-extensions);
+}
 
 /* ------ Image Preview ------ */
 .image-preview {

@@ -26,6 +26,7 @@ const sourceLabels = [
   'Launcher',
   'Log Watcher',
   'Server',
+  'Extensions',
 ];
 const levelLabels = [
   LogLevel[0],

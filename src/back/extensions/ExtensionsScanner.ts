@@ -42,16 +42,20 @@ export class ExtensionsScanner {
               await fsPromises.access(manifestPath);
               const ext = await this._parseExtension(manifestPath, ExtensionType.User);
               if (result.get(ext.id) !== undefined) {
-                // log.warn('Extensions', `Overriding Extension ${ext.id}`);
+                log.warn('Extensions', `Overriding Extension ${ext.id}`);
               }
               result.set(ext.id, ext);
             }
-          });
+          })
+          .catch(err => log.error('Extensions', `Error loading User extension ${file}\n${err}`));
         }));
       });
 
       const r: IExtension[] = [];
-      result.forEach((ext) => r.push(ext));
+      result.forEach((ext) => {
+        log.info('Extensions', `Extension Scanned "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
+        r.push(ext);
+      });
       this._scannedExtensionsResolve(r);
     } catch (error) {
       this._scannedExtensionsReject(error);
