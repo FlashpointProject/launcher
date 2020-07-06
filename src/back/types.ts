@@ -19,6 +19,7 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { IExtensionService } from './extensions/interfaces';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -60,6 +61,7 @@ export type BackState = {
   playlists: Playlist[];
   execMappings: ExecMapping[];
   lastLinkedCurationKey: string;
+  extensionsService: IExtensionService;
   connection: Connection | undefined;
 }
 

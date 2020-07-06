@@ -1,0 +1,9 @@
+{
+  "name": "fpl-extensions",
+  "version": "9.0.2",
+  "description": "Dependencies for FPL Extensions",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "^3.9.2"
+  }
+}

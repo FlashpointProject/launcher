@@ -28,6 +28,7 @@ import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
+import { ExtensionService } from './extensions/ExtensionService';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
@@ -90,6 +91,7 @@ const state: BackState = {
   playlists: [],
   execMappings: [],
   lastLinkedCurationKey: '',
+  extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
 };
 registerRequestCallbacks(state);
@@ -154,6 +156,13 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     await state.connection.runMigrations();
     log.info('Launcher', 'Database connection established');
   }
+
+  // Init extensions
+  state.extensionsService = new ExtensionService(state.config);
+  state.extensionsService.init()
+  .then(() => {
+    state.extensionsService.getExtensions().forEach(ext => console.log(JSON.stringify(ext, null, 2)));
+  });
 
   // Init services
   try {
