@@ -67,7 +67,7 @@ export namespace GameLauncher {
           { env: getEnvironment(opts.fpPath) }
         );
         logProcessOutput(proc);
-        log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,);
+        log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
         return new Promise((resolve, reject) => {
           if (proc.killed) { resolve(); }
           else {

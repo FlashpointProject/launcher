@@ -22,6 +22,16 @@ const writeFile = promisify(fs.writeFile);
 
 const TIMEOUT_DELAY = 60_000;
 
+const ALLOWED_HOSTS = [
+  'localhost',
+  '127.0.0.1',
+  // Devtools installer
+  'clients2.googleusercontent.com',
+  'clients2.google.com',
+  // React Devtools
+  'react-developer-tools',
+];
+
 type MainState = {
   window?: BrowserWindow;
   _installed?: boolean;
@@ -261,23 +271,13 @@ export function main(init: Init): void {
       // * The back server(s)
       // * DevTools (I have no idea if this is safe or not, but DevTools won't work without it)
       const remoteHostname = state.backHost.hostname;
-      const allowedHosts = [
-        'localhost',
-        '127.0.0.1',
-        // Devtools installer
-        'clients2.googleusercontent.com',
-        'clients2.google.com',
-        // React Devtools
-        'react-developer-tools'
-      ];
       const allow = (
         url && (
           (url.protocol === 'file:') ||
           (url.protocol === 'devtools:') ||
           (
             url.hostname === remoteHostname ||
-            // Treat "localhost" and "127.0.0.1" as the same hostname
-            (allowedHosts.includes(url.hostname) && allowedHosts.includes(remoteHostname))
+            (ALLOWED_HOSTS.includes(url.hostname) && ALLOWED_HOSTS.includes(remoteHostname))
           )
         )
       );

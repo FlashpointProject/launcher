@@ -32,7 +32,7 @@ const levelLabels = [
   LogLevel[1],
   LogLevel[2],
   LogLevel[3],
-  LogLevel[4]
+  LogLevel[4],
 ];
 
 export type LogsPageState = {
@@ -242,22 +242,20 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     const label = sourceLabels[index];
     const { showLogSource } = this.props.preferencesData;
     updatePreferencesData({
-      showLogSource: Object.assign(
-        {},
-        showLogSource,
-        { [label]: !getBoolean(showLogSource[label]) }
-      )
+      showLogSource: {
+        ...showLogSource,
+        [label]: !getBoolean(showLogSource[label]),
+      },
     });
   }
 
   onLevelCheckboxClick = (index: number): void => {
     const { showLogLevel } = this.props.preferencesData;
     updatePreferencesData({
-      showLogLevel: Object.assign(
-        {},
-        showLogLevel,
-        { [index]: !getBoolean(showLogLevel[index as LogLevel]) }
-      )
+      showLogLevel: {
+        ...showLogLevel,
+        [index]: !getBoolean(showLogLevel[index as LogLevel]),
+      },
     });
   }
 

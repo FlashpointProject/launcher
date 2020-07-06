@@ -90,7 +90,7 @@
   --layout__log-source-game-launcher:       #e67e22;
   --layout__log-source-language:            #b157ec;
   --layout__log-source-redirector:          #00ffff;
-  --layout__log-source-server:              hsl(120, 100%, 50%);
+  --layout__log-source-server:              #00ff00;
   --layout__log-source-curation:            #efff00;
   --layout__log-source-log-watcher:         #cf0000;
   --layout__log-level-TRACE:                #000000;
@@ -257,7 +257,6 @@ body {
 }
 /* Log */
 .log {
-  
   color: var(--layout__highlighted-text-color);
 }
 .log__level-TRACE {

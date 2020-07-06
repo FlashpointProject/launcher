@@ -151,7 +151,7 @@ export function exit(state: BackState): void {
 
 export async function execProcess(state: BackState, proc: IBackProcessInfo, sync?: boolean): Promise<void> {
   const cwd: string = path.join(state.config.flashpointPath, proc.path);
-  log.info(SERVICES_SOURCE, `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`,);
+  log.info(SERVICES_SOURCE, `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`);
   try {
     if (sync) { child_process.execFileSync(  proc.filename, proc.arguments, { cwd: cwd }); }
     else      { await child_process.execFile(proc.filename, proc.arguments, { cwd: cwd }); }
@@ -261,8 +261,8 @@ export function runService(state: BackState, id: string, name: string, info: INa
   try {
     proc.spawn();
   } catch (error) {
-    log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".`+
-               `  ${error.toString()}`);
+    log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
+              `  ${error.toString()}`);
   }
   return proc;
 }
