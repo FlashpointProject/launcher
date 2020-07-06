@@ -1,18 +1,16 @@
 import { Barrier } from '@back/util/async';
 import { IAppConfigData } from '@shared/config/interfaces';
-import { ExtensionsScanner } from './ExtensionsScanner';
+import { scanExtensions  } from './ExtensionsScanner';
 import { IExtension, IExtensionService } from './interfaces';
 
 export class ExtensionService implements IExtensionService {
   protected readonly _extensions: IExtension[];
-  private readonly _extensionScanner: ExtensionsScanner;
 
   private readonly _installedExtensionsReady: Barrier;
 
   constructor(
     protected readonly _configData: IAppConfigData
   ) {
-    this._extensionScanner = new ExtensionsScanner(_configData);
     this._extensions = [];
     this._installedExtensionsReady = new Barrier();
     this._init();
@@ -23,8 +21,7 @@ export class ExtensionService implements IExtensionService {
   }
 
   private async _scanExtensions(): Promise<void> {
-    this._extensionScanner.startScanningExtensions();
-    const exts = await this._extensionScanner.scannedExtensions;
+    const exts = await scanExtensions(this._configData);
     exts.forEach(e => this._extensions.push(e));
     this._installedExtensionsReady.open();
   }
