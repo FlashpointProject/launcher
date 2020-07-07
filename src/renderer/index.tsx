@@ -10,7 +10,7 @@ import { ContextReducerProvider } from './context-reducer/ContextReducerProvider
 import { CurationContext } from './context/CurationContext';
 import { PreferencesContextProvider } from './context/PreferencesContext';
 import { ProgressContext } from './context/ProgressContext';
-import { logFactory } from './plugin/loglevel-flashpoint';
+import { logFactory } from './util/logging';
 
 (async () => {
   window.log = {

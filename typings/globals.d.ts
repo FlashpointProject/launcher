@@ -1,12 +1,12 @@
-import { IMainWindowExternal } from '../src/shared/interfaces';
+import { LogFunc, IMainWindowExternal } from '../src/shared/interfaces';
 
 /** Custom modifications made by this project */
 type LogFuncs = {
-  trace: (source: string, message: string) => void;
-  debug: (source: string, message: string) => void;
-  info:  (source: string, message: string) => void;
-  warn:  (source: string, message: string) => void;
-  error: (source: string, message: string) => void;
+  trace: LogFunc;
+  debug: LogFunc;
+  info:  LogFunc;
+  warn:  LogFunc;
+  error: LogFunc;
 }
 
 declare global {

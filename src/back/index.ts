@@ -1,4 +1,3 @@
-import { logFactory } from '@back/plugin/loglevel-flashpoint';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
@@ -35,6 +34,7 @@ import { SocketServer } from './SocketServer';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
 
 // Make sure the process.send function is available
