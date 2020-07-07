@@ -1,6 +1,19 @@
 import { ILogEntry } from '@shared/Log/interface';
 import { Disposable, newDisposable } from '@back/util/lifecycle';
 
+export type ExtensionLogFunc = (message: string) => void;
+
+export type ExtensionContext = {
+  subscriptions: Disposable,
+  log: {
+    trace: ExtensionLogFunc;
+    debug: ExtensionLogFunc;
+    info:  ExtensionLogFunc;
+    warn:  ExtensionLogFunc;
+    error: ExtensionLogFunc;
+  }
+}
+
 export namespace commands {
   interface ICommand {
     command: string;
@@ -22,7 +35,11 @@ export namespace commands {
 export type ExtensionData = {
   extId: string;
   enabled: boolean;
-  subscriptions: Disposable[];
+  subscriptions: Disposable;
   logs: ILogEntry[];
   errors: Error[];
+}
+
+export namespace ExtensionJS {
+  export type ActivateFunc = (context: ExtensionContext) => void;
 }
