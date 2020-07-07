@@ -2,6 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
+import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { Theme } from '@shared/ThemeFile';
@@ -61,6 +62,7 @@ export type AppRouterProps = {
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
   autoUpdater: AppUpdater,
+  devScripts: ExtensionContribution<'devScripts'>[]
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -118,6 +120,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
     const developerProps: DeveloperPageProps = {
       platforms: this.props.platformsFlat,
       playlists: this.props.playlists,
+      devScripts: this.props.devScripts,
     };
     return (
       <Switch>

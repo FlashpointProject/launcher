@@ -118,7 +118,8 @@ export function registerRequestCallbacks(state: BackState): void {
         mad4fpEnabled: mad4fpEnabled,
         platforms: platforms,
         localeCode: state.localeCode,
-        tagCategories: await TagManager.findTagCategories()
+        tagCategories: await TagManager.findTagCategories(),
+        devScripts: await state.extensionsService.getContributions('devScripts')
       },
     });
   });

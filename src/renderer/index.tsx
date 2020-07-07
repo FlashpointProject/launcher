@@ -130,5 +130,6 @@ function createInitialMainState(): MainState {
     updateInfo: undefined,
     metaEditExporterOpen: false,
     metaEditExporterGameId: '',
+    devScripts: window.Shared.initialDevScripts,
   };
 }

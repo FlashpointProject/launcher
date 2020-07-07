@@ -4,6 +4,7 @@ import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportMetaEditResponseData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
@@ -29,6 +30,7 @@ type Map<K extends string, V> = { [key in K]: V };
 export type DeveloperPageProps = {
   platforms: string[];
   playlists: Playlist[];
+  devScripts: ExtensionContribution<'devScripts'>[];
 };
 
 type DeveloperPageState = {
@@ -145,6 +147,12 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.importMetaEdits}
               title={strings.importMetaEditsDesc}
               onClick={this.onImportMetaEdits} />
+            { this.props.devScripts.map(contribution => contribution.value.map((script, index) => (
+              <SimpleButton
+                key={contribution.extId + index}
+                value={script.name}
+                title={script.description} />
+            )))}
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>

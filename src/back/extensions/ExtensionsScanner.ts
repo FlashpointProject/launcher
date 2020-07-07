@@ -1,13 +1,12 @@
 import { IAppConfigData } from '@shared/config/interfaces';
 import { Coerce } from '@shared/utils/Coerce';
-import { ObjectParser } from '@shared/utils/ObjectParser';
+import { ObjectParser, IObjectParserProp } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ExtensionType, IExtension, IExtensionManifest } from './interfaces';
+import { ExtensionType, IExtension, IExtensionManifest, Contributions, Theme, DevScript } from '../../shared/extensions/interfaces';
 import { readJsonFile } from '@shared/Util';
 
 const { str } = Coerce;
-
 const fsPromises = fs.promises;
 
 export async function scanExtensions(configData: IAppConfigData): Promise<IExtension[]> {
@@ -59,7 +58,11 @@ async function parseExtensionManifest(data: any) {
     name: '',
     author: '',
     version: '',
-    launcherVersion: ''
+    launcherVersion: '',
+    contributes: {
+      themes: [],
+      devScripts: []
+    }
   };
   const parser = new ObjectParser({
     input: data
@@ -71,5 +74,32 @@ async function parseExtensionManifest(data: any) {
   parser.prop('launcherVersion',  v => parsed.launcherVersion = str(v));
   parser.prop('description',      v => parsed.description     = str(v), true);
   parser.prop('icon',             v => parsed.icon            = str(v), true);
+  parser.prop('main',             v => parsed.main            = str(v), true);
+  parseContributions(parser.prop('contributes'), parsed.contributes);
   return parsed;
+}
+
+function parseContributions(parser: IObjectParserProp<Contributions>, contributes: Contributions): void {
+  parser.prop('themes').array((item) => contributes.themes.push(parseTheme(item)));
+  parser.prop('devScripts').array((item) => contributes.devScripts.push(parseDevScript(item)));
+}
+
+function parseTheme(parser: IObjectParserProp<Theme>): Theme {
+  const theme: Theme = {
+    folder: ''
+  };
+  parser.prop('folder', v => theme.folder = str(v));
+  return theme;
+}
+
+function parseDevScript(parser: IObjectParserProp<DevScript>): DevScript {
+  const devScript: DevScript = {
+    name: '',
+    description: '',
+    command: ''
+  };
+  parser.prop('name',        v => devScript.name        = str(v));
+  parser.prop('description', v => devScript.description = str(v));
+  parser.prop('command',     v => devScript.command     = str(v));
+  return devScript;
 }

@@ -550,6 +550,7 @@ export class App extends React.Component<AppProps> {
       languages: this.props.main.langList,
       updateInfo: this.props.main.updateInfo,
       autoUpdater: autoUpdater,
+      devScripts: this.props.main.devScripts,
     };
 
     // Render

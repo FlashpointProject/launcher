@@ -29,6 +29,7 @@ import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
 import { ExtensionService } from './extensions/ExtensionService';
+import { commands } from './extensions/types';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
@@ -91,6 +92,7 @@ const state: BackState = {
   playlists: [],
   execMappings: [],
   lastLinkedCurationKey: '',
+  commandRegistry: new Map<string, commands.Command>(),
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
 };

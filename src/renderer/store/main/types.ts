@@ -9,6 +9,7 @@ import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { Theme } from '@shared/ThemeFile';
 import { UpdateInfo } from 'electron-updater';
 import { MainActionType, RequestState } from './enums';
+import { ExtensionContribution } from '@shared/extensions/interfaces';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -94,6 +95,8 @@ export type MainState = {
   metaEditExporterOpen: boolean;
   /** ID of the game used in the "Meta Edit Popup". */
   metaEditExporterGameId: string;
+  /** Scripts for the Developer Page */
+  devScripts: ExtensionContribution<'devScripts'>[];
 }
 
 export type MainAction = {
