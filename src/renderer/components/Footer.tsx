@@ -1,4 +1,5 @@
 import { WithMainStateProps } from '@renderer/containers/withMainState';
+import { MainActionType } from '@renderer/store/main/enums';
 import { parseBrowsePageLayout, stringifyBrowsePageLayout } from '@shared/BrowsePageLayout';
 import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
@@ -111,8 +112,8 @@ export class Footer extends React.Component<FooterProps> {
   }
 
   onNewGameClick = () => {
-    // @TODO Replace this with an proper action (it should both change the location and state of the current or most recent view)
-    this.props.setMainState({ wasNewGameClicked: true });
+    // @TODO Replace this with a proper action (it should both change the location and state of the current or most recent view)
+    this.props.dispatchMain({ type: MainActionType.CLICK_NEW_GAME });
   }
 
   onScaleSliderChange = (event: React.ChangeEvent<HTMLInputElement>): void => {

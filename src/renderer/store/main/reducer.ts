@@ -198,6 +198,120 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         creditsData: action.creditsData,
       };
     }
+
+    case MainActionType.STOP_RENDER: {
+      return {
+        ...state,
+        stopRender: true,
+      };
+    }
+
+    case MainActionType.OPEN_META_EXPORTER: {
+      return {
+        ...state,
+        metaEditExporterOpen: true,
+        metaEditExporterGameId: action.gameId,
+      };
+    }
+
+    case MainActionType.CLOSE_META_EXPORTER: {
+      return {
+        ...state,
+        metaEditExporterOpen: false,
+      };
+    }
+
+    case MainActionType.ADD_LOADED: {
+      const nextLoaded = { ...state.loaded };
+
+      for (const key of action.loaded) {
+        nextLoaded[key] = true;
+      }
+
+      return {
+        ...state,
+        loaded: nextLoaded,
+      };
+    }
+
+    case MainActionType.SET_GAMES_TOTAL: {
+      return {
+        ...state,
+        gamesTotal: action.total,
+      };
+    }
+
+    case MainActionType.SET_SUGGESTIONS: {
+      return {
+        ...state,
+        suggestions: action.suggestions,
+        appPaths: action.appPaths,
+      };
+    }
+
+    case MainActionType.SET_LOCALE: {
+      return {
+        ...state,
+        localeCode: action.localeCode,
+      };
+    }
+
+    case MainActionType.SET_LANGUAGE: {
+      return {
+        ...state,
+        lang: action.lang,
+      };
+    }
+
+    case MainActionType.SET_LANGUAGE_LIST: {
+      return {
+        ...state,
+        langList: action.langList,
+      };
+    }
+
+    case MainActionType.SET_THEME_LIST: {
+      return {
+        ...state,
+        themeList: action.themeList,
+      };
+    }
+
+    case MainActionType.SET_PLAYLISTS: {
+      return {
+        ...state,
+        playlists: action.playlists,
+      };
+    }
+
+    case MainActionType.SET_UPGRADES: {
+      return {
+        ...state,
+        upgrades: action.upgrades,
+        upgradesDoneLoading: true,
+      };
+    }
+
+    case MainActionType.SET_UPDATE_INFO: {
+      return {
+        ...state,
+        updateInfo: action.updateInfo,
+      };
+    }
+
+    case MainActionType.CLICK_NEW_GAME: {
+      return {
+        ...state,
+        wasNewGameClicked: true,
+      };
+    }
+
+    case MainActionType.CLICK_NEW_GAME_END: {
+      return {
+        ...state,
+        wasNewGameClicked: false,
+      };
+    }
   }
 }
 
@@ -221,7 +335,7 @@ function createInitialState(): MainState {
     gamesTotal: -1,
     randomGames: [],
     requestingRandomGames: false,
-    localeCode: 'n',
+    localeCode: 'en-us',
     upgrades: [],
     gamesDoneLoading: false,
     upgradesDoneLoading: false,

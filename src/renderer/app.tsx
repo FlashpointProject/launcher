@@ -114,22 +114,25 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.send<InitEventData>(BackIn.INIT_LISTEN, undefined, res => {
       if (!res.data) { throw new Error('INIT_LISTEN response is missing data.'); }
-      const nextLoaded = { ...this.props.main.loaded };
-      for (const key of res.data.done) {
-        nextLoaded[key] = true;
-      }
-      this.props.setMainState({ loaded: nextLoaded });
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: res.data.done,
+      });
     });
 
     window.Shared.back.send<GetGamesTotalResponseData>(BackIn.GET_GAMES_TOTAL, undefined, res => {
       if (res.data) {
-        this.props.setMainState({ gamesTotal: res.data });
+        this.props.dispatchMain({
+          type: MainActionType.SET_GAMES_TOTAL,
+          total: res.data,
+        });
       }
     });
 
     window.Shared.back.send<GetSuggestionsResponseData>(BackIn.GET_SUGGESTIONS, undefined, res => {
       if (res.data) {
-        this.props.setMainState({
+        this.props.dispatchMain({
+          type: MainActionType.SET_SUGGESTIONS,
           suggestions: res.data.suggestions,
           appPaths: res.data.appPaths,
         });
@@ -142,10 +145,7 @@ export class App extends React.Component<AppProps> {
         case BackOut.INIT_EVENT: {
           const resData: InitEventData = res.data;
 
-          const loaded = { ...this.props.main.loaded };
           for (const index of resData.done) {
-            loaded[index] = true;
-
             switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
               case BackInit.PLAYLISTS:
                 window.Shared.back.send<GetPlaylistsResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
@@ -158,7 +158,10 @@ export class App extends React.Component<AppProps> {
             }
           }
 
-          this.props.setMainState({ loaded });
+          this.props.dispatchMain({
+            type: MainActionType.ADD_LOADED,
+            loaded: resData.done,
+          });
         } break;
 
         case BackOut.LOG_ENTRY_ADDED: {
@@ -168,7 +171,10 @@ export class App extends React.Component<AppProps> {
 
         case BackOut.LOCALE_UPDATE: {
           const resData: LocaleUpdateData = res.data;
-          this.props.setMainState({ localeCode: resData });
+          this.props.dispatchMain({
+            type: MainActionType.SET_LOCALE,
+            localeCode: resData,
+          });
         } break;
 
         case BackOut.SERVICE_CHANGE: {
@@ -197,12 +203,18 @@ export class App extends React.Component<AppProps> {
 
         case BackOut.LANGUAGE_CHANGE: {
           const resData: LanguageChangeData = res.data;
-          this.props.setMainState({ lang: resData });
+          this.props.dispatchMain({
+            type: MainActionType.SET_LANGUAGE,
+            lang: resData,
+          });
         } break;
 
         case BackOut.LANGUAGE_LIST_CHANGE: {
           const resData: LanguageListChangeData = res.data;
-          this.props.setMainState({ langList: resData });
+          this.props.dispatchMain({
+            type: MainActionType.SET_LANGUAGE_LIST,
+            langList: resData,
+          });
         } break;
 
         case BackOut.THEME_CHANGE: {
@@ -212,12 +224,18 @@ export class App extends React.Component<AppProps> {
 
         case BackOut.THEME_LIST_CHANGE: {
           const resData: ThemeListChangeData = res.data;
-          this.props.setMainState({ themeList: resData });
+          this.props.dispatchMain({
+            type: MainActionType.SET_THEME_LIST,
+            themeList: resData,
+          });
         } break;
 
         case BackOut.PLAYLISTS_CHANGE: {
           const resData: PlaylistsChangeData = res.data;
-          this.props.setMainState({ playlists: resData });
+          this.props.dispatchMain({
+            type: MainActionType.SET_PLAYLISTS,
+            playlists: resData,
+          });
           this.cachePlaylistIcons(resData);
         } break;
 
@@ -247,9 +265,9 @@ export class App extends React.Component<AppProps> {
           allData = allData.concat(data);
         }
       }
-      this.props.setMainState({
+      this.props.dispatchMain({
+        type: MainActionType.SET_UPGRADES,
         upgrades: allData,
-        upgradesDoneLoading: true,
       });
       const isValid = await isFlashpointValidCheck(window.Shared.config.data.flashpointPath);
       // Notify of downloading initial data (if available)
@@ -309,8 +327,9 @@ export class App extends React.Component<AppProps> {
       autoUpdater.on('update-available', (info) => {
         log(`Update Available - ${info.version}`);
         console.log(info);
-        this.props.setMainState({
-          updateInfo: info
+        this.props.dispatchMain({
+          type: MainActionType.SET_UPDATE_INFO,
+          updateInfo: info,
         });
       });
       autoUpdater.on('update-downloaded', onUpdateDownloaded);
@@ -460,7 +479,7 @@ export class App extends React.Component<AppProps> {
       const route = preferencesData.lastSelectedLibrary || preferencesData.defaultLibrary || '';
 
       if (location.pathname.startsWith(Paths.BROWSE)) {
-        this.props.setMainState({ wasNewGameClicked: false });
+        this.props.dispatchMain({ type: MainActionType.CLICK_NEW_GAME_END });
         // Deselect the current game
         const view = this.props.main.views[route];
         if (view && view.selectedGameId !== undefined) {
@@ -590,10 +609,9 @@ export class App extends React.Component<AppProps> {
   }
 
   private onOrderChange = (event: GameOrderChangeEvent): void => {
-    // Update Preferences Data (this is to make it get saved on disk)
     updatePreferencesData({
       gamesOrderBy: event.orderBy,
-      gamesOrder: event.orderReverse
+      gamesOrder: event.orderReverse,
     });
   }
 
@@ -635,7 +653,8 @@ export class App extends React.Component<AppProps> {
       const newUpgrades = deepCopy(upgrades);
       const newStageState = Object.assign({}, upgrades[index].state, data);
       newUpgrades[index].state = newStageState;
-      this.props.setMainState({
+      this.props.dispatchMain({
+        type: MainActionType.SET_UPGRADES,
         upgrades: newUpgrades,
       });
     }
@@ -755,7 +774,7 @@ export class App extends React.Component<AppProps> {
   });
 
   private unmountBeforeClose = (): void => {
-    this.props.setMainState({ stopRender: true });
+    this.props.dispatchMain({ type: MainActionType.STOP_RENDER });
     setTimeout(() => { window.close(); }, 100);
   }
 
@@ -800,18 +819,18 @@ export class App extends React.Component<AppProps> {
   }
 
   onOpenExportMetaEdit = (gameId: string): void => {
-    this.props.setMainState({
-      metaEditExporterOpen: true,
-      metaEditExporterGameId: gameId,
+    this.props.dispatchMain({
+      type: MainActionType.OPEN_META_EXPORTER,
+      gameId: gameId,
     });
   }
 
   onCancelExportMetaEdit = (): void => {
-    this.props.setMainState({ metaEditExporterOpen: false });
+    this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
   }
 
   onConfirmExportMetaEdit = (data: MetaEditExporterConfirmData): void => {
-    this.props.setMainState({ metaEditExporterOpen: false });
+    this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
     window.Shared.back.sendP<any, ExportMetaEditData>(BackIn.EXPORT_META_EDIT, {
       id: data.id,
       properties: data.properties,

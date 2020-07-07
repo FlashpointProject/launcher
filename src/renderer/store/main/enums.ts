@@ -19,6 +19,36 @@ export enum MainActionType {
   SET_ORDER = '@@main/SET_ORDER',
   /** Set the credits data (or at least flag it as done loading it). */
   SET_CREDITS = '@@main/SET_CREDITS',
+  /** Stop rendering. */
+  STOP_RENDER = '@@main/STOP_RENDER',
+  /** Open the meta exporter overlay. */
+  OPEN_META_EXPORTER = '@@main/OPEN_META_EXPORTER',
+  /** Close the meta exporter overlay. */
+  CLOSE_META_EXPORTER = '@@main/CLOSE_META_EXPORTER',
+  /** Flag things as loaded. */
+  ADD_LOADED = '@@main/ADD_LOADED',
+  /** Set the total number of games. */
+  SET_GAMES_TOTAL = '@@main/SET_GAMES_TOTAL',
+  /** Set the suggestions. */
+  SET_SUGGESTIONS = '@@main/SET_SUGGESTIONS',
+  /** Set the locale. */
+  SET_LOCALE = '@@main/SET_LOCALE',
+  /** Set the language. */
+  SET_LANGUAGE = '@@main/SET_LANGUAGE',
+  /** Set the language list. */
+  SET_LANGUAGE_LIST = '@@main/SET_LANGUAGE_LIST',
+  /** Set the theme list. */
+  SET_THEME_LIST = '@@main/SET_THEME_LIST',
+  /** Set the playlists. */
+  SET_PLAYLISTS = '@@main/SET_PLAYLISTS',
+  /** Set the upgrades. */
+  SET_UPGRADES = '@@main/SET_UPGRADES',
+  /** Set the update info. */
+  SET_UPDATE_INFO = '@@main/SET_UPDATE_INFO',
+  /** Create a new game. This is an ancient and wonky system! */
+  CLICK_NEW_GAME = '@@main/CLICK_NEW_GAME',
+  /** Perform this action AFTER creating a new game (using CLICK_NEW_GAME)! */
+  CLICK_NEW_GAME_END = '@@main/CLICK_NEW_GAME_END',
 }
 
 export enum RequestState {

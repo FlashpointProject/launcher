@@ -130,4 +130,46 @@ export type MainAction = {
 } | {
   type: MainActionType.SET_CREDITS;
   creditsData?: CreditsData;
+} | {
+  type: MainActionType.STOP_RENDER;
+} | {
+  type: MainActionType.OPEN_META_EXPORTER;
+  gameId: string;
+} | {
+  type: MainActionType.CLOSE_META_EXPORTER;
+} | {
+  type: MainActionType.ADD_LOADED;
+  loaded: BackInit[];
+} | {
+  type: MainActionType.SET_GAMES_TOTAL;
+  total: number;
+} | {
+  type: MainActionType.SET_SUGGESTIONS;
+  suggestions: Partial<GamePropSuggestions>;
+  appPaths: Record<string, string>;
+} | {
+  type: MainActionType.SET_LOCALE;
+  localeCode: string;
+} | {
+  type: MainActionType.SET_LANGUAGE;
+  lang: LangContainer;
+} | {
+  type: MainActionType.SET_LANGUAGE_LIST;
+  langList: LangFile[];
+} | {
+  type: MainActionType.SET_THEME_LIST;
+  themeList: Theme[];
+} | {
+  type: MainActionType.SET_PLAYLISTS;
+  playlists: Playlist[];
+} | {
+  type: MainActionType.SET_UPGRADES;
+  upgrades: UpgradeStage[];
+} | {
+  type: MainActionType.SET_UPDATE_INFO;
+  updateInfo: UpdateInfo;
+} | {
+  type: MainActionType.CLICK_NEW_GAME;
+} | {
+  type: MainActionType.CLICK_NEW_GAME_END;
 }
