@@ -419,6 +419,7 @@ export class App extends React.Component<AppProps> {
               this.props.dispatchMain({
                 type: MainActionType.ADD_VIEW_PAGES,
                 library: library,
+                queryId: view.queryId,
                 ranges: res.data.ranges,
               });
             } else {
@@ -430,13 +431,13 @@ export class App extends React.Component<AppProps> {
           this.props.dispatchMain({
             type: MainActionType.REQUEST_VIEW_PAGES,
             library: library,
+            queryId: view.queryId,
             pages: pages,
           });
         }
       }
     }
 
-    //
     for (const l in this.props.main.views) {
       const v = this.props.main.views[l];
       // Check if the meta has not yet been requested
@@ -450,6 +451,7 @@ export class App extends React.Component<AppProps> {
             this.props.dispatchMain({
               type: MainActionType.SET_VIEW_META,
               library: l,
+              queryId: v.queryId,
               keyset: res.data.keyset,
               total: res.data.total,
             });
@@ -460,6 +462,7 @@ export class App extends React.Component<AppProps> {
         this.props.dispatchMain({
           type: MainActionType.REQUEST_VIEW_META,
           library: l,
+          queryId: v.queryId,
         });
       }
     }

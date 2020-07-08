@@ -39,7 +39,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
                 orderReverse: action.orderReverse,
               },
             }),
-            queryId: (view.queryId + 1) % 0x80000000,
+            queryId: (view.queryId + 1) % 0x80000000, // 32 bit signed integer
             metaState: RequestState.WAITING,
           },
         },
@@ -91,7 +91,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     case MainActionType.REQUEST_VIEW_META: {
       const view = state.views[action.library];
 
-      if (!view) { return state; }
+      if (!view || action.queryId !== view.queryId) { return state; }
 
       return {
         ...state,
@@ -108,7 +108,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     case MainActionType.SET_VIEW_META: {
       const view = state.views[action.library];
 
-      if (!view) { return state; }
+      if (!view || action.queryId !== view.queryId) { return state; }
 
       return {
         ...state,
@@ -137,7 +137,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     case MainActionType.REQUEST_VIEW_PAGES: {
       const view = state.views[action.library];
 
-      if (!view) { return state; }
+      if (!view || action.queryId !== view.queryId) { return state; }
 
       let newPageState: ViewPageStates | undefined;
 
@@ -166,7 +166,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
     case MainActionType.ADD_VIEW_PAGES: {
       const view = state.views[action.library];
 
-      if (!view || !view.meta) { return state; }
+      if (!view || !view.meta || action.queryId !== view.queryId) { return state; }
 
       const newGames = (view.isDirty) ? {} : { ...view.games };
 

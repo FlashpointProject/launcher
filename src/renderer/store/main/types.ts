@@ -116,18 +116,22 @@ export type MainAction = {
 } | {
   type: MainActionType.REQUEST_VIEW_META;
   library: string;
+  queryId: number;
 } | {
   type: MainActionType.SET_VIEW_META;
   library: string;
+  queryId: number;
   keyset: PageKeyset;
   total: number;
 } | {
   type: MainActionType.ADD_VIEW_PAGES;
   library: string;
+  queryId: number;
   ranges: ResponseGameRange<boolean>[];
 } | {
   type: MainActionType.REQUEST_VIEW_PAGES;
   library: string;
+  queryId: number;
   pages: number[];
 } | {
   type: MainActionType.SET_VIEW_SELECTED_GAME;
