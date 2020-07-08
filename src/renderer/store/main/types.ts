@@ -114,9 +114,8 @@ export type MainAction = {
   start: number;
   count: number;
 } | {
-  type: MainActionType.SET_VIEW_STATE;
+  type: MainActionType.REQUEST_VIEW_META;
   library: string;
-  state: Partial<View>;
 } | {
   type: MainActionType.SET_VIEW_META;
   library: string;
@@ -130,6 +129,10 @@ export type MainAction = {
   type: MainActionType.REQUEST_VIEW_PAGES;
   library: string;
   pages: number[];
+} | {
+  type: MainActionType.SET_VIEW_SELECTED_GAME;
+  library: string;
+  gameId?: string;
 } | {
   type: MainActionType.SET_CREDITS;
   creditsData?: CreditsData;

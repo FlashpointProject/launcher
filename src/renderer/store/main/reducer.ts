@@ -88,7 +88,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
       };
     }
 
-    case MainActionType.SET_VIEW_STATE: {
+    case MainActionType.REQUEST_VIEW_META: {
       const view = state.views[action.library];
 
       if (!view) { return state; }
@@ -99,7 +99,7 @@ export function mainStateReducer(state: MainState = createInitialState(), action
           ...state.views,
           [action.library]: {
             ...view,
-            ...action.state,
+            metaState: RequestState.REQUESTED,
           },
         },
       };
@@ -186,6 +186,23 @@ export function mainStateReducer(state: MainState = createInitialState(), action
             games: newGames,
             isDirty: false,
             total: view.meta.total, // Update dirty total
+          },
+        },
+      };
+    }
+
+    case MainActionType.SET_VIEW_SELECTED_GAME: {
+      const view = state.views[action.library];
+
+      if (!view) { return state; }
+
+      return {
+        ...state,
+        views: {
+          ...state.views,
+          [action.library]: {
+            ...view,
+            selectedGameId: action.gameId,
           },
         },
       };

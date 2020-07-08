@@ -458,11 +458,8 @@ export class App extends React.Component<AppProps> {
 
         // Flag meta as requested
         this.props.dispatchMain({
-          type: MainActionType.SET_VIEW_STATE,
+          type: MainActionType.REQUEST_VIEW_META,
           library: l,
-          state: {
-            metaState: RequestState.REQUESTED,
-          },
         });
       }
     }
@@ -484,11 +481,9 @@ export class App extends React.Component<AppProps> {
         const view = this.props.main.views[route];
         if (view && view.selectedGameId !== undefined) {
           this.props.dispatchMain({
-            type: MainActionType.SET_VIEW_STATE,
+            type: MainActionType.SET_VIEW_SELECTED_GAME,
             library: route,
-            state: {
-              selectedGameId: undefined,
-            },
+            gameId: undefined,
           });
         }
       } else {
@@ -626,11 +621,9 @@ export class App extends React.Component<AppProps> {
     const view = this.props.main.views[library];
     if (view) {
       this.props.dispatchMain({
-        type: MainActionType.SET_VIEW_STATE,
+        type: MainActionType.SET_VIEW_SELECTED_GAME,
         library: library,
-        state: {
-          selectedGameId: gameId,
-        },
+        gameId: gameId,
       });
     }
   }
