@@ -21,6 +21,10 @@ export function RandomGames(props: RandomGamesProps) {
     props.onLaunchGame(gameId);
   }, [props.onLaunchGame]);
 
+  const onRerollPicks = React.useCallback(() => {
+    props.rollRandomGames();
+  }, [props.rollRandomGames]);
+
   const gameItems = React.useMemo(() => (
     /* Games is a long queue, only render front */
     props.games.slice(0, 5).map(game => (
@@ -47,7 +51,7 @@ export function RandomGames(props: RandomGamesProps) {
         </GameItemContainer>
         <SimpleButton
           value={strings.home.rerollPicks}
-          onClick={props.rollRandomGames} />
+          onClick={onRerollPicks} />
       </ul>
     </div>
   );

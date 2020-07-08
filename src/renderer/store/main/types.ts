@@ -68,6 +68,9 @@ export type MainState = {
   randomGames: ViewGame[];
   /** Whether we're currently requesting random games */
   requestingRandomGames: boolean;
+  /** If the random games should be shiften when the request is complete. */
+  shiftRandomGames: boolean;
+
   /** Data and state used for the upgrade system (optional install-able downloads from the HomePage). */
   upgrades: UpgradeStage[];
   /** If the Random games have loaded - Masked as 'Games' */
@@ -172,4 +175,13 @@ export type MainAction = {
   type: MainActionType.CLICK_NEW_GAME;
 } | {
   type: MainActionType.CLICK_NEW_GAME_END;
+} | {
+  type: MainActionType.SHIFT_RANDOM_GAMES;
+} | {
+  type: MainActionType.REQUEST_RANDOM_GAMES;
+} | {
+  type: MainActionType.RESPONSE_RANDOM_GAMES;
+  games: ViewGame[];
+} | {
+  type: MainActionType.CLEAR_RANDOM_GAMES;
 }

@@ -49,6 +49,14 @@ export enum MainActionType {
   CLICK_NEW_GAME = '@@main/CLICK_NEW_GAME',
   /** Perform this action AFTER creating a new game (using CLICK_NEW_GAME)! */
   CLICK_NEW_GAME_END = '@@main/CLICK_NEW_GAME_END',
+  /** Remove the currently displayed random games and shift in new games from the queue. */
+  SHIFT_RANDOM_GAMES = '@@main/SHIFT_RANDOM_GAMES',
+  /** Flag random games as being requested. */
+  REQUEST_RANDOM_GAMES = '@@main/REQUEST_RANDOM_GAMES',
+  /** Add random games to the end of the queue and unset the flag for requesting random games. */
+  RESPONSE_RANDOM_GAMES = '@@main/RESPONSE_RANDOM_GAMES',
+  /** Remove all queued random games (the currently displayed games are NOT removed). */
+  CLEAR_RANDOM_GAMES = '@@main/CLEAR_RANDOM_GAMES',
 }
 
 export enum RequestState {

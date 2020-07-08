@@ -312,6 +312,51 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         wasNewGameClicked: false,
       };
     }
+
+    case MainActionType.SHIFT_RANDOM_GAMES: {
+      if (state.randomGames.length >= 10) {
+        return {
+          ...state,
+          randomGames: state.randomGames.slice(5),
+        };
+      } else {
+        return {
+          ...state,
+          shiftRandomGames: true,
+        };
+      }
+    }
+
+    case MainActionType.REQUEST_RANDOM_GAMES: {
+      return {
+        ...state,
+        requestingRandomGames: true,
+      };
+    }
+
+    case MainActionType.RESPONSE_RANDOM_GAMES: {
+      return {
+        ...state,
+        randomGames: [
+          ...(
+            state.shiftRandomGames
+              ? state.randomGames.slice(5)
+              : state.randomGames
+          ),
+          ...action.games,
+        ],
+        requestingRandomGames: false,
+        shiftRandomGames: false,
+        gamesDoneLoading: true,
+      };
+    }
+
+    case MainActionType.CLEAR_RANDOM_GAMES: {
+      return {
+        ...state,
+        randomGames: state.randomGames.slice(0, 5),
+      };
+    }
   }
 }
 
@@ -335,6 +380,7 @@ function createInitialState(): MainState {
     gamesTotal: -1,
     randomGames: [],
     requestingRandomGames: false,
+    shiftRandomGames: false,
     localeCode: 'en-us',
     upgrades: [],
     gamesDoneLoading: false,

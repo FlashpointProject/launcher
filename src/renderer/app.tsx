@@ -362,7 +362,7 @@ export class App extends React.Component<AppProps> {
 
   componentDidMount() {
     // Call first batch of random games
-    if (this.props.main.randomGames.length < 5) { this.rollRandomGames(); }
+    if (this.props.main.randomGames.length < 5) { this.rollRandomGames(true); }
   }
 
   componentDidUpdate(prevProps: AppProps) {
@@ -501,9 +501,7 @@ export class App extends React.Component<AppProps> {
       this.props.preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme ||
       !arrayShallowStrictEquals(this.props.preferencesData.excludedRandomLibraries, prevProps.preferencesData.excludedRandomLibraries)
     )) {
-      this.props.setMainState({
-        randomGames: this.props.main.randomGames.slice(0, 5),
-      });
+      this.props.dispatchMain({ type: MainActionType.CLEAR_RANDOM_GAMES });
     }
   }
 
@@ -837,30 +835,28 @@ export class App extends React.Component<AppProps> {
     });
   }
 
-  rollRandomGames = () => {
+  rollRandomGames = (first?: boolean) => {
     const { randomGames, requestingRandomGames } = this.props.main;
-    /** If there are more games, shift them forward */
-    if (randomGames.length >= 10) {
-      this.props.setMainState({ randomGames: randomGames.slice(5) });
+
+    // Shift in new games from the queue
+    if (first !== true) {
+      this.props.dispatchMain({ type: MainActionType.SHIFT_RANDOM_GAMES });
     }
-    /** If there are less than 3 rolls on the queue, request 10 more */
+
+    // Request more games to the queue
     if (randomGames.length <= 15 && !requestingRandomGames) {
-      this.props.setMainState({ requestingRandomGames: true });
+      this.props.dispatchMain({ type: MainActionType.REQUEST_RANDOM_GAMES });
+
       window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
         count: 50,
         broken: window.Shared.config.data.showBrokenGames,
         extreme: this.props.preferencesData.browsePageShowExtreme,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
       }, (res) => {
-        this.props.setMainState({ requestingRandomGames: false, gamesDoneLoading: true });
-        if (res.data) {
-          /** If we couldn't move the queue last time, do it now */
-          const newGames = [...randomGames];
-          if (newGames.length >= 5) {
-            newGames.splice(0, 5);
-          }
-          this.props.setMainState({ randomGames: newGames.concat(res.data) });
-        }
+        this.props.dispatchMain({
+          type: MainActionType.RESPONSE_RANDOM_GAMES,
+          games: res.data || [],
+        });
       });
     }
   };
