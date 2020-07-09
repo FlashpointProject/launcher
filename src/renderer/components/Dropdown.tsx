@@ -30,7 +30,6 @@ export function Dropdown(props: DropdownProps) {
   const onMouseDown = useCallback((event: React.MouseEvent) => {
     if (event.button === 0) { // (Left mouse button)
       setExpanded(!expanded);
-      event.preventDefault();
     }
   }, [expanded]);
   // Render
