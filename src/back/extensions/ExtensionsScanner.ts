@@ -12,6 +12,8 @@ const fsPromises = fs.promises;
 export async function scanExtensions(configData: IAppConfigData): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
+  // TODO: System extensions (?)
+
   // User extensions
   const userExtPath = path.join(configData.flashpointPath, configData.extensionsPath);
   await fsPromises.readdir(userExtPath, { withFileTypes: true })
@@ -29,7 +31,7 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
           result.set(ext.id, ext);
         }
       })
-      .catch(err => log.error('Extensions', `Error loading User extension ${file}\n${err}`));
+      .catch(err => log.error('Extensions', `Error loading User extension "${file.name}"\n${err}`));
     }));
   });
 
@@ -41,11 +43,19 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
   return r;
 }
 
+function getExtensionID(author: string, name: string) {
+  const fAuthor = author.toLowerCase().replace(' ', '-');
+  if (name.includes(' ') || name.toLowerCase() !== name) {
+    throw new Error('Extension names may not include uppercase or space characters!');
+  }
+  return `${fAuthor}.${name}`;
+}
+
 async function parseExtension(extFilePath: string, type: ExtensionType): Promise<IExtension> {
   const data = await readJsonFile(extFilePath);
   const manifest = await parseExtensionManifest(data);
   const ext: IExtension = {
-    id: `${manifest.author}.${manifest.name}`,
+    id: getExtensionID(manifest.author, manifest.name),
     type: type,
     manifest: manifest,
     extensionPath: path.dirname(extFilePath)
@@ -58,11 +68,7 @@ async function parseExtensionManifest(data: any) {
     name: '',
     author: '',
     version: '',
-    launcherVersion: '',
-    contributes: {
-      themes: [],
-      devScripts: []
-    }
+    launcherVersion: ''
   };
   const parser = new ObjectParser({
     input: data
@@ -75,13 +81,18 @@ async function parseExtensionManifest(data: any) {
   parser.prop('description',      v => parsed.description     = str(v), true);
   parser.prop('icon',             v => parsed.icon            = str(v), true);
   parser.prop('main',             v => parsed.main            = str(v), true);
-  parseContributions(parser.prop('contributes'), parsed.contributes);
+  parsed.contributes = parseContributions(parser.prop('contributes'));
   return parsed;
 }
 
-function parseContributions(parser: IObjectParserProp<Contributions>, contributes: Contributions): void {
+function parseContributions(parser: IObjectParserProp<Contributions>): Contributions {
+  const contributes: Contributions = {
+    themes: [],
+    devScripts: []
+  };
   parser.prop('themes').array((item) => contributes.themes.push(parseTheme(item)));
   parser.prop('devScripts').array((item) => contributes.devScripts.push(parseDevScript(item)));
+  return contributes;
 }
 
 function parseTheme(parser: IObjectParserProp<Theme>): Theme {

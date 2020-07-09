@@ -1,18 +1,21 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Barrier } from '@back/util/async';
-import { IAppConfigData } from '@shared/config/interfaces';
-import { scanExtensions  } from './ExtensionsScanner';
-import { IExtension, Contributions, ExtensionContribution } from '../../shared/extensions/interfaces';
-import { ExtensionData, ExtensionContext, ExtensionJS } from './types';
-import { getExtensionEntry, newExtLog, extLogFactory } from './ExtensionUtils';
-import { LogLevel, ILogEntry } from '@shared/Log/interface';
 import { Disposable, dispose, newDisposable } from '@back/util/lifecycle';
+import { TernarySearchTree } from '@back/util/map';
+import { IAppConfigData } from '@shared/config/interfaces';
+import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { Contributions, ExtensionContribution, IExtension } from '../../shared/extensions/interfaces';
+import { scanExtensions } from './ExtensionsScanner';
+import { extLogFactory, getExtensionEntry, newExtLog } from './ExtensionUtils';
+import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 
 export class ExtensionService {
   /** Stores unchanging Extension data */
   protected readonly _extensions: IExtension[];
   /** Stores temporary runtime Extension data */
   protected readonly _extensionData: Record<string, ExtensionData>;
+  /** Generated extension index */
+  private _extensionPathIndex: Promise<TernarySearchTree<string, IExtension>> | null;
 
   /** Opens when _extensions is ready to be read */
   private readonly _installedExtensionsReady: Barrier;
@@ -55,10 +58,28 @@ export class ExtensionService {
         list.push({
           key: key,
           extId: ext.id,
-          value: ext.manifest.contributes[key]
+          value: ext.manifest.contributes ? ext.manifest.contributes[key] : []
         });
         return list;
       }, []);
+    });
+  }
+
+  /** Builds a tree mapping of Extensions paths and itself */
+  public async getExtensionPathIndex(): Promise<TernarySearchTree<string, IExtension>> {
+    return this._installedExtensionsReady.wait().then(() => {
+      if (!this._extensionPathIndex) {
+        const index = TernarySearchTree.forPaths<IExtension>();
+        const extensions = this._extensions.map(ext => {
+          if (!ext.manifest.main) {
+            return undefined;
+          }
+          index.set(ext.extensionPath, ext);
+        });
+        this._extensionPathIndex = Promise.all(extensions).then(() => index);
+        return index;
+      }
+      return this._extensionPathIndex;
     });
   }
 
@@ -84,8 +105,8 @@ export class ExtensionService {
     try {
       // Import extension as module
       const entryPath = getExtensionEntry(ext);
-      const { activate } = await import(entryPath);
-      if (!activate) {
+      const extModule: ExtensionModule = await import(entryPath);
+      if (!extModule.activate) {
         throw new Error('No "activate" export found in extension module!');
       }
       // Build context
@@ -101,11 +122,11 @@ export class ExtensionService {
         }
       };
       // Activate extension
-      activate(context);
+      extModule.activate.apply(global, [context]);
       this._setSubscriptions(ext.id, context.subscriptions);
       this._enableExtension(ext.id);
     } catch (err) {
-      this._logExtension(ext.id, newExtLog(ext, err, log.error));
+      this._logExtension(ext.id, newExtLog(ext.manifest, err, log.error));
       extData.errors.push(err);
     }
   }

@@ -29,7 +29,7 @@ import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
 import { ExtensionService } from './extensions/ExtensionService';
-import { commands } from './extensions/types';
+import { FPLNodeModuleFactory as FlashpointNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
@@ -38,6 +38,7 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+import { Command } from './extensions/types';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -92,7 +93,13 @@ const state: BackState = {
   playlists: [],
   execMappings: [],
   lastLinkedCurationKey: '',
-  commandRegistry: new Map<string, commands.Command>(),
+  moduleInterceptor: {
+    alternatives: [],
+    factories: new Map<string, INodeModuleFactory>(),
+  },
+  registry: {
+    commands: new Map<string, Command>(),
+  },
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
 };
@@ -161,10 +168,11 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Init extensions
   state.extensionsService = new ExtensionService(state.config);
+  registerInterceptor(new FlashpointNodeModuleFactory(await state.extensionsService.getExtensionPathIndex(), state.registry), state.moduleInterceptor);
+  await installNodeInterceptor(state.moduleInterceptor);
   await state.extensionsService.getExtensions()
   .then((exts) => {
     exts.forEach(ext => {
-      console.log(JSON.stringify(ext, null, 2));
       state.extensionsService.loadExtension(ext.id);
     });
   });

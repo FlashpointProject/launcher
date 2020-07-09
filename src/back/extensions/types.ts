@@ -1,7 +1,15 @@
+import { Disposable } from '@back/util/lifecycle';
 import { ILogEntry } from '@shared/Log/interface';
-import { Disposable, newDisposable } from '@back/util/lifecycle';
 
-export type ExtensionLogFunc = (message: string) => void;
+export type ExtensionData = {
+  extId: string;
+  enabled: boolean;
+  subscriptions: Disposable;
+  logs: ILogEntry[];
+  errors: Error[];
+}
+
+export type ExtensionLogFunc = (message: string) => void
 
 export type ExtensionContext = {
   subscriptions: Disposable,
@@ -14,32 +22,18 @@ export type ExtensionContext = {
   }
 }
 
-export namespace commands {
-  interface ICommand {
-    command: string;
-    title: string;
-  }
-
-  export type Command = ICommand & Disposable;
-
-  export function registerCommand(command: string, callback: (...args: any[]) => any, thisArg?: any): Disposable {
-    const c: Command = {
-      command: command,
-      title: 'what do',
-      ...newDisposable()
-    };
-    return c;
-  }
+export type ExtensionModule = {
+  activate?: (context: ExtensionContext) => void;
+  deactivate?: (context: ExtensionContext) => void;
 }
 
-export type ExtensionData = {
-  extId: string;
-  enabled: boolean;
-  subscriptions: Disposable;
-  logs: ILogEntry[];
-  errors: Error[];
+export type Registry = {
+  commands: Map<string, Command>;
 }
 
-export namespace ExtensionJS {
-  export type ActivateFunc = (context: ExtensionContext) => void;
+export interface ICommand {
+  command: string;
+  callback: (...any: any[]) => any;
 }
+
+export type Command = ICommand & Disposable;

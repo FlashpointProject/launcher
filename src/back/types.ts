@@ -15,12 +15,13 @@ import { IncomingMessage, Server, ServerResponse } from 'http';
 import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
 import { ExtensionService } from './extensions/ExtensionService';
-import { commands } from './extensions/types';
+import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
 import { GameManagerState } from './game/types';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { Registry } from './extensions/types';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -62,8 +63,9 @@ export type BackState = {
   playlists: Playlist[];
   execMappings: ExecMapping[];
   lastLinkedCurationKey: string;
+  moduleInterceptor: ModuleInterceptorState;
+  registry: Registry;
   extensionsService: ExtensionService;
-  commandRegistry: Map<string, commands.Command>;
   connection: Connection | undefined;
 }
 

@@ -1,7 +1,7 @@
 export type Disposable = {
   toDispose: Disposable[];
   isDisposed: boolean;
-  callback?: () => void;
+  onDispose?: () => void;
 }
 
 export function dispose<T>(disposable: Disposable) {
@@ -11,8 +11,8 @@ export function dispose<T>(disposable: Disposable) {
 
   disposable.isDisposed = true;
   clearDisposable(disposable);
-  if (disposable.callback) {
-    disposable.callback();
+  if (disposable.onDispose) {
+    disposable.onDispose();
   }
 }
 
@@ -31,9 +31,10 @@ export function registerDisposable(parent: Disposable, child: Disposable) {
   parent.toDispose.push(child);
 }
 
-export function newDisposable(): Disposable {
+export function newDisposable(onDispose?: () => void): Disposable {
   return {
     toDispose: [],
-    isDisposed: false
+    isDisposed: false,
+    onDispose: onDispose
   };
 }

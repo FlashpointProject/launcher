@@ -1,8 +1,8 @@
-import { IExtension } from '@shared/extensions/interfaces';
+import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
+import { LogFunc } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import * as path from 'path';
-import { LogFunc } from '@shared/interfaces';
-import { ExtensionLogFunc } from '@back/extensions/types';
+import { ExtensionLogFunc } from './types';
 
 export function extensionString(ext: IExtension): string {
   return `ID - ${ext.id}\n` +
@@ -25,12 +25,12 @@ export function getExtensionEntry(ext: IExtension): string {
   throw new Error('Extension defines no entry point!');
 }
 
-export function newExtLog(ext: IExtension, message: string, func: LogFunc): ILogEntry {
-  return func('Extensions', `[${ext.manifest.name}] ${message}`);
+export function newExtLog(extManifest: IExtensionManifest, message: string, func: LogFunc): ILogEntry {
+  return func('Extensions', `[${extManifest.displayName || extManifest.name}] ${message}`);
 }
 
 export function extLogFactory(logLevel: LogLevel, ext: IExtension, addLog: (entry: ILogEntry) => void, func: LogFunc): ExtensionLogFunc {
   return (message: string) => {
-    addLog(newExtLog(ext, message, func));
+    addLog(newExtLog(ext.manifest, message, func));
   };
 }

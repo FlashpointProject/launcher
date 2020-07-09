@@ -91,6 +91,8 @@ export enum BackIn {
   // Meta edits
   EXPORT_META_EDIT,
   IMPORT_META_EDITS,
+  /** Extensions */
+  RUN_COMMAND,
   // Misc
   UPLOAD_LOG,
 }
@@ -129,6 +131,7 @@ export enum BackOut {
   FIX_TAG_PRIMARY_ALIASES,
   SYNC_GAME_METADATA,
   QUIT,
+  RUN_COMMAND,
   UPLOAD_LOG,
 }
 
@@ -604,3 +607,13 @@ export type MetaEditGameNotFound = {
 }
 
 export type UploadLogResponse = string | undefined;
+
+export type RunCommandData = {
+  command: string;
+  args?: any[];
+};
+
+export type RunCommandResponse = {
+  success: boolean;
+  res: any;
+}

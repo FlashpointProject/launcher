@@ -33,7 +33,7 @@ export interface IExtensionManifest {
   description?: string;
   icon?: string;
   main?: string;
-  contributes: Contributions;
+  contributes?: Contributions;
 }
 
 export interface IExtension {

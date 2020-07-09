@@ -1,10 +1,10 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
-import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportMetaEditResponseData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportMetaEditResponseData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse, RunCommandData, RunCommandResponse } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { ExtensionContribution, DevScript } from '@shared/extensions/interfaces';
 import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
@@ -151,7 +151,8 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               <SimpleButton
                 key={contribution.extId + index}
                 value={script.name}
-                title={script.description} />
+                title={script.description}
+                onClick={() => this.onRunCommand(script)} />
             )))}
           </div>
           {/* -- Services -- */}
@@ -373,6 +374,15 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       });
     });
   };
+
+  onRunCommand(script: DevScript) {
+    setTimeout(async () => {
+      const res = await window.Shared.back.sendP<RunCommandResponse, RunCommandData>(BackIn.RUN_COMMAND, { command: script.command });
+      if (res.data) {
+        this.setState({ text: `Run Command Status: ${res.data.success ? 'SUCCESS' : 'FAILURE'}` });
+      }
+    }, 0);
+  }
 
   static contextType = LangContext;
 }
