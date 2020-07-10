@@ -4,6 +4,7 @@
 
 - Adding a game to a playlist now puts it at the end of the playlist (instead of at the beginning).
 - It is no longer possible to add a game to a playlist it is already in.
+- `content` folder is now created when loading curation meta files.
 
 # Release 9.0.2
 
