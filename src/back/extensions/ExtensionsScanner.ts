@@ -97,9 +97,9 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
 
 function parseTheme(parser: IObjectParserProp<Theme>): Theme {
   const theme: Theme = {
-    folder: ''
+    path: ''
   };
-  parser.prop('folder', v => theme.folder = str(v));
+  parser.prop('path', v => theme.path = str(v));
   return theme;
 }
 

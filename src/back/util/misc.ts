@@ -117,7 +117,9 @@ export function exit(state: BackState): void {
     }
 
     state.languageWatcher.abort();
-    state.themeWatcher.abort();
+    for (const watcher of state.themeState.watchers) {
+      watcher.abort();
+    }
 
     Promise.all([
       // Close WebSocket server

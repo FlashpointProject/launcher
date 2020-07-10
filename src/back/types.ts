@@ -57,9 +57,7 @@ export type BackState = {
   languageQueue: EventQueue;
   languages: LangFile[];
   languageContainer: LangContainer;
-  themeWatcher: FolderWatcher;
-  themeQueue: EventQueue;
-  themeFiles: ThemeListItem[];
+  themeState: ThemeState;
   playlists: Playlist[];
   execMappings: ExecMapping[];
   lastLinkedCurationKey: string;
@@ -115,6 +113,12 @@ export type ServiceFileData = {
   /** Files to watch and run continous logging on */
   watch: string[];
 };
+
+export type ThemeState = {
+  watchers: FolderWatcher[];
+  files: ThemeListItem[];
+  queue: EventQueue;
+}
 
 export type ThemeListItem = Theme & {
   /**

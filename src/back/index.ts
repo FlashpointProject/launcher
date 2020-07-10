@@ -6,12 +6,11 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
-import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData, ThemeChangeData, ThemeListChangeData } from '@shared/back/types';
+import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData } from '@shared/back/types';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
-import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
@@ -30,15 +29,16 @@ import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './consta
 import { loadExecMappingsFile } from './Execs';
 import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory as FlashpointNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
+import { Command } from './extensions/types';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
+import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
-import { Command } from './extensions/types';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -87,9 +87,11 @@ const state: BackState = {
   languageQueue: new EventQueue(),
   languages: [],
   languageContainer: getDefaultLocalization(), // Cache of the latest lang container - used by back when it needs lang strings
-  themeWatcher: new FolderWatcher(),
-  themeQueue: new EventQueue(),
-  themeFiles: [],
+  themeState: {
+    files: [],
+    watchers: [],
+    queue: new EventQueue()
+  },
   playlists: [],
   execMappings: [],
   lastLinkedCurationKey: '',
@@ -294,121 +296,18 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
 
   // Init themes
-  state.themeWatcher.on('ready', () => {
-    // Add event listeners
-    state.themeWatcher.on('add', onThemeAdd);
-    state.themeWatcher.on('change', (filename: string, offsetPath: string) => {
-      state.themeQueue.push(() => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          // A file in a theme has been changed
-          state.socketServer.broadcast<ThemeChangeData>({
-            id: '',
-            type: BackOut.THEME_CHANGE,
-            data: item.entryPath,
-          });
-        } else {
-          console.warn('A file has been changed in a theme that is not registered '+
-                        `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
-        }
-      });
-    });
-    state.themeWatcher.on('remove', (filename: string, offsetPath: string) => {
-      state.themeQueue.push(() => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          if (item.entryPath === path.join(offsetPath, filename)) { // (Entry file was removed)
-            state.themeFiles.splice(state.themeFiles.indexOf(item), 1);
-            // A theme has been removed
-            state.socketServer.broadcast<ThemeListChangeData>({
-              id: '',
-              type: BackOut.THEME_LIST_CHANGE,
-              data: state.themeFiles,
-            });
-          } else { // (Non-entry file was removed)
-            // A file in a theme has been removed
-            state.socketServer.broadcast<ThemeChangeData>({
-              id: '',
-              type: BackOut.THEME_CHANGE,
-              data: item.entryPath,
-            });
-          }
-        } else {
-          console.warn('A file has been removed from a theme that is not registered '+
-                        `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
-        }
-      });
-    });
-    // Add initial files
-    for (const filename of state.themeWatcher.filenames) {
-      onThemeAdd(filename, '', false);
-    }
-    // Functions
-    function onThemeAdd(filename: string, offsetPath: string, doBroadcast = true) {
-      state.themeQueue.push(async () => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          // A file has been added to this theme
-          state.socketServer.broadcast<ThemeChangeData>({
-            id: '',
-            type: BackOut.THEME_CHANGE,
-            data: item.entryPath,
-          });
-        } else {
-          // Check if it is a potential entry file
-          // (Entry files are either directly inside the "Theme Folder", or one folder below that and named "theme.css")
-          const folders = offsetPath.split(path.sep);
-          const folderName = folders[0] || offsetPath;
-          const file = state.themeWatcher.getFile(folderName ? [...folders, filename] : [filename]);
-          if ((file && file.isFile()) && (offsetPath === '' || (offsetPath === folderName && filename === themeEntryFilename))) {
-            const themeFolder = state.themeWatcher.getFolder() || '';
-            const entryPath = path.join(themeFolder, folderName, filename);
-            let meta: Partial<ThemeMeta> | undefined;
-            try {
-              const data = await fs.readFile(entryPath, 'utf8');
-              meta = parseThemeMetaData(data) || {};
-            } catch (error) { console.warn(`Failed to load theme entry file (File: "${entryPath}")`, error); }
-            if (meta) {
-              state.themeFiles.push({
-                basename: folderName || filename,
-                meta: meta,
-                entryPath: path.relative(themeFolder, entryPath),
-              });
-              if (doBroadcast) {
-                state.socketServer.broadcast<ThemeListChangeData>({
-                  id: '',
-                  type: BackOut.THEME_LIST_CHANGE,
-                  data: state.themeFiles,
-                });
-              }
-            }
-          }
-        }
-      });
-    }
-    function findOwner(filename: string, offsetPath: string) {
-      if (offsetPath) { // (Sub-folder)
-        const index = offsetPath.indexOf(path.sep);
-        const folderName = (index >= 0) ? offsetPath.substr(0, index) : offsetPath;
-        return state.themeFiles.find(item => item.basename === folderName);
-      } else { // (Theme folder)
-        return state.themeFiles.find(item => item.entryPath === filename || item.basename === filename);
+  const dataThemeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+  newThemeWatcher(dataThemeFolder, state.themeState, state.socketServer);
+  const themeContributions = await state.extensionsService.getContributions<'themes'>('themes');
+  for (const c of themeContributions) {
+    for (const theme of c.value) {
+      const ext = await state.extensionsService.getExtension(c.extId);
+      if (ext) {
+        const realPath = path.join(ext.extensionPath, theme.path);
+        newThemeWatcher(realPath, state.themeState, state.socketServer);
       }
     }
-  });
-  state.themeWatcher.on('error', console.error);
-  const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-  fs.stat(themeFolder, (error) => {
-    if (!error) { state.themeWatcher.watch(themeFolder, { recursionDepth: -1 }); }
-    else {
-      log.info('Back', (typeof error.toString === 'function') ? error.toString() : (error + ''));
-      if (error.code === 'ENOENT') {
-        log.info('Back', `Failed to watch theme folder. Folder does not exist (Path: "${themeFolder}")`);
-      } else {
-        log.info('Back', (typeof error.toString === 'function') ? error.toString() : (error + ''));
-      }
-    }
-  });
+  }
 
   // Load Exec Mappings
   loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log.info('Launcher', content))
@@ -555,11 +454,19 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
 
       // Theme folder
       case 'themes': {
-        const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
         const index = urlPath.indexOf('/');
         const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-        const filePath = path.join(themeFolder, relativeUrl);
-        if (filePath.startsWith(themeFolder)) {
+        const nameIndex = relativeUrl.indexOf('/');
+        log.info('l', relativeUrl);
+        const themeName = (nameIndex >= 0) ? relativeUrl.substr(0, nameIndex) : relativeUrl;
+        log.info('l', themeName);
+        // Find owner of relative url
+        const file = state.themeState.files.find(t => {
+          log.info('l', `COMPARING ${t.basename}`);
+          return t.basename === themeName;
+        });
+        if (file) {
+          const filePath = path.join(file.parentPath, relativeUrl);
           serveFile(req, res, filePath);
         }
       } break;

@@ -1,4 +1,6 @@
 export type Theme = {
+  /** Path to the parent theme folder */
+  parentPath: string;
   /** Path of the theme's entry file (the css file that should be applied). */
   entryPath: string;
   /** Meta data of the theme. */

@@ -10,7 +10,7 @@ export type DevScript = {
 }
 
 export type Theme = {
-  folder: string;
+  path: string;
 }
 
 export type ExtensionContribution<T extends keyof Contributions> = {
