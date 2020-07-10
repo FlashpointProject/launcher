@@ -3,10 +3,10 @@ import { Barrier } from '@back/util/async';
 import { Disposable, dispose, newDisposable } from '@back/util/lifecycle';
 import { TernarySearchTree } from '@back/util/map';
 import { IAppConfigData } from '@shared/config/interfaces';
-import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { ILogEntry } from '@shared/Log/interface';
 import { Contributions, ExtensionContribution, IExtension } from '../../shared/extensions/interfaces';
 import { scanExtensions } from './ExtensionsScanner';
-import { extLogFactory, getExtensionEntry, newExtLog } from './ExtensionUtils';
+import { getExtensionEntry, newExtLog } from './ExtensionUtils';
 import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 
 export class ExtensionService {
@@ -110,24 +110,15 @@ export class ExtensionService {
         throw new Error('No "activate" export found in extension module!');
       }
       // Build context
-      const pushLog = (entry: ILogEntry) => this._logExtension(ext.id, entry);
       const context: ExtensionContext = {
-        subscriptions: extData.subscriptions,
-        log: {
-          trace: extLogFactory(LogLevel.TRACE, ext, pushLog, log.trace),
-          debug: extLogFactory(LogLevel.DEBUG, ext, pushLog, log.debug),
-          info:  extLogFactory(LogLevel.INFO,  ext, pushLog, log.info),
-          warn:  extLogFactory(LogLevel.WARN,  ext, pushLog, log.warn),
-          error: extLogFactory(LogLevel.ERROR, ext, pushLog, log.error),
-        }
+        subscriptions: extData.subscriptions
       };
       // Activate extension
-      extModule.activate.apply(global, [context]);
+      await Promise.resolve(extModule.activate.apply(global, [context]));
       this._setSubscriptions(ext.id, context.subscriptions);
       this._enableExtension(ext.id);
     } catch (err) {
-      this._logExtension(ext.id, newExtLog(ext.manifest, err, log.error));
-      extData.errors.push(err);
+      this.logExtension(ext.id, newExtLog(ext.manifest, err, log.error));
     }
   }
 
@@ -136,8 +127,7 @@ export class ExtensionService {
       extId: extId,
       enabled: false,
       subscriptions: newDisposable(),
-      logs: [],
-      errors: []
+      logs: []
     };
   }
 
@@ -149,7 +139,7 @@ export class ExtensionService {
     this._extensionData[extId] = data;
   }
 
-  private _logExtension(extId: string, entry: ILogEntry) {
+  public logExtension(extId: string, entry: ILogEntry) {
     const data = this._getExtensionData(extId);
     data.logs.push(entry);
     this._extensionData[extId] = data;

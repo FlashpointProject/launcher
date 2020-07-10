@@ -167,8 +167,15 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Init extensions
+  const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
+    state.extensionsService.logExtension(extId, entry);
+  };
   state.extensionsService = new ExtensionService(state.config);
-  registerInterceptor(new FlashpointNodeModuleFactory(await state.extensionsService.getExtensionPathIndex(), state.registry), state.moduleInterceptor);
+  registerInterceptor(new FlashpointNodeModuleFactory(
+    await state.extensionsService.getExtensionPathIndex(),
+    state.registry,
+    addExtLogFactory),
+  state.moduleInterceptor);
   await installNodeInterceptor(state.moduleInterceptor);
   await state.extensionsService.getExtensions()
   .then((exts) => {

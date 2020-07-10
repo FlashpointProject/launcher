@@ -29,8 +29,8 @@ export function newExtLog(extManifest: IExtensionManifest, message: string, func
   return func('Extensions', `[${extManifest.displayName || extManifest.name}] ${message}`);
 }
 
-export function extLogFactory(logLevel: LogLevel, ext: IExtension, addLog: (entry: ILogEntry) => void, func: LogFunc): ExtensionLogFunc {
+export function extLogFactory(logLevel: LogLevel, extManifest: IExtensionManifest, addLog: (entry: ILogEntry) => void, func: LogFunc): ExtensionLogFunc {
   return (message: string) => {
-    addLog(newExtLog(ext.manifest, message, func));
+    addLog(newExtLog(extManifest, message, func));
   };
 }

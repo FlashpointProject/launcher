@@ -8,6 +8,16 @@ declare module 'flashpoint' {
   export const version: string;
   export const extManifest: IExtensionManifest;
 
+  /** Log functions to properly pass to the Logs Page */
+  export type ExtensionLogFunc = (message: string) => void;
+  export namespace log {
+    export const trace: ExtensionLogFunc;
+    export const debug: ExtensionLogFunc;
+    export const info:  ExtensionLogFunc;
+    export const warn:  ExtensionLogFunc;
+    export const error: ExtensionLogFunc;
+  }
+
   export namespace commands {
     /**
      * Register a command to be called by name later
@@ -33,18 +43,9 @@ declare module 'flashpoint' {
   /** Create a new disposable with optional callback - Should be registered afterwards! */
   export function newDisposable(callback?: () => void): Disposable;
 
-  export type ExtensionLogFunc = (message: string) => void;
   export type ExtensionContext = {
     /** Put all extension disposables on here with registerDisposable */
     subscriptions: Disposable;
-    /** Log functions to properly pass to the Logs Page */
-    log: {
-      trace: ExtensionLogFunc;
-      debug: ExtensionLogFunc;
-      info:  ExtensionLogFunc;
-      warn:  ExtensionLogFunc;
-      error: ExtensionLogFunc;
-    };
   };
 
   export type DevScript = {
