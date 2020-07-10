@@ -1,5 +1,13 @@
 # Release 9.0.3
 
+## New
+
+- Starting a `tag:` search in the search bar will list tag suggestions that you can click on to fill in.
+
+## Changed
+
+- Tag Suggestions dropdowns can use Tab to navigate the list and Enter to select a tag suggestion. Focus is returned to the input element afterwards.
+
 ## Fixed
 
 - Adding a game to a playlist now puts it at the end of the playlist (instead of at the beginning).
