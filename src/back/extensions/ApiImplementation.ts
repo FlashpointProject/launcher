@@ -5,7 +5,7 @@ import { Command, Registry } from './types';
 import { ILogEntry } from '@shared/Log/interface';
 import { newExtLog } from './ExtensionUtils';
 
-export function createApiFactory(extManifest: IExtensionManifest, registry: Registry, addExtLog: (log: ILogEntry) => void): typeof flashpoint {
+export function createApiFactory(extManifest: IExtensionManifest, registry: Registry, addExtLog: (log: ILogEntry) => void, version: string): typeof flashpoint {
   const extLog: typeof flashpoint.log = {
     trace: (message: string) => addExtLog(newExtLog(extManifest, message, log.trace)),
     debug: (message: string) => addExtLog(newExtLog(extManifest, message, log.debug)),
@@ -36,7 +36,7 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
 
   return <typeof flashpoint>{
     // General information
-    version: '9.0.2', // TODO: Implement
+    version: version,
     extManifest: extManifest,
 
     log: extLog,

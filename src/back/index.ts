@@ -131,7 +131,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   state.socketServer.secret = content.secret;
 
-  log.info('Launcher', `Starting Flashpoint Launcher ${content.version} ${content.isDev ? 'DEV' : ''}`);
+  const versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
+  log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
   const [pref, conf] = await (Promise.all([
@@ -174,7 +175,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   registerInterceptor(new FlashpointNodeModuleFactory(
     await state.extensionsService.getExtensionPathIndex(),
     state.registry,
-    addExtLogFactory),
+    addExtLogFactory,
+    versionStr),
   state.moduleInterceptor);
   await installNodeInterceptor(state.moduleInterceptor);
   await state.extensionsService.getExtensions()

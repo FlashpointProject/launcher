@@ -63,7 +63,7 @@ export async function installNodeInterceptor(state: InterceptorState): Promise<v
 }
 
 interface IExtensionApiFactory {
-  (ext: IExtensionManifest, reg: Registry, addExtLog: (entry: ILogEntry) => void): typeof flashpoint;
+  (ext: IExtensionManifest, reg: Registry, addExtLog: (entry: ILogEntry) => void, version: string): typeof flashpoint;
 }
 
 export class FPLNodeModuleFactory implements INodeModuleFactory {
@@ -76,7 +76,8 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
   constructor(
     protected readonly _extensionPaths: TernarySearchTree<string, IExtension>,
     private readonly _registry: Registry,
-    private readonly _addExtLogFactory: (extId: string) => (entry: ILogEntry) => void
+    private readonly _addExtLogFactory: (extId: string) => (entry: ILogEntry) => void,
+    private readonly _version: string
   ) {
     this._apiFactory = createApiFactory;
   }
@@ -89,7 +90,11 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
       let apiImpl = this._extApiImpl.get(ext.id);
       if (!apiImpl) {
         // No API for extension yet, make one
-        apiImpl = this._apiFactory(ext.manifest, this._registry, this._addExtLogFactory(ext.id));
+        apiImpl = this._apiFactory(
+          ext.manifest,
+          this._registry,
+          this._addExtLogFactory(ext.id),
+          this._version);
         this._extApiImpl.set(ext.id, apiImpl);
       }
       return apiImpl;
@@ -97,7 +102,11 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
 
     // Import not from an extension, Give default API
     if (!this._defaultApiImpl) {
-      this._defaultApiImpl = this._apiFactory(nullExtensionDescription, this._registry, this._addExtLogFactory('null'));
+      this._defaultApiImpl = this._apiFactory(
+        nullExtensionDescription,
+        this._registry,
+        this._addExtLogFactory('null'),
+        this._version);
     }
     return this._defaultApiImpl;
   }
