@@ -457,12 +457,9 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
         const index = urlPath.indexOf('/');
         const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
         const nameIndex = relativeUrl.indexOf('/');
-        log.info('l', relativeUrl);
         const themeName = (nameIndex >= 0) ? relativeUrl.substr(0, nameIndex) : relativeUrl;
-        log.info('l', themeName);
         // Find owner of relative url
         const file = state.themeState.files.find(t => {
-          log.info('l', `COMPARING ${t.basename}`);
           return t.basename === themeName;
         });
         if (file) {
