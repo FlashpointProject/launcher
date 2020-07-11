@@ -79,7 +79,7 @@
   },
   "logs": {
     "filters": "Filtri",
-    "logLevels": "Log Levels",
+    "logLevels": "Livelli Di Log",
     "copyText": "Copia testo",
     "clearLog": "Svuota Registro Eventi",
     "copy404Urls": "Copia 404 URL",
