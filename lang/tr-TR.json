@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "Filtreler",
+    "logLevels": "Log Levels",
     "copyText": "Metni Kopyala",
     "clearLog": "Kayıtları Temizle",
     "copy404Urls": "404 URL'lerini kopyala",
