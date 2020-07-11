@@ -3,7 +3,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser, IObjectParserProp } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ExtensionType, IExtension, IExtensionManifest, Contributions, Theme, DevScript } from '../../shared/extensions/interfaces';
+import { ExtensionType, IExtension, IExtensionManifest, Contributions, ExtTheme, DevScript } from '../../shared/extensions/interfaces';
 import { readJsonFile } from '@shared/Util';
 
 const { str } = Coerce;
@@ -95,8 +95,8 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
   return contributes;
 }
 
-function parseTheme(parser: IObjectParserProp<Theme>): Theme {
-  const theme: Theme = {
+function parseTheme(parser: IObjectParserProp<ExtTheme>): ExtTheme {
+  const theme: ExtTheme = {
     id: '',
     path: ''
   };

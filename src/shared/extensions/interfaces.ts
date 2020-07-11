@@ -9,7 +9,7 @@ export type DevScript = {
   command: string;
 }
 
-export type Theme = {
+export type ExtTheme = {
   id: string;
   path: string;
 }
@@ -21,7 +21,7 @@ export type ExtensionContribution<T extends keyof Contributions> = {
 }
 
 export type Contributions = {
-  themes: Theme[]; // TODO Implement
+  themes: ExtTheme[]; // TODO Implement
   devScripts: DevScript[];
 }
 
