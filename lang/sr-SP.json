@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "Филтери",
+    "logLevels": "Log Levels",
     "copyText": "Копирај текст",
     "clearLog": "Очисти запис",
     "copy404Urls": "Copy 404 URLs",
