@@ -376,7 +376,7 @@ export class App extends React.Component<AppProps> {
     // Check if theme changed
     if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
       const theme = this.props.main.themeList.find(t => t.id === preferencesData.currentTheme);
-      if (theme) { setTheme(theme); }
+      setTheme(theme);
     }
 
     // Check if renderer finished initializing
