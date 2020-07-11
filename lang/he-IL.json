@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "מסננים",
+    "logLevels": "Log Levels",
     "copyText": "העתק טקסט",
     "clearLog": "נקה יומן",
     "copy404Urls": "Copy 404 URLs",
