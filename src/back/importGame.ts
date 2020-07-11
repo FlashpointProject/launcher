@@ -16,15 +16,13 @@ import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
-import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
+import { OpenDialogFunc, OpenExternalFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
 
 type ImportCurationOpts = {
   curation: EditCuration;
   gameManager: GameManagerState;
-  /** If the status should be logged to the console (for debugging purposes). */
-  log?: LogFunc;
   date?: Date;
   saveCuration: boolean;
   fpPath: string;
@@ -42,7 +40,6 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
     curation,
-    log,
     date,
     saveCuration,
     fpPath,
@@ -104,12 +101,12 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
 
   // Copy Thumbnail
   curationLog('Importing Curation Thumbnail');
-  await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath), log)
+  await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath))
   .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
 
   // Copy Screenshot
   curationLog('Importing Curation Screenshot');
-  await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath), log)
+  await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath))
   .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
 
   // Copy content and Extra files
@@ -117,7 +114,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   await (async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
     for (const pair of contentToMove) {
-      await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
+      await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog);
     }
   })()
   .then(async () => {
@@ -134,7 +131,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
                         (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
                         date.getUTCDate().toString().padStart(2, '0');
         const backupPath = path.join(fpPath, 'Curations', '_Imported', `${dateStr}__${curation.key}`);
-        await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog, log);
+        await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog);
       }
       if (log) {
         logMessage('Content Copied', curation);
@@ -238,7 +235,7 @@ function createAddAppFromCurationMeta(addAppMeta: EditAddAppCuration, game: Game
   };
 }
 
-async function importGameImage(image: CurationIndexImage, gameId: string, folder: typeof LOGOS | typeof SCREENSHOTS, fullImagePath: string, log: LogFunc | undefined): Promise<void> {
+async function importGameImage(image: CurationIndexImage, gameId: string, folder: typeof LOGOS | typeof SCREENSHOTS, fullImagePath: string): Promise<void> {
   if (image.exists) {
     const last = path.join(gameId.substr(0, 2), gameId.substr(2, 2), gameId+'.png');
     const imagePath = path.join(fullImagePath, folder, last);
@@ -246,7 +243,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
       // Check if the image is its own file
       if (image.filePath !== undefined) {
         await fs.promises.mkdir(path.dirname(imagePath), { recursive: true });
-        await copyOrMoveFile(image.filePath, imagePath, false, log);
+        await copyOrMoveFile(image.filePath, imagePath, false);
       }
       // Check if the image is extracted
       else if (image.fileName !== undefined && image.rawData !== undefined) {
@@ -303,7 +300,7 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
  * @param inFolder Folder to copy from
  * @param outFolder Folder to copy to
  */
-async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: OpenDialogFunc, log: LogFunc | undefined) {
+async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: OpenDialogFunc) {
   const contentIndex = await indexContentFolder(inFolder, curationLog);
   let yesToAll = false;
   return Promise.all(
@@ -321,7 +318,7 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
         // Only ask when files don't match
         if (filesDifferent) {
           if (!yesToAll) {
-            await copyOrMoveFile(source, dest, move, log);
+            await copyOrMoveFile(source, dest, move);
             return;
           }
           const newStats = await fs.lstat(source);
@@ -337,32 +334,32 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
           });
           switch (response) {
             case 0:
-              await copyOrMoveFile(source, dest, move, log);
+              await copyOrMoveFile(source, dest, move);
               break;
             case 2:
               yesToAll = true;
-              await copyOrMoveFile(source, dest, move, log);
+              await copyOrMoveFile(source, dest, move);
               break;
             case 3:
               cancel = true;
               break;
           }
           if (response === 0) {
-            await copyOrMoveFile(source, dest, move, log);
+            await copyOrMoveFile(source, dest, move);
           }
           if (response === 2) { cancel = true; }
         }
       })
       .catch(async () => {
         // Dest file doesn't exist, just move
-        copyOrMoveFile(source, dest, move, log);
+        copyOrMoveFile(source, dest, move);
       });
       if (cancel) { throw new Error('Import cancelled by user.'); }
     })
   );
 }
 
-async function copyOrMoveFile(source: string, dest: string, move: boolean, log: LogFunc | undefined) {
+async function copyOrMoveFile(source: string, dest: string, move: boolean) {
   try {
     if (move) { await fs.rename(source, dest); } // @TODO Make sure this overwrites files
     else      { await fs.copyFile(source, dest); }
