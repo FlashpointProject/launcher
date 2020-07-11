@@ -1,7 +1,8 @@
-import * as React from 'react';
-import { Link, RouteComponentProps } from 'react-router-dom';
 import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
+import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import * as React from 'react';
+import { Link, RouteComponentProps } from 'react-router-dom';
 import { WithPreferencesProps } from '../containers/withPreferences';
 import { Paths } from '../Paths';
 import { SearchQuery } from '../store/search';
@@ -13,8 +14,10 @@ import { OpenIcon } from './OpenIcon';
 type OwnProps = {
   /** The most recent search query. */
   searchQuery: SearchQuery;
-  /** The current parameters for ordering games. */
-  order: GameOrderChangeEvent;
+  /** Current value of the "order by" drop down. */
+  orderBy: GameOrderBy;
+  /** Current value of the "order reverse" drop down. */
+  orderReverse: GameOrderReverse;
   /** Array of library routes */
   libraries: string[];
   /** Called when a search is made. */
@@ -152,8 +155,8 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
           <div>
             <GameOrder
               onChange={onOrderChange}
-              orderBy={this.props.order.orderBy}
-              orderReverse={this.props.order.orderReverse} />
+              orderBy={this.props.orderBy}
+              orderReverse={this.props.orderReverse} />
           </div>
         </div>
         {/* Right-most portion */}

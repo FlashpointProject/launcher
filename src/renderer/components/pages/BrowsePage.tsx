@@ -23,7 +23,6 @@ import { queueOne } from '../../util/queue';
 import { uuid } from '../../util/uuid';
 import { GameGrid } from '../GameGrid';
 import { GameList } from '../GameList';
-import { GameOrderChangeEvent } from '../GameOrder';
 import { InputElement } from '../InputField';
 import { ResizableSidebar, SidebarResizeEvent } from '../ResizableSidebar';
 
@@ -44,12 +43,6 @@ type OwnProps = {
 
   /** Most recent search query. */
   search: SearchQuery;
-  /** Current parameters for ordering games. */
-  order?: GameOrderChangeEvent;
-  /** Scale of the games. */
-  gameScale: number;
-  /** Layout of the games. */
-  gameLayout: BrowsePageLayout;
   /** Currently selected game (if any). */
   selectedGameId?: string;
   /** Currently selected playlist (if any). */
@@ -176,7 +169,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     const strings = this.context;
     const { games, selectedGameId, selectedPlaylistId } = this.props;
     const { draggedGameId } = this.state;
-    const order = this.props.order || BrowsePage.defaultOrder;
     // Render
     return (
       <div
@@ -217,9 +209,9 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           className='game-browser__center'
           onKeyDown={this.onCenterKeyDown}>
           {(() => {
-            if (this.props.gameLayout === BrowsePageLayout.grid) {
+            if (this.props.preferencesData.browsePageLayout === BrowsePageLayout.grid) {
               // (These are kind of "magic numbers" and the CSS styles are designed to fit with them)
-              const height: number = calcScale(350, this.props.gameScale);
+              const height: number = calcScale(350, this.props.preferencesData.browsePageGameScale);
               const width: number = (height * 0.666) | 0;
               return (
                 <GameGrid
@@ -234,14 +226,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onContextMenu={this.onGameContextMenuMemo(strings)}
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
-                  orderBy={order.orderBy}
-                  orderReverse={order.orderReverse}
                   cellWidth={width}
                   cellHeight={height}
                   gridRef={this.gameGridOrListRefFunc} />
               );
             } else {
-              const height: number = calcScale(30, this.props.gameScale);
+              const height: number = calcScale(30, this.props.preferencesData.browsePageGameScale);
               return (
                 <GameList
                   games={games}
@@ -255,8 +245,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onGameDragStart={this.onGameDragStart}
                   onGameDragEnd={this.onGameDragEnd}
                   updateView={this.props.updateView}
-                  orderBy={order.orderBy}
-                  orderReverse={order.orderReverse}
                   rowHeight={height}
                   listRef={this.gameGridOrListRefFunc} />
               );
@@ -897,11 +885,6 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   gameGridOrListRefFunc = (ref: HTMLDivElement | null): void => {
     this.gameGridOrListRef = ref;
-  }
-
-  static defaultOrder: Readonly<GameOrderChangeEvent> = {
-    orderBy: 'title',
-    orderReverse: 'ASC',
   }
 
   static contextType = LangContext;

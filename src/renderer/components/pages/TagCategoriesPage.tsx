@@ -13,9 +13,7 @@ import { SimpleButton } from '../SimpleButton';
 import { TagCategoriesList } from '../TagCategoriesList';
 import { TagListItem } from '../TagListItem';
 
-
 type OwnProps = {
-  tagScale: number;
 }
 
 export type TagCategoriesPageProps = OwnProps & WithTagCategoriesProps & WithPreferencesProps;
@@ -46,7 +44,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
   }
 
   render() {
-    const rowHeight = calcScale(40, this.props.tagScale);
+    const rowHeight = calcScale(40, this.props.preferencesData.browsePageGameScale);
     const strings = this.context.tags;
 
     return (
