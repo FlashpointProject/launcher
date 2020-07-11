@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "Szűrők",
+    "logLevels": "Log Levels",
     "copyText": "Szöveg másolása",
     "clearLog": "Napló törlése",
     "copy404Urls": "404-es URL-ek másolása",
