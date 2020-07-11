@@ -39,6 +39,7 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+import { Theme } from '@shared/ThemeFile';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -88,7 +89,6 @@ const state: BackState = {
   languages: [],
   languageContainer: getDefaultLocalization(), // Cache of the latest lang container - used by back when it needs lang strings
   themeState: {
-    files: [],
     watchers: [],
     queue: new EventQueue()
   },
@@ -101,6 +101,7 @@ const state: BackState = {
   },
   registry: {
     commands: new Map<string, Command>(),
+    themes: new Map<string, Theme>(),
   },
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
@@ -297,14 +298,29 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Init themes
   const dataThemeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-  newThemeWatcher(dataThemeFolder, state.themeState, state.socketServer);
+  try {
+    await fs.promises.readdir(dataThemeFolder, { withFileTypes: true })
+    .then(async (files) => {
+      for (const file of files) {
+        if (file.isDirectory()) {
+          await newThemeWatcher(file.name, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
+        }
+      }
+    });
+  } catch (error) {
+    log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
+  }
   const themeContributions = await state.extensionsService.getContributions<'themes'>('themes');
   for (const c of themeContributions) {
     for (const theme of c.value) {
       const ext = await state.extensionsService.getExtension(c.extId);
       if (ext) {
         const realPath = path.join(ext.extensionPath, theme.path);
-        newThemeWatcher(realPath, state.themeState, state.socketServer);
+        try {
+          await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer);
+        } catch (error) {
+          log.error('Extensions', `Error loading theme from "${c.extId}"\n${error}`);
+        }
       }
     }
   }
@@ -455,16 +471,22 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
       // Theme folder
       case 'themes': {
         const index = urlPath.indexOf('/');
-        const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-        const nameIndex = relativeUrl.indexOf('/');
-        const themeName = (nameIndex >= 0) ? relativeUrl.substr(0, nameIndex) : relativeUrl;
-        // Find owner of relative url
-        const file = state.themeState.files.find(t => {
-          return t.basename === themeName;
-        });
-        if (file) {
-          const filePath = path.join(file.parentPath, relativeUrl);
-          serveFile(req, res, filePath);
+        // Split URL section into parts (/Themes/<themeId>/<relativePath>)
+        const themeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const nameIndex = themeUrl.indexOf('/');
+        const themeId = (nameIndex >= 0) ? themeUrl.substr(0, nameIndex) : themeUrl;
+        const relativePath = (nameIndex >= 0) ? themeUrl.substr(nameIndex + 1): themeUrl;
+        // Find theme associated with the path
+        const theme = state.registry.themes.get(themeId);
+        if (theme) {
+          const filePath = path.join(theme.basePath, theme.themePath, relativePath);
+          // Don't allow files outside of theme path
+          const relative = path.relative(theme.basePath, filePath);
+          if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+            serveFile(req, res, filePath);
+          } else {
+            log.warn('Launcher', `Illegal file request: "${filePath}"`);
+          }
         }
       } break;
 

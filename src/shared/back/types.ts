@@ -448,7 +448,7 @@ export type LanguageChangeData = LangContainer;
 
 export type LanguageListChangeData = LangFile[];
 
-export type ThemeChangeData = string;
+export type ThemeChangeData = Theme;
 
 export type ThemeListChangeData = Theme[];
 

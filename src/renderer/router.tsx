@@ -5,7 +5,7 @@ import { ViewGame } from '@shared/back/types';
 import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
-import { Theme } from '@shared/ThemeFile';
+import { ITheme } from '@shared/ThemeFile';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
@@ -58,7 +58,7 @@ export type AppRouterProps = {
   wasNewGameClicked: boolean;
   onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   gameLibrary: string;
-  themeList: Theme[];
+  themeList: ITheme[];
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
   autoUpdater: AppUpdater,

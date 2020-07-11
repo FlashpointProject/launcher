@@ -8,7 +8,6 @@ import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
-import { Theme } from '@shared/ThemeFile';
 import { MessageBoxOptions, OpenExternalOptions } from 'electron';
 import { EventEmitter } from 'events';
 import { IncomingMessage, Server, ServerResponse } from 'http';
@@ -16,12 +15,12 @@ import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
 import { ExtensionService } from './extensions/ExtensionService';
 import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
+import { Registry } from './extensions/types';
 import { GameManagerState } from './game/types';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { Registry } from './extensions/types';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -116,11 +115,10 @@ export type ServiceFileData = {
 
 export type ThemeState = {
   watchers: FolderWatcher[];
-  files: ThemeListItem[];
   queue: EventQueue;
 }
 
-export type ThemeListItem = Theme & {
+export type ThemeListItem = {
   /**
    * File or folder name of the theme (relative to the theme folder).
    * Format: X in "\X" or "\X\theme.css"

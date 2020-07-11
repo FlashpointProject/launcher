@@ -3,7 +3,7 @@ import { BackIn, UpdateConfigData } from '@shared/back/types';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { Theme } from '@shared/ThemeFile';
+import { ITheme } from '@shared/ThemeFile';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as React from 'react';
 import { isFlashpointValidCheck } from '../../Util';
@@ -20,7 +20,7 @@ type OwnProps = {
   /** List of all platforms */
   platforms: string[];
   /** Filenames of all files in the themes folder. */
-  themeList: Theme[];
+  themeList: ITheme[];
   /** List of available languages. */
   availableLangs: LangFile[];
   /** List of available server names. */
@@ -294,7 +294,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                   <div className='setting__row__content setting__row__content--input-field setting__row__content--theme-input-field'>
                     <DropdownInputField
-                      text={this.props.preferencesData.currentTheme || ''}
+                      text={this.getThemeName(this.props.preferencesData.currentTheme || '') || ''}
                       placeholder={strings.noTheme}
                       onChange={this.onCurrentThemeChange}
                       editable={true}
@@ -505,11 +505,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onCurrentThemeItemSelect = (text: string, index: number): void => {
     // Note: Suggestions with index 0 to "length - 1" are filenames of themes.
     //       Directly after that comes the "No Theme" suggestion.
-    let theme: string | undefined;
+    let theme: ITheme | undefined;
     if (index < this.props.themeList.length) { // (Select a Theme)
-      theme = this.props.themeList[index].entryPath;
+      theme = this.props.themeList[index];
     } else { theme = undefined; } // (Deselect the current theme)
-    updatePreferencesData({ currentTheme: theme });
+    updatePreferencesData({ currentTheme: theme ? theme.id : '' });
     // Select the input field
     if (this.currentThemeInputRef) {
       this.currentThemeInputRef.focus();
@@ -518,6 +518,11 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   currentThemeInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
     this.currentThemeInputRef = ref;
+  }
+
+  getThemeName(id: string) {
+    const theme = this.props.themeList.find(t => t.id === id);
+    if (theme) { return theme.meta.name || theme.id; }
   }
 
   /** When the "Save & Restart" button is clicked. */
@@ -536,6 +541,6 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 }
 
 /** Format a theme item into a displayable name for the themes drop-down. */
-function formatThemeItemName(item: Theme): string {
-  return `${item.meta.name} (${item.entryPath})`;
+function formatThemeItemName(item: ITheme): string {
+  return `${item.meta.name} (${item.id})`;
 }

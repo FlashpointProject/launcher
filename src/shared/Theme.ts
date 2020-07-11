@@ -1,3 +1,4 @@
+import { ITheme } from './ThemeFile';
 import { getFileServerURL } from './Util';
 
 /**
@@ -8,14 +9,14 @@ import { getFileServerURL } from './Util';
 const globalThemeAttribute = 'data-theme';
 
 /** Set the theme data of the "global" theme style element. */
-export function setTheme(entryPath: string | undefined): void {
+export function setTheme(theme: ITheme | undefined): void {
   let element = findThemeGlobal();
   if (!element) {
     element = createThemeElement();
     element.setAttribute(globalThemeAttribute, 'true');
     if (document.head) { document.head.appendChild(element); }
   }
-  if (entryPath) { element.setAttribute('href', `${getFileServerURL()}/Themes/${entryPath}`); }
+  if (theme) { element.setAttribute('href', `${getFileServerURL()}/Themes/${theme.id}/${theme.entryPath}`); }
   else { element.removeAttribute('href'); }
 }
 

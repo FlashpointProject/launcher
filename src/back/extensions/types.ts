@@ -1,5 +1,6 @@
 import { Disposable } from '@back/util/lifecycle';
 import { ILogEntry } from '@shared/Log/interface';
+import { Theme } from '@shared/ThemeFile';
 
 export type ExtensionData = {
   extId: string;
@@ -21,6 +22,7 @@ export type ExtensionModule = {
 
 export type Registry = {
   commands: Map<string, Command>;
+  themes: Map<string, Theme>;
 }
 
 export interface ICommand {

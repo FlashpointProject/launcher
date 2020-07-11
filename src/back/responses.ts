@@ -111,7 +111,7 @@ export function registerRequestCallbacks(state: BackState): void {
         customVersion: state.customVersion,
         languages: state.languages,
         language: state.languageContainer,
-        themes: state.themeState.files.map(theme => ({ parentPath: theme.parentPath, entryPath: theme.entryPath, meta: theme.meta })),
+        themes: Array.from(state.registry.themes.values()),
         playlists: await GameManager.findPlaylists(),
         libraries: libraries,
         serverNames: serverNames,

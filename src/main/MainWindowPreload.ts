@@ -139,7 +139,10 @@ const onInit = (async () => {
       window.Shared.initialLocaleCode = response.data.localeCode;
       window.Shared.initialTagCategories = response.data.tagCategories;
       window.Shared.initialDevScripts = response.data.devScripts;
-      if (window.Shared.preferences.data.currentTheme) { setTheme(window.Shared.preferences.data.currentTheme); }
+      if (window.Shared.preferences.data.currentTheme) {
+        const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
+        if (theme) { setTheme(theme); }
+      }
       resolve();
     } else { reject(new Error('"Get Renderer Init Data" response does not contain any data.')); }
   });

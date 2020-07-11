@@ -10,6 +10,7 @@ export type DevScript = {
 }
 
 export type Theme = {
+  id: string;
   path: string;
 }
 
