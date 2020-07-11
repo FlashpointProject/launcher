@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "필터",
+    "logLevels": "Log Levels",
     "copyText": "텍스트 복사",
     "clearLog": "기록 삭제",
     "copy404Urls": "Copy 404 URLs",
