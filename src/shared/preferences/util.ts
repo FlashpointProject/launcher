@@ -1,4 +1,5 @@
 import { autoCode } from '@shared/lang';
+import { LogLevel } from '@shared/Log/interface';
 import { BackIn } from '../back/types';
 import { BrowsePageLayout } from '../BrowsePageLayout';
 import { ARCADE } from '../constants';
@@ -56,6 +57,14 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   showLogSource: Object.freeze({
     // (Add log sources that should be hidden by default here)
   }),
+  showLogLevel: Object.freeze({
+    [LogLevel.TRACE]: false,
+    [LogLevel.DEBUG]: false,
+    [LogLevel.INFO]: true,
+    [LogLevel.WARN]: true,
+    [LogLevel.ERROR]: true,
+    [LogLevel.SILENT]: true,
+  }),
   excludedRandomLibraries: [],
 });
 
@@ -99,6 +108,7 @@ export function overwritePreferenceData(
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
+  parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
   // Done
   return source;
 }

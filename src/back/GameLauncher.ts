@@ -6,7 +6,7 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { ChildProcess, exec, execFile } from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import { LogFunc, OpenDialogFunc, OpenExternalFunc } from './types';
+import { OpenDialogFunc, OpenExternalFunc } from './types';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
@@ -24,7 +24,6 @@ type LaunchBaseOpts = {
   lang: LangContainer;
   isDev: boolean;
   exePath: string;
-  log: LogFunc;
   openDialog: OpenDialogFunc;
   openExternal: OpenExternalFunc;
 }
@@ -67,11 +66,8 @@ export namespace GameLauncher {
           createCommand(appPath, appArgs, useWine),
           { env: getEnvironment(opts.fpPath) }
         );
-        logProcessOutput(proc, opts.log);
-        opts.log({
-          source: logSource,
-          content: `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`,
-        });
+        logProcessOutput(proc);
+        log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
         return new Promise((resolve, reject) => {
           if (proc.killed) { resolve(); }
           else {
@@ -99,7 +95,6 @@ export namespace GameLauncher {
         lang: opts.lang,
         isDev: opts.isDev,
         exePath: opts.exePath,
-        log: opts.log,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
       };
@@ -123,13 +118,10 @@ export namespace GameLauncher {
           [path.join(__dirname, '../main/index.js'), 'flash=true', opts.game.launchCommand],
           { env, cwd: process.cwd() }
         );
-        logProcessOutput(proc, opts.log);
-        opts.log({
-          source: logSource,
-          content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+        logProcessOutput(proc);
+        log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
                   `    applicationPath: "${appPath}",\n`+
-                  `    launchCommand:   "${opts.game.launchCommand}" ]`
-        });
+                  `    launchCommand:   "${opts.game.launchCommand}" ]`);
       } break;
       default: {
         const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
@@ -137,14 +129,11 @@ export namespace GameLauncher {
         const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
         const command: string = createCommand(gamePath, gameArgs, useWine);
         const proc = exec(command, { env: getEnvironment(opts.fpPath) });
-        logProcessOutput(proc, opts.log);
-        opts.log({
-          source: logSource,
-          content: `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+        logProcessOutput(proc);
+        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
                    `    applicationPath: "${opts.game.applicationPath}",\n`+
                    `    launchCommand:   "${opts.game.launchCommand}",\n`+
-                   `    command:         "${command}" ]`
-        });
+                   `    command:         "${command}" ]`);
         // Show popups for Unity games
         // (This is written specifically for the "startUnity.bat" batch file)
         if (opts.game.platform === 'Unity' && proc.stdout) {
@@ -230,18 +219,19 @@ export namespace GameLauncher {
     }
   }
 
-  function logProcessOutput(proc: ChildProcess, log: LogFunc): void {
+  function logProcessOutput(proc: ChildProcess): void {
     // Log for debugging purposes
     // (might be a bad idea to fill the console with junk?)
-    const logStuff = (event: string, args: any[]): void => {
-      log({
-        source: logSource,
-        content: `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`,
-      });
+    const logInfo = (event: string, args: any[]): void => {
+      log.info(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
     };
-    doStuffs(proc, [/* 'close', */ 'disconnect', 'error', 'exit', 'message'], logStuff);
-    if (proc.stdout) { proc.stdout.on('data', (data) => { logStuff('stdout', [data.toString('utf8')]); }); }
-    if (proc.stderr) { proc.stderr.on('data', (data) => { logStuff('stderr', [data.toString('utf8')]); }); }
+    const logErr = (event: string, args: any[]): void => {
+      log.error(logSource, `${event} (PID: ${padStart(proc.pid, 5)}) ${stringifyArray(args, stringifyArrayOpts)}`);
+    };
+    registerEventListeners(proc, [/* 'close', */ 'disconnect', 'exit', 'message'], logInfo);
+    registerEventListeners(proc, ['error'], logErr);
+    if (proc.stdout) { proc.stdout.on('data', (data) => { logInfo('stdout', [data.toString('utf8')]); }); }
+    if (proc.stderr) { proc.stderr.on('data', (data) => { logErr('stderr', [data.toString('utf8')]); });  }
   }
 }
 
@@ -249,7 +239,7 @@ const stringifyArrayOpts = {
   trimStrings: true,
 };
 
-function doStuffs(emitter: EventEmitter, events: string[], callback: (event: string, args: any[]) => void): void {
+function registerEventListeners(emitter: EventEmitter, events: string[], callback: (event: string, args: any[]) => void): void {
   for (let i = 0; i < events.length; i++) {
     const e: string = events[i];
     emitter.on(e, (...args: any[]) => {

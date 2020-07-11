@@ -45,6 +45,9 @@ function getArgs(): Init {
           init.args[name] = Coerce.num(value);
           lastArgIndex = i;
           break;
+        case 'verbose':
+          init.args[name] = Coerce.strToBool(value);
+          break;
       }
     }
   }

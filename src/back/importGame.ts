@@ -98,22 +98,22 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   const game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
   // Make a copy if not deleting the curation afterwards
   const moveFiles = !saveCuration;
-  curationLog(log, 'Importing Curation Meta');
+  curationLog('Importing Curation Meta');
   // Copy/extract content and image files
   GameManager.updateGame(game).then(() => logMessage('Meta Added', curation));
 
   // Copy Thumbnail
-  curationLog(log, 'Importing Curation Thumbnail');
+  curationLog('Importing Curation Thumbnail');
   await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath), log)
   .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
 
   // Copy Screenshot
-  curationLog(log, 'Importing Curation Screenshot');
+  curationLog('Importing Curation Screenshot');
   await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath), log)
   .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
 
   // Copy content and Extra files
-  curationLog(log, 'Importing Curation Content');
+  curationLog('Importing Curation Content');
   await (async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
     for (const pair of contentToMove) {
@@ -121,7 +121,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     }
   })()
   .then(async () => {
-    curationLog(log, 'Saving Imported Content');
+    curationLog('Saving Imported Content');
     try {
       if (saveCuration) {
         // Save working meta
@@ -140,7 +140,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         logMessage('Content Copied', curation);
       }
     } catch (error) {
-      curationLog(log, `Error importing ${curation.meta.title} - Informing user...`);
+      curationLog(`Error importing ${curation.meta.title} - Informing user...`);
       const res = await opts.openDialog({
         title: 'Error saving curation',
         message: 'Saving curation import failed. Some/all files failed to move. Please check the content folder yourself before removing manually.\n\nOpen folder now?',
@@ -153,7 +153,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     }
   })
   .catch((error) => {
-    curationLog(log, error.message);
+    curationLog(error.message);
     console.warn(error.message);
   });
 }
@@ -164,7 +164,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  */
 export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>) {
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
-  curationLog(opts.log, `Launching Curation ${meta.title}`);
+  curationLog(`Launching Curation ${meta.title}`);
   GameLauncher.launchGame({
     ...opts,
     game: await createGameFromCurationMeta(key, meta, [], new Date()),
@@ -304,7 +304,7 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
  * @param outFolder Folder to copy to
  */
 async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: OpenDialogFunc, log: LogFunc | undefined) {
-  const contentIndex = await indexContentFolder(inFolder, curationLog.bind(undefined, log));
+  const contentIndex = await indexContentFolder(inFolder, curationLog);
   let yesToAll = false;
   return Promise.all(
     contentIndex.map(async (content) => {
@@ -367,27 +367,22 @@ async function copyOrMoveFile(source: string, dest: string, move: boolean, log: 
     if (move) { await fs.rename(source, dest); } // @TODO Make sure this overwrites files
     else      { await fs.copyFile(source, dest); }
   } catch (error) {
-    curationLog(log, `Error copying file '${source}' to '${dest}' - ${error.message}`);
+    curationLog(`Error copying file '${source}' to '${dest}' - ${error.message}`);
     if (move) {
-      curationLog(log, 'Attempting to copy file instead of move...');
+      curationLog('Attempting to copy file instead of move...');
       try {
         await fs.copyFile(source, dest);
       } catch (error) {
-        curationLog(log, 'Copy unsuccessful');
+        curationLog('Copy unsuccessful');
         throw error;
       }
-      curationLog(log, 'Copy successful');
+      curationLog('Copy successful');
     }
   }
 }
 
-function curationLog(log: LogFunc | undefined, content: string): void {
-  if (log) {
-    log({
-      source: 'Curate',
-      content,
-    });
-  }
+function curationLog(content: string): void {
+  log.info('Curate', content);
 }
 
 /**

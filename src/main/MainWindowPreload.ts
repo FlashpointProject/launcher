@@ -13,6 +13,7 @@ import { isDev } from './Util';
  * (Note: This is mostly a left-over from when "node integration" was disabled.
  *        It might be a good idea to move this to the Renderer?)
  */
+
 window.Shared = {
   installed: createErrorProxy('installed'),
 

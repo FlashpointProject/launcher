@@ -12,7 +12,7 @@ import { IAppConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
-import { ILogEntry, ILogPreEntry } from '../Log/interface';
+import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
 import { IAppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
 
@@ -155,6 +155,7 @@ export type BackInitArgs = {
   /** Secret string used for authentication. */
   secret: string;
   isDev: boolean;
+  verbose: boolean;
   localeCode: string;
   exePath: string;
   /** If the back should accept remote clients to connect (renderers from different machines). */
@@ -169,7 +170,7 @@ export enum BackInit {
   EXEC,
 }
 
-export type AddLogData = ILogPreEntry;
+export type AddLogData = ILogPreEntry & { logLevel: LogLevel };
 
 export type InitEventData = {
   done: BackInit[];

@@ -11,6 +11,9 @@ import { Theme } from './ThemeFile';
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
 
+/** Type for all global logging functions */
+export type LogFunc = (source: string, message: string) => ILogEntry;
+
 /** Recursively set all properties as optional. */
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends ObjectLike ? DeepPartial<T[K]> : T[K];

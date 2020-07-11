@@ -5,7 +5,7 @@ import { BackInit, ViewGame } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
-import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
+import { ILogEntry } from '@shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { Theme } from '@shared/ThemeFile';
@@ -26,6 +26,7 @@ export type BackState = {
   isInit: boolean;
   isExit: boolean;
   isDev: boolean;
+  verbose: boolean;
   socketServer: SocketServer;
   fileServer: Server;
   fileServerPort: number;
@@ -129,6 +130,5 @@ export type TagsFile = {
   tags: BareTag[]
 }
 
-export type LogFunc = (entry: ILogPreEntry) => void;
 export type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;

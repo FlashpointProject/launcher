@@ -10,7 +10,6 @@ import { BackOut } from '@shared/back/types';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
-import { ILogEntry, ILogPreEntry } from '@shared/Log/interface';
 import { deepCopy, recursiveReplace, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -150,48 +149,14 @@ export function exit(state: BackState): void {
   }
 }
 
-export function log(state: BackState, preEntry: ILogPreEntry, id?: string): void {
-  const entry: ILogEntry = {
-    source: preEntry.source,
-    content: preEntry.content,
-    timestamp: Date.now(),
-  };
-
-  if (typeof entry.source !== 'string') {
-    console.warn(`Type Warning! A log entry has a source of an incorrect type!\n  Type: "${typeof entry.source}"\n  Value: "${entry.source}"`);
-    entry.source = entry.source+'';
-  }
-  if (typeof entry.content !== 'string') {
-    console.warn(`Type Warning! A log entry has content of an incorrect type!\n  Type: "${typeof entry.content}"\n  Value: "${entry.content}"`);
-    entry.content = entry.content+'';
-  }
-
-  state.log.push(entry);
-
-  state.socketServer.broadcast({
-    id: id || '',
-    type: BackOut.LOG_ENTRY_ADDED,
-    data: {
-      entry,
-      index: state.log.length - 1,
-    }
-  });
-}
-
 export async function execProcess(state: BackState, proc: IBackProcessInfo, sync?: boolean): Promise<void> {
   const cwd: string = path.join(state.config.flashpointPath, proc.path);
-  log(state, {
-    source: SERVICES_SOURCE,
-    content: `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`,
-  });
+  log.info(SERVICES_SOURCE, `Executing "${proc.filename}" ${stringifyArray(proc.arguments)} in "${proc.path}"`);
   try {
     if (sync) { child_process.execFileSync(  proc.filename, proc.arguments, { cwd: cwd }); }
     else      { await child_process.execFile(proc.filename, proc.arguments, { cwd: cwd }); }
   } catch (error) {
-    log(state, {
-      source: SERVICES_SOURCE,
-      content: `An unexpected error occurred while executing a command:\n  "${error}"`,
-    });
+    log.error(SERVICES_SOURCE, `An unexpected error occurred while executing a command:\n  "${error}"`);
   }
 }
 
@@ -285,7 +250,7 @@ export function runService(state: BackState, id: string, name: string, info: INa
     true,
     info
   );
-  proc.on('output', log.bind(undefined, state));
+  proc.on('output', (entry) => { log.info(entry.source, entry.content); });
   proc.on('change', () => {
     state.socketServer.broadcast<IService>({
       id: '',
@@ -296,11 +261,8 @@ export function runService(state: BackState, id: string, name: string, info: INa
   try {
     proc.spawn();
   } catch (error) {
-    log(state, {
-      source: SERVICES_SOURCE,
-      content: `An unexpected error occurred while trying to run the background process "${proc.name}".`+
-               `  ${error.toString()}`
-    });
+    log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
+              `  ${error.toString()}`);
   }
   return proc;
 }
@@ -319,11 +281,4 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
       }
     });
   }
-}
-
-export function newLogEntry(source: string, content: string): ILogPreEntry {
-  return {
-    source: source,
-    content: content
-  };
 }

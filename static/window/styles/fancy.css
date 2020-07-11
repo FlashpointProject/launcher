@@ -27,6 +27,7 @@
   --layout__secondary-text-color:   #aaaaaa;
   --layout__highlighted-text-color: #ffffff;
   --layout__disabled-text-color:    #9b9b9b;
+  --layout__contrast-text-color:    #191919;
   /* Background */
   --layout__primary-background:    #1b1b1c;
   --layout__secondary-background:  #2d2d30;
@@ -92,6 +93,16 @@
   --layout__log-source-server:              #00ff00;
   --layout__log-source-curation:            #efff00;
   --layout__log-source-log-watcher:         #cf0000;
+  --layout__log-level-TRACE:                #000000;
+  --layout__log-level-DEBUG:                #5fa4f3;
+  --layout__log-level-INFO:                 var(--layout__primary-background);
+  --layout__log-level-WARN:                 #efff00;
+  --layout__log-level-ERROR:                var(--layout__warning-bright-color);
+  --layout__log-level-TRACE-text:           var(--layout__primary-text-color);
+  --layout__log-level-DEBUG-text:           var(--layout__contrast-text-color);
+  --layout__log-level-INFO-text:            var(--layout__primary-text-color);
+  --layout__log-level-WARN-text:            var(--layout__contrast-text-color);
+  --layout__log-level-ERROR-text:           var(--layout__primary-text-color);
   /* Credits */
   --layout__credits-tooltip-border:           #000000;
   --layout__credits-tooltip-background:       #000000DD;
@@ -247,6 +258,26 @@ body {
 /* Log */
 .log {
   color: var(--layout__highlighted-text-color);
+}
+.log__level-TRACE {
+  background-color: var(--layout__log-level-TRACE);
+  color: var(--layout__log-level-TRACE-text);
+}
+.log__level-DEBUG {
+  background-color: var(--layout__log-level-DEBUG);
+  color: var(--layout__log-level-DEBUG-text);
+}
+.log__level-INFO {
+  background-color: var(--layout__log-level-INFO);
+  color: var(--layout__log-level-INFO-text);
+}
+.log__level-WARN {
+  background-color: var(--layout__log-level-WARN);
+  color: var(--layout__log-level-WARN-text);
+}
+.log__level-ERROR {
+  background-color: var(--layout__log-level-ERROR);
+  color: var(--layout__log-level-ERROR-text);
 }
 .log__time-stamp {
   color: var(--layout__log-time-stamp);

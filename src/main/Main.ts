@@ -9,6 +9,7 @@ import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
+import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -20,6 +21,16 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 const TIMEOUT_DELAY = 60_000;
+
+const ALLOWED_HOSTS = [
+  'localhost',
+  '127.0.0.1',
+  // Devtools installer
+  'clients2.googleusercontent.com',
+  'clients2.google.com',
+  // React Devtools
+  'react-developer-tools',
+];
 
 type MainState = {
   window?: BrowserWindow;
@@ -146,6 +157,7 @@ export function main(init: Init): void {
           configFolder: state.mainFolderPath,
           secret: state._secret,
           isDev: Util.isDev,
+          verbose: !!init.args['verbose'],
           // On windows you have to wait for app to be ready before you call app.getLocale() (so it will be sent later)
           localeCode: localeCode,
           exePath: app.getPath('exe'),
@@ -192,6 +204,15 @@ export function main(init: Init): void {
       }), TIMEOUT_DELAY))
       // Create main window
       .then(() => app.whenReady())
+      // Install React Devtools Extension
+      .then(() => {
+        if (Util.isDev) {
+          // Exceptions made in onHeadersReceived
+          installExtension(REACT_DEVELOPER_TOOLS)
+          .then((name) => console.log(`Added Extension:  ${name}`))
+          .catch((err) => console.log('An error occurred: ', err));
+        }
+      })
       .then(() => {
         if (!state.window) {
           state.window = createMainWindow();
@@ -256,12 +277,13 @@ export function main(init: Init): void {
           (url.protocol === 'devtools:') ||
           (
             url.hostname === remoteHostname ||
-            // Treat "localhost" and "127.0.0.1" as the same hostname
-            ((url.hostname   === 'localhost' || url.hostname   === '127.0.0.1') &&
-            (remoteHostname === 'localhost' || remoteHostname === '127.0.0.1'))
+            (ALLOWED_HOSTS.includes(url.hostname) && ALLOWED_HOSTS.includes(remoteHostname))
           )
         )
       );
+      if (!allow) {
+        console.log(`Request Denied to ${url?.hostname || remoteHostname}`);
+      }
 
       callback({
         ...details,
