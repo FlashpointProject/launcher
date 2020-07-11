@@ -411,5 +411,6 @@ function createInitialState(): MainState {
     updateInfo: undefined,
     metaEditExporterOpen: false,
     metaEditExporterGameId: '',
+    devScripts: [],
   };
 }

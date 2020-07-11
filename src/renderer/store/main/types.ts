@@ -3,13 +3,13 @@ import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { ExtensionContribution } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { Theme } from '@shared/ThemeFile';
+import { ITheme, Theme } from '@shared/ThemeFile';
 import { UpdateInfo } from 'electron-updater';
 import { MainActionType, RequestState } from './enums';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
 
 export type View = {
   /** The most recent query used for this view. */
@@ -61,7 +61,7 @@ export type MainState = {
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   loaded: { [key in BackInit]: boolean; };
-  themeList: Theme[];
+  themeList: ITheme[];
   gamesTotal: number;
   localeCode: string;
 
