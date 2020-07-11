@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "Φίλτρα",
+    "logLevels": "Log Levels",
     "copyText": "Αντιγραφή Κειμένου",
     "clearLog": "Εκκαθάριση Αρχείου Καταγραφών",
     "copy404Urls": "Copy 404 URLs",
