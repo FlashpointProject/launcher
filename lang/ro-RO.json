@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "Filtre",
+    "logLevels": "Log Levels",
     "copyText": "Copiați textul",
     "clearLog": "Goliți jurnalul",
     "copy404Urls": "Copiază URL-urile 404",
