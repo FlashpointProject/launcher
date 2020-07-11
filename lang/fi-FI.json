@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "Suodattimet",
+    "logLevels": "Log Levels",
     "copyText": "Kopioi teksti",
     "clearLog": "Tyhjennä lokitiedosto",
     "copy404Urls": "Copy 404 URLs",
