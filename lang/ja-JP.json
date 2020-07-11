@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "フィルター",
+    "logLevels": "Log Levels",
     "copyText": "テキストをコピー",
     "clearLog": "ログを消去",
     "copy404Urls": "Copy 404 URLs",
