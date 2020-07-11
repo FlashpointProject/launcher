@@ -79,6 +79,7 @@
   },
   "logs": {
     "filters": "筛选器",
+    "logLevels": "Log Levels",
     "copyText": "复制文本",
     "clearLog": "清除日志(Log)",
     "copy404Urls": "Copy 404 URLs",
