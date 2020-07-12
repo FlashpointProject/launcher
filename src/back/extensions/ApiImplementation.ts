@@ -40,6 +40,7 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
       }
       // Register command
       registry.commands.set(command, c);
+      log.debug('Extensions', `Command "${command}" registered by "${extManifest.displayName || extManifest.name}"`);
       return c;
     }
   };

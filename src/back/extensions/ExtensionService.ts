@@ -121,6 +121,7 @@ export class ExtensionService {
       await Promise.resolve(extModule.activate.apply(global, [context]));
       this._setSubscriptions(ext.id, context.subscriptions);
       this._enableExtension(ext.id);
+      log.info('Extensions', `Extension Loaded "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
     } catch (err) {
       this.logExtension(ext.id, newExtLog(ext.manifest, err, log.error));
     }

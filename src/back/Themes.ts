@@ -14,7 +14,7 @@ import { Registry } from './extensions/types';
  * @param socketServer Socket Server to broadcast on
  * @returns Index of the new watcher on themeState.watchers
  */
-export async function newThemeWatcher(id: string, basePath: string, themePath: string, themeState: ThemeState, registry: Registry, socketServer: SocketServer): Promise<void> {
+export async function newThemeWatcher(id: string, basePath: string, themePath: string, themeState: ThemeState, registry: Registry, socketServer: SocketServer, owner?: string): Promise<void> {
   // Throw if going to override other theme
   if (registry.themes.has(id)) {
     throw new Error(`Theme already registered, skipping! (${id})`);
@@ -115,7 +115,7 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
   });
   watcher.on('error', (err) => log.error('Launcher', err.message));
 
-  log.debug('Launcher', `Added Theme ${theme.id}`);
+  log.debug('Launcher', `Theme "${theme.id}" registered by "${owner || 'SYSTEM'}"`);
   registry.themes.set(theme.id, theme);
   watcher.watch(themePath, { recursionDepth: -1 });
 }

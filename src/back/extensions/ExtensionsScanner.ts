@@ -42,7 +42,7 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
   // Convert the map to an array and return
   const r: IExtension[] = [];
   result.forEach((ext) => {
-    log.info('Extensions', `Extension Scanned "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
+    log.debug('Extensions', `Extension Scanned "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
     r.push(ext);
   });
   return r;
