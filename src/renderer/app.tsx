@@ -219,7 +219,7 @@ export class App extends React.Component<AppProps> {
 
         case BackOut.THEME_CHANGE: {
           const resData: ThemeChangeData = res.data;
-          if (resData.meta.name === this.props.preferencesData.currentTheme) { setTheme(resData); }
+          if (resData.id === this.props.preferencesData.currentTheme) { setTheme(resData); }
         } break;
 
         case BackOut.THEME_LIST_CHANGE: {

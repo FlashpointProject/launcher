@@ -10,6 +10,11 @@ export function extensionString(ext: IExtension): string {
   `Path - ${ext.extensionPath}`;
 }
 
+/**
+ * Get modules entry point
+ * @param ext Extension to read module from
+ * @returns Path to module entry point
+ */
 export function getExtensionEntry(ext: IExtension): string {
   if (ext.manifest.main) {
     const filePath = path.join(ext.extensionPath, ext.manifest.main);

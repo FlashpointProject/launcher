@@ -21,7 +21,7 @@ export type ExtensionContribution<T extends keyof Contributions> = {
 }
 
 export type Contributions = {
-  themes: ExtTheme[]; // TODO Implement
+  themes: ExtTheme[];
   devScripts: DevScript[];
 }
 
