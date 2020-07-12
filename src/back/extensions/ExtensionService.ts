@@ -12,12 +12,12 @@ import { ExtensionContext, ExtensionData, ExtensionModule } from './types';
 export class ExtensionService {
   /** Stores unchanging Extension data */
   protected readonly _extensions: IExtension[];
-  /** Stores temporary runtime Extension data */
+  /** Stores running Extension data (discarded on closure) */
   protected readonly _extensionData: Record<string, ExtensionData>;
-  /** Generated extension index */
+  /** Cached extension path index, see getExtensionPathIndex */
   private _extensionPathIndex: Promise<TernarySearchTree<string, IExtension>> | null;
 
-  /** Opens when _extensions is ready to be read */
+  /** Opens when _extensions is ready to be read from */
   private readonly _installedExtensionsReady: Barrier;
 
   constructor(
@@ -51,7 +51,10 @@ export class ExtensionService {
     });
   }
 
-  /** Returns a list of all extension contributions of a particular type */
+  /** Returns a list of all extension contributions of a particular type
+   * @param key Type of contribution to get
+   * @returns All of this contribution type from all loaded extensions
+   */
   getContributions<T extends keyof Contributions>(key: T): Promise<ExtensionContribution<T>[]> {
     return this._installedExtensionsReady.wait().then(() => {
       return this._extensions.reduce<ExtensionContribution<T>[]>((list, ext) => {
@@ -65,7 +68,7 @@ export class ExtensionService {
     });
   }
 
-  /** Builds a tree mapping of Extensions paths and itself */
+  /** Build a search tree mapping extensions and their paths */
   public async getExtensionPathIndex(): Promise<TernarySearchTree<string, IExtension>> {
     return this._installedExtensionsReady.wait().then(() => {
       if (!this._extensionPathIndex) {
@@ -83,6 +86,7 @@ export class ExtensionService {
     });
   }
 
+  /** Loads an extension (returns immediately if already loaded) */
   public async loadExtension(extId: string): Promise<void> {
     return this._installedExtensionsReady.wait().then(() => {
       const ext = this._extensions.find(e => e.id === extId);
@@ -131,6 +135,7 @@ export class ExtensionService {
     };
   }
 
+  /** Copy an extensions subscriptions into its running data (usually from the context) */
   private _setSubscriptions(extId: string, subscriptions: Disposable) {
     const data = this._getExtensionData(extId);
     // Dispose of old subscriptions
@@ -139,12 +144,14 @@ export class ExtensionService {
     this._extensionData[extId] = data;
   }
 
+  /** Push a log onto an extensions running data */
   public logExtension(extId: string, entry: ILogEntry) {
     const data = this._getExtensionData(extId);
     data.logs.push(entry);
     this._extensionData[extId] = data;
   }
 
+  /** Mark the extension as enabled in its running data */
   private _enableExtension(extId: string) {
     const data = this._getExtensionData(extId);
     data.enabled = true;

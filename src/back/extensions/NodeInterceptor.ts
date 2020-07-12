@@ -23,6 +23,10 @@ export type InterceptorState = {
   factories: Map<string, INodeModuleFactory>;
 }
 
+/** Registers a module interceptor
+ * @param interceptor Module interceptor
+ * @param state State object holding all interceptor data
+ */
 export function registerInterceptor(interceptor: INodeModuleFactory, state: InterceptorState): void {
   const { alternatives, factories } = state;
   if (Array.isArray(interceptor.nodeModuleName)) {
@@ -39,6 +43,10 @@ export function registerInterceptor(interceptor: INodeModuleFactory, state: Inte
   }
 }
 
+/**
+ * Installs the module interceptor. You can register interceptors even after this is called.
+ * @param state State object holding all interceptor data
+ */
 export async function installNodeInterceptor(state: InterceptorState): Promise<void> {
   const { alternatives, factories } = state;
   const node_module: any = await import('module');
@@ -66,6 +74,7 @@ interface IExtensionApiFactory {
   (ext: IExtensionManifest, reg: Registry, addExtLog: (entry: ILogEntry) => void, version: string): typeof flashpoint;
 }
 
+/** Module interceptor for the Flashpoint API 'flashpoint' module */
 export class FPLNodeModuleFactory implements INodeModuleFactory {
   public readonly nodeModuleName = 'flashpoint';
 
@@ -84,9 +93,9 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
 
   /** Return an API implementation given an import request */
   public load(_request: string, parent: string): any {
-    // Find API for extension
     const ext = this._extensionPaths.findSubstr(parent);
     if (ext) {
+      // Call was from an extension, use its own implementation
       let apiImpl = this._extApiImpl.get(ext.id);
       if (!apiImpl) {
         // No API for extension yet, make one
@@ -100,7 +109,7 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
       return apiImpl;
     }
 
-    // Import not from an extension, Give default API
+    // Import not from an extension, give default implementation
     if (!this._defaultApiImpl) {
       this._defaultApiImpl = this._apiFactory(
         nullExtensionDescription,

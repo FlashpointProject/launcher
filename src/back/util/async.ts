@@ -1,5 +1,5 @@
 /**
- * Licensed from Visual Studio Code under the MIT license. See /licenses/vscode
+ * No modifications, licensed from Visual Studio Code under the MIT license. See /licenses/vscode
  * A barrier that is initially closed and then becomes opened permanently.
  */
 export class Barrier {

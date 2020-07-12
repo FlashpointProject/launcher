@@ -9,6 +9,7 @@ import { readJsonFile } from '@shared/Util';
 const { str } = Coerce;
 const fsPromises = fs.promises;
 
+/** Scans all extensions in System and User paths and returns them. */
 export async function scanExtensions(configData: IAppConfigData): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
@@ -18,14 +19,17 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
   const userExtPath = path.join(configData.flashpointPath, configData.extensionsPath);
   await fsPromises.readdir(userExtPath, { withFileTypes: true })
   .then((files) => {
+    // Each folder inside is an Extension
     return Promise.all(files.filter(f => f.isDirectory()).map(async file => {
       const manifestPath = path.join(userExtPath, file.name, 'package.json');
       return fsPromises.stat(manifestPath)
       .then(async (stats) => {
+        // Manifest file (package.json) exists, continue loading extension
         if (stats.isFile()) {
           await fsPromises.access(manifestPath);
           const ext = await parseExtension(manifestPath, ExtensionType.User);
           if (result.get(ext.id) !== undefined) {
+            // An Extension with the same id has been registered earlier, latest read survives
             log.warn('Extensions', `Overriding Extension ${ext.id}`);
           }
           result.set(ext.id, ext);
@@ -35,6 +39,7 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
     }));
   });
 
+  // Convert the map to an array and return
   const r: IExtension[] = [];
   result.forEach((ext) => {
     log.info('Extensions', `Extension Scanned "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
@@ -43,6 +48,7 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
   return r;
 }
 
+/** Returns the extensions ID given its author and name from its manifest */
 function getExtensionID(author: string, name: string) {
   const fAuthor = author.toLowerCase().replace(' ', '-');
   if (name.includes(' ') || name.toLowerCase() !== name) {
@@ -51,6 +57,11 @@ function getExtensionID(author: string, name: string) {
   return `${fAuthor}.${name}`;
 }
 
+/** Parses an extension
+ * @param extFilePath Path to the Extension Manifest (package.json)
+ * @param type System or User extension
+ * @returns Fully formed Extension
+ */
 async function parseExtension(extFilePath: string, type: ExtensionType): Promise<IExtension> {
   const data = await readJsonFile(extFilePath);
   const manifest = await parseExtensionManifest(data);
@@ -63,6 +74,11 @@ async function parseExtension(extFilePath: string, type: ExtensionType): Promise
   return ext;
 }
 
+/**
+ * Parses the manifest file
+ * @param data JSON data of manifest
+ * @returns Parsed Manifest
+ */
 async function parseExtensionManifest(data: any) {
   const parsed: IExtensionManifest = {
     name: '',

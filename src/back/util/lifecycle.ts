@@ -1,9 +1,14 @@
+/** A self-nesting type that allows one time disposable with an optional callbackz */
 export type Disposable = {
+  /** Children to dispose of in the future */
   toDispose: Disposable[];
+  /** Whether this is already disposed */
   isDisposed: boolean;
+  /** Callback to use when disposed */
   onDispose?: () => void;
 }
 
+/** Dispose of a disposable and all its children */
 export function dispose<T>(disposable: Disposable) {
   if (disposable.isDisposed) {
     return;
@@ -16,11 +21,13 @@ export function dispose<T>(disposable: Disposable) {
   }
 }
 
+/** Dispose of all a disposables children but not itself */
 export function clearDisposable(disposable: Disposable) {
   disposable.toDispose.forEach(d => dispose(d));
   disposable.toDispose = [];
 }
 
+/** Register a disposable to its parent. They must not be the same. */
 export function registerDisposable(parent: Disposable, child: Disposable) {
   if (parent == child) {
     throw new Error('Cannot add disposable to itself!');
@@ -31,6 +38,7 @@ export function registerDisposable(parent: Disposable, child: Disposable) {
   parent.toDispose.push(child);
 }
 
+/** Creates Disposable data to fill a newly created Disposable type object */
 export function newDisposable(onDispose?: () => void): Disposable {
   return {
     toDispose: [],

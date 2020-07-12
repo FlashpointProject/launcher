@@ -5,7 +5,16 @@ import { Command, Registry } from './types';
 import { ILogEntry } from '@shared/Log/interface';
 import { newExtLog } from './ExtensionUtils';
 
+/**
+ * Create a Flashpoint API implementation specific to an extension, used during module load interception
+ * @param extManifest Manifest of the caller
+ * @param registry Registry to register commands etc to
+ * @param addExtLog Function to add an Extensions log to the Logs page
+ * @param version Version of the Flashpoint Launcher
+ * @returns API Implementation specific to the caller
+ */
 export function createApiFactory(extManifest: IExtensionManifest, registry: Registry, addExtLog: (log: ILogEntry) => void, version: string): typeof flashpoint {
+  // Log Namespace
   const extLog: typeof flashpoint.log = {
     trace: (message: string) => addExtLog(newExtLog(extManifest, message, log.trace)),
     debug: (message: string) => addExtLog(newExtLog(extManifest, message, log.debug)),
@@ -14,6 +23,7 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
     error: (message: string) => addExtLog(newExtLog(extManifest, message, log.error))
   };
 
+  // Commands Namespace
   const extCommands: typeof flashpoint.commands = {
     registerCommand: (command: string, callback: <T>(...args: any[]) => T | Promise<T>) => {
       const c: Command = {
@@ -34,11 +44,13 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
     }
   };
 
+  // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
     version: version,
     extManifest: extManifest,
 
+    // Namespaces
     log: extLog,
     commands: extCommands,
 
@@ -47,5 +59,7 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
     clearDisposable: clearDisposable,
     registerDisposable: registerDisposable,
     newDisposable: newDisposable
+
+    // Note - Types are defined in the decleration file, not here
   };
 }

@@ -1,8 +1,6 @@
-/* eslint-disable spaced-comment */
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+/**
+ * No modifications, licensed from Visual Studio Code under the MIT license. See /licenses/vscode
+ */
 
 // Names from https://blog.codinghorror.com/ascii-pronunciation-rules-for-programmers/
 
