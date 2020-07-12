@@ -10,7 +10,6 @@ import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
-import * as chokidar from 'chokidar';
 import { remote } from 'electron';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -18,10 +17,10 @@ import * as React from 'react';
 import { useCallback, useContext, useMemo } from 'react';
 import * as YAML from 'yaml';
 import { WithPreferencesProps } from '../../containers/withPreferences';
-import { CurationContext } from '../../context/CurationContext';
+import { CurationAction, CurationContext } from '../../context/CurationContext';
 import { newProgress, ProgressContext, ProgressDispatch } from '../../context/ProgressContext';
 import { createCurationIndexImage, importCurationArchive, importCurationFolder, importCurationMeta } from '../../curate/importCuration';
-import { createCurationImage, curationLog, readCurationMeta, showWarningBox } from '../../curate/util';
+import { curationLog, readCurationMeta, showWarningBox } from '../../curate/util';
 import { getPlatformIconURL } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { uuid } from '../../util/uuid';
@@ -66,239 +65,37 @@ export function CuratePage(props: CuratePageProps) {
     };
   }, [props.appPaths]);
 
-  // Callback for removed dir (watcher)
-  const removeCurationDir = useCallback(async (fullPath) => {
-    const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
-    const relativePath = path.relative(curationsPath, fullPath);
-    const splitPath = relativePath.split(path.sep);
-    const dirName = path.basename(fullPath);
-    console.log(dirName);
-    // Inside curation dir and is unused
-    if (splitPath.length > 1 && dirName !== 'content' && dirName !== 'Extras') {
-      const key = splitPath.shift();
-      console.log(key);
-      // Forcefully re-render a curate box (Non-Content folder warnings)
-      if (key) {
-        dispatch({
-          type: 'remove-unused-dir',
-          payload: {
-            key: key,
-            dir: dirName
-          }
-        });
-      }
-    }
-    // Only 1 dir in relative path, must be curation dir
-    if (splitPath.length === 1) {
-      dispatch({
-        type: 'remove-curation',
-        payload: {
-          key: path.dirname(fullPath)
+  // Load in initial curations
+  React.useEffect(() => {
+    async function readInitialCurations() {
+      const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
+      await fs.ensureDir(curationsPath);
+      fs.promises.readdir(curationsPath, { withFileTypes: true })
+      .then(async (files) => {
+        for (const file of files.filter(f => f.isDirectory() && f.name != '_Exported' && f.name != '_Imported')) {
+          const fullPath = path.join(curationsPath, file.name);
+          await loadCurationFolder(file.name, fullPath, defaultGameMetaValues, dispatch, props);
         }
       });
     }
-  }, [dispatch]);
-
-  // Callback for removed file (watcher)
-  const removeCurationFile = useCallback(async (fullPath) => {
-    const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
-    const relativePath = path.relative(curationsPath, fullPath);
-    const splitPath = relativePath.split(path.sep);
-    // Only read files inside curation folders
-    if (splitPath.length > 1) {
-      const key = splitPath.shift();
-      const filePath = path.join(splitPath.join(path.sep));
-      if (key) {
-        if (filePath === 'logo.png') {
-          dispatch({
-            type: 'set-curation-logo',
-            payload: {
-              key: key,
-              image: createCurationIndexImage()
-            }
-          });
-        } else if (filePath === 'ss.png') {
-          dispatch({
-            type: 'set-curation-screenshot',
-            payload: {
-              key: key,
-              image: createCurationIndexImage()
-            }
-          });
-        }
-      }
-    }
-  }, [dispatch]);
-
-  const tryLoadMetadata = useCallback(async (key, metaPath) => {
-    if (state.curations.findIndex(c => c.key === key) === -1) {
-      return fs.access(metaPath, fs.constants.F_OK)
-      .then(async () => {
-        return readCurationMeta(metaPath, defaultGameMetaValues)
-        .then(async (parsedMeta) => {
-          dispatch({
-            type: 'set-curation-meta',
-            payload: {
-              key: key,
-              parsedMeta: parsedMeta
-            }
-          });
-        });
-      });
-    }
-  }, [state, dispatch]);
-
-  // Callback for added/changed file (watcher)
-  const updateCurationFile = useCallback(async (fullPath: string) => {
-    const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
-    const relativePath = path.relative(curationsPath, fullPath);
-    const splitPath = relativePath.split(path.sep);
-    // Files inside curation folders
-    if (splitPath.length > 1) {
-      const key = splitPath.shift();
-      const filePath = path.join(splitPath.join(path.sep));
-      if (key) {
-        const metaPath = path.join(curationsPath, key, 'meta.yaml');
-        // Send update based on filename
-        switch (filePath.toLowerCase()) {
-          case 'meta.yaml':
-          case 'meta.yml': {
-            await readCurationMeta(fullPath, defaultGameMetaValues)
-            .then(async (parsedMeta) => {
-              dispatch({
-                type: 'set-curation-meta',
-                payload: {
-                  key: key,
-                  parsedMeta: parsedMeta
-                }
-              });
-            })
-            .catch((error) => {
-              const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}`;
-              console.error(error);
-              curationLog(formedMessage);
-              showWarningBox(formedMessage);
-            });
-            break;
-          }
-          case 'meta.txt': {
-            // Immediately save an old style file as new
-            // Parse file then save back as a new style (YAML) file
-            await readCurationMeta(fullPath, defaultGameMetaValues)
-            .then(async (parsedMeta) => {
-              console.log(parsedMeta);
-              const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
-              const newMetaData = YAML.stringify(convertParsedToCurationMeta(parsedMeta, props.tagCategories));
-              await fs.writeFile(newMetaPath, newMetaData);
-              // Remove old style meta file
-              await fs.unlink(fullPath);
-            })
-            .catch(async (error) => {
-              const formedMessage = `Error Parsing Curation Meta at ${relativePath} - ${error.message}\n\n` +
-                                    'A default meta has been loaded.\n' +
-                                    'You may edit your meta.txt in the curation folder to be valid, this will then replace the loaded meta automatically.';
-              console.error(error);
-              curationLog(formedMessage);
-              showWarningBox(formedMessage);
-              const newMetaPath = path.join(curationsPath, key, 'meta.yaml');
-              await fs.access(newMetaPath, fs.constants.F_OK)
-              .catch((error) => {
-                // File doesn't exist yet, make an empty one
-                return fs.createFile(newMetaPath);
-              });
-              // Leave errored meta.txt intact
-            });
-            break;
-          }
-          case 'logo.png':
-            tryLoadMetadata(key, metaPath);
-            dispatch({
-              type: 'set-curation-logo',
-              payload: {
-                key: key,
-                image: await createCurationImage(fullPath)
-              }
-            });
-            break;
-          case 'ss.png':
-            tryLoadMetadata(key, metaPath);
-            dispatch({
-              type: 'set-curation-screenshot',
-              payload: {
-                key: key,
-                image: await createCurationImage(fullPath)
-              }
-            });
-            break;
-        }
-      }
-    }
-  }, [dispatch, localState, defaultGameMetaValues, props.tagCategories]);
-
-  const updateCurationDir = useCallback(async (fullPath) => {
-    const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
-    const relativePath = path.relative(curationsPath, fullPath);
-    const splitPath = relativePath.split(path.sep);
-    const dirName = path.basename(fullPath);
-    console.log(dirName);
-    // Dir inside curation folders and unused
-    if (splitPath.length > 1 && dirName !== 'content' && dirName !== 'Extras') {
-      const key = splitPath.shift();
-      console.log(key);
-      // Forcefully re-render a curate box (Non-Content folder warnings)
-      if (key) {
-        // Verify it is actually a curation folder by searching for meta file
-        const curationFiles = await fs.readdir(path.join(curationsPath, key));
-        if (curationFiles.findIndex(f => f.startsWith('meta.')) !== -1) {
-          dispatch({
-            type: 'add-unused-dir',
-            payload: {
-              key: key,
-              dir: dirName
-            }
-          });
-        }
-      }
-    }
-  }, [dispatch]);
-
-  // Start a watcher for the 'Curations' folder to montior curations (meta + images)
-  const watcher = useMemo(() => {
-    const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
-    fs.ensureDirSync(curationsPath);
-    return chokidar.watch(curationsPath, {
-      awaitWriteFinish: {
-        stabilityThreshold: 500,
-        pollInterval: 100
-      },
-      depth: 1
-    })
-    .on('change', (fullPath) => {
-      // Prevents auto-save from reloading
-      if (!fullPath.endsWith('meta.yaml')) {
-        updateCurationFile(fullPath);
-      }
-    })
-    .on('add', (fullPath) => {
-      updateCurationFile(fullPath);
-    })
-    .on('addDir', (fullPath) => {
-      updateCurationDir(fullPath);
-    })
-    .on('unlink', (fullPath) => {
-      removeCurationFile(fullPath);
-    })
-    .on('unlinkDir', (fullPath) => {
-      removeCurationDir(fullPath);
-    })
-    .on('error', (error) => {
-      // Discard watcher errors - Throws useless lstat errors when watching already unlinked files?
-    });
+    readInitialCurations();
   }, []);
 
   // Called whenever the state changes
   React.useEffect(() => {
     localState.state = state;
+    // Delete any marked curations
+    for (const curation of state.curations.filter(c => c.delete && !c.deleted)) {
+      const curationPath = getCurationFolder2(curation);
+      // Use sync methods to block tab switching before done
+      fs.removeSync(curationPath);
+      dispatch({
+        type: 'mark-deleted',
+        payload: {
+          key: curation.key
+        }
+      });
+    }
     // Process any unindexed curations
     for (const curation of state.curations) {
       if (indexedCurations.findIndex(i => i === curation.key) === -1) {
@@ -324,26 +121,16 @@ export function CuratePage(props: CuratePageProps) {
   // Save and clean up on unmount (page changed, window closing)
   React.useEffect(() => {
     return () => {
-      // Stop watcher to release locks
-      watcher.close();
       const state = localState.state;
       // Save all working curation metas
-      for (const curation of state.curations) {
-        // Delete if marked
-        if (curation.delete) {
-          const curationPath = getCurationFolder2(curation);
-          // Use sync methods to block tab switching before done
-          fs.removeSync(curationPath);
-        // Save if not marked
-        } else {
-          const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
-          const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories, curation.addApps));
-          try {
-            fs.writeFileSync(metaPath, meta);
-          } catch (error) {
-            curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
-            console.error(error);
-          }
+      for (const curation of state.curations.filter(c => !c.delete)) {
+        const metaPath = path.join(getCurationFolder2(curation), 'meta.yaml');
+        const meta = YAML.stringify(convertEditToCurationMetaFile(curation.meta, props.tagCategories, curation.addApps));
+        try {
+          fs.writeFileSync(metaPath, meta);
+        } catch (error) {
+          curationLog(`Error saving meta for curation ${curation.key} - ` + error.message);
+          console.error(error);
         }
       }
     };
@@ -504,11 +291,13 @@ export function CuratePage(props: CuratePageProps) {
 
   // Make a new curation (folder watcher does most of the work)
   const onNewCurationClick = useCallback(async () => {
-    const newCurationFolder = path.join(window.Shared.config.fullFlashpointPath, 'Curations', uuid());
+    const key = uuid();
+    const newCurationFolder = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
     try {
       // Create content folder and empty meta.yaml
       await fs.ensureDir(path.join(newCurationFolder, 'content'));
       await fs.createFile(path.join(newCurationFolder, 'meta.yaml'));
+      await loadCurationFolder(key, newCurationFolder, defaultGameMetaValues, dispatch, props);
     } catch (error) {
       curationLog('Error creating new curation - ' + error.message);
       console.error(error);
@@ -533,19 +322,11 @@ export function CuratePage(props: CuratePageProps) {
       for (const archivePath of filePaths) {
         // Mark as indexed so can index ourselves after extraction
         const key = uuid();
-        indexedCurations.push(key);
-        setIndexedCurations(indexedCurations);
         // Extract files to curation folder
         await importCurationArchive(archivePath, key, newProgress(progressKey, progressDispatch))
         .then(async key => {
-          const content = await indexContentFolder(getContentFolderByKey2(key), curationLog);
-          dispatch({
-            type: 'set-curation-content',
-            payload: {
-              key: key,
-              content: content
-            }
-          });
+          const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
+          await loadCurationFolder(key, curationPath, defaultGameMetaValues, dispatch, props);
         })
         // Update Status Progress with new number of counted files
         .finally(() => {
@@ -580,14 +361,8 @@ export function CuratePage(props: CuratePageProps) {
           // Copy files to curation folder
           return importCurationFolder(dirPath, key, newProgress(progressKey, progressDispatch))
           .then(async key => {
-            const content = await indexContentFolder(getContentFolderByKey2(key), curationLog);
-            dispatch({
-              type: 'set-curation-content',
-              payload: {
-                key: key,
-                content: content
-              }
-            });
+            const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
+            await loadCurationFolder(key, curationPath, defaultGameMetaValues, dispatch, props);
           });
         })
       )
@@ -598,7 +373,7 @@ export function CuratePage(props: CuratePageProps) {
   }, [dispatch, indexedCurations, setIndexedCurations]);
 
   // Load Meta Callback
-  const onLoadMetaClick = useCallback(() => {
+  const onLoadMetaClick = useCallback(async () => {
     // Show dialog
     const filePaths = window.Shared.showOpenDialogSync({
       title: strings.dialog.selectCurationMeta,
@@ -609,7 +384,9 @@ export function CuratePage(props: CuratePageProps) {
       // Import all selected meta files
       for (let i = 0; i < filePaths.length; i++) {
         const filePath = filePaths[i];
-        importCurationMeta(filePath);
+        const key = await importCurationMeta(filePath);
+        const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
+        await loadCurationFolder(key, curationPath, defaultGameMetaValues, dispatch, props);
       }
     }
   }, [dispatch]);
@@ -904,4 +681,113 @@ function getContentFolderByKey2(key: string) {
 
 function getCurationFolder2(curation: EditCuration | CurationIndex) {
   return getCurationFolder(curation, window.Shared.config.fullFlashpointPath);
+}
+
+async function loadCurationFolder(key: string, fullPath: string, defaultGameMetaValues: GameMetaDefaults | undefined, dispatch: React.Dispatch<CurationAction>, props: CuratePageProps): Promise<void> {
+  const loadedCuration: EditCuration = {
+    key: key,
+    meta: {},
+    addApps: [],
+    thumbnail: createCurationIndexImage(),
+    screenshot: createCurationIndexImage(),
+    content: [],
+    locked: false,
+    delete: false,
+    deleted: false
+  };
+  // Read in meta
+  const files = await fs.promises.readdir(fullPath, { withFileTypes: true });
+  metaLoop:
+  for (const file of files.filter(f => f.isFile())) {
+    switch (file.name) {
+      case 'meta.txt': {
+        const metaTxtPath = path.join(fullPath, 'meta.txt');
+        await readCurationMeta(metaTxtPath, defaultGameMetaValues)
+        .then(async (parsedMeta) => {
+          console.log(parsedMeta);
+          const newMetaPath = path.join(fullPath, 'meta.yaml');
+          const newMetaData = YAML.stringify(convertParsedToCurationMeta(parsedMeta, props.tagCategories));
+          await fs.writeFile(newMetaPath, newMetaData);
+          // Remove old style meta file
+          await fs.unlink(metaTxtPath);
+        })
+        .catch(async (error) => {
+          const formedMessage = `Error Parsing Curation Meta at ${metaTxtPath} - ${error.message}\n\n` +
+                                'A default meta has been loaded.\n' +
+                                'You may edit your meta.txt in the curation folder to be valid, this will then replace the loaded meta automatically.';
+          console.error(error);
+          curationLog(formedMessage);
+          showWarningBox(formedMessage);
+          const newMetaPath = path.join(fullPath, 'meta.yaml');
+          await fs.access(newMetaPath, fs.constants.F_OK)
+          .catch((error) => {
+            // File doesn't exist yet, make an empty one
+            return fs.createFile(newMetaPath);
+          });
+          // Leave errored meta.txt intact
+        });
+      }
+      // eslint-disable-next-line no-fallthrough
+      case 'meta.yaml':
+      case 'meta.yml': {
+        const metaYamlPath = path.join(fullPath, file.name === 'meta.yml' ? 'meta.yml' : 'meta.yaml');
+        await readCurationMeta(metaYamlPath, defaultGameMetaValues)
+        .then(async (parsedMeta) => {
+          loadedCuration.meta = parsedMeta.game;
+          for (let i = 0; i < parsedMeta.addApps.length; i++) {
+            const meta = parsedMeta.addApps[i];
+            loadedCuration.addApps.push({
+              key: uuid(),
+              meta: meta,
+            });
+          }
+        })
+        .catch((error) => {
+          const formedMessage = `Error Parsing Curation Meta at ${metaYamlPath} - ${error.message}`;
+          console.error(error);
+          curationLog(formedMessage);
+          showWarningBox(formedMessage);
+        });
+        break metaLoop;
+      }
+    }
+  }
+  // Read in images
+  for (const file of files.filter(f => f.isFile())) {
+    const filePath = path.join(fullPath, file.name);
+    switch (file.name) {
+      case 'logo.png': {
+        const image = createCurationIndexImage();
+        image.fileName = path.basename(filePath);
+        image.filePath = filePath;
+        try {
+          await fs.promises.access(filePath, fs.constants.F_OK);
+          image.exists = true;
+        } catch (error) {
+          image.exists = false;
+        }
+        loadedCuration.thumbnail = image;
+        break;
+      }
+      case 'ss.png': {
+        const image = createCurationIndexImage();
+        image.fileName = path.basename(filePath);
+        image.filePath = filePath;
+        try {
+          await fs.promises.access(filePath, fs.constants.F_OK);
+          image.exists = true;
+        } catch (error) {
+          image.exists = false;
+        }
+        loadedCuration.screenshot = image;
+        break;
+      }
+    }
+  }
+  dispatch({
+    type: 'load-curation',
+    payload: {
+      curation: loadedCuration
+    }
+  });
 }

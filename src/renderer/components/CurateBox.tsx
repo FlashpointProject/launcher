@@ -1,5 +1,6 @@
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { createCurationIndexImage } from '@renderer/curate/importCuration';
 import { useDelayedThrottle } from '@renderer/hooks/useThrottle';
 import { BackIn, LaunchCurationData, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagGetOrCreateResponse, TagSuggestion, TagSuggestionsData, TagSuggestionsResponse } from '@shared/back/types';
 import { htdocsPath } from '@shared/constants';
@@ -19,7 +20,7 @@ import * as YAML from 'yaml';
 import { ProgressData } from '../containers/withProgress';
 import { CurationAction } from '../context/CurationContext';
 import { newProgress, ProgressContext, ProgressDispatch } from '../context/ProgressContext';
-import { curationLog } from '../curate/util';
+import { createCurationImage, curationLog } from '../curate/util';
 import { toForcedURL } from '../Util';
 import { LangContext } from '../util/lang';
 import { pathTo7z } from '../util/SevenZip';
@@ -475,10 +476,10 @@ export function CurateBox(props: CurateBoxProps) {
   }, [props.curation, props.tagCategories]);
 
   // Image callbacks
-  const onAddThumbnailClick  = useAddImageCallback('logo.png', strings, props.curation);
-  const onAddScreenshotClick = useAddImageCallback('ss.png', strings, props.curation);
-  const onRemoveThumbnailClick  = useRemoveImageCallback('logo.png', props.curation);
-  const onRemoveScreenshotClick = useRemoveImageCallback('ss.png', props.curation);
+  const onAddThumbnailClick  = useAddImageCallback('logo.png', strings, props.curation, props.dispatch);
+  const onAddScreenshotClick = useAddImageCallback('ss.png', strings, props.curation, props.dispatch);
+  const onRemoveThumbnailClick  = useRemoveImageCallback('logo.png', props.curation, props.dispatch);
+  const onRemoveScreenshotClick = useRemoveImageCallback('ss.png', props.curation, props.dispatch);
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation);
   const onDropScreenshot = useDropImageCallback('ss.png', props.curation);
 
@@ -993,15 +994,26 @@ function useOnCheckboxToggle(property: keyof EditCurationMeta, key: string | und
   }, [dispatch, key]);
 }
 
-function useAddImageCallback(filename: string, strings: LangContainer, curation: EditCuration | undefined): () => void {
-  return useCallback(() => {
+function useAddImageCallback(filename: 'logo.png' | 'ss.png', strings: LangContainer, curation: EditCuration | undefined, dispatch: React.Dispatch<CurationAction>): () => void {
+  return useCallback(async () => {
     const filePaths = window.Shared.showOpenDialogSync({
       title: strings.dialog.selectScreenshot,
       properties: ['openFile'],
       filters: [{ extensions: ['png', 'PNG'], name: 'Image File' }]
     });
     if (curation && filePaths && filePaths[0].toLowerCase().endsWith('.png')) {
-      fs.copyFile(filePaths[0], path.join(getCurationFolder2(curation), filename));
+      const isLogo = filename === 'logo.png';
+      const dest = path.join(getCurationFolder2(curation), filename);
+      await fs.copyFile(filePaths[0], dest);
+      const newImage = await createCurationImage(dest);
+      newImage.version = isLogo ? curation.thumbnail.version + 1 : curation.screenshot.version + 1;
+      dispatch({
+        type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
+        payload: {
+          key: curation.key,
+          image: newImage
+        }
+      });
     }
   }, [curation && curation.key]);
 }
@@ -1011,13 +1023,27 @@ function useAddImageCallback(filename: string, strings: LangContainer, curation:
  * @param filename Name of the image file.
  * @param curation Curation to delete it from.
  */
-function useRemoveImageCallback(filename: string, curation: EditCuration | undefined): () => Promise<void> {
+function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: EditCuration | undefined, dispatch: React.Dispatch<CurationAction>): () => Promise<void> {
   return useCallback(async () => {
     if (curation) {
       const filePath = path.join(getCurationFolder2(curation), filename);
       try {
-        await fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK);
-        await fs.unlink(filePath);
+        const isLogo = filename === 'logo.png';
+        try {
+          await fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK);
+          await fs.unlink(filePath);
+        } catch (error) {
+          curationLog('Curation image already deleted, probably missing, skipping...');
+        }
+        const newImage = createCurationIndexImage();
+        newImage.version = isLogo ? curation.thumbnail.version + 1 : curation.screenshot.version + 1;
+        dispatch({
+          type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
+          payload: {
+            key: curation.key,
+            image: createCurationIndexImage()
+          }
+        });
       } catch (error) {
         curationLog('Error replacing image - ' + error.message);
         console.log(error);
@@ -1152,7 +1178,6 @@ export function getCurationWarnings(curation: EditCuration, suggestions: Partial
   // Check for unused values (with suggestions)
   warns.unusedPlatform = !isValueSuggested(curation, suggestions, 'platform');
   warns.unusedApplicationPath = !isValueSuggested(curation, suggestions, 'applicationPath');
-  warns.nonContentFolders = curation.unusedDirs;
   // Check if library is set
   const curLibrary = curation.meta.library;
   warns.nonExistingLibrary = (libraries.findIndex(l => l === curLibrary) === -1);
