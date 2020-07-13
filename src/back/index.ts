@@ -523,13 +523,14 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
       case 'logos': {
         const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
         const relativePath = urlPath.substr(index + 1);
-        console.log(relativePath);
         const logoFolder = logoSet && logoSet.files.includes(relativePath)
           ? logoSet.fullPath
           : path.join(state.config.flashpointPath, state.config.logoFolderPath);
         const filePath = path.join(logoFolder, relativePath);
         if (filePath.startsWith(logoFolder)) {
           serveFile(req, res, filePath);
+        } else {
+          log.warn('Launcher', `Illegal file request: "${filePath}"`);
         }
       } break;
 
