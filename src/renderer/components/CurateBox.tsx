@@ -335,6 +335,28 @@ export function CurateBox(props: CurateBoxProps) {
           content: content
         }
       });
+      // Refresh Thumbnail
+      const thumbDest = path.join(getCurationFolder2(props.curation), 'logo.png');
+      const newThumb = await createCurationImage(thumbDest);
+      newThumb.version = props.curation.thumbnail.version + 1;
+      props.dispatch({
+        type: 'set-curation-logo',
+        payload: {
+          key: props.curation.key,
+          image: newThumb
+        }
+      });
+      // Refresh Screenshot
+      const ssDest = path.join(getCurationFolder2(props.curation), 'ss.png');
+      const newSs = await createCurationImage(ssDest);
+      newSs.version = props.curation.screenshot.version + 1;
+      props.dispatch({
+        type: 'set-curation-screenshot',
+        payload: {
+          key: props.curation.key,
+          image: newSs
+        }
+      });
     }
   }, [props.dispatch, props.curation && props.curation.key]);
   // Callback for when the open folder button is clicked
