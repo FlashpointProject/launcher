@@ -264,9 +264,7 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
   const htdocsContentPath = path.join(fpPath, htdocsPath, 'content');
   // Clear out old folder if exists
   console.log('Removing old Server/htdocs/content ...');
-  await fs.access(htdocsContentPath, fs.constants.F_OK)
-  .then(() => fs.remove(htdocsContentPath))
-  .catch((error) => { /* No file is okay, ignore error */ });
+  await fs.remove(htdocsContentPath);
   const contentPath = path.join(curationPath, 'content');
   console.log('Linking new Server/htdocs/content ...');
   if (fs.existsSync(contentPath)) {
