@@ -53,7 +53,6 @@ Your entry point must be declared in `package.json` like it would in a Node JS m
 
 ```json
 {
-  ...
   "main": "./path/to/extension.js"
 }
 ```
@@ -93,12 +92,11 @@ Example tsconfig.json
 }
 ```
 
-A simple build script is below to use `npm run build` to rebuild your extension.
+A simple build script is below to include in `package.json` to run `npm run build` to rebuild your extension.
 
 Build script
 ```json
 {
-  ...
   "scripts": {
     "build": "tsc"
   }
@@ -122,7 +120,6 @@ Themes are declared as part of the extensions manifest, `package.json`. Multiple
 
 ```json
 {
-  ...
   "contributes": {
     "themes: [
       {
@@ -144,7 +141,6 @@ Logo Sets are declared as part of the extensions manifest, `package.json`. Multi
 
 ```json
 {
-  ...
   "contributes": {
     "logoSets: [
       {
