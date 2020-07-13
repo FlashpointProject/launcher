@@ -91,6 +91,7 @@ window.Shared = {
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
   initialTagCategories: createErrorProxy('initialTagCategories'),
   initialDevScripts: createErrorProxy('initialDevScripts'),
+  initialLogoSets: createErrorProxy('initialLogoSets'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -139,6 +140,7 @@ const onInit = (async () => {
       window.Shared.initialLocaleCode = response.data.localeCode;
       window.Shared.initialTagCategories = response.data.tagCategories;
       window.Shared.initialDevScripts = response.data.devScripts;
+      window.Shared.initialLogoSets = response.data.logoSets;
       if (window.Shared.preferences.data.currentTheme) {
         const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
         if (theme) { setTheme(theme); }

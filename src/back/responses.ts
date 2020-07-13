@@ -119,7 +119,8 @@ export function registerRequestCallbacks(state: BackState): void {
         platforms: platforms,
         localeCode: state.localeCode,
         tagCategories: await TagManager.findTagCategories(),
-        devScripts: await state.extensionsService.getContributions('devScripts')
+        devScripts: await state.extensionsService.getContributions('devScripts'),
+        logoSets: Array.from(state.registry.logoSets.values()),
       },
     });
   });

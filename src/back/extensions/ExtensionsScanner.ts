@@ -1,10 +1,10 @@
 import { IAppConfigData } from '@shared/config/interfaces';
+import { readJsonFile } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
-import { ObjectParser, IObjectParserProp } from '@shared/utils/ObjectParser';
+import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ExtensionType, IExtension, IExtensionManifest, Contributions, ExtTheme, DevScript } from '../../shared/extensions/interfaces';
-import { readJsonFile } from '@shared/Util';
+import { Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
 const { str } = Coerce;
 const fsPromises = fs.promises;
@@ -103,12 +103,26 @@ async function parseExtensionManifest(data: any) {
 
 function parseContributions(parser: IObjectParserProp<Contributions>): Contributions {
   const contributes: Contributions = {
+    logoSets: [],
     themes: [],
     devScripts: []
   };
+  parser.prop('logoSets').array((item) => contributes.logoSets.push(parseLogoSet(item)));
   parser.prop('themes').array((item) => contributes.themes.push(parseTheme(item)));
   parser.prop('devScripts').array((item) => contributes.devScripts.push(parseDevScript(item)));
   return contributes;
+}
+
+function parseLogoSet(parser: IObjectParserProp<ILogoSet>): ILogoSet {
+  const logoSet: ILogoSet = {
+    id: '',
+    name: '',
+    path: '',
+  };
+  parser.prop('id',   v => logoSet.id   = str(v));
+  parser.prop('name', v => logoSet.name = str(v));
+  parser.prop('path', v => logoSet.path = str(v));
+  return logoSet;
 }
 
 function parseTheme(parser: IObjectParserProp<ExtTheme>): ExtTheme {

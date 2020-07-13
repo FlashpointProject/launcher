@@ -34,6 +34,8 @@ export type IAppPreferencesData = {
   showDeveloperTab: boolean;
   /** Filename of the current theme. */
   currentTheme: string | undefined;
+  /** Filename of the current logo set */
+  currentLogoSet: string | undefined;
   /** The "route" of the last selected library (empty string selects the default). */
   lastSelectedLibrary: string;
   /** What property to order the games by. */

@@ -40,6 +40,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
   curatePageLeftSidebarWidth: 320,
   showDeveloperTab: false,
   currentTheme: 'Metal\\theme.css',
+  currentLogoSet: undefined,
   lastSelectedLibrary: '',
   gamesOrderBy: 'title',
   gamesOrder: 'ASC',
@@ -109,6 +110,7 @@ export function overwritePreferenceData(
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
   parser.prop('showLogLevel').mapRaw((item, label) => source.showLogLevel[label as LogLevel] = !!item);
+  parser.prop('currentLogoSet',              v => source.currentLogoSet              = str(v), true);
   // Done
   return source;
 }

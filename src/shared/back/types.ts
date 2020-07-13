@@ -3,7 +3,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { ExtensionContribution, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
@@ -203,6 +203,7 @@ export type GetRendererInitDataResponse = {
   localeCode: string;
   tagCategories: TagCategory[];
   devScripts: ExtensionContribution<'devScripts'>[];
+  logoSets: LogoSet[];
 }
 
 export type GetSuggestionsResponseData = {

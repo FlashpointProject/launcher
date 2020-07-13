@@ -37,6 +37,8 @@ export type GameListProps = {
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   listRef?: RefFunc<HTMLDivElement>;
+  /** Updates to clear platform icon cache */
+  logoVersion: number;
 };
 
 type RowsRenderedInfo = {
@@ -156,6 +158,7 @@ export class GameList extends React.Component<GameListProps> {
         tags={game.tags}
         developer={game.developer}
         publisher={game.publisher}
+        logoVersion={this.props.logoVersion}
         isDraggable={true}
         isSelected={game.id === selectedGameId}
         isDragged={game.id === draggedGameId} />

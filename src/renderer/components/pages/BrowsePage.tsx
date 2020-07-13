@@ -61,6 +61,8 @@ type OwnProps = {
   wasNewGameClicked: boolean;
   /** "Route" of the currently selected library (empty string means no library). */
   gameLibrary: string;
+  /** Updates to clear platform icon cache */
+  logoVersion: number;
 };
 
 export type BrowsePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
@@ -228,6 +230,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onGameDragEnd={this.onGameDragEnd}
                   cellWidth={width}
                   cellHeight={height}
+                  logoVersion={this.props.logoVersion}
                   gridRef={this.gameGridOrListRefFunc} />
               );
             } else {
@@ -246,6 +249,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   onGameDragEnd={this.onGameDragEnd}
                   updateView={this.props.updateView}
                   rowHeight={height}
+                  logoVersion={this.props.logoVersion}
                   listRef={this.gameGridOrListRefFunc} />
               );
             }

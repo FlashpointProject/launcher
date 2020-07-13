@@ -6,6 +6,8 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   id: string;
   title: string;
   platform: string;
+  /** Updates to clear platform icon cache */
+  logoVersion: number;
   /** Path to the game's thumbnail. */
   thumbnail: string;
   /** If the cell can be dragged (defaults to false). */
@@ -21,7 +23,7 @@ export function GameGridItem(props: GameGridItemProps) {
   const { id, title, platform, thumbnail, isDraggable, isSelected, isDragged, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
-    getPlatformIconURL(platform)
+    getPlatformIconURL(platform, props.logoVersion)
   ), [platform]);
   // Pick class names
   const className = React.useMemo(() => {

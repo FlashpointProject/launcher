@@ -10,6 +10,8 @@ export type GameListItemProps = ListRowProps & {
   tags: Tag[];
   developer: string;
   publisher: string;
+  /** Updates to clear platform icon cache */
+  logoVersion: number;
   /** If the row can be dragged (defaults to false). */
   isDraggable?: boolean;
   /** If the row is selected. */
@@ -22,7 +24,7 @@ export function GameListItem(props: GameListItemProps) {
   const { id, title, platform, tags, developer, publisher, isDraggable, isSelected, isDragged, index, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
-    getPlatformIconURL(platform)
+    getPlatformIconURL(platform, props.logoVersion)
   ), [platform]);
   // Pick class names
   const className = React.useMemo(() => {

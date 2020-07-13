@@ -1,6 +1,7 @@
 import { Disposable } from '@back/util/lifecycle';
 import { ILogEntry } from '@shared/Log/interface';
 import { Theme } from '@shared/ThemeFile';
+import { LogoSet } from '@shared/extensions/interfaces';
 
 export type ExtensionData = {
   extId: string;
@@ -22,6 +23,7 @@ export type ExtensionModule = {
 
 export type Registry = {
   commands: Map<string, Command>;
+  logoSets: Map<string, LogoSet>;
   themes: Map<string, Theme>;
 }
 

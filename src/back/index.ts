@@ -11,6 +11,7 @@ import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
+import { Theme } from '@shared/ThemeFile';
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
@@ -39,7 +40,7 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
-import { Theme } from '@shared/ThemeFile';
+import { LogoSet } from '@shared/extensions/interfaces';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -101,6 +102,7 @@ const state: BackState = {
   },
   registry: {
     commands: new Map<string, Command>(),
+    logoSets: new Map<string, LogoSet>(),
     themes: new Map<string, Theme>(),
   },
   extensionsService: createErrorProxy('extensionsService'),
@@ -325,6 +327,33 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     }
   }
 
+  // Init Logo Sets
+  const logoSetContributions = await state.extensionsService.getContributions<'logoSets'>('logoSets');
+  for (const c of logoSetContributions) {
+    for (const logoSet of c.value) {
+      const ext = await state.extensionsService.getExtension(c.extId);
+      if (ext) {
+        const realPath = path.join(ext.extensionPath, logoSet.path);
+        try {
+          if (state.registry.logoSets.has(logoSet.id)) {
+            throw new Error(`Logo set "${logoSet.id}" already registered!`);
+          }
+          const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
+          .filter(f => f.isFile())
+          .map(f => f.name);
+          state.registry.logoSets.set(logoSet.id, {
+            ...logoSet,
+            fullPath: realPath,
+            files: files
+          });
+          log.debug('Extensions', `Logo set "${logoSet.id}" registered by "${ext.manifest.displayName || ext.manifest.name}"`);
+        } catch (error) {
+          log.error('Extensions', `Error loading logo set from "${c.extId}"\n${error}`);
+        }
+      }
+    }
+  }
+
   // Load Exec Mappings
   loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log.info('Launcher', content))
   .then(data => {
@@ -492,8 +521,13 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
 
       // Logos folder
       case 'logos': {
-        const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
-        const filePath = path.join(logoFolder, urlPath.substr(index + 1));
+        const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
+        const relativePath = urlPath.substr(index + 1);
+        console.log(relativePath);
+        const logoFolder = logoSet && logoSet.files.includes(relativePath)
+          ? logoSet.fullPath
+          : path.join(state.config.flashpointPath, state.config.logoFolderPath);
+        const filePath = path.join(logoFolder, relativePath);
         if (filePath.startsWith(logoFolder)) {
           serveFile(req, res, filePath);
         }

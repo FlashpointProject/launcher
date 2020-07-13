@@ -1,6 +1,6 @@
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { ExtensionContribution, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
@@ -105,6 +105,7 @@ export interface IMainWindowExternal {
   initialLocaleCode: string;
   initialTagCategories: TagCategory[];
   initialDevScripts: ExtensionContribution<'devScripts'>[];
+  initialLogoSets: LogoSet[];
 
   /**
    * Wait for the preload to initialize.

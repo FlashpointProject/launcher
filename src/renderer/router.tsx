@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
-import { ExtensionContribution } from '@shared/extensions/interfaces';
+import { ExtensionContribution, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
@@ -62,7 +62,9 @@ export type AppRouterProps = {
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
   autoUpdater: AppUpdater,
-  devScripts: ExtensionContribution<'devScripts'>[]
+  devScripts: ExtensionContribution<'devScripts'>[],
+  logoSets: ILogoSet[],
+  logoVersion: number,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -78,6 +80,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       autoUpdater: this.props.autoUpdater,
       randomGames: this.props.randomGames,
       rollRandomGames: this.props.rollRandomGames,
+      logoVersion: this.props.logoVersion,
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
@@ -98,9 +101,11 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
+      logoVersion: this.props.logoVersion,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
+      logoSets: this.props.logoSets,
       availableLangs: this.props.languages,
       libraries: this.props.libraries,
       platforms: this.props.platformsFlat,
@@ -116,6 +121,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       appPaths: this.props.appPaths,
       libraries: this.props.libraries,
       mad4fpEnabled: this.props.mad4fpEnabled,
+      logoVersion: this.props.logoVersion,
     };
     const developerProps: DeveloperPageProps = {
       platforms: this.props.platformsFlat,

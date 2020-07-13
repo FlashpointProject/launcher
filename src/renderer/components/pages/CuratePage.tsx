@@ -38,6 +38,8 @@ type OwnProps = {
   appPaths: { [platform: string]: string; };
   libraries: string[];
   mad4fpEnabled: boolean;
+  /** Update to clear platform icon cache */
+  logoVersion: number;
 };
 
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps;
@@ -724,7 +726,7 @@ export function CuratePage(props: CuratePageProps) {
   // Render Curation Index (left sidebar)
   const curateIndex = React.useMemo(() => {
     return state.curations.map((curation, index) => {
-      const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform) : '';
+      const platformIconPath = curation.meta.platform ? getPlatformIconURL(curation.meta.platform, props.logoVersion) : '';
       return (
         curation.delete ? undefined :
           <div

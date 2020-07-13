@@ -14,6 +14,23 @@ export type ExtTheme = {
   path: string;
 }
 
+export interface ILogoSet {
+  /** Id of the logo set */
+  id: string;
+  /** Name of the logo set */
+  name: string;
+  /** Path relative to extension path */
+  path: string;
+}
+
+export type LogoSet = ILogoSet & {
+  /** Path on disk */
+  fullPath: string;
+  /** List of provided files */
+  files: string[];
+}
+
+
 export type ExtensionContribution<T extends keyof Contributions> = {
   key: T;
   extId: string;
@@ -21,6 +38,7 @@ export type ExtensionContribution<T extends keyof Contributions> = {
 }
 
 export type Contributions = {
+  logoSets: ILogoSet[];
   themes: ExtTheme[];
   devScripts: DevScript[];
 }

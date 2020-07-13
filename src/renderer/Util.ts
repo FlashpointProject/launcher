@@ -100,8 +100,8 @@ export function getGameImageURL(folderName: string, gameId: string): string {
   return `${getFileServerURL()}/images/${folderName}/${gameId.substr(0, 2)}/${gameId.substr(2, 2)}/${gameId}.png`;
 }
 
-export function getPlatformIconURL(platform: string): string {
-  return `${getFileServerURL()}/logos/${platform}.png`;
+export function getPlatformIconURL(platform: string, version: number): string {
+  return `${getFileServerURL()}/logos/${platform}.png?v=${version}`;
 }
 
 export function getGameImagePath(folderName: string, gameId: string): string {

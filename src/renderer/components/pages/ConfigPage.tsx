@@ -1,5 +1,6 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { BackIn, UpdateConfigData } from '@shared/back/types';
+import { ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -19,8 +20,10 @@ type OwnProps = {
   libraries: string[];
   /** List of all platforms */
   platforms: string[];
-  /** Filenames of all files in the themes folder. */
+  /** List of all available themes */
   themeList: ITheme[];
+  /** List of all available logo sets */
+  logoSets: ILogoSet[];
   /** List of available languages. */
   availableLangs: LangFile[];
   /** List of available server names. */
@@ -58,6 +61,7 @@ export interface ConfigPage {
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
   currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
+  currentLogoSetInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -307,6 +311,27 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   <p>{strings.themeDesc}</p>
                 </div>
               </div>
+              {/* Logo Set */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.logoSet}</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--input-field setting__row__content--theme-input-field'>
+                    <DropdownInputField
+                      text={this.getLogoSetName(this.props.preferencesData.currentLogoSet || '') || ''}
+                      placeholder={strings.noLogoSet}
+                      onChange={this.onCurrentLogoSetChange}
+                      editable={true}
+                      items={[ ...this.props.logoSets.map(formatLogoSetName), 'No Logo Set' ]}
+                      onItemSelect={this.onCurrentLogoSetSelect}
+                      inputRef={this.currentLogoSetInputRefFunc} />
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.logoSetDesc}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -502,8 +527,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     updatePreferencesData({ currentTheme: event.currentTarget.value });
   }
 
+  onCurrentLogoSetChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
+    updatePreferencesData({ currentLogoSet: event.currentTarget.value });
+  }
+
   onCurrentThemeItemSelect = (text: string, index: number): void => {
-    // Note: Suggestions with index 0 to "length - 1" are filenames of themes.
+    // Note: Suggestions with index 0 to "length - 1" registered themes.
     //       Directly after that comes the "No Theme" suggestion.
     let theme: ITheme | undefined;
     if (index < this.props.themeList.length) { // (Select a Theme)
@@ -516,13 +545,36 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
   }
 
+  onCurrentLogoSetSelect = (text: string, index: number): void => {
+    // Note: Suggestions with index 0 to "length - 1" registered logo sets.
+    //       Directly after that comes the "No Theme" suggestion.
+    let logoSet: ILogoSet | undefined;
+    if (index < this.props.logoSets.length) { // (Select a Logo Set)
+      logoSet = this.props.logoSets[index];
+    } else { logoSet = undefined; } // (Deselect the current logo set)
+    updatePreferencesData({ currentLogoSet: logoSet ? logoSet.id : '' });
+    // Select the input field
+    if (this.currentLogoSetInputRef) {
+      this.currentLogoSetInputRef.focus();
+    }
+  }
+
   currentThemeInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
     this.currentThemeInputRef = ref;
+  }
+
+  currentLogoSetInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
+    this.currentLogoSetInputRef = ref;
   }
 
   getThemeName(id: string) {
     const theme = this.props.themeList.find(t => t.id === id);
     if (theme) { return theme.meta.name || theme.id; }
+  }
+
+  getLogoSetName(id: string) {
+    const logoSet = this.props.logoSets.find(ls => ls.id === id);
+    if (logoSet) { return logoSet.name; }
   }
 
   /** When the "Save & Restart" button is clicked. */
@@ -543,4 +595,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 /** Format a theme item into a displayable name for the themes drop-down. */
 function formatThemeItemName(item: ITheme): string {
   return `${item.meta.name} (${item.id})`;
+}
+
+function formatLogoSetName(item: ILogoSet): string {
+  return `${item.name} (${item.id})`;
 }

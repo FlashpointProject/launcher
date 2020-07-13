@@ -379,6 +379,14 @@ export class App extends React.Component<AppProps> {
       setTheme(theme);
     }
 
+    // Check if logo set changed
+    if (preferencesData.currentLogoSet !== prevProps.preferencesData.currentLogoSet) {
+      this.props.dispatchMain({
+        type: MainActionType.INCREMENT_LOGO_VERSION
+      });
+    }
+
+
     // Check if renderer finished initializing
     if (isInitDone(this.props.main) && !isInitDone(prevProps.main)) {
       // Pre-request all libraries
@@ -552,6 +560,8 @@ export class App extends React.Component<AppProps> {
       updateInfo: this.props.main.updateInfo,
       autoUpdater: autoUpdater,
       devScripts: this.props.main.devScripts,
+      logoSets: this.props.main.logoSets,
+      logoVersion: this.props.main.logoVersion,
     };
 
     // Render

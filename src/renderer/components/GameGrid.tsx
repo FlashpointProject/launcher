@@ -45,6 +45,8 @@ export type GameGridProps = {
   updateView: UpdateView;
   /** Function for getting a reference to grid element. Called whenever the reference could change. */
   gridRef?: RefFunc<HTMLDivElement>;
+  /** Updates to clear platform icon cache */
+  logoVersion: number;
 };
 
 /** A grid of cells, where each cell displays a game. */
@@ -186,6 +188,7 @@ export class GameGrid extends React.Component<GameGridProps> {
           title={game ? game.title : ''}
           platform={game ? game.platform : ''}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
+          logoVersion={this.props.logoVersion}
           isDraggable={true}
           isSelected={game ? game.id === selectedGameId : false}
           isDragged={game ? game.id === draggedGameId : false} />
