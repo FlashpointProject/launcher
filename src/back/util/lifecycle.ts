@@ -1,4 +1,4 @@
-/** A self-nesting type that allows one time disposable with an optional callbackz */
+/** A self-nesting type that allows one time disposable with an optional callback */
 export type Disposable = {
   /** Children to dispose of in the future */
   toDispose: Disposable[];
@@ -21,7 +21,7 @@ export function dispose<T>(disposable: Disposable) {
   }
 }
 
-/** Dispose of all a disposables children but not itself */
+/** Dispose of all a disposable's children but not itself */
 export function clearDisposable(disposable: Disposable) {
   disposable.toDispose.forEach(d => dispose(d));
   disposable.toDispose = [];

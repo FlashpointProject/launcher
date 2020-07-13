@@ -6,16 +6,14 @@ declare module 'flashpoint' {
 
   /** Version of the Flashpoint Launcher */
   export const version: string;
-  export const extManifest: IExtensionManifest;
 
-  /** Log functions to properly pass to the Logs Page */
-  export type ExtensionLogFunc = (message: string) => void;
+  /** Log functions to properly pass messages to the Logs Page. Automatically fills with Extension name. */
   export namespace log {
-    export const trace: ExtensionLogFunc;
-    export const debug: ExtensionLogFunc;
-    export const info:  ExtensionLogFunc;
-    export const warn:  ExtensionLogFunc;
-    export const error: ExtensionLogFunc;
+    export const trace: (message: string) => void;
+    export const debug: (message: string) => void;
+    export const info:  (message: string) => void;
+    export const warn:  (message: string) => void;
+    export const error: (message: string) => void;
   }
 
   export namespace commands {
@@ -28,50 +26,27 @@ declare module 'flashpoint' {
     export function registerCommand(command: string, callback: (...args: any[]) => any): Disposable;
   }
 
+  /** A self-nesting type that allows one time disposable with an optional callback */
   export type Disposable = {
+    /** Children to dispose of in the future */
     toDispose: Disposable[];
+    /** Whether this is already disposed */
     isDisposed: boolean;
-    callback?: () => void;
-  };
+    /** Callback to use when disposed */
+    onDispose?: () => void;
+  }
 
-  /** Disposes of itself and all its children */
+  /** Dispose of a disposable and all its children */
   export function dispose<T>(disposable: Disposable): void;
-  /** Disposes of all its children but not itself */
+  /** Dispose of all a disposable;s children but not itself */
   export function clearDisposable(disposable: Disposable): void;
-  /** Register a disposable to its parent (usually context.subscriptions) */
+  /** Register a disposable to its parent. They must not be the same. */
   export function registerDisposable(parent: Disposable, child: Disposable): void;
-  /** Create a new disposable with optional callback - Should be registered afterwards! */
+  /** Creates Disposable data to fill a newly created Disposable type object */
   export function newDisposable(callback?: () => void): Disposable;
 
   export type ExtensionContext = {
     /** Put all extension disposables on here with registerDisposable */
     subscriptions: Disposable;
   };
-
-  export type DevScript = {
-    name: string;
-    description: string;
-    command: string;
-  }
-
-  export type Theme = {
-    folder: string;
-  }
-
-  export type Contributions = {
-    themes: Theme[]; // TODO Implement
-    devScripts: DevScript[];
-  }
-
-  export interface IExtensionManifest {
-    name: string;
-    displayName?: string;
-    author: string;
-    version: string;
-    launcherVersion: string;
-    description?: string;
-    icon?: string;
-    main?: string;
-    contributes?: Contributions;
-  }
 }

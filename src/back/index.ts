@@ -312,7 +312,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   } catch (error) {
     log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
   }
-  const themeContributions = await state.extensionsService.getContributions<'themes'>('themes');
+  const themeContributions = await state.extensionsService.getContributions('themes');
   for (const c of themeContributions) {
     for (const theme of c.value) {
       const ext = await state.extensionsService.getExtension(c.extId);
@@ -328,7 +328,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Init Logo Sets
-  const logoSetContributions = await state.extensionsService.getContributions<'logoSets'>('logoSets');
+  const logoSetContributions = await state.extensionsService.getContributions('logoSets');
   for (const c of logoSetContributions) {
     for (const logoSet of c.value) {
       const ext = await state.extensionsService.getExtension(c.extId);
