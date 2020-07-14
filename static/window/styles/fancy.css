@@ -517,7 +517,9 @@ body {
 .log-page__dropdown-item:hover {
   background-color: var(--layout__drop-down-content-background-selected);
 }
-
+.log-page__upload-log {
+  font-weight: bold;
+}
 
 /* ------ Browse ------ */
 .game-browser {
