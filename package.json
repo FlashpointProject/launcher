@@ -9,6 +9,7 @@
   "scripts": {
     "start": "electron ./build/main/index.js",
     "build": "gulp build",
+    "build-api-docs": "typedoc --out docs/api typings/flashpoint.d.ts --includeDeclarations --excludeExternals --disableOutputCheck",
     "watch": "gulp watch",
     "pack": "gulp pack",
     "snapshot": "cross-env-shell NODE_ENV=production \"npm run build && npm run pack\"",
@@ -104,6 +105,7 @@
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "5.18.0",
     "ttypescript": "1.5.10",
+    "typedoc": "^0.17.8",
     "typescript": "3.9.2",
     "webpack": "4.43.0",
     "webpack-cli": "3.3.11"
