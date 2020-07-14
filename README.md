@@ -18,6 +18,10 @@ The launcher for BlueMaxima's Flashpoint (the web preservation project).
 ## About
 The Flashpoint Launcher (FPL) is a desktop application made for browsing, storing and launching other applications (games, animations, web apps etc.). It is specifically made for BlueMaxima's Flashpoint, which is a web preservation project.
 
+See the `docs` folder for more information on setting up Flashpoint and Extension authoring.
+
+Extension API Documentation: https://flashpointproject.github.io/launcher_ApiDocs/
+
 ## Building from source
 
 ### External Dependencies
