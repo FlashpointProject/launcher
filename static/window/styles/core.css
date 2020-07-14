@@ -1946,6 +1946,18 @@ body {
 .config-page label {
   padding-left: 0.15em;
 }
+.config-page__logo-row {
+  width: 100%;
+  display: flex;
+  margin-top: 0.5rem;
+}
+.config-page__logo-row__logo {
+  width: 2rem;
+  height: 2rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin: auto;
+}
 /* Setting */
 .setting {
   margin: 0 auto;

@@ -7,7 +7,7 @@ import { updatePreferencesData } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as React from 'react';
-import { isFlashpointValidCheck } from '../../Util';
+import { isFlashpointValidCheck, getPlatformIconURL } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
@@ -24,6 +24,8 @@ type OwnProps = {
   themeList: ITheme[];
   /** List of all available logo sets */
   logoSets: ILogoSet[];
+  /** Version of logos to render */
+  logoVersion: number;
   /** List of available languages. */
   availableLangs: LangFile[];
   /** List of available server names. */
@@ -84,6 +86,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const autoString = formatString(strings.auto, this.props.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     const serverOptions = this.renderServerOptionsMemo(this.props.serverNames);
+    const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -330,6 +333,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
                 <div className='setting__row__bottom'>
                   <p>{strings.logoSetDesc}</p>
+                  {logoSetPreviewRows}
                 </div>
               </div>
             </div>
@@ -453,6 +457,27 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       </option>
     ))
   );
+
+  renderLogoSetMemo = memoizeOne((platforms: string[], logoVersion: number) => {
+    const allRows: JSX.Element[] = [];
+    // Render 16 logos per row, vertically stacked
+    for (let i = 0; i < platforms.length; i = i + 16) {
+      const slice = platforms.slice(i, i+16);
+      allRows.push(
+        <div
+          className='config-page__logo-row'
+          key={i} >
+          { slice.map((platform, index) =>
+            <div
+              key={index}
+              className='config-page__logo-row__logo'
+              style={{ backgroundImage: `url('${getPlatformIconURL(platform, logoVersion)}')` }} />
+          ) }
+        </div>
+      );
+    }
+    return allRows;
+  });
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
