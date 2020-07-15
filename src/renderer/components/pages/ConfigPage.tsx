@@ -508,14 +508,14 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <div key='themes'>
               {`${ext.contributes.themes.length} ${strings.extThemes}`}
             </div>
-          );        
+          );
         }
         if (ext.contributes.logoSets) {
           shortContribs.push(
             <div key='logoSets'>
               {`${ext.contributes.logoSets.length} ${strings.extLogoSets}`}
             </div>
-          );        
+          );
         }
       }
       return (
@@ -524,7 +524,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <div className='setting__row__top'>
               <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
                 { ext.icon ? (
-                  <div 
+                  <div
                     style={{ backgroundImage: `url(${getExtIconURL(ext.id)})`}}
                     className='setting__row__ext-icon' />
                 ): undefined }
@@ -543,7 +543,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
           </div>
         </div>
       );
-    })
+    });
   });
 
   onShowExtremeChange = (isChecked: boolean): void => {

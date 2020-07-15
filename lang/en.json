@@ -43,7 +43,7 @@
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
     "extensionsHeader": "Extensions",
-    "noExtensionsLoaded": "No Extensions Loaded",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to /Data/Extensions",
     "extDevScripts": "Developer Script(s)",
     "extThemes": "Theme(s)",
     "extLogoSets": "Logo Set(s)",

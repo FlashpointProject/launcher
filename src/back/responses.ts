@@ -123,7 +123,7 @@ export function registerRequestCallbacks(state: BackState): void {
           return {
             id: e.id,
             ...e.manifest
-          }
+          };
         }),
         devScripts: await state.extensionsService.getContributions('devScripts'),
         logoSets: Array.from(state.registry.logoSets.values()),
