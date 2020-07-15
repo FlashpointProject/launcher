@@ -42,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions Loaded",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Save and Restart"
   },
   "home": {

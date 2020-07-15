@@ -559,6 +559,7 @@ export class App extends React.Component<AppProps> {
       languages: this.props.main.langList,
       updateInfo: this.props.main.updateInfo,
       autoUpdater: autoUpdater,
+      extensions: this.props.main.extensions,
       devScripts: this.props.main.devScripts,
       logoSets: this.props.main.logoSets,
       logoVersion: this.props.main.logoVersion,

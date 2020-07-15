@@ -1,13 +1,13 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { BackIn, UpdateConfigData } from '@shared/back/types';
-import { ILogoSet } from '@shared/extensions/interfaces';
+import { IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as React from 'react';
-import { isFlashpointValidCheck, getPlatformIconURL } from '../../Util';
+import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
@@ -30,6 +30,8 @@ type OwnProps = {
   availableLangs: LangFile[];
   /** List of available server names. */
   serverNames: string[];
+  /** All available extensions */
+  extensions: IExtensionDescription[];
   localeCode: string;
 };
 
@@ -87,6 +89,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     const serverOptions = this.renderServerOptionsMemo(this.props.serverNames);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
+    const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -423,6 +426,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             </div>
           </div>
 
+          {/* -- Advanced -- */}
+          <div className='setting'>
+            <p className='setting__title'>{strings.extensionsHeader}</p>
+            { extensions.length > 0 ? (
+              <div className='setting__body'>
+                {extensions}
+              </div>
+            ) : <div>{strings.noExtensionsLoaded}</div>}
+          </div>
+
           {/* -- Save & Restart -- */}
           <div className='setting'>
             <div className='setting__row'>
@@ -477,6 +490,60 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       );
     }
     return allRows;
+  });
+
+  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config']): JSX.Element[] => {
+    return extensions.map((ext) => {
+      const shortContribs = [];
+      if (ext.contributes) {
+        if (ext.contributes.devScripts) {
+          shortContribs.push(
+            <div key='devScripts'>
+              {`${ext.contributes.devScripts.length} ${strings.extDevScripts}`}
+            </div>
+          );
+        }
+        if (ext.contributes.themes) {
+          shortContribs.push(
+            <div key='themes'>
+              {`${ext.contributes.themes.length} ${strings.extThemes}`}
+            </div>
+          );        
+        }
+        if (ext.contributes.logoSets) {
+          shortContribs.push(
+            <div key='logoSets'>
+              {`${ext.contributes.logoSets.length} ${strings.extLogoSets}`}
+            </div>
+          );        
+        }
+      }
+      return (
+        <div key={ext.id}>
+          <div className='setting__row'>
+            <div className='setting__row__top'>
+              <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
+                { ext.icon ? (
+                  <div 
+                    style={{ backgroundImage: `url(${getExtIconURL(ext.id)})`}}
+                    className='setting__row__ext-icon' />
+                ): undefined }
+                <div>
+                  <div>{ext.displayName || ext.name}</div>
+                  <div>{ext.author}</div>
+                </div>
+              </div>
+              <div className='setting__row__content setting__row__content--right-align'>
+                {shortContribs}
+              </div>
+            </div>
+            <div className='setting__row__bottom'>
+              <p>{ext.description}</p>
+            </div>
+          </div>
+        </div>
+      );
+    })
   });
 
   onShowExtremeChange = (isChecked: boolean): void => {

@@ -3,7 +3,7 @@ import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
-import { ExtensionContribution, ILogoSet } from '@shared/extensions/interfaces';
+import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -61,6 +61,7 @@ export type MainState = {
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   loaded: { [key in BackInit]: boolean; };
+  extensions: IExtensionDescription[];
   themeList: ITheme[];
   logoSets: ILogoSet[];
   logoVersion: number; // Increase to force cache clear

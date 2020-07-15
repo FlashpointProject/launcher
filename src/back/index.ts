@@ -534,6 +534,24 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
         }
       } break;
 
+      // Extension icons
+      case 'exticons': {
+        const relativePath = urlPath.substr(index + 1);
+        // /ExtIcons/<extId>
+        state.extensionsService.getExtension(relativePath)
+        .then((ext) => {
+          if (ext && ext.manifest.icon) {
+            const filePath = path.join(ext.extensionPath, ext.manifest.icon);
+            if (filePath.startsWith(ext.extensionPath)) {
+              serveFile(req, res, filePath);
+            } else {
+              log.warn('Launcher', `Illegal file request: "${filePath}"`);
+            }
+          }
+        });
+        break;
+      }
+
       // JSON file(s)
       case 'credits.json': {
         serveFile(req, res, path.join(state.config.flashpointPath, state.config.jsonFolderPath, 'credits.json'));

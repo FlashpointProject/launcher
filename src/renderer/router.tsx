@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
-import { ExtensionContribution, ILogoSet } from '@shared/extensions/interfaces';
+import { ExtensionContribution, ILogoSet, IExtensionDescription } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
@@ -62,6 +62,7 @@ export type AppRouterProps = {
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
   autoUpdater: AppUpdater,
+  extensions: IExtensionDescription[],
   devScripts: ExtensionContribution<'devScripts'>[],
   logoSets: ILogoSet[],
   logoVersion: number,
@@ -112,6 +113,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       platforms: this.props.platformsFlat,
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,
+      extensions: this.props.extensions,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,

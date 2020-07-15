@@ -1,6 +1,6 @@
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
-import { ExtensionContribution, LogoSet } from '@shared/extensions/interfaces';
+import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
@@ -104,6 +104,7 @@ export interface IMainWindowExternal {
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
   initialTagCategories: TagCategory[];
+  initialExtensions: IExtensionDescription[];
   initialDevScripts: ExtensionContribution<'devScripts'>[];
   initialLogoSets: LogoSet[];
 

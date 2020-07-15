@@ -130,6 +130,7 @@ function createInitialMainState(): MainState {
     updateInfo: undefined,
     metaEditExporterOpen: false,
     metaEditExporterGameId: '',
+    extensions: window.Shared.initialExtensions,
     devScripts: window.Shared.initialDevScripts,
     logoSets: window.Shared.initialLogoSets,
     logoVersion: 0

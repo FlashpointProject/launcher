@@ -119,6 +119,12 @@ export function registerRequestCallbacks(state: BackState): void {
         platforms: platforms,
         localeCode: state.localeCode,
         tagCategories: await TagManager.findTagCategories(),
+        extensions: (await state.extensionsService.getExtensions()).map(e => {
+          return {
+            id: e.id,
+            ...e.manifest
+          }
+        }),
         devScripts: await state.extensionsService.getContributions('devScripts'),
         logoSets: Array.from(state.registry.logoSets.values()),
       },

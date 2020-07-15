@@ -44,6 +44,10 @@ export type Contributions = {
   devScripts: DevScript[];
 }
 
+export interface IExtensionDescription extends IExtensionManifest {
+  id: string;
+}
+
 export interface IExtensionManifest {
   name: string;
   displayName?: string;

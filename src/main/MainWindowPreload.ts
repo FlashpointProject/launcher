@@ -90,6 +90,7 @@ window.Shared = {
   initialPlatforms: createErrorProxy('initialPlatforms'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
   initialTagCategories: createErrorProxy('initialTagCategories'),
+  initialExtensions: createErrorProxy('initialExtensions'),
   initialDevScripts: createErrorProxy('initialDevScripts'),
   initialLogoSets: createErrorProxy('initialLogoSets'),
 
@@ -139,6 +140,7 @@ const onInit = (async () => {
       window.Shared.initialPlatforms = response.data.platforms;
       window.Shared.initialLocaleCode = response.data.localeCode;
       window.Shared.initialTagCategories = response.data.tagCategories;
+      window.Shared.initialExtensions = response.data.extensions;
       window.Shared.initialDevScripts = response.data.devScripts;
       window.Shared.initialLogoSets = response.data.logoSets;
       if (window.Shared.preferences.data.currentTheme) {

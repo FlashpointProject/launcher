@@ -104,6 +104,10 @@ export function getPlatformIconURL(platform: string, version: number): string {
   return `${getFileServerURL()}/logos/${platform}.png?v=${version}`;
 }
 
+export function getExtIconURL(id: string): string {
+  return `${getFileServerURL()}/exticons/${id}`;
+}
+
 export function getGameImagePath(folderName: string, gameId: string): string {
   return path.join(
     window.Shared.config.fullFlashpointPath,
