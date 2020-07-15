@@ -130,8 +130,9 @@ function parseTheme(parser: IObjectParserProp<ExtTheme>): ExtTheme {
     id: '',
     path: ''
   };
-  parser.prop('id',   v => theme.id   = str(v));
-  parser.prop('path', v => theme.path = str(v));
+  parser.prop('id',      v => theme.id      = str(v));
+  parser.prop('path',    v => theme.path    = str(v));
+  parser.prop('logoSet', v => theme.logoSet = str(v), true);
   return theme;
 }
 

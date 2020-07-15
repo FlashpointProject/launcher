@@ -549,7 +549,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
-    updatePreferencesData({ currentTheme: event.currentTarget.value });
+    const selectedTheme = this.props.themeList.find(t => t.id === event.currentTarget.value);
+    if (selectedTheme) {
+      const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === selectedTheme.logoSet);
+      const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
+      updatePreferencesData({ currentTheme: selectedTheme.id, currentLogoSet: logoSetId });
+    }
   }
 
   onCurrentLogoSetChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
@@ -563,7 +568,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     if (index < this.props.themeList.length) { // (Select a Theme)
       theme = this.props.themeList[index];
     } else { theme = undefined; } // (Deselect the current theme)
-    updatePreferencesData({ currentTheme: theme ? theme.id : '' });
+    const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === (theme ? theme.logoSet : undefined));
+    const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
+    updatePreferencesData({ currentTheme: theme ? theme.id : '', currentLogoSet: logoSetId });
     // Select the input field
     if (this.currentThemeInputRef) {
       this.currentThemeInputRef.focus();

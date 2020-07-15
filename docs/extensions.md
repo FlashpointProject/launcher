@@ -49,6 +49,8 @@ An extension should be packed as to be easily installable as described in the `I
 
 Extensions may have TypeScript / JavaScript which will be dynamically loaded in to register various things with the API. Check the API documentation for specifics, this will cover it broadly.
 
+Live documentation can be found here: https://flashpointproject.github.io/launcher_ApiDocs/
+
 Your entry point must be declared in `package.json` like it would in a Node JS module with `main`. If you're using TypeScript make sure this points to the build output, more details below.
 
 ```json
@@ -124,7 +126,8 @@ Themes are declared as part of the extensions manifest, `package.json`. Multiple
     "themes: [
       {
         "id": "my-first-theme",
-        "path": "./themes/MyTheme"
+        "path": "./themes/MyTheme",
+        "logoSet": "my-first-logoset"
       }
     ]
   }
@@ -132,6 +135,8 @@ Themes are declared as part of the extensions manifest, `package.json`. Multiple
 ```
 
 The theme path should be the folder in which `theme.css` resides. All files the theme uses should be kept inside this folder. Any attempts to access files outside it will cause an illegal file request warning instead.
+
+Optionally, a logo set can be applied whenever the theme is. Set the `logoSet` parameter to the ID of a logo set. It is recommended you include the logo set in the same extension with the theme. See more about logo sets below.
 
 ### Logo Sets
 
@@ -144,7 +149,7 @@ Logo Sets are declared as part of the extensions manifest, `package.json`. Multi
   "contributes": {
     "logoSets: [
       {
-        "id": "my-first-theme",
+        "id": "my-first-logoset",
         "name": "My Logo Set",
         "path": "./logoSets/MyLogoSet"
       }

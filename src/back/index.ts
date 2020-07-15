@@ -319,7 +319,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       if (ext) {
         const realPath = path.join(ext.extensionPath, theme.path);
         try {
-          await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name);
+          await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
         } catch (error) {
           log.error('Extensions', `Error loading theme from "${c.extId}"\n${error}`);
         }

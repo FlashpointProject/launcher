@@ -12,6 +12,7 @@ export type DevScript = {
 export type ExtTheme = {
   id: string;
   path: string;
+  logoSet?: string;
 }
 
 export interface ILogoSet {

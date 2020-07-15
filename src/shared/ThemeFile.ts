@@ -9,6 +9,8 @@ export interface ITheme {
   meta: ThemeMeta;
   /** List of files this theme has */
   files: string[];
+  /** Suggested logo set */
+  logoSet?: string;
 }
 
 export type Theme = ITheme & {
