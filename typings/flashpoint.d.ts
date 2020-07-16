@@ -16,6 +16,18 @@ declare module 'flashpoint' {
     export const error: (message: string) => void;
   }
 
+  /** Functions related to statuses */
+  type StatusState = {
+    devConsoleText: string;
+  }
+  export namespace status {
+    /** Text displayed on the Developer Page console */
+    export const devConsoleText: string;
+
+    /** Update any status in the Status State */
+    export function setStatus<T extends keyof StatusState>(key: T, val: StatusState[T]): void;
+  }
+
   export namespace commands {
     /**
      * Register a command to be called by name later

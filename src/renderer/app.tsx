@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DevConsoleStatusResponse, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -243,6 +243,11 @@ export class App extends React.Component<AppProps> {
           const resData: TagCategoriesChangeData = res.data;
           this.props.setTagCategories(resData);
         } break;
+
+        case BackOut.DEV_CONSOLE_CHANGE: {
+          const resData: DevConsoleStatusResponse = res.data;
+          this.props.setMainState({ devConsoleText: resData.text });
+        }
       }
     });
 
@@ -543,6 +548,7 @@ export class App extends React.Component<AppProps> {
       serverNames: this.props.main.serverNames,
       mad4fpEnabled: this.props.main.mad4fpEnabled,
       localeCode: this.props.main.localeCode,
+      devConsoleText: this.props.main.devConsoleText,
       upgrades: this.props.main.upgrades,
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,

@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unused-state */
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
@@ -28,6 +29,7 @@ const mkdir  = promisify(fs.mkdir);
 type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
+  devConsoleText: string;
   platforms: string[];
   playlists: Playlist[];
   devScripts: ExtensionContribution<'devScripts'>[];
@@ -65,7 +67,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   render() {
     const strings = this.context.developer;
-    const { text } = this.state;
+    const text = this.props.devConsoleText;
     const services = window.Shared.services;
     return (
       <div className='developer-page simple-scroll'>
@@ -377,10 +379,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onRunCommand(script: DevScript) {
     setTimeout(async () => {
-      const res = await window.Shared.back.sendP<RunCommandResponse, RunCommandData>(BackIn.RUN_COMMAND, { command: script.command });
-      if (res.data) {
-        this.setState({ text: `Run Command Status: ${res.data.success ? 'SUCCESS' : 'FAILURE'}` });
-      }
+      await window.Shared.back.sendP<RunCommandResponse, RunCommandData>(BackIn.RUN_COMMAND, { command: script.command });
     }, 0);
   }
 

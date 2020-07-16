@@ -1,10 +1,12 @@
-import { ApiEmittersState } from '@back/types';
+import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint';
+import { ApiEvent } from './ApiEvent';
 import { newExtLog } from './ExtensionUtils';
-import { Command, Registry } from './types';
+import { Command } from './types';
+import { setStatus } from '@back/util/misc';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -14,7 +16,9 @@ import { Command, Registry } from './types';
  * @param version Version of the Flashpoint Launcher
  * @returns API Implementation specific to the caller
  */
-export function createApiFactory(extManifest: IExtensionManifest, registry: Registry, addExtLog: (log: ILogEntry) => void, version: string, apiEmitters: ApiEmittersState): typeof flashpoint {
+export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState): typeof flashpoint {
+  const { registry, apiEmitters } = state;
+
   // Log Namespace
   const extLog: typeof flashpoint.log = {
     trace: (message: string) => addExtLog(newExtLog(extManifest, message, log.trace)),
@@ -47,7 +51,17 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
   };
 
   const extGames: typeof flashpoint.games = {
-    onDidLaunchGame: apiEmitters.games.onDidLaunchGame.event
+    get onDidLaunchGame(): ApiEvent<flashpoint.Game> {
+      return apiEmitters.games.onDidLaunchGame.event;
+    }
+  };
+
+  const extStatus: typeof flashpoint.status = {
+    get devConsoleText(): string {
+      return state.status.devConsoleText;
+    },
+
+    setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
   };
 
   // Create API Module to give to caller
@@ -60,6 +74,7 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
     log: extLog,
     commands: extCommands,
     games: extGames,
+    status: extStatus,
 
     // Disposable funcs
     dispose: dispose,

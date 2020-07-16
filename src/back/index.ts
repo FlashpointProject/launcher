@@ -32,7 +32,7 @@ import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './consta
 import { loadExecMappingsFile } from './Execs';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
-import { FPLNodeModuleFactory as FlashpointNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
+import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
@@ -108,6 +108,9 @@ const state: BackState = {
     games: {
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>()
     }
+  },
+  status: {
+    devConsoleText: ''
   },
   registry: {
     commands: new Map<string, Command>(),
@@ -186,14 +189,16 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     state.extensionsService.logExtension(extId, entry);
   };
   state.extensionsService = new ExtensionService(state.config);
-  registerInterceptor(new FlashpointNodeModuleFactory(
+  // Create module interceptor
+  registerInterceptor(new FPLNodeModuleFactory(
     await state.extensionsService.getExtensionPathIndex(),
-    state.registry,
     addExtLogFactory,
     versionStr,
-    state.apiEmitters),
+    state
+  ),
   state.moduleInterceptor);
   await installNodeInterceptor(state.moduleInterceptor);
+  // Load each extension
   await state.extensionsService.getExtensions()
   .then((exts) => {
     exts.forEach(ext => {

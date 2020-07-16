@@ -1,12 +1,12 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
-import { BackState } from '@back/types';
+import { BackState, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
-import { BackOut } from '@shared/back/types';
+import { BackOut, DevConsoleStatusResponse } from '@shared/back/types';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
@@ -282,5 +282,19 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
         }
       }
     });
+  }
+}
+
+export function setStatus<T extends keyof StatusState>(state: BackState, key: T, val: StatusState[T]): void {
+  switch (key) {
+    case 'devConsoleText':
+      state.socketServer.broadcast<DevConsoleStatusResponse>({
+        id: '',
+        type: BackOut.DEV_CONSOLE_CHANGE,
+        data: {
+          text: val
+        },
+      });
+      break;
   }
 }

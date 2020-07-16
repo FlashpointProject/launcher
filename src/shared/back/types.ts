@@ -133,6 +133,7 @@ export enum BackOut {
   QUIT,
   RUN_COMMAND,
   UPLOAD_LOG,
+  DEV_CONSOLE_CHANGE,
 }
 
 export type WrappedRequest<T = any> = {
@@ -618,4 +619,8 @@ export type RunCommandData = {
 export type RunCommandResponse = {
   success: boolean;
   res: any;
+}
+
+export type DevConsoleStatusResponse = {
+  text: string;
 }

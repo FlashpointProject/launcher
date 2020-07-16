@@ -45,6 +45,7 @@ export type AppRouterProps = {
   serverNames: string[];
   mad4fpEnabled: boolean;
   localeCode: string;
+  devConsoleText: string;
 
   upgrades: UpgradeStage[];
   creditsData?: CreditsData;
@@ -127,6 +128,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       logoVersion: this.props.logoVersion,
     };
     const developerProps: DeveloperPageProps = {
+      devConsoleText: this.props.devConsoleText,
       platforms: this.props.platformsFlat,
       playlists: this.props.playlists,
       devScripts: this.props.devScripts,

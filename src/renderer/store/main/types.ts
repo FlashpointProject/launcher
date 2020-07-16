@@ -67,6 +67,8 @@ export type MainState = {
   logoVersion: number; // Increase to force cache clear
   gamesTotal: number;
   localeCode: string;
+  /** Text to display on the dev console */
+  devConsoleText: string;
 
   /** Random games for the Home page box */
   randomGames: ViewGame[];

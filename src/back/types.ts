@@ -63,6 +63,7 @@ export type BackState = {
   execMappings: ExecMapping[];
   lastLinkedCurationKey: string;
   moduleInterceptor: ModuleInterceptorState;
+  readonly status: StatusState,
   readonly apiEmitters: ApiEmittersState,
   readonly registry: Registry;
   extensionsService: ExtensionService;
@@ -143,6 +144,10 @@ export type TagsFile = {
 
 export type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
+
+export type StatusState = {
+  devConsoleText: string;
+}
 
 export type ApiEmittersState = {
   games: {
