@@ -3,6 +3,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
+import * as flashpoint from 'flashpoint';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
@@ -21,6 +22,7 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
+import { ApiEmitter } from './extensions/ApiEmitter';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -56,12 +58,13 @@ export type BackState = {
   languageQueue: EventQueue;
   languages: LangFile[];
   languageContainer: LangContainer;
-  themeState: ThemeState;
+  readonly themeState: ThemeState;
   playlists: Playlist[];
   execMappings: ExecMapping[];
   lastLinkedCurationKey: string;
   moduleInterceptor: ModuleInterceptorState;
-  registry: Registry;
+  readonly apiEmitters: ApiEmittersState,
+  readonly registry: Registry;
   extensionsService: ExtensionService;
   connection: Connection | undefined;
 }
@@ -140,3 +143,9 @@ export type TagsFile = {
 
 export type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
+
+export type ApiEmittersState = {
+  games: {
+    onDidLaunchGame: ApiEmitter<flashpoint.Game>;
+  }
+}

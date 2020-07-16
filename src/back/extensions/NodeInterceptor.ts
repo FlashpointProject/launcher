@@ -1,12 +1,13 @@
 /* eslint-disable prefer-rest-params */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { ApiEmittersState } from '@back/types';
+import { nullExtensionDescription } from '@back/util/extensions';
+import { TernarySearchTree } from '@back/util/map';
 import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
+import { ILogEntry } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint';
 import { createApiFactory } from './ApiImplementation';
-import { TernarySearchTree } from '@back/util/map';
-import { nullExtensionDescription } from '@back/util/extensions';
 import { Registry } from './types';
-import { ILogEntry } from '@shared/Log/interface';
 
 type LoadFunction = {
   (request: string): any;
@@ -71,7 +72,7 @@ export async function installNodeInterceptor(state: InterceptorState): Promise<v
 }
 
 interface IExtensionApiFactory {
-  (ext: IExtensionManifest, reg: Registry, addExtLog: (entry: ILogEntry) => void, version: string): typeof flashpoint;
+  (ext: IExtensionManifest, reg: Registry, addExtLog: (entry: ILogEntry) => void, version: string, apiEmitters: ApiEmittersState): typeof flashpoint;
 }
 
 /** Module interceptor for the Flashpoint API 'flashpoint' module */
@@ -86,7 +87,8 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
     protected readonly _extensionPaths: TernarySearchTree<string, IExtension>,
     private readonly _registry: Registry,
     private readonly _addExtLogFactory: (extId: string) => (entry: ILogEntry) => void,
-    private readonly _version: string
+    private readonly _version: string,
+    private readonly _apiEmitters: ApiEmittersState
   ) {
     this._apiFactory = createApiFactory;
   }
@@ -103,7 +105,8 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
           ext.manifest,
           this._registry,
           this._addExtLogFactory(ext.id),
-          this._version);
+          this._version,
+          this._apiEmitters);
         this._extApiImpl.set(ext.id, apiImpl);
       }
       return apiImpl;
@@ -115,7 +118,8 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
         nullExtensionDescription,
         this._registry,
         this._addExtLogFactory('null'),
-        this._version);
+        this._version,
+        this._apiEmitters);
     }
     return this._defaultApiImpl;
   }

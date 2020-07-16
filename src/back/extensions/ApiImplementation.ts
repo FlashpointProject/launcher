@@ -1,9 +1,10 @@
+import { ApiEmittersState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
-import * as flashpoint from 'flashpoint';
-import { Command, Registry } from './types';
 import { ILogEntry } from '@shared/Log/interface';
+import * as flashpoint from 'flashpoint';
 import { newExtLog } from './ExtensionUtils';
+import { Command, Registry } from './types';
 
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
@@ -13,7 +14,7 @@ import { newExtLog } from './ExtensionUtils';
  * @param version Version of the Flashpoint Launcher
  * @returns API Implementation specific to the caller
  */
-export function createApiFactory(extManifest: IExtensionManifest, registry: Registry, addExtLog: (log: ILogEntry) => void, version: string): typeof flashpoint {
+export function createApiFactory(extManifest: IExtensionManifest, registry: Registry, addExtLog: (log: ILogEntry) => void, version: string, apiEmitters: ApiEmittersState): typeof flashpoint {
   // Log Namespace
   const extLog: typeof flashpoint.log = {
     trace: (message: string) => addExtLog(newExtLog(extManifest, message, log.trace)),
@@ -45,6 +46,10 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
     }
   };
 
+  const extGames: typeof flashpoint.games = {
+    onDidLaunchGame: apiEmitters.games.onDidLaunchGame.event
+  };
+
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
@@ -54,6 +59,7 @@ export function createApiFactory(extManifest: IExtensionManifest, registry: Regi
     // Namespaces
     log: extLog,
     commands: extCommands,
+    games: extGames,
 
     // Disposable funcs
     dispose: dispose,

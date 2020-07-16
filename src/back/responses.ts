@@ -26,6 +26,7 @@ import * as url from 'url';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { ApiConversion } from './extensions/ApiConversion';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameLauncher } from './GameLauncher';
@@ -260,6 +261,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
+      state.apiEmitters.games.onDidLaunchGame.fire(ApiConversion.getApiGame(game));
     }
 
     respond(event.target, {

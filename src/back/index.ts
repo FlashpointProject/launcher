@@ -7,6 +7,7 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
 import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData } from '@shared/back/types';
+import { LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
@@ -15,6 +16,7 @@ import { Theme } from '@shared/ThemeFile';
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
+import * as flashpoint from 'flashpoint';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
@@ -28,6 +30,7 @@ import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
+import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory as FlashpointNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
@@ -40,7 +43,8 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
-import { LogoSet } from '@shared/extensions/interfaces';
+// Required for the DB Models to function
+// Required for the DB Models to function
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -99,6 +103,11 @@ const state: BackState = {
   moduleInterceptor: {
     alternatives: [],
     factories: new Map<string, INodeModuleFactory>(),
+  },
+  apiEmitters: {
+    games: {
+      onDidLaunchGame: new ApiEmitter<flashpoint.Game>()
+    }
   },
   registry: {
     commands: new Map<string, Command>(),
@@ -181,7 +190,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     await state.extensionsService.getExtensionPathIndex(),
     state.registry,
     addExtLogFactory,
-    versionStr),
+    versionStr,
+    state.apiEmitters),
   state.moduleInterceptor);
   await installNodeInterceptor(state.moduleInterceptor);
   await state.extensionsService.getExtensions()

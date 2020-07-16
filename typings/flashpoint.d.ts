@@ -26,6 +26,62 @@ declare module 'flashpoint' {
     export function registerCommand(command: string, callback: (...args: any[]) => any): Disposable;
   }
 
+  export namespace games {
+    /** Event fired when a game launches, returns the launched game */
+    export const onDidLaunchGame: Event<Game>;
+  }
+
+  export type Game = {
+    /** ID of the game (unique identifier) */
+    id: string;
+    /** ID of the game which owns this game */
+    parentGameId?: string;
+    /** Full title of the game */
+    title: string;
+    /** Any alternate titles to match against search */
+    alternateTitles: string;
+    /** Game series the game belongs to (empty string if none) */
+    series: string;
+    /** Name of the developer(s) of the game (developer names are separated by ',') */
+    developer: string;
+    /** Name of the publisher of the game */
+    publisher: string;
+    /** Date-time of when the game was added to collection */
+    dateAdded: string;
+    /** Date-time of when the game was added to collection */
+    dateModified: string;
+    /** Platform the game runs on (Flash, HTML5, Shockwave etc.) */
+    platform: string;
+    /** If the game is "broken" or not */
+    broken: boolean;
+    /** Game is not suitable for children */
+    extreme: boolean;
+    /** If the game is single player or multiplayer, and if the multiplayer is cooperative or not */
+    playMode: string;
+    /** How playable the game is */
+    status: string;
+    /** Information that could be useful for the player (of varying importance) */
+    notes: string;
+    /** List of tags attached to the game */
+    tags: string[];
+    /** Source if the game files, either full URL or the name of the website */
+    source: string;
+    /** Path to the application that runs the game */
+    applicationPath: string;
+    /** Command line argument(s) passed to the application to launch the game */
+    launchCommand: string;
+    /** Date of when the game was released */
+    releaseDate: string;
+    /** Version of the game */
+    version: string;
+    /** Original description of the game (probably given by the game's creator or publisher) */
+    originalDescription: string;
+    /** The language(s) the game is in */
+    language: string;
+    /** Library this game belongs to */
+    library: string;
+  }
+
   /** A self-nesting type that allows one time disposable with an optional callback */
   export type Disposable = {
     /** Children to dispose of in the future */
@@ -49,4 +105,17 @@ declare module 'flashpoint' {
     /** Put all extension disposables on here with registerDisposable */
     subscriptions: Disposable;
   };
+
+  export interface Event<T> {
+    /**
+		 * A function that represents an event to which you subscribe by calling it with
+		 * a listener function as argument.
+		 *
+		 * @param listener The listener function will be called when the event happens.
+		 * @param thisArgs The `this`-argument which will be used when calling the event listener.
+		 * @param disposables An array to which a [disposable](#Disposable) will be added.
+		 * @return A disposable which unsubscribes the event listener.
+		 */
+    (listener: (e: T) => any, thisArgs?: any, disposables?: Disposable): Disposable;
+  }
 }
