@@ -45,11 +45,13 @@ declare module 'flashpoint' {
     export function findPlaylists(): Promise<Playlist[]>;
     export function updatePlaylist(playlist: Playlist): Promise<Playlist>;
     export function removePlaylist(playlistId: string): Promise<Playlist | undefined>
+
     // Playlist Game
     export function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined>;
     export function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined>;
     export function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame>;
     export function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void>;
+
     // Games
     export function countGames(): Promise<number>;
     export function findGame(id: string): Promise<Game | undefined>;
@@ -57,11 +59,38 @@ declare module 'flashpoint' {
     export function updateGame(game: Game): Promise<Game>;
     export function updateGames(games: Game[]): Promise<void>;
     export function removeGameAndAddApps(gameId: string): Promise<Game | undefined>;
+
     // Misc
     export function findPlatforms(library: string): Promise<string[]>;
+    export function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
+
     // Events
     /** Fired after a game launches */
     export const onDidLaunchGame: Event<Game>;
+  }
+
+  export namespace tags {
+    // Tags
+    export function getTagById(tagId: number): Promise<Tag | undefined>;
+    export function findTag(name: string): Promise<Tag | undefined>;
+    export function findTags(name?: string): Promise<Tag[]>;
+    export function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | undefined>;
+    export function saveTag(tag: Tag): Promise<Tag>;
+    export function deleteTag(tagId: number, skipWarn?: boolean): Promise<boolean>;
+    export function findGameTags(gameId: string): Promise<Tag[] | undefined>;
+
+    // Tag Categories
+    export function getTagCategoryById(categoryId: number): Promise<TagCategory | undefined>;
+    export function findTagCategories(): Promise<TagCategory[]>;
+    export function createTagCategory(name: string, color: string): Promise<TagCategory | undefined>;
+    export function saveTagCategory(tagCategory: TagCategory): Promise<TagCategory>;
+    export function deleteTagCategory(tagCategoryId: number): Promise<boolean>;
+
+    // Tag Suggestions
+    export function findTagSuggestions(name: string): Promise<TagSuggestion[]>;
+
+    // Misc
+    export function mergeTags(mergeData: MergeTagData): Promise<Tag | undefined>;
   }
 
   export type Game = {
@@ -169,6 +198,12 @@ declare module 'flashpoint' {
     name: string;
   }
 
+  export type TagSuggestion = {
+    alias?: string;
+    primaryAlias: string;
+    tag: Tag;
+  }
+
   export type TagCategory = {
     /** ID of the tag category (unique identifier) */
     id: number;
@@ -209,6 +244,12 @@ declare module 'flashpoint' {
     /** Game this represents */
     gameId?: string;
     game?: Game;
+  }
+
+  export type MergeTagData = {
+    toMerge: string;
+    mergeInto: string;
+    makeAlias: boolean;
   }
 
   /** A self-nesting type that allows one time disposable with an optional callback */

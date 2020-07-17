@@ -1,13 +1,15 @@
+import { GameManager } from '@back/game/GameManager';
+import { TagManager } from '@back/game/TagManager';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
+import { getOpenDialogFunc, setStatus, createPlaylistFromJson } from '@back/util/misc';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint';
 import { ApiEvent } from './ApiEvent';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
-import { setStatus } from '@back/util/misc';
-import { GameManager } from '@back/game/GameManager';
+import { MergeTagData } from '@shared/back/types';
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
  * @param extManifest Manifest of the caller
@@ -72,10 +74,47 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     removeGameAndAddApps: GameManager.removeGameAndAddApps,
     // Misc
     findPlatforms: GameManager.findPlatforms,
+    createPlaylistFromJson: createPlaylistFromJson,
     // Events
     get onDidLaunchGame(): ApiEvent<flashpoint.Game> {
       return apiEmitters.games.onDidLaunchGame.event;
     }
+  };
+
+  const extTags: typeof flashpoint.tags = {
+    // Tags
+    getTagById: TagManager.getTagById,
+    findTag: TagManager.findTag,
+    findTags: TagManager.findTags,
+    createTag: TagManager.createTag,
+    saveTag: TagManager.saveTag,
+    deleteTag: (tagId: number, skipWarn?: boolean) => {
+      const openDialogFunc = getOpenDialogFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return TagManager.deleteTag(tagId, openDialogFunc, skipWarn);
+    },
+    findGameTags: TagManager.findGameTags,
+
+    // Tag Categories
+    getTagCategoryById: TagManager.getTagCategoryById,
+    findTagCategories: TagManager.findTagCategories,
+    createTagCategory: TagManager.createTagCategory,
+    saveTagCategory: TagManager.saveTagCategory,
+    deleteTagCategory: (tagCategoryId: number) => {
+      const openDialogFunc = getOpenDialogFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return TagManager.deleteTagCategory(tagCategoryId, openDialogFunc);
+    },
+
+    // Tag Suggestions
+    findTagSuggestions: TagManager.findTagSuggestions,
+
+    // Misc
+    mergeTags: (mergeData: flashpoint.MergeTagData) => {
+      const openDialogFunc = getOpenDialogFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return TagManager.mergeTags(mergeData, openDialogFunc);
+    },
   };
 
   const extStatus: typeof flashpoint.status = {
@@ -96,6 +135,7 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     log: extLog,
     commands: extCommands,
     games: extGames,
+    tags: extTags,
     status: extStatus,
 
     // Disposable funcs

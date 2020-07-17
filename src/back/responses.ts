@@ -26,7 +26,6 @@ import * as url from 'url';
 import * as util from 'util';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
-import { ApiConversion } from './extensions/ApiConversion';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameLauncher } from './GameLauncher';
@@ -35,7 +34,7 @@ import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
 import { BackState, BareTag, TagsFile } from './types';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -261,7 +260,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.openDialog(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
-      state.apiEmitters.games.onDidLaunchGame.fire(ApiConversion.getApiGame(game));
+      state.apiEmitters.games.onDidLaunchGame.fire(game);
     }
 
     respond(event.target, {
@@ -385,7 +384,7 @@ export function registerRequestCallbacks(state: BackState): void {
     try {
       const rawData = await fs.promises.readFile(req.data.filePath, 'utf-8');
       const jsonData = JSON.parse(rawData);
-      const newPlaylist = createPlaylist(jsonData, req.data.library);
+      const newPlaylist = createPlaylistFromJson(jsonData, req.data.library);
       const existingPlaylist = await GameManager.findPlaylistByName(newPlaylist.title, true);
       if (existingPlaylist) {
         newPlaylist.title += ' - New';

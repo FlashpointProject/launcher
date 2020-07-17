@@ -129,6 +129,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.isInit) { return; }
   state.isInit = true;
 
+  console.log(sendHandle);
+
   const content: BackInitArgs = JSON.parse(message);
   state.isDev = content.isDev;
   state.verbose = content.verbose;

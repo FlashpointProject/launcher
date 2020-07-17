@@ -1,7 +1,8 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
-import { BackState, StatusState } from '@back/types';
+import { SocketServer } from '@back/SocketServer';
+import { BackState, OpenDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
@@ -208,7 +209,7 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
   };
 }
 
-export function createPlaylist(jsonData: any, library?: string): Playlist {
+export function createPlaylistFromJson(jsonData: any, library?: string): Playlist {
   const playlist: Playlist = {
     id: jsonData['id'] || uuid(),
     title: jsonData['title'] || 'No Name',
@@ -296,5 +297,13 @@ export function setStatus<T extends keyof StatusState>(state: BackState, key: T,
         },
       });
       break;
+  }
+}
+
+export function getOpenDialogFunc(socketServer: SocketServer): OpenDialogFunc | undefined {
+  if (socketServer.server && socketServer.server.clients.size > 0) {
+    for (const sockets of socketServer.server.clients.entries()) {
+      return socketServer.openDialog(sockets[0]);
+    }
   }
 }
