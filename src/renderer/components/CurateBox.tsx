@@ -502,8 +502,8 @@ export function CurateBox(props: CurateBoxProps) {
   const onAddScreenshotClick = useAddImageCallback('ss.png', strings, props.curation, props.dispatch);
   const onRemoveThumbnailClick  = useRemoveImageCallback('logo.png', props.curation, props.dispatch);
   const onRemoveScreenshotClick = useRemoveImageCallback('ss.png', props.curation, props.dispatch);
-  const onDropThumbnail  = useDropImageCallback('logo.png', props.curation);
-  const onDropScreenshot = useDropImageCallback('ss.png', props.curation);
+  const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, props.dispatch);
+  const onDropScreenshot = useDropImageCallback('ss.png', props.curation, props.dispatch);
 
   // Input props
   const editable = true;
@@ -1074,11 +1074,22 @@ function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: EditC
   }, [curation && curation.key]);
 }
 
-function useDropImageCallback(filename: string, curation: EditCuration | undefined) {
-  return useCallback((event: React.DragEvent<Element>) => {
+function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: EditCuration | undefined, dispatch: React.Dispatch<CurationAction>) {
+  return useCallback(async (event: React.DragEvent<Element>) => {
     const files = event.dataTransfer.files;
     if (curation && files && files[0].name.toLowerCase().endsWith('.png')) {
-      fs.copyFile(files[0].path, path.join(getCurationFolder2(curation), filename));
+      const isLogo = filename === 'logo.png';
+      const dest = path.join(getCurationFolder2(curation), filename);
+      await fs.copyFile(files[0].path, dest);
+      const newImage = await createCurationImage(dest);
+      newImage.version = isLogo ? curation.thumbnail.version + 1 : curation.screenshot.version + 1;
+      dispatch({
+        type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
+        payload: {
+          key: curation.key,
+          image: newImage
+        }
+      });
     }
   }, [curation && curation.key]);
 }
