@@ -7,7 +7,7 @@ import { ApiEvent } from './ApiEvent';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
 import { setStatus } from '@back/util/misc';
-
+import { GameManager } from '@back/game/GameManager';
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
  * @param extManifest Manifest of the caller
@@ -51,6 +51,28 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
   };
 
   const extGames: typeof flashpoint.games = {
+    // Playlists
+    findPlaylist: GameManager.findPlaylist,
+    findPlaylistByName: GameManager.findPlaylistByName,
+    findPlaylists: GameManager.findPlaylists,
+    updatePlaylist: GameManager.updatePlaylist,
+    removePlaylist: GameManager.removePlaylist,
+    // Playlist Game
+    findPlaylistGame: GameManager.findPlaylistGame,
+    removePlaylistGame: GameManager.removePlaylistGame,
+    updatePlaylistGame: GameManager.updatePlaylistGame,
+    updatePlaylistGames: GameManager.updatePlaylistGames,
+    // Games
+    countGames: GameManager.countGames,
+    findGame: GameManager.findGame,
+    // TODO: Find Games Func
+    findGamesWithTag: GameManager.findGamesWithTag,
+    updateGame: GameManager.updateGame,
+    updateGames: GameManager.updateGames,
+    removeGameAndAddApps: GameManager.removeGameAndAddApps,
+    // Misc
+    findPlatforms: GameManager.findPlatforms,
+    // Events
     get onDidLaunchGame(): ApiEvent<flashpoint.Game> {
       return apiEmitters.games.onDidLaunchGame.event;
     }

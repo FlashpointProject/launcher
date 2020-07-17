@@ -39,7 +39,28 @@ declare module 'flashpoint' {
   }
 
   export namespace games {
-    /** Event fired when a game launches, returns the launched game */
+    // Playlist
+    export function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | undefined>;
+    export function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | undefined>;
+    export function findPlaylists(): Promise<Playlist[]>;
+    export function updatePlaylist(playlist: Playlist): Promise<Playlist>;
+    export function removePlaylist(playlistId: string): Promise<Playlist | undefined>
+    // Playlist Game
+    export function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined>;
+    export function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined>;
+    export function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame>;
+    export function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void>;
+    // Games
+    export function countGames(): Promise<number>;
+    export function findGame(id: string): Promise<Game | undefined>;
+    export function findGamesWithTag(tag: Tag): Promise<Game[]>;
+    export function updateGame(game: Game): Promise<Game>;
+    export function updateGames(games: Game[]): Promise<void>;
+    export function removeGameAndAddApps(gameId: string): Promise<Game | undefined>;
+    // Misc
+    export function findPlatforms(library: string): Promise<string[]>;
+    // Events
+    /** Fired after a game launches */
     export const onDidLaunchGame: Event<Game>;
   }
 
@@ -75,7 +96,7 @@ declare module 'flashpoint' {
     /** Information that could be useful for the player (of varying importance) */
     notes: string;
     /** List of tags attached to the game */
-    tags: string[];
+    tags: Tag[];
     /** Source if the game files, either full URL or the name of the website */
     source: string;
     /** Path to the application that runs the game */
@@ -92,6 +113,102 @@ declare module 'flashpoint' {
     language: string;
     /** Library this game belongs to */
     library: string;
+    /** All attached Additional Apps of a game */
+    addApps: AdditionalApp[];
+    /** Unused */
+    orderTitle: string,
+    /** If the game is a placeholder (and can therefore not be saved) */
+    placeholder: boolean;
+  }
+
+  export type AdditionalApp = {
+    /** ID of the additional application (unique identifier) */
+    id: string;
+    /** Path to the application that runs the additional application */
+    applicationPath: string;
+    /**
+     * If the additional application should run before the game.
+     * (If true, this will always run when the game is launched)
+     * (If false, this will only run when specifically launched)
+     */
+    autoRunBefore: boolean;
+    /** Command line argument(s) passed to the application to launch the game */
+    launchCommand: string;
+    /** Name of the additional application */
+    name: string;
+    /** Wait for this to exit before the Game will launch (if starting before launch) */
+    waitForExit: boolean;
+    /** Parent of this add app */
+    parentGame: Game;
+  }
+
+  export type Tag = {
+    /** ID of the tag (unique identifier) */
+    id?: number;
+    /** Date when this tag was last modified */
+    dateModified: string;
+    /** ID of Primary Alias */
+    primaryAliasId: number;
+    /** Primary Alias */
+    primaryAlias: TagAlias;
+    /** Aliases / Names of the tag */
+    aliases: TagAlias[];
+    categoryId?: number;
+    category?: TagCategory;
+    description?: string;
+    gamesUsing?: Game[];
+    // Number of games this tag belongs to
+    count?: number;
+  }
+
+  export type TagAlias = {
+    /** ID of the tag alias (unique identifier) */
+    id: number;
+    tagId?: number;
+    tag?: Tag;
+    name: string;
+  }
+
+  export type TagCategory = {
+    /** ID of the tag category (unique identifier) */
+    id: number;
+    /** Category Name */
+    name: string;
+    /** Category Color */
+    color: string;
+    description?: string;
+    tags: Tag[];
+  }
+
+  export type Playlist = {
+    /** ID of the playlist (unique identifier) */
+    id: string;
+    /** Games in this playlist */
+    games: PlaylistGame[];
+    /** Title of the playlist. */
+    title: string;
+    /** Description of the playlist. */
+    description: string;
+    /** Author of the playlist. */
+    author: string;
+    /** Icon of the playlist (Base64 encoded image). */
+    icon: string;
+    /** Route of the library this playlist is for. */
+    library: string;
+  }
+
+  export type PlaylistGame = {
+    id?: string;
+    /** Playlist which owns this game */
+    playlistId?: string;
+    playlist?: Playlist;
+    /** Order priority of the game in the playlist */
+    order: number;
+    /** Notes for the game inside the playlist specifically */
+    notes: string;
+    /** Game this represents */
+    gameId?: string;
+    game?: Game;
   }
 
   /** A self-nesting type that allows one time disposable with an optional callback */
