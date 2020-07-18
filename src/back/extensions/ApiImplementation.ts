@@ -2,14 +2,15 @@ import { GameManager } from '@back/game/GameManager';
 import { TagManager } from '@back/game/TagManager';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
-import { getOpenDialogFunc, setStatus, createPlaylistFromJson } from '@back/util/misc';
+import { getOpenMessageBoxFunc, setStatus, createPlaylistFromJson, getOpenSaveDialogFunc } from '@back/util/misc';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
-import { ILogEntry } from '@shared/Log/interface';
+import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint';
 import { ApiEvent } from './ApiEvent';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
 import { MergeTagData } from '@shared/back/types';
+import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
  * @param extManifest Manifest of the caller
@@ -99,7 +100,7 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     createTag: TagManager.createTag,
     saveTag: TagManager.saveTag,
     deleteTag: (tagId: number, skipWarn?: boolean) => {
-      const openDialogFunc = getOpenDialogFunc(state.socketServer);
+      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
       return TagManager.deleteTag(tagId, openDialogFunc, skipWarn);
     },
@@ -111,7 +112,7 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     createTagCategory: TagManager.createTagCategory,
     saveTagCategory: TagManager.saveTagCategory,
     deleteTagCategory: (tagCategoryId: number) => {
-      const openDialogFunc = getOpenDialogFunc(state.socketServer);
+      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
       return TagManager.deleteTagCategory(tagCategoryId, openDialogFunc);
     },
@@ -121,7 +122,7 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
 
     // Misc
     mergeTags: (mergeData: flashpoint.MergeTagData) => {
-      const openDialogFunc = getOpenDialogFunc(state.socketServer);
+      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
       if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
       return TagManager.mergeTags(mergeData, openDialogFunc);
     },
@@ -135,23 +136,26 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
   };
 
-  const openDialog = (options: flashpoint.OpenDialogOptions): Promise<number> => {
-    console.log('fetching');
-    const openDialogFunc = getOpenDialogFunc(state.socketServer);
+  const openMessageBox = (options: flashpoint.OpenMessageBoxOptions): Promise<number> => {
+    const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
     if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-    return openDialogFunc({
-      title: options.title,
-      message: options.message,
-      buttons: options.buttons,
-      cancelId: options.cancelId
-    });
+    return openDialogFunc(options);
   };
+
+  const openSaveDialog = (options: flashpoint.OpenSaveDialogOptions) => {
+    const saveDialogFunc = getOpenSaveDialogFunc(state.socketServer);
+    if (!saveDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+    return saveDialogFunc(options);
+  };
+
+  const getPreferences = () => state.preferences;
 
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
     version: version,
-    extManifest: extManifest,
+    config: state.config,
+    getPreferences: getPreferences,
 
     // Namespaces
     log: extLog,
@@ -161,7 +165,11 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     status: extStatus,
 
     // Misc Functions
-    openDialog: openDialog,
+    openMessageBox: openMessageBox,
+    openSaveDialog: openSaveDialog,
+
+    BrowsePageLayout: BrowsePageLayout,
+    LogLevel: LogLevel,
 
     // Disposable funcs
     dispose: dispose,

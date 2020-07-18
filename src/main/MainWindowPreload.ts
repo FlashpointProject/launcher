@@ -1,5 +1,5 @@
 import { SharedSocket } from '@shared/back/SharedSocket';
-import { BackIn, BackOut, GetRendererInitDataResponse, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, GetRendererInitDataResponse, OpenMessageBoxData, OpenMessageBoxResponse, OpenExternalData, OpenExternalResponseData, WrappedResponse, OpenSaveDialogData, OpenSaveDialogResponse } from '@shared/back/types';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
@@ -159,15 +159,28 @@ function onMessage(this: WebSocket, res: WrappedResponse): void {
       window.Shared.preferences.data = res.data;
     } break;
 
-    case BackOut.OPEN_DIALOG: {
-      const resData: OpenDialogData = res.data;
+    case BackOut.OPEN_MESSAGE_BOX: {
+      const resData: OpenMessageBoxData = res.data;
 
       electron.remote.dialog.showMessageBox(resData)
       .then(r => {
-        window.Shared.back.sendReq<any, OpenDialogResponseData>({
+        window.Shared.back.sendReq<any, OpenMessageBoxResponse>({
           id: res.id,
           type: BackIn.GENERIC_RESPONSE,
           data: r.response,
+        });
+      });
+    } break;
+
+    case BackOut.OPEN_SAVE_DIALOG: {
+      const resData: OpenSaveDialogData = res.data;
+
+      electron.remote.dialog.showSaveDialog(resData)
+      .then(r => {
+        window.Shared.back.sendReq<any, OpenSaveDialogResponse>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: r.filePath,
         });
       });
     } break;

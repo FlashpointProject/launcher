@@ -1,7 +1,7 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
-import { BackState, OpenDialogFunc, StatusState } from '@back/types';
+import { BackState, OpenMessageBoxFunc, StatusState, OpenSaveDialogFunc } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
@@ -300,8 +300,14 @@ export function setStatus<T extends keyof StatusState>(state: BackState, key: T,
   }
 }
 
-export function getOpenDialogFunc(socketServer: SocketServer): OpenDialogFunc | undefined {
+export function getOpenMessageBoxFunc(socketServer: SocketServer): OpenMessageBoxFunc | undefined {
   if (socketServer.lastClient) {
-    return socketServer.openDialog(socketServer.lastClient);
+    return socketServer.openMessageBoxBack(socketServer.lastClient);
+  }
+}
+
+export function getOpenSaveDialogFunc(socketServer: SocketServer): OpenSaveDialogFunc | undefined {
+  if (socketServer.lastClient) {
+    return socketServer.openSaveDialogBack(socketServer.lastClient);
   }
 }

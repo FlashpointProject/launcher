@@ -1,9 +1,9 @@
-import { BackIn, BackOut, OpenDialogData, OpenExternalData, WrappedRequest, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, OpenMessageBoxData, OpenExternalData, WrappedRequest, WrappedResponse, OpenSaveDialogData } from '@shared/back/types';
 import { Coerce } from '@shared/utils/Coerce';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 import * as WebSocket from 'ws';
-import { EmitterPart, OpenDialogFunc, OpenExternalFunc } from './types';
+import { EmitterPart, OpenMessageBoxFunc, OpenExternalFunc, OpenSaveDialogFunc } from './types';
 import { uuid } from './util/uuid';
 
 type SocketEmitter = (
@@ -87,10 +87,10 @@ export class SocketServer {
   }
 
   /**
-   * Return a function that opens a dialog window at a specific client.
-   * @param target Client to open a dialog window at.
+   * Return a function that opens a message box on a specific client.
+   * @param target Client to open a message box on.
    */
-  public openDialog(target: WebSocket): OpenDialogFunc {
+  public openMessageBoxBack(target: WebSocket): OpenMessageBoxFunc {
     return (options) => {
       return new Promise<number>((resolve, reject) => {
         const id = uuid();
@@ -105,10 +105,38 @@ export class SocketServer {
           }
         });
 
-        respond<OpenDialogData>(target, {
+        respond<OpenMessageBoxData>(target, {
           id,
           data: options,
-          type: BackOut.OPEN_DIALOG,
+          type: BackOut.OPEN_MESSAGE_BOX,
+        });
+      });
+    };
+  }
+
+  /**
+   * Return a function that opens a save box on a specific client.
+   * @param target Client to open a save box on.
+   */
+  public openSaveDialogBack(target: WebSocket): OpenSaveDialogFunc {
+    return (options) => {
+      return new Promise<string | undefined>((resolve, reject) => {
+        const id = uuid();
+
+        this.emitter.once(id, msg => {
+          const [req, error] = parseWrappedRequest(msg.data);
+          if (error || !req) {
+            console.error('Failed to parse incoming WebSocket request:\n', error);
+            reject(new Error('Failed to parse incoming WebSocket request.'));
+          } else {
+            resolve(req.data);
+          }
+        });
+
+        respond<OpenSaveDialogData>(target, {
+          id,
+          data: options,
+          type: BackOut.OPEN_SAVE_DIALOG,
         });
       });
     };

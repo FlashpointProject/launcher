@@ -1,5 +1,5 @@
 import { SocketServer } from '@back/SocketServer';
-import { OpenDialogFunc } from '@back/types';
+import { OpenMessageBoxFunc } from '@back/types';
 import { chunkArray } from '@back/util/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
@@ -13,7 +13,7 @@ export namespace TagManager {
     return getManager().getRepository(TagCategory).find();
   }
 
-  export async function deleteTag(tagId: number, openDialog: OpenDialogFunc, skipWarn?: boolean): Promise<boolean> {
+  export async function deleteTag(tagId: number, openDialog: OpenMessageBoxFunc, skipWarn?: boolean): Promise<boolean> {
     const tagRepository = getManager().getRepository(Tag);
     const tagAliasRepository = getManager().getRepository(TagAlias);
 
@@ -67,7 +67,7 @@ export namespace TagManager {
   }
 
   // @TODO : Localize
-  export async function mergeTags(mergeData: MergeTagData, openDialog: OpenDialogFunc): Promise<Tag | undefined> {
+  export async function mergeTags(mergeData: MergeTagData, openDialog: OpenMessageBoxFunc): Promise<Tag | undefined> {
     const mergeSorc = await TagManager.findTag(mergeData.toMerge);
     const mergeDest = await TagManager.findTag(mergeData.mergeInto);
     if (mergeDest && mergeSorc) {
@@ -297,7 +297,7 @@ export namespace TagManager {
     return fixed;
   }
 
-  export async function deleteTagCategory(tagCategoryId: number, openDialog: OpenDialogFunc): Promise<boolean> {
+  export async function deleteTagCategory(tagCategoryId: number, openDialog: OpenMessageBoxFunc): Promise<boolean> {
     const tagCategoryRepository = getManager().getRepository(TagCategory);
     const tagRepository = getManager().getRepository(Tag);
 

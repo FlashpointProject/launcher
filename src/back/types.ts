@@ -3,17 +3,18 @@ import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
-import * as flashpoint from 'flashpoint';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
-import { MessageBoxOptions, OpenExternalOptions } from 'electron';
+import { MessageBoxOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
+import * as flashpoint from 'flashpoint';
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
+import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { InterceptorState as ModuleInterceptorState } from './extensions/NodeInterceptor';
 import { Registry } from './extensions/types';
@@ -22,7 +23,6 @@ import { ManagedChildProcess } from './ManagedChildProcess';
 import { SocketServer } from './SocketServer';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
-import { ApiEmitter } from './extensions/ApiEmitter';
 
 /** Contains most state for the back process. */
 export type BackState = {
@@ -142,7 +142,8 @@ export type TagsFile = {
   tags: BareTag[]
 }
 
-export type OpenDialogFunc = (options: MessageBoxOptions) => Promise<number>;
+export type OpenMessageBoxFunc = (options: MessageBoxOptions) => Promise<number>;
+export type OpenSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
 
 export type StatusState = {

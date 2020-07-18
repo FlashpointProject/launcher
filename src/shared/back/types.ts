@@ -8,7 +8,7 @@ import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { MessageBoxOptions, OpenExternalOptions } from 'electron';
+import { MessageBoxOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
@@ -100,7 +100,8 @@ export enum BackIn {
 export enum BackOut {
   GENERIC_RESPONSE,
   INIT_EVENT,
-  OPEN_DIALOG,
+  OPEN_MESSAGE_BOX,
+  OPEN_SAVE_DIALOG,
   OPEN_EXTERNAL,
   LOCALE_UPDATE,
   GET_MAIN_INIT_DATA,
@@ -221,9 +222,13 @@ export type LocaleUpdateData = string;
 
 export type GetExecData = ExecMapping[];
 
-export type OpenDialogData = MessageBoxOptions;
+export type OpenMessageBoxData = MessageBoxOptions;
 
-export type OpenDialogResponseData = number;
+export type OpenMessageBoxResponse = number;
+
+export type OpenSaveDialogData = SaveDialogOptions;
+
+export type OpenSaveDialogResponse = string | undefined;
 
 export type OpenExternalData = {
   url: string;

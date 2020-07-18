@@ -7,6 +7,12 @@ declare module 'flashpoint' {
   /** Version of the Flashpoint Launcher */
   export const version: string;
 
+  /** Config Data */
+  export const config: IAppConfigData;
+
+  /** Most up to date Preferences Data */
+  export function getPreferences(): IAppPreferencesData;
+
   /** Log functions to properly pass messages to the Logs Page. Automatically fills with Extension name. */
   export namespace log {
     export const trace: (message: string) => void;
@@ -95,13 +101,31 @@ declare module 'flashpoint' {
     export function mergeTags(mergeData: MergeTagData): Promise<Tag | undefined>;
   }
 
-  export type OpenDialogOptions = {
+  export type OpenMessageBoxOptions = {
     title?: string;
     message: string;
     buttons?: string[];
     cancelId?: number;
   }
-  export function openDialog(options: OpenDialogOptions): Promise<number>;
+
+  interface FileFilter {
+    // Docs: http://electronjs.org/docs/api/structures/file-filter
+
+    extensions: string[];
+    name: string;
+  }
+
+  export type OpenSaveDialogOptions = {
+    title?: string;
+    defaultPath?: string;
+    buttonLabel?: string;
+    filters?: FileFilter[];
+    message?: string;
+    nameFieldLabel?: string;
+  }
+
+  export function openMessageBox(options: OpenMessageBoxOptions): Promise<number>;
+  export function openSaveDialog(options: OpenSaveDialogOptions): Promise<string | undefined>;
 
   export type Game = {
     /** ID of the game (unique identifier) */
@@ -267,11 +291,12 @@ declare module 'flashpoint' {
     ranges?: RequestGameRange[];
     filter?: FilterGameOpts;
     orderBy?: GameOrderBy;
-    direction?: 'ASC' | 'DESC';
+    direction?: GameOrderDirection;
     getTotal?: boolean;
   }
 
   export type GameOrderBy = keyof Game;
+  export type GameOrderDirection = 'ASC'|'DESC';
 
   export type RequestGameRange = {
     /** Index of the first game. */
@@ -342,6 +367,148 @@ declare module 'flashpoint' {
     developer: string;
     publisher: string;
   };
+
+  /** Data contained in the Config file */
+  export type IAppConfigData = {
+    /** Path to the Flashpoint root folder (relative or absolute) */
+    flashpointPath: string;
+    /** Path to the image folder (relative to the flashpoint path) */
+    imageFolderPath: string;
+    /** Path to the logo folder (relative to the flashpoint path) */
+    logoFolderPath: string;
+    /** Path to the playlist folder (relative to the flashpoint path) */
+    playlistFolderPath: string;
+    /** Path to the json folder (relative to the flashpoint path) */
+    jsonFolderPath: string;
+    /** Path to the platform folder (relative to the flashpoint path) */
+    platformFolderPath: string;
+    /** Path to the theme folder (relative to the flashpoint path) */
+    themeFolderPath: string;
+    /** Path of the meta edits folder (relative to the flashpoint path) */
+    metaEditsFolderPath: string;
+    /** Path to load User extensions from (relative to the flashpoint path) */
+    extensionsPath: string;
+    /** If the custom title bar should be used in MainWindow */
+    useCustomTitlebar: boolean;
+    /**
+     * If the Server should be started, and closed, together with this application.
+     * The "server" is defined in "services.json".
+     */
+    startServer: boolean;
+    // Name of the Server process to run
+    server: string;
+    /** If games flagged as "extreme" should be hidden (mainly for parental control) */
+    disableExtremeGames: boolean;
+    /** If games flagged as "broken" should be hidden */
+    showBrokenGames: boolean;
+    /** Array of native locked platforms */
+    nativePlatforms: string[];
+    /** Lower limit of the range of ports that the back should listen on. */
+    backPortMin: number;
+    /** Upper limit of the range of ports that the back should listen on. */
+    backPortMax: number;
+    /** Lower limit of the range of ports that the back image server should listen on. */
+    imagesPortMin: number;
+    /** Upper limit of the range of ports that the back image server should listen on. */
+    imagesPortMax: number;
+    /** Metadata Server Host (For Online Sync) */
+    metadataServerHost: string;
+    /** Last time the Metadata Server Host was synced with */
+    lastSync: number;
+    /** Base URL of the server to download missing thumbnails/screenshots from. */
+    onDemandBaseUrl: string;
+    /** Base URL of the server to do pastes of the Logs to. */
+    logsBaseUrl: string;
+    /** Whether to notify that launcher updates are available */
+    updatesEnabled: boolean;
+  };
+
+  /**
+   * Contains state of all non-config settings the user can change in the application.
+   * This is the data contained in the Preferences file.
+   */
+  export type IAppPreferencesData = {
+    [key: string]: any;
+    /** Scale of the games at the BrowsePage. */
+    browsePageGameScale: number;
+    /** If "Extreme" games should be shown at the BrowsePage. */
+    browsePageShowExtreme: boolean;
+    /** If editing games, additional applications and playlists should be allowed. */
+    enableEditing: boolean;
+    /** Default language used for fallback */
+    fallbackLanguage: string;
+    /** Current language */
+    currentLanguage: string;
+    /** Layout of game collection at BrowsePage. */
+    browsePageLayout: BrowsePageLayout;
+    /** If the left sidebar at the BrowsePage should be visible. */
+    browsePageShowLeftSidebar: boolean;
+    /** If the right sidebar at the BrowsePage should be visible. */
+    browsePageShowRightSidebar: boolean;
+    /** Width of the left sidebar. (Browse Page) */
+    browsePageLeftSidebarWidth: number;
+    /** Width of the right sidebar. (Browse Page) */
+    browsePageRightSidebarWidth: number;
+    /** Width of the left sidebar. (Curate Page) */
+    curatePageLeftSidebarWidth: number;
+    /** If the "Developer" tab should be visible in the header. */
+    showDeveloperTab: boolean;
+    /** Filename of the current theme. */
+    currentTheme: string | undefined;
+    /** Filename of the current logo set */
+    currentLogoSet: string | undefined;
+    /** The "route" of the last selected library (empty string selects the default). */
+    lastSelectedLibrary: string;
+    /** What property to order the games by. */
+    gamesOrderBy: GameOrderBy;
+    /** What order the games should appear in. */
+    gamesOrder: GameOrderDirection;
+    /** Position and size of the main window. */
+    mainWindow: IAppPreferencesDataMainWindow;
+    /** Default Library for new games etc. */
+    defaultLibrary: string;
+    /** Save curations after importing */
+    saveImportedCurations: boolean;
+    /** Whether to symlink or copy curation content when running (Symlink required for MAD4FP) */
+    symlinkCurationContent: boolean;
+    /** Download missing thumbnails/screenshots from a remote server. */
+    onDemandImages: boolean;
+    /** Sources to show/hide in the log page. */
+    showLogSource: {
+      [key: string]: boolean;
+    }
+    /** Levels to show/hide in the log page. */
+    showLogLevel: {
+      [key in LogLevel]: boolean;
+    }
+    /** Libraries that should be excluded from random picks. */
+    excludedRandomLibraries: string[];
+  };
+
+  export type IAppPreferencesDataMainWindow = {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    maximized: boolean;
+  };
+
+  /** Modes for displaying the game collection at the BrowsePage */
+  export enum BrowsePageLayout {
+    /** Games are in a vertical list, one game per row */
+    list = 0,
+    /** Games are in a table-like grid, each cell is a game */
+    grid = 1,
+  }
+
+  export enum LogLevel {
+    TRACE = 0,
+    DEBUG = 1,
+    INFO = 2,
+    WARN = 3,
+    ERROR = 4,
+    SILENT = 5,
+  }
 
   /** A self-nesting type that allows one time disposable with an optional callback */
   export type Disposable = {

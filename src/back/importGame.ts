@@ -16,7 +16,7 @@ import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
-import { OpenDialogFunc, OpenExternalFunc } from './types';
+import { OpenMessageBoxFunc, OpenExternalFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
 
@@ -27,7 +27,7 @@ type ImportCurationOpts = {
   saveCuration: boolean;
   fpPath: string;
   imageFolderPath: string;
-  openDialog: OpenDialogFunc;
+  openDialog: OpenMessageBoxFunc;
   openExternal: OpenExternalFunc;
   tagCategories: TagCategory[];
 }
@@ -300,7 +300,7 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
  * @param inFolder Folder to copy from
  * @param outFolder Folder to copy to
  */
-async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: OpenDialogFunc) {
+async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: OpenMessageBoxFunc) {
   const contentIndex = await indexContentFolder(inFolder, curationLog);
   let yesToAll = false;
   return Promise.all(
