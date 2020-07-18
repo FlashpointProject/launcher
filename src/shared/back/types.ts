@@ -415,6 +415,7 @@ export type SearchGamesResponse = {
 
 export type UpdateConfigData = Partial<IAppConfigData>;
 
+/** Shortend version of Game returned in searches, makes for better performance. */
 export type ViewGame = {
   id: string;
   title: string;

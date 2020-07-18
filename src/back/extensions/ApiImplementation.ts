@@ -59,25 +59,35 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     findPlaylists: GameManager.findPlaylists,
     updatePlaylist: GameManager.updatePlaylist,
     removePlaylist: GameManager.removePlaylist,
+
     // Playlist Game
     findPlaylistGame: GameManager.findPlaylistGame,
     removePlaylistGame: GameManager.removePlaylistGame,
     updatePlaylistGame: GameManager.updatePlaylistGame,
     updatePlaylistGames: GameManager.updatePlaylistGames,
+
     // Games
     countGames: GameManager.countGames,
     findGame: GameManager.findGame,
-    // TODO: Find Games Func
+    findGames: GameManager.findGames,
     findGamesWithTag: GameManager.findGamesWithTag,
     updateGame: GameManager.updateGame,
     updateGames: GameManager.updateGames,
     removeGameAndAddApps: GameManager.removeGameAndAddApps,
+
     // Misc
     findPlatforms: GameManager.findPlatforms,
     createPlaylistFromJson: createPlaylistFromJson,
+
     // Events
     get onDidLaunchGame(): ApiEvent<flashpoint.Game> {
       return apiEmitters.games.onDidLaunchGame.event;
+    },
+    get onDidUpdateGame(): ApiEvent<flashpoint.Game> {
+      return apiEmitters.games.onDidUpdateGame.event;
+    },
+    get onDidRemoveGame(): ApiEvent<flashpoint.Game> {
+      return apiEmitters.games.onDidRemoveGame.event;
     }
   };
 
@@ -125,6 +135,18 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
   };
 
+  const openDialog = (options: flashpoint.OpenDialogOptions): Promise<number> => {
+    console.log('fetching');
+    const openDialogFunc = getOpenDialogFunc(state.socketServer);
+    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+    return openDialogFunc({
+      title: options.title,
+      message: options.message,
+      buttons: options.buttons,
+      cancelId: options.cancelId
+    });
+  };
+
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
@@ -137,6 +159,9 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     games: extGames,
     tags: extTags,
     status: extStatus,
+
+    // Misc Functions
+    openDialog: openDialog,
 
     // Disposable funcs
     dispose: dispose,

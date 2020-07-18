@@ -152,5 +152,7 @@ export type StatusState = {
 export type ApiEmittersState = {
   games: {
     onDidLaunchGame: ApiEmitter<flashpoint.Game>;
+    onDidUpdateGame: ApiEmitter<flashpoint.Game>;
+    onDidRemoveGame: ApiEmitter<flashpoint.Game>;
   }
 }

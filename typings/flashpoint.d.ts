@@ -55,6 +55,7 @@ declare module 'flashpoint' {
     // Games
     export function countGames(): Promise<number>;
     export function findGame(id: string): Promise<Game | undefined>;
+    export function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<ResponseGameRange<T>[]>;
     export function findGamesWithTag(tag: Tag): Promise<Game[]>;
     export function updateGame(game: Game): Promise<Game>;
     export function updateGames(games: Game[]): Promise<void>;
@@ -65,8 +66,9 @@ declare module 'flashpoint' {
     export function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
 
     // Events
-    /** Fired after a game launches */
     export const onDidLaunchGame: Event<Game>;
+    export const onDidUpdateGame: Event<Game>;
+    export const onDidRemoveGame: Event<Game>;
   }
 
   export namespace tags {
@@ -92,6 +94,14 @@ declare module 'flashpoint' {
     // Misc
     export function mergeTags(mergeData: MergeTagData): Promise<Tag | undefined>;
   }
+
+  export type OpenDialogOptions = {
+    title?: string;
+    message: string;
+    buttons?: string[];
+    cancelId?: number;
+  }
+  export function openDialog(options: OpenDialogOptions): Promise<number>;
 
   export type Game = {
     /** ID of the game (unique identifier) */
@@ -251,6 +261,87 @@ declare module 'flashpoint' {
     mergeInto: string;
     makeAlias: boolean;
   }
+
+  export type FindGamesOpts = {
+    /** Ranges of games to fetch (all games are fetched if undefined). */
+    ranges?: RequestGameRange[];
+    filter?: FilterGameOpts;
+    orderBy?: GameOrderBy;
+    direction?: 'ASC' | 'DESC';
+    getTotal?: boolean;
+  }
+
+  export type GameOrderBy = keyof Game;
+
+  export type RequestGameRange = {
+    /** Index of the first game. */
+    start: number;
+    /** Number of games to request (if undefined, all games until the end of the query will be included). */
+    length: number | undefined;
+    /**
+     * Tuple of the last game of the previous page.
+     * If this is set then "start" must be the index of the game after this (since this will be used instead of
+     * "start" when selecting the games).
+     */
+    index?: PageTuple;
+  }
+
+  /** Tuple of values from the last game of a previous page (look up "keyset pagination"). */
+  export type PageTuple = {
+    /** Primary order value. */
+    orderVal: any;
+    /** Title of the game (secondary order value). */
+    title: string;
+    /** ID of the game (unique value). */
+    id: string;
+  }
+
+  /** Options for ordering games. */
+  export type FilterGameOpts = {
+    /** Search query to filter by */
+    searchQuery?: ParsedSearch;
+    /** Playlist to limit the results to (no playlist limit will be applied if undefined). */
+    playlistId?: string;
+  }
+
+  /** Object representation of a parsed search query. */
+  export type ParsedSearch = {
+    /** Generic filter to blacklist some predetermined field(s). */
+    genericBlacklist: string[];
+    /** Generic filter to whitelist some predetermined field(s). */
+    genericWhitelist: string[];
+    /** Whitelists to apply */
+    blacklist: FieldFilter[];
+    /** Blacklists to apply */
+    whitelist: FieldFilter[];
+  }
+
+  /** A filter that applies to a specific field. */
+  type FieldFilter = {
+    /** The field the filter applies to. */
+    field: string;
+    /** Value to search for in the field. */
+    value: any;
+  }
+
+  export type ResponseGameRange<T extends boolean> = {
+    /** Index of the first game. */
+    start: number;
+    /** Number of games requested. */
+    length?: number;
+    /** Games found within the range. */
+    games: T extends true ? ViewGame[] : Game[];
+  }
+
+  /** Shortend version of Game returned in searches, makes for better performance. */
+  export type ViewGame = {
+    id: string;
+    title: string;
+    platform: string;
+    tags: Tag[];
+    developer: string;
+    publisher: string;
+  };
 
   /** A self-nesting type that allows one time disposable with an optional callback */
   export type Disposable = {

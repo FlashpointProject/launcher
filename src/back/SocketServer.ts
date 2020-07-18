@@ -24,6 +24,8 @@ export class SocketServer {
   public port = -1;
   /** Secret value used for authentication. */
   public secret: any;
+  /** Last known client */
+  public lastClient?: WebSocket;
 
   private registered: Record<BackIn, RequestCallback<any> | undefined> = {} as any;
   private emitter: SocketEmitter = new EventEmitter();
@@ -184,6 +186,7 @@ export class SocketServer {
   }
 
   private async onMessage(message: QueuedMessage<any>): Promise<void> {
+    this.lastClient = message.event.target;
     this.emitter.emit(message.req.id, message.event, message.req);
 
     const callback = this.registered[message.req.type];

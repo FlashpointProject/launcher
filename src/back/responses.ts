@@ -1271,12 +1271,14 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<RunCommandData>(BackIn.RUN_COMMAND, async (event, req) => {
+    // Find comamnd
     const { command } = req.data;
     const args = req.data.args || [];
     const c = state.registry.commands.get(req.data.command);
     let res = undefined;
     let success = false;
     if (c) {
+      // Run Command
       try {
         res = await Promise.resolve(c.callback(...args));
         success = true;
@@ -1286,6 +1288,7 @@ export function registerRequestCallbacks(state: BackState): void {
     } else {
       log.error('Launcher', `Command requested but "${command}" not registered!`);
     }
+    // Return response
     respond<RunCommandResponse>(event.target, {
       id: req.id,
       type: BackOut.RUN_COMMAND,

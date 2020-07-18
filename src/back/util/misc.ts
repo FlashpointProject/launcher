@@ -1,7 +1,6 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
-import { SocketServer } from '@back/SocketServer';
 import { BackState, OpenDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
@@ -17,6 +16,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
+import { SocketServer } from '@back/SocketServer';
 
 const unlink = promisify(fs.unlink);
 
@@ -301,9 +301,7 @@ export function setStatus<T extends keyof StatusState>(state: BackState, key: T,
 }
 
 export function getOpenDialogFunc(socketServer: SocketServer): OpenDialogFunc | undefined {
-  if (socketServer.server && socketServer.server.clients.size > 0) {
-    for (const sockets of socketServer.server.clients.entries()) {
-      return socketServer.openDialog(sockets[0]);
-    }
+  if (socketServer.lastClient) {
+    return socketServer.openDialog(socketServer.lastClient);
   }
 }

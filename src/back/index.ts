@@ -106,7 +106,9 @@ const state: BackState = {
   },
   apiEmitters: {
     games: {
-      onDidLaunchGame: new ApiEmitter<flashpoint.Game>()
+      onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
+      onDidUpdateGame: new ApiEmitter<flashpoint.Game>(),
+      onDidRemoveGame: new ApiEmitter<flashpoint.Game>(),
     }
   },
   status: {
@@ -128,8 +130,6 @@ process.on('disconnect', () => { exit(state); }); // (Exit when the main process
 async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.isInit) { return; }
   state.isInit = true;
-
-  console.log(sendHandle);
 
   const content: BackInitArgs = JSON.parse(message);
   state.isDev = content.isDev;
