@@ -1,9 +1,9 @@
-import { BackIn, BackOut, OpenMessageBoxData, OpenExternalData, WrappedRequest, WrappedResponse, OpenSaveDialogData } from '@shared/back/types';
+import { BackIn, BackOut, ShowMessageBoxData, ShowOpenDialogData, OpenExternalData, WrappedRequest, WrappedResponse, ShowSaveDialogData } from '@shared/back/types';
 import { Coerce } from '@shared/utils/Coerce';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 import * as WebSocket from 'ws';
-import { EmitterPart, OpenMessageBoxFunc, OpenExternalFunc, OpenSaveDialogFunc } from './types';
+import { EmitterPart, ShowMessageBoxFunc, OpenExternalFunc, ShowSaveDialogFunc, ShowOpenDialogFunc } from './types';
 import { uuid } from './util/uuid';
 
 type SocketEmitter = (
@@ -90,7 +90,7 @@ export class SocketServer {
    * Return a function that opens a message box on a specific client.
    * @param target Client to open a message box on.
    */
-  public openMessageBoxBack(target: WebSocket): OpenMessageBoxFunc {
+  public showMessageBoxBack(target: WebSocket): ShowMessageBoxFunc {
     return (options) => {
       return new Promise<number>((resolve, reject) => {
         const id = uuid();
@@ -105,7 +105,7 @@ export class SocketServer {
           }
         });
 
-        respond<OpenMessageBoxData>(target, {
+        respond<ShowMessageBoxData>(target, {
           id,
           data: options,
           type: BackOut.OPEN_MESSAGE_BOX,
@@ -118,7 +118,7 @@ export class SocketServer {
    * Return a function that opens a save box on a specific client.
    * @param target Client to open a save box on.
    */
-  public openSaveDialogBack(target: WebSocket): OpenSaveDialogFunc {
+  public showSaveDialogBack(target: WebSocket): ShowSaveDialogFunc {
     return (options) => {
       return new Promise<string | undefined>((resolve, reject) => {
         const id = uuid();
@@ -133,10 +133,38 @@ export class SocketServer {
           }
         });
 
-        respond<OpenSaveDialogData>(target, {
+        respond<ShowSaveDialogData>(target, {
           id,
           data: options,
           type: BackOut.OPEN_SAVE_DIALOG,
+        });
+      });
+    };
+  }
+
+  /**
+   * Return a function that opens a load file box on a specific client.
+   * @param target Client to open a load file box on.
+   */
+  public showOpenDialogFunc(target: WebSocket): ShowOpenDialogFunc {
+    return (options) => {
+      return new Promise<string[] | undefined>((resolve, reject) => {
+        const id = uuid();
+
+        this.emitter.once(id, msg => {
+          const [req, error] = parseWrappedRequest(msg.data);
+          if (error || !req) {
+            console.error('Failed to parse incoming WebSocket request:\n', error);
+            reject(new Error('Failed to parse incoming WebSocket request.'));
+          } else {
+            resolve(req.data);
+          }
+        });
+
+        respond<ShowOpenDialogData>(target, {
+          id,
+          data: options,
+          type: BackOut.OPEN_OPEN_DIALOG,
         });
       });
     };

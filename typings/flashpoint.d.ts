@@ -101,7 +101,7 @@ declare module 'flashpoint' {
     export function mergeTags(mergeData: MergeTagData): Promise<Tag | undefined>;
   }
 
-  export type OpenMessageBoxOptions = {
+  export type ShowMessageBoxOptions = {
     title?: string;
     message: string;
     buttons?: string[];
@@ -115,7 +115,7 @@ declare module 'flashpoint' {
     name: string;
   }
 
-  export type OpenSaveDialogOptions = {
+  export type ShowSaveDialogOptions = {
     title?: string;
     defaultPath?: string;
     buttonLabel?: string;
@@ -124,8 +124,18 @@ declare module 'flashpoint' {
     nameFieldLabel?: string;
   }
 
-  export function openMessageBox(options: OpenMessageBoxOptions): Promise<number>;
-  export function openSaveDialog(options: OpenSaveDialogOptions): Promise<string | undefined>;
+  export type ShowOpenDialogOptions = {
+    title?: string;
+    defaultPath?: string;
+    buttonLabel?: string;
+    filters: FileFilter[];
+    properties?: Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles' | 'createDirectory' | 'promptToCreate' | 'noResolveAliases' | 'treatPackageAsDirectory' | 'dontAddToRecent'>;
+    message?: string;
+  }
+
+  export function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
+  export function showSaveDialog(options: ShowSaveDialogOptions): Promise<string | undefined>;
+  export function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
 
   export type Game = {
     /** ID of the game (unique identifier) */

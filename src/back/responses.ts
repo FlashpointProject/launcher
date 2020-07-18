@@ -221,7 +221,7 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        openDialog: state.socketServer.openMessageBoxBack(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
     }
@@ -257,7 +257,7 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        openDialog: state.socketServer.openMessageBoxBack(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
       state.apiEmitters.games.onDidLaunchGame.fire(game);
@@ -389,7 +389,7 @@ export function registerRequestCallbacks(state: BackState): void {
       if (existingPlaylist) {
         newPlaylist.title += ' - New';
         // Conflict, resolve with user
-        const dialogFunc = state.socketServer.openMessageBoxBack(event.target);
+        const dialogFunc = state.socketServer.showMessageBoxBack(event.target);
         const strings = state.languageContainer;
         const result = await dialogFunc({
           title: strings.dialog.playlistConflict,
@@ -573,7 +573,7 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.DELETE_TAG_CATEGORY,
       data: {
-        success: await TagManager.deleteTagCategory(req.data, state.socketServer.openMessageBoxBack(event.target))
+        success: await TagManager.deleteTagCategory(req.data, state.socketServer.showMessageBoxBack(event.target))
       }
     });
     await TagManager.sendTagCategories(state.socketServer);
@@ -615,7 +615,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<MergeTagData>(BackIn.MERGE_TAGS, async (event, req) => {
-    const newTag = await TagManager.mergeTags(req.data, state.socketServer.openMessageBoxBack(event.target));
+    const newTag = await TagManager.mergeTags(req.data, state.socketServer.showMessageBoxBack(event.target));
     respond<Tag>(event.target, {
       id: req.id,
       type: BackOut.MERGE_TAGS,
@@ -663,7 +663,7 @@ export function registerRequestCallbacks(state: BackState): void {
       await GameManager.updateGames(gamesToEdit);
       // Remove old tag
       if (oldTag.id) {
-        await TagManager.deleteTag(oldTag.id, state.socketServer.openMessageBoxBack(event.target));
+        await TagManager.deleteTag(oldTag.id, state.socketServer.showMessageBoxBack(event.target));
       }
     }
 
@@ -674,7 +674,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<TagDeleteData>(BackIn.DELETE_TAG, async (event, req) => {
-    const success = await TagManager.deleteTag(req.data, state.socketServer.openMessageBoxBack(event.target));
+    const success = await TagManager.deleteTag(req.data, state.socketServer.showMessageBoxBack(event.target));
     respond<TagDeleteResponse>(event.target, {
       id: req.id,
       type: BackOut.DELETE_TAG,
@@ -1038,7 +1038,7 @@ export function registerRequestCallbacks(state: BackState): void {
         saveCuration: req.data.saveCuration,
         fpPath: state.config.flashpointPath,
         imageFolderPath: state.config.imageFolderPath,
-        openDialog: state.socketServer.openMessageBoxBack(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
         tagCategories: await TagManager.findTagCategories()
       });
@@ -1090,7 +1090,7 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        openDialog: state.socketServer.openMessageBoxBack(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
     } catch (e) {
@@ -1115,7 +1115,7 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        openDialog: state.socketServer.openMessageBoxBack(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
     } catch (e) {
@@ -1229,7 +1229,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
           if (await pathExists(filePath)) {
             const strings = state.languageContainer;
-            const result = await state.socketServer.openMessageBoxBack(event.target)({
+            const result = await state.socketServer.showMessageBoxBack(event.target)({
               type: 'warning',
               title: strings.dialog.overwriteFileTitle,
               message: strings.dialog.overwriteFileMessage,
@@ -1260,7 +1260,7 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register<undefined>(BackIn.IMPORT_META_EDITS, async (event, req) => {
     const result = await importAllMetaEdits(
       path.join(state.config.flashpointPath, state.config.metaEditsFolderPath),
-      state.socketServer.openMessageBoxBack(event.target),
+      state.socketServer.showMessageBoxBack(event.target),
     );
 
     respond<ImportMetaEditResponseData>(event.target, {

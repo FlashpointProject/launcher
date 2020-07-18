@@ -1,5 +1,5 @@
 import { SharedSocket } from '@shared/back/SharedSocket';
-import { BackIn, BackOut, GetRendererInitDataResponse, OpenMessageBoxData, OpenMessageBoxResponse, OpenExternalData, OpenExternalResponseData, WrappedResponse, OpenSaveDialogData, OpenSaveDialogResponse } from '@shared/back/types';
+import { BackIn, BackOut, GetRendererInitDataResponse, ShowMessageBoxData, ShowMessageBoxResponse, OpenExternalData, OpenExternalResponseData, WrappedResponse, ShowSaveDialogData, ShowSaveDialogResponse, ShowOpenDialogData, ShowOpenDialogResponse } from '@shared/back/types';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
@@ -160,11 +160,11 @@ function onMessage(this: WebSocket, res: WrappedResponse): void {
     } break;
 
     case BackOut.OPEN_MESSAGE_BOX: {
-      const resData: OpenMessageBoxData = res.data;
+      const resData: ShowMessageBoxData = res.data;
 
       electron.remote.dialog.showMessageBox(resData)
       .then(r => {
-        window.Shared.back.sendReq<any, OpenMessageBoxResponse>({
+        window.Shared.back.sendReq<any, ShowMessageBoxResponse>({
           id: res.id,
           type: BackIn.GENERIC_RESPONSE,
           data: r.response,
@@ -173,14 +173,27 @@ function onMessage(this: WebSocket, res: WrappedResponse): void {
     } break;
 
     case BackOut.OPEN_SAVE_DIALOG: {
-      const resData: OpenSaveDialogData = res.data;
+      const resData: ShowSaveDialogData = res.data;
 
       electron.remote.dialog.showSaveDialog(resData)
       .then(r => {
-        window.Shared.back.sendReq<any, OpenSaveDialogResponse>({
+        window.Shared.back.sendReq<any, ShowSaveDialogResponse>({
           id: res.id,
           type: BackIn.GENERIC_RESPONSE,
           data: r.filePath,
+        });
+      });
+    } break;
+
+    case BackOut.OPEN_OPEN_DIALOG: {
+      const resData: ShowOpenDialogData = res.data;
+
+      electron.remote.dialog.showOpenDialog(resData)
+      .then(r => {
+        window.Shared.back.sendReq<any, ShowOpenDialogResponse>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: r.filePaths,
         });
       });
     } break;

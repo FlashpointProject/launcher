@@ -2,7 +2,7 @@ import { GameManager } from '@back/game/GameManager';
 import { TagManager } from '@back/game/TagManager';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
-import { getOpenMessageBoxFunc, setStatus, createPlaylistFromJson, getOpenSaveDialogFunc } from '@back/util/misc';
+import { getOpenMessageBoxFunc, setStatus, createPlaylistFromJson, getOpenSaveDialogFunc, getOpenOpenDialogFunc } from '@back/util/misc';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint';
@@ -136,16 +136,22 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
   };
 
-  const openMessageBox = (options: flashpoint.OpenMessageBoxOptions): Promise<number> => {
+  const showMessageBox = (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
     const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
     if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
     return openDialogFunc(options);
   };
 
-  const openSaveDialog = (options: flashpoint.OpenSaveDialogOptions) => {
-    const saveDialogFunc = getOpenSaveDialogFunc(state.socketServer);
-    if (!saveDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-    return saveDialogFunc(options);
+  const showSaveDialog = (options: flashpoint.ShowSaveDialogOptions) => {
+    const openDialogFunc = getOpenSaveDialogFunc(state.socketServer);
+    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+    return openDialogFunc(options);
+  };
+
+  const showOpenDialog = (options: flashpoint.ShowOpenDialogOptions) => {
+    const openDialogFunc = getOpenOpenDialogFunc(state.socketServer);
+    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+    return openDialogFunc(options);
   };
 
   const getPreferences = () => state.preferences;
@@ -165,8 +171,9 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     status: extStatus,
 
     // Misc Functions
-    openMessageBox: openMessageBox,
-    openSaveDialog: openSaveDialog,
+    showMessageBox: showMessageBox,
+    showSaveDialog: showSaveDialog,
+    showOpenDialog: showOpenDialog,
 
     BrowsePageLayout: BrowsePageLayout,
     LogLevel: LogLevel,

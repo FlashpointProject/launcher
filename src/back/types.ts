@@ -8,7 +8,7 @@ import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
-import { MessageBoxOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
+import { MessageBoxOptions, OpenExternalOptions, SaveDialogOptions, OpenDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
 import * as flashpoint from 'flashpoint';
 import { IncomingMessage, Server, ServerResponse } from 'http';
@@ -142,8 +142,9 @@ export type TagsFile = {
   tags: BareTag[]
 }
 
-export type OpenMessageBoxFunc = (options: MessageBoxOptions) => Promise<number>;
-export type OpenSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
+export type ShowMessageBoxFunc = (options: MessageBoxOptions) => Promise<number>;
+export type ShowSaveDialogFunc = (options: SaveDialogOptions) => Promise<string | undefined>;
+export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[] | undefined>;
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
 
 export type StatusState = {

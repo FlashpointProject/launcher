@@ -1,7 +1,8 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
-import { BackState, OpenMessageBoxFunc, StatusState, OpenSaveDialogFunc } from '@back/types';
+import { SocketServer } from '@back/SocketServer';
+import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
@@ -16,7 +17,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { uuid } from './uuid';
-import { SocketServer } from '@back/SocketServer';
 
 const unlink = promisify(fs.unlink);
 
@@ -300,14 +300,20 @@ export function setStatus<T extends keyof StatusState>(state: BackState, key: T,
   }
 }
 
-export function getOpenMessageBoxFunc(socketServer: SocketServer): OpenMessageBoxFunc | undefined {
+export function getOpenMessageBoxFunc(socketServer: SocketServer): ShowMessageBoxFunc | undefined {
   if (socketServer.lastClient) {
-    return socketServer.openMessageBoxBack(socketServer.lastClient);
+    return socketServer.showMessageBoxBack(socketServer.lastClient);
   }
 }
 
-export function getOpenSaveDialogFunc(socketServer: SocketServer): OpenSaveDialogFunc | undefined {
+export function getOpenSaveDialogFunc(socketServer: SocketServer): ShowSaveDialogFunc | undefined {
   if (socketServer.lastClient) {
-    return socketServer.openSaveDialogBack(socketServer.lastClient);
+    return socketServer.showSaveDialogBack(socketServer.lastClient);
+  }
+}
+
+export function getOpenOpenDialogFunc(socketServer: SocketServer): ShowOpenDialogFunc | undefined {
+  if (socketServer.lastClient) {
+    return socketServer.showOpenDialogFunc(socketServer.lastClient);
   }
 }
