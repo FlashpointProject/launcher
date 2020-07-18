@@ -79,12 +79,12 @@
   },
   "logs": {
     "filters": "篩選",
-    "logLevels": "Log Levels",
-    "copyText": "Copy Text",
-    "clearLog": "Clear Log",
-    "copy404Urls": "Copy 404 URLs",
-    "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "logLevels": "紀錄層級",
+    "copyText": "複製文字",
+    "clearLog": "清除紀錄",
+    "copy404Urls": "複製 404 路徑",
+    "uploadLog": "上傳紀錄",
+    "copiedToClipboard": "已複製到剪貼簿"
   },
   "app": {
     "home": "首頁",
@@ -109,7 +109,7 @@
   },
   "filter": {
     "dateAdded": "新增日期",
-    "dateModified": "Date Modified",
+    "dateModified": "修改日期",
     "platform": "平台",
     "series": "系列",
     "title": "標題",
@@ -223,7 +223,7 @@
     "noOriginalDescription": "無原始敘述",
     "additionalApplications": "額外應用程式",
     "noName": "No Name",
-    "launch": "Launch",
+    "launch": "執行",
     "autoRunBefore": "Auto Run Before",
     "waitForExit": "Wait for Exit",
     "applicationPath": "應用程式路徑",
@@ -391,19 +391,19 @@
     "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
     "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
-    "fileNotFound": "File not found!",
+    "fileNotFound": "找不到檔案！",
     "flashpointPathInvalid": "Flashpoint path invalid!",
-    "pathNotFound": "Path not found!",
+    "pathNotFound": "找不到路徑！",
     "playlistConflict": "Playlist Conflict",
     "importedPlaylistAlreadyExists": "Imported playlist already exists with same name! - '{0}'",
     "importPlaylistAs": "Import playlist as",
     "selectFileToExportMeta": "Select file to save meta to",
     "selectFolderToExportMetaAndImages": "Select folder to save meta and images to",
-    "replaceFilesQuestion": "Replace files?",
+    "replaceFilesQuestion": "要取代檔案嗎？",
     "exportedAlreadyExistsYesNo": "One or more of the exported files already exists.\n Do you want to replace them?",
-    "selectFolder": "Select Folder",
-    "selectScreenshot": "Select Screenshot",
-    "selectThumbnail": "Select Thumbnail",
+    "selectFolder": "選擇資料夾",
+    "selectScreenshot": "選擇截圖",
+    "selectThumbnail": "選擇縮圖",
     "selectCurationFolder": "Select Curation Folder(s)",
     "selectCurationArchive": "Select Curation Archive(s)",
     "selectCurationMeta": "Select Curation Meta(s)",
@@ -419,10 +419,10 @@
     "cancel": "取消",
     "mergePlaylists": "Merge Playlists",
     "newPlaylist": "Stay Seperate",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "uploadPrivacyWarning": "此操作將會公開您的紀錄檔\n並將該連結複製到剪貼簿\n\n確定上傳？",
     "overwriteFileTitle": "File already exists!",
     "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "overwriteFileDetail": "檔案路徑："
   },
   "libraries": {
     "arcade": "遊戲",
@@ -435,9 +435,9 @@
   "upgrades": {
     "infinity": "Flashpoint Infinity",
     "infinityDesc": "Required files. Adds support for Flash games.",
-    "tech": "Other Technologies",
+    "tech": "其他科技",
     "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos & Screenshots",
+    "screenshots": "縮圖與截圖",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
   }
 }
