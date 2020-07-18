@@ -77,7 +77,7 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('developer',            v => parsed.game.developer           = arrayStr(v));
   parser.prop('extreme',              v => parsed.game.extreme             = str(v).toLowerCase() === 'yes' ? true : false);
   parser.prop('game notes',           v => parsed.game.notes               = str(v));
-  parser.prop('languages',            v => parsed.game.language            = str(v));
+  parser.prop('languages',            v => parsed.game.language            = arrayStr(v));
   parser.prop('launch command',       v => parsed.game.launchCommand       = str(v));
   parser.prop('original description', v => parsed.game.originalDescription = str(v));
   parser.prop('play mode',            v => parsed.game.playMode            = arrayStr(v));
@@ -91,9 +91,9 @@ export async function parseCurationMetaFile(data: any, onError?: (error: string)
   parser.prop('alternate titles',     v => parsed.game.alternateTitles     = arrayStr(v));
   parser.prop('version',              v => parsed.game.version             = str(v));
   parser.prop('library',              v => parsed.game.library             = str(v).toLowerCase()); // must be lower case
-  if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(str(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
-  if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(str(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
-  if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(str(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
+  if (lowerCaseData.genre)  { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genre), str(lowerCaseData['tag categories']));  }
+  if (lowerCaseData.genres) { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.genres), str(lowerCaseData['tag categories'])); }
+  if (lowerCaseData.tags)   { parsed.game.tags = await getTagsFromStr(arrayStr(lowerCaseData.tags), str(lowerCaseData['tag categories']));   }
   // property aliases
   parser.prop('animation notes',      v => parsed.game.notes               = str(v));
   // Add-apps
