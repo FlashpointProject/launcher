@@ -349,7 +349,7 @@
     "editDesc": "修改播放清單",
     "delete": "刪除",
     "deleteDesc": "刪除該播放清單",
-    "changeIcon": "Change Playlist Icon",
+    "changeIcon": "更換播放清單的圖標",
     "duplicatePlaylistDesc": "複製播放清單",
     "exportPlaylistDesc": "將此播放清單匯出成一個檔案",
     "areYouSure": "你確定嗎？",
@@ -361,7 +361,7 @@
     "by": "作者︰"
   },
   "misc": {
-    "noBlankFound": "No {0} Found",
+    "noBlankFound": "無法找到「 {0} 」",
     "addBlank": "新增 {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
     "yes": "是",
@@ -376,9 +376,9 @@
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
     "viewScreenshotInFolder": "View Screenshot in Folder",
-    "openFileLocation": "Open File Location",
-    "duplicateMetaOnly": "Duplicate (Meta Only)",
-    "duplicateMetaAndImages": "Duplicate (Meta && Images)",
+    "openFileLocation": "開啟檔案所在位置",
+    "duplicateMetaOnly": "複製 (僅元資料檔)",
+    "duplicateMetaAndImages": "複製 (元資料檔與圖片)",
     "copyGameUUID": "複製遊戲之UUID",
     "exportMetaOnly": "匯出 (僅元資料檔)",
     "exportMetaAndImages": "匯出 (元資料檔與圖片)",
@@ -412,7 +412,7 @@
     "dataRequired": "Additional Data Required",
     "dataRequiredDesc": "使用瀏覽器之前必須先安裝首頁的升級項目\n\n現在就安裝嗎？",
     "upgradeWillInstallTo": "{0} will be installed to",
-    "verifyPathSelection": "Future upgrades will also install here. Is this correct?",
+    "verifyPathSelection": "未來的升級項目也會安裝於此處，確認是否正確？",
     "restartNow": "立即重新啟動嗎？",
     "restartToApplyUpgrade": "此升級項目必須重新啟動始得生效\n\n現在就重新啟動嗎？",
     "areYouSure": "你確定嗎？",
@@ -420,7 +420,7 @@
     "mergePlaylists": "合併播放清單",
     "newPlaylist": "保持分割狀態",
     "uploadPrivacyWarning": "此操作將會公開您的紀錄檔\n並將該連結複製到剪貼簿\n\n確定上傳？",
-    "overwriteFileTitle": "File already exists!",
+    "overwriteFileTitle": "檔案已經存在！",
     "overwriteFileMessage": "相同檔名的檔案已經存在，是否要覆寫它？",
     "overwriteFileDetail": "檔案路徑："
   },
@@ -434,7 +434,7 @@
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity版",
-    "infinityDesc": "Required files. Adds support for Flash games.",
+    "infinityDesc": "必須下載，新增Flash相關遊戲的支援",
     "tech": "其他科技",
     "techDesc": "新增不同遊戲引擎的支援 (Shockwave, Unity, Java, HTML5等)",
     "screenshots": "縮圖與截圖",
