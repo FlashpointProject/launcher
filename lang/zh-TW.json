@@ -120,7 +120,7 @@
   },
   "developer": {
     "developerHeader": "開發商",
-    "developerDesc": "This is where all the useful developer tools will go.",
+    "developerDesc": "這裡有著各種方便的開發工具",
     "checkMissingImages": "檢查圖片缺失",
     "checkMissingImagesDesc": "列出所有無縮圖或截圖的遊戲",
     "checkGameIds": "檢查遊戲編號",
@@ -129,7 +129,7 @@
     "checkGameTitlesDesc": "列出同一平台且有重複標題的遊戲",
     "checkGameFields": "檢查內容欄位",
     "checkGameFieldsDesc": "列出所有缺少部分欄位內容之遊戲(僅限於必填之欄位)",
-    "checkPlaylists": "Check Playlists",
+    "checkPlaylists": "檢查播放清單",
     "checkPlaylistsDesc": "List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs",
     "checkGameFileLocation": "Check Game File Location",
     "checkGameFileLocationDesc": "List all games with launch commands that can not be parsed into file paths (this is related to the 'Open File Location' function, not launching the game)",
