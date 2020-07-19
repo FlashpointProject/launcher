@@ -37,8 +37,8 @@
     "showDeveloperTabDesc": "Show the 'Developer' tab. This is most likely only useful for developers and curators.",
     "server": "伺服器",
     "serverDesc": "Which Server Process to run at launcher startup.",
-    "metadataServerHost": "Metadata Server Host",
-    "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "metadataServerHost": "元資料檔伺服器主機",
+    "metadataServerHostDesc": "放置元資料檔的伺服器主機位置，用來同步新增與更新的遊戲",
     "saveAndRestart": "儲存並重新啟動"
   },
   "home": {
@@ -215,14 +215,14 @@
     "dateModified": "修改日期",
     "brokenInInfinity": "內容毀損(Infinity版本)",
     "extreme": "含有過激內容",
-    "playlistNotes": "Playlist Notes",
-    "noPlaylistNotes": "No Playlist Notes",
+    "playlistNotes": "播放清單備註",
+    "noPlaylistNotes": "無播放清單備註",
     "notes": "備註",
     "noNotes": "無備註",
     "originalDescription": "原始敘述",
     "noOriginalDescription": "無原始敘述",
     "additionalApplications": "額外應用程式",
-    "noName": "No Name",
+    "noName": "無名稱",
     "launch": "執行",
     "autoRunBefore": "Auto Run Before",
     "waitForExit": "Wait for Exit",
@@ -261,7 +261,7 @@
     "noGameMatchedSearch": "Try searching for something less restrictive."
   },
   "tags": {
-    "noName": "No Name",
+    "noName": "無名稱",
     "description": "Description",
     "noDescription": "No Description",
     "category": "分類",
@@ -374,8 +374,8 @@
     "exportMetaEditDesc": "選擇所有要匯出的屬性："
   },
   "menu": {
-    "viewThumbnailInFolder": "View Thumbnail in Folder",
-    "viewScreenshotInFolder": "View Screenshot in Folder",
+    "viewThumbnailInFolder": "於資料夾中查看縮圖",
+    "viewScreenshotInFolder": "於資料夾中查看截圖",
     "openFileLocation": "開啟檔案所在位置",
     "duplicateMetaOnly": "複製 (僅元資料檔)",
     "duplicateMetaAndImages": "複製 (元資料檔與圖片)",
@@ -383,7 +383,7 @@
     "exportMetaOnly": "匯出 (僅元資料檔)",
     "exportMetaAndImages": "匯出 (元資料檔與圖片)",
     "exportMetaEdit": "匯出元資料檔修改",
-    "duplicatePlaylist": "Duplicate Playlist",
+    "duplicatePlaylist": "複製播放清單",
     "exportPlaylist": "匯出播放清單"
   },
   "dialog": {
@@ -392,10 +392,10 @@
     "wineNotFound": "以遊戲需要以Wine執行，但Wine尚未被安裝\n查看維基上的Linux支援文章來取得更詳細的解說",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "找不到檔案！",
-    "flashpointPathInvalid": "Flashpoint path invalid!",
+    "flashpointPathInvalid": "Flashpoint 路徑無效！",
     "pathNotFound": "找不到路徑！",
-    "playlistConflict": "Playlist Conflict",
-    "importedPlaylistAlreadyExists": "Imported playlist already exists with same name! - '{0}'",
+    "playlistConflict": "播放清單衝突",
+    "importedPlaylistAlreadyExists": "所匯入的播放清單已存在相同名稱之內容！ - '{0}'",
     "importPlaylistAs": "Import playlist as",
     "selectFileToExportMeta": "選擇要儲存圖片的資料夾",
     "selectFolderToExportMetaAndImages": "選擇要儲存圖片與元資料檔的資料夾",
