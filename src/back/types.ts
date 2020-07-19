@@ -151,10 +151,15 @@ export type StatusState = {
   devConsoleText: string;
 }
 
-export type ApiEmittersState = {
-  games: {
+export type ApiEmittersState = Readonly<{
+  onDidInit: ApiEmitter<void>;
+  onWillExit: ApiEmitter<void>;
+  games: Readonly<{
     onDidLaunchGame: ApiEmitter<flashpoint.Game>;
-    onDidUpdateGame: ApiEmitter<flashpoint.Game>;
+    onDidUpdateGame: ApiEmitter<{oldGame: flashpoint.Game, newGame: flashpoint.Game}>;
     onDidRemoveGame: ApiEmitter<flashpoint.Game>;
-  }
-}
+    onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>,
+    onDidUpdatePlaylistGame: ApiEmitter<{oldGame: flashpoint.PlaylistGame, newGame: flashpoint.PlaylistGame}>,
+    onDidRemovePlaylistGame: ApiEmitter<flashpoint.PlaylistGame>,
+  }>,
+}>

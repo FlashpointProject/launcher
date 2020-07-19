@@ -22,6 +22,8 @@ import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState): typeof flashpoint {
   const { registry, apiEmitters } = state;
 
+  const getPreferences = () => state.preferences;
+
   // Log Namespace
   const extLog: typeof flashpoint.log = {
     trace: (message: string) => addExtLog(newExtLog(extManifest, message, log.trace)),
@@ -136,6 +138,7 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
   };
 
+  // Functions
   const showMessageBox = (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
     const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
     if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
@@ -154,8 +157,6 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     return openDialogFunc(options);
   };
 
-  const getPreferences = () => state.preferences;
-
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
@@ -170,10 +171,14 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     tags: extTags,
     status: extStatus,
 
-    // Misc Functions
+    // Functions
     showMessageBox: showMessageBox,
     showSaveDialog: showSaveDialog,
     showOpenDialog: showOpenDialog,
+
+    // Events
+    onDidInit: apiEmitters.onDidInit.event,
+    onWillExit: apiEmitters.onWillExit.event,
 
     BrowsePageLayout: BrowsePageLayout,
     LogLevel: LogLevel,

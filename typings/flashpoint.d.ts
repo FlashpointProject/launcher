@@ -73,8 +73,12 @@ declare module 'flashpoint' {
 
     // Events
     export const onDidLaunchGame: Event<Game>;
-    export const onDidUpdateGame: Event<Game>;
+    export const onDidUpdateGame: Event<{oldGame: Game, newGame: Game}>;
     export const onDidRemoveGame: Event<Game>;
+
+    export const onDidUpdatePlaylist: Event<{oldPlaylist: Playlist, newPlaylist: Playlist}>;
+    export const onDidUpdatePlaylistGame: Event<{oldGame: PlaylistGame, newGame: PlaylistGame}>;
+    export const onDidRemovePlaylistGame: Event<PlaylistGame>;
   }
 
   export namespace tags {
@@ -100,6 +104,15 @@ declare module 'flashpoint' {
     // Misc
     export function mergeTags(mergeData: MergeTagData): Promise<Tag | undefined>;
   }
+
+  // Functions
+  export function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
+  export function showSaveDialog(options: ShowSaveDialogOptions): Promise<string | undefined>;
+  export function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
+
+  // Events
+  export const onDidInit: Event<void>;
+  export const onWillExit: Event<void>;
 
   export type ShowMessageBoxOptions = {
     title?: string;
@@ -132,10 +145,6 @@ declare module 'flashpoint' {
     properties?: Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles' | 'createDirectory' | 'promptToCreate' | 'noResolveAliases' | 'treatPackageAsDirectory' | 'dontAddToRecent'>;
     message?: string;
   }
-
-  export function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
-  export function showSaveDialog(options: ShowSaveDialogOptions): Promise<string | undefined>;
-  export function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
 
   export type Game = {
     /** ID of the game (unique identifier) */

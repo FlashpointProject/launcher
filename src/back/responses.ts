@@ -1194,6 +1194,7 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.QUIT,
     });
+    state.apiEmitters.onWillExit.fire();
     exit(state);
   });
 

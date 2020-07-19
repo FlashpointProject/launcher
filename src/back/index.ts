@@ -34,6 +34,7 @@ import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
+import { GameManager } from './game/GameManager';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
@@ -43,6 +44,7 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+// Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
 
@@ -105,10 +107,15 @@ const state: BackState = {
     factories: new Map<string, INodeModuleFactory>(),
   },
   apiEmitters: {
+    onDidInit: new ApiEmitter<void>(),
+    onWillExit: new ApiEmitter<void>(),
     games: {
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
-      onDidUpdateGame: new ApiEmitter<flashpoint.Game>(),
-      onDidRemoveGame: new ApiEmitter<flashpoint.Game>(),
+      onDidUpdateGame: GameManager.onDidUpdateGame,
+      onDidRemoveGame: GameManager.onDidRemoveGame,
+      onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
+      onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
+      onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
     }
   },
   status: {
@@ -432,7 +439,10 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Respond
-  send(state.socketServer.port);
+  send(state.socketServer.port, () => {
+    state.apiEmitters.onDidInit.fire();
+  });
+
 }
 
 function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
