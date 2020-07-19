@@ -298,7 +298,7 @@
     "newCuration": "新增上傳檔案",
     "newCurationDesc": "建立一個全新的上傳檔案之資料夾",
     "loadMeta": "讀取元資料檔",
-    "loadMetaDesc": "Load one or more Curation meta files",
+    "loadMetaDesc": "讀取單一或多個上傳檔案之元資料檔",
     "loadArchive": "Load Archive",
     "loadArchiveDesc": "Load one or more Curation archives",
     "loadFolder": "讀取資料夾",
@@ -371,7 +371,7 @@
     "installingFiles": "正在安裝檔案...",
     "complete": "已完成",
     "exportMetaEditTitle": "匯出元資料檔修改",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "exportMetaEditDesc": "選擇所有要匯出的屬性："
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
@@ -397,8 +397,8 @@
     "playlistConflict": "Playlist Conflict",
     "importedPlaylistAlreadyExists": "Imported playlist already exists with same name! - '{0}'",
     "importPlaylistAs": "Import playlist as",
-    "selectFileToExportMeta": "Select file to save meta to",
-    "selectFolderToExportMetaAndImages": "Select folder to save meta and images to",
+    "selectFileToExportMeta": "選擇要儲存圖片的資料夾",
+    "selectFolderToExportMetaAndImages": "選擇要儲存圖片與元資料檔的資料夾",
     "replaceFilesQuestion": "要取代檔案嗎？",
     "exportedAlreadyExistsYesNo": "以下的匯出檔案已經存在，是否要取代？",
     "selectFolder": "選擇資料夾",
@@ -406,7 +406,7 @@
     "selectThumbnail": "選擇縮圖",
     "selectCurationFolder": "Select Curation Folder(s)",
     "selectCurationArchive": "Select Curation Archive(s)",
-    "selectCurationMeta": "Select Curation Meta(s)",
+    "selectCurationMeta": "選擇上傳檔案之元資料檔",
     "selectPlaylistToImport": "Select Playlist to Import",
     "selectFileToExportPlaylist": "Select file to save the Playlist to",
     "dataRequired": "Additional Data Required",
