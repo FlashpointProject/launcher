@@ -26,13 +26,6 @@ declare module 'flashpoint' {
   type StatusState = {
     devConsoleText: string;
   }
-  export namespace status {
-    /** Text displayed on the Developer Page console */
-    export const devConsoleText: string;
-
-    /** Update any status in the Status State */
-    export function setStatus<T extends keyof StatusState>(key: T, val: StatusState[T]): void;
-  }
 
   export namespace commands {
     /**
@@ -73,6 +66,10 @@ declare module 'flashpoint' {
 
     // Events
     export const onDidLaunchGame: Event<Game>;
+    export const onDidLaunchAddApp: Event<AdditionalApp>;
+    export const onDidLaunchCurationGame: Event<Game>;
+    export const onDidLaunchCurationAddApp: Event<AdditionalApp>;
+
     export const onDidUpdateGame: Event<{oldGame: Game, newGame: Game}>;
     export const onDidRemoveGame: Event<Game>;
 
@@ -103,6 +100,20 @@ declare module 'flashpoint' {
 
     // Misc
     export function mergeTags(mergeData: MergeTagData): Promise<Tag | undefined>;
+  }
+
+
+  export namespace status {
+    /** Text displayed on the Developer Page console */
+    export const devConsoleText: string;
+
+    /** Update any status in the Status State */
+    export function setStatus<T extends keyof StatusState>(key: T, val: StatusState[T]): void;
+  }
+
+  export namespace services {
+    export function runService(name: string, info: ProcessInfo): ManagedChildProcess;
+    export function removeService(process: ManagedChildProcess): Promise<void>;
   }
 
   // Functions
@@ -511,6 +522,52 @@ declare module 'flashpoint' {
     height?: number;
     maximized: boolean;
   };
+
+  export type ProcessInfo = {
+    /** Path of the file (relative to the Flashpoint root) */
+    path: string;
+    /** Name of the file to execute */
+    filename: string;
+    /** Arguments to pass to the process */
+    arguments: string[];
+  };
+
+  export class ManagedChildProcess {
+    public id: string;
+    public info: ProcessInfo;
+    /** Display name of the service. */
+    public readonly name: string;
+
+    constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: ProcessInfo);
+
+    /** Get the process ID (or -1 if the process is not running). */
+    public getPid(): number;
+
+    /** Get the state of the process. */
+    public getState(): ProcessState;
+
+    /** Get the time timestamp of when the process was started. */
+    public getStartTime(): number;
+
+    /** Spawn process and keep track on it. */
+    public spawn(auto?: boolean): void;
+
+    /** Politely ask the child process to exit (if it is running). */
+    public kill(): void;
+
+    /** Restart the managed child process (by killing the current, and spawning a new). */
+    public restart(): void;
+  }
+
+  /** State of a managed process. */
+  export enum ProcessState {
+    /** The process is not running. */
+    STOPPED = 0,
+    /** The process is running. */
+    RUNNING = 1,
+    /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
+    KILLING = 2
+  }
 
   /** Modes for displaying the game collection at the BrowsePage */
   export enum BrowsePageLayout {

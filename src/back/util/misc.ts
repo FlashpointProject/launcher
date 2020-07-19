@@ -105,10 +105,9 @@ export function exit(state: BackState): void {
 
     if (state.serviceInfo) {
       // Kill services
-      if (state.serviceInfo.server.length > 0) {
-        const server = state.serviceInfo.server.find(i => i.name === state.config.server) || state.serviceInfo.server[0];
-        if (state.services.server && server && server.kill) {
-          state.services.server.kill();
+      for (const service of state.services.values()) {
+        if (service.info.kill) {
+          service.kill();
         }
       }
       // Run stop commands
@@ -244,15 +243,20 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return chunks;
 }
 
-export function runService(state: BackState, id: string, name: string, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+export function runService(state: BackState, id: string, name: string, basePath: string, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+  // Already exists, bad!
+  if (state.services.has(id)) {
+    throw new Error(`Service already running! (ID: "${id}")`);
+  }
   const proc = new ManagedChildProcess(
     id,
     name,
-    path.join(state.config.flashpointPath, info.path),
+    path.join(basePath, info.path),
     false,
     true,
     info
   );
+  state.services.set(id, proc);
   proc.on('output', (entry) => { log.info(entry.source, entry.content); });
   proc.on('change', () => {
     state.socketServer.broadcast<IService>({
@@ -268,6 +272,19 @@ export function runService(state: BackState, id: string, name: string, info: INa
               `  ${error.toString()}`);
   }
   return proc;
+}
+
+export async function removeService(state: BackState, processId: string): Promise<void> {
+  const service = state.services.get(processId);
+  if (service) {
+    await waitForServiceDeath(service);
+    state.services.delete(processId);
+    state.socketServer.broadcast<string>({
+      id: '',
+      type: BackOut.SERVICE_REMOVED,
+      data: processId,
+    });
+  }
 }
 
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {

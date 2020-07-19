@@ -81,6 +81,7 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
+      log.info('TEST', `${this.cwd} - ${this.info.filename}`);
       this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached });
       // Set start timestamp
       this.startTime = Date.now();
@@ -102,7 +103,7 @@ export class ManagedChildProcess extends EventEmitter {
         const wasRunning = (this.state === ProcessState.RUNNING);
         this.process = undefined;
         this.setState(ProcessState.STOPPED);
-        if (this.autoRestart && wasRunning) {
+        if (this.autoRestart && wasRunning && code) {
           if (this.autoRestartCount < MAX_RESTARTS) {
             this.autoRestartCount++;
             this.spawn(true);

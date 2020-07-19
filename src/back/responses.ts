@@ -10,7 +10,7 @@ import { stringifyCurationFormat } from '@shared/curate/format/stringifier';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { FilterGameOpts } from '@shared/game/GameFilter';
-import { DeepPartial, GamePropSuggestions, INamedBackProcessInfo, IService, ProcessAction } from '@shared/interfaces';
+import { DeepPartial, GamePropSuggestions, ProcessAction } from '@shared/interfaces';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
@@ -34,7 +34,7 @@ import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
 import { BackState, BareTag, TagsFile } from './types';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, removeService, runService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -81,9 +81,6 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event, req) => {
-    const services: IService[] = [];
-    if (state.services.server) { services.push(procToService(state.services.server)); }
-
     state.languageContainer = createContainer(
       state.languages,
       state.preferences.currentLanguage,
@@ -107,7 +104,7 @@ export function registerRequestCallbacks(state: BackState): void {
         config: state.config,
         fileServerPort: state.fileServerPort,
         log: state.log,
-        services: services,
+        services: Array.from(state.services.values()).map(s => procToService(s)),
         customVersion: state.customVersion,
         languages: state.languages,
         language: state.languageContainer,
@@ -224,6 +221,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
+      state.apiEmitters.games.onDidLaunchAddApp.fire(addApp);
     }
 
     respond(event.target, {
@@ -241,11 +239,11 @@ export function registerRequestCallbacks(state: BackState): void {
       // Make sure Server is set to configured server - Curations may have changed it
       const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
       if (configServer) {
-        const info: INamedBackProcessInfo = state.services.server.info;
-        if (info.name !== configServer.name) {
+        const server = state.services.get('server');
+        if (!server || !('name' in server.info) || server.info.name !== configServer.name) {
           // Server is different, change now
-          await waitForServiceDeath(state.services.server);
-          state.services.server = runService(state, 'server', 'Server', configServer);
+          if (server) { await removeService(state, 'server'); }
+          runService(state, 'server', 'Server', state.config.flashpointPath, configServer);
         }
       }
       // Launch game
@@ -812,7 +810,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<ServiceActionData>(BackIn.SERVICE_ACTION, (event, req) => {
-    const proc = state.services[req.data.id];
+    const proc = state.services.get(req.data.id);
     if (proc) {
       switch (req.data.action) {
         case ProcessAction.START:
@@ -1066,19 +1064,20 @@ export function registerRequestCallbacks(state: BackState): void {
         // Make sure all 3 relevant server infos are present before considering MAD4FP opt
         const configServer = state.serviceInfo.server.find(s => s.name === state.config.server);
         const mad4fpServer = state.serviceInfo.server.find(s => s.mad4fp);
-        const activeServer: INamedBackProcessInfo | undefined = state.services.server?.info;
+        const activeServer = state.services.get('server');
+        const activeServerInfo = state.serviceInfo.server.find(s => (activeServer && 'name' in activeServer.info && s.name === activeServer.info?.name));
         if (activeServer && configServer && mad4fpServer) {
-          if (req.data.mad4fp && !activeServer.mad4fp) {
+          if (req.data.mad4fp && activeServerInfo && !activeServerInfo.mad4fp) {
             // Swap to mad4fp server
-            await waitForServiceDeath(state.services.server);
             const mad4fpServerCopy = deepCopy(mad4fpServer);
             // Set the content folder path as the final parameter
             mad4fpServerCopy.arguments.push(getContentFolderByKey(req.data.key, state.config.flashpointPath));
-            state.services.server = runService(state, 'server', 'Server', mad4fpServerCopy);
-          } else if (!req.data.mad4fp && activeServer.mad4fp && !configServer.mad4fp) {
+            await removeService(state, 'server');
+            runService(state, 'server', 'Server', state.config.flashpointPath, mad4fpServerCopy);
+          } else if (!req.data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
             // Swap to mad4fp server
-            await waitForServiceDeath(state.services.server);
-            state.services.server = runService(state, 'server', 'Server', configServer);
+            await removeService(state, 'server');
+            runService(state, 'server', 'Server', state.config.flashpointPath, configServer);
           }
         }
       }
@@ -1092,7 +1091,8 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
-      });
+      },
+      state.apiEmitters.games.onDidLaunchCurationGame);
     } catch (e) {
       log.error('Launcher', e + '');
     }
@@ -1117,7 +1117,8 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
-      });
+      },
+      state.apiEmitters.games.onDidLaunchCurationAddApp);
     } catch (e) {
       log.error('Launcher', e + '');
     }

@@ -1,16 +1,16 @@
 import { GameManager } from '@back/game/GameManager';
 import { TagManager } from '@back/game/TagManager';
+import { ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
-import { getOpenMessageBoxFunc, setStatus, createPlaylistFromJson, getOpenSaveDialogFunc, getOpenOpenDialogFunc } from '@back/util/misc';
+import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
+import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
+import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint';
-import { ApiEvent } from './ApiEvent';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
-import { MergeTagData } from '@shared/back/types';
-import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
  * @param extManifest Manifest of the caller
@@ -19,7 +19,7 @@ import { BrowsePageLayout } from '@shared/BrowsePageLayout';
  * @param version Version of the Flashpoint Launcher
  * @returns API Implementation specific to the caller
  */
-export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState): typeof flashpoint {
+export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
   const { registry, apiEmitters } = state;
 
   const getPreferences = () => state.preferences;
@@ -83,15 +83,33 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     createPlaylistFromJson: createPlaylistFromJson,
 
     // Events
-    get onDidLaunchGame(): ApiEvent<flashpoint.Game> {
+    get onDidLaunchGame() {
       return apiEmitters.games.onDidLaunchGame.event;
     },
-    get onDidUpdateGame(): ApiEvent<flashpoint.Game> {
+    get onDidLaunchAddApp() {
+      return apiEmitters.games.onDidLaunchAddApp.event;
+    },
+    get onDidLaunchCurationGame() {
+      return apiEmitters.games.onDidLaunchCurationGame.event;
+    },
+    get onDidLaunchCurationAddApp() {
+      return apiEmitters.games.onDidLaunchCurationAddApp.event;
+    },
+    get onDidUpdateGame() {
       return apiEmitters.games.onDidUpdateGame.event;
     },
-    get onDidRemoveGame(): ApiEvent<flashpoint.Game> {
+    get onDidRemoveGame() {
       return apiEmitters.games.onDidRemoveGame.event;
-    }
+    },
+    get onDidUpdatePlaylist() {
+      return apiEmitters.games.onDidUpdatePlaylist.event;
+    },
+    get onDidUpdatePlaylistGame() {
+      return apiEmitters.games.onDidUpdatePlaylistGame.event;
+    },
+    get onDidRemovePlaylistGame() {
+      return apiEmitters.games.onDidRemovePlaylistGame.event;
+    },
   };
 
   const extTags: typeof flashpoint.tags = {
@@ -138,6 +156,17 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
   };
 
+  const extServices: typeof flashpoint.services = {
+    runService: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
+      const id = `${extManifest.name}.${name}`;
+      return runService(state, id, name, basePath || extPath || state.config.flashpointPath, {
+        ...info,
+        kill: true
+      });
+    },
+    removeService: (process: flashpoint.ManagedChildProcess) => removeService(state, process.id),
+  };
+
   // Functions
   const showMessageBox = (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
     const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
@@ -170,6 +199,7 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     games: extGames,
     tags: extTags,
     status: extStatus,
+    services: extServices,
 
     // Functions
     showMessageBox: showMessageBox,
@@ -180,6 +210,11 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     onDidInit: apiEmitters.onDidInit.event,
     onWillExit: apiEmitters.onWillExit.event,
 
+    // Classes
+    ManagedChildProcess: ManagedChildProcess,
+
+    // Enums
+    ProcessState: ProcessState,
     BrowsePageLayout: BrowsePageLayout,
     LogLevel: LogLevel,
 

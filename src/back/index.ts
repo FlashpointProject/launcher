@@ -35,6 +35,7 @@ import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import { GameManager } from './game/GameManager';
+import { ManagedChildProcess } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
@@ -44,6 +45,7 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+// Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
@@ -90,7 +92,7 @@ const state: BackState = {
   queries: {},
   log: [],
   serviceInfo: undefined,
-  services: {},
+  services: new Map<string, ManagedChildProcess>(),
   languageWatcher: new FolderWatcher(),
   languageQueue: new EventQueue(),
   languages: [],
@@ -111,6 +113,9 @@ const state: BackState = {
     onWillExit: new ApiEmitter<void>(),
     games: {
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
+      onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
+      onDidLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidUpdateGame: GameManager.onDidUpdateGame,
       onDidRemoveGame: GameManager.onDidRemoveGame,
       onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
@@ -231,7 +236,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // Run processes
     if (state.serviceInfo.server.length > 0) {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
-      state.services.server = runService(state, 'server', 'Server', chosenServer || state.serviceInfo.server[0]);
+      runService(state, 'server', 'Server', state.config.flashpointPath, chosenServer || state.serviceInfo.server[0]);
     }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {

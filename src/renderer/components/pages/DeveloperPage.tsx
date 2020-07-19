@@ -173,7 +173,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   onServiceUpdate = (response: WrappedResponse<ServiceChangeData>) => {
-    if (response.type === BackOut.SERVICE_CHANGE) { this.forceUpdate(); }
+    if (response.type === BackOut.SERVICE_CHANGE || response.type === BackOut.SERVICE_REMOVED) { this.forceUpdate(); }
   }
 
   onCheckMissingImagesClick = async (): Promise<void> => {

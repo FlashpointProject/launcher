@@ -53,7 +53,7 @@ export type BackState = {
   queries: Record<string, BackQueryChache>;
   log: ILogEntry[];
   serviceInfo?: ServiceFileData;
-  services: Record<string, ManagedChildProcess>;
+  services: Map<string, ManagedChildProcess>;
   languageWatcher: FolderWatcher;
   languageQueue: EventQueue;
   languages: LangFile[];
@@ -156,6 +156,9 @@ export type ApiEmittersState = Readonly<{
   onWillExit: ApiEmitter<void>;
   games: Readonly<{
     onDidLaunchGame: ApiEmitter<flashpoint.Game>;
+    onDidLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
+    onDidLaunchCurationGame: ApiEmitter<flashpoint.Game>;
+    onDidLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidUpdateGame: ApiEmitter<{oldGame: flashpoint.Game, newGame: flashpoint.Game}>;
     onDidRemoveGame: ApiEmitter<flashpoint.Game>;
     onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>,

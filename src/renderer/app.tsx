@@ -201,6 +201,14 @@ export class App extends React.Component<AppProps> {
           } else { throw new Error('Service update did not reference a service.'); }
         } break;
 
+        case BackOut.SERVICE_REMOVED: {
+          const id: string = res.data;
+          const index = window.Shared.services.findIndex(s => s.id === id);
+          if (index > -1) {
+            window.Shared.services.splice(index, 1);
+          }
+        } break;
+
         case BackOut.LANGUAGE_CHANGE: {
           const resData: LanguageChangeData = res.data;
           this.props.dispatchMain({
