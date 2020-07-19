@@ -1,5 +1,5 @@
 {
-  "name": "英語",
+  "name": "繁體中文",
   "config": {
     "configHeader": "設定",
     "configDesc": "(必須點擊最下方的「儲存並重新啟動」始得生效)",
@@ -279,7 +279,7 @@
     "mergeTag": "合併標籤",
     "makeAliasWhenMerged": "Make this an alias of the tag?",
     "deleteTag": "刪除標籤",
-    "deleteTagCategory": "Delete Tag Category",
+    "deleteTagCategory": "刪除標籤類別",
     "locked": "Locked while processing..."
   },
   "curate": {
@@ -339,19 +339,19 @@
     "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder."
   },
   "playlist": {
-    "enterDescriptionHere": "Enter a description here...",
-    "noDescription": "No Description",
+    "enterDescriptionHere": "在此輸入敘述...",
+    "noDescription": "無敘述",
     "save": "儲存",
-    "saveDesc": "Save changes made and stop editing",
+    "saveDesc": "保存所有改動並停止修改",
     "discard": "取消",
-    "discardDesc": "Discard changes made and stop editing",
+    "discardDesc": "捨棄所有改動並停止修改",
     "edit": "修改",
     "editDesc": "修改播放清單",
     "delete": "刪除",
     "deleteDesc": "刪除該播放清單",
     "changeIcon": "Change Playlist Icon",
     "duplicatePlaylistDesc": "複製播放清單",
-    "exportPlaylistDesc": "Export playlist to a file",
+    "exportPlaylistDesc": "將此播放清單匯出成一個檔案",
     "areYouSure": "你確定嗎？",
     "noTitle": "無標題",
     "titlePlaceholder": "標題...",
@@ -370,7 +370,7 @@
     "extracting": "正在解壓縮",
     "installingFiles": "正在安裝檔案...",
     "complete": "已完成",
-    "exportMetaEditTitle": "Export Meta Edit",
+    "exportMetaEditTitle": "匯出元資料檔修改",
     "exportMetaEditDesc": "Select all properties to export:"
   },
   "menu": {
