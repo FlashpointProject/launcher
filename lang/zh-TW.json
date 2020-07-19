@@ -333,7 +333,7 @@
     "unusedApplicationPath": "'Application Path' has an unused value. Make sure it's spelled correctly!",
     "unusedTags": "所使用的標籤並未在其他遊戲出現過，這些標籤是正確的嗎？",
     "unusedPlatform": "'Platform' has an unused value. Make sure it's spelled correctly!",
-    "nonExistingLibrary": "'Library' is not the name of an existing library! (Default will be used)",
+    "nonExistingLibrary": "「Library」並非現有收藏庫的名稱！ (將會使用預設值)",
     "nonContentFolders": "在上傳檔案的資料夾中存在非內容相關之資料夾，確定這些應該在此處嗎？",
     "ilc_notHttp": "網址請使用http作為開頭",
     "ilc_nonExistant": "請將路徑指向「content」資料夾內所存在的上傳檔案"
@@ -362,7 +362,7 @@
   },
   "misc": {
     "noBlankFound": "No {0} Found",
-    "addBlank": "Add {0}",
+    "addBlank": "新增 {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
     "yes": "是",
     "no": "否",
@@ -379,17 +379,17 @@
     "openFileLocation": "Open File Location",
     "duplicateMetaOnly": "Duplicate (Meta Only)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
-    "copyGameUUID": "Copy Game UUID",
-    "exportMetaOnly": "Export (Meta Only)",
-    "exportMetaAndImages": "Export (Meta && Images)",
+    "copyGameUUID": "複製遊戲之UUID",
+    "exportMetaOnly": "匯出 (僅元資料檔)",
+    "exportMetaAndImages": "匯出 (元資料檔與圖片)",
     "exportMetaEdit": "匯出元資料檔修改",
     "duplicatePlaylist": "Duplicate Playlist",
     "exportPlaylist": "匯出播放清單"
   },
   "dialog": {
-    "programNotFound": "Program not found!",
+    "programNotFound": "無法找到應用程式！",
     "phpNotFound": "無法在該路徑找到PHP程式，確認已經安裝了嗎？\n在沒有該程式的情況下可能會遇到一些無法預期的錯誤",
-    "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
+    "wineNotFound": "以遊戲需要以Wine執行，但Wine尚未被安裝\n查看維基上的Linux支援文章來取得更詳細的解說",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "找不到檔案！",
     "flashpointPathInvalid": "Flashpoint path invalid!",
@@ -417,8 +417,8 @@
     "restartToApplyUpgrade": "此升級項目必須重新啟動始得生效\n\n現在就重新啟動嗎？",
     "areYouSure": "你確定嗎？",
     "cancel": "取消",
-    "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate",
+    "mergePlaylists": "合併播放清單",
+    "newPlaylist": "保持分割狀態",
     "uploadPrivacyWarning": "此操作將會公開您的紀錄檔\n並將該連結複製到剪貼簿\n\n確定上傳？",
     "overwriteFileTitle": "File already exists!",
     "overwriteFileMessage": "相同檔名的檔案已經存在，是否要覆寫它？",
@@ -433,11 +433,11 @@
     "auditoriumPlural": "所有Newgrounds 動畫"
   },
   "upgrades": {
-    "infinity": "Flashpoint Infinity",
+    "infinity": "Flashpoint Infinity版",
     "infinityDesc": "Required files. Adds support for Flash games.",
     "tech": "其他科技",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
+    "techDesc": "新增不同遊戲引擎的支援 (Shockwave, Unity, Java, HTML5等)",
     "screenshots": "縮圖與截圖",
-    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+    "screenshotsDesc": "新增格狀顯示的縮圖與遊戲截圖"
   }
 }
