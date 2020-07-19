@@ -755,7 +755,7 @@ async function loadCurationFolder(key: string, fullPath: string, defaultGameMeta
   // Read in images
   for (const file of files.filter(f => f.isFile())) {
     const filePath = path.join(fullPath, file.name);
-    switch (file.name) {
+    switch (file.name.toLowerCase()) {
       case 'logo.png': {
         const image = createCurationIndexImage();
         image.fileName = path.basename(filePath);
