@@ -287,7 +287,7 @@
     "importAllDesc": "Import all curations that are currently loaded",
     "deleteAll": "刪除全部",
     "deleteAllDesc": "Delete all curations that are currently loaded",
-    "saveImportedCurations": "Save Imported Curations",
+    "saveImportedCurations": "保存已匯入之上傳檔案",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "上傳檔案之資料夾",
     "openCurationsFolderDesc": "開啟上傳檔案之資料夾",
@@ -302,7 +302,7 @@
     "loadArchive": "Load Archive",
     "loadArchiveDesc": "Load one or more Curation archives",
     "loadFolder": "讀取資料夾",
-    "loadFolderDesc": "Load one or more Curation folders",
+    "loadFolderDesc": "讀取單一或多個上傳檔案之資料夾",
     "noCurations": "無上傳檔案",
     "id": "上傳檔案之資料夾",
     "heading": "標題",
@@ -334,9 +334,9 @@
     "unusedTags": "所使用的標籤並未在其他遊戲出現過，這些標籤是正確的嗎？",
     "unusedPlatform": "'Platform' has an unused value. Make sure it's spelled correctly!",
     "nonExistingLibrary": "'Library' is not the name of an existing library! (Default will be used)",
-    "nonContentFolders": "Non-Content folders found in Curation folder. Are they supposed to be there?",
+    "nonContentFolders": "在上傳檔案的資料夾中存在非內容相關之資料夾，確定這些應該在此處嗎？",
     "ilc_notHttp": "網址請使用http作為開頭",
-    "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder."
+    "ilc_nonExistant": "請將路徑指向「content」資料夾內所存在的上傳檔案"
   },
   "playlist": {
     "enterDescriptionHere": "在此輸入敘述...",
