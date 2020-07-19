@@ -117,7 +117,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   await (async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
     for (const pair of contentToMove) {
-      await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
+      await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
+      // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
   })()
   .then(async () => {
