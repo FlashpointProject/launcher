@@ -24,8 +24,8 @@
     "randomLibraries": "Random Libraries",
     "randomLibrariesDesc": "Libraries to use for Random Picks on the home page.",
     "platforms": "平台",
-    "nativePlatforms": "Native Platforms",
-    "nativePlatformsDesc": "Use Native versions of these platforms. (If not available it will use Wine)",
+    "nativePlatforms": "使用原生應用程式平台",
+    "nativePlatformsDesc": "使原生版本之應用程式來執行(若不存在時將使用Wine)",
     "visualsHeader": "外觀",
     "useCustomTitleBar": "使用自訂標題列",
     "useCustomTitleBarDesc": "於此視窗的上方使用Flashpoint的自訂標題列",
@@ -42,7 +42,7 @@
     "saveAndRestart": "儲存並重新啟動"
   },
   "home": {
-    "updateHeader": "Launcher Update",
+    "updateHeader": "瀏覽器更新",
     "currentVersion": "當前版本",
     "nextVersion": "下一版本",
     "updateAvailable": "有可用的更新",
@@ -127,7 +127,7 @@
     "checkGameIdsDesc": "列出所有重複或是有著無效編號的遊戲",
     "checkGameTitles": "檢查遊戲標題",
     "checkGameTitlesDesc": "列出同一平台且有重複標題的遊戲",
-    "checkGameFields": "Check Game Fields",
+    "checkGameFields": "檢查內容欄位",
     "checkGameFieldsDesc": "列出所有缺少部分欄位內容之遊戲(僅限於必填之欄位)",
     "checkPlaylists": "Check Playlists",
     "checkPlaylistsDesc": "List all playlists with duplicate or invalid IDs, or that has game entries with missing, invalid or duplicate IDs",
