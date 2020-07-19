@@ -127,6 +127,22 @@ export class ExtensionService {
     }
   }
 
+  public async unloadAll(): Promise<void> {
+    if (this._installedExtensionsReady.isOpen()) {
+      for (const ext of this._extensions) {
+        // Run deactivation function
+        const extData = this._extensionData[ext.id];
+        const entryPath = getExtensionEntry(ext);
+        const extModule: ExtensionModule = await import(entryPath);
+        if (extModule.deactivate) {
+          await Promise.resolve(extModule.deactivate.apply(global));
+        }
+        // Dispose of all subscriptions the extension made
+        dispose(extData.subscriptions);
+      }
+    }
+  }
+
   private _getExtensionData(extId: string): ExtensionData {
     return this._extensionData[extId] || {
       extId: extId,

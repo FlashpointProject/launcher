@@ -112,7 +112,8 @@ declare module 'flashpoint' {
   }
 
   export namespace services {
-    export function runService(name: string, info: ProcessInfo): ManagedChildProcess;
+    export function runService(name: string, info: ProcessInfo, basePath?: string): ManagedChildProcess;
+    export function runProcess(name: string, info: ProcessInfo, basePath?: string): DisposableChildProcess;
     export function removeService(process: ManagedChildProcess): Promise<void>;
   }
 
@@ -123,7 +124,6 @@ declare module 'flashpoint' {
 
   // Events
   export const onDidInit: Event<void>;
-  export const onWillExit: Event<void>;
 
   export type ShowMessageBoxOptions = {
     title?: string;
@@ -531,6 +531,13 @@ declare module 'flashpoint' {
     /** Arguments to pass to the process */
     arguments: string[];
   };
+
+
+  export class DisposableChildProcess extends ManagedChildProcess implements Disposable {
+    public toDispose: Disposable[];
+    public isDisposed: boolean;
+    public onDispose: () => void;
+  }
 
   export class ManagedChildProcess {
     public id: string;

@@ -153,7 +153,6 @@ export type StatusState = {
 
 export type ApiEmittersState = Readonly<{
   onDidInit: ApiEmitter<void>;
-  onWillExit: ApiEmitter<void>;
   games: Readonly<{
     onDidLaunchGame: ApiEmitter<flashpoint.Game>;
     onDidLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;

@@ -1,6 +1,6 @@
 import { GameManager } from '@back/game/GameManager';
 import { TagManager } from '@back/game/TagManager';
-import { ManagedChildProcess } from '@back/ManagedChildProcess';
+import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
@@ -9,6 +9,7 @@ import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import * as flashpoint from 'flashpoint';
+import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
 /**
@@ -164,6 +165,13 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
         kill: true
       });
     },
+    runProcess: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
+      const id = `${extManifest.name}.${name}`;
+      const cwd = path.join(basePath || extPath || state.config.flashpointPath, info.path);
+      const proc = new flashpoint.DisposableChildProcess(id, name, cwd, false, false, info);
+      proc.onDispose = () => proc.kill();
+      return proc;
+    },
     removeService: (process: flashpoint.ManagedChildProcess) => removeService(state, process.id),
   };
 
@@ -208,9 +216,9 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
 
     // Events
     onDidInit: apiEmitters.onDidInit.event,
-    onWillExit: apiEmitters.onWillExit.event,
 
     // Classes
+    DisposableChildProcess: DisposableChildProcess,
     ManagedChildProcess: ManagedChildProcess,
 
     // Enums

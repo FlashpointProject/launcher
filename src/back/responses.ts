@@ -1190,12 +1190,13 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
-  state.socketServer.register(BackIn.QUIT, (event, req) => {
+  state.socketServer.register(BackIn.QUIT, async (event, req) => {
+    // Unload all extensions before quitting
+    await state.extensionsService.unloadAll();
     respond(event.target, {
       id: req.id,
       type: BackOut.QUIT,
     });
-    state.apiEmitters.onWillExit.fire();
     exit(state);
   });
 
