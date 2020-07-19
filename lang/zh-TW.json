@@ -388,7 +388,7 @@
   },
   "dialog": {
     "programNotFound": "Program not found!",
-    "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
+    "phpNotFound": "無法在該路徑找到PHP程式，確認已經安裝了嗎？\n在沒有該程式的情況下可能會遇到一些無法預期的錯誤",
     "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "找不到檔案！",
