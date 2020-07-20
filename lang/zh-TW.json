@@ -71,7 +71,7 @@
     "filterByPlatform": "以遊戲平台分類",
     "plannedFeatures": "來看看我們預計新增的內容吧！",
     "notesHeader": "備註",
-    "notes": "Don't forget to read the manual if you're having issues.",
+    "notes": "若遇到問題的話，別忘了查閱說明手冊(Manuel)",
     "linuxSupport": "以Linux執行時遇到問題嗎？ {0}",
     "linuxSupportLinkText": "開啟 FAQ",
     "randomPicks": "隨機挑選",
@@ -258,7 +258,7 @@
     "saveAndRestart": "儲存並重新啟動",
     "thereAreNoGames": "查無結果",
     "noGameMatchedDesc": "無符合搜尋條件之遊戲",
-    "noGameMatchedSearch": "Try searching for something less restrictive."
+    "noGameMatchedSearch": "嘗試以較為寬鬆的關鍵字進行搜尋"
   },
   "tags": {
     "noName": "無名稱",
