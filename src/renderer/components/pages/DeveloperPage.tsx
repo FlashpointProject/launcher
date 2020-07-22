@@ -65,9 +65,17 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     window.Shared.back.off('message', this.onServiceUpdate);
   }
 
+  // TODO: Remove when all functions are in back
+  componentDidUpdate(prevProps: DeveloperPageProps, prevState: DeveloperPageState) {
+    // Transfer prop to state
+    if (this.props.devConsoleText !== prevProps.devConsoleText) {
+      this.setState({ text: this.props.devConsoleText });
+    }
+  }
+
   render() {
     const strings = this.context.developer;
-    const text = this.props.devConsoleText;
+    const text = this.state.text;
     const services = window.Shared.services;
     return (
       <div className='developer-page simple-scroll'>
