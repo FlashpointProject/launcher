@@ -72,7 +72,7 @@ export function CuratePage(props: CuratePageProps) {
       await fs.ensureDir(curationsPath);
       fs.promises.readdir(curationsPath, { withFileTypes: true })
       .then(async (files) => {
-        for (const file of files.filter(f => f.isDirectory() && f.name != '_Exported' && f.name != '_Imported')) {
+        for (const file of files.filter(f => f.isDirectory() && f.name != '_Exports' && f.name != '_Imported')) {
           const fullPath = path.join(curationsPath, file.name);
           await loadCurationFolder(file.name, fullPath, defaultGameMetaValues, dispatch, props);
         }
