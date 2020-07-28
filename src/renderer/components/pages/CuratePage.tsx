@@ -68,11 +68,11 @@ export function CuratePage(props: CuratePageProps) {
   // Load in initial curations
   React.useEffect(() => {
     async function readInitialCurations() {
-      const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
+      const curationsPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working');
       await fs.ensureDir(curationsPath);
       fs.promises.readdir(curationsPath, { withFileTypes: true })
       .then(async (files) => {
-        for (const file of files.filter(f => f.isDirectory() && f.name != '_Exports' && f.name != '_Imported')) {
+        for (const file of files.filter(f => f.isDirectory() && f.name != 'Exported' && f.name != 'Imported')) {
           const fullPath = path.join(curationsPath, file.name);
           await loadCurationFolder(file.name, fullPath, defaultGameMetaValues, dispatch, props);
         }
@@ -292,7 +292,7 @@ export function CuratePage(props: CuratePageProps) {
   // Make a new curation (folder watcher does most of the work)
   const onNewCurationClick = useCallback(async () => {
     const key = uuid();
-    const newCurationFolder = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
+    const newCurationFolder = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
     try {
       // Create content folder and empty meta.yaml
       await fs.ensureDir(path.join(newCurationFolder, 'content'));
@@ -325,7 +325,7 @@ export function CuratePage(props: CuratePageProps) {
         // Extract files to curation folder
         await importCurationArchive(archivePath, key, newProgress(progressKey, progressDispatch))
         .then(async key => {
-          const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
+          const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
           await loadCurationFolder(key, curationPath, defaultGameMetaValues, dispatch, props);
         })
         // Update Status Progress with new number of counted files
@@ -361,7 +361,7 @@ export function CuratePage(props: CuratePageProps) {
           // Copy files to curation folder
           return importCurationFolder(dirPath, key, newProgress(progressKey, progressDispatch))
           .then(async key => {
-            const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
+            const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
             await loadCurationFolder(key, curationPath, defaultGameMetaValues, dispatch, props);
           });
         })
@@ -385,7 +385,7 @@ export function CuratePage(props: CuratePageProps) {
       for (let i = 0; i < filePaths.length; i++) {
         const filePath = filePaths[i];
         const key = await importCurationMeta(filePath);
-        const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
+        const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
         await loadCurationFolder(key, curationPath, defaultGameMetaValues, dispatch, props);
       }
     }
@@ -393,21 +393,21 @@ export function CuratePage(props: CuratePageProps) {
 
   // Open Curations Folder
   const onOpenCurationsFolder = useCallback(async () => {
-    const curationsFolderPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations');
+    const curationsFolderPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working');
     await fs.ensureDir(curationsFolderPath);
     remote.shell.openItem(curationsFolderPath);
   }, []);
 
   // Open Exported Curations Folder
   const onOpenExportsFolder = useCallback(async () => {
-    const exportsFolderPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', '_Exports');
+    const exportsFolderPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Exported');
     await fs.ensureDir(exportsFolderPath);
     remote.shell.openItem(exportsFolderPath);
   }, []);
 
   // Open Imported Curations Folder
   const onOpenImportedFolder = useCallback(async () => {
-    const importedFolder = path.join(window.Shared.config.fullFlashpointPath, 'Curations', '_Imported');
+    const importedFolder = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Imported');
     await fs.ensureDir(importedFolder);
     remote.shell.openItem(importedFolder);
   }, []);

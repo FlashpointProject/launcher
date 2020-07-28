@@ -134,7 +134,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         const dateStr = date.getFullYear().toString() + '-' +
                         (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
                         date.getUTCDate().toString().padStart(2, '0');
-        const backupPath = path.join(fpPath, 'Curations', '_Imported', `${dateStr}__${curation.key}`);
+        const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.key}`);
         await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog, log);
       }
       if (log) {
@@ -261,7 +261,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
  * @param curationKey Key of the (game) curation to link
  */
 async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, symlinkCurationContent: boolean) {
-  const curationPath = path.join(fpPath, 'Curations', curationKey);
+  const curationPath = path.join(fpPath, 'Curations', 'Working', curationKey);
   const htdocsContentPath = path.join(fpPath, htdocsPath, 'content');
   // Clear out old folder if exists
   console.log('Removing old Server/htdocs/content ...');

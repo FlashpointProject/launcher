@@ -1,3 +1,4 @@
+import { sanitizeFilename } from '@back/util/sanitizeFilename';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { createCurationIndexImage } from '@renderer/curate/importCuration';
@@ -443,11 +444,11 @@ export function CurateBox(props: CurateBoxProps) {
         }
       }
       // Choose where to save the file
-      const defaultPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', '_Exports');
+      const defaultPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Exported');
       await fs.ensureDir(defaultPath);
       const filePath = remote.dialog.showSaveDialogSync({
         title: strings.dialog.selectFileToExportMeta,
-        defaultPath: defaultPath,
+        defaultPath: path.join(defaultPath, (sanitizeFilename(curation.meta.title || 'curation') || 'curation') + '.7z'),
         filters: [{
           name: 'Curation archive',
           extensions: ['7z'],
@@ -483,10 +484,10 @@ export function CurateBox(props: CurateBoxProps) {
         .finally(() => {
           ProgressDispatch.finished(statusProgress);
         });
+        const msg = `Successfully Exported ${curation.meta.title} to ${filePath}`;
+        console.log(msg);
+        curationLog(msg);
       }
-      const msg = `Successfully Exported ${curation.meta.title} to ${filePath}`;
-      console.log(msg);
-      curationLog(msg);
       props.dispatch({
         type: 'change-curation-lock',
         payload: {
