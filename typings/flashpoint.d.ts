@@ -536,7 +536,7 @@ declare module 'flashpoint' {
   export class DisposableChildProcess extends ManagedChildProcess implements Disposable {
     public toDispose: Disposable[];
     public isDisposed: boolean;
-    public onDispose: () => void;
+    public onDispose?: () => void;
   }
 
   export class ManagedChildProcess {

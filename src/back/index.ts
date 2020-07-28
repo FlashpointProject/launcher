@@ -7,7 +7,7 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
 import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData } from '@shared/back/types';
-import { LogoSet } from '@shared/extensions/interfaces';
+import { LogoSet, ILogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
@@ -328,12 +328,13 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   // Init themes
   const dataThemeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+  await fs.ensureDir(dataThemeFolder);
   try {
     await fs.promises.readdir(dataThemeFolder, { withFileTypes: true })
     .then(async (files) => {
       for (const file of files) {
         if (file.isDirectory()) {
-          await newThemeWatcher(file.name, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
+          await newThemeWatcher(`SYSTEM.${file.name}`, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
         }
       }
     });
@@ -356,6 +357,41 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Init Logo Sets
+  const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.config.logoSetsFolderPath);
+  await fs.ensureDir(dataLogoSetsFolder);
+  try {
+    await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
+    .then(async (files) => {
+      for (const file of files) {
+        if (file.isDirectory()) {
+          const logoSet: ILogoSet = {
+            id: `SYSTEM.${file.name.replace(' ', '-')}`,
+            name: `${file.name}`,
+            path: file.name
+          };
+          const realPath = path.join(dataLogoSetsFolder, logoSet.path);
+          try {
+            if (state.registry.logoSets.has(logoSet.id)) {
+              throw new Error(`Logo set "${logoSet.id}" already registered!`);
+            }
+            const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
+            .filter(f => f.isFile())
+            .map(f => f.name);
+            state.registry.logoSets.set(logoSet.id, {
+              ...logoSet,
+              fullPath: realPath,
+              files: files
+            });
+            log.debug('Extensions', `Logo set "${logoSet.id}" registered by "SYSTEM"`);
+          } catch (error) {
+            log.error('Extensions', `Error loading logo set from "SYSTEM"\n${error}`);
+          }
+        }
+      }
+    });
+  } catch (error) {
+    log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
+  }
   const logoSetContributions = await state.extensionsService.getContributions('logoSets');
   for (const c of logoSetContributions) {
     for (const logoSet of c.value) {

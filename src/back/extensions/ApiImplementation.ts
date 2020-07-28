@@ -168,11 +168,11 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     runProcess: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
       const cwd = path.join(basePath || extPath || state.config.flashpointPath, info.path);
-      const proc = new flashpoint.DisposableChildProcess(id, name, cwd, false, false, info);
+      const proc = new DisposableChildProcess(id, name, cwd, false, false, {...info, kill: true});
       proc.onDispose = () => proc.kill();
       return proc;
     },
-    removeService: (process: flashpoint.ManagedChildProcess) => removeService(state, process.id),
+    removeService: (process: any) => removeService(state, process.id),
   };
 
   // Functions
