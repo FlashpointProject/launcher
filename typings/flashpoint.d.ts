@@ -12,6 +12,13 @@ declare module 'flashpoint' {
 
   /** Returns most up to date Preferences Data */
   export function getPreferences(): IAppPreferencesData;
+  /**
+   * Updates the Preferences data with a partial change.
+   * @param data Partial data to apply
+   * @param onError Callback for error handling
+   * @returns Updated Preferences data
+   */
+  export function overwritePreferenceData(data: DeepPartial<IAppPreferencesData>, onError?: (error: string) => void): IAppPreferencesData;
 
   /** Log functions to properly pass messages to the Logs Page.*/
   export namespace log {
@@ -151,25 +158,84 @@ declare module 'flashpoint' {
   /** Collection of Tag related API functions */
   export namespace tags {
     // Tags
+    /**
+     * Finds a tag given it's ID
+     * @param tagId ID of the Tag
+     */
     export function getTagById(tagId: number): Promise<Tag | undefined>;
+    /**
+     * Finds a tag given an alias name
+     * @param name Name of the Tag (any matching alias)
+     */
     export function findTag(name: string): Promise<Tag | undefined>;
+    /**
+     * Finds a list of tags that begins with a name (if given)
+     * @param name Partial name that a tag starts with
+     */
     export function findTags(name?: string): Promise<Tag[]>;
+    /**
+     * Creates a new Tag
+     * @param name Name of the primary alias
+     * @param categoryName Name of the category to use, Default if none given
+     * @param aliases List of extra aliases to register
+     */
     export function createTag(name: string, categoryName?: string, aliases?: string[]): Promise<Tag | undefined>;
+    /**
+     * Updates a Tag
+     * @param tag Tag data to save
+     */
     export function saveTag(tag: Tag): Promise<Tag>;
+    /**
+     * Removes a Tag (from all Games)
+     * @param tagId ID of Tag to remove
+     * @param skipWarn If true, warn user before deleting tag from games.
+     */
     export function deleteTag(tagId: number, skipWarn?: boolean): Promise<boolean>;
+    /**
+     * Finds all the Tags a Game is tagged with
+     * @param gameId ID of the Game to find
+     */
     export function findGameTags(gameId: string): Promise<Tag[] | undefined>;
 
     // Tag Categories
+    /**
+     * Find a Tag Category by it's ID. (Useful when a Tag doesn't populate it)
+     * @param categoryId ID of the Tag Category
+     */
     export function getTagCategoryById(categoryId: number): Promise<TagCategory | undefined>;
+    /**
+     * Find all Tag Categories
+     */
     export function findTagCategories(): Promise<TagCategory[]>;
+    /**
+     * Create a new Tag Category
+     * @param name Name of the Tag Category
+     * @param color Color to give the Tag Category
+     */
     export function createTagCategory(name: string, color: string): Promise<TagCategory | undefined>;
+    /**
+     * Update a Tag Category
+     * @param tagCategory Tag Category data to save
+     */
     export function saveTagCategory(tagCategory: TagCategory): Promise<TagCategory>;
+    /**
+     * Removes a Tag Category. All owned Tags are moved to the first available Tag Category.
+     * @param tagCategoryId ID of the Tag Category to remove
+     */
     export function deleteTagCategory(tagCategoryId: number): Promise<boolean>;
 
     // Tag Suggestions
+    /**
+     * Finds a list of Tag Suggestions given a string they start with
+     * @param name Partial name that a tag starts with
+     */
     export function findTagSuggestions(name: string): Promise<TagSuggestion[]>;
 
     // Misc
+    /**
+     * Merges 2 tags into a single tag.
+     * @param mergeData Required data to merge.
+     */
     export function mergeTags(mergeData: MergeTagData): Promise<Tag | undefined>;
   }
 
@@ -179,23 +245,61 @@ declare module 'flashpoint' {
     /** Text displayed on the Developer Page console */
     export const devConsoleText: string;
 
-    /** Update any status in the Status State */
+    /**
+     * Update any status in the Status State
+     * @param key Element to update
+     * @param val Value to update element with
+     */
     export function setStatus<T extends keyof StatusState>(key: T, val: StatusState[T]): void;
   }
 
   /** Collection of Service related API function */
   export namespace services {
+    /**
+     * Runs a managed service given info, will die when the launcher exits.
+     * @param name Name of the service
+     * @param info Service info to run.
+     * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
+     * @returns A managed process. Can be passed to removeService.
+     */
     export function runService(name: string, info: ProcessInfo, basePath?: string): ManagedChildProcess;
+    /**
+     * Runs a managed process given info, will die when disposed.
+     * @param name Name of the process
+     * @param info Process info to run.
+     * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
+     * @returns A managed process.
+     */
     export function runProcess(name: string, info: ProcessInfo, basePath?: string): DisposableChildProcess;
+    /**
+     * Kills and removes a service process started by runService
+     * @param process Service process to remove
+     */
     export function removeService(process: ManagedChildProcess): Promise<void>;
   }
 
   // Functions
+  /**
+   * Opens a message box on the client. Buttons can be provided in options.
+   * @param options Message box options
+   * @returns Button index pressed (0 or cancelId if exited)
+   */
   export function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
+  /**
+   * Opens a save dialog on the client. They can select a file to save to.
+   * @param options Save dialog options
+   * @returns Path to file chosen, if any
+   */
   export function showSaveDialog(options: ShowSaveDialogOptions): Promise<string | undefined>;
+  /**
+   * Opens an open dialog on the client. They can select a file for you to open.
+   * @param options Open dialog options
+   * @returns Path to file(s) chosen, if any
+   */
   export function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
 
   // Events
+  /** Called when the backend has fully initialized. Extension activation is earlier. */
   export const onDidInit: Event<void>;
 
   /** See Electron docs for explanations. https://www.electronjs.org/docs/api/dialog */
@@ -486,7 +590,7 @@ declare module 'flashpoint' {
     games: T extends true ? ViewGame[] : Game[];
   }
 
-  /** Shortend version of Game returned in searches, makes for better performance. */
+  /** Shortend version of {@link Game} returned in searches, makes for better performance. */
   export type ViewGame = {
     id: string;
     title: string;
@@ -643,7 +747,9 @@ declare module 'flashpoint' {
   }
 
   export class ManagedChildProcess {
+    /** ID of the process */
     public id: string;
+    /** Info this process was created with */
     public info: ProcessInfo;
     /** Display name of the service. */
     public readonly name: string;
@@ -687,6 +793,7 @@ declare module 'flashpoint' {
     grid = 1,
   }
 
+  /** Severity level of a Log */
   export enum LogLevel {
     TRACE = 0,
     DEBUG = 1,
@@ -698,7 +805,7 @@ declare module 'flashpoint' {
 
   /** A self-nesting type that allows one time disposable with an optional callback */
   export type Disposable = {
-    /** Children to dispose of in the future */
+    /** Children to dispose of in the future. Add with {@link registerDisposable} to maintain safety. */
     toDispose: Disposable[];
     /** Whether this is already disposed */
     isDisposed: boolean;
@@ -710,9 +817,16 @@ declare module 'flashpoint' {
   export function dispose<T>(disposable: Disposable): void;
   /** Dispose of all a disposable;s children but not itself */
   export function clearDisposable(disposable: Disposable): void;
-  /** Register a disposable to its parent. They must not be the same. */
+  /**
+   * Register a disposable to its parent. They must not be the same.
+   * @param parent Parent to register to
+   * @param child Child to register
+   */
   export function registerDisposable(parent: Disposable, child: Disposable): void;
-  /** Creates Disposable data to fill a newly created Disposable type object */
+  /**
+   * Creates Disposable data to fill a newly created Disposable type object
+   * @param callback Callback to run when disposed
+   */
   export function newDisposable(callback?: () => void): Disposable;
 
   export type ExtensionContext = {
@@ -726,10 +840,18 @@ declare module 'flashpoint' {
 		 * a listener function as argument.
 		 *
 		 * @param listener The listener function will be called when the event happens.
-		 * @param thisArgs The `this`-argument which will be used when calling the event listener.
-		 * @param disposables An array to which a [disposable](#Disposable) will be added.
+		 * @param thisArgs The `this` argument which will be used when calling the event listener. (rarely used)
+		 * @param disposables An array to which a disposable will be added.
 		 * @return A disposable which unsubscribes the event listener.
 		 */
     (listener: (e: T) => any, thisArgs?: any, disposables?: Disposable): Disposable;
+  }
+
+  /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
+  type ObjectLike = Record<string, unknown> | Record<number, unknown>;
+
+  /** Utility type. Recursively set all properties as optional. */
+  export type DeepPartial<T> = {
+    [K in keyof T]?: T[K] extends ObjectLike ? DeepPartial<T[K]> : T[K];
   }
 }

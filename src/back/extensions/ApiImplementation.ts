@@ -12,6 +12,7 @@ import * as flashpoint from 'flashpoint';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
+import { overwritePreferenceData } from '@shared/preferences/util';
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
  * @param extManifest Manifest of the caller
@@ -24,6 +25,10 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
   const { registry, apiEmitters } = state;
 
   const getPreferences = () => state.preferences;
+  const extOverwritePreferenceData = (
+    data: flashpoint.DeepPartial<flashpoint.IAppPreferencesData>,
+    onError?: (error: string) => void
+  ) => overwritePreferenceData(state.preferences, data, onError);
 
   // Log Namespace
   const extLog: typeof flashpoint.log = {
@@ -204,6 +209,7 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     version: version,
     config: state.config,
     getPreferences: getPreferences,
+    overwritePreferenceData: extOverwritePreferenceData,
 
     // Namespaces
     log: extLog,
