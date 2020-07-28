@@ -399,10 +399,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           click: () => {
             const filePath = remote.dialog.showSaveDialogSync({
               title: strings.dialog.selectFileToExportMeta,
-              defaultPath: 'meta',
+              defaultPath: 'meta.yaml',
               filters: [{
                 name: 'Meta file',
-                extensions: ['txt'],
+                extensions: ['yaml'],
               }]
             });
             if (filePath) { window.Shared.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePath, metaOnly: true }); }

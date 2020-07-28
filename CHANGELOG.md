@@ -15,6 +15,7 @@
 - `content` folder is now created when loading curation meta files.
 - Elevate is now packed on Release, was missing prior
 - Log Watcher now outputs logs in realtime on Windows
+- `Export Meta` now exports YAML instead of TXT
 
 # Release 9.0.2
 
