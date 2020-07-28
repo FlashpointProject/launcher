@@ -10,10 +10,10 @@ declare module 'flashpoint' {
   /** Config Data */
   export const config: IAppConfigData;
 
-  /** Most up to date Preferences Data */
+  /** Returns most up to date Preferences Data */
   export function getPreferences(): IAppPreferencesData;
 
-  /** Log functions to properly pass messages to the Logs Page. Automatically fills with Extension name. */
+  /** Log functions to properly pass messages to the Logs Page.*/
   export namespace log {
     export const trace: (message: string) => void;
     export const debug: (message: string) => void;
@@ -22,11 +22,7 @@ declare module 'flashpoint' {
     export const error: (message: string) => void;
   }
 
-  /** Functions related to statuses */
-  type StatusState = {
-    devConsoleText: string;
-  }
-
+  /** Collection of Command related API functions */
   export namespace commands {
     /**
      * Register a command to be called by name later
@@ -37,31 +33,105 @@ declare module 'flashpoint' {
     export function registerCommand(command: string, callback: (...args: any[]) => any): Disposable;
   }
 
+  /** Collection of Game related API functions */
   export namespace games {
     // Playlist
+    /**
+     * Finds a playlist given its ID
+     * @param playlistId ID of the Playlist
+     * @param join Whether to include Playlist Games in the result
+     */
     export function findPlaylist(playlistId: string, join?: boolean): Promise<Playlist | undefined>;
+    /**
+     * Finds a playlist given its name
+     * @param playlistName Name of the Playlist
+     * @param join Whether to include Playlist Games in the result
+     */
     export function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | undefined>;
+    /** Find all Playlists in the database (Playlist Games not returned) */
     export function findPlaylists(): Promise<Playlist[]>;
+    /**
+     * Updates / Creates a Playlist
+     * @param playlist Playlist data to save
+     */
     export function updatePlaylist(playlist: Playlist): Promise<Playlist>;
+    /**
+     * Removes a playlist
+     * @param playlist Playlist ID to remove
+     * @returns Playlist that was removed
+     */
     export function removePlaylist(playlistId: string): Promise<Playlist | undefined>
 
     // Playlist Game
+    /**
+     * Finds a Playlist Game entry in a Playlist
+     * @param playlistId Playlist to search
+     * @param gameId Game to find
+     */
     export function findPlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined>;
+    /**
+     * Removes a Playlist Game entry from a Playlist
+     * @param playlistId Playlist to search
+     * @param gameId Game to remove
+     */
     export function removePlaylistGame(playlistId: string, gameId: string): Promise<PlaylistGame | undefined>;
+    /**
+     * Update / Create a Playlist Game entry
+     * @param playlistGame Playlist Game entry to save
+     */
     export function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame>;
+    /**
+     * Update / Create many Playlist Game entries in a transaction
+     * @param playlistGames Playlist Game entries to save
+     */
     export function updatePlaylistGames(playlistGames: PlaylistGame[]): Promise<void>;
 
     // Games
+    /** Returns the total number of games in the database */
     export function countGames(): Promise<number>;
+    /**
+     * Finds a Game given its ID
+     * @param id ID of the Game
+     */
     export function findGame(id: string): Promise<Game | undefined>;
+    /**
+     * Finds a selection of Games given filter options
+     * @param opts Filter options
+     * @param shallow Whether to return ViewGame or Game objects
+     */
     export function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<ResponseGameRange<T>[]>;
+    /**
+     * Finds all Games using a Tag
+     * @param tag Tag to filter for
+     */
     export function findGamesWithTag(tag: Tag): Promise<Game[]>;
+    /**
+     * Updates / Creates a Game
+     * @param game Game data to save
+     */
     export function updateGame(game: Game): Promise<Game>;
+    /**
+     * Updates / Creates many Games in a transaction
+     * @param games Game data to save
+     */
     export function updateGames(games: Game[]): Promise<void>;
+    /**
+     * Removes a Game and all its AddApps
+     * @param gameId ID of Game to remove
+     */
     export function removeGameAndAddApps(gameId: string): Promise<Game | undefined>;
 
     // Misc
+    /**
+     * Returns all unique Platform strings in a library
+     * @param library Library to search
+     */
     export function findPlatforms(library: string): Promise<string[]>;
+    /**
+     * Parses a Playlist JSON file and returns an object you can save later.
+     * @param jsonData Raw JSON data of the Playlist file
+     * @param library Library to use instead of Playlist defined library
+     */
     export function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
 
     // Events
@@ -78,6 +148,7 @@ declare module 'flashpoint' {
     export const onDidRemovePlaylistGame: Event<PlaylistGame>;
   }
 
+  /** Collection of Tag related API functions */
   export namespace tags {
     // Tags
     export function getTagById(tagId: number): Promise<Tag | undefined>;
@@ -103,6 +174,7 @@ declare module 'flashpoint' {
   }
 
 
+  /** Collection of Status related API functions */
   export namespace status {
     /** Text displayed on the Developer Page console */
     export const devConsoleText: string;
@@ -111,6 +183,7 @@ declare module 'flashpoint' {
     export function setStatus<T extends keyof StatusState>(key: T, val: StatusState[T]): void;
   }
 
+  /** Collection of Service related API function */
   export namespace services {
     export function runService(name: string, info: ProcessInfo, basePath?: string): ManagedChildProcess;
     export function runProcess(name: string, info: ProcessInfo, basePath?: string): DisposableChildProcess;
@@ -125,6 +198,7 @@ declare module 'flashpoint' {
   // Events
   export const onDidInit: Event<void>;
 
+  /** See Electron docs for explanations. https://www.electronjs.org/docs/api/dialog */
   export type ShowMessageBoxOptions = {
     title?: string;
     message: string;
@@ -132,13 +206,13 @@ declare module 'flashpoint' {
     cancelId?: number;
   }
 
+  /** See Electron docs for explanations. http://electronjs.org/docs/api/structures/file-filter */
   interface FileFilter {
-    // Docs: http://electronjs.org/docs/api/structures/file-filter
-
     extensions: string[];
     name: string;
   }
 
+  /** See Electron docs for explanations. https://www.electronjs.org/docs/api/dialog */
   export type ShowSaveDialogOptions = {
     title?: string;
     defaultPath?: string;
@@ -148,6 +222,7 @@ declare module 'flashpoint' {
     nameFieldLabel?: string;
   }
 
+  /** See Electron docs for explanations. https://www.electronjs.org/docs/api/dialog */
   export type ShowOpenDialogOptions = {
     title?: string;
     defaultPath?: string;
@@ -246,25 +321,35 @@ declare module 'flashpoint' {
     primaryAlias: TagAlias;
     /** Aliases / Names of the tag */
     aliases: TagAlias[];
+    /** Category this tag is a part of (either ID or TagCategory will exist) */
     categoryId?: number;
+    /** Category this tag is a part of (either ID or TagCategory will exist) */
     category?: TagCategory;
+    /** Description of the tag */
     description?: string;
+    /** Games which are marked with this Tag */
     gamesUsing?: Game[];
-    // Number of games this tag belongs to
+    /** Number of games this tag belongs to */
     count?: number;
   }
 
   export type TagAlias = {
     /** ID of the tag alias (unique identifier) */
     id: number;
+    /** Tag this alias belongs to (either ID or Tag will exist) */
     tagId?: number;
+    /** Tag this alias belongs to (either ID or Tag will exist) */
     tag?: Tag;
+    /** The name this alias represents */
     name: string;
   }
 
   export type TagSuggestion = {
+    /** Alias found, only present if not the same as the primary alias */
     alias?: string;
+    /** Primary alias of the tag suggestion */
     primaryAlias: string;
+    /** Tag suggested */
     tag: Tag;
   }
 
@@ -275,7 +360,9 @@ declare module 'flashpoint' {
     name: string;
     /** Category Color */
     color: string;
+    /** Description of the Tag Category */
     description?: string;
+    /** Tags using this Tag Category */
     tags: Tag[];
   }
 
@@ -297,19 +384,28 @@ declare module 'flashpoint' {
   }
 
   export type PlaylistGame = {
+    /** Internal ID of the playlist game entry */
     id?: string;
-    /** Playlist which owns this game */
+    /** Playlist which owns this game (either ID or Playlist will exist) */
     playlistId?: string;
+    /** Playlist which owns this game (either ID or Playlist will exist) */
     playlist?: Playlist;
     /** Order priority of the game in the playlist */
     order: number;
     /** Notes for the game inside the playlist specifically */
     notes: string;
-    /** Game this represents */
+    /** Game this represents (either ID or Game will exist) */
     gameId?: string;
+    /** Game this represents (either ID or Game will exist) */
     game?: Game;
   }
 
+  /**
+   * Data passed to merge tags together
+   * @param toMerge Tag to merge from
+   * @param mergeInto Tag to merge into
+   * @param makeAlias Whether to move all aliases from toMerge into mergeInto as well
+   */
   export type MergeTagData = {
     toMerge: string;
     mergeInto: string;
@@ -325,7 +421,9 @@ declare module 'flashpoint' {
     getTotal?: boolean;
   }
 
+  /** Game field to order the results by */
   export type GameOrderBy = keyof Game;
+  /** Direction to return the results in (ascending or descending) */
   export type GameOrderDirection = 'ASC'|'DESC';
 
   export type RequestGameRange = {
@@ -371,7 +469,7 @@ declare module 'flashpoint' {
     whitelist: FieldFilter[];
   }
 
-  /** A filter that applies to a specific field. */
+  /** A search filter that applies to a specific field. */
   type FieldFilter = {
     /** The field the filter applies to. */
     field: string;
@@ -414,6 +512,8 @@ declare module 'flashpoint' {
     platformFolderPath: string;
     /** Path to the theme folder (relative to the flashpoint path) */
     themeFolderPath: string;
+    /** Path to the logo sets folder (relative to the flashpoint path) */
+    logoSetsFolderPath: string;
     /** Path of the meta edits folder (relative to the flashpoint path) */
     metaEditsFolderPath: string;
     /** Path to load User extensions from (relative to the flashpoint path) */
@@ -532,6 +632,9 @@ declare module 'flashpoint' {
     arguments: string[];
   };
 
+  type StatusState = {
+    devConsoleText: string;
+  }
 
   export class DisposableChildProcess extends ManagedChildProcess implements Disposable {
     public toDispose: Disposable[];
