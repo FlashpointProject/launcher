@@ -421,7 +421,7 @@
     "newPlaylist": "Manatiling hati",
     "uploadPrivacyWarning": "Magiging publiko ang mga log mo.\nMagkakaroon ng link na I-kokopya sa iyong clipboard.\n\nSigurado ka ba?",
     "overwriteFileTitle": "Mayroong file na!",
-    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
+    "overwriteFileMessage": "Mayroon nang isang file na may parehong pangalan. Gusto mo bang i-overwrite ang file na ito?",
     "overwriteFileDetail": "Path ng file:"
   },
   "libraries": {
