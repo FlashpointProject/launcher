@@ -416,7 +416,7 @@
     "restartNow": "Starta om nu?",
     "restartToApplyUpgrade": "Den här uppgraderingen kommer inte att tillämpas förrän du startar om.\nVill du göra det nu?",
     "areYouSure": "Är du säker?",
-    "cancel": "Cancel",
+    "cancel": "Avbryt",
     "mergePlaylists": "Merge Playlists",
     "newPlaylist": "Stay Seperate",
     "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
@@ -426,9 +426,9 @@
   },
   "libraries": {
     "arcade": "Spel",
-    "arcadePlural": "All Games",
+    "arcadePlural": "Alla Spel",
     "theatre": "Animationer",
-    "theatrePlural": "All Animations",
+    "theatrePlural": "Alla Animationer",
     "auditorium": "NG Auditorium",
     "auditoriumPlural": "All NG Animations"
   },
