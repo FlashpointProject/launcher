@@ -123,7 +123,7 @@ Themes are declared as part of the extensions manifest, `package.json`. Multiple
 ```json
 {
   "contributes": {
-    "themes: [
+    "themes": [
       {
         "id": "my-first-theme",
         "path": "./themes/MyTheme",
@@ -147,7 +147,7 @@ Logo Sets are declared as part of the extensions manifest, `package.json`. Multi
 ```json
 {
   "contributes": {
-    "logoSets: [
+    "logoSets": [
       {
         "id": "my-first-logoset",
         "name": "My Logo Set",
