@@ -46,6 +46,7 @@ export enum BackIn {
   DELETE_PLAYLIST,
   DELETE_ALL_PLAYLISTS,
   GET_PLAYLIST_GAME,
+  ADD_PLAYLIST_GAME,
   SAVE_PLAYLIST_GAME,
   DELETE_PLAYLIST_GAME,
   SAVE_LEGACY_PLATFORM,
@@ -473,6 +474,11 @@ export type DeletePlaylistGameData = {
 }
 
 export type DeletePlaylistGameResponse = PlaylistGame | undefined;
+
+export type AddPlaylistGameData = {
+  playlistId: string;
+  gameId: string;
+}
 
 export type SavePlaylistGameData = PlaylistGame;
 

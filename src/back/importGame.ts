@@ -117,7 +117,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   await (async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
     for (const pair of contentToMove) {
-      await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
+      await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
+      // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
   })()
   .then(async () => {
@@ -133,7 +134,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         const dateStr = date.getFullYear().toString() + '-' +
                         (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
                         date.getUTCDate().toString().padStart(2, '0');
-        const backupPath = path.join(fpPath, 'Curations', '_Imported', `${dateStr}__${curation.key}`);
+        const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.key}`);
         await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog, log);
       }
       if (log) {
@@ -260,13 +261,11 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
  * @param curationKey Key of the (game) curation to link
  */
 async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, symlinkCurationContent: boolean) {
-  const curationPath = path.join(fpPath, 'Curations', curationKey);
+  const curationPath = path.join(fpPath, 'Curations', 'Working', curationKey);
   const htdocsContentPath = path.join(fpPath, htdocsPath, 'content');
   // Clear out old folder if exists
   console.log('Removing old Server/htdocs/content ...');
-  await fs.access(htdocsContentPath, fs.constants.F_OK)
-  .then(() => fs.remove(htdocsContentPath))
-  .catch((error) => { /* No file is okay, ignore error */ });
+  await fs.remove(htdocsContentPath);
   const contentPath = path.join(curationPath, 'content');
   console.log('Linking new Server/htdocs/content ...');
   if (fs.existsSync(contentPath)) {

@@ -3,7 +3,7 @@ import * as React from 'react';
 
 type ThrottleRef = {
   /** Timeout of the currently throttled call. */
-  timeout: NodeJS.Timeout | undefined;
+  timeout: NodeJS.Timeout | number | undefined;
   /** Callback to call once the time is out. */
   callback: AnyFunction;
   /** Function to call in order to later call "callback". */

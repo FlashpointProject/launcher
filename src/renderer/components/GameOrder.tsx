@@ -1,6 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { LangContainer } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
+import { gameOrderByOptions } from '@shared/order/util';
 import * as React from 'react';
 import { LangContext } from '../util/lang';
 
@@ -58,15 +59,19 @@ export class GameOrder extends React.Component<GameOrderProps> {
   }
 
   onOrderByChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.updateOrder({
-      orderBy: validateOrderBy(event.target.value),
-    });
+    if (isOrderBy(event.target.value)) {
+      this.updateOrder({ orderBy: event.target.value });
+    } else {
+      console.error(`Failed to set "Order By". Value is invalid! (value: "${event.target.value}")`);
+    }
   }
 
   onOrderReverseChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    this.updateOrder({
-      orderReverse: validateOrderReverse(event.target.value),
-    });
+    if (isOrderReverse(event.target.value)) {
+      this.updateOrder({ orderReverse: event.target.value });
+    } else {
+      console.error(`Failed to set "Order Reverse". Value is invalid! (value: "${event.target.value}")`);
+    }
   }
 
   updateOrder(data: Partial<GameOrderChangeEvent>): void {
@@ -81,27 +86,10 @@ export class GameOrder extends React.Component<GameOrderProps> {
   static contextType = LangContext;
 }
 
-/**
- * Validate a value to be a "GameOrderBy" string (throws an error if non-existant or excluded).
- * @param value Value to validate.
- * @returns The same value as the first argument as a GameOrderBy obj
- */
-function validateOrderBy(value: string): GameOrderBy {
-  switch (value) {
-    case 'tags': throw new Error(`"${value}" is not a valid GameOrderBy`);
-    default:     return value as keyof Game;
-  }
+function isOrderBy(value: string): value is GameOrderBy {
+  return (gameOrderByOptions.indexOf(value as keyof Game) >= 0);
 }
 
-/**
- * Validate a value to be a "GameOrderReverse" string (throws an error if invalid).
- * @param value Value to validate.
- * @returns The same value as the first argument.
- */
-function validateOrderReverse(value: string): GameOrderReverse {
-  switch (value) {
-    case 'ASC':  return 'ASC';
-    case 'DESC': return 'DESC';
-    default: throw new Error(`"${value}" is not a valid GameOrderReverse`);
-  }
+function isOrderReverse(value: string): value is GameOrderReverse {
+  return (value === 'ASC' || value === 'DESC');
 }

@@ -835,9 +835,12 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
     this.props.onEditPlaylistNotes(event.currentTarget.value);
   }
 
-  /** When a key is pressed while an input field is selected (except for multiline fields) */
+  /** When a key is pressed while an input field is selected (except for multiline fields). */
   onInputKeyDown = (event: React.KeyboardEvent): void => {
-    // if (event.key === 'Enter') { this.props.onSaveGame(); }
+    if (event.key === 'Enter') {
+      this.props.onSaveGame();
+      event.preventDefault();
+    }
   }
 
   onTagSelect = (tag: Tag, index: number): void => {

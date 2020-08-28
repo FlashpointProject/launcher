@@ -1,3 +1,22 @@
+# Release 9.0.3
+
+## New
+
+- Starting a `tag:` search in the search bar will list tag suggestions that you can click on to fill in.
+
+## Changed
+
+- Tag Suggestions dropdowns can use Tab to navigate the list and Enter to select a tag suggestion. Focus is returned to the input element afterwards.
+
+## Fixed
+
+- Adding a game to a playlist now puts it at the end of the playlist (instead of at the beginning).
+- It is no longer possible to add a game to a playlist it is already in.
+- `content` folder is now created when loading curation meta files.
+- Elevate is now packed on Release, was missing prior
+- Log Watcher now outputs logs in realtime on Windows
+- `Export Meta` now exports YAML instead of TXT
+
 # Release 9.0.2
 
 ## New

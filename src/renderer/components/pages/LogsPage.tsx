@@ -99,14 +99,15 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
           <div className='log-page__bar__wrap log-page__bar__right'>
             <div>
               <div className='log-page__bar__right__inner'>
-                {/* Copy Button */}
+                {/* Upload Logs Button */}
                 <div className='log-page__bar__wrap'>
-                  <div>
+                  <div className='simple-center'>
                     <input
                       type='button'
-                      value={strings.copyText}
-                      onClick={this.onCopyClick}
-                      className='simple-button simple-center__vertical-inner' />
+                      disabled={this.state.uploading || this.state.uploaded}
+                      value={this.state.uploaded ? strings.copiedToClipboard : strings.uploadLog}
+                      onClick={this.onUploadClick}
+                      className='simple-button simple-center__vertical-inner log-page__upload-log' />
                   </div>
                 </div>
                 {/* Clear Button */}
@@ -129,14 +130,13 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
                       className='simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
-                {/* Upload Logs Button */}
+                {/* Copy Button */}
                 <div className='log-page__bar__wrap'>
-                  <div className='simple-center'>
+                  <div>
                     <input
                       type='button'
-                      disabled={this.state.uploading || this.state.uploaded}
-                      value={this.state.uploaded ? strings.copiedToClipboard : strings.uploadLog}
-                      onClick={this.onUploadClick}
+                      value={strings.copyText}
+                      onClick={this.onCopyClick}
                       className='simple-button simple-center__vertical-inner' />
                   </div>
                 </div>
