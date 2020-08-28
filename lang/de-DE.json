@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Die eigene Titelleiste am oberen Rand des Fensters verwenden.",
     "theme": "Thema",
     "noTheme": "Kein Thema",
-    "themeDesc": "Dateipfad des zu benutzenden Themas (relativ zum \"themes\"-Ordner).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Erweitert",
     "showDeveloperTab": "Entwicklerkarte zeigen",
     "showDeveloperTabDesc": "Zeige die Karte \"Entwickler\". Diese ist wahrscheinlich nur für Entwickler und Kuratoren nützlich.",
@@ -39,6 +42,11 @@
     "serverDesc": "Welcher Serverprozess beim Start des Launchers ausgeführt werden soll.",
     "metadataServerHost": "Metadaten-Server Host",
     "metadataServerHostDesc": "Host eines Metadaten-Servers. Wird zum Synchronisieren neuer und aktualisierter Spielinformationen mit dem Launcher verwendet.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Speichern und neu starten"
   },
   "home": {
