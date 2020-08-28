@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Använd en anpassad namnlist högst upp i det här fönstret.",
     "theme": "Tema",
     "noTheme": "Inget tema",
-    "themeDesc": "Sökväg till det tema som ska användas (relativt till mappen \"Themes\").",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Avancerat",
     "showDeveloperTab": "Visa flik för utvecklare",
     "showDeveloperTabDesc": "Visa fliken \"Utvecklare\". Det är med största sannolikhet bara utvecklare och kuratorer som har användning för detta.",
@@ -39,6 +42,11 @@
     "serverDesc": "Vilken serverprocess att köra vid start.",
     "metadataServerHost": "Metadata Server Värd",
     "metadataServerHostDesc": "Värd för en metadataserver. Används för att synkronisera ny och uppdaterad spelinformation till launchern.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Spara och starta om"
   },
   "home": {
