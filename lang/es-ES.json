@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Usar una barra de título personalizada en la parte superior de esta ventana.",
     "theme": "Tema",
     "noTheme": "Sin tema",
-    "themeDesc": "Ruta del archivo de tema a usar (relativa a la carpeta de temas).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Avanzado",
     "showDeveloperTab": "Mostrar la pestaña Desarrollador",
     "showDeveloperTabDesc": "Mostrar la pestaña 'Desarrollador'. Esta es muy probable que sólo sea útil para desarrolladores y curadores.",
@@ -39,6 +42,11 @@
     "serverDesc": "Cual proceso de servidor se ejecutará al iniciar la aplicación.",
     "metadataServerHost": "Servidor de metadatos anfitrión",
     "metadataServerHostDesc": "Anfitrión del servidor de metadatos. Utilizado para sincronizar información nueva y actualizada de los juegos a la aplicación.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Guardar y reiniciar"
   },
   "home": {
