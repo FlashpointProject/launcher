@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Gebruik een aangepaste titelbalk bovenaan dit venster.",
     "theme": "Thema",
     "noTheme": "Geen thema",
-    "themeDesc": "Bestandslocatie van het te gebruiken thema (relatief aan de map van thema's).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Geavanceerd",
     "showDeveloperTab": "Toon Ontwikkelaar Tabblad",
     "showDeveloperTabDesc": "Toon de 'Ontwikkelaars' tab. Dit is waarschijnlijk alleen handig voor ontwikkelaars en curatoren.",
@@ -39,6 +42,11 @@
     "serverDesc": "Welk serverproces moet worden uitgevoerd bij het opstarten van de launcher.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host van een metadata server. Wordt gebruikt voor het synchroniseren van nieuwe en bijgewerkte spel informatie naar de launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Opslaan en herstarten"
   },
   "home": {
