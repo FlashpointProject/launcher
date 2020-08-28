@@ -21,7 +21,7 @@ import { overwritePreferenceData } from '@shared/preferences/util';
  * @param version Version of the Flashpoint Launcher
  * @returns API Implementation specific to the caller
  */
-export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
+export function createApiFactory(extId: string, extManifest: IExtensionManifest, addExtLog: (log: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint {
   const { registry, apiEmitters } = state;
 
   const getPreferences = () => state.preferences;
@@ -29,6 +29,8 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     data: flashpoint.DeepPartial<flashpoint.IAppPreferencesData>,
     onError?: (error: string) => void
   ) => overwritePreferenceData(state.preferences, data, onError);
+
+  const unload = () => state.extensionsService.unloadExtension(extId);
 
   // Log Namespace
   const extLog: typeof flashpoint.log = {
@@ -210,6 +212,7 @@ export function createApiFactory(extManifest: IExtensionManifest, addExtLog: (lo
     config: state.config,
     getPreferences: getPreferences,
     overwritePreferenceData: extOverwritePreferenceData,
+    unload: unload,
 
     // Namespaces
     log: extLog,

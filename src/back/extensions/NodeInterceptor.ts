@@ -71,7 +71,7 @@ export async function installNodeInterceptor(state: InterceptorState): Promise<v
 }
 
 interface IExtensionApiFactory {
-  (ext: IExtensionManifest, addExtLog: (entry: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint;
+  (id: string, ext: IExtensionManifest, addExtLog: (entry: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint;
 }
 
 /** Module interceptor for the Flashpoint API 'flashpoint' module */
@@ -100,6 +100,7 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
       if (!apiImpl) {
         // No API for extension yet, make one
         apiImpl = this._apiFactory(
+          ext.id,
           ext.manifest,
           this._addExtLogFactory(ext.id),
           this._version,
@@ -113,6 +114,7 @@ export class FPLNodeModuleFactory implements INodeModuleFactory {
     // Import not from an extension, give default implementation
     if (!this._defaultApiImpl) {
       this._defaultApiImpl = this._apiFactory(
+        '',
         nullExtensionDescription,
         this._addExtLogFactory('null'),
         this._version,

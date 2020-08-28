@@ -20,6 +20,9 @@ declare module 'flashpoint' {
    */
   export function overwritePreferenceData(data: DeepPartial<IAppPreferencesData>, onError?: (error: string) => void): IAppPreferencesData;
 
+  /** Unload own extension */
+  export function unload(): Promise<void>;
+
   /** Log functions to properly pass messages to the Logs Page.*/
   export namespace log {
     export const trace: (message: string) => void;

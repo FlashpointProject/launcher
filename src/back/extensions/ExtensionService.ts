@@ -130,17 +130,31 @@ export class ExtensionService {
   public async unloadAll(): Promise<void> {
     if (this._installedExtensionsReady.isOpen()) {
       for (const ext of this._extensions) {
-        // Run deactivation function
-        const extData = this._extensionData[ext.id];
-        const entryPath = getExtensionEntry(ext);
-        const extModule: ExtensionModule = await import(entryPath);
-        if (extModule.deactivate) {
-          await Promise.resolve(extModule.deactivate.apply(global));
-        }
-        // Dispose of all subscriptions the extension made
-        dispose(extData.subscriptions);
+        this._unloadExtension(ext);
       }
     }
+  }
+
+  public async unloadExtension(id: string): Promise<void> {
+    if (this._installedExtensionsReady.isOpen()) {
+      const ext = this._extensions.find(e => e.id == id);
+      if (ext) {
+        this._unloadExtension(ext);
+      }
+    }
+  }
+
+  private async _unloadExtension(ext: IExtension): Promise<void> {
+    const extData = this._extensionData[ext.id];
+    const entryPath = getExtensionEntry(ext);
+    const extModule: ExtensionModule = await import(entryPath);
+    if (extModule.deactivate) {
+      await Promise.resolve(extModule.deactivate.apply(global));
+    }
+    // Dispose of all subscriptions the extension made
+    dispose(extData.subscriptions);
+    // Clear data
+    delete this._extensionData[ext.id];
   }
 
   private _getExtensionData(extId: string): ExtensionData {

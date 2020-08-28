@@ -433,7 +433,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               <div className='setting__body'>
                 {extensions}
               </div>
-            ) : <div>{strings.noExtensionsLoaded}</div>}
+            ) : <div>{formatString(strings.noExtensionsLoaded, window.Shared.config.data.extensionsPath)}</div>}
           </div>
 
           {/* -- Save & Restart -- */}
