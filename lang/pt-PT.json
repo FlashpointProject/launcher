@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Use uma barra de título personalizada no topo desta janela.",
     "theme": "Tema",
     "noTheme": "Nenhum Tema",
-    "themeDesc": "Caminho do arquivo do tema a ser usado (relativo à pasta de temas).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Avançado",
     "showDeveloperTab": "Mostrar a Aba de Desenvolvedor",
     "showDeveloperTabDesc": "Mostrar a aba de 'Desenvolvedor'. Isto provavelmente apenas é útil para desenvolvedores e curadores.",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Guardar e Reiniciar"
   },
   "home": {
