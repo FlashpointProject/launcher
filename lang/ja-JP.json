@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Use a custom title bar at the top of this window.",
     "theme": "テーマ",
     "noTheme": "テーマを使わない",
-    "themeDesc": "使用するテーマのファイルパス(themesフォルダーからの相対パス)",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "上位設定",
     "showDeveloperTab": "開発者タブを表示する",
     "showDeveloperTabDesc": "'開発者'タブを表示します。これはおそらく、開発者とキュレーターのみに役立ちます。",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "変更を保存して再起動"
   },
   "home": {
