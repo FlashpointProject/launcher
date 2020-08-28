@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Користи траку са прилагођеним називом на врху овог прозора.",
     "theme": "Тема",
     "noTheme": "Нема теме",
-    "themeDesc": "Путања фајла од теме за коришћење (релативно од фасцикле теме).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Напредно",
     "showDeveloperTab": "Прикажи картицу Програмер",
     "showDeveloperTabDesc": "Прикажи картицу 'Програмер'. Ово је највероватније једино корисно за програмере и кустосе.",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Сачувај и поново покрени"
   },
   "home": {
