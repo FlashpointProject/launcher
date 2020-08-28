@@ -1,12 +1,13 @@
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
+import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
 import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { IAppPreferencesData } from './preferences/interfaces';
-import { Theme } from './ThemeFile';
+import { ITheme } from './ThemeFile';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
 type ObjectLike = Record<string, unknown> | Record<number, unknown>
@@ -95,7 +96,7 @@ export interface IMainWindowExternal {
 
   initialLang: LangContainer;
   initialLangList: LangFile[];
-  initialThemes: Theme[];
+  initialThemes: ITheme[];
   initialPlaylists?: Playlist[];
   initialLibraries: string[];
   initialServerNames: string[];
@@ -103,6 +104,9 @@ export interface IMainWindowExternal {
   initialPlatforms: Record<string, string[]>;
   initialLocaleCode: string;
   initialTagCategories: TagCategory[];
+  initialExtensions: IExtensionDescription[];
+  initialDevScripts: ExtensionContribution<'devScripts'>[];
+  initialLogoSets: LogoSet[];
 
   /**
    * Wait for the preload to initialize.
@@ -179,11 +183,11 @@ export type IBackProcessInfo = {
 /** State of a managed process. */
 export enum ProcessState {
   /** The process is not running. */
-  STOPPED,
+  STOPPED = 0,
   /** The process is running. */
-  RUNNING,
+  RUNNING = 1,
   /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
-  KILLING
+  KILLING = 2
 }
 
 /** Actions that can be performed on a service. */

@@ -3,10 +3,11 @@ import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { Theme } from '@shared/ThemeFile';
+import { ITheme, Theme } from '@shared/ThemeFile';
 import { UpdateInfo } from 'electron-updater';
 import { MainActionType, RequestState } from './enums';
 
@@ -60,9 +61,14 @@ export type MainState = {
   appPaths: Record<string, string>;
   platforms: Record<string, string[]>;
   loaded: { [key in BackInit]: boolean; };
-  themeList: Theme[];
+  extensions: IExtensionDescription[];
+  themeList: ITheme[];
+  logoSets: ILogoSet[];
+  logoVersion: number; // Increase to force cache clear
   gamesTotal: number;
   localeCode: string;
+  /** Text to display on the dev console */
+  devConsoleText: string;
 
   /** Random games for the Home page box */
   randomGames: ViewGame[];
@@ -94,6 +100,8 @@ export type MainState = {
   metaEditExporterOpen: boolean;
   /** ID of the game used in the "Meta Edit Popup". */
   metaEditExporterGameId: string;
+  /** Scripts for the Developer Page */
+  devScripts: ExtensionContribution<'devScripts'>[];
 }
 
 export type MainAction = {
@@ -191,4 +199,6 @@ export type MainAction = {
   games: ViewGame[];
 } | {
   type: MainActionType.CLEAR_RANDOM_GAMES;
+} | {
+  type: MainActionType.INCREMENT_LOGO_VERSION;
 }

@@ -3,11 +3,12 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { MessageBoxOptions, OpenExternalOptions } from 'electron';
+import { MessageBoxOptions, OpenExternalOptions, SaveDialogOptions, OpenDialogOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
@@ -91,6 +92,8 @@ export enum BackIn {
   // Meta edits
   EXPORT_META_EDIT,
   IMPORT_META_EDITS,
+  /** Extensions */
+  RUN_COMMAND,
   // Misc
   UPLOAD_LOG,
 }
@@ -98,7 +101,9 @@ export enum BackIn {
 export enum BackOut {
   GENERIC_RESPONSE,
   INIT_EVENT,
-  OPEN_DIALOG,
+  OPEN_MESSAGE_BOX,
+  OPEN_SAVE_DIALOG,
+  OPEN_OPEN_DIALOG,
   OPEN_EXTERNAL,
   LOCALE_UPDATE,
   GET_MAIN_INIT_DATA,
@@ -106,6 +111,7 @@ export enum BackOut {
   IMAGE_CHANGE,
   LOG_ENTRY_ADDED,
   SERVICE_CHANGE,
+  SERVICE_REMOVED,
   LANGUAGE_CHANGE,
   LANGUAGE_LIST_CHANGE,
   IMPORT_PLAYLIST,
@@ -129,7 +135,9 @@ export enum BackOut {
   FIX_TAG_PRIMARY_ALIASES,
   SYNC_GAME_METADATA,
   QUIT,
+  RUN_COMMAND,
   UPLOAD_LOG,
+  DEV_CONSOLE_CHANGE,
 }
 
 export type WrappedRequest<T = any> = {
@@ -199,6 +207,9 @@ export type GetRendererInitDataResponse = {
   playlists: Playlist[];
   localeCode: string;
   tagCategories: TagCategory[];
+  extensions: IExtensionDescription[];
+  devScripts: ExtensionContribution<'devScripts'>[];
+  logoSets: LogoSet[];
 }
 
 export type GetSuggestionsResponseData = {
@@ -214,9 +225,17 @@ export type LocaleUpdateData = string;
 
 export type GetExecData = ExecMapping[];
 
-export type OpenDialogData = MessageBoxOptions;
+export type ShowMessageBoxData = MessageBoxOptions;
 
-export type OpenDialogResponseData = number;
+export type ShowMessageBoxResponse = number;
+
+export type ShowSaveDialogData = SaveDialogOptions;
+
+export type ShowSaveDialogResponse = string | undefined;
+
+export type ShowOpenDialogData = OpenDialogOptions;
+
+export type ShowOpenDialogResponse = string[] | undefined;
 
 export type OpenExternalData = {
   url: string;
@@ -408,6 +427,7 @@ export type SearchGamesResponse = {
 
 export type UpdateConfigData = Partial<IAppConfigData>;
 
+/** Shortend version of Game returned in searches, makes for better performance. */
 export type ViewGame = {
   id: string;
   title: string;
@@ -444,7 +464,7 @@ export type LanguageChangeData = LangContainer;
 
 export type LanguageListChangeData = LangFile[];
 
-export type ThemeChangeData = string;
+export type ThemeChangeData = Theme;
 
 export type ThemeListChangeData = Theme[];
 
@@ -559,6 +579,12 @@ export type TagDeleteResponse = {
   id: number;
 }
 
+/**
+ * Data passed to merge tags together
+ * @param toMerge Tag to merge from
+ * @param mergeInto Tag to merge into
+ * @param makeAlias Whether to move all aliases from toMerge into mergeInto as well
+ */
 export type MergeTagData = {
   toMerge: string;
   mergeInto: string;
@@ -608,3 +634,17 @@ export type MetaEditGameNotFound = {
 }
 
 export type UploadLogResponse = string | undefined;
+
+export type RunCommandData = {
+  command: string;
+  args?: any[];
+};
+
+export type RunCommandResponse = {
+  success: boolean;
+  res: any;
+}
+
+export type DevConsoleStatusResponse = {
+  text: string;
+}

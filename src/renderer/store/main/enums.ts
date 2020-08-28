@@ -57,6 +57,8 @@ export enum MainActionType {
   RESPONSE_RANDOM_GAMES = '@@main/RESPONSE_RANDOM_GAMES',
   /** Remove all queued random games (the currently displayed games are NOT removed). */
   CLEAR_RANDOM_GAMES = '@@main/CLEAR_RANDOM_GAMES',
+  /** Increments the Logo Version to force a cache clear */
+  INCREMENT_LOGO_VERSION = '@@main/INCREMENT_LOGO_VERSION'
 }
 
 export enum RequestState {

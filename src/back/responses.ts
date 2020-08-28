@@ -3,13 +3,13 @@ import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { AddLogData, AddPlaylistGameData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportMetaEditData, ExportPlaylistData, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportMetaEditResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, MergeTagData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, UploadLogResponse } from '@shared/back/types';
+import { AddLogData, AddPlaylistGameData, BackIn, BackInit, BackOut, BrowseChangeData, BrowseViewIndexData, BrowseViewIndexResponse, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DeleteImageData, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistGameResponse, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportMetaEditData, ExportPlaylistData, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, GetGameData, GetGameResponseData, GetGamesTotalResponseData, GetMainInitDataResponse, GetPlaylistData, GetPlaylistGameData, GetPlaylistGameResponse, GetPlaylistResponse, GetPlaylistsResponse, GetRendererInitDataResponse, GetSuggestionsResponseData, ImageChangeData, ImportCurationData, ImportCurationResponseData, ImportMetaEditResponseData, ImportPlaylistData, InitEventData, LanguageChangeData, LaunchAddAppData, LaunchCurationAddAppData, LaunchCurationData, LaunchGameData, LocaleUpdateData, MergeTagData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, RunCommandData, RunCommandResponse, SaveGameData, SaveImageData, SaveLegacyPlatformData as SaveLegacyPlatformData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse, ServiceActionData, SetLocaleData, TagByIdData, TagByIdResponse, TagCategoryByIdData, TagCategoryByIdResponse, TagCategoryDeleteData, TagCategoryDeleteResponse, TagCategorySaveData, TagCategorySaveResponse, TagDeleteData, TagDeleteResponse, TagFindData, TagFindResponse, TagGetData, TagGetOrCreateData, TagGetResponse, TagPrimaryFixData, TagPrimaryFixResponse, TagSaveData, TagSaveResponse, TagSuggestionsData, TagSuggestionsResponse, UpdateConfigData, UploadLogResponse } from '@shared/back/types';
 import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
 import { FilterGameOpts } from '@shared/game/GameFilter';
-import { DeepPartial, GamePropSuggestions, INamedBackProcessInfo, IService, ProcessAction } from '@shared/interfaces';
+import { DeepPartial, GamePropSuggestions, ProcessAction } from '@shared/interfaces';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
@@ -34,7 +34,7 @@ import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { respond } from './SocketServer';
 import { BackState, BareTag, TagsFile } from './types';
-import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylist, exit, pathExists, procToService, runService, waitForServiceDeath } from './util/misc';
+import { copyError, createAddAppFromLegacy, createContainer, createGameFromLegacy, createPlaylistFromJson, exit, pathExists, procToService, removeService, runService } from './util/misc';
 import { sanitizeFilename } from './util/sanitizeFilename';
 import { uuid } from './util/uuid';
 
@@ -81,9 +81,6 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_RENDERER_INIT_DATA, async (event, req) => {
-    const services: IService[] = [];
-    if (state.services.server) { services.push(procToService(state.services.server)); }
-
     state.languageContainer = createContainer(
       state.languages,
       state.preferences.currentLanguage,
@@ -107,18 +104,26 @@ export function registerRequestCallbacks(state: BackState): void {
         config: state.config,
         fileServerPort: state.fileServerPort,
         log: state.log,
-        services: services,
+        services: Array.from(state.services.values()).map(s => procToService(s)),
         customVersion: state.customVersion,
         languages: state.languages,
         language: state.languageContainer,
-        themes: state.themeFiles.map(theme => ({ entryPath: theme.entryPath, meta: theme.meta })),
+        themes: Array.from(state.registry.themes.values()),
         playlists: await GameManager.findPlaylists(),
         libraries: libraries,
         serverNames: serverNames,
         mad4fpEnabled: mad4fpEnabled,
         platforms: platforms,
         localeCode: state.localeCode,
-        tagCategories: await TagManager.findTagCategories()
+        tagCategories: await TagManager.findTagCategories(),
+        extensions: (await state.extensionsService.getExtensions()).map(e => {
+          return {
+            id: e.id,
+            ...e.manifest
+          };
+        }),
+        devScripts: await state.extensionsService.getContributions('devScripts'),
+        logoSets: Array.from(state.registry.logoSets.values()),
       },
     });
   });
@@ -213,9 +218,10 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        openDialog: state.socketServer.openDialog(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
+      state.apiEmitters.games.onDidLaunchAddApp.fire(addApp);
     }
 
     respond(event.target, {
@@ -233,11 +239,11 @@ export function registerRequestCallbacks(state: BackState): void {
       // Make sure Server is set to configured server - Curations may have changed it
       const configServer = state.serviceInfo ? state.serviceInfo.server.find(s => s.name === state.config.server) : undefined;
       if (configServer) {
-        const info: INamedBackProcessInfo = state.services.server.info;
-        if (info.name !== configServer.name) {
+        const server = state.services.get('server');
+        if (!server || !('name' in server.info) || server.info.name !== configServer.name) {
           // Server is different, change now
-          await waitForServiceDeath(state.services.server);
-          state.services.server = runService(state, 'server', 'Server', configServer);
+          if (server) { await removeService(state, 'server'); }
+          runService(state, 'server', 'Server', state.config.flashpointPath, configServer);
         }
       }
       // Launch game
@@ -249,9 +255,10 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        openDialog: state.socketServer.openDialog(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
+      state.apiEmitters.games.onDidLaunchGame.fire(game);
     }
 
     respond(event.target, {
@@ -375,12 +382,12 @@ export function registerRequestCallbacks(state: BackState): void {
     try {
       const rawData = await fs.promises.readFile(req.data.filePath, 'utf-8');
       const jsonData = JSON.parse(rawData);
-      const newPlaylist = createPlaylist(jsonData, req.data.library);
+      const newPlaylist = createPlaylistFromJson(jsonData, req.data.library);
       const existingPlaylist = await GameManager.findPlaylistByName(newPlaylist.title, true);
       if (existingPlaylist) {
         newPlaylist.title += ' - New';
         // Conflict, resolve with user
-        const dialogFunc = state.socketServer.openDialog(event.target);
+        const dialogFunc = state.socketServer.showMessageBoxBack(event.target);
         const strings = state.languageContainer;
         const result = await dialogFunc({
           title: strings.dialog.playlistConflict,
@@ -564,7 +571,7 @@ export function registerRequestCallbacks(state: BackState): void {
       id: req.id,
       type: BackOut.DELETE_TAG_CATEGORY,
       data: {
-        success: await TagManager.deleteTagCategory(req.data, state.socketServer.openDialog(event.target))
+        success: await TagManager.deleteTagCategory(req.data, state.socketServer.showMessageBoxBack(event.target))
       }
     });
     await TagManager.sendTagCategories(state.socketServer);
@@ -606,7 +613,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<MergeTagData>(BackIn.MERGE_TAGS, async (event, req) => {
-    const newTag = await TagManager.mergeTags(req.data, state.socketServer.openDialog(event.target));
+    const newTag = await TagManager.mergeTags(req.data, state.socketServer.showMessageBoxBack(event.target));
     respond<Tag>(event.target, {
       id: req.id,
       type: BackOut.MERGE_TAGS,
@@ -654,7 +661,7 @@ export function registerRequestCallbacks(state: BackState): void {
       await GameManager.updateGames(gamesToEdit);
       // Remove old tag
       if (oldTag.id) {
-        await TagManager.deleteTag(oldTag.id, state.socketServer.openDialog(event.target));
+        await TagManager.deleteTag(oldTag.id, state.socketServer.showMessageBoxBack(event.target));
       }
     }
 
@@ -665,7 +672,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<TagDeleteData>(BackIn.DELETE_TAG, async (event, req) => {
-    const success = await TagManager.deleteTag(req.data, state.socketServer.openDialog(event.target));
+    const success = await TagManager.deleteTag(req.data, state.socketServer.showMessageBoxBack(event.target));
     respond<TagDeleteResponse>(event.target, {
       id: req.id,
       type: BackOut.DELETE_TAG,
@@ -803,7 +810,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<ServiceActionData>(BackIn.SERVICE_ACTION, (event, req) => {
-    const proc = state.services[req.data.id];
+    const proc = state.services.get(req.data.id);
     if (proc) {
       switch (req.data.action) {
         case ProcessAction.START:
@@ -1037,7 +1044,7 @@ export function registerRequestCallbacks(state: BackState): void {
         saveCuration: req.data.saveCuration,
         fpPath: state.config.flashpointPath,
         imageFolderPath: state.config.imageFolderPath,
-        openDialog: state.socketServer.openDialog(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
         tagCategories: await TagManager.findTagCategories()
       });
@@ -1065,19 +1072,20 @@ export function registerRequestCallbacks(state: BackState): void {
         // Make sure all 3 relevant server infos are present before considering MAD4FP opt
         const configServer = state.serviceInfo.server.find(s => s.name === state.config.server);
         const mad4fpServer = state.serviceInfo.server.find(s => s.mad4fp);
-        const activeServer: INamedBackProcessInfo | undefined = state.services.server?.info;
+        const activeServer = state.services.get('server');
+        const activeServerInfo = state.serviceInfo.server.find(s => (activeServer && 'name' in activeServer.info && s.name === activeServer.info?.name));
         if (activeServer && configServer && mad4fpServer) {
-          if (req.data.mad4fp && !activeServer.mad4fp) {
+          if (req.data.mad4fp && activeServerInfo && !activeServerInfo.mad4fp) {
             // Swap to mad4fp server
-            await waitForServiceDeath(state.services.server);
             const mad4fpServerCopy = deepCopy(mad4fpServer);
             // Set the content folder path as the final parameter
             mad4fpServerCopy.arguments.push(getContentFolderByKey(req.data.key, state.config.flashpointPath));
-            state.services.server = runService(state, 'server', 'Server', mad4fpServerCopy);
-          } else if (!req.data.mad4fp && activeServer.mad4fp && !configServer.mad4fp) {
+            await removeService(state, 'server');
+            runService(state, 'server', 'Server', state.config.flashpointPath, mad4fpServerCopy);
+          } else if (!req.data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
             // Swap to mad4fp server
-            await waitForServiceDeath(state.services.server);
-            state.services.server = runService(state, 'server', 'Server', configServer);
+            await removeService(state, 'server');
+            runService(state, 'server', 'Server', state.config.flashpointPath, configServer);
           }
         }
       }
@@ -1089,9 +1097,10 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        openDialog: state.socketServer.openDialog(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
-      });
+      },
+      state.apiEmitters.games.onDidLaunchCurationGame);
     } catch (e) {
       log.error('Launcher', e + '');
     }
@@ -1114,9 +1123,10 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
-        openDialog: state.socketServer.openDialog(event.target),
+        openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
-      });
+      },
+      state.apiEmitters.games.onDidLaunchCurationAddApp);
     } catch (e) {
       log.error('Launcher', e + '');
     }
@@ -1188,7 +1198,9 @@ export function registerRequestCallbacks(state: BackState): void {
     });
   });
 
-  state.socketServer.register(BackIn.QUIT, (event, req) => {
+  state.socketServer.register(BackIn.QUIT, async (event, req) => {
+    // Unload all extensions before quitting
+    await state.extensionsService.unloadAll();
     respond(event.target, {
       id: req.id,
       type: BackOut.QUIT,
@@ -1228,7 +1240,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
           if (await pathExists(filePath)) {
             const strings = state.languageContainer;
-            const result = await state.socketServer.openDialog(event.target)({
+            const result = await state.socketServer.showMessageBoxBack(event.target)({
               type: 'warning',
               title: strings.dialog.overwriteFileTitle,
               message: strings.dialog.overwriteFileMessage,
@@ -1259,13 +1271,42 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register<undefined>(BackIn.IMPORT_META_EDITS, async (event, req) => {
     const result = await importAllMetaEdits(
       path.join(state.config.flashpointPath, state.config.metaEditsFolderPath),
-      state.socketServer.openDialog(event.target),
+      state.socketServer.showMessageBoxBack(event.target),
     );
 
     respond<ImportMetaEditResponseData>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,
       data: result,
+    });
+  });
+
+  state.socketServer.register<RunCommandData>(BackIn.RUN_COMMAND, async (event, req) => {
+    // Find comamnd
+    const { command } = req.data;
+    const args = req.data.args || [];
+    const c = state.registry.commands.get(req.data.command);
+    let res = undefined;
+    let success = false;
+    if (c) {
+      // Run Command
+      try {
+        res = await Promise.resolve(c.callback(...args));
+        success = true;
+      } catch (error) {
+        log.error('Launcher', `Error running Command (${command})\n${error}`);
+      }
+    } else {
+      log.error('Launcher', `Command requested but "${command}" not registered!`);
+    }
+    // Return response
+    respond<RunCommandResponse>(event.target, {
+      id: req.id,
+      type: BackOut.RUN_COMMAND,
+      data: {
+        success: success,
+        res: res
+      }
     });
   });
 }

@@ -1,3 +1,4 @@
+import { ApiEmitter } from '@back/extensions/ApiEmitter';
 import { chunkArray } from '@back/util/misc';
 import { validateSqlName, validateSqlOrder } from '@back/util/sql';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
@@ -21,6 +22,14 @@ enum flatGameFields {
 }
 
 export namespace GameManager {
+  // Events
+  export const onDidUpdateGame = new ApiEmitter<{oldGame: Game, newGame: Game}>();
+  export const onDidRemoveGame = new ApiEmitter<Game>();
+
+  export const onDidUpdatePlaylist = new ApiEmitter<{oldPlaylist: Playlist, newPlaylist: Playlist}>();
+  export const onDidUpdatePlaylistGame = new ApiEmitter<{oldGame: PlaylistGame, newGame: PlaylistGame}>();
+  export const onDidRemovePlaylistGame = new ApiEmitter<PlaylistGame>();
+
   export async function countGames(): Promise<number> {
     const gameRepository = getManager().getRepository(Game);
     return gameRepository.count();
@@ -248,7 +257,9 @@ export namespace GameManager {
 
   export async function updateGame(game: Game): Promise<Game> {
     const gameRepository = getManager().getRepository(Game);
-    return gameRepository.save(game);
+    const savedGame = await gameRepository.save(game);
+    if (savedGame) { onDidUpdateGame.fire({oldGame: game, newGame: savedGame}); }
+    return savedGame;
   }
 
   export async function removeGameAndAddApps(gameId: string): Promise<Game | undefined> {
@@ -260,6 +271,7 @@ export namespace GameManager {
         await addAppRepository.remove(addApp);
       }
       await gameRepository.remove(game);
+      onDidRemoveGame.fire(game);
     }
     return game;
   }
@@ -301,7 +313,9 @@ export namespace GameManager {
   /** Updates a playlist */
   export async function updatePlaylist(playlist: Playlist): Promise<Playlist> {
     const playlistRepository = getManager().getRepository(Playlist);
-    return playlistRepository.save(playlist);
+    const savedPlaylist = await playlistRepository.save(playlist);
+    if (savedPlaylist) { onDidUpdatePlaylist.fire({oldPlaylist: playlist, newPlaylist: savedPlaylist}); }
+    return savedPlaylist;
   }
 
   /** Finds a Playlist Game */
@@ -320,6 +334,7 @@ export namespace GameManager {
     const playlistGameRepository = getManager().getRepository(PlaylistGame);
     const playlistGame = await findPlaylistGame(playlistId, gameId);
     if (playlistGame) {
+      onDidRemovePlaylistGame.fire(playlistGame);
       return playlistGameRepository.remove(playlistGame);
     }
   }
@@ -352,7 +367,9 @@ export namespace GameManager {
   /** Updates a Playlist Game */
   export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
     const playlistGameRepository = getManager().getRepository(PlaylistGame);
-    return playlistGameRepository.save(playlistGame);
+    const savedPlaylistGame = await playlistGameRepository.save(playlistGame);
+    if (savedPlaylistGame) { onDidUpdatePlaylistGame.fire({oldGame: playlistGame, newGame: savedPlaylistGame }); }
+    return savedPlaylistGame;
   }
 
   /** Updates a collection of Playlist Games */
@@ -363,7 +380,6 @@ export namespace GameManager {
       }
     });
   }
-
 
   export async function findGamesWithTag(tag: Tag): Promise<Game[]> {
     const gameIds = (await getManager().createQueryBuilder()

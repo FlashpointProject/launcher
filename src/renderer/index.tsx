@@ -118,6 +118,7 @@ function createInitialMainState(): MainState {
     requestingRandomGames: false,
     shiftRandomGames: false,
     localeCode: window.Shared.initialLocaleCode,
+    devConsoleText: '',
     upgrades: [],
     gamesDoneLoading: false,
     upgradesDoneLoading: false,
@@ -130,5 +131,9 @@ function createInitialMainState(): MainState {
     updateInfo: undefined,
     metaEditExporterOpen: false,
     metaEditExporterGameId: '',
+    extensions: window.Shared.initialExtensions,
+    devScripts: window.Shared.initialDevScripts,
+    logoSets: window.Shared.initialLogoSets,
+    logoVersion: 0
   };
 }

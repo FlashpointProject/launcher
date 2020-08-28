@@ -126,7 +126,7 @@ export type ParsedSearch = {
   whitelist: FieldFilter[];
 };
 
-/** A filter that applies to a specific field. */
+/** A search filter that applies to a specific field. */
 type FieldFilter = {
   /** The field the filter applies to. */
   field: string;

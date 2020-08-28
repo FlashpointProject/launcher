@@ -374,6 +374,13 @@ export function mainStateReducer(state: MainState = createInitialState(), action
         randomGames: state.randomGames.slice(0, 5),
       };
     }
+
+    case MainActionType.INCREMENT_LOGO_VERSION: {
+      return {
+        ...state,
+        logoVersion: state.logoVersion + 1
+      };
+    }
   }
 }
 
@@ -394,11 +401,14 @@ function createInitialState(): MainState {
       2: false,
     },
     themeList: [],
+    logoSets: [],
+    logoVersion: 0,
     gamesTotal: -1,
     randomGames: [],
     requestingRandomGames: false,
     shiftRandomGames: false,
     localeCode: 'en-us',
+    devConsoleText: '',
     upgrades: [],
     gamesDoneLoading: false,
     upgradesDoneLoading: false,
@@ -411,5 +421,7 @@ function createInitialState(): MainState {
     updateInfo: undefined,
     metaEditExporterOpen: false,
     metaEditExporterGameId: '',
+    extensions: [],
+    devScripts: [],
   };
 }

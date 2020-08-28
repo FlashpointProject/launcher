@@ -6,7 +6,7 @@ import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { ChildProcess, exec, execFile } from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import { OpenDialogFunc, OpenExternalFunc } from './types';
+import { ShowMessageBoxFunc, OpenExternalFunc } from './types';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
@@ -24,7 +24,7 @@ type LaunchBaseOpts = {
   lang: LangContainer;
   isDev: boolean;
   exePath: string;
-  openDialog: OpenDialogFunc;
+  openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
 }
 
@@ -308,7 +308,7 @@ function splitQuotes(str: string): string[] {
 
 type UnityOutputResponse = {
   text: string;
-  fn: (proc: ChildProcess, openDialog: OpenDialogFunc) => void;
+  fn: (proc: ChildProcess, openDialog: ShowMessageBoxFunc) => void;
 }
 
 const unityOutputResponses: UnityOutputResponse[] = [

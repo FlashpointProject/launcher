@@ -1,8 +1,21 @@
-export type Theme = {
+export interface ITheme {
+  /** Unique ID */
+  id: string;
+  /** Path to the theme folder */
+  themePath: string;
   /** Path of the theme's entry file (the css file that should be applied). */
   entryPath: string;
   /** Meta data of the theme. */
   meta: ThemeMeta;
+  /** List of files this theme has */
+  files: string[];
+  /** Suggested logo set */
+  logoSet?: string;
+}
+
+export type Theme = ITheme & {
+  /** Path of this theme on disk */
+  basePath: string;
 }
 
 /** Meta data of a theme file (the data defined in the first comment of the theme file). */

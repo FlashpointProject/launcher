@@ -6,15 +6,17 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
-import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData, ThemeChangeData, ThemeListChangeData } from '@shared/back/types';
+import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData } from '@shared/back/types';
+import { LogoSet, ILogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
-import { parseThemeMetaData, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
+import { Theme } from '@shared/ThemeFile';
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
+import * as flashpoint from 'flashpoint';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
@@ -28,14 +30,25 @@ import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
+import { ApiEmitter } from './extensions/ApiEmitter';
+import { ExtensionService } from './extensions/ExtensionService';
+import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
+import { Command } from './extensions/types';
+import { GameManager } from './game/GameManager';
+import { ManagedChildProcess } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
+import { newThemeWatcher } from './Themes';
 import { BackState, ImageDownloadItem } from './types';
 import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+// Required for the DB Models to function
+// Required for the DB Models to function
+// Required for the DB Models to function
+// Required for the DB Models to function
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -79,17 +92,45 @@ const state: BackState = {
   queries: {},
   log: [],
   serviceInfo: undefined,
-  services: {},
+  services: new Map<string, ManagedChildProcess>(),
   languageWatcher: new FolderWatcher(),
   languageQueue: new EventQueue(),
   languages: [],
   languageContainer: getDefaultLocalization(), // Cache of the latest lang container - used by back when it needs lang strings
-  themeWatcher: new FolderWatcher(),
-  themeQueue: new EventQueue(),
-  themeFiles: [],
+  themeState: {
+    watchers: [],
+    queue: new EventQueue()
+  },
   playlists: [],
   execMappings: [],
   lastLinkedCurationKey: '',
+  moduleInterceptor: {
+    alternatives: [],
+    factories: new Map<string, INodeModuleFactory>(),
+  },
+  apiEmitters: {
+    onDidInit: new ApiEmitter<void>(),
+    games: {
+      onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
+      onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
+      onDidLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onDidUpdateGame: GameManager.onDidUpdateGame,
+      onDidRemoveGame: GameManager.onDidRemoveGame,
+      onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
+      onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
+      onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+    }
+  },
+  status: {
+    devConsoleText: ''
+  },
+  registry: {
+    commands: new Map<string, Command>(),
+    logoSets: new Map<string, LogoSet>(),
+    themes: new Map<string, Theme>(),
+  },
+  extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
 };
 registerRequestCallbacks(state);
@@ -120,7 +161,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
 
   state.socketServer.secret = content.secret;
 
-  log.info('Launcher', `Starting Flashpoint Launcher ${content.version} ${content.isDev ? 'DEV' : ''}`);
+  const versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
+  log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
   const [pref, conf] = await (Promise.all([
@@ -155,6 +197,28 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     log.info('Launcher', 'Database connection established');
   }
 
+  // Init extensions
+  const addExtLogFactory = (extId: string) => (entry: ILogEntry) => {
+    state.extensionsService.logExtension(extId, entry);
+  };
+  state.extensionsService = new ExtensionService(state.config);
+  // Create module interceptor
+  registerInterceptor(new FPLNodeModuleFactory(
+    await state.extensionsService.getExtensionPathIndex(),
+    addExtLogFactory,
+    versionStr,
+    state
+  ),
+  state.moduleInterceptor);
+  await installNodeInterceptor(state.moduleInterceptor);
+  // Load each extension
+  await state.extensionsService.getExtensions()
+  .then((exts) => {
+    exts.forEach(ext => {
+      state.extensionsService.loadExtension(ext.id);
+    });
+  });
+
   // Init services
   try {
     state.serviceInfo = await ServicesFile.readFile(
@@ -171,7 +235,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // Run processes
     if (state.serviceInfo.server.length > 0) {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
-      state.services.server = runService(state, 'server', 'Server', chosenServer || state.serviceInfo.server[0]);
+      runService(state, 'server', 'Server', state.config.flashpointPath, chosenServer || state.serviceInfo.server[0]);
     }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {
@@ -264,121 +328,96 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   });
 
   // Init themes
-  state.themeWatcher.on('ready', () => {
-    // Add event listeners
-    state.themeWatcher.on('add', onThemeAdd);
-    state.themeWatcher.on('change', (filename: string, offsetPath: string) => {
-      state.themeQueue.push(() => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          // A file in a theme has been changed
-          state.socketServer.broadcast<ThemeChangeData>({
-            id: '',
-            type: BackOut.THEME_CHANGE,
-            data: item.entryPath,
-          });
-        } else {
-          console.warn('A file has been changed in a theme that is not registered '+
-                        `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
+  const dataThemeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
+  await fs.ensureDir(dataThemeFolder);
+  try {
+    await fs.promises.readdir(dataThemeFolder, { withFileTypes: true })
+    .then(async (files) => {
+      for (const file of files) {
+        if (file.isDirectory()) {
+          await newThemeWatcher(`SYSTEM.${file.name}`, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
         }
-      });
+      }
     });
-    state.themeWatcher.on('remove', (filename: string, offsetPath: string) => {
-      state.themeQueue.push(() => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          if (item.entryPath === path.join(offsetPath, filename)) { // (Entry file was removed)
-            state.themeFiles.splice(state.themeFiles.indexOf(item), 1);
-            // A theme has been removed
-            state.socketServer.broadcast<ThemeListChangeData>({
-              id: '',
-              type: BackOut.THEME_LIST_CHANGE,
-              data: state.themeFiles,
-            });
-          } else { // (Non-entry file was removed)
-            // A file in a theme has been removed
-            state.socketServer.broadcast<ThemeChangeData>({
-              id: '',
-              type: BackOut.THEME_CHANGE,
-              data: item.entryPath,
-            });
-          }
-        } else {
-          console.warn('A file has been removed from a theme that is not registered '+
-                        `(Filename: "${filename}", OffsetPath: "${offsetPath}")`);
+  } catch (error) {
+    log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
+  }
+  const themeContributions = await state.extensionsService.getContributions('themes');
+  for (const c of themeContributions) {
+    for (const theme of c.value) {
+      const ext = await state.extensionsService.getExtension(c.extId);
+      if (ext) {
+        const realPath = path.join(ext.extensionPath, theme.path);
+        try {
+          await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
+        } catch (error) {
+          log.error('Extensions', `Error loading theme from "${c.extId}"\n${error}`);
         }
-      });
-    });
-    // Add initial files
-    for (const filename of state.themeWatcher.filenames) {
-      onThemeAdd(filename, '', false);
+      }
     }
-    // Functions
-    function onThemeAdd(filename: string, offsetPath: string, doBroadcast = true) {
-      state.themeQueue.push(async () => {
-        const item = findOwner(filename, offsetPath);
-        if (item) {
-          // A file has been added to this theme
-          state.socketServer.broadcast<ThemeChangeData>({
-            id: '',
-            type: BackOut.THEME_CHANGE,
-            data: item.entryPath,
-          });
-        } else {
-          // Check if it is a potential entry file
-          // (Entry files are either directly inside the "Theme Folder", or one folder below that and named "theme.css")
-          const folders = offsetPath.split(path.sep);
-          const folderName = folders[0] || offsetPath;
-          const file = state.themeWatcher.getFile(folderName ? [...folders, filename] : [filename]);
-          if ((file && file.isFile()) && (offsetPath === '' || (offsetPath === folderName && filename === themeEntryFilename))) {
-            const themeFolder = state.themeWatcher.getFolder() || '';
-            const entryPath = path.join(themeFolder, folderName, filename);
-            let meta: Partial<ThemeMeta> | undefined;
-            try {
-              const data = await fs.readFile(entryPath, 'utf8');
-              meta = parseThemeMetaData(data) || {};
-            } catch (error) { console.warn(`Failed to load theme entry file (File: "${entryPath}")`, error); }
-            if (meta) {
-              state.themeFiles.push({
-                basename: folderName || filename,
-                meta: meta,
-                entryPath: path.relative(themeFolder, entryPath),
-              });
-              if (doBroadcast) {
-                state.socketServer.broadcast<ThemeListChangeData>({
-                  id: '',
-                  type: BackOut.THEME_LIST_CHANGE,
-                  data: state.themeFiles,
-                });
-              }
+  }
+
+  // Init Logo Sets
+  const dataLogoSetsFolder = path.join(state.config.flashpointPath, state.config.logoSetsFolderPath);
+  await fs.ensureDir(dataLogoSetsFolder);
+  try {
+    await fs.promises.readdir(dataLogoSetsFolder, { withFileTypes: true })
+    .then(async (files) => {
+      for (const file of files) {
+        if (file.isDirectory()) {
+          const logoSet: ILogoSet = {
+            id: `SYSTEM.${file.name.replace(' ', '-')}`,
+            name: `${file.name}`,
+            path: file.name
+          };
+          const realPath = path.join(dataLogoSetsFolder, logoSet.path);
+          try {
+            if (state.registry.logoSets.has(logoSet.id)) {
+              throw new Error(`Logo set "${logoSet.id}" already registered!`);
             }
+            const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
+            .filter(f => f.isFile())
+            .map(f => f.name);
+            state.registry.logoSets.set(logoSet.id, {
+              ...logoSet,
+              fullPath: realPath,
+              files: files
+            });
+            log.debug('Extensions', `Logo set "${logoSet.id}" registered by "SYSTEM"`);
+          } catch (error) {
+            log.error('Extensions', `Error loading logo set from "SYSTEM"\n${error}`);
           }
         }
-      });
-    }
-    function findOwner(filename: string, offsetPath: string) {
-      if (offsetPath) { // (Sub-folder)
-        const index = offsetPath.indexOf(path.sep);
-        const folderName = (index >= 0) ? offsetPath.substr(0, index) : offsetPath;
-        return state.themeFiles.find(item => item.basename === folderName);
-      } else { // (Theme folder)
-        return state.themeFiles.find(item => item.entryPath === filename || item.basename === filename);
+      }
+    });
+  } catch (error) {
+    log.error('Launcher', `Error loading default Themes folder\n${error.message}`);
+  }
+  const logoSetContributions = await state.extensionsService.getContributions('logoSets');
+  for (const c of logoSetContributions) {
+    for (const logoSet of c.value) {
+      const ext = await state.extensionsService.getExtension(c.extId);
+      if (ext) {
+        const realPath = path.join(ext.extensionPath, logoSet.path);
+        try {
+          if (state.registry.logoSets.has(logoSet.id)) {
+            throw new Error(`Logo set "${logoSet.id}" already registered!`);
+          }
+          const files = (await fs.promises.readdir(realPath, { withFileTypes: true }))
+          .filter(f => f.isFile())
+          .map(f => f.name);
+          state.registry.logoSets.set(logoSet.id, {
+            ...logoSet,
+            fullPath: realPath,
+            files: files
+          });
+          log.debug('Extensions', `Logo set "${logoSet.id}" registered by "${ext.manifest.displayName || ext.manifest.name}"`);
+        } catch (error) {
+          log.error('Extensions', `Error loading logo set from "${c.extId}"\n${error}`);
+        }
       }
     }
-  });
-  state.themeWatcher.on('error', console.error);
-  const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
-  fs.stat(themeFolder, (error) => {
-    if (!error) { state.themeWatcher.watch(themeFolder, { recursionDepth: -1 }); }
-    else {
-      log.info('Back', (typeof error.toString === 'function') ? error.toString() : (error + ''));
-      if (error.code === 'ENOENT') {
-        log.info('Back', `Failed to watch theme folder. Folder does not exist (Path: "${themeFolder}")`);
-      } else {
-        log.info('Back', (typeof error.toString === 'function') ? error.toString() : (error + ''));
-      }
-    }
-  });
+  }
 
   // Load Exec Mappings
   loadExecMappingsFile(path.join(state.config.flashpointPath, state.config.jsonFolderPath), content => log.info('Launcher', content))
@@ -441,7 +480,10 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   }
 
   // Respond
-  send(state.socketServer.port);
+  send(state.socketServer.port, () => {
+    state.apiEmitters.onDidInit.fire();
+  });
+
 }
 
 function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
@@ -525,23 +567,58 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
 
       // Theme folder
       case 'themes': {
-        const themeFolder = path.join(state.config.flashpointPath, state.config.themeFolderPath);
         const index = urlPath.indexOf('/');
-        const relativeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
-        const filePath = path.join(themeFolder, relativeUrl);
-        if (filePath.startsWith(themeFolder)) {
-          serveFile(req, res, filePath);
+        // Split URL section into parts (/Themes/<themeId>/<relativePath>)
+        const themeUrl = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const nameIndex = themeUrl.indexOf('/');
+        const themeId = (nameIndex >= 0) ? themeUrl.substr(0, nameIndex) : themeUrl;
+        const relativePath = (nameIndex >= 0) ? themeUrl.substr(nameIndex + 1): themeUrl;
+        // Find theme associated with the path
+        const theme = state.registry.themes.get(themeId);
+        if (theme) {
+          const filePath = path.join(theme.basePath, theme.themePath, relativePath);
+          // Don't allow files outside of theme path
+          const relative = path.relative(theme.basePath, filePath);
+          if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+            serveFile(req, res, filePath);
+          } else {
+            log.warn('Launcher', `Illegal file request: "${filePath}"`);
+          }
         }
       } break;
 
       // Logos folder
       case 'logos': {
-        const logoFolder = path.join(state.config.flashpointPath, state.config.logoFolderPath);
-        const filePath = path.join(logoFolder, urlPath.substr(index + 1));
+        const logoSet = state.registry.logoSets.get(state.preferences.currentLogoSet || '');
+        const relativePath = urlPath.substr(index + 1);
+        const logoFolder = logoSet && logoSet.files.includes(relativePath)
+          ? logoSet.fullPath
+          : path.join(state.config.flashpointPath, state.config.logoFolderPath);
+        const filePath = path.join(logoFolder, relativePath);
         if (filePath.startsWith(logoFolder)) {
           serveFile(req, res, filePath);
+        } else {
+          log.warn('Launcher', `Illegal file request: "${filePath}"`);
         }
       } break;
+
+      // Extension icons
+      case 'exticons': {
+        const relativePath = urlPath.substr(index + 1);
+        // /ExtIcons/<extId>
+        state.extensionsService.getExtension(relativePath)
+        .then((ext) => {
+          if (ext && ext.manifest.icon) {
+            const filePath = path.join(ext.extensionPath, ext.manifest.icon);
+            if (filePath.startsWith(ext.extensionPath)) {
+              serveFile(req, res, filePath);
+            } else {
+              log.warn('Launcher', `Illegal file request: "${filePath}"`);
+            }
+          }
+        });
+        break;
+      }
 
       // JSON file(s)
       case 'credits.json': {

@@ -1,12 +1,13 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { BackIn, UpdateConfigData } from '@shared/back/types';
+import { IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
-import { Theme } from '@shared/ThemeFile';
+import { ITheme } from '@shared/ThemeFile';
 import { formatString } from '@shared/utils/StringFormatter';
 import * as React from 'react';
-import { isFlashpointValidCheck } from '../../Util';
+import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
 import { CheckBox } from '../CheckBox';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
@@ -19,12 +20,18 @@ type OwnProps = {
   libraries: string[];
   /** List of all platforms */
   platforms: string[];
-  /** Filenames of all files in the themes folder. */
-  themeList: Theme[];
+  /** List of all available themes */
+  themeList: ITheme[];
+  /** List of all available logo sets */
+  logoSets: ILogoSet[];
+  /** Version of logos to render */
+  logoVersion: number;
   /** List of available languages. */
   availableLangs: LangFile[];
   /** List of available server names. */
   serverNames: string[];
+  /** All available extensions */
+  extensions: IExtensionDescription[];
   localeCode: string;
 };
 
@@ -58,6 +65,7 @@ export interface ConfigPage {
 export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState> {
   /** Reference to the input element of the "current theme" drop-down field. */
   currentThemeInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
+  currentLogoSetInputRef: HTMLInputElement | HTMLTextAreaElement | null = null;
 
   constructor(props: ConfigPageProps) {
     super(props);
@@ -80,6 +88,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const autoString = formatString(strings.auto, this.props.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     const serverOptions = this.renderServerOptionsMemo(this.props.serverNames);
+    const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
+    const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -294,7 +304,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                   </div>
                   <div className='setting__row__content setting__row__content--input-field setting__row__content--theme-input-field'>
                     <DropdownInputField
-                      text={this.props.preferencesData.currentTheme || ''}
+                      text={this.getThemeName(this.props.preferencesData.currentTheme || '') || ''}
                       placeholder={strings.noTheme}
                       onChange={this.onCurrentThemeChange}
                       editable={true}
@@ -305,6 +315,28 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
                 <div className='setting__row__bottom'>
                   <p>{strings.themeDesc}</p>
+                </div>
+              </div>
+              {/* Logo Set */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.logoSet}</p>
+                  </div>
+                  <div className='setting__row__content setting__row__content--input-field setting__row__content--theme-input-field'>
+                    <DropdownInputField
+                      text={this.getLogoSetName(this.props.preferencesData.currentLogoSet || '') || ''}
+                      placeholder={strings.noLogoSet}
+                      onChange={this.onCurrentLogoSetChange}
+                      editable={true}
+                      items={[ ...this.props.logoSets.map(formatLogoSetName), 'No Logo Set' ]}
+                      onItemSelect={this.onCurrentLogoSetSelect}
+                      inputRef={this.currentLogoSetInputRefFunc} />
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.logoSetDesc}</p>
+                  {logoSetPreviewRows}
                 </div>
               </div>
             </div>
@@ -394,6 +426,16 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             </div>
           </div>
 
+          {/* -- Advanced -- */}
+          <div className='setting'>
+            <p className='setting__title'>{strings.extensionsHeader}</p>
+            { extensions.length > 0 ? (
+              <div className='setting__body'>
+                {extensions}
+              </div>
+            ) : <div>{formatString(strings.noExtensionsLoaded, window.Shared.config.data.extensionsPath)}</div>}
+          </div>
+
           {/* -- Save & Restart -- */}
           <div className='setting'>
             <div className='setting__row'>
@@ -428,6 +470,81 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
       </option>
     ))
   );
+
+  renderLogoSetMemo = memoizeOne((platforms: string[], logoVersion: number) => {
+    const allRows: JSX.Element[] = [];
+    // Render 16 logos per row, vertically stacked
+    for (let i = 0; i < platforms.length; i = i + 16) {
+      const slice = platforms.slice(i, i+16);
+      allRows.push(
+        <div
+          className='config-page__logo-row'
+          key={i} >
+          { slice.map((platform, index) =>
+            <div
+              key={index}
+              className='config-page__logo-row__logo'
+              style={{ backgroundImage: `url('${getPlatformIconURL(platform, logoVersion)}')` }} />
+          ) }
+        </div>
+      );
+    }
+    return allRows;
+  });
+
+  renderExtensionsMemo = memoizeOne((extensions: IExtensionDescription[], strings: LangContainer['config']): JSX.Element[] => {
+    return extensions.map((ext) => {
+      const shortContribs = [];
+      if (ext.contributes) {
+        if (ext.contributes.devScripts) {
+          shortContribs.push(
+            <div key='devScripts'>
+              {`${ext.contributes.devScripts.length} ${strings.extDevScripts}`}
+            </div>
+          );
+        }
+        if (ext.contributes.themes) {
+          shortContribs.push(
+            <div key='themes'>
+              {`${ext.contributes.themes.length} ${strings.extThemes}`}
+            </div>
+          );
+        }
+        if (ext.contributes.logoSets) {
+          shortContribs.push(
+            <div key='logoSets'>
+              {`${ext.contributes.logoSets.length} ${strings.extLogoSets}`}
+            </div>
+          );
+        }
+      }
+      return (
+        <div key={ext.id}>
+          <div className='setting__row'>
+            <div className='setting__row__top'>
+              <div className='setting__row__title setting__row__title--flex setting__row__title--align-left'>
+                { ext.icon ? (
+                  <div
+                    style={{ backgroundImage: `url(${getExtIconURL(ext.id)})`}}
+                    className='setting__row__ext-icon' />
+                ): undefined }
+                <div>
+                  <div>{ext.displayName || ext.name}</div>
+                  <div>{ext.author}</div>
+                </div>
+              </div>
+              <div className='setting__row__content setting__row__content--right-align'>
+                {shortContribs}
+              </div>
+            </div>
+            <div className='setting__row__bottom'>
+              <p>{ext.description}</p>
+            </div>
+          </div>
+        </div>
+      );
+    });
+  });
 
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
@@ -499,25 +616,64 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   }
 
   onCurrentThemeChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
-    updatePreferencesData({ currentTheme: event.currentTarget.value });
+    const selectedTheme = this.props.themeList.find(t => t.id === event.currentTarget.value);
+    if (selectedTheme) {
+      const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === selectedTheme.logoSet);
+      const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
+      updatePreferencesData({ currentTheme: selectedTheme.id, currentLogoSet: logoSetId });
+    }
+  }
+
+  onCurrentLogoSetChange = (event: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>): void => {
+    updatePreferencesData({ currentLogoSet: event.currentTarget.value });
   }
 
   onCurrentThemeItemSelect = (text: string, index: number): void => {
-    // Note: Suggestions with index 0 to "length - 1" are filenames of themes.
+    // Note: Suggestions with index 0 to "length - 1" registered themes.
     //       Directly after that comes the "No Theme" suggestion.
-    let theme: string | undefined;
+    let theme: ITheme | undefined;
     if (index < this.props.themeList.length) { // (Select a Theme)
-      theme = this.props.themeList[index].entryPath;
+      theme = this.props.themeList[index];
     } else { theme = undefined; } // (Deselect the current theme)
-    updatePreferencesData({ currentTheme: theme });
+    const suggestedLogoSet = this.props.logoSets.find(ls => ls.id === (theme ? theme.logoSet : undefined));
+    const logoSetId = suggestedLogoSet ? suggestedLogoSet.id : this.props.preferencesData.currentLogoSet;
+    updatePreferencesData({ currentTheme: theme ? theme.id : '', currentLogoSet: logoSetId });
     // Select the input field
     if (this.currentThemeInputRef) {
       this.currentThemeInputRef.focus();
     }
   }
 
+  onCurrentLogoSetSelect = (text: string, index: number): void => {
+    // Note: Suggestions with index 0 to "length - 1" registered logo sets.
+    //       Directly after that comes the "No Theme" suggestion.
+    let logoSet: ILogoSet | undefined;
+    if (index < this.props.logoSets.length) { // (Select a Logo Set)
+      logoSet = this.props.logoSets[index];
+    } else { logoSet = undefined; } // (Deselect the current logo set)
+    updatePreferencesData({ currentLogoSet: logoSet ? logoSet.id : '' });
+    // Select the input field
+    if (this.currentLogoSetInputRef) {
+      this.currentLogoSetInputRef.focus();
+    }
+  }
+
   currentThemeInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
     this.currentThemeInputRef = ref;
+  }
+
+  currentLogoSetInputRefFunc = (ref: HTMLInputElement | HTMLTextAreaElement | null): void => {
+    this.currentLogoSetInputRef = ref;
+  }
+
+  getThemeName(id: string) {
+    const theme = this.props.themeList.find(t => t.id === id);
+    if (theme) { return theme.meta.name || theme.id; }
+  }
+
+  getLogoSetName(id: string) {
+    const logoSet = this.props.logoSets.find(ls => ls.id === id);
+    if (logoSet) { return logoSet.name; }
   }
 
   /** When the "Save & Restart" button is clicked. */
@@ -536,6 +692,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 }
 
 /** Format a theme item into a displayable name for the themes drop-down. */
-function formatThemeItemName(item: Theme): string {
-  return `${item.meta.name} (${item.entryPath})`;
+function formatThemeItemName(item: ITheme): string {
+  return `${item.meta.name} (${item.id})`;
+}
+
+function formatLogoSetName(item: ILogoSet): string {
+  return `${item.name} (${item.id})`;
 }

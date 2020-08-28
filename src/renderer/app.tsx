@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DevConsoleStatusResponse, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -201,6 +201,14 @@ export class App extends React.Component<AppProps> {
           } else { throw new Error('Service update did not reference a service.'); }
         } break;
 
+        case BackOut.SERVICE_REMOVED: {
+          const id: string = res.data;
+          const index = window.Shared.services.findIndex(s => s.id === id);
+          if (index > -1) {
+            window.Shared.services.splice(index, 1);
+          }
+        } break;
+
         case BackOut.LANGUAGE_CHANGE: {
           const resData: LanguageChangeData = res.data;
           this.props.dispatchMain({
@@ -219,7 +227,7 @@ export class App extends React.Component<AppProps> {
 
         case BackOut.THEME_CHANGE: {
           const resData: ThemeChangeData = res.data;
-          if (resData === this.props.preferencesData.currentTheme) { setTheme(resData); }
+          if (resData.id === this.props.preferencesData.currentTheme) { setTheme(resData); }
         } break;
 
         case BackOut.THEME_LIST_CHANGE: {
@@ -243,6 +251,11 @@ export class App extends React.Component<AppProps> {
           const resData: TagCategoriesChangeData = res.data;
           this.props.setTagCategories(resData);
         } break;
+
+        case BackOut.DEV_CONSOLE_CHANGE: {
+          const resData: DevConsoleStatusResponse = res.data;
+          this.props.setMainState({ devConsoleText: resData.text });
+        }
       }
     });
 
@@ -375,8 +388,17 @@ export class App extends React.Component<AppProps> {
 
     // Check if theme changed
     if (preferencesData.currentTheme !== prevProps.preferencesData.currentTheme) {
-      setTheme(preferencesData.currentTheme);
+      const theme = this.props.main.themeList.find(t => t.id === preferencesData.currentTheme);
+      setTheme(theme);
     }
+
+    // Check if logo set changed
+    if (preferencesData.currentLogoSet !== prevProps.preferencesData.currentLogoSet) {
+      this.props.dispatchMain({
+        type: MainActionType.INCREMENT_LOGO_VERSION
+      });
+    }
+
 
     // Check if renderer finished initializing
     if (isInitDone(this.props.main) && !isInitDone(prevProps.main)) {
@@ -534,6 +556,7 @@ export class App extends React.Component<AppProps> {
       serverNames: this.props.main.serverNames,
       mad4fpEnabled: this.props.main.mad4fpEnabled,
       localeCode: this.props.main.localeCode,
+      devConsoleText: this.props.main.devConsoleText,
       upgrades: this.props.main.upgrades,
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,
@@ -550,6 +573,10 @@ export class App extends React.Component<AppProps> {
       languages: this.props.main.langList,
       updateInfo: this.props.main.updateInfo,
       autoUpdater: autoUpdater,
+      extensions: this.props.main.extensions,
+      devScripts: this.props.main.devScripts,
+      logoSets: this.props.main.logoSets,
+      logoVersion: this.props.main.logoVersion,
     };
 
     // Render

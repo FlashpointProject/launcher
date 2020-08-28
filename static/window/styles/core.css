@@ -1952,6 +1952,18 @@ body {
 .config-page label {
   padding-left: 0.15em;
 }
+.config-page__logo-row {
+  width: 100%;
+  display: flex;
+  margin-top: 0.5rem;
+}
+.config-page__logo-row__logo {
+  width: 2rem;
+  height: 2rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin: auto;
+}
 /* Setting */
 .setting {
   margin: 0 auto;
@@ -1996,8 +2008,17 @@ body {
   font-weight: bold;
   user-select: none;
 }
+.setting__row__title--flex {
+  display: flex;
+}
+.setting__row__title--align-left {
+  text-align: left;
+}
 .setting__row__content {
   flex: 1 1 auto;
+}
+.setting__row__content--right-align {
+  text-align: right;
 }
 .setting__row__content .simple-selector {
   margin-right: 0;
@@ -2049,6 +2070,12 @@ body {
 .setting__row__content--input-field .input-dropdown__input-field,
 .setting__row__content--input-field .input-dropdown__content {
   border: 0px;
+}
+.setting__row__ext-icon {
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 4rem;
+  margin-right: 0.5rem; 
 }
 
 /** ----- Progress Components ------ **/

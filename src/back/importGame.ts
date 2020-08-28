@@ -16,9 +16,10 @@ import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
-import { OpenDialogFunc, OpenExternalFunc } from './types';
+import { ShowMessageBoxFunc, OpenExternalFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
+import { ApiEmitter } from './extensions/ApiEmitter';
 
 type ImportCurationOpts = {
   curation: EditCuration;
@@ -27,7 +28,7 @@ type ImportCurationOpts = {
   saveCuration: boolean;
   fpPath: string;
   imageFolderPath: string;
-  openDialog: OpenDialogFunc;
+  openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   tagCategories: TagCategory[];
 }
@@ -160,13 +161,15 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>) {
+export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, apiEmitter: ApiEmitter<Game>) {
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
   curationLog(`Launching Curation ${meta.title}`);
+  const game = await createGameFromCurationMeta(key, meta, [], new Date());
   GameLauncher.launchGame({
     ...opts,
-    game: await createGameFromCurationMeta(key, meta, [], new Date()),
+    game: game,
   });
+  apiEmitter.fire(game);
 }
 
 /**
@@ -174,12 +177,14 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
  * @param curationKey Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>) {
+export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, apiEmitter: ApiEmitter<AdditionalApp>) {
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
+  const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
   GameLauncher.launchAdditionalApplication({
     ...opts,
-    addApp: createAddAppFromCurationMeta(appCuration, createPlaceholderGame()),
+    addApp: addApp,
   });
+  apiEmitter.fire(addApp);
 }
 
 function logMessage(text: string, curation: EditCuration): void {
@@ -299,7 +304,7 @@ async function linkContentFolder(curationKey: string, fpPath: string, isDev: boo
  * @param inFolder Folder to copy from
  * @param outFolder Folder to copy to
  */
-async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: OpenDialogFunc) {
+async function copyFolder(inFolder: string, outFolder: string, move: boolean, openDialog: ShowMessageBoxFunc) {
   const contentIndex = await indexContentFolder(inFolder, curationLog);
   let yesToAll = false;
   return Promise.all(

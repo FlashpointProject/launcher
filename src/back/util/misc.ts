@@ -1,12 +1,13 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
 import { ManagedChildProcess } from '@back/ManagedChildProcess';
-import { BackState } from '@back/types';
+import { SocketServer } from '@back/SocketServer';
+import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
-import { BackOut } from '@shared/back/types';
+import { BackOut, DevConsoleStatusResponse } from '@shared/back/types';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
@@ -104,10 +105,9 @@ export function exit(state: BackState): void {
 
     if (state.serviceInfo) {
       // Kill services
-      if (state.serviceInfo.server.length > 0) {
-        const server = state.serviceInfo.server.find(i => i.name === state.config.server) || state.serviceInfo.server[0];
-        if (state.services.server && server && server.kill) {
-          state.services.server.kill();
+      for (const service of state.services.values()) {
+        if (service.info.kill) {
+          service.kill();
         }
       }
       // Run stop commands
@@ -117,7 +117,9 @@ export function exit(state: BackState): void {
     }
 
     state.languageWatcher.abort();
-    state.themeWatcher.abort();
+    for (const watcher of state.themeState.watchers) {
+      watcher.abort();
+    }
 
     Promise.all([
       // Close WebSocket server
@@ -206,7 +208,7 @@ export async function createGameFromLegacy(game: Legacy_IGameInfo, tagCache: Rec
   };
 }
 
-export function createPlaylist(jsonData: any, library?: string): Playlist {
+export function createPlaylistFromJson(jsonData: any, library?: string): Playlist {
   const playlist: Playlist = {
     id: jsonData['id'] || uuid(),
     title: jsonData['title'] || 'No Name',
@@ -241,15 +243,20 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return chunks;
 }
 
-export function runService(state: BackState, id: string, name: string, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+export function runService(state: BackState, id: string, name: string, basePath: string, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+  // Already exists, bad!
+  if (state.services.has(id)) {
+    throw new Error(`Service already running! (ID: "${id}")`);
+  }
   const proc = new ManagedChildProcess(
     id,
     name,
-    path.join(state.config.flashpointPath, info.path),
+    path.join(basePath, info.path),
     false,
     true,
     info
   );
+  state.services.set(id, proc);
   proc.on('output', (entry) => { log.info(entry.source, entry.content); });
   proc.on('change', () => {
     state.socketServer.broadcast<IService>({
@@ -267,6 +274,19 @@ export function runService(state: BackState, id: string, name: string, info: INa
   return proc;
 }
 
+export async function removeService(state: BackState, processId: string): Promise<void> {
+  const service = state.services.get(processId);
+  if (service) {
+    await waitForServiceDeath(service);
+    state.services.delete(processId);
+    state.socketServer.broadcast<string>({
+      id: '',
+      type: BackOut.SERVICE_REMOVED,
+      data: processId,
+    });
+  }
+}
+
 export async function waitForServiceDeath(service: ManagedChildProcess) : Promise<void> {
   if (service.getState() !== ProcessState.STOPPED) {
     return new Promise(resolve => {
@@ -280,5 +300,37 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
         }
       }
     });
+  }
+}
+
+export function setStatus<T extends keyof StatusState>(state: BackState, key: T, val: StatusState[T]): void {
+  switch (key) {
+    case 'devConsoleText':
+      state.socketServer.broadcast<DevConsoleStatusResponse>({
+        id: '',
+        type: BackOut.DEV_CONSOLE_CHANGE,
+        data: {
+          text: val
+        },
+      });
+      break;
+  }
+}
+
+export function getOpenMessageBoxFunc(socketServer: SocketServer): ShowMessageBoxFunc | undefined {
+  if (socketServer.lastClient) {
+    return socketServer.showMessageBoxBack(socketServer.lastClient);
+  }
+}
+
+export function getOpenSaveDialogFunc(socketServer: SocketServer): ShowSaveDialogFunc | undefined {
+  if (socketServer.lastClient) {
+    return socketServer.showSaveDialogBack(socketServer.lastClient);
+  }
+}
+
+export function getOpenOpenDialogFunc(socketServer: SocketServer): ShowOpenDialogFunc | undefined {
+  if (socketServer.lastClient) {
+    return socketServer.showOpenDialogFunc(socketServer.lastClient);
   }
 }

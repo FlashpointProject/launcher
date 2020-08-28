@@ -1,5 +1,5 @@
 import { SharedSocket } from '@shared/back/SharedSocket';
-import { BackIn, BackOut, GetRendererInitDataResponse, OpenDialogData, OpenDialogResponseData, OpenExternalData, OpenExternalResponseData, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, GetRendererInitDataResponse, ShowMessageBoxData, ShowMessageBoxResponse, OpenExternalData, OpenExternalResponseData, WrappedResponse, ShowSaveDialogData, ShowSaveDialogResponse, ShowOpenDialogData, ShowOpenDialogResponse } from '@shared/back/types';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
@@ -90,6 +90,9 @@ window.Shared = {
   initialPlatforms: createErrorProxy('initialPlatforms'),
   initialLocaleCode: createErrorProxy('initialLocaleCode'),
   initialTagCategories: createErrorProxy('initialTagCategories'),
+  initialExtensions: createErrorProxy('initialExtensions'),
+  initialDevScripts: createErrorProxy('initialDevScripts'),
+  initialLogoSets: createErrorProxy('initialLogoSets'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -137,7 +140,13 @@ const onInit = (async () => {
       window.Shared.initialPlatforms = response.data.platforms;
       window.Shared.initialLocaleCode = response.data.localeCode;
       window.Shared.initialTagCategories = response.data.tagCategories;
-      if (window.Shared.preferences.data.currentTheme) { setTheme(window.Shared.preferences.data.currentTheme); }
+      window.Shared.initialExtensions = response.data.extensions;
+      window.Shared.initialDevScripts = response.data.devScripts;
+      window.Shared.initialLogoSets = response.data.logoSets;
+      if (window.Shared.preferences.data.currentTheme) {
+        const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
+        if (theme) { setTheme(theme); }
+      }
       resolve();
     } else { reject(new Error('"Get Renderer Init Data" response does not contain any data.')); }
   });
@@ -150,15 +159,41 @@ function onMessage(this: WebSocket, res: WrappedResponse): void {
       window.Shared.preferences.data = res.data;
     } break;
 
-    case BackOut.OPEN_DIALOG: {
-      const resData: OpenDialogData = res.data;
+    case BackOut.OPEN_MESSAGE_BOX: {
+      const resData: ShowMessageBoxData = res.data;
 
       electron.remote.dialog.showMessageBox(resData)
       .then(r => {
-        window.Shared.back.sendReq<any, OpenDialogResponseData>({
+        window.Shared.back.sendReq<any, ShowMessageBoxResponse>({
           id: res.id,
           type: BackIn.GENERIC_RESPONSE,
           data: r.response,
+        });
+      });
+    } break;
+
+    case BackOut.OPEN_SAVE_DIALOG: {
+      const resData: ShowSaveDialogData = res.data;
+
+      electron.remote.dialog.showSaveDialog(resData)
+      .then(r => {
+        window.Shared.back.sendReq<any, ShowSaveDialogResponse>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: r.filePath,
+        });
+      });
+    } break;
+
+    case BackOut.OPEN_OPEN_DIALOG: {
+      const resData: ShowOpenDialogData = res.data;
+
+      electron.remote.dialog.showOpenDialog(resData)
+      .then(r => {
+        window.Shared.back.sendReq<any, ShowOpenDialogResponse>({
+          id: res.id,
+          type: BackIn.GENERIC_RESPONSE,
+          data: r.filePaths,
         });
       });
     } break;

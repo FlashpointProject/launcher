@@ -2,9 +2,10 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
+import { ExtensionContribution, ILogoSet, IExtensionDescription } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
-import { Theme } from '@shared/ThemeFile';
+import { ITheme } from '@shared/ThemeFile';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
@@ -44,6 +45,7 @@ export type AppRouterProps = {
   serverNames: string[];
   mad4fpEnabled: boolean;
   localeCode: string;
+  devConsoleText: string;
 
   upgrades: UpgradeStage[];
   creditsData?: CreditsData;
@@ -57,10 +59,14 @@ export type AppRouterProps = {
   wasNewGameClicked: boolean;
   onDownloadUpgradeClick: (stage: UpgradeStage, strings: LangContainer) => void;
   gameLibrary: string;
-  themeList: Theme[];
+  themeList: ITheme[];
   languages: LangFile[];
   updateInfo: UpdateInfo | undefined,
   autoUpdater: AppUpdater,
+  extensions: IExtensionDescription[],
+  devScripts: ExtensionContribution<'devScripts'>[],
+  logoSets: ILogoSet[],
+  logoVersion: number,
 };
 
 export class AppRouter extends React.Component<AppRouterProps> {
@@ -76,6 +82,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       autoUpdater: this.props.autoUpdater,
       randomGames: this.props.randomGames,
       rollRandomGames: this.props.rollRandomGames,
+      logoVersion: this.props.logoVersion,
     };
     const browseProps: ConnectedBrowsePageProps = {
       games: this.props.games,
@@ -96,14 +103,18 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onSelectPlaylist: this.props.onSelectPlaylist,
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
+      logoVersion: this.props.logoVersion,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
+      logoSets: this.props.logoSets,
+      logoVersion: this.props.logoVersion,
       availableLangs: this.props.languages,
       libraries: this.props.libraries,
       platforms: this.props.platformsFlat,
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,
+      extensions: this.props.extensions,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,
@@ -114,10 +125,13 @@ export class AppRouter extends React.Component<AppRouterProps> {
       appPaths: this.props.appPaths,
       libraries: this.props.libraries,
       mad4fpEnabled: this.props.mad4fpEnabled,
+      logoVersion: this.props.logoVersion,
     };
     const developerProps: DeveloperPageProps = {
+      devConsoleText: this.props.devConsoleText,
       platforms: this.props.platformsFlat,
       playlists: this.props.playlists,
+      devScripts: this.props.devScripts,
     };
     return (
       <Switch>

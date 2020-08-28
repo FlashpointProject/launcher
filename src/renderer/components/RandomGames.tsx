@@ -11,6 +11,8 @@ type RandomGamesProps = {
   games: ViewGame[];
   onLaunchGame: (gameId: string) => void;
   rollRandomGames: () => void;
+  /** Update to clear platform icon cache */
+  logoVersion: number;
 };
 
 /** A small "grid" of randomly selected games. */
@@ -34,6 +36,7 @@ export function RandomGames(props: RandomGamesProps) {
         title={game.title}
         platform={game.platform}
         thumbnail={getGameImageURL(LOGOS, game.id)}
+        logoVersion={props.logoVersion}
         isSelected={false}
         isDragged={false} />
     ))

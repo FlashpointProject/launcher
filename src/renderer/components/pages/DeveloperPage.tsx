@@ -1,9 +1,11 @@
+/* eslint-disable react/no-unused-state */
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
-import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportMetaEditResponseData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportMetaEditResponseData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse, RunCommandData, RunCommandResponse } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
+import { ExtensionContribution, DevScript } from '@shared/extensions/interfaces';
 import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
@@ -27,8 +29,10 @@ const mkdir  = promisify(fs.mkdir);
 type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
+  devConsoleText: string;
   platforms: string[];
   playlists: Playlist[];
+  devScripts: ExtensionContribution<'devScripts'>[];
 };
 
 type DeveloperPageState = {
@@ -61,9 +65,17 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     window.Shared.back.off('message', this.onServiceUpdate);
   }
 
+  // TODO: Remove when all functions are in back
+  componentDidUpdate(prevProps: DeveloperPageProps, prevState: DeveloperPageState) {
+    // Transfer prop to state
+    if (this.props.devConsoleText !== prevProps.devConsoleText) {
+      this.setState({ text: this.props.devConsoleText });
+    }
+  }
+
   render() {
     const strings = this.context.developer;
-    const { text } = this.state;
+    const text = this.state.text;
     const services = window.Shared.services;
     return (
       <div className='developer-page simple-scroll'>
@@ -145,6 +157,13 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
               value={strings.importMetaEdits}
               title={strings.importMetaEditsDesc}
               onClick={this.onImportMetaEdits} />
+            { this.props.devScripts.map(contribution => contribution.value.map((script, index) => (
+              <SimpleButton
+                key={contribution.extId + index}
+                value={script.name}
+                title={script.description}
+                onClick={() => this.onRunCommand(script)} />
+            )))}
           </div>
           {/* -- Services -- */}
           <h1 className='developer-page__services-title'>{strings.servicesHeader}</h1>
@@ -162,7 +181,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   onServiceUpdate = (response: WrappedResponse<ServiceChangeData>) => {
-    if (response.type === BackOut.SERVICE_CHANGE) { this.forceUpdate(); }
+    if (response.type === BackOut.SERVICE_CHANGE || response.type === BackOut.SERVICE_REMOVED) { this.forceUpdate(); }
   }
 
   onCheckMissingImagesClick = async (): Promise<void> => {
@@ -365,6 +384,12 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
       });
     });
   };
+
+  onRunCommand(script: DevScript) {
+    setTimeout(async () => {
+      await window.Shared.back.sendP<RunCommandResponse, RunCommandData>(BackIn.RUN_COMMAND, { command: script.command });
+    }, 0);
+  }
 
   static contextType = LangContext;
 }

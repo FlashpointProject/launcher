@@ -3,6 +3,7 @@ import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import { Disposable } from './util/lifecycle';
 
 const { str } = Coerce;
 
@@ -102,7 +103,7 @@ export class ManagedChildProcess extends EventEmitter {
         const wasRunning = (this.state === ProcessState.RUNNING);
         this.process = undefined;
         this.setState(ProcessState.STOPPED);
-        if (this.autoRestart && wasRunning) {
+        if (this.autoRestart && wasRunning && code) {
           if (this.autoRestartCount < MAX_RESTARTS) {
             this.autoRestartCount++;
             this.spawn(true);
@@ -190,4 +191,16 @@ function removeTrailingNewlines(str: string): string {
     newString = newString.substr(0, newString.length - 1);
   }
   return newString;
+}
+
+export class DisposableChildProcess extends ManagedChildProcess implements Disposable {
+  public toDispose: Disposable[];
+  public isDisposed: boolean;
+  public onDispose?: () => void;
+
+  constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: INamedBackProcessInfo) {
+    super(id, name, cwd, detached, autoRestart, info);
+    this.toDispose = [];
+    this.isDisposed = false;
+  }
 }
