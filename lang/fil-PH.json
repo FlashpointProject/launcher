@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Gumamit ng pasadyang title bar sa itaas ng window na ito.",
     "theme": "Tema",
     "noTheme": "Huwag gumamit ng Tema",
-    "themeDesc": "Lokasyon ng file para sa tema (pwedeng kaugnay sa folder ng tema).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Advanced",
     "showDeveloperTab": "Ipakita ang Developer Tab",
     "showDeveloperTabDesc": "Ipakita ang 'Developer' tab. Karaniwan ito ay ginagamit ng mga propesyunal at mga tagapangasiwa.",
@@ -39,6 +42,11 @@
     "serverDesc": "Anong gagamitin na Server Process na itatakbo pag-bukas ng launcher.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host ng metadata server. Gagamitin para I-sync ang mga bagong impormasyon sa laro para sa launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Isave at irestart"
   },
   "home": {
