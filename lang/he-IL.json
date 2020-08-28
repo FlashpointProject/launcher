@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "השתמש בפס כותרת מותאם אישית בחלק העליון של חלון זה.",
     "theme": "עיצוב",
     "noTheme": "ללא עיצוב",
-    "themeDesc": "נתיב הקובץ של העיצוב לשימוש (יחסית לתיקיית העיצובים).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "אפשרויות מתקדמות",
     "showDeveloperTab": "הצג כרטיסיית מפתחים",
     "showDeveloperTabDesc": "הצג את כרטיסיית המפתחים. סביר להניח שזה מועיל רק למפתחים ומארכנים.",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "שמור והפעל מחדש"
   },
   "home": {
