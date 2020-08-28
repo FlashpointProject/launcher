@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "於此視窗的上方使用Flashpoint的自訂標題列",
     "theme": "主題",
     "noTheme": "無主題",
-    "themeDesc": "指向主題檔案之路徑(相對於themes資料夾)",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "進階設定",
     "showDeveloperTab": "顯示開發者頁籤",
     "showDeveloperTabDesc": "顯示「開發者」頁籤，提供開發者與上傳人員一些實用的工具",
@@ -39,6 +42,11 @@
     "serverDesc": "於瀏覽器啟動時所使用的伺服器",
     "metadataServerHost": "元資料檔伺服器主機",
     "metadataServerHostDesc": "放置元資料檔的伺服器主機位置，用來同步新增與更新的遊戲",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "儲存並重新啟動"
   },
   "home": {
