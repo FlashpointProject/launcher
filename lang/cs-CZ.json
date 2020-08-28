@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Použije upravený vzhled horní lišty na základě motivu.",
     "theme": "Motiv",
     "noTheme": "Žádný motiv",
-    "themeDesc": "Relativní cesta (vzhledem ke složce 'themes') k souboru motivu.",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Pokročilé",
     "showDeveloperTab": "Zobrazit záložku pro vývojáře",
     "showDeveloperTabDesc": "Zobrazí záložku 'Vývojář'. S největší pravděpodobností užitečné pouze pro vývojáře a kurátory.",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Uložit a restartovat"
   },
   "home": {
