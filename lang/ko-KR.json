@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "애플리케이션 화면 상단에 커스텀 타이틀 바를 사용합니다.",
     "theme": "테마",
     "noTheme": "테마 없음",
-    "themeDesc": "사용할 테마의 (테마 폴더에 상대적인) 파일 경로",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "고급 설정",
     "showDeveloperTab": "개발자 탭 표시",
     "showDeveloperTabDesc": "'개발자' 탭을 표시합니다. 아마도 이건 개발자와 큐레이터에게만 유용할 겁니다.",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "저장 후 재시작"
   },
   "home": {
