@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Käytä kustomoitua otsikkopalkkia tämän ikkunan päällä.",
     "theme": "Teema",
     "noTheme": "Ei teemaa",
-    "themeDesc": "Hakemistopolku teemaan. (Relatiivinen teema-kansioon).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Edistyneet valinnat",
     "showDeveloperTab": "Näytä 'Kehittäjä'-välilehti",
     "showDeveloperTabDesc": "Näytä 'kehittäjä'-välilehti. Tämä välilehti on hyödyllinen kehittäjille ja kuraattoreille.",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Tallenna ja uudelleenkäynnistä"
   },
   "home": {
