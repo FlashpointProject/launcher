@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Использовать пользовательский заголовок сверху этого окна.",
     "theme": "Тема",
     "noTheme": "Без темы",
-    "themeDesc": "Выбрать тему, которую хотите использовать (файл .css в папке с темой).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Дополнительно",
     "showDeveloperTab": "Показывать вкладку 'Разработка'",
     "showDeveloperTabDesc": "Показывает вкладку 'Разработчикам'. Она в большинстве полезна случаев только для разработчиков и кураторов.",
@@ -39,6 +42,11 @@
     "serverDesc": "Какой процесс сервера запускается при запуске лаунчера.",
     "metadataServerHost": "Хост сервера метаданных",
     "metadataServerHostDesc": "Хост сервера метаданных. Используется для синхронизации новой и обновлённой информации об игре в лаунчере.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Сохранить и перезапустить"
   },
   "home": {
