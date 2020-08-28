@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Saját címsáv használata az ablak tetején.",
     "theme": "Téma",
     "noTheme": "Nincs téma",
-    "themeDesc": "Fájl útvonal a használandó témához (A \"themes\" mappához viszonyítva).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Haladó",
     "showDeveloperTab": "Fejlesztői lap megjelenítése",
     "showDeveloperTabDesc": "Ez lehet csak fejlesztők és kurátorok számára hasznos.",
@@ -39,6 +42,11 @@
     "serverDesc": "Melyik Szerver folyamatot futtassa a launcher indításakor",
     "metadataServerHost": "Metaadat Szerver Host",
     "metadataServerHostDesc": "A metaadat szerver Hostja. Az új és frissített játékok információját szinkronizálja a  Launcher-el",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Mentés és Újraindítás"
   },
   "home": {
