@@ -23,6 +23,7 @@ package-lock.json
 /secret.txt
 /launcher.log
 /flashpoint.sqlite
+Data/flashpoint.sqlite
 
 # Jest related files
 /.coveralls.yml

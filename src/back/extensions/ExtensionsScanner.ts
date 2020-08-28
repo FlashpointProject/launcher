@@ -17,6 +17,9 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
 
   // User extensions
   const userExtPath = path.join(configData.flashpointPath, configData.extensionsPath);
+  await fs.promises.access(userExtPath, fs.constants.F_OK | fs.constants.R_OK)
+  .then(() => {/** Folder exists */})
+  .catch(() => fs.promises.mkdir(userExtPath));
   await fsPromises.readdir(userExtPath, { withFileTypes: true })
   .then((files) => {
     // Each folder inside is an Extension
