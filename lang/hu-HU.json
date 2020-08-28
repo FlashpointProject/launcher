@@ -43,7 +43,7 @@
     "metadataServerHost": "Metaadat Szerver Host",
     "metadataServerHostDesc": "A metaadat szerver Hostja. Az új és frissített játékok információját szinkronizálja a  Launcher-el",
     "extensionsHeader": "Kiegészítők",
-    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "noExtensionsLoaded": "Nincs Kiegészítő betöltve, telepítse őket a",
     "extDevScripts": "Fejlesztői Script(ek)",
     "extThemes": "Téma(k)",
     "extLogoSets": "Logó(k) beállítva",
