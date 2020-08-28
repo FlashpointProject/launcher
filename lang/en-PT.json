@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Use a custom title bar at thar top o' dis window.",
     "theme": "Theme",
     "noTheme": "No Theme",
-    "themeDesc": "File path o' thar theme t' use (kin t' thar themes folder).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Advanced",
     "showDeveloperTab": "Show Developer Tab",
     "showDeveloperTabDesc": "Show thar 'Developer' tab. Dis be most likely only useful fer developers n' curators.",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process t' run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host o' a metadata server. Used fer syncing new n' updated game info t' thar launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Save n' Restart"
   },
   "home": {
