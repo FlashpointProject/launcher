@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Bruk en egendefinert tittellinje øverst i dette vinduet.",
     "theme": "Tema",
     "noTheme": "Ikke noe tema",
-    "themeDesc": "Stien til tema-filen (relativt til tema-mappen).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Avansert",
     "showDeveloperTab": "Vis Utviklerfanen",
     "showDeveloperTabDesc": "Viser utviklerfanen. Dette er sannsynligvis bare nyttig for utviklere og kuratorer.",
@@ -39,6 +42,11 @@
     "serverDesc": "Hvilken Server-Prosess som skal kjøres ved oppstart av launcheren.",
     "metadataServerHost": "Metadataserver-vert",
     "metadataServerHostDesc": "Verten av en metadateserver. Brukes til å synkronisere nytt og oppdatert spillinfo til launcheren.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Lagre og Start På Nytt"
   },
   "home": {
