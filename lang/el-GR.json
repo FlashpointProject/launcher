@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Χρήση μιας προσαρμοσμένης γραμμής τίτλου στην κορυφή του παραθύρου.",
     "theme": "Θέμα",
     "noTheme": "Χωρίς Θέμα",
-    "themeDesc": "Διαδρομή αρχείου θέματος για χρήση (συγγενής με τον φάκελο θεμάτων).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Για προχωρημένους",
     "showDeveloperTab": "Προβολή Καρτέλας Προγραμματιστών",
     "showDeveloperTabDesc": "Προβολή καρτέλας «Για Προγραμματιστές». Πιθανόν να είναι πιο χρήσιμο αυτό για προγραμματιστές και επιμελητές.",
@@ -39,6 +42,11 @@
     "serverDesc": "Which Server Process to run at launcher startup.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Αποθήκευση και Επανεκκίνηση"
   },
   "home": {
