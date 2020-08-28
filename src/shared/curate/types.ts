@@ -11,8 +11,6 @@ export type EditCuration = {
   addApps: EditAddAppCuration[];
   /** Data of each file in the content folder (and sub-folders). */
   content: IndexedContent[];
-  /** List of unused folders at root. Easier for Watcher to update. */
-  unusedDirs: string[];
   /** Screenshot. */
   screenshot: CurationIndexImage;
   /** Thumbnail. */
@@ -21,6 +19,8 @@ export type EditCuration = {
   locked: boolean;
   /** Whether a curation is marked for deletion */
   delete: boolean;
+  /** Whether a curation has been successfully deleted */
+  deleted: boolean;
 }
 
 /** Data of an additional application curation in the curation importer. */

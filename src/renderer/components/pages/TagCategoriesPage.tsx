@@ -48,7 +48,7 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
     const strings = this.context.tags;
 
     return (
-      <div className='tags-page simple-scroll'>
+      <div className='tags-page'>
         <div className='tags-page__browser'>
           <div className='tags-browser__center'>
             <TagCategoriesList

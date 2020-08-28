@@ -14,14 +14,14 @@ const readdir = promisify(fs.readdir);
  * @param curation: Curation to fetch folder from
  */
 export function getCurationFolder(curation: CurationIndex | EditCuration, fpPath: string): string {
-  return path.join(fpPath, 'Curations', curation.key);
+  return path.join(fpPath, 'Curations', 'Working', curation.key);
 }
 
 /** Full path to a Curation's content folder
  * @param key: Key to use
  */
 export function getContentFolderByKey(key: string, fpPath: string): string {
-  return path.join(fpPath, 'Curations', key, 'content');
+  return path.join(fpPath, 'Curations', 'Working', key, 'content');
 }
 
 /**

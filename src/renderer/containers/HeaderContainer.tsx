@@ -8,12 +8,13 @@ import * as searchActions from '../store/search/actions';
 import { joinLibraryRoute } from '../Util';
 import { withPreferences } from './withPreferences';
 import { withSearch, WithSearchProps } from './withSearch';
+import { withTagCategories, WithTagCategoriesProps } from './withTagCategories';
 
 type StateToProps = {};
 
 type DispatchToProps = {};
 
-type HeaderContainerProps = HeaderProps & StateToProps & DispatchToProps & WithSearchProps;
+type HeaderContainerProps = HeaderProps & StateToProps & DispatchToProps & WithTagCategoriesProps & WithSearchProps;
 
 const HeaderContainer: React.FunctionComponent<HeaderContainerProps> = (props: HeaderContainerProps) => {
   const { onSearch, ...rest } = props;
@@ -36,7 +37,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchToProps => bindActionCr
   onSearch: (text: string) => searchActions.setQuery({ text }),
 }, dispatch);
 
-export default withRouter(withPreferences(withSearch(connect(
+export default withRouter(withTagCategories(withPreferences(withSearch(connect(
   mapStateToProps,
   mapDispatchToProps
-)(HeaderContainer))));
+)(HeaderContainer)))));

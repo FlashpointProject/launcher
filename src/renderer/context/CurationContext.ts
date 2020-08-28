@@ -41,6 +41,19 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
       }
       return { ...prevState, curations: nextCurations };
     }
+    case 'mark-deleted': {
+      // Find the curation
+      const nextCurations = [ ...prevState.curations ];
+      const index = nextCurations.findIndex(c => c.key === action.payload.key);
+      if (index !== -1) {
+        const prevCuration = nextCurations[index];
+        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
+        // Mark curation for deletion
+        nextCuration.deleted = true;
+        nextCurations[index] = nextCuration;
+      }
+      return { ...prevState, curations: nextCurations };
+    }
     // Set the metadata for a curation
     case 'set-curation-meta': {
       const nextCurations = [ ...prevState.curations ];
@@ -208,30 +221,11 @@ function curationReducer(prevState: CurationsState, action: CurationAction): Cur
         })),
       };
     }
-    // Forcefully causes a CurateBox to re-render by changing the state
-    case 'add-unused-dir': {
+    // Load a full curation
+    case 'load-curation': {
       const nextCurations = [ ...prevState.curations ];
-      const index = ensureCurationIndex(nextCurations, action.payload.key);
-      const prevCuration = nextCurations[index];
-      const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
-      nextCuration.unusedDirs.push(action.payload.dir);
-      nextCurations[index] = nextCuration;
-      return { ...prevState, curations: nextCurations };
-    }
-    // Forcefully causes a CurateBox to re-render by changing the state
-    case 'remove-unused-dir': {
-      const nextCurations = [ ...prevState.curations ];
-      const index = nextCurations.findIndex(c => c.key === action.payload.key);
-      if (index >= 0) {
-        const prevCuration = nextCurations[index];
-        const nextCuration = { ...prevCuration, addApps: [ ...prevCuration.addApps ] };
-        const existingDirIndex = nextCuration.unusedDirs.findIndex(d => d === action.payload.dir);
-        if (existingDirIndex !== -1) {
-          console.log('removed');
-          nextCuration.unusedDirs.splice(existingDirIndex, 1);
-          nextCurations[index] = nextCuration;
-        }
-      }
+      const index = ensureCurationIndex(nextCurations, action.payload.curation.key);
+      nextCurations[index] = action.payload.curation;
       return { ...prevState, curations: nextCurations };
     }
   }
@@ -256,12 +250,12 @@ export function createEditCuration(key: string): EditCuration {
     key: key,
     meta: {},
     content: [],
-    unusedDirs: [],
     addApps: [],
     thumbnail: createCurationIndexImage(),
     screenshot: createCurationIndexImage(),
     locked: false,
     delete: false,
+    deleted: false,
   };
 }
 
@@ -278,6 +272,11 @@ export type CurationAction = (
   /** Remove a curation by key. */
   ReducerAction<'remove-curation', {
     /** Key of the curation to remove. */
+    key: string;
+  }> |
+  /** Mark curation as fully deleted */
+  ReducerAction<'mark-deleted', {
+    /**  ofKey the curation to remove. */
     key: string;
   }> |
   /** Set the new metadata for a curation */
@@ -337,17 +336,9 @@ export type CurationAction = (
     /** Lock status to set all curations to. */
     lock: boolean;
   }> |
-  /** Add an unused folder of a Curation */
-  ReducerAction<'add-unused-dir', {
-    /** Key of the curation to update. */
-    key: string;
-    dir: string;
-  }> |
-  /** Remove an unused folder of a Curation */
-  ReducerAction<'remove-unused-dir', {
-    /** Key of the curation to update. */
-    key: string;
-    dir: string;
+  /** Load a full curation */
+  ReducerAction<'load-curation', {
+    curation: EditCuration;
   }>
 );
 

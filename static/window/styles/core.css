@@ -528,18 +528,25 @@ body {
 }
 .header__search {
   display: flex;
-  padding: 0.075em 0em 0.09em 0.2em;
+  padding: 0rem 0.1rem 0rem 0.1rem;
   overflow: hidden;
 }
 .header__search__left {
   flex: 1 1 auto;
+}
+/** TODO - Stop this being so awful to look at */
+.header__search__left > .input-dropdown {
+  width: 12rem;
+}
+.header__search__left > .input-dropdown > .input-dropdown__content {
+  position: fixed;
+  width: inherit;
 }
 .header__search__right {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 1.5em;
 }
 .header__search__right__inner {
   width: fit-content;
@@ -558,8 +565,7 @@ body {
   font-size: 1em;
   width: 100%;
   background: none;
-  border: none;
-  outline: none;
+  padding: 0.1rem;
 }
 /* Header Toggle-Sidebar */
 .header__toggle-sidebar {

@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, ImportPlaylistData, LaunchGameData, SavePlaylistData, SavePlaylistGameData, SavePlaylistGameResponse, SavePlaylistResponse } from '@shared/back/types';
+import { AddPlaylistGameData, BackIn, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, ImportPlaylistData, LaunchGameData, SavePlaylistData, SavePlaylistResponse } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -387,10 +387,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           click: () => {
             const filePath = remote.dialog.showSaveDialogSync({
               title: strings.dialog.selectFileToExportMeta,
-              defaultPath: 'meta',
+              defaultPath: 'meta.yaml',
               filters: [{
                 name: 'Meta file',
-                extensions: ['txt'],
+                extensions: ['yaml'],
               }]
             });
             if (filePath) { window.Shared.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePath, metaOnly: true }); }
@@ -755,8 +755,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (!this.state.isEditingPlaylist) {
       const gameId = event.dataTransfer.getData(gameIdDataType);
       if (gameId) {
-        const newPlaylistEntry = createPlaylistGame(gameId, playlistId, 0);
-        window.Shared.back.send<SavePlaylistGameResponse, SavePlaylistGameData>(BackIn.SAVE_PLAYLIST_GAME, newPlaylistEntry);
+        window.Shared.back.send<undefined, AddPlaylistGameData>(BackIn.ADD_PLAYLIST_GAME, {
+          playlistId,
+          gameId,
+        });
       }
     }
   }
@@ -916,13 +918,4 @@ function toDataURL(url: string): Promise<FileReaderResult> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   }));
-}
-
-function createPlaylistGame(gameId: string, playlistId: string, order: number): PlaylistGame {
-  return {
-    gameId: gameId,
-    playlistId: playlistId,
-    order: order,
-    notes: ''
-  };
 }

@@ -379,10 +379,13 @@ body {
 }
 .header__search {
   border: 1px solid var(--layout__primary-outline-color);
-  background-color: var(--layout__primary-background);
+  background-color: var(--layout__primary-background); 
 }
 .header__search__input {
   color: var(--layout__primary-text-color);
+  border-color: var(--layout__primary-outline-color);
+  /** Override simple-input **/
+  background-color: inherit !important;
 }
 .header__search__icon .icon__use {
   fill: var(--layout__primary-text-color);
@@ -545,7 +548,9 @@ body {
 .log-page__dropdown-item:hover {
   background-color: var(--layout__drop-down-content-background-selected);
 }
-
+.log-page__upload-log {
+  font-weight: bold;
+}
 
 /* ------ Browse ------ */
 .game-browser {

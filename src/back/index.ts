@@ -177,7 +177,8 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {
       const filePath = state.serviceInfo.watch[i];
       try {
-        const tail = new Tail(filePath, { follow: true });
+        // Windows requires fs.watchFile to properly update
+        const tail = new Tail(filePath, { follow: true, useWatchFile: true });
         tail.on('line', (data) => {
           log.info('Log Watcher', data);
         });

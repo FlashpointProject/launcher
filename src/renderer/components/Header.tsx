@@ -1,3 +1,5 @@
+import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
+import { BackIn, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { getLibraryItemTitle } from '@shared/library/util';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
@@ -9,7 +11,9 @@ import { SearchQuery } from '../store/search';
 import { easterEgg, joinLibraryRoute } from '../Util';
 import { LangContext } from '../util/lang';
 import { GameOrder, GameOrderChangeEvent } from './GameOrder';
+import { InputElement } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { TagInputField } from './TagInputField';
 
 type OwnProps = {
   /** The most recent search query. */
@@ -30,11 +34,13 @@ type OwnProps = {
   onToggleRightSidebarClick?: () => void;
 };
 
-export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps;
+export type HeaderProps = OwnProps & RouteComponentProps & WithPreferencesProps & WithTagCategoriesProps;
 
 type HeaderState = {
   /** Current text in the search field. */
   searchText: string;
+  /** Current tag suggestions under the search field */
+  tagSuggestions: TagSuggestion[];
 };
 
 export interface Header {
@@ -43,12 +49,13 @@ export interface Header {
 
 /** The header that is always visible at the top of the main window (just below the title bar). */
 export class Header extends React.Component<HeaderProps, HeaderState> {
-  searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
+  searchInputRef: React.RefObject<InputElement> = React.createRef();
 
   constructor(props: HeaderProps) {
     super(props);
     this.state = {
       searchText: this.props.searchQuery.text,
+      tagSuggestions: []
     };
   }
 
@@ -130,13 +137,17 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
           <div>
             <div className='header__search'>
               <div className='header__search__left'>
-                <input
+                <TagInputField
                   className='header__search__input'
-                  ref={this.searchInputRef}
-                  value={searchText}
+                  editable={true}
+                  text={searchText}
+                  tags={[]} /** We're not using the tag list */
+                  suggestions={this.state.tagSuggestions}
+                  categories={this.props.tagCategories}
                   placeholder={strings.searchPlaceholder}
-                  onChange={this.onSearchChange}
-                  onKeyDown={this.onSearchKeyDown} />
+                  onTagSubmit={this.onSearchSubmit}
+                  onTagSuggestionSelect={this.onTagSuggestionSelect}
+                  onChange={this.onSearchChange} />
               </div>
               <div
                 className='header__search__right'
@@ -182,18 +193,45 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     );
   }
 
-  onSearchChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  onSearchChange = (event: React.ChangeEvent<InputElement>): void => {
     const value = event.target.value;
-    this.setState({ searchText: value });
+    this.setState({ searchText: value }, () => {
+      // Update tag suggestions if currently in `tag:` search
+      const tagRegex = /tag:([^\s]+)$/;
+      const match = tagRegex.exec(this.state.searchText);
+      if (match) {
+        const tagName = match[1];
+        window.Shared.back.send<any, any>(BackIn.GET_TAG_SUGGESTIONS, tagName, (res) => {
+          if (res.data) {
+            this.setState({
+              tagSuggestions: res.data
+            });
+          }
+        });
+      } else {
+        // Not searching by tag
+        this.setState({ tagSuggestions: [] });
+      }
+    });
     // "Clear" the search when the search field gets empty
     if (value === '') { this.props.onSearch('', false); }
   }
 
-  onSearchKeyDown = (event: React.KeyboardEvent): void => {
-    if (event.key === 'Enter') {
-      const value = this.state.searchText;
-      this.props.onSearch(value, true);
-      easterEgg(value);
+  onSearchSubmit = (value: string): void => {
+    this.props.onSearch(value, true);
+    easterEgg(value);
+  }
+
+  onTagSuggestionSelect = (suggestion: TagSuggestion): void => {
+    const tagRegex = /tag:([^\s]+)$/;
+    const match = tagRegex.exec(this.state.searchText);
+    if (match) {
+      // Why is it 2? It just is.
+      const index = match.index + match.length + 2;
+      this.setState({
+        searchText: this.state.searchText.slice(0, index) + `"${suggestion.primaryAlias}"`,
+        tagSuggestions: []
+      });
     }
   }
 

@@ -324,6 +324,31 @@ export namespace GameManager {
     }
   }
 
+  /** Adds a new Playlist Game (to the end of the playlist). */
+  export async function addPlaylistGame(playlistId: string, gameId: string): Promise<void> {
+    const repository = getManager().getRepository(PlaylistGame);
+
+    const duplicate = await repository.createQueryBuilder()
+    .where('playlistId = :playlistId', { playlistId })
+    .andWhere('gameId = :gameId', { gameId })
+    .getOne();
+
+    if (duplicate) { return; }
+
+    const highestOrder = await repository.createQueryBuilder('pg')
+    .where('pg.playlistId = :playlistId', { playlistId })
+    .orderBy('pg.order', 'DESC')
+    .select('pg.order')
+    .getOne();
+
+    await repository.save<PlaylistGame>({
+      gameId: gameId,
+      playlistId: playlistId,
+      order: highestOrder ? highestOrder.order + 1 : 0,
+      notes: '',
+    });
+  }
+
   /** Updates a Playlist Game */
   export async function updatePlaylistGame(playlistGame: PlaylistGame): Promise<PlaylistGame> {
     const playlistGameRepository = getManager().getRepository(PlaylistGame);

@@ -1,11 +1,11 @@
-import * as React from 'react';
+import { Tag } from '@database/entity/Tag';
+import { TagCategory } from '@database/entity/TagCategory';
+import { TagSuggestion } from '@shared/back/types';
 import { memoizeOne } from '@shared/memoize';
+import * as React from 'react';
 import { checkIfAncestor } from '../Util';
 import { InputField, InputFieldProps } from './InputField';
-import { Tag } from '@database/entity/Tag';
 import { OpenIcon } from './OpenIcon';
-import { TagSuggestion } from '@shared/back/types';
-import { TagCategory } from '@database/entity/TagCategory';
 
 /** A function that receives a HTML element (or null). */
 type RefFunc<T extends HTMLElement> = (instance: T | null) => void;
@@ -39,7 +39,7 @@ type TagInputFieldState = {
 /** An input element with a drop-down menu that can list any number of selectable and clickable text elements. */
 export class TagInputField extends React.Component<TagInputFieldProps, TagInputFieldState> {
   rootRef: React.RefObject<HTMLDivElement> = React.createRef();
-  contentRef: React.RefObject<HTMLDivElement> = React.createRef();
+  contentRef: React.RefObject<HTMLUListElement> = React.createRef();
   inputRef: React.RefObject<InputElement> = React.createRef();
 
   constructor(props: TagInputFieldProps) {
@@ -87,15 +87,13 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
         { editable ? inputField : undefined }
         { expanded && suggestions.length > 0 ?
           <div
-            className={'input-dropdown__content simple-scroll'}
-            ref={this.contentRef}>
-            { this.renderSuggestions(suggestions, expanded) }
+            className={'input-dropdown__content simple-scroll'} >
+            { this.renderSuggestions(suggestions, expanded, this.contentRef) }
           </div>
           : undefined }
         <div
           className={'tag-input-dropdown__content'}
-          onClick={this.onListItemClick}
-          ref={this.contentRef}>
+          onClick={this.onListItemClick} >
           { this.renderItems(items) }
         </div>
       </div>
@@ -103,10 +101,11 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
   }
 
   /** Renders the list of items in the drop-down menu. */
-  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean) => JSX.Element>((items: TagSuggestion[], expanded: boolean) => {
+  renderSuggestions = memoizeOne<(items: TagSuggestion[], expanded: boolean, ref: React.RefObject<HTMLUListElement>) => JSX.Element>((items: TagSuggestion[], expanded: boolean,  ref: React.RefObject<HTMLUListElement>) => {
     const itemsRendered = items.map((suggestion, index) => this.renderSuggestionItem(suggestion, index));
     return (
-      <ul>
+      <ul
+        ref={ref}>
         {itemsRendered}
       </ul>
     );
@@ -128,7 +127,10 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
       </div>
     );
     return (
-      <li onClick={() => this.onSuggestionItemClick(suggestion)} className='tag-input-dropdown__suggestion' key={index}>
+      <li
+        onClick={() => this.onSuggestionItemClick(suggestion)}
+        onKeyDown={(event) => this.onSuggestionKeyDown(event, suggestion)}
+        className='tag-input-dropdown__suggestion' key={index} >
         <OpenIcon
           className='tag-icon'
           color={category ? category.color : '#FFFFFF'}
@@ -209,6 +211,28 @@ export class TagInputField extends React.Component<TagInputFieldProps, TagInputF
 
   onInputFieldClick = (event: React.MouseEvent): void => {
     this.setState({ expanded: true });
+  }
+
+  onSuggestionKeyDown = (event: React.KeyboardEvent<HTMLLIElement>, tagSuggestion: TagSuggestion): void => {
+    const { key } = event;
+    if (key === 'Enter' && this.props.onTagSuggestionSelect) {
+      this.props.onTagSuggestionSelect(tagSuggestion);
+      const element = this.inputRef.current;
+      if (element) { element.focus(); }
+    }
+    if (key === 'ArrowUp' || key === 'ArrowDown') {
+      // Focus the first or last item
+      const element = document.activeElement;
+      if (element && checkIfAncestor(element, this.contentRef.current)) {
+        const next: any = (key === 'ArrowUp')
+          ? element.previousSibling
+          : element.nextElementSibling;
+        if (next && next.focus) {
+          next.focus();
+          event.preventDefault();
+        }
+      }
+    }
   }
 
   onInputKeyDown = (event: React.KeyboardEvent<InputElement>): void => {

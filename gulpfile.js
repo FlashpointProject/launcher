@@ -28,6 +28,11 @@ const copyFiles = [
     to: './extern/7zip-bin',
     filter: ['${os}/**/*']
   },
+  {
+    from: './extern/elevate',
+    to: './extern/elevate',
+    filter: ['**']
+  },
   './lang',
   './licenses',
   './.installed',
