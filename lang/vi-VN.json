@@ -31,7 +31,10 @@
     "useCustomTitleBarDesc": "Dùng thanh tiêu đề tuỳ chỉnh ở trên cùng cửa sổ phần mềm.",
     "theme": "Giao diện",
     "noTheme": "Không dùng",
-    "themeDesc": "File path of the theme to use (relative to the themes folder).",
+    "themeDesc": "ID of the theme to use.",
+    "logoSet": "Logo Set",
+    "noLogoSet": "No Logo Set",
+    "logoSetDesc": "ID of the logo set to use.",
     "advancedHeader": "Nâng cao",
     "showDeveloperTab": "Hiện mục Nhà phát triển",
     "showDeveloperTabDesc": "Hiện mục 'Nhà phát triển'. Hữu dụng nhất cho lập trình viên và người đóng góp.",
@@ -39,6 +42,11 @@
     "serverDesc": "Tiến trình máy chủ nào sẽ được khởi động khi mở trình khởi chạy.",
     "metadataServerHost": "Metadata Server Host",
     "metadataServerHostDesc": "Host of a metadata server. Used for syncing new and updated game info to the launcher.",
+    "extensionsHeader": "Extensions",
+    "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
+    "extDevScripts": "Developer Script(s)",
+    "extThemes": "Theme(s)",
+    "extLogoSets": "Logo Set(s)",
     "saveAndRestart": "Lưu & Khởi động lại"
   },
   "home": {
