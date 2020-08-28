@@ -31,7 +31,7 @@
     "useCustomTitleBarDesc": "Bu pencerenin üzerinde özel bir başlık kullan.",
     "theme": "Tema",
     "noTheme": "Tema Yok",
-    "themeDesc": "ID of the theme to use.",
+    "themeDesc": "Kullanılacak temanın ID'si.",
     "logoSet": "Logo Set",
     "noLogoSet": "No Logo Set",
     "logoSetDesc": "ID of the logo set to use.",
@@ -45,8 +45,8 @@
     "extensionsHeader": "Extensions",
     "noExtensionsLoaded": "No Extensions loaded, Install them to '{0}'",
     "extDevScripts": "Developer Script(s)",
-    "extThemes": "Theme(s)",
-    "extLogoSets": "Logo Set(s)",
+    "extThemes": "Tema(lar)",
+    "extLogoSets": "Logo Seti(leri)",
     "saveAndRestart": "Kaydet ve Yeniden Başlat"
   },
   "home": {
