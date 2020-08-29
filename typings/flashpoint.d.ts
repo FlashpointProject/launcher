@@ -145,6 +145,10 @@ declare module 'flashpoint' {
     export function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
 
     // Events
+    export const onWillLaunchGame: Event<Game>;
+    export const onWillLaunchAddApp: Event<AdditionalApp>;
+    export const onWillLaunchCurationGame: Event<Game>;
+    export const onWillLaunchCurationAddApp: Event<AdditionalApp>;
     export const onDidLaunchGame: Event<Game>;
     export const onDidLaunchAddApp: Event<AdditionalApp>;
     export const onDidLaunchCurationGame: Event<Game>;

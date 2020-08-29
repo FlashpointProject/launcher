@@ -161,15 +161,17 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  * Create and launch a game from curation metadata.
  * @param curation Curation to launch
  */
-export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, apiEmitter: ApiEmitter<Game>) {
+export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean,
+  skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<Game>, onDidEvent: ApiEmitter<Game>) {
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
   curationLog(`Launching Curation ${meta.title}`);
   const game = await createGameFromCurationMeta(key, meta, [], new Date());
+  await onWillEvent.fire(game);
   GameLauncher.launchGame({
     ...opts,
     game: game,
   });
-  apiEmitter.fire(game);
+  onDidEvent.fire(game);
 }
 
 /**
@@ -177,14 +179,16 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
  * @param curationKey Key of the parent curation index
  * @param appCuration Add App Curation to launch
  */
-export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean, skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, apiEmitter: ApiEmitter<AdditionalApp>) {
+export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean,
+  skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
   if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
+  await onWillEvent.fire(addApp);
   GameLauncher.launchAdditionalApplication({
     ...opts,
     addApp: addApp,
   });
-  apiEmitter.fire(addApp);
+  onDidEvent.fire(addApp);
 }
 
 function logMessage(text: string, curation: EditCuration): void {

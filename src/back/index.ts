@@ -111,6 +111,10 @@ const state: BackState = {
   apiEmitters: {
     onDidInit: new ApiEmitter<void>(),
     games: {
+      onWillLaunchGame: new ApiEmitter<flashpoint.Game>(),
+      onWillLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onWillLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
+      onWillLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
       onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),

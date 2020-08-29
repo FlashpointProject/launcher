@@ -209,6 +209,7 @@ export function registerRequestCallbacks(state: BackState): void {
     const reqData: LaunchAddAppData = req.data;
     const addApp = await GameManager.findAddApp(reqData.id);
     if (addApp) {
+      await state.apiEmitters.games.onWillLaunchAddApp.fire(addApp);
       const platform = addApp.parentGame ? addApp.parentGame : '';
       GameLauncher.launchAdditionalApplication({
         addApp,
@@ -247,6 +248,7 @@ export function registerRequestCallbacks(state: BackState): void {
           runService(state, 'server', 'Server', state.config.flashpointPath, configServer);
         }
       }
+      await state.apiEmitters.games.onWillLaunchGame.fire(game);
       // Launch game
       GameLauncher.launchGame({
         game,
@@ -1103,6 +1105,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       },
+      state.apiEmitters.games.onWillLaunchCurationGame,
       state.apiEmitters.games.onDidLaunchCurationGame);
     } catch (e) {
       log.error('Launcher', e + '');
@@ -1130,6 +1133,7 @@ export function registerRequestCallbacks(state: BackState): void {
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       },
+      state.apiEmitters.games.onWillLaunchCurationAddApp,
       state.apiEmitters.games.onDidLaunchCurationAddApp);
     } catch (e) {
       log.error('Launcher', e + '');

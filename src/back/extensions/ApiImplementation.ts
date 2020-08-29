@@ -91,6 +91,18 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     createPlaylistFromJson: createPlaylistFromJson,
 
     // Events
+    get onWillLaunchGame() {
+      return apiEmitters.games.onWillLaunchGame.event;
+    },
+    get onWillLaunchAddApp() {
+      return apiEmitters.games.onWillLaunchAddApp.event;
+    },
+    get onWillLaunchCurationGame() {
+      return apiEmitters.games.onWillLaunchCurationGame.event;
+    },
+    get onWillLaunchCurationAddApp() {
+      return apiEmitters.games.onWillLaunchCurationAddApp.event;
+    },
     get onDidLaunchGame() {
       return apiEmitters.games.onDidLaunchGame.event;
     },
