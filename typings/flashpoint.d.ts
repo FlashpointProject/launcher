@@ -145,9 +145,9 @@ declare module 'flashpoint' {
     export function createPlaylistFromJson(jsonData: any, library?: string): Playlist;
 
     // Events
-    export const onWillLaunchGame: Event<Game>;
+    export const onWillLaunchGame: Event<GameLaunchInfo>;
     export const onWillLaunchAddApp: Event<AdditionalApp>;
-    export const onWillLaunchCurationGame: Event<Game>;
+    export const onWillLaunchCurationGame: Event<GameLaunchInfo>;
     export const onWillLaunchCurationAddApp: Event<AdditionalApp>;
     export const onDidLaunchGame: Event<Game>;
     export const onDidLaunchAddApp: Event<AdditionalApp>;
@@ -797,6 +797,23 @@ declare module 'flashpoint' {
     RUNNING = 1,
     /** The process is being killed (it has been requested to terminate, but it hasn't been terminated yet). */
     KILLING = 2
+  }
+
+  /** Info type passed to onWillLaunch events */
+  export type GameLaunchInfo = {
+    game: Game;
+    launchInfo: LaunchInfo;
+  }
+
+  export type LaunchInfo = {
+    gamePath: string;
+    gameArgs: string;
+    useWine: boolean;
+    env: ProcessEnv;
+  }
+
+  interface ProcessEnv {
+    [key: string]: string | undefined;
   }
 
   /** Modes for displaying the game collection at the BrowsePage */

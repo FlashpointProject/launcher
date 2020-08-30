@@ -248,7 +248,6 @@ export function registerRequestCallbacks(state: BackState): void {
           runService(state, 'server', 'Server', state.config.flashpointPath, configServer);
         }
       }
-      await state.apiEmitters.games.onWillLaunchGame.fire(game);
       // Launch game
       GameLauncher.launchGame({
         game,
@@ -261,7 +260,8 @@ export function registerRequestCallbacks(state: BackState): void {
         appPathOverrides: state.preferences.appPathOverrides,
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
-      });
+      },
+      state.apiEmitters.games.onWillLaunchGame);
       state.apiEmitters.games.onDidLaunchGame.fire(game);
     }
 

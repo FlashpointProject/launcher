@@ -5,9 +5,10 @@ import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { ChildProcess, exec, execFile } from 'child_process';
 import { EventEmitter } from 'events';
-import * as path from 'path';
-import { ShowMessageBoxFunc, OpenExternalFunc } from './types';
 import { AppPathOverride } from 'flashpoint';
+import * as path from 'path';
+import { ApiEmitter } from './extensions/ApiEmitter';
+import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
@@ -17,6 +18,18 @@ export type LaunchAddAppOpts = LaunchBaseOpts & {
 export type LaunchGameOpts = LaunchBaseOpts & {
   game: Game;
   native: boolean;
+}
+
+export type GameLaunchInfo = {
+  game: Game;
+  launchInfo: LaunchInfo;
+}
+
+export type LaunchInfo = {
+  gamePath: string;
+  gameArgs: string;
+  useWine: boolean;
+  env: NodeJS.ProcessEnv;
 }
 
 type LaunchBaseOpts = {
@@ -66,9 +79,15 @@ export namespace GameLauncher {
         if (appPathOverride) { appPath = appPathOverride.override; }
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
+        const launchInfo: LaunchInfo = {
+          gamePath: appPath,
+          gameArgs: appArgs,
+          useWine,
+          env: getEnvironment(opts.fpPath)
+        };
         const proc = exec(
-          createCommand(appPath, appArgs, useWine),
-          { env: getEnvironment(opts.fpPath) }
+          createCommand(launchInfo),
+          { env: launchInfo.env }
         );
         logProcessOutput(proc);
         log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
@@ -87,7 +106,7 @@ export namespace GameLauncher {
    * Launch a game
    * @param game Game to launch
    */
-  export async function launchGame(opts: LaunchGameOpts): Promise<void> {
+  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
@@ -134,8 +153,19 @@ export namespace GameLauncher {
         const gamePath: string = fixSlashes(path.join(opts.fpPath, appPath));
         const gameArgs: string = opts.game.launchCommand;
         const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
-        const command: string = createCommand(gamePath, gameArgs, useWine);
-        const proc = exec(command, { env: getEnvironment(opts.fpPath) });
+        const env = getEnvironment(opts.fpPath);
+        const gameLaunchInfo: GameLaunchInfo = {
+          game: opts.game,
+          launchInfo: {
+            gamePath,
+            gameArgs,
+            useWine,
+            env
+          }
+        };
+        await onWillEvent.fire(gameLaunchInfo);
+        const command: string = createCommand(gameLaunchInfo.launchInfo);
+        const proc = exec(command, { env: gameLaunchInfo.launchInfo.env });
         logProcessOutput(proc);
         log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
                    `    applicationPath: "${opts.game.applicationPath}",\n`+
@@ -208,10 +238,11 @@ export namespace GameLauncher {
     };
   }
 
-  function createCommand(filename: string, args: string, useWine: boolean): string {
+  function createCommand(launchInfo: LaunchInfo): string {
     // This whole escaping thing is horribly broken. We probably want to switch
     // to an array representing the argv instead and not have a shell
     // in between.
+    const { gamePath: filename, gameArgs: args, useWine } = launchInfo;
     switch (process.platform) {
       case 'win32':
         return `"${filename}" ${escapeWin(args)}`;
