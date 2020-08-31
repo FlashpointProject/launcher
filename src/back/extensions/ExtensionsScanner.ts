@@ -4,7 +4,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { ButtonContext, ContextButton, Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
 const { str } = Coerce;
 const fsPromises = fs.promises;
@@ -108,11 +108,13 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
   const contributes: Contributions = {
     logoSets: [],
     themes: [],
-    devScripts: []
+    devScripts: [],
+    contextButtons: [],
   };
   parser.prop('logoSets').array((item) => contributes.logoSets.push(parseLogoSet(item)));
   parser.prop('themes').array((item) => contributes.themes.push(parseTheme(item)));
   parser.prop('devScripts').array((item) => contributes.devScripts.push(parseDevScript(item)));
+  parser.prop('contextButtons').array((item) => contributes.contextButtons.push(parseContextButton(item)));
   return contributes;
 }
 
@@ -149,4 +151,21 @@ function parseDevScript(parser: IObjectParserProp<DevScript>): DevScript {
   parser.prop('description', v => devScript.description = str(v));
   parser.prop('command',     v => devScript.command     = str(v));
   return devScript;
+}
+
+function parseContextButton(parser: IObjectParserProp<ContextButton>): ContextButton {
+  const contextButton: ContextButton = {
+    context: 'game',
+    name: '',
+    command: ''
+  };
+  parser.prop('context',     v => contextButton.context     = parseButtonContext(v));
+  parser.prop('name',        v => contextButton.name        = str(v));
+  parser.prop('command',     v => contextButton.command     = str(v));
+  return contextButton;
+}
+
+function parseButtonContext(value: any): ButtonContext {
+  // TODO : Validate
+  return value;
 }

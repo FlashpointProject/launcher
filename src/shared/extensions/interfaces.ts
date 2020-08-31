@@ -9,6 +9,14 @@ export type DevScript = {
   command: string;
 }
 
+export type ContextButton = {
+  context: ButtonContext;
+  name: string;
+  command: string;
+}
+
+export type ButtonContext = 'game' | 'playlist';
+
 export type ExtTheme = {
   id: string;
   path: string;
@@ -42,6 +50,7 @@ export type Contributions = {
   logoSets: ILogoSet[];
   themes: ExtTheme[];
   devScripts: DevScript[];
+  contextButtons: ContextButton[];
 }
 
 export interface IExtensionDescription extends IExtensionManifest {

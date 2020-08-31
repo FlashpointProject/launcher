@@ -102,6 +102,8 @@ export type MainState = {
   metaEditExporterGameId: string;
   /** Scripts for the Developer Page */
   devScripts: ExtensionContribution<'devScripts'>[];
+  /** Context buttons added by extensions */
+  contextButtons: ExtensionContribution<'contextButtons'>[];
 }
 
 export type MainAction = {

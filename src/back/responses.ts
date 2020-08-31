@@ -123,6 +123,7 @@ export function registerRequestCallbacks(state: BackState): void {
           };
         }),
         devScripts: await state.extensionsService.getContributions('devScripts'),
+        contextButtons: await state.extensionsService.getContributions('contextButtons'),
         logoSets: Array.from(state.registry.logoSets.values()),
       },
     });
@@ -838,7 +839,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register<GetPlaylistData>(BackIn.GET_PLAYLIST, async (event, req) => {
-    const playlist = await GameManager.findPlaylist(req.data);
+    const playlist = await GameManager.findPlaylist(req.data, true);
     respond<GetPlaylistResponse>(event.target,  {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,

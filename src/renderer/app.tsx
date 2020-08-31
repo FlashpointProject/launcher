@@ -575,6 +575,7 @@ export class App extends React.Component<AppProps> {
       autoUpdater: autoUpdater,
       extensions: this.props.main.extensions,
       devScripts: this.props.main.devScripts,
+      contextButtons: this.props.main.contextButtons,
       logoSets: this.props.main.logoSets,
       logoVersion: this.props.main.logoVersion,
     };

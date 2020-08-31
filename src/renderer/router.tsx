@@ -65,6 +65,7 @@ export type AppRouterProps = {
   autoUpdater: AppUpdater,
   extensions: IExtensionDescription[],
   devScripts: ExtensionContribution<'devScripts'>[],
+  contextButtons: ExtensionContribution<'contextButtons'>[],
   logoSets: ILogoSet[],
   logoVersion: number,
 };
@@ -104,6 +105,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
       logoVersion: this.props.logoVersion,
+      contextButtons: this.props.contextButtons,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,

@@ -106,6 +106,7 @@ export interface IMainWindowExternal {
   initialTagCategories: TagCategory[];
   initialExtensions: IExtensionDescription[];
   initialDevScripts: ExtensionContribution<'devScripts'>[];
+  initialContextButtons: ExtensionContribution<'contextButtons'>[];
   initialLogoSets: LogoSet[];
 
   /**

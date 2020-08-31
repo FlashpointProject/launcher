@@ -423,5 +423,6 @@ function createInitialState(): MainState {
     metaEditExporterGameId: '',
     extensions: [],
     devScripts: [],
+    contextButtons: [],
   };
 }

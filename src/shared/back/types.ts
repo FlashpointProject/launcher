@@ -209,6 +209,7 @@ export type GetRendererInitDataResponse = {
   tagCategories: TagCategory[];
   extensions: IExtensionDescription[];
   devScripts: ExtensionContribution<'devScripts'>[];
+  contextButtons: ExtensionContribution<'contextButtons'>[];
   logoSets: LogoSet[];
 }
 
