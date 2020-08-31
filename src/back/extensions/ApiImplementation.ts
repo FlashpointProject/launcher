@@ -183,7 +183,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const extServices: typeof flashpoint.services = {
     runService: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
-      return runService(state, id, name, basePath || extPath || state.config.flashpointPath, {
+      return runService(state, id, name, basePath || extPath || state.config.flashpointPath, { detached: false }, {
         ...info,
         kill: true
       });
@@ -191,7 +191,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     runProcess: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
       const cwd = path.join(basePath || extPath || state.config.flashpointPath, info.path);
-      const proc = new DisposableChildProcess(id, name, cwd, false, false, {...info, kill: true});
+      const proc = new DisposableChildProcess(id, name, cwd, {}, {...info, kill: true});
       proc.onDispose = () => proc.kill();
       return proc;
     },

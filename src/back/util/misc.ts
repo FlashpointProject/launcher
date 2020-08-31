@@ -1,6 +1,6 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
-import { ManagedChildProcess } from '@back/ManagedChildProcess';
+import { ManagedChildProcess, ProcessOpts } from '@back/ManagedChildProcess';
 import { SocketServer } from '@back/SocketServer';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
@@ -243,7 +243,7 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return chunks;
 }
 
-export function runService(state: BackState, id: string, name: string, basePath: string, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
   // Already exists, bad!
   if (state.services.has(id)) {
     throw new Error(`Service already running! (ID: "${id}")`);
@@ -252,8 +252,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
     id,
     name,
     path.join(basePath, info.path),
-    false,
-    true,
+    opts,
     info
   );
   state.services.set(id, proc);

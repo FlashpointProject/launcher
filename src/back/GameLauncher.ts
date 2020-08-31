@@ -5,7 +5,7 @@ import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { ChildProcess, exec, execFile } from 'child_process';
 import { EventEmitter } from 'events';
-import { AppPathOverride } from 'flashpoint';
+import { AppPathOverride, ManagedChildProcess } from 'flashpoint';
 import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
@@ -41,6 +41,7 @@ type LaunchBaseOpts = {
   appPathOverrides: AppPathOverride[];
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
+  runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
 }
 
 export namespace GameLauncher {
@@ -121,6 +122,7 @@ export namespace GameLauncher {
         appPathOverrides: opts.appPathOverrides,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
+        runGame: opts.runGame
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
@@ -165,29 +167,28 @@ export namespace GameLauncher {
         };
         await onWillEvent.fire(gameLaunchInfo);
         const command: string = createCommand(gameLaunchInfo.launchInfo);
-        const proc = exec(command, { env: gameLaunchInfo.launchInfo.env });
-        logProcessOutput(proc);
-        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+        const managedProc = opts.runGame(gameLaunchInfo);
+        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
                    `    applicationPath: "${opts.game.applicationPath}",\n`+
                    `    launchCommand:   "${opts.game.launchCommand}",\n`+
                    `    command:         "${command}" ]`);
         // Show popups for Unity games
         // (This is written specifically for the "startUnity.bat" batch file)
-        if (opts.game.platform === 'Unity' && proc.stdout) {
-          let textBuffer = ''; // (Buffer of text, if its multi-line)
-          proc.stdout.on('data', function(text: string): void {
-            // Add text to buffer
-            textBuffer += text;
-            // Check for exact messages and show the appropriate popup
-            for (const response of unityOutputResponses) {
-              if (textBuffer.endsWith(response.text)) {
-                response.fn(proc, opts.openDialog);
-                textBuffer = '';
-                break;
-              }
-            }
-          });
-        }
+        // if (opts.game.platform === 'Unity' && proc.stdout) {
+        //   let textBuffer = ''; // (Buffer of text, if its multi-line)
+        //   proc.stdout.on('data', function(text: string): void {
+        //     // Add text to buffer
+        //     textBuffer += text;
+        //     // Check for exact messages and show the appropriate popup
+        //     for (const response of unityOutputResponses) {
+        //       if (textBuffer.endsWith(response.text)) {
+        //         response.fn(proc, opts.openDialog);
+        //         textBuffer = '';
+        //         break;
+        //       }
+        //     }
+        //   });
+        // }
       } break;
     }
   }

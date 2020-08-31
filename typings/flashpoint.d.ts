@@ -767,6 +767,12 @@ declare module 'flashpoint' {
     public onDispose?: () => void;
   }
 
+  export type ProcessOpts = {
+    detached?: boolean;
+    autoRestart?: boolean;
+    shell?: boolean;
+  }
+
   export class ManagedChildProcess {
     /** ID of the process */
     public id: string;
@@ -775,7 +781,7 @@ declare module 'flashpoint' {
     /** Display name of the service. */
     public readonly name: string;
 
-    constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: ProcessInfo);
+    constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: ProcessInfo);
 
     /** Get the process ID (or -1 if the process is not running). */
     public getPid(): number;

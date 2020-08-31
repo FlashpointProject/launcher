@@ -3,6 +3,7 @@ import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import * as treeKill from 'tree-kill';
 import { Disposable } from './util/lifecycle';
 
 const { str } = Coerce;
@@ -18,6 +19,12 @@ export interface ManagedChildProcess {
   /** Fires whenever the status of a process changes. */
   on(event: 'change', listener: () => void): this;
   emit(event: 'change'): boolean;
+}
+
+export type ProcessOpts = {
+  detached?: boolean;
+  autoRestart?: boolean;
+  shell?: boolean;
 }
 
 /** Number of times to auto restart - maximum */
@@ -43,20 +50,24 @@ export class ManagedChildProcess extends EventEmitter {
   private autoRestart: boolean;
   /** Number of times the process has auto restarted. Used to prevent infinite loops. */
   private autoRestartCount: number;
+  /** Whether to run in a shell */
+  private shell: boolean;
   /** A timestamp of when the process was started. */
   private startTime = 0;
   /** State of the process. */
   private state: ProcessState = ProcessState.STOPPED;
 
-  constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: INamedBackProcessInfo | IBackProcessInfo) {
+  constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo) {
     super();
+    const { detached, autoRestart, shell } = opts;
     this.id = id;
     this.name = name;
     this.cwd = cwd;
-    this.detached = detached;
-    this.autoRestart = autoRestart;
+    this.detached = !!detached;
+    this.autoRestart = !!autoRestart;
     this.autoRestartCount = 0;
     this.info = info;
+    this.shell = !!shell;
   }
 
   /** Get the process ID (or -1 if the process is not running). */
@@ -82,7 +93,10 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
-      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached });
+      log.debug('Services', this.info.filename);
+      log.debug('Services', this.info.arguments.join(';'));
+      log.debug('Services', this.cwd);
+      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell });
       // Set start timestamp
       this.startTime = Date.now();
       // Log
@@ -124,7 +138,7 @@ export class ManagedChildProcess extends EventEmitter {
   public kill(): void {
     if (this.process) {
       this.setState(ProcessState.KILLING);
-      this.process.kill();
+      treeKill(this.process.pid);
     }
   }
 
@@ -142,7 +156,7 @@ export class ManagedChildProcess extends EventEmitter {
         this.spawn();
       });
       // Kill process
-      this.kill();
+      treeKill(this.process.pid);
       this.process = undefined;
     } else {
       this.spawn();
@@ -198,8 +212,8 @@ export class DisposableChildProcess extends ManagedChildProcess implements Dispo
   public isDisposed: boolean;
   public onDispose?: () => void;
 
-  constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: INamedBackProcessInfo) {
-    super(id, name, cwd, detached, autoRestart, info);
+  constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo) {
+    super(id, name, cwd, opts, info);
     this.toDispose = [];
     this.isDisposed = false;
   }
