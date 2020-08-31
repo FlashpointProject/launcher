@@ -9,6 +9,7 @@ import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCur
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
 import { sizeToString } from '@shared/Util';
 import { execFile } from 'child_process';
+import * as fs_original from 'fs';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as YAML from 'yaml';
@@ -117,8 +118,8 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   await (async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
     for (const pair of contentToMove) {
-      await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
-      // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
+      // await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
+      await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
   })()
   .then(async () => {
@@ -363,14 +364,14 @@ async function copyFolder(inFolder: string, outFolder: string, move: boolean, op
 
 async function copyOrMoveFile(source: string, dest: string, move: boolean, log: LogFunc | undefined) {
   try {
-    if (move) { await fs.rename(source, dest); } // @TODO Make sure this overwrites files
-    else      { await fs.copyFile(source, dest); }
+    if (move) { await fs_original.promises.rename(source, dest); } // @TODO Make sure this overwrites files
+    else      { await fs_original.promises.copyFile(source, dest); }
   } catch (error) {
     curationLog(log, `Error copying file '${source}' to '${dest}' - ${error.message}`);
     if (move) {
       curationLog(log, 'Attempting to copy file instead of move...');
       try {
-        await fs.copyFile(source, dest);
+        await fs_original.promises.copyFile(source, dest);
       } catch (error) {
         curationLog(log, 'Copy unsuccessful');
         throw error;
