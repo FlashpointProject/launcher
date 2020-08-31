@@ -196,6 +196,14 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       return proc;
     },
     removeService: (process: any) => removeService(state, process.id),
+    getServices: () => Array.from(state.services.values()),
+
+    get onServiceNew() {
+      return apiEmitters.services.onServiceNew.event;
+    },
+    get onServiceRemoved() {
+      return apiEmitters.services.onServiceRemoved.event;
+    }
   };
 
   // Functions

@@ -283,6 +283,14 @@ declare module 'flashpoint' {
      * @param process Service process to remove
      */
     export function removeService(process: ManagedChildProcess): Promise<void>;
+    /**
+     * Returns the service info of all running services
+     */
+    export function getServices(): ManagedChildProcess[];
+
+    // Events
+    export const onServiceNew: Event<ManagedChildProcess>;
+    export const onServiceRemoved: Event<ManagedChildProcess>;
   }
 
   // Functions
@@ -740,7 +748,6 @@ declare module 'flashpoint' {
     height?: number;
     maximized: boolean;
   };
-
   export type ProcessInfo = {
     /** Path of the file (relative to the Flashpoint root) */
     path: string;

@@ -271,6 +271,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
     log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
               `  ${error.toString()}`);
   }
+  state.apiEmitters.services.onServiceNew.fire(proc);
   return proc;
 }
 
@@ -279,6 +280,7 @@ export async function removeService(state: BackState, processId: string): Promis
   if (service) {
     await waitForServiceDeath(service);
     state.services.delete(processId);
+    state.apiEmitters.services.onServiceRemoved.fire(service);
     state.socketServer.broadcast<string>({
       id: '',
       type: BackOut.SERVICE_REMOVED,

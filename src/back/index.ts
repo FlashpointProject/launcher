@@ -124,6 +124,10 @@ const state: BackState = {
       onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
       onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+    },
+    services: {
+      onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
+      onServiceRemoved: new ApiEmitter<flashpoint.ManagedChildProcess>(),
     }
   },
   status: {
