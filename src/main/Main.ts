@@ -9,7 +9,6 @@ import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, session, shell, WebContents } from 'electron';
-import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -208,9 +207,11 @@ export function main(init: Init): void {
       .then(() => {
         if (Util.isDev) {
           // Exceptions made in onHeadersReceived
-          installExtension(REACT_DEVELOPER_TOOLS)
-          .then((name) => console.log(`Added Extension:  ${name}`))
-          .catch((err) => console.log('An error occurred: ', err));
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { default: installExtension } = require('electron-devtools-installer');
+          installExtension(['REACT_DEVELOPER_TOOLS'])
+          .then((name: string) => console.log(`Added Extension:  ${name}`))
+          .catch((err: any) => console.log('An error occurred: ', err));
         }
       })
       .then(() => {
