@@ -149,7 +149,11 @@ export class ExtensionService {
     const entryPath = getExtensionEntry(ext);
     const extModule: ExtensionModule = await import(entryPath);
     if (extModule.deactivate) {
-      await Promise.resolve(extModule.deactivate.apply(global));
+      try {
+        await Promise.resolve(extModule.deactivate.apply(global));
+      } catch (error) {
+        log.error('Extensions', `Error in '${ext.manifest.displayName || ext.manifest.name} deactivation function.\n${error}'`);
+      }
     }
     // Dispose of all subscriptions the extension made
     dispose(extData.subscriptions);

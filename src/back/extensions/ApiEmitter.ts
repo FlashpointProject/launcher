@@ -41,11 +41,20 @@ export class ApiEmitter<T> {
   public async fire(event: T): Promise<void> {
     for (const listener of this._listeners) {
       if (typeof listener === 'function') {
-        // Listener func only
-        await Promise.resolve(listener.call(undefined, event));
+        try {
+          // Listener func only
+          await Promise.resolve(listener.call(undefined, event));
+        } catch (error) {
+          log.error('Extensions', `Error executing event listener.\n${error}`);
+        }
       } else {
+        try {
+          // Listener func only
+          await Promise.resolve(listener[0].call(listener[1], event));
+        } catch (error) {
+          log.error('Extensions', `Error executing event listener.\n${error}`);
+        }
         // [Listener, Args] array
-        await Promise.resolve(listener[0].call(listener[1], event));
       }
     }
   }

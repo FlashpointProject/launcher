@@ -7,6 +7,9 @@ declare module 'flashpoint' {
   /** Version of the Flashpoint Launcher */
   export const version: string;
 
+  /** Path to own extension */
+  export const extensionPath: string;
+
   /** Config Data */
   export const config: IAppConfigData;
 

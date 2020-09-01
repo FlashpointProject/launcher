@@ -229,6 +229,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   return <typeof flashpoint>{
     // General information
     version: version,
+    extensionPath: extPath,
     config: state.config,
     getPreferences: getPreferences,
     overwritePreferenceData: extOverwritePreferenceData,
