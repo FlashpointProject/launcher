@@ -397,7 +397,7 @@
   "dialog": {
     "programNotFound": "Không tìm thấy chương trình!",
     "phpNotFound": "PHP was not found on the path. Is it installed?\nYou may encounter unexpected and broken behaviour without it.",
-    "wineNotFound": "Wine is not installed, but is required to run this game.\nPlease see the Linux Support wiki article for details.",
+    "wineNotFound": "Trò chơi này cần Wine để chạy, nhưng phần mềm chưa được cài.\nVui lòng xem bài viết wiki Linux Support để biết thêm chi tiết.",
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "Không tìm thấy tập tin!",
     "flashpointPathInvalid": "Flashpoint path invalid!",
