@@ -428,9 +428,9 @@
     "mergePlaylists": "מזג רשימות הפעלה",
     "newPlaylist": "להישאר נפרד",
     "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
-    "overwriteFileTitle": "File already exists!",
-    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "overwriteFileTitle": "הקובץ כבר קיים!",
+    "overwriteFileMessage": "קובץ עם אותו השם כבר קיים. האם ברצונך להחליפו?",
+    "overwriteFileDetail": "נתיב הקובץ:"
   },
   "libraries": {
     "arcade": "Games",
