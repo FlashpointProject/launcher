@@ -33,7 +33,7 @@
     "noTheme": "Sin tema",
     "themeDesc": "ID del tema a usar.",
     "logoSet": "Conjunto de logotipos",
-    "noLogoSet": "No Logo Set",
+    "noLogoSet": "Sin conjunto de logotipos",
     "logoSetDesc": "ID del logotipo a usar.",
     "advancedHeader": "Avanzado",
     "showDeveloperTab": "Mostrar la pestaña Desarrollador",
@@ -44,7 +44,7 @@
     "metadataServerHostDesc": "Anfitrión del servidor de metadatos. Utilizado para sincronizar información nueva y actualizada de los juegos a la aplicación.",
     "extensionsHeader": "Extensiones",
     "noExtensionsLoaded": "No hay extensiones cargadas, Instalarlas a '{0}'",
-    "extDevScripts": "Developer Script(s)",
+    "extDevScripts": "Lineas de código(s) del desarrollador",
     "extThemes": "Tema(s)",
     "extLogoSets": "Conjunto(s) de logotipos",
     "saveAndRestart": "Guardar y reiniciar"
