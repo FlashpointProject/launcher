@@ -32,9 +32,9 @@
     "theme": "Tema",
     "noTheme": "Sin tema",
     "themeDesc": "ID del tema a usar.",
-    "logoSet": "Logo Set",
+    "logoSet": "Conjunto de logotipos",
     "noLogoSet": "No Logo Set",
-    "logoSetDesc": "ID of the logo set to use.",
+    "logoSetDesc": "ID del logotipo a usar.",
     "advancedHeader": "Avanzado",
     "showDeveloperTab": "Mostrar la pestaña Desarrollador",
     "showDeveloperTabDesc": "Mostrar la pestaña 'Desarrollador'. Esta es muy probable que sólo sea útil para desarrolladores y curadores.",
@@ -46,7 +46,7 @@
     "noExtensionsLoaded": "No hay extensiones cargadas, Instalarlas a '{0}'",
     "extDevScripts": "Developer Script(s)",
     "extThemes": "Tema(s)",
-    "extLogoSets": "Logo Set(s)",
+    "extLogoSets": "Conjunto(s) de logotipos",
     "saveAndRestart": "Guardar y reiniciar"
   },
   "home": {
@@ -445,7 +445,7 @@
     "infinityDesc": "Archivos requeridos. Añade soporte para juegos Flash.",
     "tech": "Otras Tecnologías",
     "techDesc": "Añade soporte para otras tecnologías - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos y capturas de pantalla",
-    "screenshotsDesc": "Añade logos para la vista en cuadrícula y capturas de pantalla para todos los juegos."
+    "screenshots": "Logotipos y capturas de pantalla",
+    "screenshotsDesc": "Añade logotipos para la vista en cuadrícula y capturas de pantalla para todos los juegos."
   }
 }
