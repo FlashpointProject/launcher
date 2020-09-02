@@ -128,7 +128,7 @@
   },
   "developer": {
     "developerHeader": "Nhà phát triển",
-    "developerDesc": "This is where all the useful developer tools will go.",
+    "developerDesc": "Các công cụ lập trình viên hữu ích đều nằm trong này.",
     "checkMissingImages": "Check Missing Images",
     "checkMissingImagesDesc": "List all games without a thumbnail or screenshot",
     "checkGameIds": "Check Game IDs",
@@ -401,7 +401,7 @@
     "flashpointPathNotFound": "The Flashpoint folder is not set or is invalid. Do you want to choose a folder to install to now?",
     "fileNotFound": "Không tìm thấy tập tin!",
     "flashpointPathInvalid": "Flashpoint path invalid!",
-    "pathNotFound": "Path not found!",
+    "pathNotFound": "Không tìm thấy đường dẫn!",
     "playlistConflict": "Playlist Conflict",
     "importedPlaylistAlreadyExists": "Imported playlist already exists with same name! - '{0}'",
     "importPlaylistAs": "Import playlist as",
@@ -430,14 +430,14 @@
     "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Tập tin đã tồn tại!",
     "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "overwriteFileDetail": "Đường dẫn tập tin:"
   },
   "libraries": {
     "arcade": "Trò chơi",
     "arcadePlural": "Tất cả trò chơi",
     "theatre": "Hoạt hình",
     "theatrePlural": "Tất cả hoạt hình",
-    "auditorium": "NG Auditorium",
+    "auditorium": "Khán phòng NG",
     "auditoriumPlural": "Tất cả hoạt hình NG"
   },
   "upgrades": {
