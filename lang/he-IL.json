@@ -444,8 +444,8 @@
     "infinity": "פלאפוינט אינסוף",
     "infinityDesc": "דרושים קבצים. מוסיפים תמיכה למשחקי פלאש.",
     "tech": "פלטפורמות אחרות",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos & Screenshots",
+    "techDesc": "מוסיף תמיכה לכל שאר הפלטפורמות - שוקוויב, יוניטי, ג'אווה, HTML5 ועוד...",
+    "screenshots": "סמלילים ותמונות מסך",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
   }
 }
