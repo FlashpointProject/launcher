@@ -437,13 +437,13 @@
     "arcadePlural": "כל המשחקים",
     "theatre": "הנפשות",
     "theatrePlural": "כל ההנפשות",
-    "auditorium": "NG Auditorium",
-    "auditoriumPlural": "All NG Animations"
+    "auditorium": "אולם נ\"ג",
+    "auditoriumPlural": "כל ההנפשות ב- נ\"ג"
   },
   "upgrades": {
-    "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
-    "tech": "Other Technologies",
+    "infinity": "פלאפוינט אינסוף",
+    "infinityDesc": "דרושים קבצים. מוסיפים תמיכה למשחקי פלאש.",
+    "tech": "פלטפורמות אחרות",
     "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
     "screenshots": "Logos & Screenshots",
     "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
