@@ -371,15 +371,15 @@
   "misc": {
     "noBlankFound": "No {0} Found",
     "addBlank": "Add {0}",
-    "deleteAllBlankImages": "Delete ALL {0} images for this game",
-    "yes": "Yes",
-    "no": "No",
-    "downloading": "Downloading",
-    "extracting": "Extracting",
-    "installingFiles": "Installing Files...",
-    "complete": "Complete",
-    "exportMetaEditTitle": "Export Meta Edit",
-    "exportMetaEditDesc": "Select all properties to export:"
+    "deleteAllBlankImages": "מחק את כל ה{0} תמונות למשחק זה",
+    "yes": "כן",
+    "no": "לא",
+    "downloading": "מוריד",
+    "extracting": "מחלץ",
+    "installingFiles": "מתקין קבצים...",
+    "complete": "הושלם",
+    "exportMetaEditTitle": "ייצא עריכת מטא",
+    "exportMetaEditDesc": "בחר את כל המאפיינים לייצוא:"
   },
   "menu": {
     "viewThumbnailInFolder": "View Thumbnail in Folder",
@@ -427,7 +427,7 @@
     "cancel": "Cancel",
     "mergePlaylists": "מזג רשימות הפעלה",
     "newPlaylist": "להישאר נפרד",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "uploadPrivacyWarning": "זה יגרום לרשימות היומן להיות זמינים לציבור.\nקישור יועתק ללוח הגזירים(קליק ימני> הדבק).\n\nהאם אתם בטוחים?",
     "overwriteFileTitle": "הקובץ כבר קיים!",
     "overwriteFileMessage": "קובץ עם אותו השם כבר קיים. האם ברצונך להחליפו?",
     "overwriteFileDetail": "נתיב הקובץ:"
@@ -446,6 +446,6 @@
     "tech": "פלטפורמות אחרות",
     "techDesc": "מוסיף תמיכה לכל שאר הפלטפורמות - שוקוויב, יוניטי, ג'אווה, HTML5 ועוד...",
     "screenshots": "סמלילים ותמונות מסך",
-    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+    "screenshotsDesc": "מוסיף סמלים למצב ראיית הטבלה וצילומי מסך לכל המשחקים."
   }
 }
