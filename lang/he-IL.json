@@ -433,10 +433,10 @@
     "overwriteFileDetail": "נתיב הקובץ:"
   },
   "libraries": {
-    "arcade": "Games",
-    "arcadePlural": "All Games",
-    "theatre": "Animations",
-    "theatrePlural": "All Animations",
+    "arcade": "משחקים",
+    "arcadePlural": "כל המשחקים",
+    "theatre": "הנפשות",
+    "theatrePlural": "כל ההנפשות",
     "auditorium": "NG Auditorium",
     "auditoriumPlural": "All NG Animations"
   },
