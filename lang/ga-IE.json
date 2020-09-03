@@ -2,7 +2,7 @@
   "name": "Béarla",
   "config": {
     "configHeader": "Cumraíocht",
-    "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
+    "configDesc": "(Brúnn tú 'Sábháil agus Atosú' do na hathrúithe éigin i bhfeidhim)",
     "preferencesHeader": "Preferences",
     "extremeGames": "Extreme Games",
     "extremeGamesDesc": "Show games with sexual, violent or other content unsuitable for children.",
