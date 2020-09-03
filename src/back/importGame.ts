@@ -116,12 +116,39 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   // Copy content and Extra files
   curationLog(log, 'Importing Curation Content');
   await (async () => {
+    // Remove read-only flags from all files (since they can cause issues when moving/copying)
+    // Note: This is only tested on Windows (Node's file permission implementation on Windows is incomplete, check the docs).
+    if (process.platform === 'win32') {
+      let didFail = false;
+      for (const pair of contentToMove) {
+        try {
+          await iterateDirectory(pair[0], async (filePath, stats) => {
+            try {
+              let mode = stats.mode;
+              mode = mode | 0o666; // read & write permissions for everyone
+              if (mode !== stats.mode) { await fs.chmod(pair[0], mode); }
+            } catch (error) {
+              curationLog(log, `Failed to get/set permissions of file (Path: "${filePath}").`);
+              didFail = true;
+            }
+          });
+        } catch (error) {
+          curationLog(log, `Failed to iterate through files before copying (From: "${pair[0]}", To: "${pair[1]}"). Error: ${error}`);
+          didFail = true;
+        }
+      }
+      if (didFail) {
+        curationLog(log, 'WARNING! One or more files failed to get unflagged as read-only. This may cause files to fail to import! Check the errors above for more information.');
+      }
+    }
+  })()
+  .then(async () => {
     // Copy each paired content folder one at a time (allows for cancellation)
     for (const pair of contentToMove) {
       // await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
       await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
-  })()
+  })
   .then(async () => {
     curationLog(log, 'Saving Imported Content');
     try {
@@ -459,4 +486,22 @@ export async function createTagsFromLegacy(tags: string, tagCache: Record<string
   }
 
   return allTags.filter((v,i) => allTags.findIndex(v2 => v2.id == v.id) == i); // remove dupes
+}
+
+/**
+ * Recursively iterate over the children of a directory and call a callback for each file/directory (including the root file or directory).
+ * @param filePath Path of file/directory to iterate over.
+ * @param callback Callback to call for each file/directory encountered.
+ */
+async function iterateDirectory(filePath: string, callback: (filePath: string, stats: fs.Stats) => Promise<void>): Promise<void> {
+  const stats = await fs.lstat(filePath);
+
+  await callback(filePath, stats);
+
+  if (stats.isDirectory()) {
+    const files = await fs.readdir(filePath);
+    for (const childName of files) {
+      await iterateDirectory(path.join(filePath, childName), callback);
+    }
+  }
 }
