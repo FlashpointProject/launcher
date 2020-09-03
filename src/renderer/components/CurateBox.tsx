@@ -251,7 +251,7 @@ export function CurateBox(props: CurateBoxProps) {
       ProgressDispatch.setText(statusProgress, 'Importing Curation...');
       ProgressDispatch.setUsePercentDone(statusProgress, false);
       // Import the curation
-      props.importCuration(curation)
+      props.importCuration(curation, true)
       .then(() => {
         curationLog(`Curation successfully imported! (title: ${curation.meta.title} id: ${curation.key})`);
         // Remove the curation

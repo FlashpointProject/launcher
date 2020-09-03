@@ -99,22 +99,22 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   const game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
   // Make a copy if not deleting the curation afterwards
   const moveFiles = !saveCuration;
-  curationLog(log, 'Importing Curation Meta');
+  // curationLog(log, 'Importing Curation Meta');
   // Copy/extract content and image files
   GameManager.updateGame(game).then(() => logMessage('Meta Added', curation));
 
   // Copy Thumbnail
-  curationLog(log, 'Importing Curation Thumbnail');
+  // curationLog(log, 'Importing Curation Thumbnail');
   await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath), log)
   .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
 
   // Copy Screenshot
-  curationLog(log, 'Importing Curation Screenshot');
+  // curationLog(log, 'Importing Curation Screenshot');
   await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath), log)
   .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
 
   // Copy content and Extra files
-  curationLog(log, 'Importing Curation Content');
+  // curationLog(log, 'Importing Curation Content');
   await (async () => {
     // Remove read-only flags from all files (since they can cause issues when moving/copying)
     // Note: This is only tested on Windows (Node's file permission implementation on Windows is incomplete, check the docs).
@@ -411,7 +411,7 @@ async function copyOrMoveFile(source: string, dest: string, move: boolean, log: 
 function curationLog(log: LogFunc | undefined, content: string): void {
   if (log) {
     log({
-      source: 'Curate',
+      source: 'Curation',
       content,
     });
   }
