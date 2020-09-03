@@ -15,7 +15,7 @@
     "fallbackLanguage": "Fallback Language",
     "fallbackLanguageDesc": "Which language to use in place of an incomplete current language.",
     "auto": "Auto ({0})",
-    "none": "None",
+    "none": "Nóin",
     "flashpointHeader": "Flashpoint",
     "flashpointPath": "Flashpoint Path",
     "flashpointPathDesc": "Path to the Flashpoint folder (can be relative)",
@@ -95,9 +95,9 @@
     "copiedToClipboard": "Copied to Clipboard"
   },
   "app": {
-    "home": "Home",
+    "home": "Baile",
     "browse": "Browse",
-    "tags": "Tags",
+    "tags": "Seoraí",
     "categories": "Categories",
     "logs": "Logs",
     "config": "Config",
@@ -194,7 +194,7 @@
   },
   "browse": {
     "noTitle": "No Title",
-    "by": "le",
+    "by": "de",
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
     "noAlternateTitles": "No Alternate Titles",
@@ -329,7 +329,7 @@
     "delete": "Delete",
     "deleteCurationDesc": "Delete this curation (Files can not be recovered)",
     "openFolder": "Open Folder",
-    "run": "Run",
+    "run": "Rith",
     "runWithMAD4FP": "Run with MAD4FP",
     "export": "Export",
     "import": "Import",
@@ -366,14 +366,14 @@
     "noAuthor": "No Author",
     "authorPlaceholder": "Author...",
     "id": "ID",
-    "by": "by"
+    "by": "le"
   },
   "misc": {
     "noBlankFound": "No {0} Found",
     "addBlank": "Add {0}",
     "deleteAllBlankImages": "Delete ALL {0} images for this game",
-    "yes": "Yes",
-    "no": "No",
+    "yes": "Tá",
+    "no": "Ní",
     "downloading": "Downloading",
     "extracting": "Extracting",
     "installingFiles": "Installing Files...",
