@@ -3,8 +3,8 @@
   "config": {
     "configHeader": "Cumraíocht",
     "configDesc": "(Brúnn tú 'Sábháil agus Atosú' do na hathrúithe éigin i bhfeidhim)",
-    "preferencesHeader": "Preferences",
-    "extremeGames": "Extreme Games",
+    "preferencesHeader": "Roghanna",
+    "extremeGames": "Cluichí Foircneacha",
     "extremeGamesDesc": "Show games with sexual, violent or other content unsuitable for children.",
     "enableEditing": "Enable Editing",
     "enableEditingDesc": "Enable editing of games and additional applications. Also shows tabs related to editing.",
@@ -194,7 +194,7 @@
   },
   "browse": {
     "noTitle": "No Title",
-    "by": "by",
+    "by": "le",
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
     "noAlternateTitles": "No Alternate Titles",
