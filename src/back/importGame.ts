@@ -126,7 +126,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
             try {
               let mode = stats.mode;
               mode = mode | 0o666; // read & write permissions for everyone
-              if (mode !== stats.mode) { await fs.chmod(pair[0], mode); }
+              if (mode !== stats.mode) { await fs.chmod(filePath, mode); }
             } catch (error) {
               curationLog(log, `Failed to get/set permissions of file (Path: "${filePath}").`);
               didFail = true;
