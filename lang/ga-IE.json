@@ -99,7 +99,7 @@
     "browse": "Browse",
     "tags": "Seoraí",
     "categories": "Categories",
-    "logs": "Logs",
+    "logs": "Logaí",
     "config": "Config",
     "about": "About",
     "curate": "Curate",
@@ -111,8 +111,8 @@
     "showLeftSidebar": "Show left sidebar",
     "total": "Total",
     "newGame": "New Game",
-    "list": "List",
-    "grid": "Grid",
+    "list": "Liosta",
+    "grid": "Greille",
     "searchResults": "Search Results"
   },
   "filter": {
@@ -198,7 +198,7 @@
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
     "noAlternateTitles": "No Alternate Titles",
-    "tags": "Tags",
+    "tags": "Seoraí",
     "noTags": "No Tags",
     "enterTag": "Enter Tag",
     "series": "Series",
