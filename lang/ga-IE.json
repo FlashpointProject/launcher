@@ -97,7 +97,7 @@
   "app": {
     "home": "Baile",
     "browse": "Browse",
-    "tags": "Seoraí",
+    "tags": "Clibeanna",
     "categories": "Categories",
     "logs": "Logaí",
     "config": "Config",
@@ -198,7 +198,7 @@
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
     "noAlternateTitles": "No Alternate Titles",
-    "tags": "Seoraí",
+    "tags": "Clibeanna",
     "noTags": "No Tags",
     "enterTag": "Enter Tag",
     "series": "Series",
