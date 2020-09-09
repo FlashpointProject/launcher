@@ -845,7 +845,12 @@ body {
   /* Change the color of the "No Theme" suggestion in the drop-down list. */
   color: var(--layout__no-theme-suggestion-color);
 }
-
+.setting__row__content--override-row__delete:hover .icon__use {
+  fill: var(--layout__warning-bright-color);
+}
+.setting__row__content--override-row__new:hover .icon__use {
+  fill: var(--layout__confirm-color);
+}
 /** ------ Progress Components ------ **/
 /* Status Bar */
 .status-bar__top-text {

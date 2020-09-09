@@ -32,6 +32,8 @@ const langTemplate = {
     'platforms',
     'nativePlatforms',
     'nativePlatformsDesc',
+    'appPathOverrides',
+    'appPathOverridesDesc',
     'visualsHeader',
     'useCustomTitleBar',
     'useCustomTitleBarDesc',

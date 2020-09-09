@@ -720,7 +720,14 @@ declare module 'flashpoint' {
     }
     /** Libraries that should be excluded from random picks. */
     excludedRandomLibraries: string[];
+    /** Application path overrides to check during app launches */
+    appPathOverrides: AppPathOverride[];
   };
+
+  export type AppPathOverride = {
+    path: string;
+    override: string;
+  }
 
   export type IAppPreferencesDataMainWindow = {
     x?: number;

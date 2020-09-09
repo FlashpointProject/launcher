@@ -8,7 +8,7 @@ import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { IAppPreferencesData, IAppPreferencesDataMainWindow } from './interfaces';
+import { IAppPreferencesData, IAppPreferencesDataMainWindow, AppPathOverride } from './interfaces';
 
 export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
@@ -67,6 +67,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
     [LogLevel.SILENT]: true,
   }),
   excludedRandomLibraries: [],
+  appPathOverrides: [],
 });
 
 /**
@@ -106,6 +107,9 @@ export function overwritePreferenceData(
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
+  const newAppPathOverrides: AppPathOverride[] = [];
+  parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
+  source.appPathOverrides = newAppPathOverrides;
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
@@ -121,6 +125,16 @@ function parseMainWindow(parser: IObjectParserProp<any>, output: IAppPreferences
   parser.prop('width',     v => output.width     = num(v), true);
   parser.prop('height',    v => output.height    = num(v), true);
   parser.prop('maximized', v => output.maximized = !!v);
+}
+
+function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
+  const override: AppPathOverride = {
+    path: '',
+    override: ''
+  };
+  parser.prop('path',     v => override.path     = str(v));
+  parser.prop('override', v => override.override = str(v));
+  return override;
 }
 
 /**

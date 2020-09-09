@@ -14,6 +14,8 @@ import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
 import { Dropdown } from '../Dropdown';
 import { DropdownInputField } from '../DropdownInputField';
 import { InputField } from '../InputField';
+import { OpenIcon } from '../OpenIcon';
+import { AppPathOverride } from 'flashpoint';
 
 type OwnProps = {
   /** List of all game libraries */
@@ -88,6 +90,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const autoString = formatString(strings.auto, this.props.localeCode);
     const langOptions = this.renderLangOptionsMemo(this.props.availableLangs);
     const serverOptions = this.renderServerOptionsMemo(this.props.serverNames);
+    const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
     return (
@@ -269,6 +272,26 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 </div>
                 <div className='setting__row__bottom'>
                   <p>{strings.nativePlatformsDesc}</p>
+                </div>
+              </div>
+              {/* App Path Overrides */}
+              <div className='setting__row'>
+                <div className='setting__row__top'>
+                  <div className='setting__row__title'>
+                    <p>{strings.appPathOverrides}</p>
+                  </div>
+                  <div className='setting__row__content'>
+                    {appPathOverrides}
+                    <div
+                      onClick={this.onNewAppPathOverride}
+                      className='setting__row__content--override-row__new'>
+                      <OpenIcon
+                        icon='plus' />
+                    </div>
+                  </div>
+                </div>
+                <div className='setting__row__bottom'>
+                  <p>{strings.appPathOverridesDesc}</p>
                 </div>
               </div>
             </div>
@@ -471,6 +494,36 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     ))
   );
 
+  renderAppPathOverridesMemo = memoizeOne((appPathOverrides: AppPathOverride[]) => {
+    return appPathOverrides.map((item, index) => {
+      return (
+        <div
+          className='setting__row__content--override-row'
+          key={index}>
+          <InputField
+            editable={true}
+            onChange={(event) => this.onAppPathOverridePathChange(index, event.target.value)}
+            text={item.path} />
+          <div
+            className='setting__row__content--override-row__seperator'>
+            {'->'}
+          </div>
+          <InputField
+            editable={true}
+            onChange={(event) => this.onAppPathOverrideOverrideChange(index, event.target.value)}
+            text={item.override} />
+          <div
+            onClick={() => this.onRemoveAppPathOverride(index)}
+            className='setting__row__content--remove-app-override'>
+            <OpenIcon
+              className='setting__row__content--override-row__delete'
+              icon='delete' />
+          </div>
+        </div>
+      );
+    });
+  });
+
   renderLogoSetMemo = memoizeOne((platforms: string[], logoVersion: number) => {
     const allRows: JSX.Element[] = [];
     // Render 16 logos per row, vertically stacked
@@ -581,6 +634,31 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     }
 
     updatePreferencesData({ excludedRandomLibraries });
+  }
+
+  onRemoveAppPathOverride = (index: number): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths.splice(index, 1);
+    console.log('SPLICED');
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onNewAppPathOverride = (): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths.push({path: '', override: ''});
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onAppPathOverridePathChange = (index: number, newPath: string): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths[index].path = newPath;
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths[index].override = newOverride;
+    updatePreferencesData({ appPathOverrides: newPaths });
   }
 
   onNativeCheckboxChange = (platform: string): void => {
