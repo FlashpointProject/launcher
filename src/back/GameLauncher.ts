@@ -7,6 +7,7 @@ import { ChildProcess, exec, execFile } from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { ShowMessageBoxFunc, OpenExternalFunc } from './types';
+import { AppPathOverride } from 'flashpoint';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
@@ -24,6 +25,7 @@ type LaunchBaseOpts = {
   lang: LangContainer;
   isDev: boolean;
   exePath: string;
+  appPathOverrides: AppPathOverride[];
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
 }
@@ -59,7 +61,9 @@ export namespace GameLauncher {
         });
       }
       default: {
-        const appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
+        let appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
+        const appPathOverride = opts.appPathOverrides.find(a => a.path === appPath);
+        if (appPathOverride) { appPath = appPathOverride.override; }
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
         const proc = exec(
@@ -95,6 +99,7 @@ export namespace GameLauncher {
         lang: opts.lang,
         isDev: opts.isDev,
         exePath: opts.exePath,
+        appPathOverrides: opts.appPathOverrides,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
       };
@@ -106,7 +111,9 @@ export namespace GameLauncher {
       }
     }
     // Launch game
-    const appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
+    let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
+    const appPathOverride = opts.appPathOverrides.find(a => a.path === appPath);
+    if (appPathOverride) { appPath = appPathOverride.override; }
     switch (appPath) {
       case ':flash:': {
         const env = getEnvironment(opts.fpPath);

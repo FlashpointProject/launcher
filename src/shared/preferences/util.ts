@@ -107,9 +107,11 @@ export function overwritePreferenceData(
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);
-  const newAppPathOverrides: AppPathOverride[] = [];
-  parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
-  source.appPathOverrides = newAppPathOverrides;
+  if (data.appPathOverrides) {
+    const newAppPathOverrides: AppPathOverride[] = [];
+    parser.prop('appPathOverrides').array((item, index) => newAppPathOverrides[index] = parseAppPathOverride(item));
+    source.appPathOverrides = newAppPathOverrides;
+  }
   // Parse window object
   parseMainWindow(parser.prop('mainWindow'), source.mainWindow);
   parser.prop('showLogSource').mapRaw((item, label) => source.showLogSource[label] = !!item);
