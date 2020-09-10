@@ -488,6 +488,8 @@ declare module 'flashpoint' {
     icon: string;
     /** Route of the library this playlist is for. */
     library: string;
+    /** Attribute for if playlist contains games not suitable for children */
+    extreme: boolean;
   }
 
   export type PlaylistGame = {

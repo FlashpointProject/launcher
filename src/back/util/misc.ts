@@ -216,7 +216,8 @@ export function createPlaylistFromJson(jsonData: any, library?: string): Playlis
     author: jsonData['author'] || '',
     icon: jsonData['icon'] || '',
     library: library || jsonData['library'] || 'arcade',
-    games: []
+    games: [],
+    extreme: jsonData['extreme'] || false
   };
 
   for (let i = 0; i < jsonData['games'].length ; i++) {

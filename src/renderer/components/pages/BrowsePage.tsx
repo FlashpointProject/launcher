@@ -710,6 +710,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         author: '',
         icon: '',
         library: this.props.gameLibrary,
+        extreme: false
       },
       isEditingPlaylist: true,
       isNewPlaylist: true,
