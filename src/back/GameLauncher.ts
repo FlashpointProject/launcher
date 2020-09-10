@@ -131,7 +131,7 @@ export namespace GameLauncher {
                   `    launchCommand:   "${opts.game.launchCommand}" ]`);
       } break;
       default: {
-        const gamePath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native)));
+        const gamePath: string = fixSlashes(path.join(opts.fpPath, appPath));
         const gameArgs: string = opts.game.launchCommand;
         const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
         const command: string = createCommand(gamePath, gameArgs, useWine);
