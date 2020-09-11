@@ -8,6 +8,7 @@ import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
+import { AppProvider } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
 import { LogLevel } from '@shared/Log/interface';
@@ -222,6 +223,7 @@ export function registerRequestCallbacks(state: BackState): void {
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
+        providers: await getProviders(state),
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
         runGame: runGameFactory(state)
@@ -261,6 +263,7 @@ export function registerRequestCallbacks(state: BackState): void {
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
+        providers: await getProviders(state),
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
         runGame: runGameFactory(state),
@@ -1106,6 +1109,7 @@ export function registerRequestCallbacks(state: BackState): void {
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
+        providers: await getProviders(state),
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
         runGame: runGameFactory(state),
@@ -1135,6 +1139,7 @@ export function registerRequestCallbacks(state: BackState): void {
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
+        providers: await getProviders(state),
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
         runGame: runGameFactory(state),
@@ -1519,3 +1524,36 @@ function splitQuotes(str: string): string[] {
   return splits;
 }
 
+async function runCommand(state: BackState, command: string, args: any[] = []): Promise<any> {
+  const callback = state.registry.commands.get(command);
+  let res = undefined;
+  if (callback) {
+    // Run Command
+    try {
+      res = await Promise.resolve(callback.callback(...args));
+    } catch (error) {
+      throw new Error(`Error running Command (${command})\n${error}`);
+    }
+  } else {
+    throw new Error(`Command requested but "${command}" not registered!`);
+  }
+  return res;
+}
+
+async function getProviders(state: BackState): Promise<AppProvider[]> {
+  return state.extensionsService.getContributions('applications')
+  .then(contributions => {
+    log.debug('Launcher', JSON.stringify(contributions));
+    return contributions.map(c => c.value)
+    .reduce((prev, cur) => cur = cur.concat(prev), [])
+    .map(app => {
+      return {
+        ...app,
+        callback: (game: Game) => {
+          return runCommand(state, app.command, [game]);
+        }
+      };
+    });
+  }
+  );
+}

@@ -32,6 +32,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const unload = () => state.extensionsService.unloadExtension(extId);
 
+  const getExtensionFileURL = (filePath: string): string => {
+    return `http://localhost:${state.fileServerPort}/extdata/${extId}/${filePath}`;
+  };
+
   // Log Namespace
   const extLog: typeof flashpoint.log = {
     trace: (message: string) => addExtLog(newExtLog(extManifest, message, log.trace)),
@@ -234,6 +238,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     getPreferences: getPreferences,
     overwritePreferenceData: extOverwritePreferenceData,
     unload: unload,
+    getExtensionFileURL: getExtensionFileURL,
 
     // Namespaces
     log: extLog,

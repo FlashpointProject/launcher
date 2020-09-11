@@ -1,3 +1,5 @@
+import { Game } from '@database/entity/Game';
+
 export const enum ExtensionType {
   System,
   User
@@ -13,6 +15,24 @@ export type ContextButton = {
   context: ButtonContext;
   name: string;
   command: string;
+}
+
+export type Application = {
+  provides: string[];
+  name: string;
+  mode: 'regular' | 'browser';
+  command: string;
+}
+
+export type AppProvider = Application & {
+  callback: (game: Game) => Promise<string | BrowserApplicationOpts>;
+}
+
+export type ApplicationMode = 'regular' | 'browser';
+
+export type BrowserApplicationOpts = {
+  url: string;
+  proxy?: string;
 }
 
 export type ButtonContext = 'game' | 'playlist';
@@ -51,6 +71,7 @@ export type Contributions = {
   themes: ExtTheme[];
   devScripts: DevScript[];
   contextButtons: ContextButton[];
+  applications: Application[];
 }
 
 export interface IExtensionDescription extends IExtensionManifest {

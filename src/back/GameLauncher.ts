@@ -1,5 +1,6 @@
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
+import { AppProvider } from '@shared/extensions/interfaces';
 import { ExecMapping, Omit } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
@@ -9,6 +10,7 @@ import { AppPathOverride, ManagedChildProcess } from 'flashpoint';
 import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
+import { isBrowserOpts } from './util/misc';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
@@ -39,6 +41,7 @@ type LaunchBaseOpts = {
   isDev: boolean;
   exePath: string;
   appPathOverrides: AppPathOverride[];
+  providers: AppProvider[];
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
@@ -120,6 +123,7 @@ export namespace GameLauncher {
         isDev: opts.isDev,
         exePath: opts.exePath,
         appPathOverrides: opts.appPathOverrides,
+        providers: opts.providers,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
         runGame: opts.runGame
@@ -135,6 +139,38 @@ export namespace GameLauncher {
     let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
     const appPathOverride = opts.appPathOverrides.find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
+    const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(opts.game.applicationPath));
+    for (const app of availableApps) {
+      try {
+        const res = await app.callback(opts.game);
+        if (app.mode === 'regular' && typeof res === 'string') {
+          appPath = res;
+          break;
+        }
+        if (app.mode === 'browser' && isBrowserOpts(res)) {
+          const env = getEnvironment(opts.fpPath);
+          if ('ELECTRON_RUN_AS_NODE' in env) {
+            delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
+          }
+          const browserLaunchArgs = [path.join(__dirname, '../main/index.js'), 'browser_mode=true'];
+          if (res.proxy) { browserLaunchArgs.push(`proxy=${res.proxy}`); }
+          log.debug('Launcher', `Given URL: ${res.url}`);
+          browserLaunchArgs.push(`browser_url=${(res.url)}`);
+          const proc = execFile(
+            process.execPath, // path.join(__dirname, '../main/index.js'),
+            browserLaunchArgs,
+            { env, cwd: process.cwd() }
+          );
+          logProcessOutput(proc);
+          log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+                    `    applicationPath: "${appPath}",\n`+
+                    `    launchCommand:   "${opts.game.launchCommand}" ]`);
+          return;
+        }
+      } catch (error) {
+        log.error('Launcher', `Error running provider for game.\n${error}`);
+      }
+    }
     switch (appPath) {
       case ':flash:': {
         const env = getEnvironment(opts.fpPath);
@@ -143,7 +179,7 @@ export namespace GameLauncher {
         }
         const proc = execFile(
           process.execPath, // path.join(__dirname, '../main/index.js'),
-          [path.join(__dirname, '../main/index.js'), 'flash=true', opts.game.launchCommand],
+          [path.join(__dirname, '../main/index.js'), 'browser_mode=true', `browser_url=${path.join(__dirname, '../window/flash_index.html')}?data=${encodeURI(opts.game.launchCommand)}`],
           { env, cwd: process.cwd() }
         );
         logProcessOutput(proc);

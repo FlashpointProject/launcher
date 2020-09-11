@@ -4,9 +4,11 @@ export type InitArgs = Partial<{
   'host-remote': boolean;
   'back-only': boolean;
 
-  // Flash mode
-  /** If the application should start in "flash" mode. */
-  'flash': boolean;
+  // Browser mode
+  /** If the application should start in "browser mode". */
+  'browser_mode': boolean;
+  /** URL that browser mode should open */
+  'browser_url': string;
   /** Desired width of the window. */
   'width': number;
   /** Desired height of the window. */

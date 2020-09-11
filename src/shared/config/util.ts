@@ -36,6 +36,7 @@ const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
   lastSync: 0,
   onDemandBaseUrl: 'https://unstable.life/Flashpoint/Data/Images/',
   logsBaseUrl: 'https://logs.unstable.life/',
+  browserModeProxy: 'localhost:22500',
   updatesEnabled: true,
 });
 
@@ -104,6 +105,7 @@ export function overwriteConfigData(
   parser.prop('server',              v => source.server              = str(v));
   parser.prop('onDemandBaseUrl',     v => source.onDemandBaseUrl     = parseVarStr(str(v)));
   parser.prop('logsBaseUrl',         v => source.logsBaseUrl         = parseVarStr(str(v)));
+  parser.prop('browserModeProxy',    v => source.browserModeProxy    = str(v));
   parser.prop('updatesEnabled',      v => source.updatesEnabled      = !!v);
   // Do some alterations
   source.flashpointPath = fixSlashes(source.flashpointPath); // (Clean path)

@@ -8,6 +8,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { BackOut, DevConsoleStatusResponse } from '@shared/back/types';
+import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
@@ -334,4 +335,8 @@ export function getOpenOpenDialogFunc(socketServer: SocketServer): ShowOpenDialo
   if (socketServer.lastClient) {
     return socketServer.showOpenDialogFunc(socketServer.lastClient);
   }
+}
+
+export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
+  return typeof val.url === 'string';
 }

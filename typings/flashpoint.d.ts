@@ -26,6 +26,12 @@ declare module 'flashpoint' {
   /** Unload own extension */
   export function unload(): Promise<void>;
 
+  /**
+   * Get a URL for an extensions file
+   * @param filePath Relative path to file from extension path
+   */
+  export function getExtensionFileURL(filePath: string): string;
+
   /** Log functions to properly pass messages to the Logs Page.*/
   export namespace log {
     export const trace: (message: string) => void;
@@ -828,6 +834,12 @@ declare module 'flashpoint' {
     env: ProcessEnv;
   }
 
+  /** Options expected for 'browser' mode application return */
+  export type BrowserApplicationOpts = {
+    url: string;
+    proxy?: string;
+  }
+
   interface ProcessEnv {
     [key: string]: string | undefined;
   }
@@ -859,6 +871,7 @@ declare module 'flashpoint' {
     /** Callback to use when disposed */
     onDispose?: () => void;
   }
+
 
   /** Dispose of a disposable and all its children */
   export function dispose<T>(disposable: Disposable): void;

@@ -628,6 +628,29 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
         break;
       }
 
+      case 'extdata': {
+        const index = urlPath.indexOf('/');
+        // Split URL section into parts (/extdata/<extId>/<relativePath>)
+        const fullPath = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const nameIndex = fullPath.indexOf('/');
+        const extId = (nameIndex >= 0) ? fullPath.substr(0, nameIndex) : fullPath;
+        const relativePath = (nameIndex >= 0) ? fullPath.substr(nameIndex + 1): fullPath;
+        state.extensionsService.getExtension(extId)
+        .then(ext => {
+          if (ext) {
+            // Only serve from <extPath>/static/
+            const staticPath = path.join(ext.extensionPath, 'static');
+            const filePath = path.join(staticPath, relativePath);
+            if (filePath.startsWith(staticPath)) {
+              serveFile(req, res, filePath);
+            } else {
+              log.warn('Launcher', `Illegal file request: "${filePath}"`);
+            }
+          }
+        });
+        break;
+      }
+
       // JSON file(s)
       case 'credits.json': {
         serveFile(req, res, path.join(state.config.flashpointPath, state.config.jsonFolderPath, 'credits.json'));

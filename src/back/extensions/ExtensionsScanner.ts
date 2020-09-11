@@ -4,7 +4,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ButtonContext, ContextButton, Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ApplicationMode, ButtonContext, ContextButton, Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
 const { str } = Coerce;
 const fsPromises = fs.promises;
@@ -110,11 +110,13 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
     themes: [],
     devScripts: [],
     contextButtons: [],
+    applications: [],
   };
   parser.prop('logoSets').array((item) => contributes.logoSets.push(parseLogoSet(item)));
   parser.prop('themes').array((item) => contributes.themes.push(parseTheme(item)));
   parser.prop('devScripts').array((item) => contributes.devScripts.push(parseDevScript(item)));
   parser.prop('contextButtons').array((item) => contributes.contextButtons.push(parseContextButton(item)));
+  parser.prop('applications').array((item) => contributes.applications.push(parseApplication(item)));
   return contributes;
 }
 
@@ -168,4 +170,30 @@ function parseContextButton(parser: IObjectParserProp<ContextButton>): ContextBu
 function parseButtonContext(value: any): ButtonContext {
   // TODO : Validate
   return value;
+}
+
+function parseApplication(parser: IObjectParserProp<Application>): Application {
+  const application: Application = {
+    provides: [],
+    name: '',
+    mode: 'regular',
+    command: '',
+  };
+  parser.prop('provides').arrayRaw((item) => application.provides.push(str(item)));
+  parser.prop('name',    v => application.name    = str(v));
+  parser.prop('command', v => application.command = str(v));
+  parser.prop('mode',    v => application.mode    = validateCommand(str(v)), true);
+  if (application.provides.length === 0) { throw new Error('Application must provide something. (Empty / missing provides array)'); }
+  return application;
+}
+
+function validateCommand(val: string): ApplicationMode {
+  switch (val) {
+    case 'regular':
+      return 'regular';
+    case 'browser':
+      return 'browser';
+    default:
+      throw new Error(`${val} is not a valid Application Mode!`);
+  }
 }
