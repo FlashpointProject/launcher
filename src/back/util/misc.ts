@@ -338,5 +338,6 @@ export function getOpenOpenDialogFunc(socketServer: SocketServer): ShowOpenDialo
 }
 
 export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
-  return typeof val.url === 'string';
+  return typeof val.url === 'string' &&
+   (val.proxy === undefined || typeof val.proxy === 'string');
 }

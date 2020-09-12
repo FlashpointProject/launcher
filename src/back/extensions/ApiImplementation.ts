@@ -4,15 +4,18 @@ import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildP
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
+import { pathTo7zBack } from '@back/util/SevenZip';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { overwritePreferenceData } from '@shared/preferences/util';
 import * as flashpoint from 'flashpoint';
+import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
-import { overwritePreferenceData } from '@shared/preferences/util';
+
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
  * @param extManifest Manifest of the caller
@@ -34,6 +37,18 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const getExtensionFileURL = (filePath: string): string => {
     return `http://localhost:${state.fileServerPort}/extdata/${extId}/${filePath}`;
+  };
+
+  const unzipFile = (filePath: string, outDir: string): Promise<void> => {
+    return new Promise<void>((resolve, reject) => {
+      const readable = extractFull(filePath, outDir, { $bin: pathTo7zBack(state.isDev, state.exePath) });
+      readable.on('end', () => {
+        resolve();
+      });
+      readable.on('error', () => {
+        reject();
+      });
+    });
   };
 
   // Log Namespace
@@ -239,6 +254,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     overwritePreferenceData: extOverwritePreferenceData,
     unload: unload,
     getExtensionFileURL: getExtensionFileURL,
+    unzipFile: unzipFile,
 
     // Namespaces
     log: extLog,

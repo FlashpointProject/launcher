@@ -4,9 +4,9 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application, ApplicationMode, ButtonContext, ContextButton, Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
-const { str } = Coerce;
+const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
 /** Scans all extensions in System and User paths and returns them. */
@@ -176,24 +176,14 @@ function parseApplication(parser: IObjectParserProp<Application>): Application {
   const application: Application = {
     provides: [],
     name: '',
-    mode: 'regular',
-    command: '',
   };
   parser.prop('provides').arrayRaw((item) => application.provides.push(str(item)));
   parser.prop('name',    v => application.name    = str(v));
-  parser.prop('command', v => application.command = str(v));
-  parser.prop('mode',    v => application.mode    = validateCommand(str(v)), true);
-  if (application.provides.length === 0) { throw new Error('Application must provide something. (Empty / missing provides array)'); }
+  parser.prop('command', v => application.command = str(v), true);
+  parser.prop('path',    v => application.path    = str(v), true);
+  parser.prop('url',     v => application.url    = str(v), true);
+  const numDefined = num(!!application.command) + num(!!application.path) + num(!!application.url);
+  if (numDefined !== 1) { throw new Error('Exactly one "path", "url" or "command" variable must be defined for an application, not both.'); }
+  if (application.provides.length === 0) { throw new Error('Application must provide something. (Empty provides array)'); }
   return application;
-}
-
-function validateCommand(val: string): ApplicationMode {
-  switch (val) {
-    case 'regular':
-      return 'regular';
-    case 'browser':
-      return 'browser';
-    default:
-      throw new Error(`${val} is not a valid Application Mode!`);
-  }
 }

@@ -32,6 +32,13 @@ declare module 'flashpoint' {
    */
   export function getExtensionFileURL(filePath: string): string;
 
+  /**
+   * Unzips a file into a given directory (7zip)
+   * @param filePath Path to archive
+   * @param outDir Directory to output into
+   */
+  export function unzipFile(filePath: string, outDir: string): Promise<void>;
+
   /** Log functions to properly pass messages to the Logs Page.*/
   export namespace log {
     export const trace: (message: string) => void;

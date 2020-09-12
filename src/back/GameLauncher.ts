@@ -143,11 +143,13 @@ export namespace GameLauncher {
     for (const app of availableApps) {
       try {
         const res = await app.callback(opts.game);
-        if (app.mode === 'regular' && typeof res === 'string') {
+        // Simple path return, treat as regular app
+        if (typeof res === 'string') {
           appPath = res;
           break;
         }
-        if (app.mode === 'browser' && isBrowserOpts(res)) {
+
+        if (isBrowserOpts(res)) {
           const env = getEnvironment(opts.fpPath);
           if ('ELECTRON_RUN_AS_NODE' in env) {
             delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
@@ -188,7 +190,7 @@ export namespace GameLauncher {
                   `    launchCommand:   "${opts.game.launchCommand}" ]`);
       } break;
       default: {
-        const gamePath: string = fixSlashes(path.join(opts.fpPath, appPath));
+        const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
         const gameArgs: string = opts.game.launchCommand;
         const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
         const env = getEnvironment(opts.fpPath);

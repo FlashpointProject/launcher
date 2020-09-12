@@ -20,8 +20,9 @@ export type ContextButton = {
 export type Application = {
   provides: string[];
   name: string;
-  mode: 'regular' | 'browser';
-  command: string;
+  command?: string;
+  path?: string;
+  url?: string;
 }
 
 export type AppProvider = Application & {

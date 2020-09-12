@@ -8,7 +8,7 @@ import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
-import { AppProvider } from '@shared/extensions/interfaces';
+import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
 import { LogLevel } from '@shared/Log/interface';
@@ -27,6 +27,7 @@ import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { parseAppVar } from './extensions/util';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameLauncher, GameLaunchInfo } from './GameLauncher';
@@ -1544,16 +1545,31 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
   return state.extensionsService.getContributions('applications')
   .then(contributions => {
     log.debug('Launcher', JSON.stringify(contributions));
-    return contributions.map(c => c.value)
-    .reduce((prev, cur) => cur = cur.concat(prev), [])
-    .map(app => {
-      return {
-        ...app,
-        callback: (game: Game) => {
-          return runCommand(state, app.command, [game]);
-        }
-      };
-    });
+    return contributions.map(c => {
+      const apps = c.value;
+      return apps.map(app => {
+        return {
+          ...app,
+          callback: async (game: Game) => {
+            log.debug('Launcher', 'PROCESSING CALLBACK');
+            if (app.command) {
+              return runCommand(state, app.command, [game]);
+            } else if (app.path) {
+              return await parseAppVar(c.extId, app.path, game.launchCommand, state);
+            } else if (app.url) {
+              const formattedUrl = await parseAppVar(c.extId, app.url, game.launchCommand, state);
+              const opts: BrowserApplicationOpts = {
+                url: formattedUrl
+              };
+              return opts;
+            } else {
+              throw new Error('Neither path or command are defined for application, cannot run.');
+            }
+          }
+        };
+      });
+    })
+    .reduce((prev, cur) => cur = cur.concat(prev), []);
   }
   );
 }
