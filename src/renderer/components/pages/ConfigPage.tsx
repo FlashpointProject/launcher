@@ -549,24 +549,31 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     return extensions.map((ext) => {
       const shortContribs = [];
       if (ext.contributes) {
-        if (ext.contributes.devScripts) {
+        if (ext.contributes.devScripts && ext.contributes.devScripts.length > 0) {
           shortContribs.push(
             <div key='devScripts'>
               {`${ext.contributes.devScripts.length} ${strings.extDevScripts}`}
             </div>
           );
         }
-        if (ext.contributes.themes) {
+        if (ext.contributes.themes && ext.contributes.themes.length > 0) {
           shortContribs.push(
             <div key='themes'>
               {`${ext.contributes.themes.length} ${strings.extThemes}`}
             </div>
           );
         }
-        if (ext.contributes.logoSets) {
+        if (ext.contributes.logoSets && ext.contributes.logoSets.length > 0) {
           shortContribs.push(
             <div key='logoSets'>
               {`${ext.contributes.logoSets.length} ${strings.extLogoSets}`}
+            </div>
+          );
+        }
+        if (ext.contributes.applications && ext.contributes.applications.length > 0) {
+          shortContribs.push(
+            <div key='applications'>
+              {`${ext.contributes.applications.length} ${strings.extApplications}`}
             </div>
           );
         }

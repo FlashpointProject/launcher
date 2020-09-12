@@ -55,6 +55,7 @@ const langTemplate = {
     'extDevScripts',
     'extThemes',
     'extLogoSets',
+    'extApplications',
     'saveAndRestart',
     'browse',
   ] as const,

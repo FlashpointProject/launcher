@@ -10,6 +10,8 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
       default: return '';
       case 'extPath': return path.resolve(ext ? ext.extensionPath : '');
       case 'extDataURL': return `http://localhost:${state.fileServerPort}/extdata/${extId}/`;
+      case 'os': return process.platform;
+      case 'arch': return process.arch;
       case 'launchCommand': return launchCommand;
       case 'cwd': return fixSlashes(process.cwd());
       case 'fpPath': return state.config ? fixSlashes(state.config.flashpointPath) : '';

@@ -613,10 +613,11 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
       // Extension icons
       case 'exticons': {
         const relativePath = urlPath.substr(index + 1);
-        // /ExtIcons/<extId>
+        // /extIcons/<extId>
         state.extensionsService.getExtension(relativePath)
         .then((ext) => {
           if (ext && ext.manifest.icon) {
+            log.debug('Extensions', `Found Extension for Icon - ${ext.manifest.icon} - ${ext.manifest.name}`);
             const filePath = path.join(ext.extensionPath, ext.manifest.icon);
             if (filePath.startsWith(ext.extensionPath)) {
               serveFile(req, res, filePath);
