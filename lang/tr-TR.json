@@ -26,6 +26,8 @@
     "platforms": "Platformlar",
     "nativePlatforms": "Yerli Platformlar",
     "nativePlatformsDesc": "Platformların Yerli sürümlerini kullan. (Uygun değilse Wine kullanır)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Görseller",
     "useCustomTitleBar": "Özel bir Başlık kullan",
     "useCustomTitleBarDesc": "Bu pencerenin üzerinde özel bir başlık kullan.",
