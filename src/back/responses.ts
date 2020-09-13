@@ -88,6 +88,7 @@ export function registerRequestCallbacks(state: BackState): void {
       state.preferences.fallbackLanguage
     );
 
+    const playlists = await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
     const libraries = await GameManager.findUniqueValues(Game, 'library');
     const serverNames = state.serviceInfo ? state.serviceInfo.server.map(i => i.name || '') : [];
     const mad4fpEnabled = state.serviceInfo ? (state.serviceInfo.server.findIndex(s => s.mad4fp === true) !== -1) : false;
@@ -109,7 +110,7 @@ export function registerRequestCallbacks(state: BackState): void {
         languages: state.languages,
         language: state.languageContainer,
         themes: Array.from(state.registry.themes.values()),
-        playlists: await GameManager.findPlaylists(),
+        playlists: playlists,
         libraries: libraries,
         serverNames: serverNames,
         mad4fpEnabled: mad4fpEnabled,
@@ -370,7 +371,7 @@ export function registerRequestCallbacks(state: BackState): void {
       respond<PlaylistsChangeData>(event.target, {
         id: req.id,
         type: BackOut.PLAYLISTS_CHANGE,
-        data: await GameManager.findPlaylists()
+        data: await GameManager.findPlaylists(state.preferences.browsePageShowExtreme)
       });
     } else {
       respond(event.target, {
@@ -411,7 +412,7 @@ export function registerRequestCallbacks(state: BackState): void {
       state.socketServer.broadcast<PlaylistsChangeData>({
         id: '',
         type: BackOut.PLAYLISTS_CHANGE,
-        data: await GameManager.findPlaylists()
+        data: await GameManager.findPlaylists(state.preferences.browsePageShowExtreme)
       });
       respond<Playlist>(event.target, {
         id: req.id,
@@ -428,14 +429,14 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.DELETE_ALL_PLAYLISTS, async (event, req) => {
-    const playlists = await GameManager.findPlaylists();
+    const playlists = await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
     for (const playlist of playlists) {
       await GameManager.removePlaylist(playlist.id);
     }
     respond<PlaylistsChangeData>(event.target, {
       id: req.id,
       type: BackOut.PLAYLISTS_CHANGE,
-      data: await GameManager.findPlaylists()
+      data: await GameManager.findPlaylists(state.preferences.browsePageShowExtreme)
     });
   });
 
@@ -885,7 +886,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_PLAYLISTS, async (event, req) => {
-    const playlists = await GameManager.findPlaylists();
+    const playlists = await GameManager.findPlaylists(state.preferences.browsePageShowExtreme);
     respond<GetPlaylistsResponse>(event.target, {
       id: req.id,
       type: BackOut.GENERIC_RESPONSE,

@@ -59,7 +59,7 @@ declare module 'flashpoint' {
      */
     export function findPlaylistByName(playlistName: string, join?: boolean): Promise<Playlist | undefined>;
     /** Find all Playlists in the database (Playlist Games not returned) */
-    export function findPlaylists(): Promise<Playlist[]>;
+    export function findPlaylists(showExtreme: boolean): Promise<Playlist[]>;
     /**
      * Updates / Creates a Playlist
      * @param playlist Playlist data to save

@@ -294,9 +294,13 @@ export namespace GameManager {
   }
 
   /** Find playlists given a filter. @TODO filter */
-  export async function findPlaylists(): Promise<Playlist[]> {
+  export async function findPlaylists(showExtreme: boolean): Promise<Playlist[]> {
     const playlistRepository = getManager().getRepository(Playlist);
-    return await playlistRepository.find();
+    if (showExtreme) {
+      return await playlistRepository.find();
+    } else {
+      return await playlistRepository.find({ where: { extreme: false }});
+    }
   }
 
   /** Removes a playlist */
