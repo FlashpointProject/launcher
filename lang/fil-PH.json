@@ -26,6 +26,8 @@
     "platforms": "Platforms",
     "nativePlatforms": "Orihinal na Platforms",
     "nativePlatformsDesc": "Gamitin ang orihinal na bersyon ng mga platforms. (Kung hindi maari, Wine ang gagamitin)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Mga Biswal",
     "useCustomTitleBar": "Gumamit ng pasadyang Title Bar",
     "useCustomTitleBarDesc": "Gumamit ng pasadyang title bar sa itaas ng window na ito.",
