@@ -26,6 +26,8 @@
     "platforms": "פלטפורמות",
     "nativePlatforms": "פלטפורמות מקומיות",
     "nativePlatformsDesc": "השתמש בגירסאות מקומיות של פלטפורמות אלה. (אם לא זמין הוא ישתמש ב-Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "חזותי",
     "useCustomTitleBar": "השתמש בפס כותרת מותאם אישית",
     "useCustomTitleBarDesc": "השתמש בפס כותרת מותאם אישית בחלק העליון של חלון זה.",
