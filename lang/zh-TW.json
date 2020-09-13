@@ -26,6 +26,8 @@
     "platforms": "平台",
     "nativePlatforms": "使用原生應用程式平台",
     "nativePlatformsDesc": "使原生版本之應用程式來執行(若不存在時將使用Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "外觀",
     "useCustomTitleBar": "使用自訂標題列",
     "useCustomTitleBarDesc": "於此視窗的上方使用Flashpoint的自訂標題列",
