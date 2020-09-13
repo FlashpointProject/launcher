@@ -26,6 +26,8 @@
     "platforms": "プラットフォーム",
     "nativePlatforms": "Native Platforms",
     "nativePlatformsDesc": "ネイティブなバージョンを使用するプラットフォームを選択します。 (Wineを使っている場合は選択しないでください。)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "見た目",
     "useCustomTitleBar": "カスタムタイトルバーを使用する",
     "useCustomTitleBarDesc": "Use a custom title bar at the top of this window.",
