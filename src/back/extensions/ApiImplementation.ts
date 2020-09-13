@@ -11,6 +11,7 @@ import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import * as flashpoint from 'flashpoint';
+import * as fs from 'fs';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
@@ -49,6 +50,27 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         reject();
       });
     });
+  };
+
+  const loadConfig = async (): Promise<any> => {
+    if (extPath) {
+      const configPath = path.join(extPath, 'config.json');
+      await fs.promises.access(configPath, fs.constants.F_OK)
+      .catch(() => { return {}; }); // No config found, return default.
+      const text = await fs.promises.readFile(configPath, { encoding: 'utf-8' });
+      return JSON.parse(text);
+    } else {
+      throw new Error('Cannot load a config for a fake extension!');
+    }
+  };
+  const saveConfig = async (data: any): Promise<void> => {
+    if (extPath) {
+      const configPath = path.join(extPath, 'config.json');
+      const text = JSON.stringify(data);
+      await fs.promises.writeFile(configPath, text, { encoding: 'utf-8' });
+    } else {
+      throw new Error('Cannot save a config for a fake extension!');
+    }
   };
 
   // Log Namespace
@@ -255,6 +277,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     unload: unload,
     getExtensionFileURL: getExtensionFileURL,
     unzipFile: unzipFile,
+    loadConfig: loadConfig,
+    saveConfig: saveConfig,
 
     // Namespaces
     log: extLog,

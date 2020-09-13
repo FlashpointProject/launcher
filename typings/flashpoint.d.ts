@@ -39,6 +39,15 @@ declare module 'flashpoint' {
    */
   export function unzipFile(filePath: string, outDir: string): Promise<void>;
 
+  /**
+   * Loads the extensions config file
+   */
+  export function loadConfig(): Promise<any>;
+  /**
+   * Saves data to the extensions config file
+   */
+  export function saveConfig(data: any): Promise<void>;
+
   /** Log functions to properly pass messages to the Logs Page.*/
   export namespace log {
     export const trace: (message: string) => void;
