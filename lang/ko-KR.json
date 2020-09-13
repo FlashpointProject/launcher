@@ -26,6 +26,8 @@
     "platforms": "플랫폼",
     "nativePlatforms": "네이티브 플랫폼",
     "nativePlatformsDesc": "이 플랫폼들의 네이티브 버전들을 사용하세요. (없다면 와인을 사용합니다)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "비주얼",
     "useCustomTitleBar": "커스텀 타이틀 바 사용하기",
     "useCustomTitleBarDesc": "애플리케이션 화면 상단에 커스텀 타이틀 바를 사용합니다.",
