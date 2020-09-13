@@ -651,13 +651,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onAppPathOverridePathChange = (index: number, newPath: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths[index].path = newPath;
+    newPaths[index] = { ...newPaths[index], path: newPath };
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 
   onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths[index].override = newOverride;
+    newPaths[index] = { ...newPaths[index], override: newOverride };
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 
