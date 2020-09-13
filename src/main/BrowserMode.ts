@@ -117,8 +117,6 @@ export function startBrowserMode(init: Init): void {
     window.setMenu(null); // Remove the menu bar
     window.loadURL(state.url);
 
-    console.log(state.url);
-
     window.webContents.openDevTools();
 
     return window;
