@@ -218,6 +218,7 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
+        appPathOverrides: state.preferences.appPathOverrides,
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
@@ -255,6 +256,7 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
+        appPathOverrides: state.preferences.appPathOverrides,
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       });
@@ -1097,6 +1099,7 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
+        appPathOverrides: state.preferences.appPathOverrides,
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       },
@@ -1123,6 +1126,7 @@ export function registerRequestCallbacks(state: BackState): void {
         lang: state.languageContainer,
         isDev: state.isDev,
         exePath: state.exePath,
+        appPathOverrides: state.preferences.appPathOverrides,
         openDialog: state.socketServer.showMessageBoxBack(event.target),
         openExternal: state.socketServer.openExternal(event.target),
       },

@@ -2071,6 +2071,28 @@ body {
 .setting__row__content--input-field .input-dropdown__content {
   border: 0px;
 }
+.setting__row__content--override-row {
+  display: flex;
+  margin: auto;
+  margin-bottom: 0.15rem;
+  flex: auto;
+  padding: 0 1rem;
+}
+.setting__row__content--override-row__seperator{
+  margin-left: 0.3rem;
+  margin-right: 0.3rem;
+  font-weight: bold;
+  font-size: 1.2em;
+  flex-shrink: 0;
+}
+.setting__row__content--override-row__delete {
+  margin-left: 0.3rem;
+  flex-shrink: 0;
+}
+.setting__row__content--override-row__new {
+  float: right;
+  margin-right: 1rem;
+}
 .setting__row__ext-icon {
   background-size: contain;
   background-repeat: no-repeat;
