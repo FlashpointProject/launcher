@@ -26,6 +26,8 @@
     "platforms": "Platforme",
     "nativePlatforms": "Platforme native",
     "nativePlatformsDesc": "Folosește versiuni native ale acestor platforme. (Dacă nu sunt disponibile, se vor folosi prin Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Aspecte vizuale",
     "useCustomTitleBar": "Folosiți o bară de titlu personalizată",
     "useCustomTitleBarDesc": "Se va folosi o bară de titlu personalizată în partea de sus a ferestrei.",
