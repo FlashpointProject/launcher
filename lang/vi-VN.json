@@ -26,6 +26,8 @@
     "platforms": "Nền tảng",
     "nativePlatforms": "Native Platforms",
     "nativePlatformsDesc": "Use Native versions of these platforms. (Nếu không có sẵn thì sẽ dùng Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Đồ hoạ",
     "useCustomTitleBar": "Dùng thanh tiêu đề tuỳ chỉnh",
     "useCustomTitleBarDesc": "Dùng thanh tiêu đề tuỳ chỉnh ở trên cùng cửa sổ phần mềm.",
