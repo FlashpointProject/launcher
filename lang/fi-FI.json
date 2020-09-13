@@ -26,6 +26,8 @@
     "platforms": "Alustat",
     "nativePlatforms": "Natiivialustat",
     "nativePlatformsDesc": "Käytä natiiviversioita näistä alustoista. (Ei saatavilla jos Wine on käytössä)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Ulkonäkö",
     "useCustomTitleBar": "Käytä kustomoitua otsikkopalkkia",
     "useCustomTitleBarDesc": "Käytä kustomoitua otsikkopalkkia tämän ikkunan päällä.",
