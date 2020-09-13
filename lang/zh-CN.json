@@ -26,6 +26,8 @@
     "platforms": "平台",
     "nativePlatforms": "本地平台",
     "nativePlatformsDesc": "使用这些平台的本地版本，如不可用，将使用Wine",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "视觉化",
     "useCustomTitleBar": "使用自定义标题栏",
     "useCustomTitleBarDesc": "使用此窗口顶部的自定义标题栏",
