@@ -26,6 +26,8 @@
     "platforms": "Платформе",
     "nativePlatforms": "Домаће платформе",
     "nativePlatformsDesc": "Користи домаће верзије ових патформи. (Ако нису доступне користиће Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Изгледи",
     "useCustomTitleBar": "Користи траку са прилагођеним називом",
     "useCustomTitleBarDesc": "Користи траку са прилагођеним називом на врху овог прозора.",
