@@ -26,6 +26,8 @@
     "platforms": "Plataformas",
     "nativePlatforms": "Plataformas nativas",
     "nativePlatformsDesc": "Usar versiones nativas de estas plataformas. (Si no está disponible, utilizará Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Visuales",
     "useCustomTitleBar": "Usar barra de título personalizada",
     "useCustomTitleBarDesc": "Usar una barra de título personalizada en la parte superior de esta ventana.",
