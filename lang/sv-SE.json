@@ -26,6 +26,8 @@
     "platforms": "Plattformar",
     "nativePlatforms": "Nativa plattformar",
     "nativePlatformsDesc": "Använd versioner av dessa plattformar som är gjorda för ditt system från början. (Om ingen finns används Wine istället)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Utseende",
     "useCustomTitleBar": "Använd anpassad namnlist",
     "useCustomTitleBarDesc": "Använd en anpassad namnlist högst upp i det här fönstret.",
