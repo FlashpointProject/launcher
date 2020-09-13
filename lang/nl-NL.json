@@ -26,6 +26,8 @@
     "platforms": "Platformen",
     "nativePlatforms": "Oorspronkelijke platformen",
     "nativePlatformsDesc": "Gebruik originele versies van deze platformen. (Indien niet beschikbaar zal het 'Wine' gebruiken)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Uiterlijk",
     "useCustomTitleBar": "Gebruik aangepaste titelbalk",
     "useCustomTitleBarDesc": "Gebruik een aangepaste titelbalk bovenaan dit venster.",
