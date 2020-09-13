@@ -26,6 +26,8 @@
     "platforms": "Platformy",
     "nativePlatforms": "Nativní platformy",
     "nativePlatformsDesc": "Použít nativní verze těchto platforem. (Pokud není k dispozici, použije se Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Vzhled",
     "useCustomTitleBar": "Použít upravenou horní lištu",
     "useCustomTitleBarDesc": "Použije upravený vzhled horní lišty na základě motivu.",
