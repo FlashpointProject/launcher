@@ -63,7 +63,7 @@ The example below logs `Hello World!` to the Logs page, check it after launch to
 
 JavaScript file example
 ```javascript
-import * as flashpoint from 'flashpoint';
+import * as flashpoint from 'flashpoint-launcher';
 
 function activate(context) {
   flashpoint.log.info('Hello World!');
@@ -107,7 +107,7 @@ Build script
 
 TypeScript file example
 ```javascript
-import * as flashpoint from 'flashpoint';
+import * as flashpoint from 'flashpoint-launcher';
 
 export function activate(context: flashpoint.ExtensionContext) {
   flashpoint.log.info('Hello World!');

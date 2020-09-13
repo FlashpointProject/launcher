@@ -10,7 +10,7 @@ import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { IAppPreferencesData } from '@shared/preferences/interfaces';
 import { MessageBoxOptions, OpenExternalOptions, SaveDialogOptions, OpenDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
-import * as flashpoint from 'flashpoint';
+import * as flashpoint from 'flashpoint-launcher';
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';

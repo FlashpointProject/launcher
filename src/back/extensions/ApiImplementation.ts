@@ -10,7 +10,7 @@ import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { overwritePreferenceData } from '@shared/preferences/util';
-import * as flashpoint from 'flashpoint';
+import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs';
 import { extractFull } from 'node-7z';
 import * as path from 'path';

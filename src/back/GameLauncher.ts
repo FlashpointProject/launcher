@@ -6,7 +6,7 @@ import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
 import { ChildProcess, exec, execFile } from 'child_process';
 import { EventEmitter } from 'events';
-import { AppPathOverride, ManagedChildProcess } from 'flashpoint';
+import { AppPathOverride, ManagedChildProcess } from 'flashpoint-launcher';
 import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';

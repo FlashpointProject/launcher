@@ -1,5 +1,5 @@
 import { newDisposable } from '@back/util/lifecycle';
-import { Disposable } from 'flashpoint';
+import { Disposable } from 'flashpoint-launcher';
 import { ApiEvent } from './ApiEvent';
 
 type ApiListener<T> = [(e: T) => void, any] | ((e: T) => void);

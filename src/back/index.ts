@@ -16,7 +16,7 @@ import { Theme } from '@shared/ThemeFile';
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
-import * as flashpoint from 'flashpoint';
+import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';

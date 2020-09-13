@@ -1,8 +1,14 @@
-// Type definitions for flashpoint-launcher 9.0.0
+// Type definitions for flashpoint-launcher 9.1.0
 // Project: Flashpoint Launcher https://github.com/FlashpointProject/launcher
 // Definitions by: Flashpoint Project https://github.com/FlashpointProject
+// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-declare module 'flashpoint' {
+/**
+ * See https://github.com/FlashpointProject/launcher/blob/develop/docs/extensions.md for Extension documentation.
+ * See https://flashpointproject.github.io/launcher_ApiDocs/ for API documentation.
+ */
+
+declare module 'flashpoint-launcher' {
 
   /** Version of the Flashpoint Launcher */
   export const version: string;

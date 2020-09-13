@@ -5,7 +5,7 @@ import { nullExtensionDescription } from '@back/util/extensions';
 import { TernarySearchTree } from '@back/util/map';
 import { IExtension, IExtensionManifest } from '@shared/extensions/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
-import * as flashpoint from 'flashpoint';
+import * as flashpoint from 'flashpoint-launcher';
 import { createApiFactory } from './ApiImplementation';
 
 type LoadFunction = {
