@@ -26,6 +26,8 @@
     "platforms": "Платформы",
     "nativePlatforms": "Платформы Native",
     "nativePlatformsDesc": "Используйте Native версии этих платформ. (Если нет, он будет использовать Wine)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Отображение",
     "useCustomTitleBar": "Использовать пользовательский заголовок",
     "useCustomTitleBarDesc": "Использовать пользовательский заголовок сверху этого окна.",
