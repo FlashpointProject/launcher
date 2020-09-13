@@ -26,6 +26,8 @@
     "platforms": "Πλατφόρμες",
     "nativePlatforms": "Εγγενείς Πλατφόρμες",
     "nativePlatformsDesc": "Χρήση Εγγενών εκδόσεων αυτών των πλατφορμών. (Σε περίπτωση μη διαθεσιμότητας θα χρησιμοποιείται το Γουάιν)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Οπτικά",
     "useCustomTitleBar": "Χρήση Προσαρμοσμένης Γραμμής Τίτλου",
     "useCustomTitleBarDesc": "Χρήση μιας προσαρμοσμένης γραμμής τίτλου στην κορυφή του παραθύρου.",
