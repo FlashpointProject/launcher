@@ -26,6 +26,8 @@
     "platforms": "Plattformer",
     "nativePlatforms": "Native Plattformer",
     "nativePlatformsDesc": "Bruk native versjoner av disse plattformene. (Hvis de ikke er tilgjengelige brukes Wine isteden)",
+    "appPathOverrides": "App Path Overrides",
+    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Visuelt",
     "useCustomTitleBar": "Bruk Egendefinert Tittellinje",
     "useCustomTitleBarDesc": "Bruk en egendefinert tittellinje øverst i dette vinduet.",
