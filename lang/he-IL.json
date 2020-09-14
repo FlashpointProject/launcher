@@ -173,17 +173,17 @@
     "stopped": "Stopped",
     "killing": "Killing",
     "start": "Start",
-    "startDesc": "Start the service",
+    "startDesc": "הפעלת השירות",
     "stop": "Stop",
-    "stopDesc": "Stop the running service",
+    "stopDesc": "עצור את השירות הרץ",
     "restart": "אתחל",
     "restartDesc": "אתחול שירות",
     "details": "פרטים",
-    "detailsDesc": "Open dialog with service details"
+    "detailsDesc": "פתח דיאלוג עם מידע על השירות"
   },
   "about": {
-    "aboutHeader": "About",
-    "flashpoint": "BlueMaxima's Flashpoint",
+    "aboutHeader": "אודות",
+    "flashpoint": "פלאשפוינט של בלומקסימה",
     "flashpointDesc": "The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.",
     "website": "Website",
     "flashpointLauncher": "Flashpoint Launcher",
