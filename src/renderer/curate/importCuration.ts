@@ -5,7 +5,7 @@ import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { ProgressDispatch, ProgressHandle } from '../context/ProgressContext';
 import { pathTo7z } from '../util/SevenZip';
-import { uuid } from '../util/uuid';
+import { uuid, validateSemiUUID } from '../util/uuid';
 import { curationLog } from './util';
 
 /**
@@ -64,24 +64,30 @@ export async function importCurationFolder(filePath: string, key: string = uuid(
  * @param filePath Path of the archive to import
  * @return Curation key
  */
-export async function importCurationArchive(filePath: string, key: string = uuid(), progress: ProgressHandle): Promise<string> {
+export async function importCurationArchive(filePath: string, preserveKey: boolean, progress: ProgressHandle): Promise<string> {
   ProgressDispatch.setText(progress, 'Extracting Curation Archive');
-  const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
-  const extractPath = path.join(curationPath, '.temp');
+  let key = uuid();
+  const extractPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', key);
   try {
-    // Extract curation to .temp folder inside curation folder
+    // Extract curation to temp folder inside Curations folder
     await fs.ensureDir(extractPath);
     await extractFullPromise([filePath, extractPath, { $bin: pathTo7z, $progress: true }], progress);
+    // Extract the existing key from the archive if needed
+    if (preserveKey) {
+      key = await getKeyFromPath(extractPath) || key;
+    }
     // Find the absolute path to the folder containing meta.yaml
+    const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
     const rootPath = await getRootPath(extractPath);
     if (rootPath) {
       // Move all files out of the root folder and into the curation folder
+      await fs.ensureDir(curationPath);
       for (const file of await fs.readdir(rootPath)) {
         const fileSource = path.join(rootPath, file);
         const fileDest = path.join(curationPath, file);
         await fs.move(fileSource, fileDest);
       }
-      // Clean up .temp
+      // Clean up extraction path
       await fs.remove(extractPath);
     } else {
       throw new Error('Meta.yaml/yml/txt not found in extracted archive');
@@ -118,6 +124,21 @@ function extractFullPromise(args: Parameters<typeof extractFull>, progress?: Pro
       reject(error);
     });
   });
+}
+
+/**
+ * Return the name of the only entry in a folder if it's a UUID (undefined otherwise)
+ * @param dir Path to search
+ */
+async function getKeyFromPath(dir: string): Promise<string | undefined> {
+  const files = await fs.readdir(dir);
+  if (files.length !== 1) {
+    return;
+  }
+  const possibleUUID = files[0];
+  if (validateSemiUUID(possibleUUID)) {
+    return possibleUUID;
+  }
 }
 
 // Names valid as meta files
