@@ -94,7 +94,7 @@
     "clearLog": "Очисти запис",
     "copy404Urls": "Copy 404 URLs",
     "uploadLog": "Upload Log",
-    "copiedToClipboard": "Copied to Clipboard"
+    "copiedToClipboard": "Копирано у привремену меморију"
   },
   "app": {
     "home": "Почетак",
@@ -290,7 +290,7 @@
     "makeAliasWhenMerged": "Make this an alias of the tag?",
     "deleteTag": "Delete Tag",
     "deleteTagCategory": "Delete Tag Category",
-    "locked": "Locked while processing..."
+    "locked": "Закључан док се обрађује..."
   },
   "curate": {
     "importAll": "Увези све",
@@ -332,7 +332,7 @@
     "deleteCurationDesc": "Избриши ову галерију (Фајлови не могу бити повраћени)",
     "openFolder": "Отвори фасциклу",
     "run": "Покрени",
-    "runWithMAD4FP": "Run with MAD4FP",
+    "runWithMAD4FP": "Покрени са MAD4FP",
     "export": "Извези",
     "import": "Увези",
     "contentFiles": "Фајлови у садржају",
@@ -355,7 +355,7 @@
     "saveDesc": "Сачувај направљене измене и заустави уређивање",
     "discard": "Одбаци",
     "discardDesc": "Одбаци настале промене и заустави уређивање",
-    "edit": "Edit",
+    "edit": "Уреди",
     "editDesc": "Edit this playlist",
     "delete": "Избриши",
     "deleteDesc": "Избриши ову плејлисту",
@@ -406,7 +406,7 @@
     "pathNotFound": "Путања није нађена!",
     "playlistConflict": "Playlist Conflict",
     "importedPlaylistAlreadyExists": "Увезена плејлиста већ постоји са истим именом! - {0}",
-    "importPlaylistAs": "Import playlist as",
+    "importPlaylistAs": "Увези плејлисту као",
     "selectFileToExportMeta": "Изабери фајл у коме би сачувао метаподатак",
     "selectFolderToExportMetaAndImages": "Изабери фасциклу у коме би сачувао метаподатке и слике",
     "replaceFilesQuestion": "Заменити слике?",
@@ -427,8 +427,8 @@
     "restartToApplyUpgrade": "Ова надоградња неће бити примењена док не будеш поново покренуо.\nДа ли желиш да то урадиш сада?",
     "areYouSure": "Да ли си сигуран?",
     "cancel": "Cancel",
-    "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate",
+    "mergePlaylists": "Споји плејлисте",
+    "newPlaylist": "Остани раздвојена",
     "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "Датотека већ постоји!",
     "overwriteFileMessage": "Датотека са истим именом већ постоји. Да ли желиш да је замениш?",
