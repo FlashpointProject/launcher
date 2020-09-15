@@ -30,7 +30,7 @@ import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
 import { parseAppVar } from './extensions/util';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
-import { GameLauncher, GameLaunchInfo } from './GameLauncher';
+import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
 import { ManagedChildProcess } from './ManagedChildProcess';
 import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
@@ -1413,17 +1413,23 @@ function runGameFactory(state: BackState) {
   return (gameLaunchInfo: GameLaunchInfo): ManagedChildProcess => {
     // Run game as a service and register it
     const dirname = path.dirname(gameLaunchInfo.launchInfo.gamePath);
-    const basename = path.basename(gameLaunchInfo.launchInfo.gamePath);
+    // Keep file path relative to cwd
     const proc = runService(
       state,
       `game.${gameLaunchInfo.game.id}`,
       gameLaunchInfo.game.title,
       '',
-      { detached: false, shell: true },
+      {
+        detached: false,
+        shell: true,
+        cwd: gameLaunchInfo.launchInfo.cwd,
+        execFile: !!gameLaunchInfo.launchInfo.execFile,
+        env: gameLaunchInfo.launchInfo.env
+      },
       {
         path: dirname,
-        filename: createCommand(basename, gameLaunchInfo.launchInfo.useWine),
-        arguments: createArgs(gameLaunchInfo.launchInfo.gameArgs),
+        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.execFile),
+        arguments: escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
         kill: true
       }
     );
@@ -1437,13 +1443,13 @@ function runGameFactory(state: BackState) {
   };
 }
 
-function createCommand(filename: string, useWine: boolean): string {
+function createCommand(filename: string, useWine: boolean, execFile: boolean): string {
   // This whole escaping thing is horribly broken. We probably want to switch
   // to an array representing the argv instead and not have a shell
   // in between.
   switch (process.platform) {
     case 'win32':
-      return `"${filename}"`;
+      return execFile ? filename : `"${filename}"`; // Quotes cause issues with execFile
     case 'darwin':
     case 'linux':
       if (useWine) {
@@ -1453,76 +1459,6 @@ function createCommand(filename: string, useWine: boolean): string {
     default:
       throw Error('Unsupported platform');
   }
-}
-
-function createArgs(gameArgs: string): string[] {
-  switch (process.platform) {
-    case 'win32':
-      return [`${escapeWin(gameArgs)}`];
-    case 'darwin':
-    case 'linux':
-      return [`${escapeLinuxArgs(gameArgs)}`];
-    default:
-      throw Error('Unsupported platform');
-  }
-}
-
-/**
- * Escape a string that will be used in a Windows shell (command line)
- * ( According to this: http://www.robvanderwoude.com/escapechars.php )
- */
-function escapeWin(str: string): string {
-  return (
-    splitQuotes(str)
-    .reduce((acc, val, i) => acc + ((i % 2 === 0)
-      ? val.replace(/[\^&<>|]/g, '^$&')
-      : `"${val}"`
-    ), '')
-  );
-}
-
-/**
- * Escape arguments that will be used in a Linux shell (command line)
- * ( According to this: https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash )
- */
-function escapeLinuxArgs(str: string): string {
-  return (
-    splitQuotes(str)
-    .reduce((acc, val, i) => acc + ((i % 2 === 0)
-      ? val.replace(/[~`#$&*()\\|[\]{};<>?!]/g, '\\$&')
-      : '"' + val.replace(/[$!\\]/g, '\\$&') + '"'
-    ), '')
-  );
-}
-
-/**
- * Split a string to separate the characters wrapped in quotes from all other.
- * Example: '-a -b="123" "example.com"' => ['-a -b=', '123', ' ', 'example.com']
- * @param str String to split.
- * @returns Split of the argument string.
- *          Items with odd indices are wrapped in quotes.
- *          Items with even indices are NOT wrapped in quotes.
- */
-function splitQuotes(str: string): string[] {
-  // Search for all pairs of quotes and split the string accordingly
-  const splits: string[] = [];
-  let start = 0;
-  while (true) {
-    const begin = str.indexOf('"', start);
-    if (begin >= 0) {
-      const end = str.indexOf('"', begin + 1);
-      if (end >= 0) {
-        splits.push(str.substring(start, begin));
-        splits.push(str.substring(begin + 1, end));
-        start = end + 1;
-      } else { break; }
-    } else { break; }
-  }
-  // Push remaining characters
-  if (start < str.length) {
-    splits.push(str.substring(start, str.length));
-  }
-  return splits;
 }
 
 async function runCommand(state: BackState, command: string, args: any[] = []): Promise<any> {
@@ -1544,7 +1480,6 @@ async function runCommand(state: BackState, command: string, args: any[] = []): 
 async function getProviders(state: BackState): Promise<AppProvider[]> {
   return state.extensionsService.getContributions('applications')
   .then(contributions => {
-    log.debug('Launcher', JSON.stringify(contributions));
     return contributions.map(c => {
       const apps = c.value;
       return apps.map(app => {

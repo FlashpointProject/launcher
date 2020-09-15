@@ -252,7 +252,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
   const proc = new ManagedChildProcess(
     id,
     name,
-    path.join(basePath, info.path),
+    opts.cwd || path.join(basePath, info.path),
     opts,
     info
   );

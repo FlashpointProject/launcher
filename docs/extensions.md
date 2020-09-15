@@ -161,3 +161,62 @@ Logo Sets are declared as part of the extensions manifest, `package.json`. Multi
 Unlike Themes, the name shown in the Config page is declared here as `name` instead.
 
 Logos for platforms will then be read relative to the folder, e.g `./logoSets/MyLogoSet/Flash.png`
+
+
+### Context Buttons
+
+Extensions can provide context buttons to show when right-clicking Playlists or Games. The registered command is then run with either the Playlist or Game as an argument when clicked. See API documentation on ``commands.registerCommand` and for more details.
+
+```json
+{
+  "contributes": {
+    "contextButtons": [
+      {
+        "context": "game" / "playlist",
+        "name": "Click Me",
+        "command": "my-first-extension.do-something"
+      }
+    ]
+  }
+}
+```
+
+### Applications
+
+Extensions can provide Applications for the launcher to use. Whenever one of the strings in `provides` is used the path, url or command is used to run the application instead of defaulting to a relative path to the Flashpoint folder.
+
+Be sure to read past the example for more important information.
+
+```json
+{
+  "applications": [
+    {
+      "provides": [
+        ":my-application:"
+      ],
+      "name": "My Application",
+      "path": "<extPath>/app.exe"
+    }
+  ]
+}
+```
+
+In this example, any game run with the `:my-application:` application path will use `<extPath>/app.exe` in its place when launching, where `<extPath>` will be replaced with the path of the Extension on disk.
+
+However, Applications can also provide `url` or `command` instead. The full details of all 3 including `path` are listed below.
+
+`path` will launch the application with the launch command as its arguments. You must use the `<exePath>` or `<fpPath>` subtitutions to correctly reference the application.
+
+`url` will launch that URL in Flashpoints Browser Mode (Electron). The launch command must be subtituted since it can not be given as an argument this way. See below for allowed subtitutions.
+
+`command` will run a registered command that is given the launching Game as an argument and expects a valid response of either a string (`path`) or BrowserApplicationOpts (`url`) which will then be run accordingly. Subtitutions cannot be used on the returned values, although you may find their equiavelents in the API, with an exception of os, arch and cwd which you may use Node types for. (`@types/node`)
+
+`url` and `path` string subtitutes:
+
+- **\<exePath\>** - Path to the extension.
+- **\<fpPath\>** - Path to the Flashpoint folder.
+- **\<os\>** - See https://nodejs.org/api/process.html#process_process_platform
+- **\<arch\>** - See https://nodejs.org/api/process.html#process_process_arch
+- **\<exeDataURL>** - URL to the Extensions 'static' folder. Useful for Browser Mode.
+- **\<launchCommand\>** - Launch Command of the application. Useful for Browser Mode, `path` applications will have it included as arguments already.
+- **\<cwd\>** - Current working directory. This is not guaranteed to be anywhere relative to Flashpoint.exe nor the Flashpoint folder, do not use unless certain.

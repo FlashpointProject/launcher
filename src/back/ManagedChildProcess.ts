@@ -1,8 +1,9 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, spawn } from 'child_process';
+import { ChildProcess, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import * as path from 'path';
 import * as treeKill from 'tree-kill';
 import { Disposable } from './util/lifecycle';
 
@@ -25,6 +26,9 @@ export type ProcessOpts = {
   detached?: boolean;
   autoRestart?: boolean;
   shell?: boolean;
+  cwd?: string;
+  execFile?: boolean;
+  env?: NodeJS.ProcessEnv;
 }
 
 /** Number of times to auto restart - maximum */
@@ -52,6 +56,10 @@ export class ManagedChildProcess extends EventEmitter {
   private autoRestartCount: number;
   /** Whether to run in a shell */
   private shell: boolean;
+  /** Whether to use execFile instead of spawn */
+  private execFile: boolean;
+  /** Launch with these Environmental Variables */
+  private env?: NodeJS.ProcessEnv;
   /** A timestamp of when the process was started. */
   private startTime = 0;
   /** State of the process. */
@@ -59,7 +67,7 @@ export class ManagedChildProcess extends EventEmitter {
 
   constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo) {
     super();
-    const { detached, autoRestart, shell } = opts;
+    const { detached, autoRestart, shell, execFile, env } = opts;
     this.id = id;
     this.name = name;
     this.cwd = cwd;
@@ -68,6 +76,8 @@ export class ManagedChildProcess extends EventEmitter {
     this.autoRestartCount = 0;
     this.info = info;
     this.shell = !!shell;
+    this.execFile = !!execFile;
+    this.env = env;
   }
 
   /** Get the process ID (or -1 if the process is not running). */
@@ -93,10 +103,11 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
-      log.debug('Services', this.info.filename);
-      log.debug('Services', this.info.arguments.join(';'));
-      log.debug('Services', this.cwd);
-      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell });
+      if (this.execFile) {
+        this.process = execFile(this.info.filename, this.info.arguments, { cwd: this.cwd, env: this.env });
+      } else {
+        this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell });
+      }
       // Set start timestamp
       this.startTime = Date.now();
       // Log

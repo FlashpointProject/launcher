@@ -851,7 +851,7 @@ declare module 'flashpoint-launcher' {
 
   export type LaunchInfo = {
     gamePath: string;
-    gameArgs: string;
+    gameArgs: string | string[];
     useWine: boolean;
     env: ProcessEnv;
   }

@@ -73,7 +73,7 @@ export function startBrowserMode(init: Init): void {
       callback({ ...details.responseHeaders });
     });
 
-    createFlashWindow();
+    createBrowserWindow();
   }
 
   function onAppWindowAllClosed(): void {
@@ -99,10 +99,10 @@ export function startBrowserMode(init: Init): void {
   function onAppActivate(): void {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (!state.window) { createFlashWindow(); }
+    if (!state.window) { createBrowserWindow(); }
   }
 
-  function createFlashWindow(): BrowserWindow {
+  function createBrowserWindow(): BrowserWindow {
     const window = new BrowserWindow({
       title: 'Flashpoint Browser Mode',
       icon: path.join(__dirname, '../window/images/icon.png'),
@@ -117,7 +117,7 @@ export function startBrowserMode(init: Init): void {
     window.setMenu(null); // Remove the menu bar
     window.loadURL(state.url);
 
-    window.webContents.openDevTools();
+    // window.webContents.openDevTools();
 
     return window;
   }
