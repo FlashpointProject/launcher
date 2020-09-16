@@ -206,7 +206,7 @@ export function main(init: Init): void {
       // Install React Devtools Extension
       .then(() => {
         if (Util.isDev) {
-          // Exceptions made in onHeadersReceived
+          // Requiring here is intentional, seems to fix crashes in release builds
           // eslint-disable-next-line @typescript-eslint/no-var-requires
           const { default: installExtension } = require('electron-devtools-installer');
           installExtension(['REACT_DEVELOPER_TOOLS'])

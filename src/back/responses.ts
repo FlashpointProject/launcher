@@ -1409,6 +1409,9 @@ function adjustGameFilter(filterOpts: FilterGameOpts): FilterGameOpts {
   return filterOpts;
 }
 
+/**
+ * Creates a function that will run any game launch info given to it and register it as a service
+ */
 function runGameFactory(state: BackState) {
   return (gameLaunchInfo: GameLaunchInfo): ManagedChildProcess => {
     // Run game as a service and register it
@@ -1461,6 +1464,11 @@ function createCommand(filename: string, useWine: boolean, execFile: boolean): s
   }
 }
 
+/**
+ * Run a command registered by an Extension
+ * @param command Command to run
+ * @param args Arguments for the command
+ */
 async function runCommand(state: BackState, command: string, args: any[] = []): Promise<any> {
   const callback = state.registry.commands.get(command);
   let res = undefined;
@@ -1477,6 +1485,9 @@ async function runCommand(state: BackState, command: string, args: any[] = []): 
   return res;
 }
 
+/**
+ * Returns a set of AppProviders from all extension registered Applications, complete with callbacks to run them.
+ */
 async function getProviders(state: BackState): Promise<AppProvider[]> {
   return state.extensionsService.getContributions('applications')
   .then(contributions => {
