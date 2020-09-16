@@ -307,7 +307,7 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
 
 export function setStatus<T extends keyof StatusState>(state: BackState, key: T, val: StatusState[T]): void {
   switch (key) {
-    case 'devConsoleText':
+    case 'devConsole':
       state.socketServer.broadcast<DevConsoleStatusResponse>({
         id: '',
         type: BackOut.DEV_CONSOLE_CHANGE,

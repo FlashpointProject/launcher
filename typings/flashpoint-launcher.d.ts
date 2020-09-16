@@ -42,8 +42,9 @@ declare module 'flashpoint-launcher' {
    * Unzips a file into a given directory (7zip)
    * @param filePath Path to archive
    * @param outDir Directory to output into
+   * @param onProgress Function called whenever a new file is extracted
    */
-  export function unzipFile(filePath: string, outDir: string): Promise<void>;
+  export function unzipFile(filePath: string, outDir: string, opts: ZipExtractOptions): Promise<void>;
 
   /**
    * Loads the extensions config file (<extPath>/config.json)
@@ -864,7 +865,27 @@ declare module 'flashpoint-launcher' {
     proxy?: string;
   }
 
-  interface ProcessEnv {
+  export type ZipExtractOptions = {
+    onData?: (data: ZipData) => void,
+    onProgress?: (progress: ZipProgress) => void
+  }
+
+  interface ZipData {
+    file: string;
+    status: string;
+    attributes?: string;
+    size?: number;
+    sizeCompressed?: number;
+    hash?: string;
+  }
+
+  interface ZipProgress {
+    percent: number;
+    fileCount: number;
+    file: string;
+  }
+
+  export interface ProcessEnv {
     [key: string]: string | undefined;
   }
 

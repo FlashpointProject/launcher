@@ -29,7 +29,7 @@ const mkdir  = promisify(fs.mkdir);
 type Map<K extends string, V> = { [key in K]: V };
 
 export type DeveloperPageProps = {
-  devConsoleText: string;
+  devConsole: string;
   platforms: string[];
   playlists: Playlist[];
   devScripts: ExtensionContribution<'devScripts'>[];
@@ -68,8 +68,8 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   // TODO: Remove when all functions are in back
   componentDidUpdate(prevProps: DeveloperPageProps, prevState: DeveloperPageState) {
     // Transfer prop to state
-    if (this.props.devConsoleText !== prevProps.devConsoleText) {
-      this.setState({ text: this.props.devConsoleText });
+    if (this.props.devConsole !== prevProps.devConsole) {
+      this.setState({ text: this.props.devConsole });
     }
   }
 

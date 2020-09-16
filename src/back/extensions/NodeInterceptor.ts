@@ -74,9 +74,9 @@ interface IExtensionApiFactory {
   (id: string, ext: IExtensionManifest, addExtLog: (entry: ILogEntry) => void, version: string, state: BackState, extPath?: string): typeof flashpoint;
 }
 
-/** Module interceptor for the Flashpoint API 'flashpoint' module */
+/** Module interceptor for the Flashpoint API 'flashpoint-launcher' module */
 export class FPLNodeModuleFactory implements INodeModuleFactory {
-  public readonly nodeModuleName = 'flashpoint';
+  public readonly nodeModuleName = 'flashpoint-launcher';
 
   private readonly _extApiImpl = new Map<string, typeof flashpoint>();
   private _defaultApiImpl?: typeof flashpoint;

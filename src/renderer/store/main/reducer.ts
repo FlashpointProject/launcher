@@ -408,7 +408,7 @@ function createInitialState(): MainState {
     requestingRandomGames: false,
     shiftRandomGames: false,
     localeCode: 'en-us',
-    devConsoleText: '',
+    devConsole: '',
     upgrades: [],
     gamesDoneLoading: false,
     upgradesDoneLoading: false,

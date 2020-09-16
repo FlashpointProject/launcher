@@ -68,7 +68,7 @@ export type MainState = {
   gamesTotal: number;
   localeCode: string;
   /** Text to display on the dev console */
-  devConsoleText: string;
+  devConsole: string;
 
   /** Random games for the Home page box */
   randomGames: ViewGame[];

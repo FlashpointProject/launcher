@@ -118,7 +118,7 @@ function createInitialMainState(): MainState {
     requestingRandomGames: false,
     shiftRandomGames: false,
     localeCode: window.Shared.initialLocaleCode,
-    devConsoleText: '',
+    devConsole: '',
     upgrades: [],
     gamesDoneLoading: false,
     upgradesDoneLoading: false,

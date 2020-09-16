@@ -131,7 +131,7 @@ const state: BackState = {
     }
   },
   status: {
-    devConsoleText: ''
+    devConsole: ''
   },
   registry: {
     commands: new Map<string, Command>(),

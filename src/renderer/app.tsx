@@ -254,7 +254,7 @@ export class App extends React.Component<AppProps> {
 
         case BackOut.DEV_CONSOLE_CHANGE: {
           const resData: DevConsoleStatusResponse = res.data;
-          this.props.setMainState({ devConsoleText: resData.text });
+          this.props.setMainState({ devConsole: resData.text });
         }
       }
     });
@@ -556,7 +556,7 @@ export class App extends React.Component<AppProps> {
       serverNames: this.props.main.serverNames,
       mad4fpEnabled: this.props.main.mad4fpEnabled,
       localeCode: this.props.main.localeCode,
-      devConsoleText: this.props.main.devConsoleText,
+      devConsole: this.props.main.devConsole,
       upgrades: this.props.main.upgrades,
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,

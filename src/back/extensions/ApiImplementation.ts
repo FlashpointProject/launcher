@@ -40,14 +40,17 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     return `http://localhost:${state.fileServerPort}/extdata/${extId}/${filePath}`;
   };
 
-  const unzipFile = (filePath: string, outDir: string): Promise<void> => {
+  const unzipFile = (filePath: string, outDir: string, opts?: flashpoint.ZipExtractOptions): Promise<void> => {
     return new Promise<void>((resolve, reject) => {
-      const readable = extractFull(filePath, outDir, { $bin: pathTo7zBack(state.isDev, state.exePath) });
+      const { onProgress, onData } = opts || {};
+      const readable = extractFull(filePath, outDir, { $bin: pathTo7zBack(state.isDev, state.exePath), $progress: onProgress !== undefined });
       readable.on('end', () => {
         resolve();
       });
-      readable.on('error', () => {
-        reject();
+      if (onProgress) { readable.on('progress', onProgress); }
+      if (onData) { readable.on('data', onData); }
+      readable.on('error', (err) => {
+        reject(err);
       });
     });
   };
