@@ -4,6 +4,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { Disposable } from './util/lifecycle';
+import * as readline from 'readline';
 
 const { str } = Coerce;
 
@@ -89,10 +90,12 @@ export class ManagedChildProcess extends EventEmitter {
       this.logContent(this.name + ' has been started');
       // Setup listeners
       if (this.process.stdout) {
-        this.process.stdout.on('data', this.logContentAny);
+        const stdout = readline.createInterface({ input: this.process.stdout });
+        stdout.on('line', this.logContentAny);
       }
       if (this.process.stderr) {
-        this.process.stderr.on('data', this.logContentAny);
+        const stderr = readline.createInterface({ input: this.process.stderr });
+        stderr.on('line', this.logContentAny);
       }
       // Update state
       this.setState(ProcessState.RUNNING);
