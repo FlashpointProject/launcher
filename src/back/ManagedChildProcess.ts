@@ -3,7 +3,6 @@ import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import * as path from 'path';
 import * as treeKill from 'tree-kill';
 import { Disposable } from './util/lifecycle';
 

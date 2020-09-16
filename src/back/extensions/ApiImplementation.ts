@@ -210,15 +210,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extStatus: typeof flashpoint.status = {
-    get devConsoleText(): string {
-      return state.status.devConsoleText;
-    },
-
-    /** Sets the status of a launcher UI element
-     * @param key The UI element to set, see StatusState
-     * @param val Value to set, see StatusState
-     */
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
+    getStatus: <T extends keyof StatusState>(key: T): StatusState[T] => state.status[key]
   };
 
   const extServices: typeof flashpoint.services = {

@@ -46,11 +46,11 @@ declare module 'flashpoint-launcher' {
   export function unzipFile(filePath: string, outDir: string): Promise<void>;
 
   /**
-   * Loads the extensions config file
+   * Loads the extensions config file (<extPath>/config.json)
    */
   export function loadConfig(): Promise<any>;
   /**
-   * Saves data to the extensions config file
+   * Saves data to the extensions config file (<extPath>/config.json)
    */
   export function saveConfig(data: any): Promise<void>;
 
@@ -280,15 +280,17 @@ declare module 'flashpoint-launcher' {
 
   /** Collection of Status related API functions */
   export namespace status {
-    /** Text displayed on the Developer Page console */
-    export const devConsoleText: string;
-
     /**
      * Update any status in the Status State
      * @param key Element to update
      * @param val Value to update element with
      */
     export function setStatus<T extends keyof StatusState>(key: T, val: StatusState[T]): void;
+    /**
+     * Gets the status in any Status State
+     * @param key Element to view
+     */
+    export function getStatus<T extends keyof StatusState>(key: T): StatusState[T];
   }
 
   /** Collection of Service related API function */
@@ -789,7 +791,7 @@ declare module 'flashpoint-launcher' {
   };
 
   type StatusState = {
-    devConsoleText: string;
+    devConsole: string;
   }
 
   export class DisposableChildProcess extends ManagedChildProcess implements Disposable {

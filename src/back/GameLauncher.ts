@@ -335,6 +335,9 @@ function registerEventListeners(emitter: EventEmitter, events: string[], callbac
   }
 }
 
+/**
+ * Escapes Arguments for the operating system (Used when running a process in a shell)
+ */
 export function escapeArgsForShell(gameArgs: string | string[]): string[] {
   if (typeof gameArgs === 'string') {
     switch (process.platform) {

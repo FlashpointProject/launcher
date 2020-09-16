@@ -148,7 +148,7 @@ export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
 
 export type StatusState = {
-  devConsoleText: string;
+  devConsole: string;
 }
 
 export type ApiEmittersState = Readonly<{
