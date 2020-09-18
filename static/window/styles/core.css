@@ -904,91 +904,37 @@ body {
   height: 100%;
   display: flex;
 }
-.curate-page__inner {
-  width: 100%;
-  display: flex;
-  margin: 0 auto;
-  overflow: auto;
+.curate-page__left {
+  width: 15rem;
+  flex: 0 0 auto;
 }
 .curate-page__center {
-  width: 40em;
+  flex: 1 1 auto;
 }
-.curate-page input[type="checkbox"] {
-  width: 1rem;
-  height: 1rem;
-  margin-left: 0.4rem;
-}
-/* (Edit how other classes appear in this page) */
-.curate-page .input-dropdown__content {
-  max-height: 25rem;
+.curate-page__right {
+  width: 15rem;
+  flex: 0 0 auto;
 }
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;
 }
-/* Curate Page Floating Box */
-.curate-page__floating-box {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  margin: 1.5rem;
-  padding: 0.5rem;
-  /* Border */
-  border-radius: 0.2em;
-  border: 1px solid;
-  max-width: 13rem;
-}
-.curate-page__floating-box > * {
-  margin: 0.125rem 0;
-}
-.curate-page__floating-box__divider {
-  height: 1rem;
-}
-/* Curate Page right panel checkbox item */
-.curate-page__checkbox {
-  display: flex;
-  align-items: center;
-}
-.curate-page__checkbox-text {
-  text-align: center;
-  margin: 0 0.2rem;
-  flex-grow: 1;
-  font-size: 0.75em;
-  user-select: none;
-}
-.curate-page__checkbox input[type="checkbox"] {
-  min-width: 1rem;
-}
-/* Curate Page Left Sidebar */
-.curate-page__left-sidebar-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 0.2rem 0.2rem;
-  font-weight: bold;
-  --image-size: 1.45rem;
-}
-.curate-page__left-sidebar-item__icon {
-  width: var(--image-size);
-  height: var(--image-size);
-  margin: 0.1rem 0.5rem 0.1rem 0.15rem;
-  flex: none;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.curate-page__left {
-  flex-grow: 0.5;
-}
-.curate-page__right {
-  flex: auto;
-}
+
 /* Curate Box */
 .curate-box {
-  margin: 1.5rem 0;
+  height: 100%;
   padding: 0.5rem;
-  border: 1px solid;
-  border-radius: 0.4rem;
+  --columns: 2;
+  --column-width: 40em;
+  --column-gutter: 2em;
 }
+.curate-box__images {
+  position: relative;
+  display: flex;
+  height: 10rem;
+  margin: 0.35rem 0;
+}
+
+
 .curate-box__placeholder {
   text-align: center;
   font-weight: bold;

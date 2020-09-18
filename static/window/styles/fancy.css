@@ -496,7 +496,6 @@ body {
 /* Curate Box */
 .curate-box {
   background-color: var(--layout__curate-page-box-background);
-  border-color: var(--layout__curate-page-box-border);
 }
 .curate-box input[type="checkbox"] {
   vertical-align: middle;

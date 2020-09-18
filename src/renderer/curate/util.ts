@@ -1,13 +1,12 @@
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '@shared/curate/parse';
-import { CurationIndexImage } from '@shared/curate/types';
+import { CurationIndexImage, EditCurationMeta } from '@shared/curate/types';
 import { stripBOM } from '@shared/Util';
 import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as YAML from 'yaml';
-import { setGameMetaDefaults } from '../components/pages/CuratePage';
 import { createCurationIndexImage } from './importCuration';
 
 const access = promisify(fs.access);
@@ -57,4 +56,25 @@ export function showWarningBox(str: string): void {
 /** Log function for the 'Curation' heading */
 export function curationLog(content: string): void {
   log.info('Curation', content);
+}
+
+/**
+ * Set the default values of a game's meta (if they are missing).
+ * @param meta Meta to set values of.
+ * @param defaults Container of default values.
+ */
+export function setGameMetaDefaults(meta: EditCurationMeta, defaults?: GameMetaDefaults): void {
+  if (defaults) {
+    // Set default meta values
+    if (!meta.language) { meta.language = defaults.language; }
+    if (!meta.playMode) { meta.playMode = defaults.playMode; }
+    if (!meta.status)   { meta.status   = defaults.status;   }
+    if (!meta.platform) { meta.platform = defaults.platform; }
+    if (!meta.library)  { meta.library  = defaults.library;  }
+    // Set default application path
+    // (Note: This has to be set after the default platform)
+    if (!meta.applicationPath) {
+      meta.applicationPath = defaults.appPaths[meta.platform || ''] || '';
+    }
+  }
 }

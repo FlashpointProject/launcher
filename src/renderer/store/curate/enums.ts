@@ -1,0 +1,6 @@
+export enum CurateActionType {
+  CREATE_CURATION = '@@curate/CREATE_CURATION',
+  SET_CURRENT_CURATION = '@@curate/SET_CURRENT_CURATION',
+  NEW_ADDAPP = '@@curate/ADD_CURATION',
+  EDIT_CURATION_META = '@@curate/EDIT_CURATION_META',
+}
