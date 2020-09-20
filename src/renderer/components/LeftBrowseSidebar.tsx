@@ -30,6 +30,7 @@ type OwnProps = {
   onSetIcon: () => void;
   onTitleChange: (event: React.ChangeEvent<InputElement>) => void;
   onAuthorChange: (event: React.ChangeEvent<InputElement>) => void;
+  onExtremeToggle: (isChecked: boolean) => void;
   onDescriptionChange: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
   onShowAllClick?: () => void;
@@ -133,6 +134,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
             editing={isSelected && isEditing}
             playlist={p}
             onDescriptionChange={this.props.onDescriptionChange}
+            onExtremeToggle={this.props.onExtremeToggle}
             onKeyDown={this.props.onKeyDown}
             onSave={this.props.onSave}
             onDiscard={this.props.onDiscard}

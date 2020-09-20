@@ -201,6 +201,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             onTitleChange={this.onPlaylistTitleChange}
             onAuthorChange={this.onPlaylistAuthorChange}
             onDescriptionChange={this.onPlaylistDescriptionChange}
+            onExtremeToggle={this.onPlaylistExtremeToggle}
             onKeyDown={this.onPlaylistKeyDown}
             onShowAllClick={this.onLeftSidebarShowAllClick}
             onDuplicatePlaylist={this.onDuplicatePlaylist}
@@ -842,6 +843,17 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         currentPlaylist: {
           ...this.state.currentPlaylist,
           description: event.target.value,
+        }
+      });
+    }
+  }
+
+  onPlaylistExtremeToggle = (isChecked: boolean) => {
+    if (this.state.currentPlaylist) {
+      this.setState({
+        currentPlaylist: {
+          ...this.state.currentPlaylist,
+          extreme: isChecked
         }
       });
     }
