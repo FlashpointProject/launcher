@@ -298,6 +298,7 @@
     "deleteAll": "Radera alla",
     "deleteAllDesc": "Radera alla kurationer som är inlästa för tillfället",
     "saveImportedCurations": "Spara importerade kurationer",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Kurationsmapp",
     "openCurationsFolderDesc": "Öppna mappen med kurationer i utforskaren",
