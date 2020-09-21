@@ -298,6 +298,7 @@
     "deleteAll": "Verwijder alles",
     "deleteAllDesc": "Verwijder alle curaties die momenteel zijn geladen",
     "saveImportedCurations": "Sla geïmporteerde curaties op",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink inhoud map voor curatie (Admin aanvragingen in Windows, vereist voor MAD4FP)",
     "openCurationsFolder": "Curatie map",
     "openCurationsFolderDesc": "Open de curatiesmap in de verkenner",
