@@ -298,6 +298,7 @@
     "deleteAll": "Xoá Tất cả",
     "deleteAllDesc": "Xoá tất cả bản đóng góp đã nạp vào chương trình",
     "saveImportedCurations": "Lưu bản đóng góp đã nhập",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Thư mục chứa bản đóng góp",
     "openCurationsFolderDesc": "Mở thư mục chứa bản đóng góp trong Explorer",
