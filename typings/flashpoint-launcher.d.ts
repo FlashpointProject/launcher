@@ -324,7 +324,8 @@ declare module 'flashpoint-launcher' {
 
     // Events
     export const onServiceNew: Event<ManagedChildProcess>;
-    export const onServiceRemoved: Event<ManagedChildProcess>;
+    export const onServiceRemove: Event<ManagedChildProcess>;
+    export const onServiceChange: Event<ServiceChange>;
   }
 
   // Functions
@@ -805,6 +806,12 @@ declare module 'flashpoint-launcher' {
     detached?: boolean;
     autoRestart?: boolean;
     shell?: boolean;
+  }
+
+  export type ServiceChange = {
+    process: ManagedChildProcess,
+    oldState: ProcessState,
+    newState: ProcessState
   }
 
   export class ManagedChildProcess {

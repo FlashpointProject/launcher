@@ -238,8 +238,11 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onServiceNew() {
       return apiEmitters.services.onServiceNew.event;
     },
-    get onServiceRemoved() {
-      return apiEmitters.services.onServiceRemoved.event;
+    get onServiceRemove() {
+      return apiEmitters.services.onServiceRemove.event;
+    },
+    get onServiceChange() {
+      return apiEmitters.services.onServiceChange.event;
     }
   };
 

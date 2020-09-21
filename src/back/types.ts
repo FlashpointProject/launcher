@@ -170,6 +170,7 @@ export type ApiEmittersState = Readonly<{
   }>,
   services: Readonly<{
     onServiceNew: ApiEmitter<flashpoint.ManagedChildProcess>;
-    onServiceRemoved: ApiEmitter<flashpoint.ManagedChildProcess>;
+    onServiceRemove: ApiEmitter<flashpoint.ManagedChildProcess>;
+    onServiceChange: ApiEmitter<flashpoint.ServiceChange>;
   }>,
 }>

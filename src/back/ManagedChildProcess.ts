@@ -4,7 +4,9 @@ import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as treeKill from 'tree-kill';
+import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
+import * as flashpoint from 'flashpoint-launcher';
 
 const { str } = Coerce;
 
@@ -32,6 +34,8 @@ export type ProcessOpts = {
 
 /** Number of times to auto restart - maximum */
 const MAX_RESTARTS = 5;
+
+export const onServiceChange = new ApiEmitter<flashpoint.ServiceChange>();
 
 /** Manages a single process. Wrapper around node's ChildProcess. */
 export class ManagedChildProcess extends EventEmitter {
@@ -179,8 +183,10 @@ export class ManagedChildProcess extends EventEmitter {
    */
   private setState(state: ProcessState): void {
     if (this.state !== state) {
+      const oldState = this.state;
       this.state = state;
       this.emit('change');
+      onServiceChange.fire({ process: this, oldState, newState: state });
     }
   }
 

@@ -35,7 +35,7 @@ import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import { GameManager } from './game/GameManager';
-import { ManagedChildProcess } from './ManagedChildProcess';
+import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
@@ -127,7 +127,8 @@ const state: BackState = {
     },
     services: {
       onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
-      onServiceRemoved: new ApiEmitter<flashpoint.ManagedChildProcess>(),
+      onServiceRemove: new ApiEmitter<flashpoint.ManagedChildProcess>(),
+      onServiceChange: onServiceChange,
     }
   },
   status: {

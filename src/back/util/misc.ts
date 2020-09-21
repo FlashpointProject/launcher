@@ -280,7 +280,7 @@ export async function removeService(state: BackState, processId: string): Promis
   if (service) {
     await waitForServiceDeath(service);
     state.services.delete(processId);
-    state.apiEmitters.services.onServiceRemoved.fire(service);
+    state.apiEmitters.services.onServiceRemove.fire(service);
     state.socketServer.broadcast<string>({
       id: '',
       type: BackOut.SERVICE_REMOVED,
