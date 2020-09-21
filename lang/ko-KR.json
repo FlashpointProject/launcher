@@ -298,6 +298,7 @@
     "deleteAll": "모두 삭제",
     "deleteAllDesc": "현재 로딩된 모든 큐레이션을 삭제합니다",
     "saveImportedCurations": "가져온 큐레이션 저장",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "큐레이션 폴더",
     "openCurationsFolderDesc": "탐색기에서 큐레이션 폴더 열기",
