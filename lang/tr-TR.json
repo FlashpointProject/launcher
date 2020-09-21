@@ -298,6 +298,7 @@
     "deleteAll": "Hepsini Sil",
     "deleteAllDesc": "Şu an yüklü olan tüm kürasyonları sil",
     "saveImportedCurations": "İçe Aktarılmış Kürasyonları Kaydet",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Kürasyon İçeriği Klasörü (Windows'ta yönetici istemleri, MAD4FP için gerekli)",
     "openCurationsFolder": "Kürasyonlar Klasörü",
     "openCurationsFolderDesc": "Kürasyonlar klasörünü dosya gezgininde aç",
