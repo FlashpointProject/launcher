@@ -237,6 +237,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
       runService(state, 'server', 'Server', state.config.flashpointPath, chosenServer || state.serviceInfo.server[0]);
     }
+    // Start daemons
+    for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
+      const service = state.serviceInfo.daemon[i];
+      const id = 'daemon_' + i;
+      runService(state, id, service.name || id, state.config.flashpointPath, service);
+    }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {
       const filePath = state.serviceInfo.watch[i];

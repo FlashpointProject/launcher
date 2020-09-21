@@ -109,6 +109,8 @@ export interface EmitterPart<E extends string | number | symbol, F extends (...a
 
 export type ServiceFileData = {
   server: INamedBackProcessInfo[];
+  /** Processes to run as background services. */
+  daemon: INamedBackProcessInfo[];
   /** Processes to run before the launcher starts. */
   start: IBackProcessInfo[];
   /** Processes to run when the launcher closes. */
