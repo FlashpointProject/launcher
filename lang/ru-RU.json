@@ -298,7 +298,7 @@
     "deleteAll": "Удалить все",
     "deleteAllDesc": "Удалить все курации, которые в данный момент загружены",
     "saveImportedCurations": "Сохранить импортированные курации",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "keepArchiveKey": "Сохранить архив UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Требует подтверждение администратора в Windows, требуется для MAD4FP)",
     "openCurationsFolder": "Папка Курации",
     "openCurationsFolderDesc": "Откройте папку Кураций в проводнике",
