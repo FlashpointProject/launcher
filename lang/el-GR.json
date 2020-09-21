@@ -298,6 +298,7 @@
     "deleteAll": "Διαγραφή Όλων",
     "deleteAllDesc": "Διαγραφή όλων των ήδη φορτισμένων επιμελειών",
     "saveImportedCurations": "Αποθήκευση Εισαγόμενων Επιμελειών",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Φάκελος Επιμελειών",
     "openCurationsFolderDesc": "Άνοιγμα φακέλου Επιμελειών στον εξερευνητή",
