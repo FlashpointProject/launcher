@@ -298,6 +298,7 @@
     "deleteAll": "Eliminar tudo",
     "deleteAllDesc": "Eliminar todas as curadorias que estão atualmente carregadas",
     "saveImportedCurations": "Salvar curadorias importadas",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Pasta de curadoria",
     "openCurationsFolderDesc": "Abrir a pasta de Curadoria no Explorador",
