@@ -298,6 +298,7 @@
     "deleteAll": "Elimina tutto",
     "deleteAllDesc": "Elimina tutte le curazioni che sono attualmente caricate",
     "saveImportedCurations": "Salva Curature Importate",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Cartella dei contenuti della curva del collegamento simbolico (prompt dell'amministratore su Windows, richiesto per MAD4FP)",
     "openCurationsFolder": "Cartella Curatela",
     "openCurationsFolderDesc": "Apri la cartella Curations in explorer",
