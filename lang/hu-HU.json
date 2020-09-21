@@ -298,7 +298,7 @@
     "deleteAll": "Összes törlése",
     "deleteAllDesc": "A jelenleg betöltött összes kuráció törlése",
     "saveImportedCurations": "Importált Kurációk elmentése",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "keepArchiveKey": "Kuráció UUID-jének a megőrzése",
     "symlinkCurationContent": "Symlink Kurációs Tartalom Mappa (Admin megerősítés Windows alatt, MAD4FP-hez szükséges)",
     "openCurationsFolder": "Kurációs Mappa",
     "openCurationsFolderDesc": "Megnyitja a Kurációs mappát a fájlkezelőben",
