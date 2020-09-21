@@ -298,6 +298,7 @@
     "deleteAll": "刪除全部",
     "deleteAllDesc": "刪除所有已讀取之上傳內容",
     "saveImportedCurations": "保存已匯入之上傳檔案",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "於上傳資料夾進行符號連結(Windows的管理員指令，使用MAD4FP時必備)",
     "openCurationsFolder": "上傳檔案之資料夾",
     "openCurationsFolderDesc": "開啟上傳檔案之資料夾",
