@@ -298,6 +298,7 @@
     "deleteAll": "全部删除",
     "deleteAllDesc": "删除所有当前加载的curations",
     "saveImportedCurations": "保存导入的Curations",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Curations文件夹",
     "openCurationsFolderDesc": "在资源管理器中打开Curations文件夹",
