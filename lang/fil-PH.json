@@ -298,6 +298,7 @@
     "deleteAll": "I-tangal ang lahat",
     "deleteAllDesc": "I-tangal ang lahat na curation na naka-load ngayon",
     "saveImportedCurations": "I-save ang mga na-import na curation",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Folder ng Symlink Curation Content (May admin prompt sa Windows, kailangan para sa MAD4FP)",
     "openCurationsFolder": "Curations Folder",
     "openCurationsFolderDesc": "I-buksan ang \"Curations Folder\" sa explorer",
