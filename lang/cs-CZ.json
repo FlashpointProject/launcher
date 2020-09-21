@@ -298,6 +298,7 @@
     "deleteAll": "Smazat vše",
     "deleteAllDesc": "Smazat všechny aktuálně načtené kurace",
     "saveImportedCurations": "Uložit importované kurace",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Složka kurací",
     "openCurationsFolderDesc": "Otevřít složku kurací v Průzkumníku",
