@@ -53,6 +53,7 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
     maximized: false,
   }),
   saveImportedCurations: true,
+  keepArchiveKey: true,
   symlinkCurationContent: true,
   onDemandImages: false,
   showLogSource: Object.freeze({
@@ -104,6 +105,7 @@ export function overwritePreferenceData(
   parser.prop('gamesOrder',                  v => source.gamesOrder                  = strOpt(v, gameOrderReverseOptions, 'ASC'));
   parser.prop('defaultLibrary',              v => source.defaultLibrary              = str(v));
   parser.prop('saveImportedCurations',       v => source.saveImportedCurations       = !!v);
+  parser.prop('keepArchiveKey',              v => source.keepArchiveKey              = !!v);
   parser.prop('symlinkCurationContent',      v => source.symlinkCurationContent      = !!v);
   parser.prop('onDemandImages',              v => source.onDemandImages              = !!v);
   parser.prop('excludedRandomLibraries',     v => source.excludedRandomLibraries     = strArray(v), true);

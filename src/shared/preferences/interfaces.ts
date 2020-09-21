@@ -48,6 +48,8 @@ export type IAppPreferencesData = {
   defaultLibrary: string;
   /** Save curations after importing */
   saveImportedCurations: boolean;
+  /** Assign the same UUID to imported games as in the curation archive */
+  keepArchiveKey: boolean;
   /** Whether to symlink or copy curation content when running (Symlink required for MAD4FP) */
   symlinkCurationContent: boolean;
   /** Download missing thumbnails/screenshots from a remote server. */
