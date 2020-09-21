@@ -298,6 +298,7 @@
     "deleteAll": "Ștergeți tot",
     "deleteAllDesc": "Șterge toate reparările încărcate în prezent",
     "saveImportedCurations": "Salvați reparările importate",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Creați o scurtătură dosarului cu reparații (sunt necesare drepturi de Administrator pe Windows, este necesară pentru MAD4FP)",
     "openCurationsFolder": "Dosarul reparărilor",
     "openCurationsFolderDesc": "Deschide dosarul reparărilor în exploratorul de fișiere corespunzător",
