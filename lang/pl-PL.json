@@ -298,6 +298,7 @@
     "deleteAll": "Usuń Wszystko",
     "deleteAllDesc": "Usuń wszystkie archiwizowane gry, które są obecnie załadowane",
     "saveImportedCurations": "Zapisz Zaimportowane Gry",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Folder z Archiwizowanymi Grami",
     "openCurationsFolderDesc": "Otwórz folder archiwizowanych gier w eksploratorze plików",
