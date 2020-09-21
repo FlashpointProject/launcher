@@ -298,6 +298,7 @@
     "deleteAll": "Excluir Tudo",
     "deleteAllDesc": "Exclui todas as preservações que estão atualmente carregadas",
     "saveImportedCurations": "Salvar Curações Importadas",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Pasta de curações",
     "openCurationsFolderDesc": "Abrir pasta de curações no explorador",
