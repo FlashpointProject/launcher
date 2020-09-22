@@ -298,7 +298,7 @@
     "deleteAll": "Borrar todo",
     "deleteAllDesc": "Eliminar todas las curaciones que están cargadas actualmente",
     "saveImportedCurations": "Guardar curaciones importadas",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "keepArchiveKey": "Mantener el UUID del archivo de curación",
     "symlinkCurationContent": "Carpeta de contenido de curación de 'Symlink' (Permisos de administrador en Windows, Requerido para MAD4FP)",
     "openCurationsFolder": "Carpeta de curaciones",
     "openCurationsFolderDesc": "Abrir la carpeta de curaciones en el explorador",
