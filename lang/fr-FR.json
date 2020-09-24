@@ -298,8 +298,8 @@
     "deleteAll": "Tout effacer",
     "deleteAllDesc": "Effacer toutes les curations déjà chargées",
     "saveImportedCurations": "Enregistrer les curations importées",
-    "keepArchiveKey": "Garder l'UUID de l'archive de conservation",
-    "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
+    "keepArchiveKey": "Garder l'UUID de l'archive de curation",
+    "symlinkCurationContent": "Lier symboliquement le dossier de contenu de curation (Nécessite les droits d'administrateur sous Windows, requis pour MAD4FP)",
     "openCurationsFolder": "Dossier de curations",
     "openCurationsFolderDesc": "Ouvrir le dossier de curations dans l'explorateur",
     "openExportsFolder": "Curations exportées",
@@ -440,8 +440,8 @@
     "arcadePlural": "Tous les jeux",
     "theatre": "Animations",
     "theatrePlural": "Toutes les animations",
-    "auditorium": "NG Auditorium",
-    "auditoriumPlural": "All NG Animations"
+    "auditorium": "Auditorium NG",
+    "auditoriumPlural": "Toutes les animations NG"
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
