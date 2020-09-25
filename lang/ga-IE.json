@@ -28,7 +28,7 @@
     "nativePlatformsDesc": "Use Native versions of these platforms. (If not available it will use Wine)",
     "appPathOverrides": "App Path Overrides",
     "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
-    "visualsHeader": "Visuals",
+    "visualsHeader": "íomhánna",
     "useCustomTitleBar": "Use Custom Title Bar",
     "useCustomTitleBarDesc": "Use a custom title bar at the top of this window.",
     "theme": "Téama",
@@ -88,7 +88,7 @@
     "rerollPicks": "Re-Roll Picks"
   },
   "logs": {
-    "filters": "Filters",
+    "filters": "Scagairí",
     "logLevels": "Log Levels",
     "copyText": "Copy Text",
     "clearLog": "Clear Log",
