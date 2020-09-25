@@ -26,7 +26,7 @@
     "platforms": "Plateformes",
     "nativePlatforms": "Plateformes natives",
     "nativePlatformsDesc": "Utilisez des versions natives de ces plateformes. (Si non disponibles, Wine sera utilisé)",
-    "appPathOverrides": "Remplacements de chemin d'application",
+    "appPathOverrides": "Remplacements du chemin de l'application",
     "appPathOverridesDesc": "Remplace le chemin de l'application à gauche avec celui de droite lors du lancement de jeux.",
     "visualsHeader": "Visuels",
     "useCustomTitleBar": "Utiliser une barre de titre personnalisée",
