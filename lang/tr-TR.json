@@ -343,7 +343,8 @@
     "noAuthor": "Yapımcı Yok",
     "authorPlaceholder": "Yapımcı...",
     "id": "ID",
-    "by": "tarafından"
+    "by": "tarafından",
+    "extreme": "ekstrem"
   },
   "misc": {
     "noBlankFound": "{0} Bulunamadı",

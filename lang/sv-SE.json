@@ -343,7 +343,8 @@
     "noAuthor": "Ingen skapare",
     "authorPlaceholder": "Skapare...",
     "id": "ID",
-    "by": "av"
+    "by": "av",
+    "extreme": "extremt"
   },
   "misc": {
     "noBlankFound": "Ingen {0} hittades",

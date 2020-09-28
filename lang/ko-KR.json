@@ -343,7 +343,8 @@
     "noAuthor": "저자 없음",
     "authorPlaceholder": "저자 쓰기...",
     "id": "ID",
-    "by": "-"
+    "by": "-",
+    "extreme": "매우 자극적"
   },
   "misc": {
     "noBlankFound": "{0} 을 찾을 수 없습니다",

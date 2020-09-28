@@ -343,7 +343,8 @@
     "noAuthor": "无作者",
     "authorPlaceholder": "作者...",
     "id": "ID",
-    "by": "by"
+    "by": "by",
+    "extreme": "成人"
   },
   "misc": {
     "noBlankFound": "未找到{0}",

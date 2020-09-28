@@ -343,7 +343,8 @@
     "noAuthor": "Nu este precizat autorul",
     "authorPlaceholder": "Introduceți numele autorului...",
     "id": "ID",
-    "by": "după"
+    "by": "după",
+    "extreme": "matur"
   },
   "misc": {
     "noBlankFound": "Nu s-a găsit {0}",
