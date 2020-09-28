@@ -399,6 +399,16 @@ export class App extends React.Component<AppProps> {
       });
     }
 
+    // Check if playlists need to be updated based on extreme filtering
+    if (preferencesData.browsePageShowExtreme !== prevProps.preferencesData.browsePageShowExtreme) {
+      window.Shared.back.sendP<GetPlaylistsResponse>(BackIn.GET_PLAYLISTS, {})
+      .then((res) => {
+        if (res.data) {
+          this.props.setMainState({ playlists: res.data });
+          this.cachePlaylistIcons(res.data);
+        }
+      });
+    }
 
     // Check if renderer finished initializing
     if (isInitDone(this.props.main) && !isInitDone(prevProps.main)) {
