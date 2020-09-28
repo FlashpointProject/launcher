@@ -9,6 +9,7 @@ import { CheckBox } from './CheckBox';
 
 export type PlaylistItemContentProps = {
   editingDisabled: boolean;
+  editingExtremeDisabled: boolean;
   editing: boolean;
   playlist: Playlist;
 
@@ -104,7 +105,7 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
           multiline={true} />
         {/* Extreme */}
         {
-          props.editing ? (
+          (props.editing && !props.editingExtremeDisabled) ? (
             <>
               <CheckBox
                 checked={props.playlist.extreme}
@@ -113,7 +114,7 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
             </>
           ) : undefined
         }
-        { (props.editing || props.playlist.extreme) ? (
+        { ((props.editing && !props.editingExtremeDisabled) || props.playlist.extreme) ? (
           <span className="playlist-list-content__extreme">extreme</span>
         ) : undefined
         }
