@@ -115,7 +115,7 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
           ) : undefined
         }
         { ((props.editing && !props.editingExtremeDisabled) || props.playlist.extreme) ? (
-          <span className="playlist-list-content__extreme">extreme</span>
+          <span className="playlist-list-content__extreme">{strings.extreme}</span>
         ) : undefined
         }
       </div>

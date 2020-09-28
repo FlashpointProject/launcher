@@ -383,6 +383,7 @@ const langTemplate = {
     'authorPlaceholder',
     'id',
     'by',
+    'extreme'
   ] as const,
   misc: [
     'noBlankFound',
