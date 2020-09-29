@@ -10,12 +10,6 @@ interface SocketConstructor<T> {
   readonly CLOSED: number;
 }
 
-type SocketCloseEvent = Pick<CloseEvent, 'reason' | 'code' | 'wasClean'>
-
-type T = BackIn
-type A = BackInTemplate
-type T2 = BackOut
-type A2 = BackOutTemplate
 type EVENT = {
   data: unknown;
 }
@@ -27,9 +21,9 @@ type Callback<T, U extends (...args: any[]) => any> = (event: T, ...args: Parame
 type AnyCallback<T, U extends number> = (event: T, type: U, args: any[]) => void
 
 export class SocketClient<SOCKET extends BaseSocket> {
-  api: SocketAPIData<T2, A2, EVENT> = create_api();
+  api: SocketAPIData<BackOut, BackOutTemplate, EVENT> = create_api();
 
-  client: SocketServerClient<T, A, SOCKET> = {
+  client: SocketServerClient<BackIn, BackInTemplate, SOCKET> = {
     id: -1, // Unused (only used by servers)
     next_id: 0,
     sent: [],
@@ -129,19 +123,19 @@ export class SocketClient<SOCKET extends BaseSocket> {
 
   // API
 
-  register<TYPE extends T2>(type: TYPE, callback: Callback<EVENT, A2[TYPE]>): void {
+  register<TYPE extends BackOut>(type: TYPE, callback: Callback<EVENT, BackOutTemplate[TYPE]>): void {
     api_register(this.api, type, callback);
   }
 
-  unregister(type: T2): void {
+  unregister(type: BackOut): void {
     api_unregister(this.api, type);
   }
 
-  registerAny(callback: AnyCallback<EVENT, T2>): void {
+  registerAny(callback: AnyCallback<EVENT, BackOut>): void {
     api_register_any(this.api, callback);
   }
 
-  unregisterAny(callback: AnyCallback<EVENT, T2>): void {
+  unregisterAny(callback: AnyCallback<EVENT, BackOut>): void {
     api_unregister_any(this.api, callback);
   }
 
@@ -152,11 +146,11 @@ export class SocketClient<SOCKET extends BaseSocket> {
    * @param args Arguments of the request.
    * @returns The result of the request.
    */
-  request<TYPE extends keyof A>(type: TYPE, ...args: Parameters<A[TYPE]>): Promise<ReturnType<A[TYPE]>> {
+  request<TYPE extends keyof BackInTemplate>(type: TYPE, ...args: Parameters<BackInTemplate[TYPE]>): Promise<ReturnType<BackInTemplate[TYPE]>> {
     return server_request(this.client, type, ...args);
   }
 
-  send<TYPE extends keyof A>(type: TYPE, ...args: Parameters<A[TYPE]>): void {
+  send<TYPE extends keyof BackInTemplate>(type: TYPE, ...args: Parameters<BackInTemplate[TYPE]>): void {
     server_send(this.client, type, ...args);
   }
 
@@ -199,7 +193,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
         );
 
         this.client.sent.splice(index, 1);
-        sent.resolve(inc as SocketResponseData<A[T]>);
+        sent.resolve(inc as SocketResponseData<BackInTemplate[BackIn]>);
       } else {
         console.error('Socket Client - Received a response with and ID of a request that is not being handled.');
       }
@@ -219,7 +213,7 @@ export class SocketClient<SOCKET extends BaseSocket> {
     }
   }
 
-  protected onClose(event: SocketCloseEvent): void {
+  protected onClose(event: CloseEvent): void {
     console.log(`SharedSocket Closed (Code: ${event.code}, Clean: ${event.wasClean}, Reason: "${event.reason}", URL: "${this.url}").`);
     this.reconnect();
   }

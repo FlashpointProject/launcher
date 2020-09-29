@@ -21,7 +21,6 @@ import { Theme } from '../ThemeFile';
 export enum BackIn {
   UNKNOWN,
 
-  GENERIC_RESPONSE,
   INIT_LISTEN,
   GET_SUGGESTIONS,
   GET_GAMES_TOTAL,
@@ -111,7 +110,6 @@ export enum BackIn {
 export enum BackOut {
   UNKNOWN,
 
-  GENERIC_RESPONSE,
   INIT_EVENT,
   OPEN_MESSAGE_BOX,
   OPEN_SAVE_DIALOG,
@@ -154,7 +152,6 @@ export enum BackOut {
 export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.UNKNOWN]: () => void;
 
-  [BackIn.GENERIC_RESPONSE]: () => void;
   [BackIn.INIT_LISTEN]: () => InitEventData;
   [BackIn.GET_SUGGESTIONS]: () => GetSuggestionsResponseData;
   [BackIn.GET_GAMES_TOTAL]: () => number;
@@ -212,7 +209,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | undefined;
   [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
 
-  [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData<boolean>;
+  [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData;
   /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */
   [BackIn.BROWSE_VIEW_INDEX]: (gameId: string, query: SearchGamesOpts) => number;
   [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: SearchGamesOpts) => BrowseViewKeysetResponse;
@@ -238,7 +235,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.UNKNOWN]: () => void;
 
-  [BackOut.GENERIC_RESPONSE]: () => void;
   [BackOut.INIT_EVENT]: (data: InitEventData) => void;
   [BackOut.OPEN_MESSAGE_BOX]: (options: MessageBoxOptions) => number;
   [BackOut.OPEN_SAVE_DIALOG]: (options: SaveDialogOptions) => string | undefined;
@@ -342,20 +338,6 @@ export type RandomGamesData = {
   excludedLibraries: string[];
 }
 
-export type BrowseViewAllData = {
-  libraries: string[];
-}
-
-export type BrowseViewUpdateData = {
-  viewId?: string;
-  query: unknown;
-}
-
-export type BrowseViewResponseData = {
-  viewId: string;
-  total: number;
-}
-
 /** Tuple of values from the last game of a previous page (look up "keyset pagination"). */
 export type PageTuple = {
   /** Primary order value. */
@@ -408,16 +390,11 @@ export type BrowseViewPageData = {
 }
 
 /** Note: The generic type should have the same value as "shallow" from the request, or "boolean" if the type is unknown. */
-export type BrowseViewPageResponseData<T extends boolean> = {
+export type BrowseViewPageResponseData = {
   /** Ranges of games. */
-  ranges: ResponseGameRange<T>[];
+  ranges: ResponseGameRange<boolean>[];
   /** Library used in the query. */
   library?: string;
-}
-
-export type BrowseViewIndexResponse = {
-  /** Index of the game (equal to or greater than 0 if found, otherwise -1). */
-  index: number;
 }
 
 export type SearchGamesOpts = {
