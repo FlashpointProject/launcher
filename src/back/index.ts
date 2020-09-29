@@ -6,8 +6,8 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
-import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData } from '@shared/back/types';
-import { LogoSet, ILogoSet } from '@shared/extensions/interfaces';
+import { BackInit, BackInitArgs, BackOut } from '@shared/back/types';
+import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
@@ -45,6 +45,8 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+// Required for the DB Models to function
+// Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
@@ -133,10 +135,15 @@ const state: BackState = {
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
 };
-registerRequestCallbacks(state);
 
-process.on('message', onProcessMessage);
-process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
+main();
+
+async function main() {
+  registerRequestCallbacks(state);
+
+  process.on('message', onProcessMessage);
+  process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
+}
 
 async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.isInit) { return; }
@@ -295,11 +302,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
           state.languages.push(lang);
         }
 
-        state.socketServer.broadcast<LanguageListChangeData>({
-          id: '',
-          type: BackOut.LANGUAGE_LIST_CHANGE,
-          data: state.languages,
-        });
+        state.socketServer.broadcast(BackOut.LANGUAGE_LIST_CHANGE, state.languages);
 
         if (lang.code === state.preferences.currentLanguage ||
             lang.code === state.localeCode ||
@@ -310,11 +313,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
             state.localeCode,
             state.preferences.fallbackLanguage
           );
-          state.socketServer.broadcast<LanguageChangeData>({
-            id: '',
-            type: BackOut.LANGUAGE_CHANGE,
-            data: state.languageContainer,
-          });
+          state.socketServer.broadcast(BackOut.LANGUAGE_CHANGE, state.languageContainer);
         }
       });
     }

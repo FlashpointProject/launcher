@@ -1,37 +1,52 @@
-import { BackIn, BackOut, ShowMessageBoxData, ShowOpenDialogData, OpenExternalData, WrappedRequest, WrappedResponse, ShowSaveDialogData } from '@shared/back/types';
-import { Coerce } from '@shared/utils/Coerce';
-import { EventEmitter } from 'events';
+import { BackIn, BackInTemplate, BackOut, BackOutTemplate } from '@shared/back/types';
+import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
+import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
+import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
+import { SocketRequestData } from '@shared/socket/types';
 import * as http from 'http';
-import * as WebSocket from 'ws';
-import { EmitterPart, ShowMessageBoxFunc, OpenExternalFunc, ShowSaveDialogFunc, ShowOpenDialogFunc } from './types';
-import { uuid } from './util/uuid';
+import * as ws from 'ws';
+import { OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from './types';
 
-type SocketEmitter = (
-  EmitterPart<string, RequestCallback<any>>
-) // & EventEmitter
+type BackAPI = SocketAPIData<BackIn, BackInTemplate, EVENT>
+type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
+type BackClient = BackClients['clients'][number]
 
-type RequestCallback<T> = (event: WebSocket.MessageEvent, req: WrappedRequest<T>) => Promise<void> | void;
-
-type QueuedMessage<T> = {
-  event: WebSocket.MessageEvent;
-  req: WrappedRequest<T>;
+type QueuedMessage = {
+  event: ws.MessageEvent;
+  req: SocketRequestData;
 }
 
+type EVENT = {
+  wsEvent: ws.MessageEvent;
+  client: BackClient;
+}
+
+type T  = BackIn
+type A  = BackInTemplate
+type T2 = BackOut
+type A2 = BackOutTemplate
+
+/** Callback that is registered to a specific type. */
+type Callback<T, U extends (...args: any[]) => any> = (event: T, ...args: Parameters<U>) => (ReturnType<U> | Promise<ReturnType<U>>)
+
+/** Callback that is registered to all messages. */
+type AnyCallback<T, U extends number> = (event: T, type: U, args: any[]) => void
+
 export class SocketServer {
+  api: BackAPI = create_api();
+  clients: BackClients = create_server();
+
   /** Underlying WebSocket server. */
-  public server?: WebSocket.Server;
+  server?: ws.Server;
   /** Port the server is listening on (-1 if not listening). */
-  public port = -1;
+  port = -1;
   /** Secret value used for authentication. */
-  public secret: any;
-  /** Last known client */
-  public lastClient?: WebSocket;
+  secret: any;
 
-  private registered: Record<BackIn, RequestCallback<any> | undefined> = {} as any;
-  private emitter: SocketEmitter = new EventEmitter();
-  private queue: QueuedMessage<any>[] = [];
-  private isHandling = false;
+  queue: QueuedMessage[] = [];
+  isHandling = false;
 
+  lastClient?: BackClient;
 
   /**
    * Try to listen on one of the ports in the given range (starting from the lowest).
@@ -44,7 +59,7 @@ export class SocketServer {
   public listen(minPort: number, maxPort: number, host: string | undefined): Promise<void> {
     return startServer(minPort, maxPort, host)
     .then(result => {
-      result.server.on('connection', this.onConnect);
+      result.server.on('connection', this.onConnect.bind(this));
       this.server = result.server;
       this.port = result.port;
     });
@@ -64,53 +79,15 @@ export class SocketServer {
     });
   }
 
-  public register<T = undefined>(type: BackIn, cb: RequestCallback<T>): void {
-    if (this.registered[type]) {
-      console.warn(`SocketServer - Registering a callback over an existing one (Type: ${type} / "${BackIn[type]}").`);
-    }
-    this.registered[type] = cb;
-  }
-
-  /**
-   * Broadcast a message to all connected and authenticated clients.
-   * @param response Message to send.
-   */
-  public broadcast<T>(response: WrappedResponse<T>): void {
-    if (this.server) {
-      const message = JSON.stringify(response);
-      this.server.clients.forEach(socket => {
-        if (socket.onmessage === this.onMessageWrap) { // (Check if authorized)
-          socket.send(message);
-        }
-      });
-    }
-  }
+  // ...
 
   /**
    * Return a function that opens a message box on a specific client.
-   * @param target Client to open a message box on.
+   * @param client Client to open a message box on.
    */
-  public showMessageBoxBack(target: WebSocket): ShowMessageBoxFunc {
+  public showMessageBoxBack(client: BackClient): ShowMessageBoxFunc {
     return (options) => {
-      return new Promise<number>((resolve, reject) => {
-        const id = uuid();
-
-        this.emitter.once(id, msg => {
-          const [req, error] = parseWrappedRequest(msg.data);
-          if (error || !req) {
-            console.error('Failed to parse incoming WebSocket request:\n', error);
-            reject(new Error('Failed to parse incoming WebSocket request.'));
-          } else {
-            resolve(req.data);
-          }
-        });
-
-        respond<ShowMessageBoxData>(target, {
-          id,
-          data: options,
-          type: BackOut.OPEN_MESSAGE_BOX,
-        });
-      });
+      return this.request(client, BackOut.OPEN_MESSAGE_BOX, options);
     };
   }
 
@@ -118,27 +95,9 @@ export class SocketServer {
    * Return a function that opens a save box on a specific client.
    * @param target Client to open a save box on.
    */
-  public showSaveDialogBack(target: WebSocket): ShowSaveDialogFunc {
+  public showSaveDialogBack(client: BackClient): ShowSaveDialogFunc {
     return (options) => {
-      return new Promise<string | undefined>((resolve, reject) => {
-        const id = uuid();
-
-        this.emitter.once(id, msg => {
-          const [req, error] = parseWrappedRequest(msg.data);
-          if (error || !req) {
-            console.error('Failed to parse incoming WebSocket request:\n', error);
-            reject(new Error('Failed to parse incoming WebSocket request.'));
-          } else {
-            resolve(req.data);
-          }
-        });
-
-        respond<ShowSaveDialogData>(target, {
-          id,
-          data: options,
-          type: BackOut.OPEN_SAVE_DIALOG,
-        });
-      });
+      return this.request(client, BackOut.OPEN_SAVE_DIALOG, options);
     };
   }
 
@@ -146,27 +105,9 @@ export class SocketServer {
    * Return a function that opens a load file box on a specific client.
    * @param target Client to open a load file box on.
    */
-  public showOpenDialogFunc(target: WebSocket): ShowOpenDialogFunc {
+  public showOpenDialogFunc(client: BackClient): ShowOpenDialogFunc {
     return (options) => {
-      return new Promise<string[] | undefined>((resolve, reject) => {
-        const id = uuid();
-
-        this.emitter.once(id, msg => {
-          const [req, error] = parseWrappedRequest(msg.data);
-          if (error || !req) {
-            console.error('Failed to parse incoming WebSocket request:\n', error);
-            reject(new Error('Failed to parse incoming WebSocket request.'));
-          } else {
-            resolve(req.data);
-          }
-        });
-
-        respond<ShowOpenDialogData>(target, {
-          id,
-          data: options,
-          type: BackOut.OPEN_OPEN_DIALOG,
-        });
-      });
+      return this.request(client, BackOut.OPEN_OPEN_DIALOG, options);
     };
   }
 
@@ -174,42 +115,55 @@ export class SocketServer {
    * Return a function that opens an external path at a specific client.
    * @param target Client to open an external path at.
    */
-  public openExternal(target: WebSocket): OpenExternalFunc {
+  public openExternal(client: BackClient): OpenExternalFunc {
     return (url, options) => {
-      return new Promise<void>((resolve, reject) => {
-        const id = uuid();
-
-        this.emitter.once(id, msg => {
-          const [req, error] = parseWrappedRequest(msg.data);
-          if (error || !req) {
-            console.error('Failed to parse incoming WebSocket request:\n', error);
-            reject(new Error('Failed to parse incoming WebSocket request.'));
-          } else {
-            if (req.data && req.data.error) {
-              const error = new Error();
-              error.name = req.data.error.name;
-              error.message = req.data.error.message;
-              error.stack = req.data.error.stack;
-              reject(error);
-            } else {
-              resolve();
-            }
-          }
-        });
-
-        respond<OpenExternalData>(target, {
-          id,
-          data: { url, options },
-          type: BackOut.OPEN_EXTERNAL,
-        });
-      });
+      return this.request(client, BackOut.OPEN_EXTERNAL, { url, options });
     };
   }
 
-  private onConnect = (socket: WebSocket, request: http.IncomingMessage): void => {
+  // API
+
+  public register<TYPE extends T>(type: TYPE, callback: Callback<EVENT, A[TYPE]>): void {
+    api_register(this.api, type, callback);
+  }
+
+  public unregister(type: T): void {
+    api_unregister(this.api, type);
+  }
+
+  public registerAny(callback: AnyCallback<EVENT, T>): void {
+    api_register_any(this.api, callback);
+  }
+
+  public unregisterAny(callback: AnyCallback<EVENT, T>): void {
+    api_unregister_any(this.api, callback);
+  }
+
+  // Send
+
+  public request<TYPE extends T2>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<A2[TYPE]>) {
+    return server_request(client, type, ...args);
+  }
+
+  public send<TYPE extends T2>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<A2[TYPE]>): void {
+    server_send(client, type, ...args);
+  }
+
+  public broadcast<TYPE extends T2>(type: TYPE, ...args: Parameters<A2[TYPE]>): void {
+    server_broadcast(this.clients, type, ...args);
+  }
+
+  // Event Handlers
+
+  protected onConnect(socket: ws, request: http.IncomingMessage): void {
+    // Read the first message as a "secret key"
     socket.onmessage = (event) => {
       if (event.data === this.secret) {
-        socket.onmessage = this.onMessageWrap;
+        const client = server_add_client(this.clients);
+        client.socket = socket;
+
+        socket.onmessage = this.onMessage.bind(this); // this.onMessageWrap;
+
         socket.send('auth successful'); // (reply with some garbage data)
       } else {
         socket.close();
@@ -217,7 +171,8 @@ export class SocketServer {
     };
   }
 
-  private onMessageWrap = async (event: WebSocket.MessageEvent): Promise<void> => {
+  /*
+  private onMessageWrap = async (event: ws.MessageEvent): Promise<void> => {
     const [req, error] = parseWrappedRequest(event.data);
     if (error || !req) {
       console.error('Failed to parse incoming WebSocket request:\n', error);
@@ -240,72 +195,62 @@ export class SocketServer {
       }
     }
   }
+  */
 
-  private async onMessage(message: QueuedMessage<any>): Promise<void> {
-    this.lastClient = message.event.target;
-    this.emitter.emit(message.req.id, message.event, message.req);
+  protected async onMessage(event: ws.MessageEvent): Promise<void> {
+    log('Socket Server - Message received');
 
-    const callback = this.registered[message.req.type];
-    if (callback) {
-      try {
-        await callback(message.event, message.req);
-      } catch (error) {
-        console.warn(`Error thrown inside a request callback (Type: ${message.req.type} / "${BackIn[message.req.type]}")!`, error);
-      }
-    } else {
-      console.warn(`Failed to handle incomming request. No callback is registered for the requests type (Type: ${message.req.type} / "${BackIn[message.req.type]}").`);
+    // Parse
+
+    const [parsed_data, parse_error] = parse_message_data(event.data);
+
+    if (parse_error) {
+      console.error('Failed to parse message data.', parse_error || '');
+      return;
+    }
+
+    // Validate
+
+    const [data, data_error] = validate_socket_message<any>(parsed_data);
+
+    if (!data || data_error) {
+      console.error('Failed to validate message data.', data_error || '');
+      return;
+    }
+
+    // Prepare event
+
+    const client = this.clients.clients.find(client => client.socket === event.target);
+
+    if (!client) {
+      console.error('Failed to handle message. No client was found for the socket.');
+      return;
+    }
+
+    const msg_event: EVENT = {
+      wsEvent: event,
+      client: client,
+    };
+
+    this.lastClient = client; // Cheap hack for targeting what client to send misc. requests to
+
+    // Handle
+
+    const [inc, out] = await api_handle_message(this.api, data, msg_event);
+
+    if (inc) {
+      // @TODO Support incoming responses
+    }
+
+    if (out) {
+      event.target.send(JSON.stringify(out));
     }
   }
-}
-
-export function respond<T>(target: WebSocket, response: WrappedResponse<T>): void {
-  // console.log('RESPOND', response);
-  target.send(JSON.stringify(response));
-}
-
-function parseWrappedRequest(data: string | Buffer | ArrayBuffer | Buffer[]): [WrappedRequest<any>, undefined] | [undefined, Error] {
-  // Parse data into string
-  let str: string | undefined;
-  if (typeof data === 'string') { // String
-    str = data;
-  } else if (typeof data === 'object') {
-    if (Buffer.isBuffer(data)) { // Buffer
-      str = data.toString();
-    } else if (Array.isArray(data)) { // Buffer[]
-      str = Buffer.concat(data).toString();
-    } else { // ArrayBuffer
-      str = Buffer.from(data).toString();
-    }
-  }
-
-  if (typeof str !== 'string') {
-    return [undefined, new Error('Failed to parse WrappedRequest. Failed to convert "data" into a string.')];
-  }
-
-  // Parse data string into object
-  let json: Record<string, any>;
-  try {
-    json = JSON.parse(str);
-  } catch (error) {
-    if (typeof error === 'object' && 'message' in error) {
-      error.message = 'Failed to parse WrappedRequest. Failed to convert "data" into an object.\n' + Coerce.str(error.message);
-    }
-    return [undefined, error];
-  }
-
-  // Create result (and ensure the types except for data)
-  const result: WrappedRequest<any> = {
-    id: Coerce.str(json.id),
-    type: Coerce.num(json.type),
-    data: json.data, // @TODO The types of the data should also be enforced somehow (probably really annoying to get right)
-  };
-
-  return [result, undefined];
 }
 
 type StartServerResult = {
   /** WebScoket server (undefined if it failed to listen). */
-  server: WebSocket.Server;
+  server: ws.Server;
   /** Port it is listening on (-1 if it failed to listen). */
   port: number;
 }
@@ -319,7 +264,7 @@ type StartServerResult = {
 function startServer(minPort: number, maxPort: number, host: string | undefined): Promise<StartServerResult> {
   return new Promise((resolve, reject) => {
     let port: number = minPort - 1;
-    let server: WebSocket.Server | undefined;
+    let server: ws.Server | undefined;
     tryListen();
 
     // --- Functions ---
@@ -330,7 +275,7 @@ function startServer(minPort: number, maxPort: number, host: string | undefined)
       }
 
       if (port++ < maxPort) {
-        server = new WebSocket.Server({ host, port });
+        server = new ws.Server({ host, port });
         server.on('error', onError);
         server.on('listening', onListening);
       } else {
@@ -355,4 +300,8 @@ function startServer(minPort: number, maxPort: number, host: string | undefined)
       }
     }
   });
+}
+
+function log(...args: any[]): void {
+  // console.log(...args);
 }

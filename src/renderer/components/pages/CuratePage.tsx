@@ -1,5 +1,5 @@
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, ImportCurationData, ImportCurationResponseData } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { ARCADE } from '@shared/constants';
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { convertEditToCurationMetaFile, convertParsedToCurationMeta } from '@shared/curate/metaToMeta';
@@ -140,16 +140,15 @@ export function CuratePage(props: CuratePageProps) {
 
   // Import a curation callback
   const importCurationCallback = useCallback((curation: EditCuration, log?: boolean, date?: Date) => {
-    return window.Shared.back.sendP<ImportCurationResponseData, ImportCurationData>(
-      BackIn.IMPORT_CURATION, {
-        curation: curation,
-        log: log,
-        date: date,
-        saveCuration: props.preferencesData.saveImportedCurations
-      }
-    ).then<undefined>(res => new Promise((resolve, reject) => {
-      if (res.data && res.data.error) {
-        reject(res.data.error);
+    return window.Shared.back.request(BackIn.IMPORT_CURATION, {
+      curation: curation,
+      log: log,
+      date: date,
+      saveCuration: props.preferencesData.saveImportedCurations
+    })
+    .then<undefined>(data => new Promise((resolve, reject) => {
+      if (data && data.error) {
+        reject(data.error);
       } else {
         resolve();
       }

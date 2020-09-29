@@ -1,11 +1,11 @@
-import { BackOut, ThemeChangeData, ThemeListChangeData } from '@shared/back/types';
-import { parseThemeMetaData, themeEntryFilename, ThemeMeta, Theme } from '@shared/ThemeFile';
+import { BackOut } from '@shared/back/types';
+import { parseThemeMetaData, Theme, themeEntryFilename, ThemeMeta } from '@shared/ThemeFile';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { Registry } from './extensions/types';
 import { SocketServer } from './SocketServer';
 import { ThemeState } from './types';
 import { FolderWatcher } from './util/FolderWatcher';
-import { Registry } from './extensions/types';
 
 /**
  * Add a new watcher for a Theme path to the Theme State
@@ -55,11 +55,7 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
           log.warn('Launcher', 'A file has been changed in a theme but the file is not registered '+
           `(File Path: "${filename}", Theme: "${theme.themePath}")`);
         } else {
-          socketServer.broadcast<ThemeChangeData>({
-            id: '',
-            type: BackOut.THEME_CHANGE,
-            data: theme,
-          });
+          socketServer.broadcast(BackOut.THEME_CHANGE, theme);
         }
       });
     });
@@ -72,11 +68,7 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
         } else {
           theme.files.splice(theme.files.indexOf(relativePath), 1);
           // A file in a theme has been removed
-          socketServer.broadcast<ThemeChangeData>({
-            id: '',
-            type: BackOut.THEME_CHANGE,
-            data: theme,
-          });
+          socketServer.broadcast(BackOut.THEME_CHANGE, theme);
         }
       });
     });
@@ -100,11 +92,7 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
         if (meta) {
           theme.meta = meta;
           if (broadcast) {
-            socketServer.broadcast<ThemeListChangeData>({
-              id: '',
-              type: BackOut.THEME_LIST_CHANGE,
-              data: Array.from(registry.themes.values()),
-            });
+            socketServer.broadcast(BackOut.THEME_LIST_CHANGE, Array.from(registry.themes.values()));
           }
         }
       }

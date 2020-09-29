@@ -7,7 +7,7 @@ import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
-import { BackOut, DevConsoleStatusResponse } from '@shared/back/types';
+import { BackOut } from '@shared/back/types';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
@@ -259,11 +259,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
   state.services.set(id, proc);
   proc.on('output', (entry) => { log.info(entry.source, entry.content); });
   proc.on('change', () => {
-    state.socketServer.broadcast<IService>({
-      id: '',
-      type: BackOut.SERVICE_CHANGE,
-      data: procToService(proc),
-    });
+    state.socketServer.broadcast(BackOut.SERVICE_CHANGE, procToService(proc));
   });
   try {
     proc.spawn();
@@ -279,11 +275,7 @@ export async function removeService(state: BackState, processId: string): Promis
   if (service) {
     await waitForServiceDeath(service);
     state.services.delete(processId);
-    state.socketServer.broadcast<string>({
-      id: '',
-      type: BackOut.SERVICE_REMOVED,
-      data: processId,
-    });
+    state.socketServer.broadcast(BackOut.SERVICE_REMOVED, processId);
   }
 }
 
@@ -306,13 +298,7 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
 export function setStatus<T extends keyof StatusState>(state: BackState, key: T, val: StatusState[T]): void {
   switch (key) {
     case 'devConsoleText':
-      state.socketServer.broadcast<DevConsoleStatusResponse>({
-        id: '',
-        type: BackOut.DEV_CONSOLE_CHANGE,
-        data: {
-          text: val
-        },
-      });
+      state.socketServer.broadcast(BackOut.DEV_CONSOLE_CHANGE, { text: val });
       break;
   }
 }

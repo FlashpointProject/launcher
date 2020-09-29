@@ -1,5 +1,5 @@
 import { Tag } from '@database/entity/Tag';
-import { BackIn, TagGetOrCreateData, TagGetOrCreateResponse } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -75,9 +75,9 @@ export async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string):
   for (let i = 0; i < splitTags.length; i++) {
     const trimTag = splitTags[i].trim();
     const trimTagCategory = splitCategories[i] ? splitCategories[i].trim() : undefined;
-    const res = await window.Shared.back.sendP<TagGetOrCreateResponse, TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, { tag: trimTag, tagCategory: trimTagCategory });
-    if (res.data) {
-      allTags.push(res.data);
+    const data = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, { tag: trimTag, tagCategory: trimTagCategory });
+    if (data) {
+      allTags.push(data);
     }
   }
 

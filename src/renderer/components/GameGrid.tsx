@@ -1,4 +1,4 @@
-import { BackOut, ImageChangeData, WrappedResponse } from '@shared/back/types';
+import { BackOut, ImageChangeData } from '@shared/back/types';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
@@ -67,7 +67,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   grid: React.RefObject<Grid> = React.createRef();
 
   componentDidMount(): void {
-    window.Shared.back.on('message', this.onResponse);
+    window.Shared.back.registerAny(this.onResponse);
     this.updateCssVars();
     this.updatePropRefs();
   }
@@ -93,7 +93,7 @@ export class GameGrid extends React.Component<GameGridProps> {
   }
 
   componentWillUnmount(): void {
-    window.Shared.back.off('message', this.onResponse);
+    window.Shared.back.unregisterAny(this.onResponse);
   }
 
   render() {
@@ -198,19 +198,19 @@ export class GameGrid extends React.Component<GameGridProps> {
     }
   }
 
-  onResponse = (res: WrappedResponse) => {
-    if (res.type === BackOut.IMAGE_CHANGE) {
-      const resData: ImageChangeData = res.data;
+  onResponse: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, args) => {
+    if (type === BackOut.IMAGE_CHANGE) {
+      const data: ImageChangeData = args[0];
 
       // Update the image in the browsers cache
-      if (resData.folder === LOGOS) {
-        fetch(getGameImageURL(resData.folder, resData.id))
+      if (data.folder === LOGOS) {
+        fetch(getGameImageURL(data.folder, data.id))
         .then(() => {
           // Refresh the image for the game(s) that uses it
           const elements = document.getElementsByClassName('game-grid-item');
           for (let i = 0; i < elements.length; i++) {
             const item = elements.item(i);
-            if (item && GameGridItem.getId(item) === resData.id) {
+            if (item && GameGridItem.getId(item) === data.id) {
               const img: HTMLElement | null = item.querySelector('.game-grid-item__thumb__image') as any;
               if (img) {
                 const val = img.style.backgroundImage;

@@ -8,7 +8,8 @@ import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
 import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { MessageBoxOptions, OpenExternalOptions, SaveDialogOptions, OpenDialogOptions } from 'electron';
+import { SocketTemplate } from '@shared/socket/types';
+import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
@@ -18,6 +19,8 @@ import { IAppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
 
 export enum BackIn {
+  UNKNOWN,
+
   GENERIC_RESPONSE,
   INIT_LISTEN,
   GET_SUGGESTIONS,
@@ -55,7 +58,8 @@ export enum BackIn {
   LAUNCH_CURATION,
   LAUNCH_CURATION_ADDAPP,
   QUIT,
-  /** Tag funcs */
+
+  // Tag funcs
   GET_OR_CREATE_TAG,
   GET_TAG_SUGGESTIONS,
   GET_TAG_BY_ID,
@@ -69,10 +73,12 @@ export enum BackIn {
   FIX_TAG_PRIMARY_ALIASES,
   EXPORT_TAGS,
   IMPORT_TAGS,
-  /** Tag Category funcs */
+
+  // Tag Category funcs
   SAVE_TAG_CATEGORY,
   GET_TAG_CATEGORY_BY_ID,
   DELETE_TAG_CATEGORY,
+
   /** Get a page of a browse view. */
   BROWSE_VIEW_PAGE,
   /** Get the index of a specific game (in the results of a given query). */
@@ -87,18 +93,24 @@ export enum BackIn {
   UPDATE_CONFIG,
   /** Update any number of preferences. */
   UPDATE_PREFERENCES,
-  /** API */
+
+  // API
   SYNC_GAME_METADATA,
+
   // Meta edits
   EXPORT_META_EDIT,
   IMPORT_META_EDITS,
-  /** Extensions */
+
+  // Extensions
   RUN_COMMAND,
+
   // Misc
   UPLOAD_LOG,
 }
 
 export enum BackOut {
+  UNKNOWN,
+
   GENERIC_RESPONSE,
   INIT_EVENT,
   OPEN_MESSAGE_BOX,
@@ -124,7 +136,6 @@ export enum BackOut {
   GET_TAGS,
   GET_TAG,
   SAVE_TAG,
-  DELETE_TAG,
   MERGE_TAGS,
   EXPORT_TAGS,
   IMPORT_TAGS,
@@ -140,23 +151,131 @@ export enum BackOut {
   DEV_CONSOLE_CHANGE,
 }
 
-export type WrappedRequest<T = any> = {
-  /** Identifier of the response */
-  id: string;
-  /** Type of the request */
-  type: BackIn;
-  /** Data contained in the response (if any) */
-  data: T;
-}
+export type BackInTemplate = SocketTemplate<BackIn, {
+  [BackIn.UNKNOWN]: () => void;
 
-export type WrappedResponse<T = any> = {
-  /** Identifier of the response */
-  id: string;
-  /** Type of the response */
-  type: BackOut;
-  /** Data contained in the response (if any) */
-  data?: T;
-}
+  [BackIn.GENERIC_RESPONSE]: () => void;
+  [BackIn.INIT_LISTEN]: () => InitEventData;
+  [BackIn.GET_SUGGESTIONS]: () => GetSuggestionsResponseData;
+  [BackIn.GET_GAMES_TOTAL]: () => GetGamesTotalResponseData;
+  [BackIn.SET_LOCALE]: (data: SetLocaleData) => LocaleUpdateData;
+  [BackIn.GET_EXEC]: () => GetExecData;
+  [BackIn.SAVE_GAME]: (data: SaveGameData) => BrowseChangeData;
+  [BackIn.GET_GAME]: (data: GetGameData) => GetGameResponseData;
+  [BackIn.GET_ALL_GAMES]: () => GetAllGamesResponseData;
+  [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => RandomGamesResponseData;
+  [BackIn.LAUNCH_GAME]: (data: LaunchGameData) => void;
+  [BackIn.DELETE_GAME]: (data: DeleteGameData) => BrowseChangeData;
+  [BackIn.DUPLICATE_GAME]: (data: DuplicateGameData) => BrowseChangeData;
+  [BackIn.EXPORT_GAME]: (data: ExportGameData) => void;
+  [BackIn.LAUNCH_ADDAPP]: (data: LaunchAddAppData) => void;
+  [BackIn.SAVE_IMAGE]: (data: SaveImageData) => void;
+  [BackIn.DELETE_IMAGE]: (data: DeleteImageData) => void;
+  [BackIn.QUICK_SEARCH]: () => void;
+  [BackIn.ADD_LOG]: (data: ILogPreEntry & { logLevel: LogLevel }) => void;
+  [BackIn.SERVICE_ACTION]: (data: ServiceActionData) => void;
+  [BackIn.DUPLICATE_PLAYLIST]: (data: DuplicatePlaylistData) => void;
+  [BackIn.IMPORT_PLAYLIST]: (data: ImportPlaylistData) => void;
+  [BackIn.EXPORT_PLAYLIST]: (data: ExportPlaylistData) => void;
+  [BackIn.GET_PLAYLISTS]: () => GetPlaylistsResponse;
+  [BackIn.GET_PLAYLIST]: (data: GetPlaylistData) => GetPlaylistResponse;
+  [BackIn.SAVE_PLAYLIST]: (data: SavePlaylistData) => SavePlaylistResponse;
+  [BackIn.DELETE_PLAYLIST]: (data: DeletePlaylistData) => DeletePlaylistResponse;
+  [BackIn.DELETE_ALL_PLAYLISTS]: () => void;
+  [BackIn.GET_PLAYLIST_GAME]: (data: GetPlaylistGameData) => GetPlaylistGameResponse;
+  [BackIn.ADD_PLAYLIST_GAME]: (data: AddPlaylistGameData) => void;
+  [BackIn.SAVE_PLAYLIST_GAME]: (data: SavePlaylistGameData) => SavePlaylistGameResponse;
+  [BackIn.DELETE_PLAYLIST_GAME]: (data: DeletePlaylistGameData) => DeletePlaylistGameResponse;
+  [BackIn.SAVE_LEGACY_PLATFORM]: (platform: SaveLegacyPlatformData) => void;
+  [BackIn.IMPORT_CURATION]: (data: ImportCurationData) => ImportCurationResponseData;
+  [BackIn.LAUNCH_CURATION]: (data: LaunchCurationData) => void;
+  [BackIn.LAUNCH_CURATION_ADDAPP]: (data: LaunchCurationAddAppData) => void;
+  [BackIn.QUIT]: () => void;
+
+  // Tag funcs
+  [BackIn.GET_OR_CREATE_TAG]: (data: TagGetOrCreateData) => TagGetOrCreateResponse;
+  [BackIn.GET_TAG_SUGGESTIONS]: (data: TagSuggestionsData) => TagSuggestionsResponse;
+  [BackIn.GET_TAG_BY_ID]: (data: TagByIdData) => TagByIdResponse;
+  [BackIn.GET_TAGS]: (data: TagFindData) => TagFindResponse;
+  [BackIn.GET_TAG]: (data: TagGetData) => TagGetResponse;
+  [BackIn.SAVE_TAG]: (data: TagSaveData) => TagSaveResponse;
+  [BackIn.DELETE_TAG]: (data: TagDeleteData) => TagDeleteResponse;
+  [BackIn.MERGE_TAGS]: (data: MergeTagData) => Tag;
+  [BackIn.CLEANUP_TAG_ALIASES]: () => void;
+  [BackIn.CLEANUP_TAGS]: () => void;
+  [BackIn.FIX_TAG_PRIMARY_ALIASES]: (data: TagPrimaryFixData) => TagPrimaryFixResponse;
+  [BackIn.EXPORT_TAGS]: (data: string) => number;
+  [BackIn.IMPORT_TAGS]: (data: string) => number;
+
+  // Tag Category funcs
+  [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategorySaveData) => TagCategorySaveResponse;
+  [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: TagCategoryByIdData) => TagCategoryByIdResponse;
+  [BackIn.DELETE_TAG_CATEGORY]: (data: TagCategoryDeleteData) => TagCategoryDeleteResponse;
+
+  [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData<boolean>;
+  [BackIn.BROWSE_VIEW_INDEX]: (data: BrowseViewIndexData) => BrowseViewIndexResponse;
+  [BackIn.BROWSE_VIEW_KEYSET]: (data: BrowseViewKeysetData) => BrowseViewKeysetResponse;
+  [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
+  [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
+  [BackIn.UPDATE_CONFIG]: (data: UpdateConfigData) => void;
+  [BackIn.UPDATE_PREFERENCES]: (data: IAppPreferencesData) => void;
+
+  // API
+  [BackIn.SYNC_GAME_METADATA]: () => GameMetadataSyncResponse;
+
+  // Meta edits
+  [BackIn.EXPORT_META_EDIT]: (data: ExportMetaEditData) => void;
+  [BackIn.IMPORT_META_EDITS]: () => ImportMetaEditResponseData;
+
+  // Extensions
+  [BackIn.RUN_COMMAND]: (data: RunCommandData) => RunCommandResponse;
+
+  // Misc
+  [BackIn.UPLOAD_LOG]: () => UploadLogResponse;
+}>
+
+export type BackOutTemplate = SocketTemplate<BackOut, {
+  [BackOut.UNKNOWN]: () => void;
+
+  [BackOut.GENERIC_RESPONSE]: () => void;
+  [BackOut.INIT_EVENT]: (data: InitEventData) => void;
+  [BackOut.OPEN_MESSAGE_BOX]: (options: ShowMessageBoxData) => number;
+  [BackOut.OPEN_SAVE_DIALOG]: (options: ShowSaveDialogData) => string | undefined;
+  [BackOut.OPEN_OPEN_DIALOG]: (options: ShowOpenDialogData) => string[] | undefined;
+  [BackOut.OPEN_EXTERNAL]: (data: OpenExternalData) => void;
+  [BackOut.LOCALE_UPDATE]: (data: LocaleUpdateData) => void;
+  [BackOut.GET_MAIN_INIT_DATA]: () => void;
+  [BackOut.UPDATE_PREFERENCES_RESPONSE]: (data: IAppPreferencesData) => void;
+  [BackOut.IMAGE_CHANGE]: (data: ImageChangeData) => void;
+  [BackOut.LOG_ENTRY_ADDED]: (data: LogEntryAddedData) => void;
+  [BackOut.SERVICE_CHANGE]: (data: IService) => void;
+  [BackOut.SERVICE_REMOVED]: (processId: string) => void;
+  [BackOut.LANGUAGE_CHANGE]: (data: LanguageChangeData) => void;
+  [BackOut.LANGUAGE_LIST_CHANGE]: (data: LanguageListChangeData) => void;
+  [BackOut.IMPORT_PLAYLIST]: (data: Playlist) => void;
+  [BackOut.PLAYLISTS_CHANGE]: (data: PlaylistsChangeData) => void;
+  [BackOut.THEME_CHANGE]: (theme: ThemeChangeData) => void;
+  [BackOut.THEME_LIST_CHANGE]: (themes: ThemeListChangeData) => void;
+  [BackOut.IMPORT_CURATION_RESPONSE]: () => void;
+  [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestionsResponse) => void;
+  [BackOut.GET_TAG_BY_ID]: (SAVE_TAGdata: TagByIdResponse) => TagByIdResponse;
+  [BackOut.GET_TAGS]: (data: TagFindResponse) => void;
+  [BackOut.GET_TAG]: (data: TagGetResponse) => void;
+  [BackOut.SAVE_TAG]: (data: TagSaveResponse) => void;
+  [BackOut.MERGE_TAGS]: (newTag: Tag) => void;
+  [BackOut.EXPORT_TAGS]: (data: number) => void;
+  [BackOut.IMPORT_TAGS]: (data: number) => void;
+  [BackOut.GET_TAG_CATEGORY_BY_ID]: (data: TagCategoryByIdResponse) => void;
+  [BackOut.SAVE_TAG_CATEGORY]: (data: TagCategorySaveResponse) => void;
+  [BackOut.DELETE_TAG_CATEGORY]: (data: TagCategoryDeleteResponse) => void;
+  [BackOut.TAG_CATEGORIES_CHANGE]: (cats: TagCategoriesChangeData) => void;
+  [BackOut.FIX_TAG_PRIMARY_ALIASES]: (data: TagPrimaryFixResponse) => void;
+  [BackOut.SYNC_GAME_METADATA]: (data: GameMetadataSyncResponse) => void;
+  [BackOut.QUIT]: () => void;
+  [BackOut.RUN_COMMAND]: (data: RunCommandResponse) => void;
+  [BackOut.UPLOAD_LOG]: (getUrl: UploadLogResponse) => void;
+  [BackOut.DEV_CONSOLE_CHANGE]: (data: DevConsoleStatusResponse) => void;
+}>
 
 export type BackInitArgs = {
   /** Path to the folder containing the preferences and config files. */
@@ -178,8 +297,6 @@ export enum BackInit {
   PLAYLISTS,
   EXEC,
 }
-
-export type AddLogData = ILogPreEntry & { logLevel: LogLevel };
 
 export type InitEventData = {
   done: BackInit[];
