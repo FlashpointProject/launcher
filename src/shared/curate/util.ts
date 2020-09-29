@@ -75,7 +75,7 @@ export async function getTagsFromStr(tagsStr: string, tagCategoriesStr: string):
   for (let i = 0; i < splitTags.length; i++) {
     const trimTag = splitTags[i].trim();
     const trimTagCategory = splitCategories[i] ? splitCategories[i].trim() : undefined;
-    const data = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, { tag: trimTag, tagCategory: trimTagCategory });
+    const data = await window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, trimTag, trimTagCategory);
     if (data) {
       allTags.push(data);
     }

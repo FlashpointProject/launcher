@@ -186,8 +186,8 @@ export class App extends React.Component<AppProps> {
       });
     });
 
-    window.Shared.back.register(BackOut.LOG_ENTRY_ADDED, (event, data) => {
-      window.Shared.log.entries[data.index - window.Shared.log.offset] = data.entry;
+    window.Shared.back.register(BackOut.LOG_ENTRY_ADDED, (event, entry, index) => {
+      window.Shared.log.entries[index - window.Shared.log.offset] = entry;
     });
 
     window.Shared.back.register(BackOut.LOCALE_UPDATE, (event, data) => {
@@ -264,8 +264,8 @@ export class App extends React.Component<AppProps> {
       this.props.setTagCategories(data);
     });
 
-    window.Shared.back.register(BackOut.DEV_CONSOLE_CHANGE, (event, data) => {
-      this.props.setMainState({ devConsoleText: data.text });
+    window.Shared.back.register(BackOut.DEV_CONSOLE_CHANGE, (event, text) => {
+      this.props.setMainState({ devConsoleText: text });
     });
 
     // Cache playlist icons (if they are loaded)
@@ -478,10 +478,7 @@ export class App extends React.Component<AppProps> {
       // Check if the meta has not yet been requested
       if (v && v.metaState === RequestState.WAITING) {
         // Request meta
-        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, {
-          query: v.query,
-          library: l,
-        })
+        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, l, v.query)
         .then((data) => {
           if (data) {
             this.props.dispatchMain({
@@ -768,12 +765,12 @@ export class App extends React.Component<AppProps> {
 
   onDeleteGame = (gameId: string): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
-    window.Shared.back.request(BackIn.DELETE_GAME, { id: gameId })
+    window.Shared.back.request(BackIn.DELETE_GAME, gameId)
     .then(() => { this.setViewQuery(library); });
   }
 
   onLaunchGame(gameId: string): void {
-    window.Shared.back.send(BackIn.LAUNCH_GAME, { id: gameId });
+    window.Shared.back.send(BackIn.LAUNCH_GAME, gameId);
   }
 
   onQuickSearch = (search: string): void => {
@@ -866,10 +863,7 @@ export class App extends React.Component<AppProps> {
 
   onConfirmExportMetaEdit = (data: MetaEditExporterConfirmData): void => {
     this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
-    window.Shared.back.send(BackIn.EXPORT_META_EDIT, {
-      id: data.id,
-      properties: data.properties,
-    });
+    window.Shared.back.send(BackIn.EXPORT_META_EDIT, data.id, data.properties);
   }
 
   rollRandomGames = (first?: boolean) => {

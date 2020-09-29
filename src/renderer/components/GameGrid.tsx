@@ -1,4 +1,4 @@
-import { BackOut, ImageChangeData } from '@shared/back/types';
+import { BackOut, BackOutTemplate } from '@shared/back/types';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
@@ -200,17 +200,17 @@ export class GameGrid extends React.Component<GameGridProps> {
 
   onResponse: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, args) => {
     if (type === BackOut.IMAGE_CHANGE) {
-      const data: ImageChangeData = args[0];
+      const [ folder, id ] = args as Parameters<BackOutTemplate[typeof type]>;
 
       // Update the image in the browsers cache
-      if (data.folder === LOGOS) {
-        fetch(getGameImageURL(data.folder, data.id))
+      if (folder === LOGOS) {
+        fetch(getGameImageURL(folder, id))
         .then(() => {
           // Refresh the image for the game(s) that uses it
           const elements = document.getElementsByClassName('game-grid-item');
           for (let i = 0; i < elements.length; i++) {
             const item = elements.item(i);
-            if (item && GameGridItem.getId(item) === data.id) {
+            if (item && GameGridItem.getId(item) === id) {
               const img: HTMLElement | null = item.querySelector('.game-grid-item__thumb__image') as any;
               if (img) {
                 const val = img.style.backgroundImage;

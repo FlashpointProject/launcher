@@ -161,8 +161,8 @@ export class TagCategoriesPage extends React.Component<TagCategoriesPageProps, T
     if (this.state.selectedCategoryId) {
       console.log('DELETING');
       window.Shared.back.request(BackIn.DELETE_TAG_CATEGORY, this.state.selectedCategoryId)
-      .then((data) => {
-        if (data && data.success) {
+      .then(success => {
+        if (success) {
           this.setState({ selectedCategoryId: undefined, currentCategory: undefined });
         }
       });

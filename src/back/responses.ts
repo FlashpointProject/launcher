@@ -171,8 +171,8 @@ export function registerRequestCallbacks(state: BackState): void {
     return state.execMappings;
   });
 
-  state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, data) => {
-    const addApp = await GameManager.findAddApp(data.id);
+  state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, id) => {
+    const addApp = await GameManager.findAddApp(id);
     if (addApp) {
       const platform = addApp.parentGame ? addApp.parentGame : '';
       GameLauncher.launchAdditionalApplication({
@@ -191,8 +191,8 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  state.socketServer.register(BackIn.LAUNCH_GAME, async (event, data) => {
-    const game = await GameManager.findGame(data.id);
+  state.socketServer.register(BackIn.LAUNCH_GAME, async (event, id) => {
+    const game = await GameManager.findGame(id);
 
     if (game) {
       // Make sure Server is set to configured server - Curations may have changed it
@@ -232,8 +232,8 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });
 
-  state.socketServer.register(BackIn.DELETE_GAME, async (event, data) => {
-    const game = await GameManager.removeGameAndAddApps(data.id);
+  state.socketServer.register(BackIn.DELETE_GAME, async (event, id) => {
+    const game = await GameManager.removeGameAndAddApps(id);
 
     state.queries = {}; // Clear entire cache
 
@@ -243,8 +243,8 @@ export function registerRequestCallbacks(state: BackState): void {
     };
   });
 
-  state.socketServer.register(BackIn.DUPLICATE_GAME, async (event, data) => {
-    const game = await GameManager.findGame(data.id);
+  state.socketServer.register(BackIn.DUPLICATE_GAME, async (event, id, dupeImages) => {
+    const game = await GameManager.findGame(id);
     let result: Game | undefined;
     if (game) {
 
@@ -262,7 +262,7 @@ export function registerRequestCallbacks(state: BackState): void {
       result = await GameManager.updateGame(newGame);
 
       // Copy images
-      if (data.dupeImages) {
+      if (dupeImages) {
         const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
         const oldLast = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
         const newLast = path.join(newGame.id.substr(0, 2), newGame.id.substr(2, 2), newGame.id+'.png');
@@ -311,11 +311,11 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  state.socketServer.register(BackIn.IMPORT_PLAYLIST, async (event, data) => {
+  state.socketServer.register(BackIn.IMPORT_PLAYLIST, async (event, filePath, library) => {
     try {
-      const rawData = await fs.promises.readFile(data.filePath, 'utf-8');
+      const rawData = await fs.promises.readFile(filePath, 'utf-8');
       const jsonData = JSON.parse(rawData);
-      const newPlaylist = createPlaylistFromJson(jsonData, data.library);
+      const newPlaylist = createPlaylistFromJson(jsonData, library);
       const existingPlaylist = await GameManager.findPlaylistByName(newPlaylist.title, true);
       if (existingPlaylist) {
         newPlaylist.title += ' - New';
@@ -354,39 +354,39 @@ export function registerRequestCallbacks(state: BackState): void {
     state.socketServer.send(event.client, BackOut.PLAYLISTS_CHANGE, await GameManager.findPlaylists());
   });
 
-  state.socketServer.register(BackIn.EXPORT_PLAYLIST, async (event, data) => {
-    const playlist = await GameManager.findPlaylist(data.id, true);
+  state.socketServer.register(BackIn.EXPORT_PLAYLIST, async (event, id, location) => {
+    const playlist = await GameManager.findPlaylist(id, true);
     if (playlist) {
       try {
-        await writeFile(data.location, JSON.stringify(playlist, null, '\t'));
+        await writeFile(location, JSON.stringify(playlist, null, '\t'));
       } catch (e) { console.error(e); }
     }
   });
 
-  state.socketServer.register(BackIn.EXPORT_GAME, async (event, data) => {
-    if (await pathExists(data.metaOnly ? path.dirname(data.location) : data.location)) {
-      const game = await GameManager.findGame(data.id);
+  state.socketServer.register(BackIn.EXPORT_GAME, async (event, id, location, metaOnly) => {
+    if (await pathExists(metaOnly ? path.dirname(location) : location)) {
+      const game = await GameManager.findGame(id);
       if (game) {
         // Save to file
         try {
           await writeFile(
-            data.metaOnly ? data.location : path.join(data.location, 'meta.yaml'),
+            metaOnly ? location : path.join(location, 'meta.yaml'),
             YAML.stringify(convertGameToCurationMetaFile(game, await TagManager.findTagCategories())));
         } catch (e) { console.error(e); }
 
         // Copy images
-        if (!data.metaOnly) {
+        if (!metaOnly) {
           const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
           const last = path.join(game.id.substr(0, 2), game.id.substr(2, 2), game.id+'.png');
 
           const oldLogoPath = path.join(imageFolder, LOGOS, last);
-          const newLogoPath = path.join(data.location, 'logo.png');
+          const newLogoPath = path.join(location, 'logo.png');
           try {
             if (await pathExists(oldLogoPath)) { await copyFile(oldLogoPath, newLogoPath); }
           } catch (e) { console.error(e); }
 
           const oldScreenshotPath = path.join(imageFolder, SCREENSHOTS, last);
-          const newScreenshotPath = path.join(data.location, 'ss.png');
+          const newScreenshotPath = path.join(location, 'ss.png');
           try {
             if (await pathExists(oldScreenshotPath)) { await copyFile(oldScreenshotPath, newScreenshotPath); }
           } catch (e) { console.error(e); }
@@ -395,10 +395,8 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  state.socketServer.register(BackIn.GET_GAME, async (event, data) => {
-    return {
-      game: await GameManager.findGame(data.id),
-    };
+  state.socketServer.register(BackIn.GET_GAME, async (event, id) => {
+    return await GameManager.findGame(id);
   });
 
   state.socketServer.register(BackIn.GET_ALL_GAMES, async (event) => {
@@ -407,16 +405,16 @@ export function registerRequestCallbacks(state: BackState): void {
     const range = results[0];
     if (!range) { throw new Error('Failed to fetch all games. No range of games was in the result.'); }
 
-    return { games: range.games };
+    return range.games;
   });
 
   state.socketServer.register(BackIn.RANDOM_GAMES, async (event, data) => {
     return await GameManager.findRandomGames(data.count, data.extreme, data.broken, data.excludedLibraries);
   });
 
-  state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, data) => {
-    data.query.filter = adjustGameFilter(data.query.filter);
-    const result = await GameManager.findGamePageKeyset(data.query.filter, data.query.orderBy, data.query.orderReverse);
+  state.socketServer.register(BackIn.BROWSE_VIEW_KEYSET, async (event, library, query) => {
+    query.filter = adjustGameFilter(query.filter);
+    const result = await GameManager.findGamePageKeyset(query.filter, query.orderBy, query.orderReverse);
     return {
       keyset: result.keyset,
       total: result.total,
@@ -451,7 +449,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.DELETE_TAG_CATEGORY, async (event, data) => {
-    const result = { success: await TagManager.deleteTagCategory(data, state.socketServer.showMessageBoxBack(event.client)) };
+    const result = await TagManager.deleteTagCategory(data, state.socketServer.showMessageBoxBack(event.client));
     state.socketServer.send(event.client, BackOut.DELETE_TAG_CATEGORY, result);
     await TagManager.sendTagCategories(state.socketServer);
     return result;
@@ -553,44 +551,39 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
-  state.socketServer.register(BackIn.BROWSE_VIEW_INDEX, async (event, data) => {
+  state.socketServer.register(BackIn.BROWSE_VIEW_INDEX, async (event, gameId, query) => {
     const position = await GameManager.findGameRow(
-      data.gameId,
-      data.query.filter,
-      data.query.orderBy,
-      data.query.orderReverse,
+      gameId,
+      query.filter,
+      query.orderBy,
+      query.orderReverse,
       undefined);
 
-    return {
-      index: position - 1, // ("position" starts at 1, while "index" starts at 0)
-    };
+    return position - 1; // ("position" starts at 1, while "index" starts at 0)
   });
 
-  state.socketServer.register(BackIn.SAVE_IMAGE, async (event, data) => {
+  state.socketServer.register(BackIn.SAVE_IMAGE, async (event, raw_folder, raw_id, content) => {
     const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-    const folder = sanitizeFilename(data.folder);
-    const id = sanitizeFilename(data.id);
+    const folder = sanitizeFilename(raw_folder);
+    const id = sanitizeFilename(raw_id);
     const fullPath = path.join(imageFolder, folder, id.substr(0, 2), id.substr(2, 2), id + '.png');
 
     if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
       try {
         await fs.promises.mkdir(path.dirname(fullPath), { recursive: true });
-        await writeFile(fullPath, Buffer.from(data.content, 'base64'));
+        await writeFile(fullPath, Buffer.from(content, 'base64'));
       } catch (e) {
         log.error('Launcher', e + '');
       }
     }
 
-    state.socketServer.send(event.client, BackOut.IMAGE_CHANGE, {
-      id: id,
-      folder: folder,
-    });
+    state.socketServer.send(event.client, BackOut.IMAGE_CHANGE, folder, id);
   });
 
-  state.socketServer.register(BackIn.DELETE_IMAGE, async (event, data) => {
+  state.socketServer.register(BackIn.DELETE_IMAGE, async (event, raw_folder, raw_id) => {
     const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
-    const folder = sanitizeFilename(data.folder);
-    const id = sanitizeFilename(data.id);
+    const folder = sanitizeFilename(raw_folder);
+    const id = sanitizeFilename(raw_id);
     const fullPath = path.join(imageFolder, folder, id.substr(0, 2), id.substr(2, 2), id + '.png');
 
     if (fullPath.startsWith(imageFolder)) { // (Ensure that it does not climb out of the image folder)
@@ -604,10 +597,7 @@ export function registerRequestCallbacks(state: BackState): void {
       }
     }
 
-    state.socketServer.send(event.client, BackOut.IMAGE_CHANGE, {
-      id: id,
-      folder: folder,
-    });
+    state.socketServer.send(event.client, BackOut.IMAGE_CHANGE, folder, id);
   });
 
   state.socketServer.register(BackIn.UPDATE_CONFIG, async(event, data) => {
@@ -638,10 +628,10 @@ export function registerRequestCallbacks(state: BackState): void {
     state.socketServer.send(event.client, BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
   });
 
-  state.socketServer.register(BackIn.SERVICE_ACTION, (event, data) => {
-    const proc = state.services.get(data.id);
+  state.socketServer.register(BackIn.SERVICE_ACTION, (event, action, id) => {
+    const proc = state.services.get(id);
     if (proc) {
-      switch (data.action) {
+      switch (action) {
         case ProcessAction.START:
           proc.spawn();
           break;
@@ -657,8 +647,8 @@ export function registerRequestCallbacks(state: BackState): void {
     }
   });
 
-  state.socketServer.register(BackIn.GET_PLAYLIST, async (event, data) => {
-    return await GameManager.findPlaylist(data) as Playlist; // @TYPESAFE fix this?
+  state.socketServer.register(BackIn.GET_PLAYLIST, async (event, playlistId) => {
+    return await GameManager.findPlaylist(playlistId) as Playlist; // @TYPESAFE fix this?
   });
 
   state.socketServer.register(BackIn.CLEANUP_TAG_ALIASES, async (event) => {
@@ -677,9 +667,9 @@ export function registerRequestCallbacks(state: BackState): void {
     return fixed;
   });
 
-  state.socketServer.register(BackIn.GET_OR_CREATE_TAG, async (event, data) => {
-    const name = data.tag.trim();
-    const category = data.tagCategory ? data.tagCategory.trim() : undefined;
+  state.socketServer.register(BackIn.GET_OR_CREATE_TAG, async (event, tagName, tagCategory) => {
+    const name = tagName.trim();
+    const category = tagCategory ? tagCategory.trim() : undefined;
     let tag = await TagManager.findTag(name);
     if (!tag) {
       // Tag doesn't exist, make a new one
@@ -692,25 +682,25 @@ export function registerRequestCallbacks(state: BackState): void {
     return await GameManager.findPlaylists(); // @TYPESAFE fix this?
   });
 
-  state.socketServer.register(BackIn.SAVE_PLAYLIST, async (event, data) => {
-    const playlist = await GameManager.updatePlaylist(data);
+  state.socketServer.register(BackIn.SAVE_PLAYLIST, async (event, playlist) => {
+    const savedPlaylist = await GameManager.updatePlaylist(playlist);
     state.queries = {};
-    return playlist;
+    return savedPlaylist;
   });
 
-  state.socketServer.register(BackIn.DELETE_PLAYLIST, async (event, data) => {
-    const playlist = await GameManager.removePlaylist(data);
+  state.socketServer.register(BackIn.DELETE_PLAYLIST, async (event, playlistId) => {
+    const playlist = await GameManager.removePlaylist(playlistId);
     state.queries = {};
     return playlist as Playlist; // @TYPESAFE fix this?
   });
 
-  state.socketServer.register(BackIn.GET_PLAYLIST_GAME, async (event, data) => {
-    const playlistGame = await GameManager.findPlaylistGame(data.playlistId, data.gameId);
+  state.socketServer.register(BackIn.GET_PLAYLIST_GAME, async (event, playlistId, gameId) => {
+    const playlistGame = await GameManager.findPlaylistGame(playlistId, gameId);
     return playlistGame;
   });
 
-  state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, data) => {
-    await GameManager.addPlaylistGame(data.playlistId, data.gameId);
+  state.socketServer.register(BackIn.ADD_PLAYLIST_GAME, async (event, playlistId, gameId) => {
+    await GameManager.addPlaylistGame(playlistId, gameId);
   });
 
   state.socketServer.register(BackIn.SAVE_PLAYLIST_GAME, async (event, data) => {
@@ -719,8 +709,8 @@ export function registerRequestCallbacks(state: BackState): void {
     return playlistGame;
   });
 
-  state.socketServer.register(BackIn.DELETE_PLAYLIST_GAME, async (event, data) => {
-    const playlistGame = await GameManager.removePlaylistGame(data.playlistId, data.gameId);
+  state.socketServer.register(BackIn.DELETE_PLAYLIST_GAME, async (event, playlistId, gameId) => {
+    const playlistGame = await GameManager.removePlaylistGame(playlistId, gameId);
     state.queries = {};
     return playlistGame;
   });
@@ -949,57 +939,55 @@ export function registerRequestCallbacks(state: BackState): void {
     exit(state);
   });
 
-  state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, data) => {
-    if (data) {
-      const game = await GameManager.findGame(data.id);
-      if (game) {
-        const meta: MetaEditMeta = {
-          id: game.id,
-        };
+  state.socketServer.register(BackIn.EXPORT_META_EDIT, async (event, id, properties) => {
+    const game = await GameManager.findGame(id);
+    if (game) {
+      const meta: MetaEditMeta = {
+        id: game.id,
+      };
 
-        const keys = Object.keys(data.properties) as (keyof typeof data.properties)[];
-        for (let i = 0; i < keys.length; i++) {
-          const key = keys[i];
-          if (data.properties[key]) {
-            if (key === 'tags') {
-              meta.tags = game.tags.map(tag => tag.primaryAlias.name);
-            } else {
-              (meta as any)[key] = game[key]; // (I wish typescript could understand this...)
-            }
+      const keys = Object.keys(properties) as (keyof typeof properties)[];
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        if (properties[key]) {
+          if (key === 'tags') {
+            meta.tags = game.tags.map(tag => tag.primaryAlias.name);
+          } else {
+            (meta as any)[key] = game[key]; // (I wish typescript could understand this...)
           }
         }
+      }
 
-        const output: MetaEditFile = {
-          metas: [meta],
-          launcherVersion: state.version,
-        };
+      const output: MetaEditFile = {
+        metas: [meta],
+        launcherVersion: state.version,
+      };
 
-        const folderPath = path.join(state.config.flashpointPath, state.config.metaEditsFolderPath);
-        const filePath = path.join(folderPath, game.id + '.json');
-        try {
-          let save = true;
+      const folderPath = path.join(state.config.flashpointPath, state.config.metaEditsFolderPath);
+      const filePath = path.join(folderPath, game.id + '.json');
+      try {
+        let save = true;
 
-          if (await pathExists(filePath)) {
-            const strings = state.languageContainer;
-            const result = await state.socketServer.showMessageBoxBack(event.client)({
-              type: 'warning',
-              title: strings.dialog.overwriteFileTitle,
-              message: strings.dialog.overwriteFileMessage,
-              detail: `${strings.dialog.overwriteFileDetail}\n${filePath}`,
-              buttons: [strings.misc.yes, strings.misc.no],
-              cancelId: 1,
-            });
+        if (await pathExists(filePath)) {
+          const strings = state.languageContainer;
+          const result = await state.socketServer.showMessageBoxBack(event.client)({
+            type: 'warning',
+            title: strings.dialog.overwriteFileTitle,
+            message: strings.dialog.overwriteFileMessage,
+            detail: `${strings.dialog.overwriteFileDetail}\n${filePath}`,
+            buttons: [strings.misc.yes, strings.misc.no],
+            cancelId: 1,
+          });
 
-            if (result === 1) { save = false; }
-          }
-
-          if (save) {
-            await ensureDir(folderPath);
-            await writeFile(filePath, JSON.stringify(output, null, '\t'));
-          }
-        } catch (error) {
-          log.error('Launcher', `Failed to export meta edit.\nError: ${error.message || error}`);
+          if (result === 1) { save = false; }
         }
+
+        if (save) {
+          await ensureDir(folderPath);
+          await writeFile(filePath, JSON.stringify(output, null, '\t'));
+        }
+      } catch (error) {
+        log.error('Launcher', `Failed to export meta edit.\nError: ${error.message || error}`);
       }
     }
   });
@@ -1013,11 +1001,9 @@ export function registerRequestCallbacks(state: BackState): void {
     return result;
   });
 
-  state.socketServer.register(BackIn.RUN_COMMAND, async (event, data) => {
+  state.socketServer.register(BackIn.RUN_COMMAND, async (event, command, args = []) => {
     // Find comamnd
-    const { command } = data;
-    const args = data.args || [];
-    const c = state.registry.commands.get(data.command);
+    const c = state.registry.commands.get(command);
     let res = undefined;
     let success = false;
     if (c) {

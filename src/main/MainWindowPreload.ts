@@ -175,7 +175,7 @@ function registerHandlers(): void {
     return result.filePaths;
   });
 
-  window.Shared.back.register(BackOut.OPEN_EXTERNAL, async (event, data) => {
-    await electron.remote.shell.openExternal(data.url, data.options);
+  window.Shared.back.register(BackOut.OPEN_EXTERNAL, async (event, url, options) => {
+    await electron.remote.shell.openExternal(url, options);
   });
 }

@@ -13,10 +13,7 @@ export function logFactory(logLevel: LogLevel, socketServer: SocketServer, addLo
       logLevel: logLevel
     };
     const index = addLog(formedLog);
-    socketServer.broadcast(BackOut.LOG_ENTRY_ADDED, {
-      entry: formedLog,
-      index: index,
-    });
+    socketServer.broadcast(BackOut.LOG_ENTRY_ADDED, formedLog, index);
     if (verbose) { console.log(`${levelName.padEnd(5)} - ${Date.now()} - ${content}`); }
     return formedLog;
   };

@@ -7,7 +7,7 @@ import * as http from 'http';
 import * as ws from 'ws';
 import { OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from './types';
 
-type BackAPI = SocketAPIData<BackIn, BackInTemplate, EVENT>
+type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
 type BackClient = BackClients['clients'][number]
 
@@ -16,15 +16,10 @@ type QueuedMessage = {
   req: SocketRequestData;
 }
 
-type EVENT = {
+type MsgEvent = {
   wsEvent: ws.MessageEvent;
   client: BackClient;
 }
-
-type T  = BackIn
-type A  = BackInTemplate
-type T2 = BackOut
-type A2 = BackOutTemplate
 
 /** Callback that is registered to a specific type. */
 type Callback<T, U extends (...args: any[]) => any> = (event: T, ...args: Parameters<U>) => (ReturnType<U> | Promise<ReturnType<U>>)
@@ -117,39 +112,39 @@ export class SocketServer {
    */
   public openExternal(client: BackClient): OpenExternalFunc {
     return (url, options) => {
-      return this.request(client, BackOut.OPEN_EXTERNAL, { url, options });
+      return this.request(client, BackOut.OPEN_EXTERNAL, url, options);
     };
   }
 
   // API
 
-  public register<TYPE extends T>(type: TYPE, callback: Callback<EVENT, A[TYPE]>): void {
+  public register<TYPE extends BackIn>(type: TYPE, callback: Callback<MsgEvent, BackInTemplate[TYPE]>): void {
     api_register(this.api, type, callback);
   }
 
-  public unregister(type: T): void {
+  public unregister(type: BackIn): void {
     api_unregister(this.api, type);
   }
 
-  public registerAny(callback: AnyCallback<EVENT, T>): void {
+  public registerAny(callback: AnyCallback<MsgEvent, BackIn>): void {
     api_register_any(this.api, callback);
   }
 
-  public unregisterAny(callback: AnyCallback<EVENT, T>): void {
+  public unregisterAny(callback: AnyCallback<MsgEvent, BackIn>): void {
     api_unregister_any(this.api, callback);
   }
 
   // Send
 
-  public request<TYPE extends T2>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<A2[TYPE]>) {
+  public request<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>) {
     return server_request(client, type, ...args);
   }
 
-  public send<TYPE extends T2>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<A2[TYPE]>): void {
+  public send<TYPE extends BackOut>(client: BackClients['clients'][number], type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>): void {
     server_send(client, type, ...args);
   }
 
-  public broadcast<TYPE extends T2>(type: TYPE, ...args: Parameters<A2[TYPE]>): void {
+  public broadcast<TYPE extends BackOut>(type: TYPE, ...args: Parameters<BackOutTemplate[TYPE]>): void {
     server_broadcast(this.clients, type, ...args);
   }
 
@@ -227,7 +222,7 @@ export class SocketServer {
       return;
     }
 
-    const msg_event: EVENT = {
+    const msg_event: MsgEvent = {
       wsEvent: event,
       client: client,
     };

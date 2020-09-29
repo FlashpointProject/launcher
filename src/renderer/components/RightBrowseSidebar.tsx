@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, BackOut, ImageChangeData, TagSuggestion } from '@shared/back/types';
+import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/types';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
@@ -628,13 +628,13 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onResponse: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, args) => {
     if (type === BackOut.IMAGE_CHANGE) {
-      const data: ImageChangeData = args[0];
+      const [ folder, id ] = args as Parameters<BackOutTemplate[typeof type]>;
 
       // Refresh image if it was replaced or removed
-      if (this.props.isEditing && this.props.currentGame && this.props.currentGame.id === data.id) {
-        if (data.folder === LOGOS) {
+      if (this.props.isEditing && this.props.currentGame && this.props.currentGame.id === id) {
+        if (folder === LOGOS) {
           this.checkImageExistance(LOGOS, this.props.currentGame.id);
-        } else if (data.folder === SCREENSHOTS) {
+        } else if (folder === SCREENSHOTS) {
           this.checkImageExistance(SCREENSHOTS, this.props.currentGame.id);
         }
       }
@@ -732,11 +732,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         fs.readFile(filePaths[0], (error, data) => {
           if (error) { console.error(error); }
           else {
-            window.Shared.back.send(BackIn.SAVE_IMAGE, {
-              folder: folder,
-              id: currentGame.id,
-              content: data.toString('base64'),
-            });
+            window.Shared.back.send(BackIn.SAVE_IMAGE, folder, currentGame.id, data.toString('base64'));
           }
         });
       }
@@ -748,10 +744,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   removeImage(folder: string): void {
     if (this.props.currentGame) {
-      window.Shared.back.send(BackIn.DELETE_IMAGE, {
-        folder: folder,
-        id: this.props.currentGame.id,
-      });
+      window.Shared.back.send(BackIn.DELETE_IMAGE, folder, this.props.currentGame.id);
     }
   }
 
@@ -775,11 +768,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
         const reader = new FileReader();
         reader.onloadend = () => {
           if (reader.result && typeof reader.result === 'object') {
-            window.Shared.back.send(BackIn.SAVE_IMAGE, {
-              folder: folder,
-              id: id,
-              content: Buffer.from(reader.result).toString('base64'),
-            });
+            window.Shared.back.send(BackIn.SAVE_IMAGE, folder, id, Buffer.from(reader.result).toString('base64'));
           }
         };
         reader.readAsArrayBuffer(file.slice(0, file.size - 1));
@@ -799,7 +788,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
   }
 
   onAddAppLaunch(addAppId: string): void {
-    window.Shared.back.send(BackIn.LAUNCH_ADDAPP, { id: addAppId });
+    window.Shared.back.send(BackIn.LAUNCH_ADDAPP, addAppId);
   }
 
   onAddAppDelete = (addAppId: string): void => {
@@ -869,7 +858,7 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
 
   onAddTagByString = (text: string): void => {
     if (text !== '') {
-      window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, { tag: text })
+      window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
       .then((tag) => {
         if (tag) {
           const game = this.props.currentGame;

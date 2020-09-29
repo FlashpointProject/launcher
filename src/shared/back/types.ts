@@ -157,81 +157,82 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.GENERIC_RESPONSE]: () => void;
   [BackIn.INIT_LISTEN]: () => InitEventData;
   [BackIn.GET_SUGGESTIONS]: () => GetSuggestionsResponseData;
-  [BackIn.GET_GAMES_TOTAL]: () => GetGamesTotalResponseData;
-  [BackIn.SET_LOCALE]: (data: SetLocaleData) => LocaleUpdateData;
-  [BackIn.GET_EXEC]: () => GetExecData;
-  [BackIn.SAVE_GAME]: (data: SaveGameData) => BrowseChangeData;
-  [BackIn.GET_GAME]: (data: GetGameData) => GetGameResponseData;
-  [BackIn.GET_ALL_GAMES]: () => GetAllGamesResponseData;
-  [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => RandomGamesResponseData;
-  [BackIn.LAUNCH_GAME]: (data: LaunchGameData) => void;
-  [BackIn.DELETE_GAME]: (data: DeleteGameData) => BrowseChangeData;
-  [BackIn.DUPLICATE_GAME]: (data: DuplicateGameData) => BrowseChangeData;
-  [BackIn.EXPORT_GAME]: (data: ExportGameData) => void;
-  [BackIn.LAUNCH_ADDAPP]: (data: LaunchAddAppData) => void;
-  [BackIn.SAVE_IMAGE]: (data: SaveImageData) => void;
-  [BackIn.DELETE_IMAGE]: (data: DeleteImageData) => void;
+  [BackIn.GET_GAMES_TOTAL]: () => number;
+  [BackIn.SET_LOCALE]: (data: string) => string;
+  [BackIn.GET_EXEC]: () => ExecMapping[];
+  [BackIn.SAVE_GAME]: (data: Game) => BrowseChangeData;
+  [BackIn.GET_GAME]: (id: string) => Game | undefined;
+  [BackIn.GET_ALL_GAMES]: () => Game[];
+  [BackIn.RANDOM_GAMES]: (data: RandomGamesData) => ViewGame[];
+  [BackIn.LAUNCH_GAME]: (id: string) => void;
+  [BackIn.DELETE_GAME]: (id: string) => BrowseChangeData;
+  [BackIn.DUPLICATE_GAME]: (id: string, dupeImages: boolean) => BrowseChangeData;
+  [BackIn.EXPORT_GAME]: (id: string, location: string, metaOnly: boolean) => void;
+  [BackIn.LAUNCH_ADDAPP]: (id: string) => void;
+  [BackIn.SAVE_IMAGE]: (folder: string, id: string, content: string) => void;
+  [BackIn.DELETE_IMAGE]: (folder: string, id: string) => void;
   [BackIn.QUICK_SEARCH]: () => void;
   [BackIn.ADD_LOG]: (data: ILogPreEntry & { logLevel: LogLevel }) => void;
-  [BackIn.SERVICE_ACTION]: (data: ServiceActionData) => void;
-  [BackIn.DUPLICATE_PLAYLIST]: (data: DuplicatePlaylistData) => void;
-  [BackIn.IMPORT_PLAYLIST]: (data: ImportPlaylistData) => void;
-  [BackIn.EXPORT_PLAYLIST]: (data: ExportPlaylistData) => void;
-  [BackIn.GET_PLAYLISTS]: () => GetPlaylistsResponse;
-  [BackIn.GET_PLAYLIST]: (data: GetPlaylistData) => GetPlaylistResponse;
-  [BackIn.SAVE_PLAYLIST]: (data: SavePlaylistData) => SavePlaylistResponse;
-  [BackIn.DELETE_PLAYLIST]: (data: DeletePlaylistData) => DeletePlaylistResponse;
+  [BackIn.SERVICE_ACTION]: (action: ProcessAction, id: string) => void;
+  [BackIn.DUPLICATE_PLAYLIST]: (data: string) => void;
+  [BackIn.IMPORT_PLAYLIST]: (filePath: string, library?: string) => void;
+  [BackIn.EXPORT_PLAYLIST]: (id: string, location: string) => void;
+  [BackIn.GET_PLAYLISTS]: () => Playlist[];
+  [BackIn.GET_PLAYLIST]: (playlistId: string) => Playlist;
+  [BackIn.SAVE_PLAYLIST]: (playlist: Playlist) => Playlist;
+  [BackIn.DELETE_PLAYLIST]: (playlistId: string) => Playlist;
   [BackIn.DELETE_ALL_PLAYLISTS]: () => void;
-  [BackIn.GET_PLAYLIST_GAME]: (data: GetPlaylistGameData) => GetPlaylistGameResponse;
-  [BackIn.ADD_PLAYLIST_GAME]: (data: AddPlaylistGameData) => void;
-  [BackIn.SAVE_PLAYLIST_GAME]: (data: SavePlaylistGameData) => SavePlaylistGameResponse;
-  [BackIn.DELETE_PLAYLIST_GAME]: (data: DeletePlaylistGameData) => DeletePlaylistGameResponse;
-  [BackIn.SAVE_LEGACY_PLATFORM]: (platform: SaveLegacyPlatformData) => void;
+  [BackIn.GET_PLAYLIST_GAME]: (playlistId: string, gameId: string) => PlaylistGame | undefined;
+  [BackIn.ADD_PLAYLIST_GAME]: (playlistId: string, gameId: string) => void;
+  [BackIn.SAVE_PLAYLIST_GAME]: (data: PlaylistGame) => PlaylistGame;
+  [BackIn.DELETE_PLAYLIST_GAME]: (playlistId: string, gameId: string) => PlaylistGame | undefined;
+  [BackIn.SAVE_LEGACY_PLATFORM]: (platform: Legacy_GamePlatform) => void;
   [BackIn.IMPORT_CURATION]: (data: ImportCurationData) => ImportCurationResponseData;
   [BackIn.LAUNCH_CURATION]: (data: LaunchCurationData) => void;
   [BackIn.LAUNCH_CURATION_ADDAPP]: (data: LaunchCurationAddAppData) => void;
   [BackIn.QUIT]: () => void;
 
   // Tag funcs
-  [BackIn.GET_OR_CREATE_TAG]: (data: TagGetOrCreateData) => TagGetOrCreateResponse;
-  [BackIn.GET_TAG_SUGGESTIONS]: (data: TagSuggestionsData) => TagSuggestionsResponse;
-  [BackIn.GET_TAG_BY_ID]: (data: TagByIdData) => TagByIdResponse;
-  [BackIn.GET_TAGS]: (data: TagFindData) => TagFindResponse;
-  [BackIn.GET_TAG]: (data: TagGetData) => TagGetResponse;
-  [BackIn.SAVE_TAG]: (data: TagSaveData) => TagSaveResponse;
-  [BackIn.DELETE_TAG]: (data: TagDeleteData) => TagDeleteResponse;
+  [BackIn.GET_OR_CREATE_TAG]: (tagName: string, tagCategory?: string) => Tag;
+  [BackIn.GET_TAG_SUGGESTIONS]: (data: string) => TagSuggestion[];
+  [BackIn.GET_TAG_BY_ID]: (data: number) => Tag | undefined;
+  [BackIn.GET_TAGS]: (data: string) => Tag[];
+  [BackIn.GET_TAG]: (data: string) => Tag | undefined;
+  [BackIn.SAVE_TAG]: (data: Tag) => Tag;
+  [BackIn.DELETE_TAG]: (data: number) => TagDeleteResponse;
   [BackIn.MERGE_TAGS]: (data: MergeTagData) => Tag;
   [BackIn.CLEANUP_TAG_ALIASES]: () => void;
   [BackIn.CLEANUP_TAGS]: () => void;
-  [BackIn.FIX_TAG_PRIMARY_ALIASES]: (data: TagPrimaryFixData) => TagPrimaryFixResponse;
+  [BackIn.FIX_TAG_PRIMARY_ALIASES]: (data: null) => number;
   [BackIn.EXPORT_TAGS]: (data: string) => number;
   [BackIn.IMPORT_TAGS]: (data: string) => number;
 
   // Tag Category funcs
-  [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategorySaveData) => TagCategorySaveResponse;
-  [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: TagCategoryByIdData) => TagCategoryByIdResponse;
-  [BackIn.DELETE_TAG_CATEGORY]: (data: TagCategoryDeleteData) => TagCategoryDeleteResponse;
+  [BackIn.SAVE_TAG_CATEGORY]: (data: TagCategory) => TagCategory;
+  [BackIn.GET_TAG_CATEGORY_BY_ID]: (data: number) => TagCategory | undefined;
+  [BackIn.DELETE_TAG_CATEGORY]: (data: number) => boolean;
 
   [BackIn.BROWSE_VIEW_PAGE]: (data: BrowseViewPageData) => BrowseViewPageResponseData<boolean>;
-  [BackIn.BROWSE_VIEW_INDEX]: (data: BrowseViewIndexData) => BrowseViewIndexResponse;
-  [BackIn.BROWSE_VIEW_KEYSET]: (data: BrowseViewKeysetData) => BrowseViewKeysetResponse;
+  /** @returns Index of the game (equal to or greater than 0 if found, otherwise -1). */
+  [BackIn.BROWSE_VIEW_INDEX]: (gameId: string, query: SearchGamesOpts) => number;
+  [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: SearchGamesOpts) => BrowseViewKeysetResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
-  [BackIn.UPDATE_CONFIG]: (data: UpdateConfigData) => void;
+  [BackIn.UPDATE_CONFIG]: (data: Partial<IAppConfigData>) => void;
   [BackIn.UPDATE_PREFERENCES]: (data: IAppPreferencesData) => void;
 
   // API
   [BackIn.SYNC_GAME_METADATA]: () => GameMetadataSyncResponse;
 
   // Meta edits
-  [BackIn.EXPORT_META_EDIT]: (data: ExportMetaEditData) => void;
-  [BackIn.IMPORT_META_EDITS]: () => ImportMetaEditResponseData;
+  [BackIn.EXPORT_META_EDIT]: (id: string, properties: MetaEditFlags) => void;
+  [BackIn.IMPORT_META_EDITS]: () => ImportMetaEditResult;
 
   // Extensions
-  [BackIn.RUN_COMMAND]: (data: RunCommandData) => RunCommandResponse;
+  [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
 
   // Misc
-  [BackIn.UPLOAD_LOG]: () => UploadLogResponse;
+  [BackIn.UPLOAD_LOG]: () => string | undefined;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {
@@ -239,42 +240,42 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
 
   [BackOut.GENERIC_RESPONSE]: () => void;
   [BackOut.INIT_EVENT]: (data: InitEventData) => void;
-  [BackOut.OPEN_MESSAGE_BOX]: (options: ShowMessageBoxData) => number;
-  [BackOut.OPEN_SAVE_DIALOG]: (options: ShowSaveDialogData) => string | undefined;
-  [BackOut.OPEN_OPEN_DIALOG]: (options: ShowOpenDialogData) => string[] | undefined;
-  [BackOut.OPEN_EXTERNAL]: (data: OpenExternalData) => void;
-  [BackOut.LOCALE_UPDATE]: (data: LocaleUpdateData) => void;
+  [BackOut.OPEN_MESSAGE_BOX]: (options: MessageBoxOptions) => number;
+  [BackOut.OPEN_SAVE_DIALOG]: (options: SaveDialogOptions) => string | undefined;
+  [BackOut.OPEN_OPEN_DIALOG]: (options: OpenDialogOptions) => string[] | undefined;
+  [BackOut.OPEN_EXTERNAL]: (url: string, options?: OpenExternalOptions) => void;
+  [BackOut.LOCALE_UPDATE]: (data: string) => void;
   [BackOut.GET_MAIN_INIT_DATA]: () => void;
   [BackOut.UPDATE_PREFERENCES_RESPONSE]: (data: IAppPreferencesData) => void;
-  [BackOut.IMAGE_CHANGE]: (data: ImageChangeData) => void;
-  [BackOut.LOG_ENTRY_ADDED]: (data: LogEntryAddedData) => void;
+  [BackOut.IMAGE_CHANGE]: (folder: string, id: string) => void;
+  [BackOut.LOG_ENTRY_ADDED]: (entry: ILogEntry, index: number) => void;
   [BackOut.SERVICE_CHANGE]: (data: IService) => void;
   [BackOut.SERVICE_REMOVED]: (processId: string) => void;
-  [BackOut.LANGUAGE_CHANGE]: (data: LanguageChangeData) => void;
-  [BackOut.LANGUAGE_LIST_CHANGE]: (data: LanguageListChangeData) => void;
+  [BackOut.LANGUAGE_CHANGE]: (data: LangContainer) => void;
+  [BackOut.LANGUAGE_LIST_CHANGE]: (data: LangFile[]) => void;
   [BackOut.IMPORT_PLAYLIST]: (data: Playlist) => void;
-  [BackOut.PLAYLISTS_CHANGE]: (data: PlaylistsChangeData) => void;
-  [BackOut.THEME_CHANGE]: (theme: ThemeChangeData) => void;
-  [BackOut.THEME_LIST_CHANGE]: (themes: ThemeListChangeData) => void;
+  [BackOut.PLAYLISTS_CHANGE]: (data: Playlist[]) => void;
+  [BackOut.THEME_CHANGE]: (theme: Theme) => void;
+  [BackOut.THEME_LIST_CHANGE]: (themes: Theme[]) => void;
   [BackOut.IMPORT_CURATION_RESPONSE]: () => void;
-  [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestionsResponse) => void;
-  [BackOut.GET_TAG_BY_ID]: (SAVE_TAGdata: TagByIdResponse) => TagByIdResponse;
-  [BackOut.GET_TAGS]: (data: TagFindResponse) => void;
-  [BackOut.GET_TAG]: (data: TagGetResponse) => void;
-  [BackOut.SAVE_TAG]: (data: TagSaveResponse) => void;
+  [BackOut.GET_TAG_SUGGESTIONS]: (data: TagSuggestion[]) => void;
+  [BackOut.GET_TAG_BY_ID]: (SAVE_TAGdata: Tag | undefined) => Tag | undefined;
+  [BackOut.GET_TAGS]: (data: Tag[]) => void;
+  [BackOut.GET_TAG]: (data: Tag | undefined) => void;
+  [BackOut.SAVE_TAG]: (data: Tag) => void;
   [BackOut.MERGE_TAGS]: (newTag: Tag) => void;
   [BackOut.EXPORT_TAGS]: (data: number) => void;
   [BackOut.IMPORT_TAGS]: (data: number) => void;
-  [BackOut.GET_TAG_CATEGORY_BY_ID]: (data: TagCategoryByIdResponse) => void;
-  [BackOut.SAVE_TAG_CATEGORY]: (data: TagCategorySaveResponse) => void;
-  [BackOut.DELETE_TAG_CATEGORY]: (data: TagCategoryDeleteResponse) => void;
-  [BackOut.TAG_CATEGORIES_CHANGE]: (cats: TagCategoriesChangeData) => void;
-  [BackOut.FIX_TAG_PRIMARY_ALIASES]: (data: TagPrimaryFixResponse) => void;
+  [BackOut.GET_TAG_CATEGORY_BY_ID]: (data: TagCategory | undefined) => void;
+  [BackOut.SAVE_TAG_CATEGORY]: (data: TagCategory) => void;
+  [BackOut.DELETE_TAG_CATEGORY]: (data: boolean) => void;
+  [BackOut.TAG_CATEGORIES_CHANGE]: (cats: TagCategory[]) => void;
+  [BackOut.FIX_TAG_PRIMARY_ALIASES]: (data: number) => void;
   [BackOut.SYNC_GAME_METADATA]: (data: GameMetadataSyncResponse) => void;
   [BackOut.QUIT]: () => void;
   [BackOut.RUN_COMMAND]: (data: RunCommandResponse) => void;
-  [BackOut.UPLOAD_LOG]: (getUrl: UploadLogResponse) => void;
-  [BackOut.DEV_CONSOLE_CHANGE]: (data: DevConsoleStatusResponse) => void;
+  [BackOut.UPLOAD_LOG]: (getUrl: string | undefined) => void;
+  [BackOut.DEV_CONSOLE_CHANGE]: (text: string) => void;
 }>
 
 export type BackInitArgs = {
@@ -334,93 +335,11 @@ export type GetSuggestionsResponseData = {
   appPaths: { [platform: string]: string; };
 }
 
-export type GetGamesTotalResponseData = number;
-
-export type SetLocaleData = string;
-
-export type LocaleUpdateData = string;
-
-export type GetExecData = ExecMapping[];
-
-export type ShowMessageBoxData = MessageBoxOptions;
-
-export type ShowMessageBoxResponse = number;
-
-export type ShowSaveDialogData = SaveDialogOptions;
-
-export type ShowSaveDialogResponse = string | undefined;
-
-export type ShowOpenDialogData = OpenDialogOptions;
-
-export type ShowOpenDialogResponse = string[] | undefined;
-
-export type OpenExternalData = {
-  url: string;
-  options?: OpenExternalOptions;
-}
-
-export type OpenExternalResponseData = {
-  error?: Error;
-}
-
-export type LaunchGameData = {
-  id: string;
-}
-
-export type SaveGameData = Game;
-
-export type SaveLegacyPlatformData = Legacy_GamePlatform;
-
-export type DeleteGameData = {
-  id: string;
-}
-
-export type DuplicateGameData = {
-  id: string;
-  dupeImages: boolean;
-}
-
-export type ExportGameData = {
-  id: string;
-  location: string;
-  metaOnly: boolean;
-}
-
-export type DuplicatePlaylistData = string;
-
-export type ImportPlaylistData = {
-  filePath: string;
-  library?: string;
-}
-
-export type ExportPlaylistData = {
-  id: string;
-  location: string;
-}
-
-export type GetGameData = {
-  id: string;
-}
-
-export type GetGameResponseData = {
-  game?: Game;
-}
-
-export type GetAllGamesResponseData = {
-  games: Game[];
-}
-
 export type RandomGamesData = {
   count: number;
   broken: boolean;
   extreme: boolean;
   excludedLibraries: string[];
-}
-
-export type RandomGamesResponseData = ViewGame[];
-
-export type LaunchAddAppData = {
-  id: string;
 }
 
 export type BrowseViewAllData = {
@@ -453,13 +372,6 @@ export type PageKeyset = Partial<Record<number, PageTuple>>;
 export type BrowseViewKeysetResponse = {
   keyset: PageKeyset;
   total: number;
-};
-
-export type BrowseViewKeysetData = {
-  /** Library to filter games by (only games in the library will be queried). */
-  library: string;
-  /** Query to filter games by. */
-  query: SearchGamesOpts;
 };
 
 export type RequestGameRange = {
@@ -503,30 +415,10 @@ export type BrowseViewPageResponseData<T extends boolean> = {
   library?: string;
 }
 
-export type BrowseViewIndexData = {
-  gameId: string;
-  query: SearchGamesOpts;
-}
-
 export type BrowseViewIndexResponse = {
   /** Index of the game (equal to or greater than 0 if found, otherwise -1). */
   index: number;
 }
-
-export type SaveImageData = {
-  folder: string;
-  id: string;
-  content: string;
-}
-
-export type DeleteImageData = {
-  folder: string;
-  id: string;
-}
-
-export type PlaylistsChangeData = Playlist[];
-
-export type TagCategoriesChangeData = TagCategory[];
 
 export type SearchGamesOpts = {
   /** Info to filter the search from */
@@ -536,13 +428,6 @@ export type SearchGamesOpts = {
   /** The way to order the games. */
   orderReverse: GameOrderReverse;
 }
-
-export type SearchGamesResponse = {
-  id?: string;
-  index?: number;
-}
-
-export type UpdateConfigData = Partial<IAppConfigData>;
 
 /** Shortend version of Game returned in searches, makes for better performance. */
 export type ViewGame = {
@@ -559,68 +444,6 @@ export type BrowseChangeData = {
   library?: string;
   gamesTotal: number;
 }
-
-export type ImageChangeData = {
-  folder: string;
-  id: string;
-}
-
-export type LogEntryAddedData = {
-  entry: ILogEntry;
-  index: number;
-}
-
-export type ServiceActionData = {
-  action: ProcessAction;
-  id: string;
-}
-
-export type ServiceChangeData = IService;
-
-export type LanguageChangeData = LangContainer;
-
-export type LanguageListChangeData = LangFile[];
-
-export type ThemeChangeData = Theme;
-
-export type ThemeListChangeData = Theme[];
-
-export type GetPlaylistsResponse = Playlist[];
-
-export type GetPlaylistData = string;
-
-export type GetPlaylistResponse = Playlist;
-
-export type SavePlaylistData = Playlist;
-
-export type SavePlaylistResponse = Playlist;
-
-export type DeletePlaylistData = string;
-
-export type DeletePlaylistResponse = Playlist;
-
-export type GetPlaylistGameData = {
-  gameId: string;
-  playlistId: string;
-}
-
-export type GetPlaylistGameResponse = PlaylistGame | undefined;
-
-export type DeletePlaylistGameData = {
-  gameId: string;
-  playlistId: string;
-}
-
-export type DeletePlaylistGameResponse = PlaylistGame | undefined;
-
-export type AddPlaylistGameData = {
-  playlistId: string;
-  gameId: string;
-}
-
-export type SavePlaylistGameData = PlaylistGame;
-
-export type SavePlaylistGameResponse = PlaylistGame;
 
 export type ImportCurationData = {
   curation: EditCuration;
@@ -658,39 +481,6 @@ export type TagSuggestion = {
   tag: Tag;
 }
 
-export type TagGetOrCreateData = {
-  tag: string,
-  tagCategory?: string
-};
-
-export type TagGetOrCreateResponse = Tag;
-
-export type TagByIdData = number;
-
-export type TagByIdResponse = Tag | undefined;
-
-export type TagSuggestionsData = string;
-
-export type TagSuggestionsResponse = TagSuggestion[];
-
-export type TagPrimaryFixData = null;
-
-export type TagPrimaryFixResponse = number;
-
-export type TagFindData = string;
-
-export type TagFindResponse = Tag[];
-
-export type TagGetData = string;
-
-export type TagGetResponse = Tag | undefined;
-
-export type TagSaveData = Tag;
-
-export type TagSaveResponse = Tag;
-
-export type TagDeleteData = number;
-
 export type TagDeleteResponse = {
   success: boolean;
   id: number;
@@ -708,34 +498,11 @@ export type MergeTagData = {
   makeAlias: boolean;
 }
 
-export type TagCategorySaveData = TagCategory;
-
-export type TagCategorySaveResponse = TagCategory;
-
-export type TagCategoryDeleteData = number;
-
-export type TagCategoryDeleteResponse = {
-  success: boolean;
-}
-
-export type TagCategoryByIdData = number;
-
-export type TagCategoryByIdResponse = TagCategory | undefined;
-
 export type GameMetadataSyncResponse = {
   total: number;
   successes: number;
   error?: string;
 }
-
-export type ExportMetaEditData = {
-  /** ID of the game to export meta from. */
-  id: string;
-  /** Properties to export. */
-  properties: MetaEditFlags;
-}
-
-export type ImportMetaEditResponseData = ImportMetaEditResult;
 
 export type ImportMetaEditResult = {
   /** If the import was aborted (either by the user or by the launcher). */
@@ -750,18 +517,7 @@ export type MetaEditGameNotFound = {
   id: string;
 }
 
-export type UploadLogResponse = string | undefined;
-
-export type RunCommandData = {
-  command: string;
-  args?: any[];
-};
-
 export type RunCommandResponse = {
   success: boolean;
   res: any;
-}
-
-export type DevConsoleStatusResponse = {
-  text: string;
 }

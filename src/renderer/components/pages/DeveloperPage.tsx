@@ -389,7 +389,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onRunCommand(script: DevScript) {
     setTimeout(async () => {
-      await window.Shared.back.request(BackIn.RUN_COMMAND, { command: script.command });
+      await window.Shared.back.request(BackIn.RUN_COMMAND, script.command);
     }, 0);
   }
 
@@ -794,13 +794,7 @@ function repeat(char: string, n: number): string {
 }
 
 function fetchAllGames(): Promise<Game[]> {
-  return new Promise((resolve, reject) => {
-    window.Shared.back.request(BackIn.GET_ALL_GAMES)
-    .then(data => {
-      if (data) { resolve(data.games); }
-      else { reject(new Error('Failed to fetch all games. Data is undefined.')); }
-    });
-  });
+  return window.Shared.back.request(BackIn.GET_ALL_GAMES);
 }
 
 async function importLegacyPlatforms(config: IAppConfigData, setText: (text: string) => void): Promise<void> {
@@ -838,7 +832,7 @@ async function importLegacyPlaylists(config: IAppConfigData): Promise<number> {
   for (const file of files) {
     if (file.toLowerCase().endsWith('.json')) {
       const fullPath = path.join(playlistsPath, file);
-      await window.Shared.back.request(BackIn.IMPORT_PLAYLIST, { filePath: fullPath });
+      await window.Shared.back.request(BackIn.IMPORT_PLAYLIST, fullPath);
       playlistsImported++;
     }
   }

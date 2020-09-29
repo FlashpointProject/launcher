@@ -147,7 +147,7 @@ function displayDetails(info: IBackProcessInfo): void {
  */
 function useProcessActionCallback(action: ProcessAction, id: string): () => void {
   return React.useCallback(() => {
-    window.Shared.back.send(BackIn.SERVICE_ACTION, { id, action });
+    window.Shared.back.send(BackIn.SERVICE_ACTION, action, id);
   }, [id]);
 }
 

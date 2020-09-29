@@ -139,7 +139,7 @@ export function CurateBox(props: CurateBoxProps) {
 
   const onAddTagByString = useCallback((text: string): void => {
     if (text !== '') {
-      window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, { tag: text })
+      window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
       .then((tag) => {
         if (tag) {
           const curation = props.curation;
