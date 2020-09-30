@@ -6,7 +6,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
-import { BackInit, BackInitArgs, BackOut } from '@shared/back/types';
+import { BackInit, BackInitArgs, BackOut, BackIn } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
@@ -140,6 +140,54 @@ main();
 
 async function main() {
   registerRequestCallbacks(state);
+
+  // Database manipulation
+  // Anything that reads from the database and then writes to it (or a file) should go in this queue!
+  // (Since it can cause rare race conditions that corrupts data permanently)
+  state.socketServer.addQueue([
+    // Game
+    BackIn.SAVE_GAME,
+    BackIn.DELETE_GAME,
+    BackIn.DUPLICATE_GAME,
+    BackIn.EXPORT_GAME,
+    // Playlist
+    BackIn.DUPLICATE_PLAYLIST,
+    BackIn.IMPORT_PLAYLIST,
+    BackIn.EXPORT_PLAYLIST,
+    BackIn.EXPORT_PLAYLIST,
+    BackIn.GET_PLAYLISTS,
+    BackIn.GET_PLAYLIST,
+    BackIn.SAVE_PLAYLIST,
+    BackIn.DELETE_PLAYLIST,
+    BackIn.DELETE_ALL_PLAYLISTS,
+    BackIn.ADD_PLAYLIST_GAME,
+    BackIn.SAVE_PLAYLIST_GAME,
+    BackIn.DELETE_PLAYLIST_GAME,
+    BackIn.SAVE_LEGACY_PLATFORM,
+    // Tags
+    BackIn.GET_OR_CREATE_TAG,
+    BackIn.SAVE_TAG,
+    BackIn.DELETE_TAG,
+    BackIn.MERGE_TAGS,
+    BackIn.CLEANUP_TAG_ALIASES,
+    BackIn.CLEANUP_TAGS,
+    BackIn.FIX_TAG_PRIMARY_ALIASES,
+    BackIn.EXPORT_TAGS,
+    BackIn.IMPORT_TAGS,
+    // Tag Categories
+    BackIn.SAVE_TAG_CATEGORY,
+    BackIn.GET_TAG_CATEGORY_BY_ID,
+    BackIn.DELETE_TAG_CATEGORY,
+    // Curation
+    BackIn.IMPORT_CURATION,
+    BackIn.LAUNCH_CURATION,
+    BackIn.LAUNCH_CURATION_ADDAPP,
+    // ?
+    BackIn.SYNC_GAME_METADATA,
+    // Meta Edits
+    BackIn.EXPORT_META_EDIT,
+    BackIn.IMPORT_META_EDITS,
+  ]);
 
   process.on('message', onProcessMessage);
   process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)

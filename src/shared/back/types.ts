@@ -37,7 +37,6 @@ export enum BackIn {
   LAUNCH_ADDAPP,
   SAVE_IMAGE,
   DELETE_IMAGE,
-  QUICK_SEARCH,
   ADD_LOG,
   SERVICE_ACTION,
   DUPLICATE_PLAYLIST,
@@ -168,7 +167,6 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.LAUNCH_ADDAPP]: (id: string) => void;
   [BackIn.SAVE_IMAGE]: (folder: string, id: string, content: string) => void;
   [BackIn.DELETE_IMAGE]: (folder: string, id: string) => void;
-  [BackIn.QUICK_SEARCH]: () => void;
   [BackIn.ADD_LOG]: (data: ILogPreEntry & { logLevel: LogLevel }) => void;
   [BackIn.SERVICE_ACTION]: (action: ProcessAction, id: string) => void;
   [BackIn.DUPLICATE_PLAYLIST]: (data: string) => void;

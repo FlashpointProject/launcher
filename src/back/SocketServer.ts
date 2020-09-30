@@ -1,24 +1,32 @@
+import { OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from '@back/types';
 import { BackIn, BackInTemplate, BackOut, BackOutTemplate } from '@shared/back/types';
 import { parse_message_data, validate_socket_message } from '@shared/socket/shared';
 import { api_handle_message, api_register, api_register_any, api_unregister, api_unregister_any, create_api, SocketAPIData } from '@shared/socket/SocketAPI';
 import { create_server, server_add_client, server_broadcast, server_request, server_send, SocketServerData } from '@shared/socket/SocketServer';
-import { SocketRequestData } from '@shared/socket/types';
+import { SocketRequestData, SocketResponseData } from '@shared/socket/types';
 import * as http from 'http';
 import * as ws from 'ws';
-import { OpenExternalFunc, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc } from './types';
 
 type BackAPI = SocketAPIData<BackIn, BackInTemplate, MsgEvent>
 type BackClients = SocketServerData<BackOut, BackOutTemplate, ws>
 type BackClient = BackClients['clients'][number]
 
-type QueuedMessage = {
-  event: ws.MessageEvent;
-  req: SocketRequestData;
-}
-
 type MsgEvent = {
   wsEvent: ws.MessageEvent;
   client: BackClient;
+}
+
+type RequestQueue = {
+  /** Messages that are currently in the queue. */
+  items: RequestQueueItem[];
+  /** Types of the requests that should be put into this queue. */
+  types: BackIn[];
+  isExecuting: boolean;
+}
+
+type RequestQueueItem = {
+  event: ws.MessageEvent;
+  req: SocketRequestData;
 }
 
 /** Callback that is registered to a specific type. */
@@ -38,8 +46,8 @@ export class SocketServer {
   /** Secret value used for authentication. */
   secret: any;
 
-  queue: QueuedMessage[] = [];
-  isHandling = false;
+  /** Queues for incoming requests. */
+  queues: RequestQueue[] = [];
 
   lastClient?: BackClient;
 
@@ -116,6 +124,28 @@ export class SocketServer {
     };
   }
 
+  // Queue
+
+  /**
+   * Create and add a new queue.
+   * @param types Types of requests that should be put into this queue.
+   */
+  public addQueue(types: BackIn[]): void {
+    for (const queue of this.queues) {
+      for (const type of queue.types) {
+        if (types.indexOf(type) >= 0) {
+          console.error(`A message type MUST NOT appear in more than one queue! (type: "${BackIn[type]}")`);
+        }
+      }
+    }
+
+    this.queues.push({
+      items: [],
+      types: [ ...types ],
+      isExecuting: false,
+    });
+  }
+
   // API
 
   public register<TYPE extends BackIn>(type: TYPE, callback: Callback<MsgEvent, BackInTemplate[TYPE]>): void {
@@ -166,37 +196,7 @@ export class SocketServer {
     };
   }
 
-  /*
-  private onMessageWrap = async (event: ws.MessageEvent): Promise<void> => {
-    const [req, error] = parseWrappedRequest(event.data);
-    if (error || !req) {
-      console.error('Failed to parse incoming WebSocket request:\n', error);
-      return;
-    }
-
-    // Responses are handled instantly - requests and handled in queue
-    // (The back could otherwise "soft lock" if it makes a request to the renderer while it is itself handling a request)
-    if (req.type === BackIn.GENERIC_RESPONSE) {
-      this.emitter.emit(req.id, event, req);
-    } else {
-      this.queue.push({ event, req });
-      if (!this.isHandling) {
-        this.isHandling = true;
-        while (this.queue.length > 0) {
-          const message = this.queue.shift();
-          if (message) { await this.onMessage(message); }
-        }
-        this.isHandling = false;
-      }
-    }
-  }
-  */
-
   protected async onMessage(event: ws.MessageEvent): Promise<void> {
-    log('Socket Server - Message received');
-
-    // Parse
-
     const [parsed_data, parse_error] = parse_message_data(event.data);
 
     if (parse_error) {
@@ -204,14 +204,39 @@ export class SocketServer {
       return;
     }
 
-    // Validate
+    const [msg, msg_error] = validate_socket_message<any>(parsed_data);
 
-    const [data, data_error] = validate_socket_message<any>(parsed_data);
-
-    if (!data || data_error) {
-      console.error('Failed to validate message data.', data_error || '');
+    if (!msg || msg_error) {
+      console.error('Failed to validate message data.', msg_error || '');
       return;
     }
+
+    if ('type' in msg) { // Request
+      const queue = this.queues.find(q => q.types.indexOf(msg.type) >= 0);
+
+      if (queue) {
+        queue.items.push({ event: event, req: msg });
+
+        if (!queue.isExecuting) {
+          queue.isExecuting = true;
+          while (queue.items.length > 0) {
+            const item = queue.items.shift();
+            if (item) {
+              await this.handleMessage(item.event, item.req);
+            }
+          }
+          queue.isExecuting = false;
+        }
+      } else {
+        this.handleMessage(event, msg);
+      }
+    } else { // Response
+      this.handleMessage(event, msg);
+    }
+  }
+
+  protected async handleMessage(event: ws.MessageEvent, data: SocketRequestData | SocketResponseData<any>): Promise<void> {
+    log('Socket Server - Message received');
 
     // Prepare event
 
