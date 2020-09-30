@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
-import { BackIn, BackInit, BackOut, BrowseViewKeysetData, BrowseViewKeysetResponse, BrowseViewPageData, BrowseViewPageResponseData, DeleteGameData, DevConsoleStatusResponse, ExportMetaEditData, GetGamesTotalResponseData, GetPlaylistsResponse, GetSuggestionsResponseData, InitEventData, LanguageChangeData, LanguageListChangeData, LaunchGameData, LocaleUpdateData, LogEntryAddedData, PlaylistsChangeData, RandomGamesData, RandomGamesResponseData, SaveGameData, SavePlaylistGameData, ServiceChangeData, TagCategoriesChangeData, ThemeChangeData, ThemeListChangeData, UpdateConfigData } from '@shared/back/types';
+import { BackIn, BackInit, BackOut } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
 import { ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -112,151 +112,160 @@ export class App extends React.Component<AppProps> {
       updatePreferencesData({ mainWindow: { maximized: isMaximized } });
     });
 
-    window.Shared.back.send<InitEventData>(BackIn.INIT_LISTEN, undefined, res => {
-      if (!res.data) { throw new Error('INIT_LISTEN response is missing data.'); }
+    window.Shared.back.request(BackIn.INIT_LISTEN)
+    .then(data => {
+      if (!data) { throw new Error('INIT_LISTEN response is missing data.'); }
       this.props.dispatchMain({
         type: MainActionType.ADD_LOADED,
-        loaded: res.data.done,
+        loaded: data.done,
       });
     });
 
-    window.Shared.back.send<GetGamesTotalResponseData>(BackIn.GET_GAMES_TOTAL, undefined, res => {
-      if (res.data) {
+    window.Shared.back.request(BackIn.GET_GAMES_TOTAL)
+    .then(data => {
+      if (data) {
         this.props.dispatchMain({
           type: MainActionType.SET_GAMES_TOTAL,
-          total: res.data,
+          total: data,
         });
       }
     });
 
-    window.Shared.back.send<GetSuggestionsResponseData>(BackIn.GET_SUGGESTIONS, undefined, res => {
-      if (res.data) {
+    window.Shared.back.request(BackIn.GET_SUGGESTIONS)
+    .then(data => {
+      if (data) {
         this.props.dispatchMain({
           type: MainActionType.SET_SUGGESTIONS,
-          suggestions: res.data.suggestions,
-          appPaths: res.data.appPaths,
+          suggestions: data.suggestions,
+          appPaths: data.appPaths,
         });
       }
     });
 
-    window.Shared.back.on('message', res => {
-      // console.log('IN', res);
-      switch (res.type) {
-        case BackOut.INIT_EVENT: {
-          const resData: InitEventData = res.data;
+    // Register API handlers
 
-          for (const index of resData.done) {
-            switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
-              case BackInit.PLAYLISTS:
-                window.Shared.back.send<GetPlaylistsResponse>(BackIn.GET_PLAYLISTS, undefined, res => {
-                  if (res.data) {
-                    this.props.setMainState({ playlists: res.data });
-                    this.cachePlaylistIcons(res.data);
-                  }
-                });
-                break;
-            }
-          }
-
-          this.props.dispatchMain({
-            type: MainActionType.ADD_LOADED,
-            loaded: resData.done,
-          });
-        } break;
-
-        case BackOut.LOG_ENTRY_ADDED: {
-          const resData: LogEntryAddedData = res.data;
-          window.Shared.log.entries[resData.index - window.Shared.log.offset] = resData.entry;
-        } break;
-
-        case BackOut.LOCALE_UPDATE: {
-          const resData: LocaleUpdateData = res.data;
-          this.props.dispatchMain({
-            type: MainActionType.SET_LOCALE,
-            localeCode: resData,
-          });
-        } break;
-
-        case BackOut.SERVICE_CHANGE: {
-          const resData: ServiceChangeData = res.data;
-          if (resData.id) {
-            const service = window.Shared.services.find(item => item.id === resData.id);
-            if (service) {
-              recursiveReplace(service, resData);
-            } else {
-              window.Shared.services.push(recursiveReplace({
-                id: 'invalid',
-                name: 'Invalid',
-                state: ProcessState.STOPPED,
-                pid: -1,
-                startTime: 0,
-                info: {
-                  path: '',
-                  filename: '',
-                  arguments: [],
-                  kill: false,
-                },
-              }, resData));
-            }
-          } else { throw new Error('Service update did not reference a service.'); }
-        } break;
-
-        case BackOut.SERVICE_REMOVED: {
-          const id: string = res.data;
-          const index = window.Shared.services.findIndex(s => s.id === id);
-          if (index > -1) {
-            window.Shared.services.splice(index, 1);
-          }
-        } break;
-
-        case BackOut.LANGUAGE_CHANGE: {
-          const resData: LanguageChangeData = res.data;
-          this.props.dispatchMain({
-            type: MainActionType.SET_LANGUAGE,
-            lang: resData,
-          });
-        } break;
-
-        case BackOut.LANGUAGE_LIST_CHANGE: {
-          const resData: LanguageListChangeData = res.data;
-          this.props.dispatchMain({
-            type: MainActionType.SET_LANGUAGE_LIST,
-            langList: resData,
-          });
-        } break;
-
-        case BackOut.THEME_CHANGE: {
-          const resData: ThemeChangeData = res.data;
-          if (resData.id === this.props.preferencesData.currentTheme) { setTheme(resData); }
-        } break;
-
-        case BackOut.THEME_LIST_CHANGE: {
-          const resData: ThemeListChangeData = res.data;
-          this.props.dispatchMain({
-            type: MainActionType.SET_THEME_LIST,
-            themeList: resData,
-          });
-        } break;
-
-        case BackOut.PLAYLISTS_CHANGE: {
-          const resData: PlaylistsChangeData = res.data;
-          this.props.dispatchMain({
-            type: MainActionType.SET_PLAYLISTS,
-            playlists: resData,
-          });
-          this.cachePlaylistIcons(resData);
-        } break;
-
-        case BackOut.TAG_CATEGORIES_CHANGE: {
-          const resData: TagCategoriesChangeData = res.data;
-          this.props.setTagCategories(resData);
-        } break;
-
-        case BackOut.DEV_CONSOLE_CHANGE: {
-          const resData: DevConsoleStatusResponse = res.data;
-          this.props.setMainState({ devConsole: resData.text });
+    // console.log('IN', res);
+    window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
+      for (const index of data.done) {
+        switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
+          case BackInit.PLAYLISTS:
+            window.Shared.back.request(BackIn.GET_PLAYLISTS).then(data => {
+              if (data) {
+                this.props.setMainState({ playlists: data });
+                this.cachePlaylistIcons(data);
+              }
+            });
+            break;
         }
       }
+
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: data.done,
+      });
+    });
+
+    window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
+      for (const index of data.done) {
+        switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
+          case BackInit.PLAYLISTS:
+            window.Shared.back.request(BackIn.GET_PLAYLISTS)
+            .then(data => {
+              if (data) {
+                this.props.setMainState({ playlists: data });
+                this.cachePlaylistIcons(data);
+              }
+            });
+            break;
+        }
+      }
+
+      this.props.dispatchMain({
+        type: MainActionType.ADD_LOADED,
+        loaded: data.done,
+      });
+    });
+
+    window.Shared.back.register(BackOut.LOG_ENTRY_ADDED, (event, entry, index) => {
+      window.Shared.log.entries[index - window.Shared.log.offset] = entry;
+    });
+
+    window.Shared.back.register(BackOut.LOCALE_UPDATE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_LOCALE,
+        localeCode: data,
+      });
+    });
+
+    window.Shared.back.register(BackOut.SERVICE_CHANGE, (event, data) => {
+      if (data.id) {
+        const service = window.Shared.services.find(item => item.id === data.id);
+        if (service) {
+          recursiveReplace(service, data);
+        } else {
+          window.Shared.services.push(recursiveReplace({
+            id: 'invalid',
+            name: 'Invalid',
+            state: ProcessState.STOPPED,
+            pid: -1,
+            startTime: 0,
+            info: {
+              path: '',
+              filename: '',
+              arguments: [],
+              kill: false,
+            },
+          }, data));
+        }
+      } else { throw new Error('Service update did not reference a service.'); }
+    });
+
+    window.Shared.back.register(BackOut.SERVICE_REMOVED, (event, id) => {
+      const index = window.Shared.services.findIndex(s => s.id === id);
+      if (index > -1) {
+        window.Shared.services.splice(index, 1);
+      }
+    });
+
+    window.Shared.back.register(BackOut.LANGUAGE_CHANGE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_LANGUAGE,
+        lang: data,
+      });
+    });
+
+    window.Shared.back.register(BackOut.LANGUAGE_LIST_CHANGE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_LANGUAGE_LIST,
+        langList: data,
+      });
+    });
+
+    window.Shared.back.register(BackOut.THEME_CHANGE, (event, theme) => {
+      if (theme.id === this.props.preferencesData.currentTheme) { setTheme(theme); }
+    });
+
+    window.Shared.back.register(BackOut.THEME_LIST_CHANGE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_THEME_LIST,
+        themeList: data,
+      });
+    });
+
+    window.Shared.back.register(BackOut.PLAYLISTS_CHANGE, (event, data) => {
+      this.props.dispatchMain({
+        type: MainActionType.SET_PLAYLISTS,
+        playlists: data,
+      });
+      this.cachePlaylistIcons(data);
+    });
+
+    window.Shared.back.register(BackOut.TAG_CATEGORIES_CHANGE, (event, data) => {
+      this.props.setTagCategories(data);
+    });
+
+    window.Shared.back.register(BackOut.DEV_CONSOLE_CHANGE, (event, text) => {
+      this.props.setMainState({ devConsole: text });
     });
 
     // Cache playlist icons (if they are loaded)
@@ -430,7 +439,7 @@ export class App extends React.Component<AppProps> {
 
         if (pages && pages.length > 0) {
           // Request pages
-          window.Shared.back.sendP<BrowseViewPageResponseData<boolean>, BrowseViewPageData>(BackIn.BROWSE_VIEW_PAGE, {
+          window.Shared.back.request(BackIn.BROWSE_VIEW_PAGE, {
             ranges: pages.map(index => ({
               start: index * VIEW_PAGE_SIZE,
               length: VIEW_PAGE_SIZE,
@@ -439,13 +448,14 @@ export class App extends React.Component<AppProps> {
             library: library,
             query: view.query,
             shallow: true,
-          }).then((res) => {
-            if (res.data) {
+          })
+          .then((data) => {
+            if (data) {
               this.props.dispatchMain({
                 type: MainActionType.ADD_VIEW_PAGES,
                 library: library,
                 queryId: view.queryId,
-                ranges: res.data.ranges,
+                ranges: data.ranges,
               });
             } else {
               console.error('BROWSE_VIEW_PAGE response contains no data.');
@@ -468,17 +478,15 @@ export class App extends React.Component<AppProps> {
       // Check if the meta has not yet been requested
       if (v && v.metaState === RequestState.WAITING) {
         // Request meta
-        window.Shared.back.sendP<BrowseViewKeysetResponse, BrowseViewKeysetData>(BackIn.BROWSE_VIEW_KEYSET, {
-          query: v.query,
-          library: l,
-        }).then((res) => {
-          if (res.data) {
+        window.Shared.back.request(BackIn.BROWSE_VIEW_KEYSET, l, v.query)
+        .then((data) => {
+          if (data) {
             this.props.dispatchMain({
               type: MainActionType.SET_VIEW_META,
               library: l,
               queryId: v.queryId,
-              keyset: res.data.keyset,
-              total: res.data.total,
+              keyset: data.keyset,
+              total: data.total,
             });
           }
         });
@@ -747,10 +755,10 @@ export class App extends React.Component<AppProps> {
   }
 
   onSaveGame = (game: Game, playlistEntry?: PlaylistGame): void => {
-    window.Shared.back.sendP<any, SaveGameData>(BackIn.SAVE_GAME, game)
+    window.Shared.back.request(BackIn.SAVE_GAME, game)
     .then(async () => {
       if (playlistEntry) {
-        await window.Shared.back.sendP<unknown, SavePlaylistGameData>(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
+        await window.Shared.back.send(BackIn.SAVE_PLAYLIST_GAME, playlistEntry);
       }
     })
     .then(() => { this.setViewQuery(game.library); });
@@ -758,12 +766,12 @@ export class App extends React.Component<AppProps> {
 
   onDeleteGame = (gameId: string): void => {
     const library = getBrowseSubPath(this.props.location.pathname);
-    window.Shared.back.sendP<unknown, DeleteGameData>(BackIn.DELETE_GAME, { id: gameId })
+    window.Shared.back.request(BackIn.DELETE_GAME, gameId)
     .then(() => { this.setViewQuery(library); });
   }
 
   onLaunchGame(gameId: string): void {
-    window.Shared.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
+    window.Shared.back.send(BackIn.LAUNCH_GAME, gameId);
   }
 
   onQuickSearch = (search: string): void => {
@@ -856,10 +864,7 @@ export class App extends React.Component<AppProps> {
 
   onConfirmExportMetaEdit = (data: MetaEditExporterConfirmData): void => {
     this.props.dispatchMain({ type: MainActionType.CLOSE_META_EXPORTER });
-    window.Shared.back.sendP<any, ExportMetaEditData>(BackIn.EXPORT_META_EDIT, {
-      id: data.id,
-      properties: data.properties,
-    });
+    window.Shared.back.send(BackIn.EXPORT_META_EDIT, data.id, data.properties);
   }
 
   rollRandomGames = (first?: boolean) => {
@@ -874,15 +879,16 @@ export class App extends React.Component<AppProps> {
     if (randomGames.length <= 15 && !requestingRandomGames) {
       this.props.dispatchMain({ type: MainActionType.REQUEST_RANDOM_GAMES });
 
-      window.Shared.back.send<RandomGamesResponseData, RandomGamesData>(BackIn.RANDOM_GAMES, {
+      window.Shared.back.request(BackIn.RANDOM_GAMES, {
         count: 50,
         broken: window.Shared.config.data.showBrokenGames,
         extreme: this.props.preferencesData.browsePageShowExtreme,
         excludedLibraries: this.props.preferencesData.excludedRandomLibraries,
-      }, (res) => {
+      })
+      .then((data) => {
         this.props.dispatchMain({
           type: MainActionType.RESPONSE_RANDOM_GAMES,
-          games: res.data || [],
+          games: data || [],
         });
       });
     }
@@ -934,9 +940,10 @@ async function downloadAndInstallStage(stage: UpgradeStage, setStageState: (id: 
       flashpointPath = chosenPath;
       fs.ensureDirSync(flashpointPath);
       // Save picked folder to config
-      window.Shared.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
+      window.Shared.back.request(BackIn.UPDATE_CONFIG, {
         flashpointPath: flashpointPath,
-      }, () => { /* window.Shared.restart(); */ });
+      })
+      .then(() => { /* window.Shared.restart(); */ });
     }
   }
   // Flag as installing

@@ -1,5 +1,5 @@
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { BackIn, ImportCurationData, ImportCurationResponseData } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { ARCADE } from '@shared/constants';
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { convertEditToCurationMetaFile, convertParsedToCurationMeta } from '@shared/curate/metaToMeta';
@@ -140,16 +140,15 @@ export function CuratePage(props: CuratePageProps) {
 
   // Import a curation callback
   const importCurationCallback = useCallback((curation: EditCuration, log?: boolean, date?: Date) => {
-    return window.Shared.back.sendP<ImportCurationResponseData, ImportCurationData>(
-      BackIn.IMPORT_CURATION, {
-        curation: curation,
-        log: log,
-        date: date,
-        saveCuration: props.preferencesData.saveImportedCurations
-      }
-    ).then<undefined>(res => new Promise((resolve, reject) => {
-      if (res.data && res.data.error) {
-        reject(res.data.error);
+    return window.Shared.back.request(BackIn.IMPORT_CURATION, {
+      curation: curation,
+      log: log,
+      date: date,
+      saveCuration: props.preferencesData.saveImportedCurations
+    })
+    .then<undefined>(data => new Promise((resolve, reject) => {
+      if (data && data.error) {
+        reject(data.error);
       } else {
         resolve();
       }
@@ -322,10 +321,8 @@ export function CuratePage(props: CuratePageProps) {
       // Don't use percentDone
       ProgressDispatch.setUsePercentDone(statusProgress, false);
       for (const archivePath of filePaths) {
-        // Mark as indexed so can index ourselves after extraction
-        const key = uuid();
         // Extract files to curation folder
-        await importCurationArchive(archivePath, key, newProgress(progressKey, progressDispatch))
+        await importCurationArchive(archivePath, props.preferencesData.keepArchiveKey, newProgress(progressKey, progressDispatch))
         .then(async key => {
           const curationPath = path.join(window.Shared.config.fullFlashpointPath, 'Curations', 'Working', key);
           await loadCurationFolder(key, curationPath, defaultGameMetaValues, dispatch, props);
@@ -338,7 +335,7 @@ export function CuratePage(props: CuratePageProps) {
       }
     }
     ProgressDispatch.finished(statusProgress);
-  }, [dispatch, indexedCurations, setIndexedCurations]);
+  }, [dispatch, indexedCurations, setIndexedCurations, props.preferencesData.keepArchiveKey]);
 
   // Load Curation Folder Callback
   const onLoadCurationFolderClick = useCallback(async () => {
@@ -418,6 +415,13 @@ export function CuratePage(props: CuratePageProps) {
   const onSaveImportsToggle = useCallback((isChecked: boolean) => {
     updatePreferencesData({
       saveImportedCurations: isChecked
+    });
+  }, []);
+
+  // On keep archive key toggle
+  const onKeepArchiveKeyToggle = useCallback((isChecked: boolean) => {
+    updatePreferencesData({
+      keepArchiveKey: isChecked
     });
   }, []);
 
@@ -589,6 +593,13 @@ export function CuratePage(props: CuratePageProps) {
             </div>
             <div className='curate-page__floating-box__divider'/>
             <div className='curate-page__checkbox'>
+              <div className='curate-page__checkbox-text'>{strings.curate.keepArchiveKey}</div>
+              <CheckBox
+                onToggle={onKeepArchiveKeyToggle}
+                checked={props.preferencesData.keepArchiveKey} />
+            </div>
+            <div className='curate-page__floating-box__divider'/>
+            <div className='curate-page__checkbox'>
               <div className='curate-page__checkbox-text'>{strings.curate.symlinkCurationContent}</div>
               <CheckBox
                 onToggle={onSymlinkCurationContentToggle}
@@ -601,7 +612,7 @@ export function CuratePage(props: CuratePageProps) {
   ), [curateBoxes, progressComponent, strings, state.curations.length,
     onImportAllClick, onLoadCurationArchiveClick, onLoadCurationFolderClick, onLoadMetaClick,
     props.preferencesData.curatePageLeftSidebarWidth, props.preferencesData.browsePageShowLeftSidebar,
-    props.preferencesData.saveImportedCurations, props.preferencesData.symlinkCurationContent]);
+    props.preferencesData.saveImportedCurations, props.preferencesData.keepArchiveKey, props.preferencesData.symlinkCurationContent]);
 }
 
 function renderImportAllButton({ activate, activationCounter, reset, extra }: ConfirmElementArgs<[LangContainer['curate'], boolean]>): JSX.Element {

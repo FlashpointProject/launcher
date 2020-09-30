@@ -1,5 +1,5 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
-import { BackIn, UpdateConfigData } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
@@ -471,13 +471,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onAppPathOverridePathChange = (index: number, newPath: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths[index].path = newPath;
+    newPaths[index] = { ...newPaths[index], path: newPath };
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 
   onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths[index].override = newOverride;
+    newPaths[index] = { ...newPaths[index], override: newOverride };
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 
@@ -563,13 +563,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
     // Save new config to file, then restart the app
-    window.Shared.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
+    window.Shared.back.request(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       metadataServerHost: this.state.metadataServerHost,
       useCustomTitlebar: this.state.useCustomTitlebar,
       nativePlatforms: this.state.nativePlatforms,
       server: this.state.server,
-    }, () => { window.Shared.restart(); });
+    }).then(() => { window.Shared.restart(); });
   }
 
   static contextType = LangContext;

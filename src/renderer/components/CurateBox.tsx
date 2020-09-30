@@ -3,7 +3,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { createCurationIndexImage } from '@renderer/curate/importCuration';
 import { useDelayedThrottle } from '@renderer/hooks/useThrottle';
-import { BackIn, LaunchCurationData, TagByIdData, TagByIdResponse, TagGetOrCreateData, TagGetOrCreateResponse, TagSuggestion, TagSuggestionsData, TagSuggestionsResponse } from '@shared/back/types';
+import { BackIn, TagSuggestion } from '@shared/back/types';
 import { htdocsPath } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
@@ -100,10 +100,9 @@ export function CurateBox(props: CurateBoxProps) {
 
     if (newTag !== '') {
       // Delayed set
-      window.Shared.back.send<TagSuggestionsResponse, TagSuggestionsData>(BackIn.GET_TAG_SUGGESTIONS, newTag, (res) => {
-        if (res.data) {
-          setTagSuggestions(res.data);
-        }
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag)
+      .then((data) => {
+        if (data) { setTagSuggestions(data); }
       });
     } else {
       newSuggestions = [];
@@ -115,8 +114,8 @@ export function CurateBox(props: CurateBoxProps) {
 
   const onAddTagSuggestion = useCallback((suggestion: TagSuggestion) => {
     if (suggestion.tag.id) {
-      window.Shared.back.send<TagByIdResponse, TagByIdData>(BackIn.GET_TAG_BY_ID, suggestion.tag.id, (res) => {
-        const tag = res.data;
+      window.Shared.back.request(BackIn.GET_TAG_BY_ID, suggestion.tag.id)
+      .then((tag) => {
         if (tag) {
           const curation = props.curation;
           const oldTags = curation ? (curation.meta.tags || []) : [];
@@ -140,8 +139,8 @@ export function CurateBox(props: CurateBoxProps) {
 
   const onAddTagByString = useCallback((text: string): void => {
     if (text !== '') {
-      window.Shared.back.send<TagGetOrCreateResponse, TagGetOrCreateData>(BackIn.GET_OR_CREATE_TAG, { tag: text }, (res) => {
-        const tag = res.data;
+      window.Shared.back.request(BackIn.GET_OR_CREATE_TAG, text)
+      .then((tag) => {
         if (tag) {
           const curation = props.curation;
           if (curation && curation.meta.tags && curation.meta.tags.findIndex(t => t.id == tag.id) == -1) {
@@ -301,7 +300,7 @@ export function CurateBox(props: CurateBoxProps) {
       const statusProgress = newProgress(props.curation.key, progressDispatch);
       ProgressDispatch.setText(statusProgress, 'Launching Curation...');
       ProgressDispatch.setUsePercentDone(statusProgress, false);
-      await window.Shared.back.sendP<any, LaunchCurationData>(BackIn.LAUNCH_CURATION, {
+      await window.Shared.back.request(BackIn.LAUNCH_CURATION, {
         key: props.curation.key,
         meta: props.curation.meta,
         addApps: props.curation.addApps.map(addApp => addApp.meta),

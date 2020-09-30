@@ -1,6 +1,7 @@
-import { BackIn, BackOut, UploadLogResponse, WrappedResponse } from '@shared/back/types';
+import { BackIn, BackOut } from '@shared/back/types';
 import { ArgumentTypesOf } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
+import { LogLevel } from '@shared/Log/interface';
 import { stringifyLogEntries } from '@shared/Log/LogCommon';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -11,7 +12,6 @@ import { WithPreferencesProps } from '../../containers/withPreferences';
 import { LangContext } from '../../util/lang';
 import { Dropdown } from '../Dropdown';
 import { LogData } from '../LogData';
-import { LogLevel } from '@shared/Log/interface';
 
 type OwnProps = {};
 
@@ -67,11 +67,11 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
   }
 
   componentDidMount() {
-    window.Shared.back.on('message', this.onMessage);
+    window.Shared.back.registerAny(this.onMessage);
   }
 
   componentWillUnmount() {
-    window.Shared.back.off('message', this.onMessage);
+    window.Shared.back.unregisterAny(this.onMessage);
   }
 
   render() {
@@ -227,11 +227,12 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     });
     if (res.response === 0) {
       // Ask backend to upload logs, sends back a log URL
-      window.Shared.back.send<UploadLogResponse, any>(BackIn.UPLOAD_LOG, undefined, (res) => {
+      window.Shared.back.request(BackIn.UPLOAD_LOG)
+      .then((data) => {
         this.setState({ uploaded: true, uploading: false });
-        if (res.data) {
+        if (data) {
           // Write log URL to clipboard
-          clipboard.writeText(res.data);
+          clipboard.writeText(data);
         }
       });
     } else {
@@ -260,10 +261,8 @@ export class LogsPage extends React.Component<LogsPageProps, LogsPageState> {
     });
   }
 
-  onMessage = (response: WrappedResponse): void => {
-    if (response.type === BackOut.LOG_ENTRY_ADDED) {
-      this.forceUpdate();
-    }
+  onMessage: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type) => {
+    if (type === BackOut.LOG_ENTRY_ADDED) { this.forceUpdate(); }
   }
 
   static contextType = LangContext;

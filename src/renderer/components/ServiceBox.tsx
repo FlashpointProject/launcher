@@ -1,4 +1,4 @@
-import { BackIn, ServiceActionData } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { IBackProcessInfo, IService, ProcessAction, ProcessState } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
@@ -147,7 +147,7 @@ function displayDetails(info: IBackProcessInfo): void {
  */
 function useProcessActionCallback(action: ProcessAction, id: string): () => void {
   return React.useCallback(() => {
-    window.Shared.back.send<any, ServiceActionData>(BackIn.SERVICE_ACTION, { id, action });
+    window.Shared.back.send(BackIn.SERVICE_ACTION, action, id);
   }, [id]);
 }
 

@@ -1,7 +1,7 @@
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackIn, MergeTagData, TagGetData, TagGetResponse, TagSuggestion } from '@shared/back/types';
+import { BackIn, TagSuggestion } from '@shared/back/types';
 import { LangContainer } from '@shared/lang';
 import { deepCopy } from '@shared/Util';
 import { remote } from 'electron';
@@ -258,10 +258,11 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
 
     if (newTag !== '') {
       // Delayed set
-      window.Shared.back.send<any, any>(BackIn.GET_TAG_SUGGESTIONS, newTag, (res) => {
-        if (res.data) {
+      window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, newTag)
+      .then((data) => {
+        if (data) {
           this.setState({
-            tagMergeSuggestions: res.data
+            tagMergeSuggestions: data
           });
         }
       });
@@ -278,13 +279,14 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
   onMergeTag = (event: React.MouseEvent) => {
     if (this.props.currentTag) {
       this.props.onLockEdit(true);
-      window.Shared.back.send<Tag, MergeTagData>(BackIn.MERGE_TAGS, {
+      window.Shared.back.request(BackIn.MERGE_TAGS, {
         toMerge: this.props.currentTag.primaryAlias.name,
         mergeInto: this.state.currentTagMergeInput,
         makeAlias: this.state.makeAliasWhenMerged
-      }, (res) => {
-        if (res.data && (!this.props.currentTag || res.data.id !== this.props.currentTag.id)) {
-          this.props.onSetTag(res.data);
+      })
+      .then(data => {
+        if (data && (!this.props.currentTag || data.id !== this.props.currentTag.id)) {
+          this.props.onSetTag(data);
         }
         this.props.onLockEdit(false);
         this.setState({ currentTagMergeInput: '', makeAliasWhenMerged: false });
@@ -328,10 +330,11 @@ export class RightTagsSidebar extends React.Component<RightTagsSidebarProps, Rig
 
   onAddTagAliasByString = (text: string): void => {
     if (text !== '') {
-      window.Shared.back.send<TagGetResponse, TagGetData>(BackIn.GET_TAG, text, (res) => {
-        if (res.data) {
+      window.Shared.back.request(BackIn.GET_TAG, text)
+      .then(data => {
+        if (data) {
           // Tag alias exists
-          remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${res.data.primaryAlias.name}'!`);
+          remote.dialog.showErrorBox('Alias Error!',`Alias already exists on tag '${data.primaryAlias.name}'!`);
         } else if (this.props.currentTag && this.props.currentTag.id) {
           // Tag alias doesn't exist
           const newTagAlias = new TagAlias();

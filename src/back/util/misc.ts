@@ -7,7 +7,7 @@ import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
-import { BackOut, DevConsoleStatusResponse } from '@shared/back/types';
+import { BackOut } from '@shared/back/types';
 import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
@@ -259,11 +259,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
   state.services.set(id, proc);
   proc.on('output', (entry) => { log.info(entry.source, entry.content); });
   proc.on('change', () => {
-    state.socketServer.broadcast<IService>({
-      id: '',
-      type: BackOut.SERVICE_CHANGE,
-      data: procToService(proc),
-    });
+    state.socketServer.broadcast(BackOut.SERVICE_CHANGE, procToService(proc));
   });
   try {
     proc.spawn();
@@ -281,11 +277,7 @@ export async function removeService(state: BackState, processId: string): Promis
     await waitForServiceDeath(service);
     state.services.delete(processId);
     state.apiEmitters.services.onServiceRemove.fire(service);
-    state.socketServer.broadcast<string>({
-      id: '',
-      type: BackOut.SERVICE_REMOVED,
-      data: processId,
-    });
+    state.socketServer.broadcast(BackOut.SERVICE_REMOVED, processId);
   }
 }
 
@@ -308,13 +300,7 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
 export function setStatus<T extends keyof StatusState>(state: BackState, key: T, val: StatusState[T]): void {
   switch (key) {
     case 'devConsole':
-      state.socketServer.broadcast<DevConsoleStatusResponse>({
-        id: '',
-        type: BackOut.DEV_CONSOLE_CHANGE,
-        data: {
-          text: val
-        },
-      });
+      state.socketServer.broadcast(BackOut.DEV_CONSOLE_CHANGE, val);
       break;
   }
 }

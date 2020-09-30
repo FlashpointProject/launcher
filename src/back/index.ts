@@ -6,8 +6,8 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
-import { BackInit, BackInitArgs, BackOut, LanguageChangeData, LanguageListChangeData } from '@shared/back/types';
-import { LogoSet, ILogoSet } from '@shared/extensions/interfaces';
+import { BackInit, BackInitArgs, BackOut, BackIn } from '@shared/back/types';
+import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
@@ -45,6 +45,8 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
+// Required for the DB Models to function
+// Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
@@ -142,10 +144,63 @@ const state: BackState = {
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
 };
-registerRequestCallbacks(state);
 
-process.on('message', onProcessMessage);
-process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
+main();
+
+async function main() {
+  registerRequestCallbacks(state);
+
+  // Database manipulation
+  // Anything that reads from the database and then writes to it (or a file) should go in this queue!
+  // (Since it can cause rare race conditions that corrupts data permanently)
+  state.socketServer.addQueue([
+    // Game
+    BackIn.SAVE_GAME,
+    BackIn.DELETE_GAME,
+    BackIn.DUPLICATE_GAME,
+    BackIn.EXPORT_GAME,
+    // Playlist
+    BackIn.DUPLICATE_PLAYLIST,
+    BackIn.IMPORT_PLAYLIST,
+    BackIn.EXPORT_PLAYLIST,
+    BackIn.EXPORT_PLAYLIST,
+    BackIn.GET_PLAYLISTS,
+    BackIn.GET_PLAYLIST,
+    BackIn.SAVE_PLAYLIST,
+    BackIn.DELETE_PLAYLIST,
+    BackIn.DELETE_ALL_PLAYLISTS,
+    BackIn.ADD_PLAYLIST_GAME,
+    BackIn.SAVE_PLAYLIST_GAME,
+    BackIn.DELETE_PLAYLIST_GAME,
+    BackIn.SAVE_LEGACY_PLATFORM,
+    // Tags
+    BackIn.GET_OR_CREATE_TAG,
+    BackIn.SAVE_TAG,
+    BackIn.DELETE_TAG,
+    BackIn.MERGE_TAGS,
+    BackIn.CLEANUP_TAG_ALIASES,
+    BackIn.CLEANUP_TAGS,
+    BackIn.FIX_TAG_PRIMARY_ALIASES,
+    BackIn.EXPORT_TAGS,
+    BackIn.IMPORT_TAGS,
+    // Tag Categories
+    BackIn.SAVE_TAG_CATEGORY,
+    BackIn.GET_TAG_CATEGORY_BY_ID,
+    BackIn.DELETE_TAG_CATEGORY,
+    // Curation
+    BackIn.IMPORT_CURATION,
+    BackIn.LAUNCH_CURATION,
+    BackIn.LAUNCH_CURATION_ADDAPP,
+    // ?
+    BackIn.SYNC_GAME_METADATA,
+    // Meta Edits
+    BackIn.EXPORT_META_EDIT,
+    BackIn.IMPORT_META_EDITS,
+  ]);
+
+  process.on('message', onProcessMessage);
+  process.on('disconnect', () => { exit(state); }); // (Exit when the main process does)
+}
 
 async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   if (state.isInit) { return; }
@@ -246,6 +301,12 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
       runService(state, 'server', 'Server', state.config.flashpointPath, {}, chosenServer || state.serviceInfo.server[0]);
     }
+    // Start daemons
+    for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
+      const service = state.serviceInfo.daemon[i];
+      const id = 'daemon_' + i;
+      runService(state, id, service.name || id, state.config.flashpointPath, service);
+    }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {
       const filePath = state.serviceInfo.watch[i];
@@ -298,11 +359,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
           state.languages.push(lang);
         }
 
-        state.socketServer.broadcast<LanguageListChangeData>({
-          id: '',
-          type: BackOut.LANGUAGE_LIST_CHANGE,
-          data: state.languages,
-        });
+        state.socketServer.broadcast(BackOut.LANGUAGE_LIST_CHANGE, state.languages);
 
         if (lang.code === state.preferences.currentLanguage ||
             lang.code === state.localeCode ||
@@ -313,11 +370,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
             state.localeCode,
             state.preferences.fallbackLanguage
           );
-          state.socketServer.broadcast<LanguageChangeData>({
-            id: '',
-            type: BackOut.LANGUAGE_CHANGE,
-            data: state.languageContainer,
-          });
+          state.socketServer.broadcast(BackOut.LANGUAGE_CHANGE, state.languageContainer);
         }
       });
     }

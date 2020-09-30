@@ -30,6 +30,7 @@ export namespace ServicesFile {
   function parseServiceFileData(data: any, config: IAppConfigData, onError?: (error: string) => void): ServiceFileData {
     const parsed: ServiceFileData = {
       server: [],
+      daemon: [],
       start: [],
       stop: [],
       watch: [],
@@ -39,6 +40,7 @@ export namespace ServicesFile {
       onError: onError && (e => { onError(`Error while parsing Services: ${e.toString()}`); })
     });
     parser.prop('server').array(item => parsed.server.push(parseNamedBackProcessInfo(item, config)));
+    parser.prop('daemon').array(item => parsed.daemon.push(parseNamedBackProcessInfo(item, config)));
     parser.prop('start').array(item => parsed.start.push(parseBackProcessInfo(item, config)));
     parser.prop('stop').array(item  => parsed.stop.push(parseBackProcessInfo(item, config)));
     parser.prop('watch').arrayRaw(item => parsed.watch.push(parseVarStr(str(item), config)));

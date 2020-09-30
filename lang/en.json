@@ -299,6 +299,7 @@
     "deleteAll": "Delete All",
     "deleteAllDesc": "Delete all curations that are currently loaded",
     "saveImportedCurations": "Save Imported Curations",
+    "keepArchiveKey": "Keep Curation Archive UUID",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Curations Folder",
     "openCurationsFolderDesc": "Open the Curations folder in explorer",

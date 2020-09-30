@@ -3,10 +3,11 @@ import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
+import * as flashpoint from 'flashpoint-launcher';
+import * as readline from 'readline';
 import * as treeKill from 'tree-kill';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { Disposable } from './util/lifecycle';
-import * as flashpoint from 'flashpoint-launcher';
 
 const { str } = Coerce;
 
@@ -117,10 +118,12 @@ export class ManagedChildProcess extends EventEmitter {
       this.logContent(this.name + ' has been started');
       // Setup listeners
       if (this.process.stdout) {
-        this.process.stdout.on('data', this.logContentAny);
+        const stdout = readline.createInterface({ input: this.process.stdout });
+        stdout.on('line', this.logContentAny);
       }
       if (this.process.stderr) {
-        this.process.stderr.on('data', this.logContentAny);
+        const stderr = readline.createInterface({ input: this.process.stderr });
+        stderr.on('line', this.logContentAny);
       }
       // Update state
       this.setState(ProcessState.RUNNING);

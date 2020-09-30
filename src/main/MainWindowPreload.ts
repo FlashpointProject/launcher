@@ -1,5 +1,5 @@
-import { SharedSocket } from '@shared/back/SharedSocket';
-import { BackIn, BackOut, GetRendererInitDataResponse, ShowMessageBoxData, ShowMessageBoxResponse, OpenExternalData, OpenExternalResponseData, WrappedResponse, ShowSaveDialogData, ShowSaveDialogResponse, ShowOpenDialogData, ShowOpenDialogResponse } from '@shared/back/types';
+import { SocketClient } from '@shared/back/SocketClient';
+import { BackIn, BackOut } from '@shared/back/types';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
 import { setTheme } from '@shared/Theme';
 import { createErrorProxy } from '@shared/Util';
@@ -72,7 +72,7 @@ window.Shared = {
 
   isBackRemote: createErrorProxy('isBackRemote'),
 
-  back: new SharedSocket(WebSocket),
+  back: new SocketClient(WebSocket),
 
   fileServerPort: -1,
 
@@ -110,41 +110,43 @@ const onInit = (async () => {
   window.Shared.isBackRemote = data.isBackRemote;
   window.Shared.backUrl = new URL(data.host);
   // Connect to the back
-  const socket = await SharedSocket.connect(WebSocket, data.host, data.secret);
+  const socket = await SocketClient.connect(WebSocket, data.host, data.secret);
   window.Shared.back.url = data.host;
   window.Shared.back.secret = data.secret;
   window.Shared.back.setSocket(socket);
 })()
 .then(() => new Promise((resolve, reject) => {
-  window.Shared.back.on('message', onMessage);
+  registerHandlers();
+
   // Fetch the config and preferences
-  window.Shared.back.send<GetRendererInitDataResponse>(BackIn.GET_RENDERER_INIT_DATA, undefined, response => {
-    if (response.data) {
-      window.Shared.preferences.data = response.data.preferences;
+  window.Shared.back.request(BackIn.GET_RENDERER_INIT_DATA)
+  .then(data => {
+    if (data) {
+      window.Shared.preferences.data = data.preferences;
       window.Shared.config = {
-        data: response.data.config,
+        data: data.config,
         // @FIXTHIS This should take if this is installed into account
-        fullFlashpointPath: path.resolve(response.data.config.flashpointPath),
-        fullJsonFolderPath: path.resolve(response.data.config.flashpointPath, response.data.config.jsonFolderPath),
+        fullFlashpointPath: path.resolve(data.config.flashpointPath),
+        fullJsonFolderPath: path.resolve(data.config.flashpointPath, data.config.jsonFolderPath),
       };
-      window.Shared.fileServerPort = response.data.fileServerPort;
-      window.Shared.log.entries = response.data.log;
-      window.Shared.services = response.data.services;
-      window.Shared.customVersion = response.data.customVersion;
-      window.Shared.initialLang = response.data.language;
-      window.Shared.initialLangList = response.data.languages;
-      window.Shared.initialThemes = response.data.themes;
-      window.Shared.initialPlaylists = response.data.playlists;
-      window.Shared.initialLibraries = response.data.libraries;
-      window.Shared.initialServerNames = response.data.serverNames;
-      window.Shared.initialMad4fpEnabled = response.data.mad4fpEnabled;
-      window.Shared.initialPlatforms = response.data.platforms;
-      window.Shared.initialLocaleCode = response.data.localeCode;
-      window.Shared.initialTagCategories = response.data.tagCategories;
-      window.Shared.initialExtensions = response.data.extensions;
-      window.Shared.initialDevScripts = response.data.devScripts;
-      window.Shared.initialContextButtons = response.data.contextButtons;
-      window.Shared.initialLogoSets = response.data.logoSets;
+      window.Shared.fileServerPort = data.fileServerPort;
+      window.Shared.log.entries = data.log;
+      window.Shared.services = data.services;
+      window.Shared.customVersion = data.customVersion;
+      window.Shared.initialLang = data.language;
+      window.Shared.initialLangList = data.languages;
+      window.Shared.initialThemes = data.themes;
+      window.Shared.initialPlaylists = data.playlists;
+      window.Shared.initialLibraries = data.libraries;
+      window.Shared.initialServerNames = data.serverNames;
+      window.Shared.initialMad4fpEnabled = data.mad4fpEnabled;
+      window.Shared.initialPlatforms = data.platforms;
+      window.Shared.initialLocaleCode = data.localeCode;
+      window.Shared.initialTagCategories = data.tagCategories;
+      window.Shared.initialExtensions = data.extensions;
+      window.Shared.initialDevScripts = data.devScripts;
+      window.Shared.initialContextButtons = data.contextButtons;
+      window.Shared.initialLogoSets = data.logoSets;
       if (window.Shared.preferences.data.currentTheme) {
         const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
         if (theme) { setTheme(theme); }
@@ -155,69 +157,27 @@ const onInit = (async () => {
 }))
 .then(() => { isInitDone = true; });
 
-function onMessage(this: WebSocket, res: WrappedResponse): void {
-  switch (res.type) {
-    case BackOut.UPDATE_PREFERENCES_RESPONSE: {
-      window.Shared.preferences.data = res.data;
-    } break;
+function registerHandlers(): void {
+  window.Shared.back.register(BackOut.UPDATE_PREFERENCES_RESPONSE, (event, data) => {
+    window.Shared.preferences.data = data;
+  });
 
-    case BackOut.OPEN_MESSAGE_BOX: {
-      const resData: ShowMessageBoxData = res.data;
+  window.Shared.back.register(BackOut.OPEN_MESSAGE_BOX, async (event, data) => {
+    const result = await electron.remote.dialog.showMessageBox(data);
+    return result.response;
+  });
 
-      electron.remote.dialog.showMessageBox(resData)
-      .then(r => {
-        window.Shared.back.sendReq<any, ShowMessageBoxResponse>({
-          id: res.id,
-          type: BackIn.GENERIC_RESPONSE,
-          data: r.response,
-        });
-      });
-    } break;
+  window.Shared.back.register(BackOut.OPEN_SAVE_DIALOG, async (event, data) => {
+    const result = await electron.remote.dialog.showSaveDialog(data);
+    return result.filePath;
+  });
 
-    case BackOut.OPEN_SAVE_DIALOG: {
-      const resData: ShowSaveDialogData = res.data;
+  window.Shared.back.register(BackOut.OPEN_OPEN_DIALOG, async (event, data) => {
+    const result = await electron.remote.dialog.showOpenDialog(data);
+    return result.filePaths;
+  });
 
-      electron.remote.dialog.showSaveDialog(resData)
-      .then(r => {
-        window.Shared.back.sendReq<any, ShowSaveDialogResponse>({
-          id: res.id,
-          type: BackIn.GENERIC_RESPONSE,
-          data: r.filePath,
-        });
-      });
-    } break;
-
-    case BackOut.OPEN_OPEN_DIALOG: {
-      const resData: ShowOpenDialogData = res.data;
-
-      electron.remote.dialog.showOpenDialog(resData)
-      .then(r => {
-        window.Shared.back.sendReq<any, ShowOpenDialogResponse>({
-          id: res.id,
-          type: BackIn.GENERIC_RESPONSE,
-          data: r.filePaths,
-        });
-      });
-    } break;
-
-    case BackOut.OPEN_EXTERNAL: {
-      const resData: OpenExternalData = res.data;
-
-      electron.remote.shell.openExternal(resData.url, resData.options)
-      .then(() => {
-        window.Shared.back.sendReq<OpenExternalResponseData>({
-          id: res.id,
-          type: BackIn.GENERIC_RESPONSE,
-          data: {},
-        });
-      })
-      .catch(error => {
-        window.Shared.back.sendReq<OpenExternalResponseData>({
-          id: res.id,
-          type: BackIn.GENERIC_RESPONSE,
-          data: { error },
-        });
-      });
-    } break;
-  }
+  window.Shared.back.register(BackOut.OPEN_EXTERNAL, async (event, url, options) => {
+    await electron.remote.shell.openExternal(url, options);
+  });
 }
