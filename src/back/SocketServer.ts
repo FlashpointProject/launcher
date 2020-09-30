@@ -259,7 +259,12 @@ export class SocketServer {
     const [inc, out] = await api_handle_message(this.api, data, msg_event);
 
     if (inc) {
-      // @TODO Support incoming responses
+      const sent = client.sent.find(s => s.id === data.id);
+      if (sent) {
+        sent.resolve(inc as SocketResponseData<any>);
+      } else {
+        console.error(`Received a response with an ID that does not match any sent request from that client! (response id: ${data.id}, client id: ${client.id})`);
+      }
     }
 
     if (out) {
