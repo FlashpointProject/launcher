@@ -83,7 +83,7 @@
     "notesHeader": "Nótaí",
     "notes": "Don't forget to read the manual if you're having issues.",
     "linuxSupport": "Issues on Linux? {0}",
-    "linuxSupportLinkText": "Open FAQ",
+    "linuxSupportLinkText": "CCanna Oscailte",
     "randomPicks": "Random Picks",
     "rerollPicks": "Re-Roll Picks"
   },
@@ -112,7 +112,7 @@
     "hideLeftSidebar": "Hide left sidebar",
     "showLeftSidebar": "Show left sidebar",
     "total": "Iomlán",
-    "newGame": "New Game",
+    "newGame": "Cluiche Nua",
     "list": "Liosta",
     "grid": "Greille",
     "searchResults": "Search Results"
@@ -120,7 +120,7 @@
   "filter": {
     "dateAdded": "Date Added",
     "dateModified": "Date Modified",
-    "platform": "Platform",
+    "platform": "Clár",
     "series": "Sraith",
     "title": "Teideal",
     "developer": "Developer",
@@ -195,7 +195,7 @@
     "specialThanks": "Special Thanks"
   },
   "browse": {
-    "noTitle": "No Title",
+    "noTitle": "Uimh Teideal",
     "by": "de",
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
@@ -209,7 +209,7 @@
     "noPublisher": "No Publisher",
     "source": "Foinse",
     "noSource": "No Source",
-    "platform": "Platform",
+    "platform": "Clár",
     "noPlatform": "No Platform",
     "playMode": "Play Mode",
     "noPlayMode": "No Play Mode",
@@ -219,7 +219,7 @@
     "noVersion": "No Version",
     "releaseDate": "Release Date",
     "noReleaseDate": "No Release Date",
-    "language": "Language",
+    "language": "Teanga",
     "noLanguage": "No Language",
     "dateAdded": "Date Added",
     "dateModified": "Date Modified",
