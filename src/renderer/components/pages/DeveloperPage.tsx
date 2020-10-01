@@ -3,7 +3,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
 import { BackIn, BackOut } from '@shared/back/types';
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { DevScript, ExtensionContribution } from '@shared/extensions/interfaces';
 import { ExecMapping } from '@shared/interfaces';
@@ -797,7 +797,7 @@ function fetchAllGames(): Promise<Game[]> {
   return window.Shared.back.request(BackIn.GET_ALL_GAMES);
 }
 
-async function importLegacyPlatforms(config: IAppConfigData, setText: (text: string) => void): Promise<void> {
+async function importLegacyPlatforms(config: AppConfigData, setText: (text: string) => void): Promise<void> {
   const text: string[] = [];
   text.push('Finding XMLs...');
   setText(text.join('\n'));
@@ -824,7 +824,7 @@ async function importLegacyPlatforms(config: IAppConfigData, setText: (text: str
   }
 }
 
-async function importLegacyPlaylists(config: IAppConfigData): Promise<number> {
+async function importLegacyPlaylists(config: AppConfigData): Promise<number> {
   let playlistsImported = 0;
   const playlistsPath = path.join(config.flashpointPath, config.playlistFolderPath);
   const files = await fs.promises.readdir(playlistsPath);

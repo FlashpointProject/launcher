@@ -1,4 +1,4 @@
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { deepCopy, fixSlashes, parseVarStr } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
@@ -6,11 +6,11 @@ import { ObjectParser } from '@shared/utils/ObjectParser';
 const { num, str } = Coerce;
 
 type IConfigDataDefaults = {
-  [key: string]: Readonly<IAppConfigData>;
+  [key: string]: Readonly<AppConfigData>;
 };
 
 /** Default config values used as a "base" for the different platform defaults. */
-const configDataDefaultBase: Readonly<IAppConfigData> = Object.freeze({
+const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   flashpointPath: '',
   imageFolderPath: 'Data/Images',
   logoFolderPath: 'Data/Logos',
@@ -62,7 +62,7 @@ const configDataDefaults: IConfigDataDefaults = {
  * Get the default config data for a specific platform.
  * @param platform Platform to get the defaults for.
  */
-export function getDefaultConfigData(platform: NodeJS.Platform): IAppConfigData {
+export function getDefaultConfigData(platform: NodeJS.Platform): AppConfigData {
   return configDataDefaults[platform] || configDataDefaultBase;
 }
 
@@ -73,10 +73,10 @@ export function getDefaultConfigData(platform: NodeJS.Platform): IAppConfigData 
  * @returns Source argument (not a copy).
  */
 export function overwriteConfigData(
-  source: IAppConfigData,
-  data: Partial<IAppConfigData>,
+  source: AppConfigData,
+  data: Partial<AppConfigData>,
   onError?: (error: string) => void
-): IAppConfigData {
+): AppConfigData {
   const parser = new ObjectParser({
     input: data,
     onError: onError && (e => onError(`Error while parsing Config: ${e.toString()}`)),

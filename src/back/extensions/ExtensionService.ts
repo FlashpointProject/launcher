@@ -2,7 +2,7 @@
 import { Barrier } from '@back/util/async';
 import { Disposable, dispose, newDisposable } from '@back/util/lifecycle';
 import { TernarySearchTree } from '@back/util/map';
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { ILogEntry } from '@shared/Log/interface';
 import { Contributions, ExtensionContribution, IExtension } from '../../shared/extensions/interfaces';
 import { scanExtensions } from './ExtensionsScanner';
@@ -21,7 +21,7 @@ export class ExtensionService {
   private readonly _installedExtensionsReady: Barrier;
 
   constructor(
-    protected readonly _configData: IAppConfigData
+    protected readonly _configData: AppConfigData
   ) {
     this._extensions = [];
     this._extensionData = {};

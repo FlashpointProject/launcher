@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { useContext } from 'react';
 import { Subtract } from '@shared/interfaces';
-import { IAppPreferencesData } from '@shared/preferences/interfaces';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { PreferencesContext } from '../context/PreferencesContext';
 
 export type WithPreferencesProps = {
   /** Current preference data. */
-  preferencesData: Readonly<IAppPreferencesData>;
+  preferencesData: Readonly<AppPreferencesData>;
 };
 
 export function withPreferences<P>(Component: React.ComponentType<P>) {

@@ -1,5 +1,5 @@
 /** Data contained in the Config file */
-export type IAppConfigData = {
+export type AppConfigData = {
   /** Path to the FlashPoint root folder (relative or absolute) */
   flashpointPath: string;
   /** Path to the image folder (relative to the flashpoint path) */

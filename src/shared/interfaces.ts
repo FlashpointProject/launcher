@@ -3,10 +3,10 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { SocketClient } from '@shared/back/SocketClient';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
-import { IAppConfigData } from './config/interfaces';
+import { AppConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
-import { IAppPreferencesData } from './preferences/interfaces';
+import { AppPreferencesData } from './preferences/interfaces';
 import { ITheme } from './ThemeFile';
 
 /** Replacement of "object" type. Note: I'm not sure how effective it is though //obelisk */
@@ -53,14 +53,14 @@ export interface IMainWindowExternal {
 
   preferences: {
     /** Current preferences. */
-    data: IAppPreferencesData;
+    data: AppPreferencesData;
     /** Emitter for preference related events. */
     onUpdate?: () => void;
   };
 
   /** Renderers interface for the Config data */
   config: {
-    data: IAppConfigData;
+    data: AppConfigData;
     /** Full path of the Flashpoint folder. */
     fullFlashpointPath: string;
     /** Full path of the JSON folder. */

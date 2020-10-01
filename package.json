@@ -9,7 +9,7 @@
   "scripts": {
     "start": "electron ./build/main/index.js",
     "build": "gulp build",
-    "build-api-docs": "typedoc --out docs/api typings/flashpoint.d.ts --includeDeclarations --excludeExternals --disableOutputCheck",
+    "build-api-docs": "typedoc --out docs/api typings/flashpoint-launcher.d.ts --includeDeclarations --excludeExternals --disableOutputCheck",
     "watch": "gulp watch",
     "pack": "gulp pack",
     "snapshot": "cross-env-shell NODE_ENV=production \"npm run build && npm run pack\"",
@@ -64,9 +64,8 @@
   },
   "devDependencies": {
     "@types/electron-devtools-installer": "2.2.0",
-    "@types/enzyme": "3.10.5",
+    "@types/enzyme": "3.10.7",
     "@types/enzyme-adapter-react-16": "1.0.6",
-    "@types/enzyme-to-json": "1.5.3",
     "@types/follow-redirects": "1.8.0",
     "@types/fs-extra": "8.1.0",
     "@types/jest": "24.0.17",
@@ -92,7 +91,7 @@
     "electron-devtools-installer": "3.1.1",
     "enzyme": "3.11.0",
     "enzyme-adapter-react-16": "1.15.2",
-    "enzyme-to-json": "3.4.4",
+    "enzyme-to-json": "3.6.1",
     "eslint": "7.2.0",
     "eslint-plugin-only-warn": "1.0.2",
     "eslint-plugin-react": "7.20.0",

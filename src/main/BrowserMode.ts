@@ -1,5 +1,5 @@
 import { ConfigFile } from '@back/ConfigFile';
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { createErrorProxy } from '@shared/Util';
 import { app, BrowserWindow, session, shell } from 'electron';
 import * as fs from 'fs';
@@ -12,7 +12,7 @@ type State = {
   entry: string;
   url: string;
   mainFolderPath: string;
-  config: IAppConfigData;
+  config: AppConfigData;
 }
 
 export function startBrowserMode(init: Init): void {

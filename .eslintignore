@@ -1,3 +1,4 @@
 *.json
 src/database/migration/*
 build/*
+typings/*

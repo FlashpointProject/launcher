@@ -1,4 +1,4 @@
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { readJsonFile } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
@@ -10,7 +10,7 @@ const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
 /** Scans all extensions in System and User paths and returns them. */
-export async function scanExtensions(configData: IAppConfigData): Promise<IExtension[]> {
+export async function scanExtensions(configData: AppConfigData): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
   // TODO: System extensions (?)

@@ -1,10 +1,10 @@
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { getDefaultConfigData, overwriteConfigData } from '@shared/config/util';
 import { deepCopy, readJsonFile, readJsonFileSync, stringifyJsonDataFile } from '@shared/Util';
 import * as fs from 'fs';
 
 export namespace ConfigFile {
-  export function readFile(filePath: string, onError?: (error: string) => void): Promise<IAppConfigData> {
+  export function readFile(filePath: string, onError?: (error: string) => void): Promise<AppConfigData> {
     return new Promise((resolve, reject) => {
       readJsonFile(filePath, 'utf8')
       .then(json => resolve(parse(json, onError)))
@@ -12,13 +12,13 @@ export namespace ConfigFile {
     });
   }
 
-  export function readFileSync(filePath: string, onError?: (error: string) => void): IAppConfigData {
+  export function readFileSync(filePath: string, onError?: (error: string) => void): AppConfigData {
     return parse(readJsonFileSync(filePath), onError);
   }
 
-  export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<IAppConfigData> {
+  export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<AppConfigData> {
     let error: Error | undefined;
-    let data: IAppConfigData | undefined;
+    let data: AppConfigData | undefined;
 
     try {
       data = await readFile(filePath, onError);
@@ -34,9 +34,9 @@ export namespace ConfigFile {
     return data;
   }
 
-  export function readOrCreateFileSync(filePath: string, onError?: (error: string) => void): IAppConfigData {
+  export function readOrCreateFileSync(filePath: string, onError?: (error: string) => void): AppConfigData {
     let error: Error | undefined;
-    let data: IAppConfigData | undefined;
+    let data: AppConfigData | undefined;
 
     try {
       data = readFileSync(filePath, onError);
@@ -52,7 +52,7 @@ export namespace ConfigFile {
     return data;
   }
 
-  export function saveFile(filePath: string, data: IAppConfigData): Promise<void> {
+  export function saveFile(filePath: string, data: AppConfigData): Promise<void> {
     return new Promise((resolve, reject) => {
       // Convert config to json string
       const json: string = stringifyJsonDataFile(data);
@@ -64,7 +64,7 @@ export namespace ConfigFile {
     });
   }
 
-  function parse(json: any, onError?: (error: string) => void): IAppConfigData {
+  function parse(json: any, onError?: (error: string) => void): AppConfigData {
     return overwriteConfigData(deepCopy(getDefaultConfigData(process.platform)), json, onError);
   }
 }

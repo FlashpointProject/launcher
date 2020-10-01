@@ -1,10 +1,10 @@
 import { SocketClient } from '@shared/back/SocketClient';
 import { BackIn, BackInitArgs, BackOut } from '@shared/back/types';
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { APP_TITLE } from '@shared/constants';
 import { WindowIPC } from '@shared/interfaces';
 import { InitRendererChannel, InitRendererData } from '@shared/IPC';
-import { IAppPreferencesData } from '@shared/preferences/interfaces';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { createErrorProxy } from '@shared/Util';
 import { ChildProcess, fork } from 'child_process';
 import { randomBytes } from 'crypto';
@@ -38,8 +38,8 @@ type MainState = {
   _secret: string;
   /** Version of the launcher (timestamp of when it was built). Negative value if not found or not yet loaded. */
   _version: number;
-  preferences?: IAppPreferencesData;
-  config?: IAppConfigData;
+  preferences?: AppPreferencesData;
+  config?: AppConfigData;
   socket: SocketClient<WebSocket>;
   backProc?: ChildProcess;
   _sentLocaleCode: boolean;

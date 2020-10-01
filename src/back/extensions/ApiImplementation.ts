@@ -30,7 +30,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const getPreferences = () => state.preferences;
   const extOverwritePreferenceData = (
-    data: flashpoint.DeepPartial<flashpoint.IAppPreferencesData>,
+    data: flashpoint.DeepPartial<flashpoint.AppPreferencesData>,
     onError?: (error: string) => void
   ) => overwritePreferenceData(state.preferences, data, onError);
 
@@ -246,23 +246,22 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     }
   };
 
-  // Functions
-  const showMessageBox = (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
-    const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
-    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-    return openDialogFunc(options);
-  };
-
-  const showSaveDialog = (options: flashpoint.ShowSaveDialogOptions) => {
-    const openDialogFunc = getOpenSaveDialogFunc(state.socketServer);
-    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-    return openDialogFunc(options);
-  };
-
-  const showOpenDialog = (options: flashpoint.ShowOpenDialogOptions) => {
-    const openDialogFunc = getOpenOpenDialogFunc(state.socketServer);
-    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-    return openDialogFunc(options);
+  const extDialogs: typeof flashpoint.dialogs = {
+    showMessageBox: (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
+      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return openDialogFunc(options);
+    },
+    showSaveDialog: (options: flashpoint.ShowSaveDialogOptions) => {
+      const openDialogFunc = getOpenSaveDialogFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return openDialogFunc(options);
+    },
+    showOpenDialog: (options: flashpoint.ShowOpenDialogOptions) => {
+      const openDialogFunc = getOpenOpenDialogFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return openDialogFunc(options);
+    }
   };
 
   // Create API Module to give to caller
@@ -286,11 +285,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     tags: extTags,
     status: extStatus,
     services: extServices,
-
-    // Functions
-    showMessageBox: showMessageBox,
-    showSaveDialog: showSaveDialog,
-    showOpenDialog: showOpenDialog,
+    dialogs: extDialogs,
 
     // Events
     onDidInit: apiEmitters.onDidInit.event,

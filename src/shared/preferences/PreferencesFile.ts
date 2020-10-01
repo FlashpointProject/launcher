@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { IAppPreferencesData } from './interfaces';
+import { AppPreferencesData } from './interfaces';
 import { defaultPreferencesData, overwritePreferenceData } from './util';
 import { deepCopy, readJsonFile, stringifyJsonDataFile } from '../Util';
 
@@ -13,9 +13,9 @@ export namespace PreferencesFile {
    * If the file does not exist, create a new one with the default values and return that instead.
    * @param onError Called for each error that occurs while parsing.
    */
-  export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<IAppPreferencesData> {
+  export async function readOrCreateFile(filePath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
     let error: Error | undefined;
-    let data: IAppPreferencesData | undefined;
+    let data: AppPreferencesData | undefined;
     // Try to get the data from the file
     try {
       data = await readFile(filePath, onError);
@@ -32,7 +32,7 @@ export namespace PreferencesFile {
     return data;
   }
 
-  export function readFile(filePath: string, onError?: (error: string) => void): Promise<IAppPreferencesData> {
+  export function readFile(filePath: string, onError?: (error: string) => void): Promise<AppPreferencesData> {
     return new Promise((resolve, reject) => {
       readJsonFile(filePath, fileEncoding)
       .then(json => resolve(overwritePreferenceData(deepCopy(defaultPreferencesData), json, onError)))
@@ -40,7 +40,7 @@ export namespace PreferencesFile {
     });
   }
 
-  export function saveFile(filePath: string, data: IAppPreferencesData): Promise<void> {
+  export function saveFile(filePath: string, data: AppPreferencesData): Promise<void> {
     return new Promise((resolve, reject) => {
       // Convert preferences to json string
       const json: string = stringifyJsonDataFile(data);

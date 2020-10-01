@@ -25,10 +25,10 @@ declare module 'flashpoint-launcher' {
     const extensionPath: string;
 
     /** Config Data */
-    const config: IAppConfigData;
+    const config: AppConfigData;
 
     /** Returns most up to date Preferences Data */
-    function getPreferences(): IAppPreferencesData;
+    function getPreferences(): AppPreferencesData;
     /**
      * Updates the Preferences data with a partial change.
      * @param data Partial data to apply
@@ -36,9 +36,9 @@ declare module 'flashpoint-launcher' {
      * @returns Updated Preferences data
      */
     function overwritePreferenceData(
-        data: DeepPartial<IAppPreferencesData>,
+        data: DeepPartial<AppPreferencesData>,
         onError?: (error: string) => void,
-    ): IAppPreferencesData;
+    ): AppPreferencesData;
 
     /** Unload own extension */
     function unload(): Promise<void>;
@@ -340,25 +340,27 @@ declare module 'flashpoint-launcher' {
         const onServiceChange: Event<ServiceChange>;
     }
 
-    // Functions
-    /**
-     * Opens a message box on the client. Buttons can be provided in options.
-     * @param options Message box options
-     * @returns Button index pressed (0 or cancelId if exited)
-     */
-    function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
-    /**
-     * Opens a save dialog on the client. They can select a file to save to.
-     * @param options Save dialog options
-     * @returns Path to file chosen, if any
-     */
-    function showSaveDialog(options: ShowSaveDialogOptions): Promise<string | undefined>;
-    /**
-     * Opens an open dialog on the client. They can select a file for you to open.
-     * @param options Open dialog options
-     * @returns Path to file(s) chosen, if any
-     */
-    function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
+    /** Front facing dialogs */
+    export namespace dialogs {
+        /**
+         * Opens a message box on the client. Buttons can be provided in options.
+         * @param options Message box options
+         * @returns Button index pressed (0 or cancelId if exited)
+         */
+        function showMessageBox(options: ShowMessageBoxOptions): Promise<number>;
+        /**
+         * Opens a save dialog on the client. They can select a file to save to.
+         * @param options Save dialog options
+         * @returns Path to file chosen, if any
+         */
+        function showSaveDialog(options: ShowSaveDialogOptions): Promise<string | undefined>;
+        /**
+         * Opens an open dialog on the client. They can select a file for you to open.
+         * @param options Open dialog options
+         * @returns Path to file(s) chosen, if any
+         */
+        function showOpenDialog(options: ShowOpenDialogOptions): Promise<string[] | undefined>;
+    }
 
     // Events
     /** Called when the backend has fully initialized. Extension activation is earlier. */
@@ -673,7 +675,7 @@ declare module 'flashpoint-launcher' {
     };
 
     /** Data contained in the Config file */
-    type IAppConfigData = {
+    type AppConfigData = {
         /** Path to the Flashpoint root folder (relative or absolute) */
         flashpointPath: string;
         /** Path to the image folder (relative to the flashpoint path) */
@@ -733,7 +735,7 @@ declare module 'flashpoint-launcher' {
      * Contains state of all non-config settings the user can change in the application.
      * This is the data contained in the Preferences file.
      */
-    type IAppPreferencesData = {
+    type AppPreferencesData = {
         [key: string]: any;
         /** Scale of the games at the BrowsePage. */
         browsePageGameScale: number;
@@ -770,7 +772,7 @@ declare module 'flashpoint-launcher' {
         /** What order the games should appear in. */
         gamesOrder: GameOrderDirection;
         /** Position and size of the main window. */
-        mainWindow: IAppPreferencesDataMainWindow;
+        mainWindow: AppPreferencesDataMainWindow;
         /** Default Library for new games etc. */
         defaultLibrary: string;
         /** Save curations after importing */
@@ -798,7 +800,7 @@ declare module 'flashpoint-launcher' {
         override: string;
     };
 
-    type IAppPreferencesDataMainWindow = {
+    type AppPreferencesDataMainWindow = {
         x?: number;
         y?: number;
         width?: number;
