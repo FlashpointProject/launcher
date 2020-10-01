@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { AddPlaylistGameData, BackIn, DeletePlaylistData, DeletePlaylistGameData, DeletePlaylistResponse, DuplicateGameData, DuplicatePlaylistData, ExportGameData, ExportPlaylistData, GetGameData, GetGameResponseData, GetPlaylistGameData, GetPlaylistGameResponse, ImportPlaylistData, LaunchGameData, SavePlaylistData, SavePlaylistResponse } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
@@ -341,9 +341,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           label: strings.menu.openFileLocation,
           enabled: !window.Shared.isBackRemote, // (Local "back" only)
           click: () => {
-            window.Shared.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
-              if (res.data && res.data.game) {
-                const gamePath = getGamePath(res.data.game, window.Shared.config.fullFlashpointPath);
+            window.Shared.back.request(BackIn.GET_GAME, gameId)
+            .then(game => {
+              if (game) {
+                const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath);
                 if (gamePath) {
                   fs.stat(gamePath, error => {
                     if (!error) { remote.shell.showItemInFolder(gamePath); }
@@ -379,12 +380,12 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           /* Duplicate Meta */
           label: strings.menu.duplicateMetaOnly,
           enabled: this.props.preferencesData.enableEditing,
-          click: () => { window.Shared.back.send<any, DuplicateGameData>(BackIn.DUPLICATE_GAME, { id: gameId, dupeImages: false }); },
+          click: () => { window.Shared.back.send(BackIn.DUPLICATE_GAME, gameId, false); },
         }, {
           /* Duplicate Meta & Images */
           label: strings.menu.duplicateMetaAndImages, // ("&&" will be shown as "&")
           enabled: this.props.preferencesData.enableEditing,
-          click: () => { window.Shared.back.send<any, DuplicateGameData>(BackIn.DUPLICATE_GAME, { id: gameId, dupeImages: true }); },
+          click: () => { window.Shared.back.send(BackIn.DUPLICATE_GAME, gameId,  true); },
         }, { type: 'separator' }, {
           /* Export Meta */
           label: strings.menu.exportMetaOnly,
@@ -398,7 +399,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                 extensions: ['yaml'],
               }]
             });
-            if (filePath) { window.Shared.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePath, metaOnly: true }); }
+            if (filePath) { window.Shared.back.send(BackIn.EXPORT_GAME, gameId, filePath, true ); }
           },
         }, {
           /* Export Meta & Images */
@@ -410,7 +411,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
               properties: ['promptToCreate', 'openDirectory']
             });
             if (filePaths && filePaths.length > 0) {
-              window.Shared.back.send<any, ExportGameData>(BackIn.EXPORT_GAME, { id: gameId, location: filePaths[0], metaOnly: false });
+              window.Shared.back.send(BackIn.EXPORT_GAME, gameId, filePaths[0], false);
             }
           },
         }, {  type: 'separator' }, {
@@ -467,7 +468,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onGameLaunch = (gameId: string): void => {
-    window.Shared.back.send<LaunchGameData>(BackIn.LAUNCH_GAME, { id: gameId });
+    window.Shared.back.send(BackIn.LAUNCH_GAME, gameId);
   }
 
   onCenterKeyDown = (event: React.KeyboardEvent): void => {
@@ -526,10 +527,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     // Remove game from playlist
     if (this.state.currentGame) {
       if (this.state.currentPlaylist) {
-        await window.Shared.back.sendP<DeletePlaylistGameData, any>(BackIn.DELETE_PLAYLIST_GAME, {
-          playlistId: this.state.currentPlaylist.id,
-          gameId: this.state.currentGame.id
-        });
+        await window.Shared.back.request(BackIn.DELETE_PLAYLIST_GAME, this.state.currentPlaylist.id, this.state.currentGame.id);
       } else { logError('No playlist is selected'); }
     } else { logError('No game is selected'); }
 
@@ -579,24 +577,19 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       let gamePlaylistEntry: PlaylistGame | undefined;
 
       if (playlistId) {
-        const res = await window.Shared.back.sendP<GetPlaylistGameResponse, GetPlaylistGameData>(BackIn.GET_PLAYLIST_GAME, {
-          gameId: gameId,
-          playlistId: playlistId
-        });
-        gamePlaylistEntry = res.data;
+        gamePlaylistEntry = await window.Shared.back.request(BackIn.GET_PLAYLIST_GAME, playlistId, gameId);
       }
 
       // Update game
-      window.Shared.back.send<GetGameResponseData, GetGameData>(BackIn.GET_GAME, { id: gameId }, res => {
-        if (res.data) {
-          if (res.data.game) {
-            this.setState({
-              currentGame: res.data.game,
-              currentPlaylistEntry: gamePlaylistEntry,
-              isNewGame: false,
-            });
-          } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }
-        } else { console.log(`Failed to get game. Empty data in response (GameID: "${gameId}").`); }
+      window.Shared.back.request(BackIn.GET_GAME, gameId)
+      .then(game => {
+        if (game) {
+          this.setState({
+            currentGame: game,
+            currentPlaylistEntry: gamePlaylistEntry,
+            isNewGame: false,
+          });
+        } else { console.log(`Failed to get game. Game is undefined (GameID: "${gameId}").`); }
       });
     }
   });
@@ -675,9 +668,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
 
   onSavePlaylist = (): void => {
     if (this.state.currentPlaylist) {
-      window.Shared.back.send<SavePlaylistResponse, SavePlaylistData>(BackIn.SAVE_PLAYLIST, this.state.currentPlaylist, (res) => {
-        if (res.data) {
-          this.props.onUpdatePlaylist(res.data);
+      window.Shared.back.request(BackIn.SAVE_PLAYLIST, this.state.currentPlaylist)
+      .then(data => {
+        if (data) {
+          this.props.onUpdatePlaylist(data);
         }
       });
       this.setState({
@@ -697,7 +691,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
       }]
     });
     if (filePath) {
-      window.Shared.back.send<any, ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, { filePath: filePath[0], library: this.props.gameLibrary });
+      window.Shared.back.send(BackIn.IMPORT_PLAYLIST, filePath[0], this.props.gameLibrary);
     }
   }
 
@@ -737,12 +731,13 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   onDeletePlaylist = (): void => {
     if (this.state.currentPlaylist) {
       const playlistId = this.state.currentPlaylist.id;
-      window.Shared.back.send<DeletePlaylistResponse, DeletePlaylistData>(BackIn.DELETE_PLAYLIST, playlistId, (res) => {
+      window.Shared.back.request(BackIn.DELETE_PLAYLIST, playlistId)
+      .then((data) => {
         this.props.onSelectPlaylist(this.props.gameLibrary, undefined);
-        if (res.data) {
+        if (data) {
           // DB wipes it, need it to remove it locally
-          res.data.id = playlistId;
-          this.props.onDeletePlaylist(res.data);
+          data.id = playlistId;
+          this.props.onDeletePlaylist(data);
         }
       });
     }
@@ -761,10 +756,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
     if (!this.state.isEditingPlaylist) {
       const gameId = event.dataTransfer.getData(gameIdDataType);
       if (gameId) {
-        window.Shared.back.send<undefined, AddPlaylistGameData>(BackIn.ADD_PLAYLIST_GAME, {
-          playlistId,
-          gameId,
-        });
+        window.Shared.back.send(BackIn.ADD_PLAYLIST_GAME, playlistId, gameId);
       }
     }
   }
@@ -879,7 +871,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
   }
 
   onDuplicatePlaylist = (playlistId: string): void => {
-    window.Shared.back.send<any, DuplicatePlaylistData>(BackIn.DUPLICATE_PLAYLIST, playlistId);
+    window.Shared.back.send(BackIn.DUPLICATE_PLAYLIST, playlistId);
   }
 
   onExportPlaylist = (strings: LangContainer, playlistId: string): void => {
@@ -891,7 +883,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
         extensions: ['json'],
       }]
     });
-    if (filePath) { window.Shared.back.send<any, ExportPlaylistData>(BackIn.EXPORT_PLAYLIST, { id: playlistId, location: filePath }); }
+    if (filePath) { window.Shared.back.send(BackIn.EXPORT_PLAYLIST, playlistId, filePath); }
   }
 
   /** Focus the game grid/list (if this has a reference to one). */

@@ -1,8 +1,8 @@
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
+import { SocketClient } from '@shared/back/SocketClient';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
-import { SharedSocket } from './back/SharedSocket';
 import { IAppConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
@@ -83,7 +83,7 @@ export interface IMainWindowExternal {
   isBackRemote: boolean;
 
   /** Socket to the back API. */
-  back: SharedSocket<WebSocket>;
+  back: SocketClient<WebSocket>;
 
   /** Port of the back file server. */
   fileServerPort: number;

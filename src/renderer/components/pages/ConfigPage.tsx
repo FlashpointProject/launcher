@@ -1,11 +1,12 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
-import { BackIn, UpdateConfigData } from '@shared/back/types';
+import { BackIn } from '@shared/back/types';
 import { IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
 import { ITheme } from '@shared/ThemeFile';
 import { formatString } from '@shared/utils/StringFormatter';
+import { AppPathOverride } from 'flashpoint';
 import * as React from 'react';
 import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
@@ -15,7 +16,6 @@ import { Dropdown } from '../Dropdown';
 import { DropdownInputField } from '../DropdownInputField';
 import { InputField } from '../InputField';
 import { OpenIcon } from '../OpenIcon';
-import { AppPathOverride } from 'flashpoint';
 
 type OwnProps = {
   /** List of all game libraries */
@@ -757,13 +757,13 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   /** When the "Save & Restart" button is clicked. */
   onSaveAndRestartClick = () => {
     // Save new config to file, then restart the app
-    window.Shared.back.send<any, UpdateConfigData>(BackIn.UPDATE_CONFIG, {
+    window.Shared.back.request(BackIn.UPDATE_CONFIG, {
       flashpointPath: this.state.flashpointPath,
       metadataServerHost: this.state.metadataServerHost,
       useCustomTitlebar: this.state.useCustomTitlebar,
       nativePlatforms: this.state.nativePlatforms,
       server: this.state.server,
-    }, () => { window.Shared.restart(); });
+    }).then(() => { window.Shared.restart(); });
   }
 
   static contextType = LangContext;

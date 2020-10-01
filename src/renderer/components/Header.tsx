@@ -201,12 +201,9 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
       const match = tagRegex.exec(this.state.searchText);
       if (match) {
         const tagName = match[1];
-        window.Shared.back.send<any, any>(BackIn.GET_TAG_SUGGESTIONS, tagName, (res) => {
-          if (res.data) {
-            this.setState({
-              tagSuggestions: res.data
-            });
-          }
+        window.Shared.back.request(BackIn.GET_TAG_SUGGESTIONS, tagName)
+        .then(data => {
+          if (data) { this.setState({ tagSuggestions: data }); }
         });
       } else {
         // Not searching by tag

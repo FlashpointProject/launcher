@@ -4,7 +4,7 @@ import { chunkArray } from '@back/util/misc';
 import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
-import { BackOut, MergeTagData, TagCategoriesChangeData, TagSuggestion } from '@shared/back/types';
+import { BackOut, MergeTagData, TagSuggestion } from '@shared/back/types';
 import { getManager, Like, Not } from 'typeorm';
 import { GameManager } from './GameManager';
 
@@ -348,10 +348,6 @@ export namespace TagManager {
   export async function sendTagCategories(socketServer: SocketServer) {
     const tagCategoryRepository = getManager().getRepository(TagCategory);
     const cats = await tagCategoryRepository.find();
-    socketServer.broadcast<TagCategoriesChangeData>({
-      id: '',
-      type: BackOut.TAG_CATEGORIES_CHANGE,
-      data: cats
-    });
+    socketServer.broadcast(BackOut.TAG_CATEGORIES_CHANGE, cats);
   }
 }

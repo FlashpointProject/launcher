@@ -12,14 +12,14 @@ import { execFile } from 'child_process';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as YAML from 'yaml';
+import { ApiEmitter } from './extensions/ApiEmitter';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
 import { GameManagerState } from './game/types';
 import { GameLauncher, LaunchAddAppOpts, LaunchGameOpts } from './GameLauncher';
-import { ShowMessageBoxFunc, OpenExternalFunc } from './types';
+import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { getMklinkBatPath } from './util/elevate';
 import { uuid } from './util/uuid';
-import { ApiEmitter } from './extensions/ApiEmitter';
 
 type ImportCurationOpts = {
   curation: EditCuration;

@@ -2,10 +2,10 @@
 import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { getGamePath } from '@renderer/Util';
-import { BackIn, BackOut, GameMetadataSyncResponse, GetAllGamesResponseData, GetExecData, ImportMetaEditResponseData, ImportPlaylistData, SaveLegacyPlatformData, ServiceChangeData, TagPrimaryFixData, TagPrimaryFixResponse, WrappedResponse, RunCommandData, RunCommandResponse } from '@shared/back/types';
+import { BackIn, BackOut } from '@shared/back/types';
 import { IAppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
-import { ExtensionContribution, DevScript } from '@shared/extensions/interfaces';
+import { DevScript, ExtensionContribution } from '@shared/extensions/interfaces';
 import { ExecMapping } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
@@ -58,11 +58,11 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   }
 
   componentDidMount() {
-    window.Shared.back.on('message', this.onServiceUpdate);
+    window.Shared.back.registerAny(this.onServiceUpdate);
   }
 
   componentWillUnmount() {
-    window.Shared.back.off('message', this.onServiceUpdate);
+    window.Shared.back.unregisterAny(this.onServiceUpdate);
   }
 
   // TODO: Remove when all functions are in back
@@ -180,8 +180,8 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
     );
   }
 
-  onServiceUpdate = (response: WrappedResponse<ServiceChangeData>) => {
-    if (response.type === BackOut.SERVICE_CHANGE || response.type === BackOut.SERVICE_REMOVED) { this.forceUpdate(); }
+  onServiceUpdate: Parameters<typeof window.Shared.back.registerAny>[0] = (event, type, data) => {
+    if (type === BackOut.SERVICE_CHANGE || type === BackOut.SERVICE_REMOVED) { this.forceUpdate(); }
   }
 
   onCheckMissingImagesClick = async (): Promise<void> => {
@@ -217,7 +217,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onCheckMissingExecMappings = async (): Promise<void> => {
     const [games, execMappings] = await Promise.all([
       fetchAllGames(),
-      window.Shared.back.sendP<GetExecData>(BackIn.GET_EXEC, undefined).then(r => r.data),
+      window.Shared.back.request(BackIn.GET_EXEC),
     ]);
     if (!execMappings) { throw new Error('Failed to get exec mappings - response contained no data'); }
     if (games) {
@@ -249,7 +249,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onDeleteAllPlaylistsClick = () : void => {
     setTimeout(async () => {
       this.setState({ text: 'Deleting playlist, please wait...' });
-      await window.Shared.back.sendP(BackIn.DELETE_ALL_PLAYLISTS, undefined);
+      await window.Shared.back.request(BackIn.DELETE_ALL_PLAYLISTS);
       this.setState({ text: 'Deleted all playlists!' });
     });
   }
@@ -266,7 +266,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onFixCommaTags = () : void => {
     setTimeout(async () => {
       this.setState({ text: 'Fixing tags, please wait...'});
-      window.Shared.back.sendP(BackIn.CLEANUP_TAGS, undefined).then(() => {
+      window.Shared.back.request(BackIn.CLEANUP_TAGS).then(() => {
         this.setState({ text: 'Tags Fixed!'});
       });
     });
@@ -299,12 +299,13 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onForceGameMetaSync = () : void => {
     setTimeout(async () => {
       this.setState({ text: 'Syncing...' });
-      window.Shared.back.sendP<GameMetadataSyncResponse,any>(BackIn.SYNC_GAME_METADATA, undefined).then((res) => {
-        if (res.data) {
-          if (res.data.error) {
-            this.setState({ text: `ERROR: ${res.data.error}` });
+      window.Shared.back.request(BackIn.SYNC_GAME_METADATA)
+      .then((data) => {
+        if (data) {
+          if (data.error) {
+            this.setState({ text: `ERROR: ${data.error}` });
           } else {
-            this.setState({ text: `Requested ${res.data.total} modified games, successfully saved ${res.data.successes}.`});
+            this.setState({ text: `Requested ${data.total} modified games, successfully saved ${data.successes}.`});
           }
         }
       });
@@ -314,18 +315,19 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   onImportMetaEdits = (): void => {
     setTimeout(async () => {
       this.setState({ text: 'Importing meta edits...' });
-      window.Shared.back.sendP<ImportMetaEditResponseData, undefined>(BackIn.IMPORT_META_EDITS, undefined).then((res) => {
+      window.Shared.back.request(BackIn.IMPORT_META_EDITS)
+      .then((data) => {
         let text = 'Meta edit import complete!\n\n\n\n';
 
-        if (res.data) {
+        if (data) {
           // Aborted
-          if (res.data.aborted) {
+          if (data.aborted) {
             text += 'IMPORT ABORTED!\n\n\n\n';
           }
 
-          if (res.data.changedMetas) {
+          if (data.changedMetas) {
             // Applied
-            const applied = res.data.changedMetas.filter(v => v.apply.length > 0);
+            const applied = data.changedMetas.filter(v => v.apply.length > 0);
             text += `Applied changes (${applied.reduce((a, v) => a + v.apply.length, 0)} changes in ${applied.length} games):\n\n`;
             for (const changedMeta of applied) {
               text += `  ${changedMeta.title} (${changedMeta.id})\n`;
@@ -339,7 +341,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
             text += '\n\n';
 
             // Discarded
-            const discarded = res.data.changedMetas.filter(v => v.discard.length > 0);
+            const discarded = data.changedMetas.filter(v => v.discard.length > 0);
             text += `Discarded changes (${discarded.reduce((a, v) => a + v.discard.length, 0)} changes in ${discarded.length} games):\n\n`;
             for (const changedMeta of discarded) {
               text += `  ${changedMeta.title} (${changedMeta.id})\n`;
@@ -352,22 +354,22 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
           }
 
           // Games not found
-          if (res.data.gameNotFound) {
-            text += `Games not found (${res.data.gameNotFound.length}):\n\n`;
-            for (const notFound of res.data.gameNotFound) {
+          if (data.gameNotFound) {
+            text += `Games not found (${data.gameNotFound.length}):\n\n`;
+            for (const notFound of data.gameNotFound) {
               text += `  ${notFound.id}\n` +
                       `    Files (${notFound.filenames.length}):\n` +
                       notFound.filenames.map(filename => `      ${filename}\n`) + '\n';
             }
-            if (res.data.gameNotFound.length === 0) { text += '\n'; }
+            if (data.gameNotFound.length === 0) { text += '\n'; }
             text += '\n\n';
           }
 
           // Errors
-          if (res.data.errors) {
-            text += `Errors (${res.data.errors.length}):\n\n`;
-            for (let i = 0; i < res.data.errors.length; i++) {
-              const error = res.data.errors[i];
+          if (data.errors) {
+            text += `Errors (${data.errors.length}):\n\n`;
+            for (let i = 0; i < data.errors.length; i++) {
+              const error = data.errors[i];
               text += `  ${error.name || 'Error'}: #${i + 1}\n` +
                       `    Message: ${error.message}\n`;
               if (typeof error.stack === 'string') {
@@ -387,7 +389,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
 
   onRunCommand(script: DevScript) {
     setTimeout(async () => {
-      await window.Shared.back.sendP<RunCommandResponse, RunCommandData>(BackIn.RUN_COMMAND, { command: script.command });
+      await window.Shared.back.request(BackIn.RUN_COMMAND, script.command);
     }, 0);
   }
 
@@ -792,12 +794,7 @@ function repeat(char: string, n: number): string {
 }
 
 function fetchAllGames(): Promise<Game[]> {
-  return new Promise((resolve, reject) => {
-    window.Shared.back.send<GetAllGamesResponseData>(BackIn.GET_ALL_GAMES, undefined, result => {
-      if (result.data) { resolve(result.data.games); }
-      else { reject(new Error('Failed to fetch all games. Data is undefined.')); }
-    });
-  });
+  return window.Shared.back.request(BackIn.GET_ALL_GAMES);
 }
 
 async function importLegacyPlatforms(config: IAppConfigData, setText: (text: string) => void): Promise<void> {
@@ -817,7 +814,7 @@ async function importLegacyPlatforms(config: IAppConfigData, setText: (text: str
         text.push(`\nAdding Platform ${platform.library} - ${platform.name} - ${platform.collection.games.length} Games`);
         setText(text.join('\n'));
         totalGames += platform.collection.games.length;
-        await window.Shared.back.sendP<any, SaveLegacyPlatformData>(BackIn.SAVE_LEGACY_PLATFORM, platform);
+        await window.Shared.back.request(BackIn.SAVE_LEGACY_PLATFORM, platform);
       }
     }
     const timeTaken = Date.now() - startTime.getTime();
@@ -835,7 +832,7 @@ async function importLegacyPlaylists(config: IAppConfigData): Promise<number> {
   for (const file of files) {
     if (file.toLowerCase().endsWith('.json')) {
       const fullPath = path.join(playlistsPath, file);
-      await window.Shared.back.sendP<any, ImportPlaylistData>(BackIn.IMPORT_PLAYLIST, { filePath: fullPath });
+      await window.Shared.back.request(BackIn.IMPORT_PLAYLIST, fullPath);
       playlistsImported++;
     }
   }
@@ -843,8 +840,8 @@ async function importLegacyPlaylists(config: IAppConfigData): Promise<number> {
 }
 
 async function fixPrimaryAliases(): Promise<number> {
-  const res = await window.Shared.back.sendP<TagPrimaryFixResponse, TagPrimaryFixData>(BackIn.FIX_TAG_PRIMARY_ALIASES, null);
-  return res.data || 0;
+  const data = await window.Shared.back.request(BackIn.FIX_TAG_PRIMARY_ALIASES, null);
+  return data || 0;
 }
 
 async function exportTags(setText: (text: string) => void): Promise<number> {
@@ -860,8 +857,8 @@ async function exportTags(setText: (text: string) => void): Promise<number> {
   });
   if (filePath) {
     setText('Exporting tags, please wait...');
-    const res = await window.Shared.back.sendP<number, string>(BackIn.EXPORT_TAGS, filePath);
-    return res.data || 0;
+    const data = await window.Shared.back.request(BackIn.EXPORT_TAGS, filePath);
+    return data || 0;
   } else {
     throw new Error('User Cancelled');
   }
@@ -880,8 +877,8 @@ async function importTags(setText: (text: string) => void): Promise<number> {
   });
   if (filePath) {
     setText('Importing tags, please wait...');
-    const res = await window.Shared.back.sendP<number, string>(BackIn.IMPORT_TAGS, filePath);
-    return res.data || 0;
+    const data = await window.Shared.back.request(BackIn.IMPORT_TAGS, filePath);
+    return data || 0;
   } else {
     throw new Error('User Cancelled');
   }
