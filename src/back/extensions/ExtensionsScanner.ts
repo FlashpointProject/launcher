@@ -20,11 +20,15 @@ export async function scanExtensions(configData: AppConfigData): Promise<IExtens
   await fs.promises.access(userExtPath, fs.constants.F_OK | fs.constants.R_OK)
   .then(() => {/** Folder exists */})
   .catch(() => fs.promises.mkdir(userExtPath));
-  await fsPromises.readdir(userExtPath, { withFileTypes: true })
-  .then((files) => {
+  await fsPromises.readdir(userExtPath)
+  .then(filenames => {
     // Each folder inside is an Extension
-    return Promise.all(files.filter(f => f.isDirectory()).map(async file => {
-      const manifestPath = path.join(userExtPath, file.name, 'package.json');
+    return Promise.all(filenames.map(async filename => {
+      // Make sure it is a folder or symlink folder
+      const stats = await fs.promises.stat(path.join(userExtPath, filename));
+      if (!stats.isDirectory()) { return; }
+      // Read Manifest
+      const manifestPath = path.join(userExtPath, filename, 'package.json');
       return fsPromises.stat(manifestPath)
       .then(async (stats) => {
         // Manifest file (package.json) exists, continue loading extension
@@ -38,7 +42,7 @@ export async function scanExtensions(configData: AppConfigData): Promise<IExtens
           result.set(ext.id, ext);
         }
       })
-      .catch(err => log.error('Extensions', `Error loading User extension "${file.name}"\n${err}`));
+      .catch(err => log.error('Extensions', `Error loading User extension "${filename}"\n${err}`));
     }));
   });
 
@@ -100,7 +104,7 @@ async function parseExtensionManifest(data: any) {
   parser.prop('description',      v => parsed.description     = str(v), true);
   parser.prop('icon',             v => parsed.icon            = str(v), true);
   parser.prop('main',             v => parsed.main            = str(v), true);
-  parsed.contributes = parseContributions(parser.prop('contributes'));
+  parser.prop('contributes',      v => parsed.contributes     = parseContributions(parser.prop('contributes')), true);
   return parsed;
 }
 
@@ -112,11 +116,11 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
     contextButtons: [],
     applications: [],
   };
-  parser.prop('logoSets').array((item) => contributes.logoSets.push(parseLogoSet(item)));
-  parser.prop('themes').array((item) => contributes.themes.push(parseTheme(item)));
-  parser.prop('devScripts').array((item) => contributes.devScripts.push(parseDevScript(item)));
-  parser.prop('contextButtons').array((item) => contributes.contextButtons.push(parseContextButton(item)));
-  parser.prop('applications').array((item) => contributes.applications.push(parseApplication(item)));
+  parser.prop('logoSets',       true).array(item => contributes.logoSets.push(parseLogoSet(item)));
+  parser.prop('themes',         true).array(item => contributes.themes.push(parseTheme(item)));
+  parser.prop('devScripts',     true).array(item => contributes.devScripts.push(parseDevScript(item)));
+  parser.prop('contextButtons', true).array(item => contributes.contextButtons.push(parseContextButton(item)));
+  parser.prop('applications',   true).array(item => contributes.applications.push(parseApplication(item)));
   return contributes;
 }
 
