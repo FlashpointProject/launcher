@@ -13,7 +13,7 @@ import { LangContext } from '../../util/lang';
 import { ConfigBox } from '../ConfigBox';
 import { ConfigBoxCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
-import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiselect';
+import { ConfigBoxMultiSelect, MultiSelectItem } from '../ConfigBoxMultiSelect';
 import { ConfigBoxSelect, SelectItem } from '../ConfigBoxSelect';
 import { ConfigBoxSelectInput } from '../ConfigBoxSelectInput';
 import { ConfigFlashpointPathInput } from '../ConfigFlashpointPathInput';
