@@ -305,7 +305,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
       const service = state.serviceInfo.daemon[i];
       const id = 'daemon_' + i;
-      runService(state, id, service.name || id, state.config.flashpointPath, service);
+      runService(state, id, service.name || id, state.config.flashpointPath, {}, service);
     }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {
