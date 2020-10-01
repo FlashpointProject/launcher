@@ -4,7 +4,7 @@
 
 Extensions should be unpacked to `/Data/Extensions` where an example path would be `/Data/Extensions/MyFirstExtension`. 
 
-Developer Note - Try to keep extension folder names unique as to not risk collision with other extensions.
+Developer Note: Try to keep extension folder names unique as to not risk collision with other extensions.
 
 ## Running
 
@@ -12,7 +12,7 @@ Extensions are automatically loaded on Launcher startup with no ability to disab
 
 ## Creating
 
-All themes require a `package.json` manifest at the root of their extension path. You'll recognize this if you've written Node JS modules before. An example is below, with explanations beneath.
+All extensions require a `package.json` manifest at the root of their extension path. You'll recognize this if you've written Node JS modules before. An example is below, with explanations beneath.
 
 An extension should be packed as to be easily installable as described in the `Installing` section above. In the future the Launcher will be able to install them itself.
 
