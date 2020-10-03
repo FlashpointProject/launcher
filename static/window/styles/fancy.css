@@ -760,12 +760,10 @@ body {
 .playlist-list-content__description {
   color: var(--layout__secondary-text-color);
 }
-
 .playlist-list-content__extreme {
   color: var(--layout__warning-bright-color);
   font-style: italic;
 }
-
 .playlist-list-content--edit .playlist-list-content__description {
   background-color: var(--layout__playlist-list-item-editing-description-background);
   color: var(--layout__primary-text-color);
