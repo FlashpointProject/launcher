@@ -104,20 +104,23 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
           onKeyDown={props.onKeyDown}
           multiline={true} />
         {/* Extreme */}
-        {
-          (props.editing && !props.editingExtremeDisabled) ? (
-            <>
-              <CheckBox
-                checked={props.playlist.extreme}
-                onToggle={props.onExtremeToggle}
-              />
-            </>
-          ) : undefined
-        }
-        { ((props.editing && !props.editingExtremeDisabled) || props.playlist.extreme) ? (
-          <span className="playlist-list-content__extreme">{strings.extreme}</span>
-        ) : undefined
-        }
+        <div className="playlist-list-content__extreme">
+          {
+            (props.editing && !props.editingExtremeDisabled) ? (
+              <>
+                <CheckBox
+                  checked={props.playlist.extreme}
+                  onToggle={props.onExtremeToggle}
+                />
+              </>
+            ) : undefined
+          }
+          {
+            ((props.editing && !props.editingExtremeDisabled) || props.playlist.extreme) ? (
+              <span>{strings.extreme}</span>
+            ) : undefined
+          }
+        </div>
       </div>
     </div>
   );

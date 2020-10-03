@@ -773,10 +773,8 @@ body {
 .playlist-list-content--edit .playlist-list-content__extreme {
   color: var(--layout__primary-text-color);
   font-style: normal;
-  margin-left: 0.3rem;
 }
-/* Play
-list-List-Content Buttons */
+/* Playlist-List-Content Buttons */
 .playlist-list-content__button--confirm:hover .icon__use {
   fill: var(--layout__confirm-color);
 }
