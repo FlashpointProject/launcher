@@ -4,6 +4,14 @@
 
 - Playlists can now be flagged as extreme. *(Extreme playlists are hidden while the "Extreme Games" config is disabled)*
 
+# Release 9.0.4
+
+## Fixed
+
+- Display more log messages from the curation importer (there were a few log messages that were disabled for unknown reasons).
+- When importing a curation, flag all read-only files as not read-only before moving/copying them (instead of silently ignoring them).
+- Trying to download an image (on demand) while not connected to the internet will no longer cause the launcher to "crash".
+
 # Release 9.0.3
 
 ## New

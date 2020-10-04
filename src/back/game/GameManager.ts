@@ -177,12 +177,15 @@ export namespace GameManager {
       // Select games
       // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
       // @PERF When multiple pages are requested as individual ranges, select all of them with a single query then split them up
+      const games = (shallow)
+        ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher').getRawMany()) as ViewGame[]
+        : await query.getMany();
       rangesOut.push({
         start: range.start,
         length: range.length,
-        games: ((shallow)
-          ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher').getRawMany()) as ViewGame[]
-          : await query.getMany()
+        games: ((opts.filter && opts.filter.playlistId)
+          ? games.slice(range.start, range.start + (range.length || games.length - range.start))
+          : games
         ) as (T extends true ? ViewGame[] : Game[]),
       });
 
@@ -540,8 +543,8 @@ async function getGameQuery(
 
   const query = getManager().getRepository(Game).createQueryBuilder(alias);
 
-  // Use Page Index (If Given)
-  if (index) {
+  // Use Page Index if available (ignored for Playlists)
+  if ((!filterOpts || !filterOpts.playlistId) && index) {
     const comparator = direction === 'ASC' ? '>' : '<';
     if (!orderBy) { throw new Error('Failed to get game query. "index" is set but "orderBy" is missing.'); }
     query.where(`(${alias}.${orderBy}, ${alias}.title, ${alias}.id) ${comparator} (:orderVal, :title, :id)`, { orderVal: index.orderVal, title: index.title, id: index.id });
@@ -559,9 +562,10 @@ async function getGameQuery(
   // Playlist filtering
   if (filterOpts && filterOpts.playlistId) {
     query.innerJoin(PlaylistGame, 'pg', `pg.gameId = ${alias}.id`);
-    query.orderBy('pg.order');
+    query.orderBy('pg.order', 'ASC');
     if (whereCount === 0) { query.where('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
     else                  { query.andWhere('pg.playlistId = :playlistId', { playlistId: filterOpts.playlistId }); }
+    query.skip(offset); // TODO: Why doesn't offset work here?
   }
   // Tag filtering
   if (filterOpts && filterOpts.searchQuery) {

@@ -75,7 +75,7 @@ export function flash(init: Init): void {
       callback({ ...details.responseHeaders });
     });
 
-    createFlashWindow();
+    state.window = createFlashWindow();
   }
 
   function onAppWindowAllClosed(): void {
@@ -101,7 +101,7 @@ export function flash(init: Init): void {
   function onAppActivate(): void {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (!state.window) { createFlashWindow(); }
+    if (!state.window) { state.window = createFlashWindow(); }
   }
 
   function onInit(event: IpcMainEvent): void {
@@ -128,6 +128,12 @@ export function flash(init: Init): void {
     window.loadFile(path.join(__dirname, '../window/flash_index.html'));
 
     // window.webContents.openDevTools();
+
+    window.on('closed', () => {
+      if (state.window === window) {
+        state.window = undefined;
+      }
+    });
 
     return window;
   }
