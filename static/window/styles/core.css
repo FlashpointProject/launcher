@@ -1799,6 +1799,9 @@ body {
 .playlist-list-content__extreme {
   user-select: none;
 }
+.playlist-list-content__extreme span {
+  vertical-align: middle;
+}
 .playlist-list-content__extreme input[type="checkbox"] {
   vertical-align: middle;
   margin-right: 0.3rem;

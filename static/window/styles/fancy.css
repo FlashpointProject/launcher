@@ -762,7 +762,7 @@ body {
 }
 .playlist-list-content__extreme {
   color: var(--layout__warning-bright-color);
-  font-style: italic;
+  font-weight: bolder;
 }
 .playlist-list-content--edit .playlist-list-content__description {
   background-color: var(--layout__playlist-list-item-editing-description-background);
