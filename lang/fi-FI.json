@@ -369,7 +369,8 @@
     "noAuthor": "Ei kehittäjää",
     "authorPlaceholder": "Kehittäjä...",
     "id": "ID",
-    "by": "luonut"
+    "by": "luonut",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "{0} ei löydy",
