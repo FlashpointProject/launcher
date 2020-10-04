@@ -369,7 +369,8 @@
     "noAuthor": "作成者なし",
     "authorPlaceholder": "作成者、、、",
     "id": "ID",
-    "by": "by"
+    "by": "by",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "{0} が見つかりませんでした",
