@@ -1798,10 +1798,9 @@ body {
 }
 .playlist-list-content__extreme {
   user-select: none;
-  display: inline-block;
-  vertical-align: middle;
 }
 .playlist-list-content__extreme input[type="checkbox"] {
+  vertical-align: middle;
   margin-right: 0.3rem;
 }
 /* Playlist-List-Fake-Item */
