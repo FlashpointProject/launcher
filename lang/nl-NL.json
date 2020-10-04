@@ -369,7 +369,8 @@
     "noAuthor": "Geen auteur",
     "authorPlaceholder": "Auteur...",
     "id": "ID",
-    "by": "door"
+    "by": "door",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "Geen {0} gevonden",
