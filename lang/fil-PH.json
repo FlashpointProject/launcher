@@ -369,7 +369,8 @@
     "noAuthor": "Walang awtor",
     "authorPlaceholder": "Awtor...",
     "id": "ID",
-    "by": "mula kay"
+    "by": "mula kay",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "Walang {0} nahanap",
