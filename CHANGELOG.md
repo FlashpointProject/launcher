@@ -1,3 +1,9 @@
+# Pre-Release 9.1.0
+
+## New
+
+- Playlists can now be flagged as extreme. *(Extreme playlists are hidden while the "Extreme Games" config is disabled)*
+
 # Release 9.0.3
 
 ## New
