@@ -369,7 +369,8 @@
     "noAuthor": "Ingen Udvikler",
     "authorPlaceholder": "Udvikler...",
     "id": "ID",
-    "by": "af"
+    "by": "af",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "Ingen {0} fundet",
