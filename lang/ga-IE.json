@@ -369,7 +369,8 @@
     "noAuthor": "No Author",
     "authorPlaceholder": "Author...",
     "id": "ID",
-    "by": "le"
+    "by": "le",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "No {0} Found",
