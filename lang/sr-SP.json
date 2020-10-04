@@ -369,7 +369,8 @@
     "noAuthor": "Нема аутора",
     "authorPlaceholder": "Аутор...",
     "id": "ID",
-    "by": "од"
+    "by": "од",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "{0} није пронађена",
