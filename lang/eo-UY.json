@@ -369,7 +369,8 @@
     "noAuthor": "No Author",
     "authorPlaceholder": "Author...",
     "id": "ID",
-    "by": "de"
+    "by": "de",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "Neniu {0} Troviĝis",
