@@ -343,7 +343,8 @@
     "noAuthor": "Žádný autor",
     "authorPlaceholder": "Autor...",
     "id": "ID",
-    "by": "od"
+    "by": "od",
+    "extreme": "pro dospělé"
   },
   "misc": {
     "noBlankFound": "Žádn(ý/á) {0} nenalezen(a)",

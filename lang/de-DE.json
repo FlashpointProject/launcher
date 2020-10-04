@@ -343,7 +343,8 @@
     "noAuthor": "Kein Autor",
     "authorPlaceholder": "Autor...",
     "id": "ID",
-    "by": "nach"
+    "by": "nach",
+    "extreme": "extrem"
   },
   "misc": {
     "noBlankFound": "Kein {0} gefunden",

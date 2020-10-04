@@ -1796,6 +1796,16 @@ body {
   white-space: pre-wrap;
   user-select: none;
 }
+.playlist-list-content__extreme {
+  user-select: none;
+}
+.playlist-list-content__extreme span {
+  vertical-align: middle;
+}
+.playlist-list-content__extreme input[type="checkbox"] {
+  vertical-align: middle;
+  margin-right: 0.3rem;
+}
 /* Playlist-List-Fake-Item */
 .playlist-list-fake-item {
   display: flex;

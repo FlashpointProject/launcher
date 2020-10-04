@@ -760,9 +760,17 @@ body {
 .playlist-list-content__description {
   color: var(--layout__secondary-text-color);
 }
+.playlist-list-content__extreme {
+  color: var(--layout__warning-bright-color);
+  font-weight: bolder;
+}
 .playlist-list-content--edit .playlist-list-content__description {
   background-color: var(--layout__playlist-list-item-editing-description-background);
   color: var(--layout__primary-text-color);
+}
+.playlist-list-content--edit .playlist-list-content__extreme {
+  color: var(--layout__primary-text-color);
+  font-style: normal;
 }
 /* Playlist-List-Content Buttons */
 .playlist-list-content__button--confirm:hover .icon__use {

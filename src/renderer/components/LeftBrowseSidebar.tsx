@@ -30,6 +30,7 @@ type OwnProps = {
   onSetIcon: () => void;
   onTitleChange: (event: React.ChangeEvent<InputElement>) => void;
   onAuthorChange: (event: React.ChangeEvent<InputElement>) => void;
+  onExtremeToggle: (isChecked: boolean) => void;
   onDescriptionChange: (event: React.ChangeEvent<InputElement>) => void;
   onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
   onShowAllClick?: () => void;
@@ -49,8 +50,9 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
   render() {
     const allStrings = this.context;
     const strings = this.context.browse;
-    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, selectedPlaylistID } = this.props;
+    const { currentPlaylist, isEditing, isNewPlaylist: isEditingNew, onShowAllClick, playlistIconCache, playlists, selectedPlaylistID, preferencesData} = this.props;
     const editingDisabled = false; // Left-over from when "Enable Editing" was required to edit playlists
+    const editingExtremeDisabled = !preferencesData.browsePageShowExtreme;
     return (
       <div className='browse-left-sidebar'>
         <div className='playlist-list'>
@@ -66,7 +68,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
             </div>
           </div>
           {/* List all playlists */}
-          {this.renderPlaylistsMemo(playlists, playlistIconCache, currentPlaylist, selectedPlaylistID, editingDisabled, isEditing, isEditingNew)}
+          {this.renderPlaylistsMemo(playlists, playlistIconCache, currentPlaylist, selectedPlaylistID, editingDisabled, editingExtremeDisabled, isEditing, isEditingNew)}
           {/* Create New Playlist */}
           { editingDisabled ? undefined : (
             <div
@@ -102,6 +104,7 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
     currentPlaylist: Playlist | undefined,
     selectedPlaylistID: string,
     editingDisabled: boolean,
+    editingExtremeDisabled: boolean,
     isEditing: boolean,
     isEditingNew: boolean,
   ) => {
@@ -130,9 +133,11 @@ export class LeftBrowseSidebar extends React.Component<LeftBrowseSidebarProps> {
           <PlaylistItemContent
             key={key + '?content'} // Includes "?" because it's an invalid filename character
             editingDisabled={editingDisabled}
+            editingExtremeDisabled={editingExtremeDisabled}
             editing={isSelected && isEditing}
             playlist={p}
             onDescriptionChange={this.props.onDescriptionChange}
+            onExtremeToggle={this.props.onExtremeToggle}
             onKeyDown={this.props.onKeyDown}
             onSave={this.props.onSave}
             onDiscard={this.props.onDiscard}

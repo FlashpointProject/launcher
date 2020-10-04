@@ -5,13 +5,16 @@ import { LangContext } from '../util/lang';
 import { ConfirmElement, ConfirmElementArgs } from './ConfirmElement';
 import { InputElement, InputField } from './InputField';
 import { OpenIcon } from './OpenIcon';
+import { CheckBox } from './CheckBox';
 
 export type PlaylistItemContentProps = {
   editingDisabled: boolean;
+  editingExtremeDisabled: boolean;
   editing: boolean;
   playlist: Playlist;
 
   onDescriptionChange: (event: React.ChangeEvent<InputElement>) => void;
+  onExtremeToggle: (isExtreme: boolean) => void;
   onKeyDown: (event: React.KeyboardEvent<InputElement>) => void;
   onSave: () => void;
   onDiscard: () => void;
@@ -100,6 +103,24 @@ export function PlaylistItemContent(props: PlaylistItemContentProps) {
           onChange={props.onDescriptionChange}
           onKeyDown={props.onKeyDown}
           multiline={true} />
+        {/* Extreme */}
+        <div className="playlist-list-content__extreme">
+          {
+            (props.editing && !props.editingExtremeDisabled) ? (
+              <>
+                <CheckBox
+                  checked={props.playlist.extreme}
+                  onToggle={props.onExtremeToggle}
+                />
+              </>
+            ) : undefined
+          }
+          {
+            ((props.editing && !props.editingExtremeDisabled) || props.playlist.extreme) ? (
+              <span>{strings.extreme}</span>
+            ) : undefined
+          }
+        </div>
       </div>
     </div>
   );

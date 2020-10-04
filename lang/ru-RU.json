@@ -343,7 +343,8 @@
     "noAuthor": "Нет автора",
     "authorPlaceholder": "Автор...",
     "id": "ID",
-    "by": "от"
+    "by": "от",
+    "extreme": "жестокая"
   },
   "misc": {
     "noBlankFound": "{0} не найден",
