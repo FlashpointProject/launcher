@@ -369,7 +369,8 @@
     "noAuthor": "Vô danh",
     "authorPlaceholder": "Tác giả...",
     "id": "ID",
-    "by": "của"
+    "by": "của",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "Không tìm thấy {0}",
