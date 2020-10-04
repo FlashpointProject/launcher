@@ -668,7 +668,7 @@ function updateFileServerDownloadQueue() {
     const url = state.config.onDemandBaseUrl + (state.config.onDemandBaseUrl.endsWith('/') ? '' : '/') + item.subPath;
     const protocol = url.startsWith('https://') ? https : http;
     try {
-      protocol.get(url, async (res) => {
+      const req = protocol.get(url, async (res) => {
         try {
           if (res.statusCode === 200) {
             const imageFolder = path.join(state.config.flashpointPath, state.config.imageFolderPath);
@@ -702,6 +702,12 @@ function updateFileServerDownloadQueue() {
         } catch (error) {
           console.error('Failed to download an image on demand.', error);
           removeFileServerDownloadItem(item);
+        }
+      });
+      req.on('error', error => {
+        removeFileServerDownloadItem(item);
+        if ((error as any)?.code !== 'ENOTFOUND') {
+          console.error('Failed to download an image on demand.', error);
         }
       });
     } catch (error) {

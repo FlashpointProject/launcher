@@ -1,3 +1,9 @@
+# Release 9.0.4
+
+## Fixed
+
+- Trying to download an image (on demand) while not connected to the internet will no longer cause the launcher to "crash".
+
 # Release 9.0.3
 
 ## New
