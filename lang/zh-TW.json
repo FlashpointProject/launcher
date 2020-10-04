@@ -369,7 +369,8 @@
     "noAuthor": "無作者",
     "authorPlaceholder": "作者...",
     "id": "ID",
-    "by": "作者︰"
+    "by": "作者︰",
+    "extreme": "extreme"
   },
   "misc": {
     "noBlankFound": "無法找到「 {0} 」",
