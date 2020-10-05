@@ -49,7 +49,7 @@
     "extDevScripts": "Entwickler-Skript(e)",
     "extThemes": "Themen",
     "extLogoSets": "Logo-Set(s)",
-    "extApplications": "Application(s)",
+    "extApplications": "Anwendung(en)",
     "saveAndRestart": "Speichern und neu starten"
   },
   "home": {
@@ -371,7 +371,7 @@
     "authorPlaceholder": "Autor...",
     "id": "ID",
     "by": "nach",
-    "extreme": "extreme"
+    "extreme": "extrem"
   },
   "misc": {
     "noBlankFound": "Kein {0} gefunden",
