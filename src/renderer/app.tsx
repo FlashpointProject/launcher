@@ -265,7 +265,7 @@ export class App extends React.Component<AppProps> {
     });
 
     window.Shared.back.register(BackOut.DEV_CONSOLE_CHANGE, (event, text) => {
-      this.props.setMainState({ devConsoleText: text });
+      this.props.setMainState({ devConsole: text });
     });
 
     // Cache playlist icons (if they are loaded)
@@ -574,7 +574,7 @@ export class App extends React.Component<AppProps> {
       serverNames: this.props.main.serverNames,
       mad4fpEnabled: this.props.main.mad4fpEnabled,
       localeCode: this.props.main.localeCode,
-      devConsoleText: this.props.main.devConsoleText,
+      devConsole: this.props.main.devConsole,
       upgrades: this.props.main.upgrades,
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,
@@ -593,6 +593,7 @@ export class App extends React.Component<AppProps> {
       autoUpdater: autoUpdater,
       extensions: this.props.main.extensions,
       devScripts: this.props.main.devScripts,
+      contextButtons: this.props.main.contextButtons,
       logoSets: this.props.main.logoSets,
       logoVersion: this.props.main.logoVersion,
     };

@@ -1,13 +1,16 @@
 import { AdditionalApp } from '@database/entity/AdditionalApp';
 import { Game } from '@database/entity/Game';
+import { AppProvider } from '@shared/extensions/interfaces';
 import { ExecMapping, Omit } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
-import { ChildProcess, exec, execFile } from 'child_process';
+import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
+import { AppPathOverride, ManagedChildProcess } from 'flashpoint-launcher';
 import * as path from 'path';
-import { ShowMessageBoxFunc, OpenExternalFunc } from './types';
-import { AppPathOverride } from 'flashpoint';
+import { ApiEmitter } from './extensions/ApiEmitter';
+import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
+import { isBrowserOpts } from './util/misc';
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
@@ -19,6 +22,20 @@ export type LaunchGameOpts = LaunchBaseOpts & {
   native: boolean;
 }
 
+export type GameLaunchInfo = {
+  game: Game;
+  launchInfo: LaunchInfo;
+}
+
+export type LaunchInfo = {
+  gamePath: string;
+  gameArgs: string | string[];
+  useWine: boolean;
+  env: NodeJS.ProcessEnv;
+  cwd?: string;
+  execFile?: boolean;
+}
+
 type LaunchBaseOpts = {
   fpPath: string;
   execMappings: ExecMapping[];
@@ -26,8 +43,10 @@ type LaunchBaseOpts = {
   isDev: boolean;
   exePath: string;
   appPathOverrides: AppPathOverride[];
+  providers: AppProvider[];
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
+  runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
 }
 
 export namespace GameLauncher {
@@ -66,9 +85,15 @@ export namespace GameLauncher {
         if (appPathOverride) { appPath = appPathOverride.override; }
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
+        const launchInfo: LaunchInfo = {
+          gamePath: appPath,
+          gameArgs: appArgs,
+          useWine,
+          env: getEnvironment(opts.fpPath),
+        };
         const proc = exec(
-          createCommand(appPath, appArgs, useWine),
-          { env: getEnvironment(opts.fpPath) }
+          createCommand(launchInfo),
+          { env: launchInfo.env }
         );
         logProcessOutput(proc);
         log.info(logSource, `Launch Add-App "${opts.addApp.name}" (PID: ${proc.pid}) [ path: "${opts.addApp.applicationPath}", arg: "${opts.addApp.launchCommand}" ]`);
@@ -87,7 +112,7 @@ export namespace GameLauncher {
    * Launch a game
    * @param game Game to launch
    */
-  export async function launchGame(opts: LaunchGameOpts): Promise<void> {
+  export async function launchGame(opts: LaunchGameOpts, onWillEvent: ApiEmitter<GameLaunchInfo>): Promise<void> {
     // Abort if placeholder (placeholders are not "actual" games)
     if (opts.game.placeholder) { return; }
     // Run all provided additional applications with "AutoRunBefore" enabled
@@ -100,8 +125,10 @@ export namespace GameLauncher {
         isDev: opts.isDev,
         exePath: opts.exePath,
         appPathOverrides: opts.appPathOverrides,
+        providers: opts.providers,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
+        runGame: opts.runGame
       };
       for (const addApp of opts.game.addApps) {
         if (addApp.autoRunBefore) {
@@ -114,50 +141,101 @@ export namespace GameLauncher {
     let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
     const appPathOverride = opts.appPathOverrides.find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
+    const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(opts.game.applicationPath));
+    // If any available provided applications, check if any work.
+    for (const app of availableApps) {
+      try {
+        const res = await app.callback(opts.game);
+
+        // Simple path return, treat as regular app
+        if (typeof res === 'string') {
+          // Got a real application path, break out so we can run as normal
+          appPath = res;
+          break;
+        }
+
+        // Browser Mode Launch
+        if (isBrowserOpts(res)) {
+          const env = getEnvironment(opts.fpPath);
+          if ('ELECTRON_RUN_AS_NODE' in env) {
+            delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
+          }
+          const browserLaunchArgs = [path.join(__dirname, '../main/index.js'), 'browser_mode=true'];
+          if (res.proxy) { browserLaunchArgs.push(`proxy=${res.proxy}`); }
+          browserLaunchArgs.push(`browser_url=${(res.url)}`);
+          const gameLaunchInfo: GameLaunchInfo = {
+            game: opts.game,
+            launchInfo: {
+              gamePath: process.execPath,
+              gameArgs: browserLaunchArgs,
+              useWine: false,
+              env,
+              cwd: process.cwd(),
+              execFile: true
+            }
+          };
+          await onWillEvent.fire(gameLaunchInfo);
+          const managedProc = opts.runGame(gameLaunchInfo);
+          log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
+                    `    applicationPath: "${appPath}",\n`+
+                    `    launchCommand:   "${opts.game.launchCommand}" ]`);
+          return;
+        }
+
+        // Isn't a path or for browser, can't interpret
+        throw new Error('Invalid response given by provider.');
+      } catch (error) {
+        // Catch, keep going down providers if they are failing.
+        log.error('Launcher', `Error running provider for game.\n${error}`);
+      }
+    }
+    // Continue with launching normally
     switch (appPath) {
+      // Special case flash browser run.
+      // @TODO Move to extension
       case ':flash:': {
         const env = getEnvironment(opts.fpPath);
         if ('ELECTRON_RUN_AS_NODE' in env) {
           delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
         }
-        const proc = execFile(
-          process.execPath, // path.join(__dirname, '../main/index.js'),
-          [path.join(__dirname, '../main/index.js'), 'flash=true', opts.game.launchCommand],
-          { env, cwd: process.cwd() }
-        );
-        logProcessOutput(proc);
-        log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+        const gameLaunchInfo: GameLaunchInfo = {
+          game: opts.game,
+          launchInfo: {
+            gamePath: process.execPath,
+            gameArgs: [path.join(__dirname, '../main/index.js'), 'browser_mode=true', `browser_url=${path.join(__dirname, '../window/flash_index.html')}?data=${encodeURI(opts.game.launchCommand)}`],
+            useWine: false,
+            env,
+            cwd: process.cwd(),
+            execFile: true
+          }
+        };
+        await onWillEvent.fire(gameLaunchInfo);
+        const managedProc = opts.runGame(gameLaunchInfo);
+        log.info(logSource, `Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
                   `    applicationPath: "${appPath}",\n`+
                   `    launchCommand:   "${opts.game.launchCommand}" ]`);
       } break;
       default: {
-        const gamePath: string = fixSlashes(path.join(opts.fpPath, appPath));
+        const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
         const gameArgs: string = opts.game.launchCommand;
         const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
-        const command: string = createCommand(gamePath, gameArgs, useWine);
-        const proc = exec(command, { env: getEnvironment(opts.fpPath) });
-        logProcessOutput(proc);
-        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${proc.pid}) [\n`+
+        const env = getEnvironment(opts.fpPath);
+        const gameLaunchInfo: GameLaunchInfo = {
+          game: opts.game,
+          launchInfo: {
+            gamePath,
+            gameArgs,
+            useWine,
+            env,
+          }
+        };
+        await onWillEvent.fire(gameLaunchInfo);
+        const command: string = createCommand(gameLaunchInfo.launchInfo);
+        const managedProc = opts.runGame(gameLaunchInfo);
+        log.info(logSource,`Launch Game "${opts.game.title}" (PID: ${managedProc.getPid()}) [\n`+
                    `    applicationPath: "${opts.game.applicationPath}",\n`+
                    `    launchCommand:   "${opts.game.launchCommand}",\n`+
                    `    command:         "${command}" ]`);
-        // Show popups for Unity games
-        // (This is written specifically for the "startUnity.bat" batch file)
-        if (opts.game.platform === 'Unity' && proc.stdout) {
-          let textBuffer = ''; // (Buffer of text, if its multi-line)
-          proc.stdout.on('data', function(text: string): void {
-            // Add text to buffer
-            textBuffer += text;
-            // Check for exact messages and show the appropriate popup
-            for (const response of unityOutputResponses) {
-              if (textBuffer.endsWith(response.text)) {
-                response.fn(proc, opts.openDialog);
-                textBuffer = '';
-                break;
-              }
-            }
-          });
-        }
       } break;
     }
   }
@@ -208,19 +286,21 @@ export namespace GameLauncher {
     };
   }
 
-  function createCommand(filename: string, args: string, useWine: boolean): string {
+  function createCommand(launchInfo: LaunchInfo): string {
     // This whole escaping thing is horribly broken. We probably want to switch
     // to an array representing the argv instead and not have a shell
     // in between.
+    const { gamePath: filename, gameArgs: args, useWine } = launchInfo;
+    const escapedArgs = escapeArgsForShell(args);
     switch (process.platform) {
       case 'win32':
-        return `"${filename}" ${escapeWin(args)}`;
+        return `"${filename}" ${escapedArgs.join(' ')}`;
       case 'darwin':
       case 'linux':
         if (useWine) {
-          return `wine start /unix "${filename}" ${escapeLinuxArgs(args)}`;
+          return `wine start /unix "${filename}" ${escapedArgs.join(' ')}`;
         }
-        return `"${filename}" ${escapeLinuxArgs(args)}`;
+        return `"${filename}" ${escapedArgs.join(' ')}`;
       default:
         throw Error('Unsupported platform');
     }
@@ -252,6 +332,33 @@ function registerEventListeners(emitter: EventEmitter, events: string[], callbac
     emitter.on(e, (...args: any[]) => {
       callback(e, args);
     });
+  }
+}
+
+/**
+ * Escapes Arguments for the operating system (Used when running a process in a shell)
+ */
+export function escapeArgsForShell(gameArgs: string | string[]): string[] {
+  if (typeof gameArgs === 'string') {
+    switch (process.platform) {
+      case 'win32':
+        return [`${escapeWin(gameArgs)}`];
+      case 'darwin':
+      case 'linux':
+        return [`${escapeLinuxArgs(gameArgs)}`];
+      default:
+        throw Error('Unsupported platform');
+    }
+  } else {
+    switch (process.platform) {
+      case 'win32':
+        return gameArgs.map(a => `${escapeWin(a)}`);
+      case 'darwin':
+      case 'linux':
+        return gameArgs.map(a => `${escapeLinuxArgs(a)}`);
+      default:
+        throw Error('Unsupported platform');
+    }
   }
 }
 
@@ -312,64 +419,3 @@ function splitQuotes(str: string): string[] {
   }
   return splits;
 }
-
-type UnityOutputResponse = {
-  text: string;
-  fn: (proc: ChildProcess, openDialog: ShowMessageBoxFunc) => void;
-}
-
-const unityOutputResponses: UnityOutputResponse[] = [
-  {
-    text: 'Failed to set registry keys!\r\n'+
-          'Retry? (Y/n): ',
-    fn(proc, openDialog) {
-      openDialog({
-        type: 'warning',
-        title: 'Start Unity - Registry Key Warning',
-        message: 'Failed to set registry keys!\n'+
-                 'Retry?',
-        buttons: ['Yes', 'No'],
-        defaultId: 0,
-        cancelId: 1,
-      }).then((response) => {
-        if (!proc.stdin) { throw new Error('Failed to signal to Unity starter. Can not access its "standard in".'); }
-        if (response === 0) { proc.stdin.write('Y'); }
-        else                { proc.stdin.write('n'); }
-      });
-    }
-  }, {
-    text: 'Invalid parameters!\r\n'+
-          'Correct usage: startUnity [2.x|5.x] URL\r\n'+
-          'If you need to undo registry changes made by this script, run unityRestoreRegistry.bat. \r\n'+
-          'Press any key to continue . . . ',
-    fn(proc, openDialog) {
-      openDialog({
-        type: 'warning',
-        title: 'Start Unity - Invalid Parameters',
-        message: 'Invalid parameters!\n'+
-                 'Correct usage: startUnity [2.x|5.x] URL\n'+
-                 'If you need to undo registry changes made by this script, run unityRestoreRegistry.bat.',
-        buttons: ['Ok'],
-        defaultId: 0,
-        cancelId: 0,
-      });
-    }
-  }, {
-    text: 'You must close the Basilisk browser to continue.\r\n'+
-          'If you have already closed Basilisk, please wait a moment...\r\n',
-    fn(proc, openDialog) {
-      openDialog({
-        type: 'info',
-        title: 'Start Unity - Browser Already Open',
-        message: 'You must close the Basilisk browser to continue.\n'+
-                 'If you have already closed Basilisk, please wait a moment...',
-        buttons: ['Ok', 'Cancel'],
-        defaultId: 0,
-        cancelId: 1,
-      })
-      .then((response) => {
-        if (response === 1) { proc.kill(); }
-      });
-    }
-  }
-];

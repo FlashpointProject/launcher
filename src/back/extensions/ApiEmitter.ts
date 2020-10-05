@@ -1,5 +1,5 @@
 import { newDisposable } from '@back/util/lifecycle';
-import { Disposable } from 'flashpoint';
+import { Disposable } from 'flashpoint-launcher';
 import { ApiEvent } from './ApiEvent';
 
 type ApiListener<T> = [(e: T) => void, any] | ((e: T) => void);
@@ -38,14 +38,23 @@ export class ApiEmitter<T> {
   }
 
   // Fires a given event to all listeners
-  public fire(event: T): void {
+  public async fire(event: T): Promise<void> {
     for (const listener of this._listeners) {
       if (typeof listener === 'function') {
-        // Listener func only
-        listener.call(undefined, event);
+        try {
+          // Listener func only
+          await Promise.resolve(listener.call(undefined, event));
+        } catch (error) {
+          log.error('Extensions', `Error executing event listener.\n${error}`);
+        }
       } else {
+        try {
+          // Listener func only
+          await Promise.resolve(listener[0].call(listener[1], event));
+        } catch (error) {
+          log.error('Extensions', `Error executing event listener.\n${error}`);
+        }
         // [Listener, Args] array
-        listener[0].call(listener[1], event);
       }
     }
   }

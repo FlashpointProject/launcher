@@ -134,7 +134,7 @@ function displayDetails(info: IBackProcessInfo): void {
     title: 'Service Details',
     message: `Path: ${info.path}\n`+
               `Filename: ${info.filename}\n`+
-              `Arguments: ${info.arguments}\n`+
+              `Arguments: ${info.arguments.join(' ')}\n`+
               `Kill on Exit: ${info.kill}`,
     buttons: ['Ok']
   });

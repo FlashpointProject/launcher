@@ -8,9 +8,9 @@ import { gameOrderByOptions, gameOrderReverseOptions } from '../order/util';
 import { deepCopy } from '../Util';
 import { Coerce } from '../utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '../utils/ObjectParser';
-import { IAppPreferencesData, IAppPreferencesDataMainWindow, AppPathOverride } from './interfaces';
+import { AppPreferencesData, AppPreferencesDataMainWindow, AppPathOverride } from './interfaces';
 
-export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, send = true) {
+export function updatePreferencesData(data: DeepPartial<AppPreferencesData>, send = true) {
   const preferences = window.Shared.preferences;
   // @TODO Figure out the delta change of the object tree, and only send the changes
   preferences.data = overwritePreferenceData(deepCopy(preferences.data), data);
@@ -26,7 +26,7 @@ export function updatePreferencesData(data: DeepPartial<IAppPreferencesData>, se
 const { num, str } = Coerce;
 
 /** Default Preferences Data used for values that are not found in the file */
-export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.freeze<IAppPreferencesData>({
+export const defaultPreferencesData: Readonly<AppPreferencesData> = Object.freeze<AppPreferencesData>({
   browsePageGameScale: 0.087,
   browsePageShowExtreme: false,
   enableEditing: true,
@@ -78,10 +78,10 @@ export const defaultPreferencesData: Readonly<IAppPreferencesData> = Object.free
  * @returns Source argument (not a copy).
  */
 export function overwritePreferenceData(
-  source: IAppPreferencesData,
-  data: DeepPartial<IAppPreferencesData>,
+  source: AppPreferencesData,
+  data: DeepPartial<AppPreferencesData>,
   onError?: (error: string) => void
-): IAppPreferencesData {
+): AppPreferencesData {
   const parser = new ObjectParser({
     input: data,
     onError: onError && (e => onError(`Error while parsing Preferences: ${e.toString()}`)),
@@ -123,7 +123,7 @@ export function overwritePreferenceData(
   return source;
 }
 
-function parseMainWindow(parser: IObjectParserProp<any>, output: IAppPreferencesDataMainWindow): void {
+function parseMainWindow(parser: IObjectParserProp<any>, output: AppPreferencesDataMainWindow): void {
   parser.prop('x',         v => output.x         = num(v), true);
   parser.prop('y',         v => output.y         = num(v), true);
   parser.prop('width',     v => output.width     = num(v), true);

@@ -45,7 +45,7 @@ export type AppRouterProps = {
   serverNames: string[];
   mad4fpEnabled: boolean;
   localeCode: string;
-  devConsoleText: string;
+  devConsole: string;
 
   upgrades: UpgradeStage[];
   creditsData?: CreditsData;
@@ -65,6 +65,7 @@ export type AppRouterProps = {
   autoUpdater: AppUpdater,
   extensions: IExtensionDescription[],
   devScripts: ExtensionContribution<'devScripts'>[],
+  contextButtons: ExtensionContribution<'contextButtons'>[],
   logoSets: ILogoSet[],
   logoVersion: number,
 };
@@ -104,6 +105,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       wasNewGameClicked: this.props.wasNewGameClicked,
       gameLibrary: this.props.gameLibrary,
       logoVersion: this.props.logoVersion,
+      contextButtons: this.props.contextButtons,
     };
     const configProps: ConnectedConfigPageProps = {
       themeList: this.props.themeList,
@@ -128,7 +130,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       logoVersion: this.props.logoVersion,
     };
     const developerProps: DeveloperPageProps = {
-      devConsoleText: this.props.devConsoleText,
+      devConsole: this.props.devConsole,
       platforms: this.props.platformsFlat,
       playlists: this.props.playlists,
       devScripts: this.props.devScripts,

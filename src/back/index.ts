@@ -17,7 +17,7 @@ import { Theme } from '@shared/ThemeFile';
 import { createErrorProxy, removeFileExtension, stringifyArray } from '@shared/Util';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
-import * as flashpoint from 'flashpoint';
+import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs-extra';
 import * as http from 'http';
 import * as https from 'https';
@@ -36,7 +36,7 @@ import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import { GameManager } from './game/GameManager';
-import { ManagedChildProcess } from './ManagedChildProcess';
+import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
 import { SocketServer } from './SocketServer';
@@ -114,6 +114,10 @@ const state: BackState = {
   apiEmitters: {
     onDidInit: new ApiEmitter<void>(),
     games: {
+      onWillLaunchGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
+      onWillLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
+      onWillLaunchCurationGame: new ApiEmitter<flashpoint.GameLaunchInfo>(),
+      onWillLaunchCurationAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidLaunchGame: new ApiEmitter<flashpoint.Game>(),
       onDidLaunchAddApp: new ApiEmitter<flashpoint.AdditionalApp>(),
       onDidLaunchCurationGame: new ApiEmitter<flashpoint.Game>(),
@@ -123,10 +127,15 @@ const state: BackState = {
       onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
       onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+    },
+    services: {
+      onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
+      onServiceRemove: new ApiEmitter<flashpoint.ManagedChildProcess>(),
+      onServiceChange: onServiceChange,
     }
   },
   status: {
-    devConsoleText: ''
+    devConsole: ''
   },
   registry: {
     commands: new Map<string, Command>(),
@@ -291,13 +300,13 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     // Run processes
     if (state.serviceInfo.server.length > 0) {
       const chosenServer = state.serviceInfo.server.find(i => i.name === state.config.server);
-      runService(state, 'server', 'Server', state.config.flashpointPath, chosenServer || state.serviceInfo.server[0]);
+      runService(state, 'server', 'Server', state.config.flashpointPath, {}, chosenServer || state.serviceInfo.server[0]);
     }
     // Start daemons
     for (let i = 0; i < state.serviceInfo.daemon.length; i++) {
       const service = state.serviceInfo.daemon[i];
       const id = 'daemon_' + i;
-      runService(state, id, service.name || id, state.config.flashpointPath, service);
+      runService(state, id, service.name || id, state.config.flashpointPath, {}, service);
     }
     // Start file watchers
     for (let i = 0; i < state.serviceInfo.watch.length; i++) {
@@ -659,12 +668,35 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
       // Extension icons
       case 'exticons': {
         const relativePath = urlPath.substr(index + 1);
-        // /ExtIcons/<extId>
+        // /extIcons/<extId>
         state.extensionsService.getExtension(relativePath)
         .then((ext) => {
           if (ext && ext.manifest.icon) {
             const filePath = path.join(ext.extensionPath, ext.manifest.icon);
             if (filePath.startsWith(ext.extensionPath)) {
+              serveFile(req, res, filePath);
+            } else {
+              log.warn('Launcher', `Illegal file request: "${filePath}"`);
+            }
+          }
+        });
+        break;
+      }
+
+      case 'extdata': {
+        const index = urlPath.indexOf('/');
+        // Split URL section into parts (/extdata/<extId>/<relativePath>)
+        const fullPath = (index >= 0) ? urlPath.substr(index + 1) : urlPath;
+        const nameIndex = fullPath.indexOf('/');
+        const extId = (nameIndex >= 0) ? fullPath.substr(0, nameIndex) : fullPath;
+        const relativePath = (nameIndex >= 0) ? fullPath.substr(nameIndex + 1): fullPath;
+        state.extensionsService.getExtension(extId)
+        .then(ext => {
+          if (ext) {
+            // Only serve from <extPath>/static/
+            const staticPath = path.join(ext.extensionPath, 'static');
+            const filePath = path.join(staticPath, relativePath);
+            if (filePath.startsWith(staticPath)) {
               serveFile(req, res, filePath);
             } else {
               log.warn('Launcher', `Illegal file request: "${filePath}"`);

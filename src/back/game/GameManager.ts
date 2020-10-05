@@ -161,7 +161,7 @@ export namespace GameManager {
   }
 
   /** Search the database for games. */
-  export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<ResponseGameRange<T>[]> {
+  export async function findGames<T extends boolean>(opts: FindGamesOpts, shallow: T): Promise<Array<ResponseGameRange<T>>> {
     const ranges = opts.ranges || [{ start: 0, length: undefined }];
     const rangesOut: ResponseGameRange<T>[] = [];
 

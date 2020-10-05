@@ -8,8 +8,9 @@ import { overwriteConfigData } from '@shared/config/util';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertGameToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { getContentFolderByKey } from '@shared/curate/util';
+import { AppProvider, BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
-import { DeepPartial, GamePropSuggestions, ProcessAction } from '@shared/interfaces';
+import { DeepPartial, GamePropSuggestions, ProcessAction, ProcessState } from '@shared/interfaces';
 import { LogLevel } from '@shared/Log/interface';
 import { MetaEditFile, MetaEditMeta } from '@shared/MetaEdit';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
@@ -25,10 +26,12 @@ import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { parseAppVar } from './extensions/util';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
-import { GameLauncher } from './GameLauncher';
+import { escapeArgsForShell, GameLauncher, GameLaunchInfo } from './GameLauncher';
 import { importCuration, launchAddAppCuration, launchCuration } from './importGame';
+import { ManagedChildProcess } from './ManagedChildProcess';
 import { MetadataServerApi, SyncableGames } from './MetadataServerApi';
 import { importAllMetaEdits } from './MetaEdit';
 import { BackState, BareTag, TagsFile } from './types';
@@ -115,6 +118,7 @@ export function registerRequestCallbacks(state: BackState): void {
         };
       }),
       devScripts: await state.extensionsService.getContributions('devScripts'),
+      contextButtons: await state.extensionsService.getContributions('contextButtons'),
       logoSets: Array.from(state.registry.logoSets.values()),
     };
   });
@@ -175,6 +179,7 @@ export function registerRequestCallbacks(state: BackState): void {
   state.socketServer.register(BackIn.LAUNCH_ADDAPP, async (event, id) => {
     const addApp = await GameManager.findAddApp(id);
     if (addApp) {
+      await state.apiEmitters.games.onWillLaunchAddApp.fire(addApp);
       const platform = addApp.parentGame ? addApp.parentGame : '';
       GameLauncher.launchAdditionalApplication({
         addApp,
@@ -185,8 +190,10 @@ export function registerRequestCallbacks(state: BackState): void {
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
+        providers: await getProviders(state),
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
+        runGame: runGameFactory(state)
       });
       state.apiEmitters.games.onDidLaunchAddApp.fire(addApp);
     }
@@ -203,7 +210,7 @@ export function registerRequestCallbacks(state: BackState): void {
         if (!server || !('name' in server.info) || server.info.name !== configServer.name) {
           // Server is different, change now
           if (server) { await removeService(state, 'server'); }
-          runService(state, 'server', 'Server', state.config.flashpointPath, configServer);
+          runService(state, 'server', 'Server', state.config.flashpointPath, {}, configServer);
         }
       }
       // Launch game
@@ -216,9 +223,12 @@ export function registerRequestCallbacks(state: BackState): void {
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
+        providers: await getProviders(state),
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
-      });
+        runGame: runGameFactory(state),
+      },
+      state.apiEmitters.games.onWillLaunchGame);
       state.apiEmitters.games.onDidLaunchGame.fire(game);
     }
   });
@@ -649,7 +659,7 @@ export function registerRequestCallbacks(state: BackState): void {
   });
 
   state.socketServer.register(BackIn.GET_PLAYLIST, async (event, playlistId) => {
-    return await GameManager.findPlaylist(playlistId) as Playlist; // @TYPESAFE fix this?
+    return await GameManager.findPlaylist(playlistId, true) as Playlist; // @TYPESAFE fix this?
   });
 
   state.socketServer.register(BackIn.CLEANUP_TAG_ALIASES, async (event) => {
@@ -834,11 +844,11 @@ export function registerRequestCallbacks(state: BackState): void {
             // Set the content folder path as the final parameter
             mad4fpServerCopy.arguments.push(getContentFolderByKey(data.key, state.config.flashpointPath));
             await removeService(state, 'server');
-            runService(state, 'server', 'Server', state.config.flashpointPath, mad4fpServerCopy);
+            runService(state, 'server', 'Server', state.config.flashpointPath, {}, mad4fpServerCopy);
           } else if (!data.mad4fp && activeServerInfo && activeServerInfo.mad4fp && !configServer.mad4fp) {
             // Swap to mad4fp server
             await removeService(state, 'server');
-            runService(state, 'server', 'Server', state.config.flashpointPath, configServer);
+            runService(state, 'server', 'Server', state.config.flashpointPath, {}, configServer);
           }
         }
       }
@@ -851,9 +861,12 @@ export function registerRequestCallbacks(state: BackState): void {
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
+        providers: await getProviders(state),
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
+        runGame: runGameFactory(state),
       },
+      state.apiEmitters.games.onWillLaunchCurationGame,
       state.apiEmitters.games.onDidLaunchCurationGame);
     } catch (e) {
       log.error('Launcher', e + '');
@@ -872,9 +885,12 @@ export function registerRequestCallbacks(state: BackState): void {
         isDev: state.isDev,
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
+        providers: await getProviders(state),
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
+        runGame: runGameFactory(state),
       },
+      state.apiEmitters.games.onWillLaunchCurationAddApp,
       state.apiEmitters.games.onDidLaunchCurationAddApp);
     } catch (e) {
       log.error('Launcher', e + '');
@@ -1104,4 +1120,115 @@ function adjustGameFilter(filterOpts: FilterGameOpts): FilterGameOpts {
     }
   }
   return filterOpts;
+}
+
+/**
+ * Creates a function that will run any game launch info given to it and register it as a service
+ */
+function runGameFactory(state: BackState) {
+  return (gameLaunchInfo: GameLaunchInfo): ManagedChildProcess => {
+    // Run game as a service and register it
+    const dirname = path.dirname(gameLaunchInfo.launchInfo.gamePath);
+    // Keep file path relative to cwd
+    const proc = runService(
+      state,
+      `game.${gameLaunchInfo.game.id}`,
+      gameLaunchInfo.game.title,
+      '',
+      {
+        detached: false,
+        shell: true,
+        cwd: gameLaunchInfo.launchInfo.cwd,
+        execFile: !!gameLaunchInfo.launchInfo.execFile,
+        env: gameLaunchInfo.launchInfo.env
+      },
+      {
+        path: dirname,
+        filename: createCommand(gameLaunchInfo.launchInfo.gamePath, gameLaunchInfo.launchInfo.useWine, !!gameLaunchInfo.launchInfo.execFile),
+        arguments: escapeArgsForShell(gameLaunchInfo.launchInfo.gameArgs),
+        kill: true
+      }
+    );
+    // Remove game service when it exits
+    proc.on('change', () => {
+      if (proc.getState() === ProcessState.STOPPED) {
+        removeService(state, proc.id);
+      }
+    });
+    return proc;
+  };
+}
+
+function createCommand(filename: string, useWine: boolean, execFile: boolean): string {
+  // This whole escaping thing is horribly broken. We probably want to switch
+  // to an array representing the argv instead and not have a shell
+  // in between.
+  switch (process.platform) {
+    case 'win32':
+      return execFile ? filename : `"${filename}"`; // Quotes cause issues with execFile
+    case 'darwin':
+    case 'linux':
+      if (useWine) {
+        return `wine start /unix "${filename}"`;
+      }
+      return `"${filename}"`;
+    default:
+      throw Error('Unsupported platform');
+  }
+}
+
+/**
+ * Run a command registered by an Extension
+ * @param command Command to run
+ * @param args Arguments for the command
+ */
+async function runCommand(state: BackState, command: string, args: any[] = []): Promise<any> {
+  const callback = state.registry.commands.get(command);
+  let res = undefined;
+  if (callback) {
+    // Run Command
+    try {
+      res = await Promise.resolve(callback.callback(...args));
+    } catch (error) {
+      throw new Error(`Error running Command (${command})\n${error}`);
+    }
+  } else {
+    throw new Error(`Command requested but "${command}" not registered!`);
+  }
+  return res;
+}
+
+/**
+ * Returns a set of AppProviders from all extension registered Applications, complete with callbacks to run them.
+ */
+async function getProviders(state: BackState): Promise<AppProvider[]> {
+  return state.extensionsService.getContributions('applications')
+  .then(contributions => {
+    return contributions.map(c => {
+      const apps = c.value;
+      return apps.map(app => {
+        return {
+          ...app,
+          callback: async (game: Game) => {
+            log.debug('Launcher', 'PROCESSING CALLBACK');
+            if (app.command) {
+              return runCommand(state, app.command, [game]);
+            } else if (app.path) {
+              return await parseAppVar(c.extId, app.path, game.launchCommand, state);
+            } else if (app.url) {
+              const formattedUrl = await parseAppVar(c.extId, app.url, game.launchCommand, state);
+              const opts: BrowserApplicationOpts = {
+                url: formattedUrl
+              };
+              return opts;
+            } else {
+              throw new Error('Neither path or command are defined for application, cannot run.');
+            }
+          }
+        };
+      });
+    })
+    .reduce((prev, cur) => cur = cur.concat(prev), []);
+  }
+  );
 }

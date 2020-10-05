@@ -1,5 +1,5 @@
 /** Data contained in the Config file */
-export type IAppConfigData = {
+export type AppConfigData = {
   /** Path to the FlashPoint root folder (relative or absolute) */
   flashpointPath: string;
   /** Path to the image folder (relative to the flashpoint path) */
@@ -51,6 +51,8 @@ export type IAppConfigData = {
   onDemandBaseUrl: string;
   /** Base URL of the server to do pastes of the Logs to. */
   logsBaseUrl: string;
+  /** Proxy server to use during Browser Mode */
+  browserModeProxy: string;
   /** Whether to notify that launcher updates are available */
   updatesEnabled: boolean;
 };

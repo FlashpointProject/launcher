@@ -92,6 +92,7 @@ window.Shared = {
   initialTagCategories: createErrorProxy('initialTagCategories'),
   initialExtensions: createErrorProxy('initialExtensions'),
   initialDevScripts: createErrorProxy('initialDevScripts'),
+  initialContextButtons: createErrorProxy('initialContextButtons'),
   initialLogoSets: createErrorProxy('initialLogoSets'),
 
   waitUntilInitialized() {
@@ -144,6 +145,7 @@ const onInit = (async () => {
       window.Shared.initialTagCategories = data.tagCategories;
       window.Shared.initialExtensions = data.extensions;
       window.Shared.initialDevScripts = data.devScripts;
+      window.Shared.initialContextButtons = data.contextButtons;
       window.Shared.initialLogoSets = data.logoSets;
       if (window.Shared.preferences.data.currentTheme) {
         const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);

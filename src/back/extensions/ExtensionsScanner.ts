@@ -1,16 +1,16 @@
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { readJsonFile } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
-const { str } = Coerce;
+const { str, num } = Coerce;
 const fsPromises = fs.promises;
 
 /** Scans all extensions in System and User paths and returns them. */
-export async function scanExtensions(configData: IAppConfigData): Promise<IExtension[]> {
+export async function scanExtensions(configData: AppConfigData): Promise<IExtension[]> {
   const result = new Map<string, IExtension>();
 
   // TODO: System extensions (?)
@@ -20,11 +20,15 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
   await fs.promises.access(userExtPath, fs.constants.F_OK | fs.constants.R_OK)
   .then(() => {/** Folder exists */})
   .catch(() => fs.promises.mkdir(userExtPath));
-  await fsPromises.readdir(userExtPath, { withFileTypes: true })
-  .then((files) => {
+  await fsPromises.readdir(userExtPath)
+  .then(filenames => {
     // Each folder inside is an Extension
-    return Promise.all(files.filter(f => f.isDirectory()).map(async file => {
-      const manifestPath = path.join(userExtPath, file.name, 'package.json');
+    return Promise.all(filenames.map(async filename => {
+      // Make sure it is a folder or symlink folder
+      const stats = await fs.promises.stat(path.join(userExtPath, filename));
+      if (!stats.isDirectory()) { return; }
+      // Read Manifest
+      const manifestPath = path.join(userExtPath, filename, 'package.json');
       return fsPromises.stat(manifestPath)
       .then(async (stats) => {
         // Manifest file (package.json) exists, continue loading extension
@@ -38,7 +42,7 @@ export async function scanExtensions(configData: IAppConfigData): Promise<IExten
           result.set(ext.id, ext);
         }
       })
-      .catch(err => log.error('Extensions', `Error loading User extension "${file.name}"\n${err}`));
+      .catch(err => log.error('Extensions', `Error loading User extension "${filename}"\n${err}`));
     }));
   });
 
@@ -100,7 +104,7 @@ async function parseExtensionManifest(data: any) {
   parser.prop('description',      v => parsed.description     = str(v), true);
   parser.prop('icon',             v => parsed.icon            = str(v), true);
   parser.prop('main',             v => parsed.main            = str(v), true);
-  parsed.contributes = parseContributions(parser.prop('contributes'));
+  parser.prop('contributes',      v => parsed.contributes     = parseContributions(parser.prop('contributes')), true);
   return parsed;
 }
 
@@ -108,11 +112,15 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
   const contributes: Contributions = {
     logoSets: [],
     themes: [],
-    devScripts: []
+    devScripts: [],
+    contextButtons: [],
+    applications: [],
   };
-  parser.prop('logoSets').array((item) => contributes.logoSets.push(parseLogoSet(item)));
-  parser.prop('themes').array((item) => contributes.themes.push(parseTheme(item)));
-  parser.prop('devScripts').array((item) => contributes.devScripts.push(parseDevScript(item)));
+  parser.prop('logoSets',       true).array(item => contributes.logoSets.push(parseLogoSet(item)));
+  parser.prop('themes',         true).array(item => contributes.themes.push(parseTheme(item)));
+  parser.prop('devScripts',     true).array(item => contributes.devScripts.push(parseDevScript(item)));
+  parser.prop('contextButtons', true).array(item => contributes.contextButtons.push(parseContextButton(item)));
+  parser.prop('applications',   true).array(item => contributes.applications.push(parseApplication(item)));
   return contributes;
 }
 
@@ -149,4 +157,37 @@ function parseDevScript(parser: IObjectParserProp<DevScript>): DevScript {
   parser.prop('description', v => devScript.description = str(v));
   parser.prop('command',     v => devScript.command     = str(v));
   return devScript;
+}
+
+function parseContextButton(parser: IObjectParserProp<ContextButton>): ContextButton {
+  const contextButton: ContextButton = {
+    context: 'game',
+    name: '',
+    command: ''
+  };
+  parser.prop('context',     v => contextButton.context     = parseButtonContext(v));
+  parser.prop('name',        v => contextButton.name        = str(v));
+  parser.prop('command',     v => contextButton.command     = str(v));
+  return contextButton;
+}
+
+function parseButtonContext(value: any): ButtonContext {
+  // TODO : Validate
+  return value;
+}
+
+function parseApplication(parser: IObjectParserProp<Application>): Application {
+  const application: Application = {
+    provides: [],
+    name: '',
+  };
+  parser.prop('provides').arrayRaw((item) => application.provides.push(str(item)));
+  parser.prop('name',    v => application.name    = str(v));
+  parser.prop('command', v => application.command = str(v), true);
+  parser.prop('path',    v => application.path    = str(v), true);
+  parser.prop('url',     v => application.url    = str(v), true);
+  const numDefined = num(!!application.command) + num(!!application.path) + num(!!application.url);
+  if (numDefined !== 1) { throw new Error('Exactly one "path", "url" or "command" variable must be defined for an application, not both.'); }
+  if (application.provides.length === 0) { throw new Error('Application must provide something. (Empty provides array)'); }
+  return application;
 }

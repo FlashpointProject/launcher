@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseVariableString } from './utils/VariableString';
-import { IAppConfigData } from './config/interfaces';
+import { AppConfigData } from './config/interfaces';
 
 export function getFileServerURL() {
   return `http://${window.Shared.backUrl.hostname}:${window.Shared.fileServerPort}`;
@@ -347,7 +347,7 @@ export function clearArray<T>(array: Array<T | undefined>): Array<T> {
  */
 // @TODO: Make better variables. Why are we using cwd() ?
 /* istanbul ignore next */
-export function parseVarStr(str: string, config?: IAppConfigData) {
+export function parseVarStr(str: string, config?: AppConfigData) {
   return parseVariableString(str, (name) => {
     switch (name) {
       default: return '';

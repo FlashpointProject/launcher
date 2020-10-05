@@ -1,6 +1,6 @@
 import { SERVICES_SOURCE } from '@back/constants';
 import { createTagsFromLegacy } from '@back/importGame';
-import { ManagedChildProcess } from '@back/ManagedChildProcess';
+import { ManagedChildProcess, ProcessOpts } from '@back/ManagedChildProcess';
 import { SocketServer } from '@back/SocketServer';
 import { BackState, ShowMessageBoxFunc, ShowOpenDialogFunc, ShowSaveDialogFunc, StatusState } from '@back/types';
 import { AdditionalApp } from '@database/entity/AdditionalApp';
@@ -8,6 +8,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { Tag } from '@database/entity/Tag';
 import { BackOut } from '@shared/back/types';
+import { BrowserApplicationOpts } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, INamedBackProcessInfo, IService, ProcessState } from '@shared/interfaces';
 import { autoCode, getDefaultLocalization, LangContainer, LangFile } from '@shared/lang';
 import { Legacy_IAdditionalApplicationInfo, Legacy_IGameInfo } from '@shared/legacy/interfaces';
@@ -244,7 +245,7 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return chunks;
 }
 
-export function runService(state: BackState, id: string, name: string, basePath: string, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
+export function runService(state: BackState, id: string, name: string, basePath: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo): ManagedChildProcess {
   // Already exists, bad!
   if (state.services.has(id)) {
     throw new Error(`Service already running! (ID: "${id}")`);
@@ -252,9 +253,8 @@ export function runService(state: BackState, id: string, name: string, basePath:
   const proc = new ManagedChildProcess(
     id,
     name,
-    path.join(basePath, info.path),
-    false,
-    true,
+    opts.cwd || path.join(basePath, info.path),
+    opts,
     info
   );
   state.services.set(id, proc);
@@ -268,6 +268,7 @@ export function runService(state: BackState, id: string, name: string, basePath:
     log.error(SERVICES_SOURCE, `An unexpected error occurred while trying to run the background process "${proc.name}".` +
               `  ${error.toString()}`);
   }
+  state.apiEmitters.services.onServiceNew.fire(proc);
   return proc;
 }
 
@@ -276,6 +277,7 @@ export async function removeService(state: BackState, processId: string): Promis
   if (service) {
     await waitForServiceDeath(service);
     state.services.delete(processId);
+    state.apiEmitters.services.onServiceRemove.fire(service);
     state.socketServer.broadcast(BackOut.SERVICE_REMOVED, processId);
   }
 }
@@ -298,7 +300,7 @@ export async function waitForServiceDeath(service: ManagedChildProcess) : Promis
 
 export function setStatus<T extends keyof StatusState>(state: BackState, key: T, val: StatusState[T]): void {
   switch (key) {
-    case 'devConsoleText':
+    case 'devConsole':
       state.socketServer.broadcast(BackOut.DEV_CONSOLE_CHANGE, val);
       break;
   }
@@ -320,4 +322,9 @@ export function getOpenOpenDialogFunc(socketServer: SocketServer): ShowOpenDialo
   if (socketServer.lastClient) {
     return socketServer.showOpenDialogFunc(socketServer.lastClient);
   }
+}
+
+export function isBrowserOpts(val: any): val is BrowserApplicationOpts {
+  return typeof val.url === 'string' &&
+   (val.proxy === undefined || typeof val.proxy === 'string');
 }

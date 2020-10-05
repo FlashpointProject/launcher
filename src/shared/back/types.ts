@@ -10,12 +10,12 @@ import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { IAppConfigData } from '../config/interfaces';
+import { AppConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
-import { IAppPreferencesData } from '../preferences/interfaces';
+import { AppPreferencesData } from '../preferences/interfaces';
 import { Theme } from '../ThemeFile';
 
 export enum BackIn {
@@ -213,8 +213,8 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   [BackIn.BROWSE_VIEW_KEYSET]: (library: string, query: SearchGamesOpts) => BrowseViewKeysetResponse;
   [BackIn.GET_RENDERER_INIT_DATA]: () => GetRendererInitDataResponse;
   [BackIn.GET_MAIN_INIT_DATA]: () => GetMainInitDataResponse;
-  [BackIn.UPDATE_CONFIG]: (data: Partial<IAppConfigData>) => void;
-  [BackIn.UPDATE_PREFERENCES]: (data: IAppPreferencesData) => void;
+  [BackIn.UPDATE_CONFIG]: (data: Partial<AppConfigData>) => void;
+  [BackIn.UPDATE_PREFERENCES]: (data: AppPreferencesData) => void;
 
   // API
   [BackIn.SYNC_GAME_METADATA]: () => GameMetadataSyncResponse;
@@ -240,7 +240,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.OPEN_EXTERNAL]: (url: string, options?: OpenExternalOptions) => void;
   [BackOut.LOCALE_UPDATE]: (data: string) => void;
   [BackOut.GET_MAIN_INIT_DATA]: () => void;
-  [BackOut.UPDATE_PREFERENCES_RESPONSE]: (data: IAppPreferencesData) => void;
+  [BackOut.UPDATE_PREFERENCES_RESPONSE]: (data: AppPreferencesData) => void;
   [BackOut.IMAGE_CHANGE]: (folder: string, id: string) => void;
   [BackOut.LOG_ENTRY_ADDED]: (entry: ILogEntry, index: number) => void;
   [BackOut.SERVICE_CHANGE]: (data: IService) => void;
@@ -298,13 +298,13 @@ export type InitEventData = {
 }
 
 export type GetMainInitDataResponse = {
-  config: IAppConfigData;
-  preferences: IAppPreferencesData;
+  config: AppConfigData;
+  preferences: AppPreferencesData;
 }
 
 export type GetRendererInitDataResponse = {
-  config: IAppConfigData;
-  preferences: IAppPreferencesData;
+  config: AppConfigData;
+  preferences: AppPreferencesData;
   fileServerPort: number;
   log: ILogEntry[];
   services: IService[];
@@ -321,6 +321,7 @@ export type GetRendererInitDataResponse = {
   tagCategories: TagCategory[];
   extensions: IExtensionDescription[];
   devScripts: ExtensionContribution<'devScripts'>[];
+  contextButtons: ExtensionContribution<'contextButtons'>[];
   logoSets: LogoSet[];
 }
 

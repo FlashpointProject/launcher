@@ -68,7 +68,7 @@ export type MainState = {
   gamesTotal: number;
   localeCode: string;
   /** Text to display on the dev console */
-  devConsoleText: string;
+  devConsole: string;
 
   /** Random games for the Home page box */
   randomGames: ViewGame[];
@@ -102,6 +102,8 @@ export type MainState = {
   metaEditExporterGameId: string;
   /** Scripts for the Developer Page */
   devScripts: ExtensionContribution<'devScripts'>[];
+  /** Context buttons added by extensions */
+  contextButtons: ExtensionContribution<'contextButtons'>[];
 }
 
 export type MainAction = {

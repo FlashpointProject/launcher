@@ -1,10 +1,13 @@
 import { IBackProcessInfo, INamedBackProcessInfo, ProcessState } from '@shared/interfaces';
 import { ILogPreEntry } from '@shared/Log/interface';
 import { Coerce } from '@shared/utils/Coerce';
-import { ChildProcess, spawn } from 'child_process';
+import { ChildProcess, execFile, spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { Disposable } from './util/lifecycle';
+import * as flashpoint from 'flashpoint-launcher';
 import * as readline from 'readline';
+import * as treeKill from 'tree-kill';
+import { ApiEmitter } from './extensions/ApiEmitter';
+import { Disposable } from './util/lifecycle';
 
 const { str } = Coerce;
 
@@ -21,8 +24,19 @@ export interface ManagedChildProcess {
   emit(event: 'change'): boolean;
 }
 
+export type ProcessOpts = {
+  detached?: boolean;
+  autoRestart?: boolean;
+  shell?: boolean;
+  cwd?: string;
+  execFile?: boolean;
+  env?: NodeJS.ProcessEnv;
+}
+
 /** Number of times to auto restart - maximum */
 const MAX_RESTARTS = 5;
+
+export const onServiceChange = new ApiEmitter<flashpoint.ServiceChange>();
 
 /** Manages a single process. Wrapper around node's ChildProcess. */
 export class ManagedChildProcess extends EventEmitter {
@@ -44,20 +58,30 @@ export class ManagedChildProcess extends EventEmitter {
   private autoRestart: boolean;
   /** Number of times the process has auto restarted. Used to prevent infinite loops. */
   private autoRestartCount: number;
+  /** Whether to run in a shell */
+  private shell: boolean;
+  /** Whether to use execFile instead of spawn */
+  private execFile: boolean;
+  /** Launch with these Environmental Variables */
+  private env?: NodeJS.ProcessEnv;
   /** A timestamp of when the process was started. */
   private startTime = 0;
   /** State of the process. */
   private state: ProcessState = ProcessState.STOPPED;
 
-  constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: INamedBackProcessInfo | IBackProcessInfo) {
+  constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo | IBackProcessInfo) {
     super();
+    const { detached, autoRestart, shell, execFile, env } = opts;
     this.id = id;
     this.name = name;
     this.cwd = cwd;
-    this.detached = detached;
-    this.autoRestart = autoRestart;
+    this.detached = !!detached;
+    this.autoRestart = !!autoRestart;
     this.autoRestartCount = 0;
     this.info = info;
+    this.shell = !!shell;
+    this.execFile = !!execFile;
+    this.env = env;
   }
 
   /** Get the process ID (or -1 if the process is not running). */
@@ -83,7 +107,11 @@ export class ManagedChildProcess extends EventEmitter {
         this.autoRestartCount = 0;
       }
       // Spawn process
-      this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached });
+      if (this.execFile) {
+        this.process = execFile(this.info.filename, this.info.arguments, { cwd: this.cwd, env: this.env });
+      } else {
+        this.process = spawn(this.info.filename, this.info.arguments, { cwd: this.cwd, detached: this.detached, shell: this.shell });
+      }
       // Set start timestamp
       this.startTime = Date.now();
       // Log
@@ -127,7 +155,7 @@ export class ManagedChildProcess extends EventEmitter {
   public kill(): void {
     if (this.process) {
       this.setState(ProcessState.KILLING);
-      this.process.kill();
+      treeKill(this.process.pid);
     }
   }
 
@@ -145,7 +173,7 @@ export class ManagedChildProcess extends EventEmitter {
         this.spawn();
       });
       // Kill process
-      this.kill();
+      treeKill(this.process.pid);
       this.process = undefined;
     } else {
       this.spawn();
@@ -158,8 +186,10 @@ export class ManagedChildProcess extends EventEmitter {
    */
   private setState(state: ProcessState): void {
     if (this.state !== state) {
+      const oldState = this.state;
       this.state = state;
       this.emit('change');
+      onServiceChange.fire({ process: this, oldState, newState: state });
     }
   }
 
@@ -201,8 +231,8 @@ export class DisposableChildProcess extends ManagedChildProcess implements Dispo
   public isDisposed: boolean;
   public onDispose?: () => void;
 
-  constructor(id: string, name: string, cwd: string, detached: boolean, autoRestart: boolean, info: INamedBackProcessInfo) {
-    super(id, name, cwd, detached, autoRestart, info);
+  constructor(id: string, name: string, cwd: string, opts: ProcessOpts, info: INamedBackProcessInfo) {
+    super(id, name, cwd, opts, info);
     this.toDispose = [];
     this.isDisposed = false;
   }

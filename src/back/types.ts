@@ -2,15 +2,15 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
-import { IAppConfigData } from '@shared/config/interfaces';
+import { AppConfigData } from '@shared/config/interfaces';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
-import { IAppPreferencesData } from '@shared/preferences/interfaces';
+import { AppPreferencesData } from '@shared/preferences/interfaces';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { EventEmitter } from 'events';
-import * as flashpoint from 'flashpoint';
+import * as flashpoint from 'flashpoint-launcher';
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { Connection } from 'typeorm';
 import * as WebSocket from 'ws';
@@ -38,8 +38,8 @@ export type BackState = {
     queue: ImageDownloadItem[];
     current: ImageDownloadItem[];
   };
-  preferences: IAppPreferencesData;
-  config: IAppConfigData;
+  preferences: AppPreferencesData;
+  config: AppConfigData;
   configFolder: string;
   exePath: string;
   localeCode: string;
@@ -150,20 +150,29 @@ export type ShowOpenDialogFunc = (options: OpenDialogOptions) => Promise<string[
 export type OpenExternalFunc = (url: string, options?: OpenExternalOptions) => Promise<void>;
 
 export type StatusState = {
-  devConsoleText: string;
+  devConsole: string;
 }
 
 export type ApiEmittersState = Readonly<{
   onDidInit: ApiEmitter<void>;
   games: Readonly<{
+    onWillLaunchGame: ApiEmitter<flashpoint.GameLaunchInfo>;
+    onWillLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
+    onWillLaunchCurationGame: ApiEmitter<flashpoint.GameLaunchInfo>;
+    onWillLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidLaunchGame: ApiEmitter<flashpoint.Game>;
     onDidLaunchAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidLaunchCurationGame: ApiEmitter<flashpoint.Game>;
     onDidLaunchCurationAddApp: ApiEmitter<flashpoint.AdditionalApp>;
     onDidUpdateGame: ApiEmitter<{oldGame: flashpoint.Game, newGame: flashpoint.Game}>;
     onDidRemoveGame: ApiEmitter<flashpoint.Game>;
-    onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>,
-    onDidUpdatePlaylistGame: ApiEmitter<{oldGame: flashpoint.PlaylistGame, newGame: flashpoint.PlaylistGame}>,
-    onDidRemovePlaylistGame: ApiEmitter<flashpoint.PlaylistGame>,
+    onDidUpdatePlaylist: ApiEmitter<{oldPlaylist: flashpoint.Playlist, newPlaylist: flashpoint.Playlist}>;
+    onDidUpdatePlaylistGame: ApiEmitter<{oldGame: flashpoint.PlaylistGame, newGame: flashpoint.PlaylistGame}>;
+    onDidRemovePlaylistGame: ApiEmitter<flashpoint.PlaylistGame>;
+  }>,
+  services: Readonly<{
+    onServiceNew: ApiEmitter<flashpoint.ManagedChildProcess>;
+    onServiceRemove: ApiEmitter<flashpoint.ManagedChildProcess>;
+    onServiceChange: ApiEmitter<flashpoint.ServiceChange>;
   }>,
 }>

@@ -4,15 +4,19 @@ import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildP
 import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
+import { pathTo7zBack } from '@back/util/SevenZip';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
-import * as flashpoint from 'flashpoint';
+import { overwritePreferenceData } from '@shared/preferences/util';
+import * as flashpoint from 'flashpoint-launcher';
+import * as fs from 'fs';
+import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
 import { Command } from './types';
-import { overwritePreferenceData } from '@shared/preferences/util';
+
 /**
  * Create a Flashpoint API implementation specific to an extension, used during module load interception
  * @param extManifest Manifest of the caller
@@ -26,11 +30,51 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
   const getPreferences = () => state.preferences;
   const extOverwritePreferenceData = (
-    data: flashpoint.DeepPartial<flashpoint.IAppPreferencesData>,
+    data: flashpoint.DeepPartial<flashpoint.AppPreferencesData>,
     onError?: (error: string) => void
   ) => overwritePreferenceData(state.preferences, data, onError);
 
   const unload = () => state.extensionsService.unloadExtension(extId);
+
+  const getExtensionFileURL = (filePath: string): string => {
+    return `http://localhost:${state.fileServerPort}/extdata/${extId}/${filePath}`;
+  };
+
+  const unzipFile = (filePath: string, outDir: string, opts?: flashpoint.ZipExtractOptions): Promise<void> => {
+    return new Promise<void>((resolve, reject) => {
+      const { onProgress, onData } = opts || {};
+      const readable = extractFull(filePath, outDir, { $bin: pathTo7zBack(state.isDev, state.exePath), $progress: onProgress !== undefined });
+      readable.on('end', () => {
+        resolve();
+      });
+      if (onProgress) { readable.on('progress', onProgress); }
+      if (onData) { readable.on('data', onData); }
+      readable.on('error', (err) => {
+        reject(err);
+      });
+    });
+  };
+
+  const loadConfig = async (): Promise<any> => {
+    if (extPath) {
+      const configPath = path.join(extPath, 'config.json');
+      await fs.promises.access(configPath, fs.constants.F_OK)
+      .catch(() => { return {}; }); // No config found, return default.
+      const text = await fs.promises.readFile(configPath, { encoding: 'utf-8' });
+      return JSON.parse(text);
+    } else {
+      throw new Error('Cannot load a config for a fake extension!');
+    }
+  };
+  const saveConfig = async (data: any): Promise<void> => {
+    if (extPath) {
+      const configPath = path.join(extPath, 'config.json');
+      const text = JSON.stringify(data);
+      await fs.promises.writeFile(configPath, text, { encoding: 'utf-8' });
+    } else {
+      throw new Error('Cannot save a config for a fake extension!');
+    }
+  };
 
   // Log Namespace
   const extLog: typeof flashpoint.log = {
@@ -91,6 +135,18 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     createPlaylistFromJson: createPlaylistFromJson,
 
     // Events
+    get onWillLaunchGame() {
+      return apiEmitters.games.onWillLaunchGame.event;
+    },
+    get onWillLaunchAddApp() {
+      return apiEmitters.games.onWillLaunchAddApp.event;
+    },
+    get onWillLaunchCurationGame() {
+      return apiEmitters.games.onWillLaunchCurationGame.event;
+    },
+    get onWillLaunchCurationAddApp() {
+      return apiEmitters.games.onWillLaunchCurationAddApp.event;
+    },
     get onDidLaunchGame() {
       return apiEmitters.games.onDidLaunchGame.event;
     },
@@ -157,21 +213,14 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extStatus: typeof flashpoint.status = {
-    get devConsoleText(): string {
-      return state.status.devConsoleText;
-    },
-
-    /** Sets the status of a launcher UI element
-     * @param key The UI element to set, see StatusState
-     * @param val Value to set, see StatusState
-     */
     setStatus: <T extends keyof StatusState>(key: T, val: StatusState[T]) => setStatus(state, key, val),
+    getStatus: <T extends keyof StatusState>(key: T): StatusState[T] => state.status[key]
   };
 
   const extServices: typeof flashpoint.services = {
     runService: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
-      return runService(state, id, name, basePath || extPath || state.config.flashpointPath, {
+      return runService(state, id, name, basePath || extPath || state.config.flashpointPath, { detached: false }, {
         ...info,
         kill: true
       });
@@ -179,40 +228,55 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     runProcess: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
       const cwd = path.join(basePath || extPath || state.config.flashpointPath, info.path);
-      const proc = new DisposableChildProcess(id, name, cwd, false, false, {...info, kill: true});
+      const proc = new DisposableChildProcess(id, name, cwd, {}, {...info, kill: true});
       proc.onDispose = () => proc.kill();
       return proc;
     },
     removeService: (process: any) => removeService(state, process.id),
+    getServices: () => Array.from(state.services.values()),
+
+    get onServiceNew() {
+      return apiEmitters.services.onServiceNew.event;
+    },
+    get onServiceRemove() {
+      return apiEmitters.services.onServiceRemove.event;
+    },
+    get onServiceChange() {
+      return apiEmitters.services.onServiceChange.event;
+    }
   };
 
-  // Functions
-  const showMessageBox = (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
-    const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
-    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-    return openDialogFunc(options);
-  };
-
-  const showSaveDialog = (options: flashpoint.ShowSaveDialogOptions) => {
-    const openDialogFunc = getOpenSaveDialogFunc(state.socketServer);
-    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-    return openDialogFunc(options);
-  };
-
-  const showOpenDialog = (options: flashpoint.ShowOpenDialogOptions) => {
-    const openDialogFunc = getOpenOpenDialogFunc(state.socketServer);
-    if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
-    return openDialogFunc(options);
+  const extDialogs: typeof flashpoint.dialogs = {
+    showMessageBox: (options: flashpoint.ShowMessageBoxOptions): Promise<number> => {
+      const openDialogFunc = getOpenMessageBoxFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return openDialogFunc(options);
+    },
+    showSaveDialog: (options: flashpoint.ShowSaveDialogOptions) => {
+      const openDialogFunc = getOpenSaveDialogFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return openDialogFunc(options);
+    },
+    showOpenDialog: (options: flashpoint.ShowOpenDialogOptions) => {
+      const openDialogFunc = getOpenOpenDialogFunc(state.socketServer);
+      if (!openDialogFunc) { throw new Error('No suitable client for dialog func.'); }
+      return openDialogFunc(options);
+    }
   };
 
   // Create API Module to give to caller
   return <typeof flashpoint>{
     // General information
     version: version,
+    extensionPath: extPath,
     config: state.config,
     getPreferences: getPreferences,
     overwritePreferenceData: extOverwritePreferenceData,
     unload: unload,
+    getExtensionFileURL: getExtensionFileURL,
+    unzipFile: unzipFile,
+    loadConfig: loadConfig,
+    saveConfig: saveConfig,
 
     // Namespaces
     log: extLog,
@@ -221,11 +285,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     tags: extTags,
     status: extStatus,
     services: extServices,
-
-    // Functions
-    showMessageBox: showMessageBox,
-    showSaveDialog: showSaveDialog,
-    showOpenDialog: showOpenDialog,
+    dialogs: extDialogs,
 
     // Events
     onDidInit: apiEmitters.onDidInit.event,

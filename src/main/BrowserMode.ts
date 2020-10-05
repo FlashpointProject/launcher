@@ -1,25 +1,24 @@
 import { ConfigFile } from '@back/ConfigFile';
-import { IAppConfigData } from '@shared/config/interfaces';
-import { FlashInitChannel, FlashInitData } from '@shared/IPC';
+import { AppConfigData } from '@shared/config/interfaces';
 import { createErrorProxy } from '@shared/Util';
-import { app, BrowserWindow, ipcMain, IpcMainEvent, session, shell } from 'electron';
-import * as fs from 'fs-extra';
+import { app, BrowserWindow, session, shell } from 'electron';
+import * as fs from 'fs';
 import * as path from 'path';
 import { Init } from './types';
 import { getMainFolderPath } from './Util';
 
 type State = {
   window?: BrowserWindow;
-  plugin: string;
   entry: string;
+  url: string;
   mainFolderPath: string;
-  config: IAppConfigData;
+  config: AppConfigData;
 }
 
-export function flash(init: Init): void {
+export function startBrowserMode(init: Init): void {
   const state: State = {
     window: undefined,
-    plugin: init.args.plugin || 'flash',
+    url: init.args.browser_url || '',
     entry: init.rest,
     mainFolderPath: createErrorProxy('mainFolderPath'),
     config: createErrorProxy('config'),
@@ -34,8 +33,6 @@ export function flash(init: Init): void {
     app.once('window-all-closed', onAppWindowAllClosed);
     app.once('web-contents-created', onAppWebContentsCreated);
     app.on('activate', onAppActivate);
-
-    ipcMain.on(FlashInitChannel, onInit);
 
     const installed = fs.existsSync('./.installed');
     state.mainFolderPath = getMainFolderPath(installed);
@@ -56,7 +53,8 @@ export function flash(init: Init): void {
         console.error(`No plugin file extension is assigned to the current operating system (platform: "${process.platform}").`);
         break;
     }
-    app.commandLine.appendSwitch('ppapi-flash-path', path.resolve(state.config.flashpointPath, 'Plugins', state.plugin + extension));
+
+    app.commandLine.appendSwitch('ppapi-flash-path', path.resolve(state.config.flashpointPath, 'Plugins', `flash${extension}`));
   }
 
   function onAppReady(): void {
@@ -67,7 +65,7 @@ export function flash(init: Init): void {
 
     session.defaultSession.setProxy({
       pacScript: '',
-      proxyRules: '127.0.0.1:22500', // @TODO Make the proxy not hard coded?
+      proxyRules: state.config.browserModeProxy, // @TODO Make the proxy not hard coded?
       proxyBypassRules: '',
     });
 
@@ -75,7 +73,7 @@ export function flash(init: Init): void {
       callback({ ...details.responseHeaders });
     });
 
-    state.window = createFlashWindow();
+    createBrowserWindow();
   }
 
   function onAppWindowAllClosed(): void {
@@ -101,31 +99,23 @@ export function flash(init: Init): void {
   function onAppActivate(): void {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (!state.window) { state.window = createFlashWindow(); }
+    if (!state.window) { createBrowserWindow(); }
   }
 
-  function onInit(event: IpcMainEvent): void {
-    const data: FlashInitData = {
-      entry: state.entry,
-    };
-    event.returnValue = data;
-  }
-
-  function createFlashWindow(): BrowserWindow {
+  function createBrowserWindow(): BrowserWindow {
     const window = new BrowserWindow({
-      title: `Flashpoint Flash Player (${state.plugin})`,
+      title: 'Flashpoint Browser Mode',
       icon: path.join(__dirname, '../window/images/icon.png'),
       useContentSize: true,
       width: init.args.width,
       height: init.args.height,
       webPreferences: {
-        preload: path.resolve(__dirname, './FlashWindowPreload.js'),
         nodeIntegration: false,
         plugins: true,
       },
     });
     window.setMenu(null); // Remove the menu bar
-    window.loadFile(path.join(__dirname, '../window/flash_index.html'));
+    window.loadURL(state.url);
 
     // window.webContents.openDevTools();
 

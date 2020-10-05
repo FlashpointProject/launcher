@@ -6,7 +6,7 @@ import { LogLevel } from '@shared/Log/interface';
  * Contains state of all non-config settings the user can change in the application.
  * This is the data contained in the Preferences file.
  */
-export type IAppPreferencesData = {
+export type AppPreferencesData = {
   [key: string]: any;
   /** Scale of the games at the BrowsePage. */
   browsePageGameScale: number;
@@ -43,7 +43,7 @@ export type IAppPreferencesData = {
   /** What order the games should appear in. */
   gamesOrder: GameOrderReverse;
   /** Position and size of the main window. */
-  mainWindow: IAppPreferencesDataMainWindow;
+  mainWindow: AppPreferencesDataMainWindow;
   /** Default Library for new games etc. */
   defaultLibrary: string;
   /** Save curations after importing */
@@ -73,7 +73,7 @@ export type AppPathOverride = {
   override: string;
 }
 
-export type IAppPreferencesDataMainWindow = {
+export type AppPreferencesDataMainWindow = {
   x?: number;
   y?: number;
   width?: number;
