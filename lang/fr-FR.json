@@ -49,6 +49,7 @@
     "extDevScripts": "Script(s) de développeur",
     "extThemes": "Thème(s)",
     "extLogoSets": "Ensemble(s) de logos",
+    "extApplications": "Application(s)",
     "saveAndRestart": "Sauvegarder et redémarrer"
   },
   "home": {
