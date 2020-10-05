@@ -49,6 +49,7 @@
     "extDevScripts": "Developer Script(s)",
     "extThemes": "Theme(s)",
     "extLogoSets": "Logo Set(s)",
+    "extApplications": "Application(s)",
     "saveAndRestart": "変更を保存して再起動"
   },
   "home": {
