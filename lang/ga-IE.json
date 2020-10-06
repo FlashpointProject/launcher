@@ -90,7 +90,7 @@
   },
   "logs": {
     "filters": "Scagairí",
-    "logLevels": "Log Levels",
+    "logLevels": "Leibhéil Logáil",
     "copyText": "Cóipeáil na Téacs",
     "clearLog": "Glan an Logáíl",
     "copy404Urls": "Copy 404 URLs",
@@ -380,7 +380,7 @@
     "yes": "Tá",
     "no": "Ní",
     "downloading": "Downloading",
-    "extracting": "Extracting",
+    "extracting": "Ag Baint",
     "installingFiles": "Installing Files...",
     "complete": "Iomlán",
     "exportMetaEditTitle": "Export Meta Edit",
@@ -435,12 +435,12 @@
     "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
     "overwriteFileTitle": "File already exists!",
     "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "overwriteFileDetail": "Cosán comhad:"
   },
   "libraries": {
     "arcade": "Cluichí",
     "arcadePlural": "Gach Cluichí",
-    "theatre": "Animations",
+    "theatre": "Beochan",
     "theatrePlural": "All Animations",
     "auditorium": "NG Auditorium",
     "auditoriumPlural": "All NG Animations"
