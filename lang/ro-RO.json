@@ -27,7 +27,7 @@
     "nativePlatforms": "Platforme native",
     "nativePlatformsDesc": "Folosește versiuni native ale acestor platforme. (Dacă nu sunt disponibile, se vor folosi prin Wine)",
     "appPathOverrides": "Suprascrieți calea aplicației",
-    "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
+    "appPathOverridesDesc": "Suprascrie calea aplicației văzută în partea din stânga cu cea văzută în partea din dreapta la lansarea jocurilor.",
     "visualsHeader": "Aspecte vizuale",
     "useCustomTitleBar": "Folosiți o bară de titlu personalizată",
     "useCustomTitleBarDesc": "Se va folosi o bară de titlu personalizată în partea de sus a ferestrei.",
@@ -49,7 +49,7 @@
     "extDevScripts": "Scripturi pentru dezvoltatori",
     "extThemes": "Teme vizuale",
     "extLogoSets": "Set de logo-uri",
-    "extApplications": "Application(s)",
+    "extApplications": "Aplicații",
     "saveAndRestart": "Salvare și repornire"
   },
   "home": {
@@ -299,7 +299,7 @@
     "deleteAll": "Ștergeți tot",
     "deleteAllDesc": "Șterge toate reparările încărcate în prezent",
     "saveImportedCurations": "Salvați reparările importate",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "keepArchiveKey": "Păstrați ID-ul arhivei de reparații",
     "symlinkCurationContent": "Creați o scurtătură dosarului cu reparații (sunt necesare drepturi de Administrator pe Windows, este necesară pentru MAD4FP)",
     "openCurationsFolder": "Dosarul reparărilor",
     "openCurationsFolderDesc": "Deschide dosarul reparărilor în exploratorul de fișiere corespunzător",
@@ -371,7 +371,7 @@
     "authorPlaceholder": "Introduceți numele autorului...",
     "id": "ID",
     "by": "după",
-    "extreme": "extreme"
+    "extreme": "matur"
   },
   "misc": {
     "noBlankFound": "Nu s-a găsit {0}",
