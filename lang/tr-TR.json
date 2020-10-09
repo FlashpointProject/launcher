@@ -49,7 +49,7 @@
     "extDevScripts": "Geliştirici Kodları",
     "extThemes": "Tema(lar)",
     "extLogoSets": "Logo Setleri",
-    "extApplications": "Application(s)",
+    "extApplications": "Uygulamalar",
     "saveAndRestart": "Kaydet ve Yeniden Başlat"
   },
   "home": {
@@ -299,7 +299,7 @@
     "deleteAll": "Hepsini Sil",
     "deleteAllDesc": "Şu an yüklü olan tüm kürasyonları sil",
     "saveImportedCurations": "İçe Aktarılmış Kürasyonları Kaydet",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "keepArchiveKey": "Kürasyon Arşiv UUID'sini Sakla",
     "symlinkCurationContent": "Symlink Kürasyon İçeriği Klasörü (Windows'ta yönetici istemleri, MAD4FP için gerekli)",
     "openCurationsFolder": "Kürasyonlar Klasörü",
     "openCurationsFolderDesc": "Kürasyonlar klasörünü dosya gezgininde aç",
@@ -371,7 +371,7 @@
     "authorPlaceholder": "Yapımcı...",
     "id": "ID",
     "by": "tarafından",
-    "extreme": "extreme"
+    "extreme": "ekstrem"
   },
   "misc": {
     "noBlankFound": "{0} Bulunamadı",
