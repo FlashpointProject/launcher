@@ -12,13 +12,33 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         curations: [
           ...state.curations,
           {
-          }
+            folder: action.folder,
+            meta: {
+              title: '',
+              alternateTitles: '',
+              series: '',
+              developer: '',
+              publisher: '',
+              playMode: '',
+              status: '',
+              version: '',
+              releaseDate: '',
+              language: '',
+              source: '',
+              launchCommand: '',
+              notes: '',
+              originalDescription: '',
+              curationNotes: '',
+              extreme: false,
+            }
+          },
         ],
       };
 
     case CurateActionType.SET_CURRENT_CURATION:
       return {
         ...state,
+        current: action.index,
       };
 
     case CurateActionType.NEW_ADDAPP:
@@ -26,10 +46,27 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
         ...state,
       };
 
-    case CurateActionType.EDIT_CURATION_META:
+    case CurateActionType.EDIT_CURATION_META: {
+      const index = state.curations.findIndex(curation => curation.folder === action.folder);
+
+      if (index === -1) { return { ...state }; }
+
+      const oldCuration = state.curations[index];
+
+      const newCurations = [ ...state.curations ];
+      newCurations[index] = {
+        ...oldCuration,
+        meta: {
+          ...oldCuration.meta,
+          [action.property]: action.value,
+        },
+      };
+
       return {
         ...state,
+        curations: newCurations,
       };
+    }
   }
 }
 

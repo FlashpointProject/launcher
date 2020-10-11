@@ -1,8 +1,7 @@
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
 import { InputElement, InputField } from '@renderer/components/InputField';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction } from '@renderer/store/curate/types';
-import { EditCurationMeta } from '@shared/curate/types';
+import { CurateAction, CurationMeta } from '@renderer/store/curate/types';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 
@@ -10,15 +9,15 @@ export type CurateBoxInputRowProps = {
   title: string;
   text: string | undefined;
   placeholder: string;
-  property: keyof EditCurationMeta;
+  property: keyof CurationMeta;
   multiline?: boolean;
-  curationKey: string;
+  curationFolder: string;
   disabled: boolean;
   dispatch: Dispatch<CurateAction>;
 }
 
 export function CurateBoxInputRow(props: CurateBoxInputRowProps) {
-  const onChange = useOnInputChange(props.property, props.curationKey, props.dispatch);
+  const onChange = useOnInputChange(props.property, props.curationFolder, props.dispatch);
 
   return (
     <CurateBoxRow title={props.title + ':'}>
@@ -40,24 +39,15 @@ type InputElementOnChangeEvent = {
   }
 }
 
-/**
- * Create a callback for InputField's onChange.
- * When called, the callback will set the value of a metadata property to the value of the input field.
- * @param property Property the input field should change.
- * @param key Key of the curation to edit.
- * @param dispatch Dispatcher to use.
- */
-function useOnInputChange(property: keyof EditCurationMeta, key: string | undefined, dispatch: Dispatch<CurateAction>) {
+function useOnInputChange(property: keyof CurationMeta, folder: string | undefined, dispatch: Dispatch<CurateAction>) {
   return React.useCallback((event: InputElementOnChangeEvent) => {
-    if (key !== undefined) {
+    if (folder !== undefined) {
       dispatch({
         type: CurateActionType.EDIT_CURATION_META,
-        payload: {
-          key: key,
-          property: property,
-          value: event.currentTarget.value
-        }
+        folder: folder,
+        property: property,
+        value: event.currentTarget.value,
       });
     }
-  }, [dispatch, key]);
+  }, [dispatch, folder]);
 }

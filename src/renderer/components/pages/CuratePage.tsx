@@ -2,8 +2,9 @@ import { CurateBox } from '@renderer/components/CurateBox';
 import { WithCurateStateProps } from '@renderer/containers/withCurateState';
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
-import { EditCuration } from '@shared/curate/types';
+import { Curation } from '@renderer/store/curate/types';
 import * as React from 'react';
+import { CurateActionType } from '@renderer/store/curate/enums';
 
 type OwnProps = {
 
@@ -12,6 +13,17 @@ type OwnProps = {
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithCurateStateProps
 
 export function CuratePage(props: CuratePageProps) {
+  const curation: Curation | undefined = props.curate.curations[props.curate.current];
+
+  // @DEBUG - Add a curation to test
+  React.useEffect(() => {
+    if (props.curate.curations.length === 0) {
+      props.dispatchCurate({ type: CurateActionType.CREATE_CURATION, folder: 'sup' });
+      props.dispatchCurate({ type: CurateActionType.SET_CURRENT_CURATION, index: 0 });
+    }
+  }, []);
+
+  /*
   const curation: EditCuration = {
     key: '',
     meta: {},
@@ -37,6 +49,7 @@ export function CuratePage(props: CuratePageProps) {
     delete: false,
     deleted: false,
   };
+  */
 
   return (
     <div className='curate-page'>
@@ -44,9 +57,15 @@ export function CuratePage(props: CuratePageProps) {
         @TODO LIST CURATIONS HERE
       </div>
       <div className='curate-page__center simple-scroll'>
-        <CurateBox
-          curation={curation}
-          dispatch={props.dispatchCurate} />
+        { curation ? (
+          <CurateBox
+            curation={curation}
+            dispatch={props.dispatchCurate} />
+        ) : (
+          <div>
+            No curation here.
+          </div>
+        )}
       </div>
       <div className='curate-page__right'>
         @TODO ADD BUTTONS AND STUFF HERE

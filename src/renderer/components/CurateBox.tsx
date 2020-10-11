@@ -2,10 +2,8 @@ import { CurateBoxCheckBox } from '@renderer/components/CurateBoxCheckBoxRow';
 import { CurateBoxInputRow } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction } from '@renderer/store/curate/types';
+import { CurateAction, Curation } from '@renderer/store/curate/types';
 import { LangContext } from '@renderer/util/lang';
-import { EditCuration } from '@shared/curate/types';
-import { fixSlashes } from '@shared/Util';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -14,7 +12,7 @@ import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxProps = {
-  curation: EditCuration;
+  curation: Curation;
   dispatch: Dispatch<CurateAction>;
 }
 
@@ -28,17 +26,17 @@ export function CurateBox(props: CurateBoxProps) {
   const onDropThumbnail  = useDropImageCallback('logo.png', props.curation, props.dispatch);
   const onDropScreenshot = useDropImageCallback('ss.png',   props.curation, props.dispatch);
 
-  const thumbnailPath  = props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${props.curation.thumbnail.version }`) : undefined;
-  const screenshotPath = props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}`) : undefined;
+  const thumbnailPath  = ''; // props.curation.thumbnail.exists  ? fixSlashes(`${props.curation.thumbnail.filePath }?v=${props.curation.thumbnail.version }`) : undefined;
+  const screenshotPath = ''; // props.curation.screenshot.exists ? fixSlashes(`${props.curation.screenshot.filePath}?v=${props.curation.screenshot.version}`) : undefined;
 
-  const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.key, props.dispatch);
-  const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.key, props.dispatch);
-  const onAddMessage = useCreateAddAppCallback('message', props.curation.key, props.dispatch);
+  const onNewAddApp  = useCreateAddAppCallback('normal',  props.curation.folder, props.dispatch);
+  const onAddExtras  = useCreateAddAppCallback('extras',  props.curation.folder, props.dispatch);
+  const onAddMessage = useCreateAddAppCallback('message', props.curation.folder, props.dispatch);
 
   const disabled = false; // props.curation ? props.curation.locked : false;
 
   const shared = {
-    curationKey: props.curation.key,
+    curationFolder: props.curation.folder,
     disabled: disabled,
     dispatch: props.dispatch,
   } as const;
@@ -139,7 +137,7 @@ export function CurateBox(props: CurateBoxProps) {
                 property='source'
                 { ...shared } />
               <tr><td/><td>@TODO Platform</td></tr>
-              <tr><td/><td>@TODO ApllicationPath</td></tr>
+              <tr><td/><td>@TODO ApplicationPath</td></tr>
               <CurateBoxInputRow
                 title={strings.browse.launchCommand}
                 text={props.curation.meta.launchCommand}
@@ -170,7 +168,7 @@ export function CurateBox(props: CurateBoxProps) {
               <CurateBoxCheckBox
                 title={strings.browse.extreme}
                 checked={props.curation.meta.extreme}
-                property='curationNotes'
+                property='extreme'
                 { ...shared } />
             </tbody>
           </table>
@@ -224,7 +222,7 @@ export function CurateBox(props: CurateBoxProps) {
             <tbody>
               <CurateBoxRow title={strings.curate.id + ':'}>
                 <InputField
-                  text={props.curation && props.curation.key || ''}
+                  text={props.curation && props.curation.folder || ''}
                   placeholder={'No ID? Something\'s broken.'}
                   disabled={true} />
               </CurateBoxRow>
@@ -236,7 +234,7 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: EditCuration | undefined, dispatch: Dispatch<CurateAction>): () => void {
+function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: Curation | undefined, dispatch: Dispatch<CurateAction>): () => void {
   return React.useCallback(async () => {
     // @TODO Request the back to add the image
     /*
@@ -254,13 +252,13 @@ function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: EditCura
       dispatch({
         type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
         payload: {
-          key: curation.key,
+          key: curation.folder,
           image: newImage
         }
       });
     }
     */
-  }, [curation && curation.key]);
+  }, [curation && curation.folder]);
 }
 
 /**
@@ -268,9 +266,9 @@ function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: EditCura
  * @param filename Name of the image file.
  * @param curation Curation to delete it from.
  */
-function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: EditCuration | undefined, dispatch: Dispatch<CurateAction>): () => Promise<void> {
+function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: Curation | undefined, dispatch: Dispatch<CurateAction>): () => Promise<void> {
   return React.useCallback(async () => {
-    // @TODO Request the back to remove the iamge
+    // @TODO Request the back to remove the image
     /*
     if (curation) {
       const filePath = path.join(getCurationFolder2(curation), filename);
@@ -287,7 +285,7 @@ function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: EditC
         dispatch({
           type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
           payload: {
-            key: curation.key,
+            key: curation.folder,
             image: createCurationIndexImage()
           }
         });
@@ -297,10 +295,10 @@ function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: EditC
       }
     }
     */
-  }, [curation && curation.key]);
+  }, [curation && curation.folder]);
 }
 
-function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: EditCuration | undefined, dispatch: Dispatch<CurateAction>) {
+function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: Curation | undefined, dispatch: Dispatch<CurateAction>) {
   return React.useCallback(async (event: React.DragEvent<Element>) => {
     // @TODO Request the back to import the image
     /*
@@ -314,23 +312,23 @@ function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: EditCur
       dispatch({
         type: isLogo ? 'set-curation-logo' : 'set-curation-screenshot',
         payload: {
-          key: curation.key,
+          key: curation.folder,
           image: newImage
         }
       });
     }
     */
-  }, [curation && curation.key]);
+  }, [curation && curation.folder]);
 }
 
-function useCreateAddAppCallback(type: 'normal' | 'extras' | 'message', curationKey: string, dispatch: Dispatch<CurateAction>) {
+function useCreateAddAppCallback(type: 'normal' | 'extras' | 'message', curationFolder: string, dispatch: Dispatch<CurateAction>) {
   return React.useCallback(() => {
     dispatch({
       type: CurateActionType.NEW_ADDAPP,
       payload: {
-        key: curationKey,
+        key: curationFolder,
         type: type,
       }
     });
-  }, [dispatch, curationKey]);
+  }, [dispatch, curationFolder]);
 }
