@@ -539,6 +539,10 @@ body {
 .curate-box-select--warn select option:not(.curate-box-select__invalid-option) {
   background-color: var(--layout__secondary-background);
 }
+/* Curate List Item */
+.curate-list-item:nth-child(n+2) { /* All but first */
+  border-color: var(--layout__tertiary-background);
+}
 
 
 /* ------ Log ------ */
