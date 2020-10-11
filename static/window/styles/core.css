@@ -907,6 +907,7 @@ body {
 .curate-page__left {
   width: 15rem;
   flex: 0 0 auto;
+  overflow: auto;
 }
 .curate-page__center {
   flex: 1 1 auto;
@@ -915,6 +916,7 @@ body {
 .curate-page__right {
   width: 15rem;
   flex: 0 0 auto;
+  overflow: auto;
 }
 .curate-page .input-field--multiline.input-field--edit {
   height: 5em;
@@ -1075,7 +1077,7 @@ body {
 }
 .curate-list-item__title {
   flex: 1 1 auto;
-  vertical-align: middle;
+  padding-left: 0.2rem;
   /* Truncates the overflowing text */
   white-space: nowrap;
   overflow: hidden;

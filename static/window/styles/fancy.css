@@ -543,6 +543,9 @@ body {
 .curate-list-item:nth-child(n+2) { /* All but first */
   border-color: var(--layout__tertiary-background);
 }
+.curate-list-item--selected {
+  background-color: var(--layout__game-item-background-selected);
+}
 
 
 /* ------ Log ------ */

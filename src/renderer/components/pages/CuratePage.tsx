@@ -57,12 +57,15 @@ export function CuratePage(props: CuratePageProps) {
   return (
     <div className='curate-page'>
       <div
-        className='curate-page__left'
+        className='curate-page__left simple-scroll'
         onMouseDown={onListMouseDown}
         onMouseUp={onListMouseUp}>
         {props.curate.curations.map((curation, index) => (
           <div
-            className='curate-list-item'
+            className={
+              'curate-list-item'+
+              ((index === props.curate.current) ? ' curate-list-item--selected' : '')
+            }
             key={curation.folder}
             { ...{ [index_attr]: index } }>
             <div
@@ -85,7 +88,7 @@ export function CuratePage(props: CuratePageProps) {
           </div>
         )}
       </div>
-      <div className='curate-page__right'>
+      <div className='curate-page__right simple-scroll'>
         <div onClick={onNewCuration}>New Curation</div>
       </div>
     </div>
