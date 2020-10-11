@@ -477,6 +477,9 @@ body {
 
 
 /* ------ Curate ------ */
+.curate-page__center {
+  background-color: var(--layout__curate-page-box-background);
+}
 /* Curate Page Top */
 .curate-page__floating-box {
   border-color: var(--layout__curate-page-floating-box-border);
@@ -494,9 +497,6 @@ body {
   background-color: var(--layout__playlist-list-item-drag-over-background);
 }
 /* Curate Box */
-.curate-box {
-  background-color: var(--layout__curate-page-box-background);
-}
 .curate-box input[type="checkbox"] {
   vertical-align: middle;
   transform: scale(1rem);

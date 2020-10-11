@@ -43,7 +43,7 @@ export function CuratePage(props: CuratePageProps) {
       <div className='curate-page__left'>
         @TODO LIST CURATIONS HERE
       </div>
-      <div className='curate-page__center'>
+      <div className='curate-page__center simple-scroll'>
         <CurateBox
           curation={curation}
           dispatch={props.dispatchCurate} />

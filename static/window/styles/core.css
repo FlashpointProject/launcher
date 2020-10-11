@@ -910,6 +910,7 @@ body {
 }
 .curate-page__center {
   flex: 1 1 auto;
+  overflow: auto;
 }
 .curate-page__right {
   width: 15rem;
@@ -922,10 +923,14 @@ body {
 /* Curate Box */
 .curate-box {
   height: 100%;
-  padding: 0.5rem;
+  padding: 0.5rem 0;
   --columns: 2;
   --column-width: 40em;
   --column-gutter: 2em;
+}
+.curate-box__columns {
+  margin: auto;
+  --column-gutter: 0.1rem;
 }
 .curate-box__images {
   position: relative;

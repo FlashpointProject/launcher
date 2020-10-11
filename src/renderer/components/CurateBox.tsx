@@ -45,7 +45,7 @@ export function CurateBox(props: CurateBoxProps) {
 
   return (
     <div className='curate-box'>
-      <div className='simple-columns'>
+      <div className='simple-columns curate-box__columns'>
         {/* Left/Top */}
         <div className='simple-columns__column'>
           {/* Images */}
