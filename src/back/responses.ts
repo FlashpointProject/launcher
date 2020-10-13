@@ -94,6 +94,9 @@ export function registerRequestCallbacks(state: BackState): void {
       platforms[library] = await GameManager.findPlatforms(library);
     }
 
+    // Fire after return has sent
+    setTimeout(() => state.apiEmitters.onDidConnect.fire(), 100);
+
     return {
       preferences: state.preferences,
       config: state.config,
@@ -121,6 +124,7 @@ export function registerRequestCallbacks(state: BackState): void {
       contextButtons: await state.extensionsService.getContributions('contextButtons'),
       logoSets: Array.from(state.registry.logoSets.values()),
     };
+
   });
 
   state.socketServer.register(BackIn.INIT_LISTEN, (event) => {

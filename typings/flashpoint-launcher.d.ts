@@ -366,6 +366,9 @@ declare module 'flashpoint-launcher' {
     /** Called when the backend has fully initialized. Extension activation is earlier. */
     const onDidInit: Event<void>;
 
+    /** Called when a client connects to the backend */
+    const onDidConnect: Event<void>;
+
     /** See Electron docs for explanations. https://www.electronjs.org/docs/api/dialog */
     type ShowMessageBoxOptions = {
         title?: string;

@@ -58,10 +58,10 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const loadConfig = async (): Promise<any> => {
     if (extPath) {
       const configPath = path.join(extPath, 'config.json');
-      await fs.promises.access(configPath, fs.constants.F_OK)
+      return fs.promises.access(configPath, fs.constants.F_OK)
+      .then(() => fs.promises.readFile(configPath, { encoding: 'utf-8' }))
+      .then((text) => JSON.parse(text))
       .catch(() => { return {}; }); // No config found, return default.
-      const text = await fs.promises.readFile(configPath, { encoding: 'utf-8' });
-      return JSON.parse(text);
     } else {
       throw new Error('Cannot load a config for a fake extension!');
     }
@@ -289,6 +289,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
 
     // Events
     onDidInit: apiEmitters.onDidInit.event,
+    onDidConnect: apiEmitters.onDidConnect.event,
 
     // Classes
     DisposableChildProcess: DisposableChildProcess,
