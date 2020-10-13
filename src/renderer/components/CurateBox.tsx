@@ -1,10 +1,11 @@
 import { CurateBoxCheckBox } from '@renderer/components/CurateBoxCheckBoxRow';
-import { CurateBoxInputRow } from '@renderer/components/CurateBoxInputRow';
+import { CurateBoxDropdownInputRow, CurateBoxInputRow } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { CurateActionType } from '@renderer/store/curate/enums';
 import { CurateAction } from '@renderer/store/curate/types';
 import { LangContext } from '@renderer/util/lang';
 import { LoadedCuration } from '@shared/curate/types';
+import { GamePropSuggestions } from '@shared/interfaces';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -14,6 +15,7 @@ import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxProps = {
   curation: LoadedCuration;
+  suggestions: Partial<GamePropSuggestions>;
   dispatch: Dispatch<CurateAction>;
 }
 
@@ -81,7 +83,13 @@ export function CurateBox(props: CurateBoxProps) {
                 placeholder={strings.browse.noAlternateTitles}
                 property='alternateTitles'
                 { ...shared } />
-              <tr><td/><td>@TODO Library</td></tr>
+              {/* @TODO Replace this with a Dropdown menu that does NOT allow selection of the text or typing into it. */}
+              <CurateBoxDropdownInputRow
+                title={strings.browse.library}
+                text={props.curation.game.library}
+                items={props.suggestions.library}
+                property='library'
+                { ...shared } />
               <CurateBoxInputRow
                 title={strings.filter.series}
                 text={props.curation.game.series}
@@ -137,8 +145,20 @@ export function CurateBox(props: CurateBoxProps) {
                 placeholder={strings.browse.noSource}
                 property='source'
                 { ...shared } />
-              <tr><td/><td>@TODO Platform</td></tr>
-              <tr><td/><td>@TODO ApplicationPath</td></tr>
+              <CurateBoxDropdownInputRow
+                title={strings.browse.platform}
+                text={props.curation.game.platform}
+                placeholder={strings.browse.noPlatform}
+                items={props.suggestions.platform}
+                property='platform'
+                { ...shared } />
+              <CurateBoxDropdownInputRow
+                title={strings.browse.applicationPath}
+                text={props.curation.game.applicationPath}
+                placeholder={strings.browse.noApplicationPath}
+                items={props.suggestions.applicationPath}
+                property='applicationPath'
+                { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.launchCommand}
                 text={props.curation.game.launchCommand}

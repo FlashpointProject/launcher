@@ -5,11 +5,12 @@ import { CurateAction } from '@renderer/store/curate/types';
 import { CurationMeta } from '@shared/curate/types';
 import * as React from 'react';
 import { Dispatch } from 'redux';
+import { DropdownInputField } from './DropdownInputField';
 
 export type CurateBoxInputRowProps = {
   title: string;
-  text: string | undefined;
-  placeholder: string;
+  text?: string;
+  placeholder?: string;
   property: keyof CurationMeta;
   multiline?: boolean;
   curationFolder: string;
@@ -23,6 +24,31 @@ export function CurateBoxInputRow(props: CurateBoxInputRowProps) {
   return (
     <CurateBoxRow title={props.title + ':'}>
       <InputField
+        text={props.text || ''}
+        placeholder={props.placeholder}
+        onChange={onChange}
+        disabled={props.disabled}
+        multiline={props.multiline}
+        editable={true} />
+    </CurateBoxRow>
+  );
+}
+
+export type CurateBoxDropdownInputRowProps = CurateBoxInputRowProps & {
+  className?: string;
+  items?: string[];
+}
+
+export function CurateBoxDropdownInputRow(props: CurateBoxDropdownInputRowProps) {
+  const onChange = useOnInputChange(props.property, props.curationFolder, props.dispatch);
+  const onItemSelect = useTransformOnItemSelect(onChange);
+
+  return (
+    <CurateBoxRow title={props.title + ':'}>
+      <DropdownInputField
+        className={props.className}
+        items={props.items || []}
+        onItemSelect={onItemSelect}
         text={props.text || ''}
         placeholder={props.placeholder}
         onChange={onChange}
@@ -51,4 +77,10 @@ function useOnInputChange(property: keyof CurationMeta, folder: string | undefin
       });
     }
   }, [dispatch, folder]);
+}
+
+function useTransformOnItemSelect(callback: (event: InputElementOnChangeEvent) => void) {
+  return React.useCallback((text: string) => {
+    callback({ currentTarget: { value: text } });
+  }, [callback]);
 }

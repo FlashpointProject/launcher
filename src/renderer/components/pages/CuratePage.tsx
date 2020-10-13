@@ -82,6 +82,7 @@ export function CuratePage(props: CuratePageProps) {
         { curation ? (
           <CurateBox
             curation={curation}
+            suggestions={props.main.suggestions}
             dispatch={props.dispatchCurate} />
         ) : (
           <div>
