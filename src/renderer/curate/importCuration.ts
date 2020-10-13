@@ -1,4 +1,4 @@
-import { CurationIndexImage, IndexedContent } from '@shared/curate/types';
+import { CurationIndexImage, IndexedContent } from '@shared/curate/OLD_types';
 import { recursiveFolderIndex } from '@shared/curate/util';
 import * as fs from 'fs-extra';
 import { extractFull } from 'node-7z';

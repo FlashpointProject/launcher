@@ -13,24 +13,8 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
           ...state.curations,
           {
             folder: action.folder,
-            meta: {
-              title: '',
-              alternateTitles: '',
-              series: '',
-              developer: '',
-              publisher: '',
-              playMode: '',
-              status: '',
-              version: '',
-              releaseDate: '',
-              language: '',
-              source: '',
-              launchCommand: '',
-              notes: '',
-              originalDescription: '',
-              curationNotes: '',
-              extreme: false,
-            }
+            game: {},
+            addApps: [],
           },
         ],
       };
@@ -56,11 +40,36 @@ export function curateStateReducer(state: CurateState = createInitialState(), ac
       const newCurations = [ ...state.curations ];
       newCurations[index] = {
         ...oldCuration,
-        meta: {
-          ...oldCuration.meta,
+        game: {
+          ...oldCuration.game,
           [action.property]: action.value,
         },
       };
+
+      return {
+        ...state,
+        curations: newCurations,
+      };
+    }
+
+    case CurateActionType.SET_ALL_CURATIONS:
+      return {
+        ...state,
+        curations: [ ...action.curations ],
+      };
+
+    case CurateActionType.APPLY_DELTA: {
+      const newCurations = [ ...state.curations ];
+
+      if (action.removed) {
+        for (let i = newCurations.length - 1; i >= 0; i--) {
+          if (action.removed.indexOf(newCurations[i].folder) !== -1) {
+            newCurations.splice(i, 1);
+          }
+        }
+      }
+
+      if (action.added) { newCurations.push(...action.added); }
 
       return {
         ...state,

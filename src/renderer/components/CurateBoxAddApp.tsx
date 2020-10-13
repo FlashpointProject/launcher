@@ -1,5 +1,5 @@
 import { BackIn } from '@shared/back/types';
-import { EditAddAppCuration, EditAddAppCurationMeta } from '@shared/curate/types';
+import { EditAddAppCuration, EditAddAppCurationMeta } from '@shared/curate/OLD_types';
 import * as React from 'react';
 import { useCallback } from 'react';
 import { CurationAction } from '../context/CurationContext';

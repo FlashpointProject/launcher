@@ -1,7 +1,7 @@
 import { Game } from '@database/entity/Game';
 import { TagCategory } from '@database/entity/TagCategory';
 import { ParsedCurationMeta } from './parse';
-import { EditAddAppCuration, EditCurationMeta } from './types';
+import { EditAddAppCuration, EditCurationMeta } from './OLD_types';
 
 /**
  * Convert game and its additional applications into a raw object representation in the curation format.

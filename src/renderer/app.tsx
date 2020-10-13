@@ -19,6 +19,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import { Dispatch } from 'redux';
 import * as which from 'which';
 import { GameOrderChangeEvent } from './components/GameOrder';
 import { MetaEditExporter, MetaEditExporterConfirmData } from './components/MetaEditExporter';
@@ -33,6 +34,8 @@ import { CreditsFile } from './credits/CreditsFile';
 import { UpdateView, UpgradeStageState } from './interfaces';
 import { Paths } from './Paths';
 import { AppRouter, AppRouterProps } from './router';
+import { CurateActionType } from './store/curate/enums';
+import { CurateAction } from './store/curate/types';
 import { MainActionType, RequestState } from './store/main/enums';
 import { MainState } from './store/main/types';
 import { SearchQuery } from './store/search';
@@ -149,32 +152,19 @@ export class App extends React.Component<AppProps> {
       for (const index of data.done) {
         switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
           case BackInit.PLAYLISTS:
-            window.Shared.back.request(BackIn.GET_PLAYLISTS).then(data => {
-              if (data) {
-                this.props.setMainState({ playlists: data });
-                this.cachePlaylistIcons(data);
-              }
-            });
-            break;
-        }
-      }
-
-      this.props.dispatchMain({
-        type: MainActionType.ADD_LOADED,
-        loaded: data.done,
-      });
-    });
-
-    window.Shared.back.register(BackOut.INIT_EVENT, (event, data) => {
-      for (const index of data.done) {
-        switch (parseInt(index+'', 10)) { // (It is a string, even though TS thinks it is a number)
-          case BackInit.PLAYLISTS:
             window.Shared.back.request(BackIn.GET_PLAYLISTS)
             .then(data => {
               if (data) {
                 this.props.setMainState({ playlists: data });
                 this.cachePlaylistIcons(data);
               }
+            });
+            break;
+
+          case BackInit.CURATE:
+            window.Shared.back.request(BackIn.CURATE_GET_LIST)
+            .then(curations => {
+              (this.props.dispatchMain as any as Dispatch<CurateAction>)({ type: CurateActionType.SET_ALL_CURATIONS, curations });
             });
             break;
         }
@@ -266,6 +256,10 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.DEV_CONSOLE_CHANGE, (event, text) => {
       this.props.setMainState({ devConsoleText: text });
+    });
+
+    window.Shared.back.register(BackOut.CURATE_LIST_CHANGE, (event, added, removed) => {
+      (this.props.dispatchMain as any as Dispatch<CurateAction>)({ type: CurateActionType.APPLY_DELTA, added, removed });
     });
 
     // Cache playlist icons (if they are loaded)
@@ -597,6 +591,7 @@ export class App extends React.Component<AppProps> {
               gamesLoaded={this.props.main.gamesDoneLoading}
               upgradesLoaded={this.props.main.upgradesDoneLoading}
               creditsLoaded={this.props.main.creditsDoneLoading}
+              curationsLoaded={this.props.main.loaded[BackInit.CURATE]}
               miscLoaded={this.props.main.loaded[BackInit.EXEC]} />
             {/* Title-bar (if enabled) */}
             { window.Shared.config.data.useCustomTitlebar ?

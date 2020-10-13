@@ -93,6 +93,7 @@ window.Shared = {
   initialExtensions: createErrorProxy('initialExtensions'),
   initialDevScripts: createErrorProxy('initialDevScripts'),
   initialLogoSets: createErrorProxy('initialLogoSets'),
+  initialCurations: createErrorProxy('initialCurations'),
 
   waitUntilInitialized() {
     if (!isInitDone) { return onInit; }
@@ -145,6 +146,7 @@ const onInit = (async () => {
       window.Shared.initialExtensions = data.extensions;
       window.Shared.initialDevScripts = data.devScripts;
       window.Shared.initialLogoSets = data.logoSets;
+      window.Shared.initialCurations = data.curations;
       if (window.Shared.preferences.data.currentTheme) {
         const theme = window.Shared.initialThemes.find(t => t.id === window.Shared.preferences.data.currentTheme);
         if (theme) { setTheme(theme); }

@@ -1,37 +1,9 @@
+import { CurationMeta, LoadedCuration } from '@shared/curate/types';
 import { CurateActionType } from './enums';
-
-export type Curation = {
-  /** Name of this curations folder (inside the curate folder). */
-  folder: string;
-  meta: CurationMeta;
-}
-
-export type CurationMeta = {
-  title: string;
-  alternateTitles: string;
-  // library: ???;
-  series: string;
-  developer: string;
-  publisher: string;
-  // tags: ???;
-  playMode: string;
-  status: string;
-  version: string;
-  releaseDate: string;
-  language: string;
-  source: string;
-  // platform: ???;
-  // applicationPath: ???;
-  launchCommand: string;
-  notes: string;
-  originalDescription: string;
-  curationNotes: string;
-  extreme: boolean;
-}
 
 export type CurateState = {
   /** Loaded curations. */
-  curations: Curation[];
+  curations: LoadedCuration[];
   /** Index of the currently selected curation (-1 if none). */
   current: number;
 }
@@ -49,4 +21,11 @@ export type CurateAction = {
   folder: string;
   property: keyof CurationMeta;
   value: CurationMeta[keyof CurationMeta];
+} | {
+  type: CurateActionType.SET_ALL_CURATIONS;
+  curations: LoadedCuration[];
+} | {
+  type: CurateActionType.APPLY_DELTA;
+  added?: LoadedCuration[];
+  removed?: string[];
 }

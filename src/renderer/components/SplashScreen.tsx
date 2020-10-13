@@ -4,12 +4,13 @@ export type SplashScreenProps = {
   gamesLoaded: boolean;
   upgradesLoaded: boolean;
   creditsLoaded: boolean;
+  curationsLoaded: boolean;
   miscLoaded: boolean;
 }
 
 export function SplashScreen(props: SplashScreenProps) {
-  const { gamesLoaded, upgradesLoaded, creditsLoaded, miscLoaded } = props;
-  const extraClass = (gamesLoaded && upgradesLoaded && creditsLoaded && miscLoaded)
+  const { gamesLoaded, upgradesLoaded, creditsLoaded, curationsLoaded, miscLoaded } = props;
+  const extraClass = (gamesLoaded && upgradesLoaded && creditsLoaded && curationsLoaded && miscLoaded)
     ? ' splash-screen--fade-out'
     : '';
 
@@ -35,6 +36,11 @@ export function SplashScreen(props: SplashScreenProps) {
         { !creditsLoaded ? (
           <div className='splash-screen__status'>
             Credits
+          </div>
+        ) : undefined }
+        { !curationsLoaded ? (
+          <div className='splash-screen__status'>
+            Curations
           </div>
         ) : undefined }
         { !miscLoaded ? (

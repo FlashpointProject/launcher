@@ -1,7 +1,8 @@
 import { CurateBoxRow } from '@renderer/components/CurateBoxRow';
 import { InputElement, InputField } from '@renderer/components/InputField';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction, CurationMeta } from '@renderer/store/curate/types';
+import { CurateAction } from '@renderer/store/curate/types';
+import { CurationMeta } from '@shared/curate/types';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 

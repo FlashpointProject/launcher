@@ -6,7 +6,7 @@ import { Tag } from '@database/entity/Tag';
 import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
-import { BackInit, BackInitArgs, BackOut, BackIn } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
@@ -29,6 +29,8 @@ import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
 import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
+import { CURATIONS_FOLDER_LOADED } from './consts';
+import { readCurationMeta } from './curate/read';
 import { loadExecMappingsFile } from './Execs';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
@@ -45,9 +47,6 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
 // Required for the DB Models to function
@@ -89,6 +88,7 @@ const state: BackState = {
     0: false,
     1: false,
     2: false,
+    3: false,
   },
   initEmitter: new EventEmitter() as any,
   queries: {},
@@ -134,6 +134,9 @@ const state: BackState = {
   },
   extensionsService: createErrorProxy('extensionsService'),
   connection: undefined,
+  sevenZipPath: '',
+  loadedCurations: [],
+  recentAppPaths: {},
 };
 
 main();
@@ -219,6 +222,17 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   const versionStr = `${content.version} ${content.isDev ? 'DEV' : ''}`;
   log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
+  // Set SevenZip binary path
+  {
+    const basePath = state.isDev ? process.cwd() : path.dirname(state.exePath);
+    switch (process.platform) {
+      default:       state.sevenZipPath = '7za'; break;
+      case 'darwin': state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/mac', '7za'); break;
+      case 'win32':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/win', process.arch, '7za'); break;
+      case 'linux':  state.sevenZipPath = path.join(basePath, 'extern/7zip-bin/linux', process.arch, '7za'); break;
+    }
+  }
+
   // Read configs & preferences
   const [pref, conf] = await (Promise.all([
     PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
@@ -250,6 +264,29 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     await state.connection.query('PRAGMA foreign_keys=off;');
     await state.connection.runMigrations();
     log.info('Launcher', 'Database connection established');
+  }
+
+  // Load curations
+  {
+    try {
+      // Go through all curation folders
+      const rootPath = path.resolve(state.config.flashpointPath, CURATIONS_FOLDER_LOADED);
+      for (const folderName of await fs.promises.readdir(rootPath)) {
+        const parsedMeta = await readCurationMeta(path.join(rootPath, folderName), state.recentAppPaths);
+        if (parsedMeta) {
+          state.loadedCurations.push({
+            folder: folderName,
+            game: parsedMeta.game,
+            addApps: parsedMeta.addApps,
+          });
+        }
+      }
+    } catch (error) {
+      log.error('Launcher', `Failed to load curations\n${error.toString()}`);
+    }
+
+    state.init[BackInit.CURATE] = true;
+    state.initEmitter.emit(BackInit.CURATE);
   }
 
   // Init extensions

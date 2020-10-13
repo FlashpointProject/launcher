@@ -3,4 +3,6 @@ export enum CurateActionType {
   SET_CURRENT_CURATION = '@@curate/SET_CURRENT_CURATION',
   NEW_ADDAPP = '@@curate/ADD_CURATION',
   EDIT_CURATION_META = '@@curate/EDIT_CURATION_META',
+  SET_ALL_CURATIONS = '@@curate/SET_ALL_CURATIONS',
+  APPLY_DELTA = '@@curate/APPLY_DELTA',
 }

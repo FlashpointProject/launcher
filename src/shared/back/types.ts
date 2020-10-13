@@ -3,6 +3,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
+import { LoadedCuration } from '@shared/curate/types';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { FilterGameOpts } from '@shared/game/GameFilter';
 import { Legacy_GamePlatform } from '@shared/legacy/interfaces';
@@ -11,7 +12,7 @@ import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
 import { IAppConfigData } from '../config/interfaces';
-import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
+import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/OLD_types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
 import { ILogEntry, ILogPreEntry, LogLevel } from '../Log/interface';
@@ -102,6 +103,10 @@ export enum BackIn {
   // Extensions
   RUN_COMMAND,
 
+  // Curate
+  CURATE_LOAD_ARCHIVES,
+  CURATE_GET_LIST,
+
   // Misc
   UPLOAD_LOG,
 }
@@ -146,6 +151,9 @@ export enum BackOut {
   RUN_COMMAND,
   UPLOAD_LOG,
   DEV_CONSOLE_CHANGE,
+
+  // Curate
+  CURATE_LIST_CHANGE,
 }
 
 export type BackInTemplate = SocketTemplate<BackIn, {
@@ -226,6 +234,10 @@ export type BackInTemplate = SocketTemplate<BackIn, {
   // Extensions
   [BackIn.RUN_COMMAND]: (command: string, args?: any[]) => RunCommandResponse;
 
+  // Curate
+  [BackIn.CURATE_LOAD_ARCHIVES]: (filePaths: string[]) => void;
+  [BackIn.CURATE_GET_LIST]: () => LoadedCuration[];
+
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;
 }>
@@ -270,6 +282,9 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.RUN_COMMAND]: (data: RunCommandResponse) => void;
   [BackOut.UPLOAD_LOG]: (getUrl: string | undefined) => void;
   [BackOut.DEV_CONSOLE_CHANGE]: (text: string) => void;
+
+  // Curate
+  [BackOut.CURATE_LIST_CHANGE]: (added?: LoadedCuration[], removed?: string[]) => void; // "removed" is the folder names of the removed curations
 }>
 
 export type BackInitArgs = {
@@ -291,6 +306,7 @@ export enum BackInit {
   GAMES,
   PLAYLISTS,
   EXEC,
+  CURATE,
 }
 
 export type InitEventData = {
@@ -322,6 +338,7 @@ export type GetRendererInitDataResponse = {
   extensions: IExtensionDescription[];
   devScripts: ExtensionContribution<'devScripts'>[];
   logoSets: LogoSet[];
+  curations: LoadedCuration[];
 }
 
 export type GetSuggestionsResponseData = {

@@ -1,6 +1,6 @@
 import { GameMetaDefaults } from '@shared/curate/defaultValues';
 import { parseCurationMetaNew, parseCurationMetaOld, ParsedCurationMeta } from '@shared/curate/parse';
-import { CurationIndexImage, EditCurationMeta } from '@shared/curate/types';
+import { CurationIndexImage, EditCurationMeta } from '@shared/curate/OLD_types';
 import { stripBOM } from '@shared/Util';
 import { remote } from 'electron';
 import * as fs from 'fs';

@@ -40,6 +40,10 @@ import { logFactory } from './util/logging';
   // Create Redux store
   const store = configureStore(history, {
     main: createInitialMainState(),
+    curate: {
+      curations: [ ...window.Shared.initialCurations ],
+      current: -1,
+    },
   });
 
   // Render the application
@@ -111,6 +115,7 @@ function createInitialMainState(): MainState {
       0: false,
       1: false,
       2: false,
+      3: false,
     },
     themeList: window.Shared.initialThemes,
     gamesTotal: -1,

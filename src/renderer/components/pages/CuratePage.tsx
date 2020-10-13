@@ -5,9 +5,11 @@ import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { WithTagCategoriesProps } from '@renderer/containers/withTagCategories';
 import { useMouse } from '@renderer/hooks/useMouse';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { Curation } from '@renderer/store/curate/types';
 import { findElementAncestor, getPlatformIconURL } from '@renderer/Util';
 import { uuid } from '@renderer/util/uuid';
+import { BackIn } from '@shared/back/types';
+import { LoadedCuration } from '@shared/curate/types';
+import * as electron from 'electron';
 import * as React from 'react';
 
 const index_attr = 'data-index';
@@ -19,15 +21,7 @@ type OwnProps = {
 export type CuratePageProps = OwnProps & WithPreferencesProps & WithTagCategoriesProps & WithMainStateProps & WithCurateStateProps
 
 export function CuratePage(props: CuratePageProps) {
-  const curation: Curation | undefined = props.curate.curations[props.curate.current];
-
-  // @DEBUG - Add a curation to test
-  React.useEffect(() => {
-    if (props.curate.curations.length === 0) {
-      props.dispatchCurate({ type: CurateActionType.CREATE_CURATION, folder: 'sup' });
-      props.dispatchCurate({ type: CurateActionType.SET_CURRENT_CURATION, index: 0 });
-    }
-  }, []);
+  const curation: LoadedCuration | undefined = props.curate.curations[props.curate.current];
 
   const [onListMouseDown, onListMouseUp] = useMouse<number>(() => ({
     chain_delay: 500,
@@ -52,6 +46,13 @@ export function CuratePage(props: CuratePageProps) {
       type: CurateActionType.CREATE_CURATION,
       folder: uuid(),
     });
+  }, []);
+
+  const onLoadCuration = React.useCallback(() => {
+    electron.remote.dialog.showOpenDialog({
+      title: 'Select curation archive(s) to load',
+    })
+    .then(value => window.Shared.back.send(BackIn.CURATE_LOAD_ARCHIVES, value.filePaths));
   }, []);
 
   return (
@@ -89,7 +90,8 @@ export function CuratePage(props: CuratePageProps) {
         )}
       </div>
       <div className='curate-page__right simple-scroll'>
-        <div onClick={onNewCuration}>New Curation</div>
+        <button onClick={onNewCuration}>New Curation</button><br/>
+        <button onClick={onLoadCuration}>Load curation(s)</button>
       </div>
     </div>
   );

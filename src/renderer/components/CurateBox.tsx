@@ -2,8 +2,9 @@ import { CurateBoxCheckBox } from '@renderer/components/CurateBoxCheckBoxRow';
 import { CurateBoxInputRow } from '@renderer/components/CurateBoxInputRow';
 import { GameImageSplit } from '@renderer/components/GameImageSplit';
 import { CurateActionType } from '@renderer/store/curate/enums';
-import { CurateAction, Curation } from '@renderer/store/curate/types';
+import { CurateAction } from '@renderer/store/curate/types';
 import { LangContext } from '@renderer/util/lang';
+import { LoadedCuration } from '@shared/curate/types';
 import * as React from 'react';
 import { Dispatch } from 'redux';
 import { CurateBoxRow } from './CurateBoxRow';
@@ -12,7 +13,7 @@ import { InputField } from './InputField';
 import { SimpleButton } from './SimpleButton';
 
 export type CurateBoxProps = {
-  curation: Curation;
+  curation: LoadedCuration;
   dispatch: Dispatch<CurateAction>;
 }
 
@@ -70,69 +71,69 @@ export function CurateBox(props: CurateBoxProps) {
             <tbody>
               <CurateBoxInputRow
                 title={strings.filter.title}
-                text={props.curation.meta.title}
+                text={props.curation.game.title}
                 placeholder={strings.browse.noTitle}
                 property='title'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.alternateTitles}
-                text={props.curation.meta.alternateTitles}
+                text={props.curation.game.alternateTitles}
                 placeholder={strings.browse.noAlternateTitles}
                 property='alternateTitles'
                 { ...shared } />
               <tr><td/><td>@TODO Library</td></tr>
               <CurateBoxInputRow
                 title={strings.filter.series}
-                text={props.curation.meta.series}
+                text={props.curation.game.series}
                 placeholder={strings.browse.noSeries}
                 property='series'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.filter.developer}
-                text={props.curation.meta.developer}
+                text={props.curation.game.developer}
                 placeholder={strings.browse.noDeveloper}
                 property='developer'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.filter.publisher}
-                text={props.curation.meta.publisher}
+                text={props.curation.game.publisher}
                 placeholder={strings.browse.noPublisher}
                 property='publisher'
                 { ...shared } />
               <tr><td/><td>@TODO Tags</td></tr>
               <CurateBoxInputRow
                 title={strings.browse.playMode}
-                text={props.curation.meta.playMode}
+                text={props.curation.game.playMode}
                 placeholder={strings.browse.noPlayMode}
                 property='playMode'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.status}
-                text={props.curation.meta.status}
+                text={props.curation.game.status}
                 placeholder={strings.browse.noStatus}
                 property='status'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.version}
-                text={props.curation.meta.version}
+                text={props.curation.game.version}
                 placeholder={strings.browse.noVersion}
                 property='version'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.releaseDate}
-                text={props.curation.meta.releaseDate}
+                text={props.curation.game.releaseDate}
                 placeholder={strings.browse.noReleaseDate}
                 property='releaseDate'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.language}
-                text={props.curation.meta.language}
+                text={props.curation.game.language}
                 placeholder={strings.browse.noLanguage}
                 property='language'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.source}
-                text={props.curation.meta.source}
+                text={props.curation.game.source}
                 placeholder={strings.browse.noSource}
                 property='source'
                 { ...shared } />
@@ -140,34 +141,34 @@ export function CurateBox(props: CurateBoxProps) {
               <tr><td/><td>@TODO ApplicationPath</td></tr>
               <CurateBoxInputRow
                 title={strings.browse.launchCommand}
-                text={props.curation.meta.launchCommand}
+                text={props.curation.game.launchCommand}
                 placeholder={strings.browse.noLaunchCommand}
                 property='launchCommand'
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.notes}
-                text={props.curation.meta.notes}
+                text={props.curation.game.notes}
                 placeholder={strings.browse.noNotes}
                 property='notes'
                 multiline={true}
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.browse.originalDescription}
-                text={props.curation.meta.originalDescription}
+                text={props.curation.game.originalDescription}
                 placeholder={strings.browse.noOriginalDescription}
                 property='originalDescription'
                 multiline={true}
                 { ...shared } />
               <CurateBoxInputRow
                 title={strings.curate.curationNotes}
-                text={props.curation.meta.curationNotes}
+                text={props.curation.game.curationNotes}
                 placeholder={strings.curate.noCurationNotes}
                 property='curationNotes'
                 multiline={true}
                 { ...shared } />
               <CurateBoxCheckBox
                 title={strings.browse.extreme}
-                checked={props.curation.meta.extreme}
+                checked={props.curation.game.extreme}
                 property='extreme'
                 { ...shared } />
             </tbody>
@@ -234,7 +235,7 @@ export function CurateBox(props: CurateBoxProps) {
   );
 }
 
-function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: Curation | undefined, dispatch: Dispatch<CurateAction>): () => void {
+function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => void {
   return React.useCallback(async () => {
     // @TODO Request the back to add the image
     /*
@@ -266,7 +267,7 @@ function useAddImageCallback(filename: 'logo.png' | 'ss.png', curation: Curation
  * @param filename Name of the image file.
  * @param curation Curation to delete it from.
  */
-function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: Curation | undefined, dispatch: Dispatch<CurateAction>): () => Promise<void> {
+function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>): () => Promise<void> {
   return React.useCallback(async () => {
     // @TODO Request the back to remove the image
     /*
@@ -298,7 +299,7 @@ function useRemoveImageCallback(filename: 'logo.png' | 'ss.png', curation: Curat
   }, [curation && curation.folder]);
 }
 
-function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: Curation | undefined, dispatch: Dispatch<CurateAction>) {
+function useDropImageCallback(filename: 'logo.png' | 'ss.png', curation: LoadedCuration | undefined, dispatch: Dispatch<CurateAction>) {
   return React.useCallback(async (event: React.DragEvent<Element>) => {
     // @TODO Request the back to import the image
     /*
