@@ -1,9 +1,9 @@
 {
-  "name": "English",
+  "name": "Angla",
   "config": {
     "configHeader": "Config",
     "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
-    "preferencesHeader": "Preferences",
+    "preferencesHeader": "Agordoj",
     "extremeGames": "Extreme Games",
     "extremeGamesDesc": "Show games with sexual, violent or other content unsuitable for children.",
     "enableEditing": "Enable Editing",
