@@ -25,7 +25,7 @@
     "randomLibrariesDesc": "Bibliotekoj por la uzado de Hazardaj Elektoj en la ĉefpaĝo.",
     "platforms": "Platformoj",
     "nativePlatforms": "Denaskaj Platformoj",
-    "nativePlatformsDesc": "Use Native versions of these platforms. (If not available it will use Wine)",
+    "nativePlatformsDesc": "Uzu denaskajn versiojn de ĉi tiuj platformoj. (Se ne havebla, ĝi uzos \"Wine\"-n)",
     "appPathOverrides": "App Path Overrides",
     "appPathOverridesDesc": "Overrides the application path on the left with the one on the right when launching games.",
     "visualsHeader": "Visuals",
