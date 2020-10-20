@@ -1,3 +1,4 @@
+import { PREFERENCES_FILENAME } from '@back/constants';
 import { GameManager } from '@back/game/GameManager';
 import { TagManager } from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
@@ -5,10 +6,12 @@ import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
 import { pathTo7zBack } from '@back/util/SevenZip';
+import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import * as flashpoint from 'flashpoint-launcher';
 import * as fs from 'fs';
@@ -29,10 +32,15 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const { registry, apiEmitters } = state;
 
   const getPreferences = () => state.preferences;
-  const extOverwritePreferenceData = (
+  const extOverwritePreferenceData = async (
     data: flashpoint.DeepPartial<flashpoint.AppPreferencesData>,
     onError?: (error: string) => void
-  ) => overwritePreferenceData(state.preferences, data, onError);
+  ) => {
+    overwritePreferenceData(state.preferences, data, onError);
+    await PreferencesFile.saveFile(path.join(state.configFolder, PREFERENCES_FILENAME), state.preferences);
+    state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+    return state.preferences;
+  };
 
   const unload = () => state.extensionsService.unloadExtension(extId);
 

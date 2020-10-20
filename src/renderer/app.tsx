@@ -260,6 +260,13 @@ export class App extends React.Component<AppProps> {
       this.cachePlaylistIcons(data);
     });
 
+    window.Shared.back.register(BackOut.UPDATE_PREFERENCES_RESPONSE, (event, data) => {
+      window.Shared.preferences.data = data;
+      if (window.Shared.preferences.onUpdate) {
+        window.Shared.preferences.onUpdate();
+      }
+    });
+
     window.Shared.back.register(BackOut.TAG_CATEGORIES_CHANGE, (event, data) => {
       this.props.setTagCategories(data);
     });

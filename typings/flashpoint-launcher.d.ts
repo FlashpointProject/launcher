@@ -38,7 +38,7 @@ declare module 'flashpoint-launcher' {
     function overwritePreferenceData(
         data: DeepPartial<AppPreferencesData>,
         onError?: (error: string) => void,
-    ): AppPreferencesData;
+    ): Promise<AppPreferencesData>;
 
     /** Unload own extension */
     function unload(): Promise<void>;
