@@ -195,6 +195,7 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
+        proxy: state.config.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state)
@@ -228,6 +229,7 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
+        proxy: state.config.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -866,6 +868,7 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
+        proxy: state.config.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -890,6 +893,7 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
+        proxy: state.config.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -1214,11 +1218,13 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
         return {
           ...app,
           callback: async (game: Game) => {
-            log.debug('Launcher', 'PROCESSING CALLBACK');
             if (app.command) {
               return runCommand(state, app.command, [game]);
             } else if (app.path) {
-              return await parseAppVar(c.extId, app.path, game.launchCommand, state);
+              log.debug('Test', app.arguments.join(' '));
+              const parsedArgs = await Promise.all(app.arguments.map(a => parseAppVar(c.extId, a, game.launchCommand, state)));
+              const parsedPath = await parseAppVar(c.extId, app.path, game.launchCommand, state);
+              return [parsedPath, ...parsedArgs];
             } else if (app.url) {
               const formattedUrl = await parseAppVar(c.extId, app.url, game.launchCommand, state);
               const opts: BrowserApplicationOpts = {

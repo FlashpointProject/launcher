@@ -21,6 +21,7 @@ export type Application = {
   provides: string[];
   name: string;
   command?: string;
+  arguments: string[];
   path?: string;
   url?: string;
 }

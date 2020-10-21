@@ -15,6 +15,7 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
       case 'launchCommand': return launchCommand;
       case 'cwd': return fixSlashes(process.cwd());
       case 'fpPath': return state.config ? fixSlashes(state.config.flashpointPath) : '';
+      case 'proxy': return state.config.browserModeProxy || '';
     }
   });
 }

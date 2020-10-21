@@ -179,11 +179,13 @@ function parseButtonContext(value: any): ButtonContext {
 function parseApplication(parser: IObjectParserProp<Application>): Application {
   const application: Application = {
     provides: [],
+    arguments: [],
     name: '',
   };
   parser.prop('provides').arrayRaw((item) => application.provides.push(str(item)));
   parser.prop('name',    v => application.name    = str(v));
   parser.prop('command', v => application.command = str(v), true);
+  parser.prop('arguments', true).arrayRaw(v => application.arguments.push(str(v)));
   parser.prop('path',    v => application.path    = str(v), true);
   parser.prop('url',     v => application.url    = str(v), true);
   const numDefined = num(!!application.command) + num(!!application.path) + num(!!application.url);
