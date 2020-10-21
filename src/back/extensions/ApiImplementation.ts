@@ -77,7 +77,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const saveConfig = async (data: any): Promise<void> => {
     if (extPath) {
       const configPath = path.join(extPath, 'config.json');
-      const text = JSON.stringify(data);
+      const text = JSON.stringify(data, null, 2);
       await fs.promises.writeFile(configPath, text, { encoding: 'utf-8' });
     } else {
       throw new Error('Cannot save a config for a fake extension!');

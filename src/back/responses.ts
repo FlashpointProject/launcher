@@ -1221,7 +1221,6 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
             if (app.command) {
               return runCommand(state, app.command, [game]);
             } else if (app.path) {
-              log.debug('Test', app.arguments.join(' '));
               const parsedArgs = await Promise.all(app.arguments.map(a => parseAppVar(c.extId, a, game.launchCommand, state)));
               const parsedPath = await parseAppVar(c.extId, app.path, game.launchCommand, state);
               return [parsedPath, ...parsedArgs];
