@@ -2,6 +2,10 @@
 
 ## New
 
+- Extensions can now be written against the Flashpoint Launcher API, see /docs for detailed information. (JavaScript / TypeScript)
+- Daemons can now be run as specified in services.json. See /docs/services.json for detailed information.
+- Logo Sets can be applied to replace the Platform icons with custom ones.
+- Themes can specify a Logo Set to apply automatically when chosen itself. (if the Logo Set is also available)
 - Playlists can now be flagged as extreme. *(Extreme playlists are hidden while the "Extreme Games" config is disabled)*
 
 # Release 9.0.4
