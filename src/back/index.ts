@@ -7,7 +7,7 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
 import { AddExtremeToPlaylist1599706152407 } from '@database/migration/1599706152407-AddExtremeToPlaylist';
-import { BackInit, BackInitArgs, BackOut, BackIn } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
@@ -36,6 +36,7 @@ import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import { GameManager } from './game/GameManager';
+import { onWillImportCuration } from './importGame';
 import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
@@ -128,6 +129,7 @@ const state: BackState = {
       onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
       onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+      onWillImportCuration: onWillImportCuration,
     },
     services: {
       onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),

@@ -205,6 +205,8 @@ declare module 'flashpoint-launcher' {
         const onDidUpdatePlaylist: Event<{ oldPlaylist: Playlist; newPlaylist: Playlist }>;
         const onDidUpdatePlaylistGame: Event<{ oldGame: PlaylistGame; newGame: PlaylistGame }>;
         const onDidRemovePlaylistGame: Event<PlaylistGame>;
+
+        const onWillImportGame: Event<CurationImportState>;
     }
 
     /** Collection of Tag related API functions */
@@ -820,6 +822,15 @@ declare module 'flashpoint-launcher' {
         /** Arguments to pass to the process */
         arguments: string[];
     };
+
+    type CurationImportState = {
+        /** Game being imported */
+        game: Game;
+        /** Files / Folders being copied, and to where */
+        contentToMove: string[][];
+        /** Path of the curation */
+        curationPath: string;
+    }
 
     type StatusState = {
         devConsole: string;

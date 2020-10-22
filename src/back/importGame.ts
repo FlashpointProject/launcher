@@ -33,6 +33,17 @@ type ImportCurationOpts = {
   tagCategories: TagCategory[];
 }
 
+export type CurationImportState = {
+  /** Game being imported */
+  game: Game;
+  /** Files being copied, and to where */
+  contentToMove: string[][];
+  /** Path of the curation */
+  curationPath: string;
+}
+
+export const onWillImportCuration: ApiEmitter<CurationImportState> = new ApiEmitter<CurationImportState>();
+
 /**
  * Import a curation.
  * @returns A promise that resolves when the import is complete.
@@ -93,22 +104,17 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
       throw new Error('User Cancelled Import');
     }
   }
+
+  // Add game to database
   const game = await createGameFromCurationMeta(gameId, curation.meta, curation.addApps, date);
-  // Make a copy if not deleting the curation afterwards
-  const moveFiles = !saveCuration;
-  // curationLog('Importing Curation Meta');
-  // Copy/extract content and image files
   GameManager.updateGame(game).then(() => logMessage('Meta Added', curation));
 
-  // Copy Thumbnail
-  // curationLog('Importing Curation Thumbnail');
-  await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath))
-  .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
-
-  // Copy Screenshot
-  // curationLog('Importing Curation Screenshot');
-  await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath))
-  .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
+  // Store curation state for extension use later
+  const curationState: CurationImportState = {
+    game,
+    contentToMove,
+    curationPath: getCurationFolder(curation, fpPath)
+  };
 
   // Copy content and Extra files
   // curationLog('Importing Curation Content');
@@ -140,13 +146,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
     }
   })()
   .then(async () => {
-    // Copy each paired content folder one at a time (allows for cancellation)
-    for (const pair of contentToMove) {
-      await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
-      // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
-    }
-  })
-  .then(async () => {
+    // If configured, save a copy of the curation before importing
     curationLog('Saving Imported Content');
     try {
       if (saveCuration) {
@@ -176,6 +176,28 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         console.log('Opening curation folder after error');
         opts.openExternal(getCurationFolder(curation, fpPath));
       }
+    }
+  })
+  .then(async () => {
+    // Copy Thumbnail
+    // curationLog('Importing Curation Thumbnail');
+    await importGameImage(curation.thumbnail, game.id, LOGOS, path.join(fpPath, imagePath))
+    .then(() => { if (log) { logMessage('Thumbnail Copied', curation); } });
+
+    // Copy Screenshot
+    // curationLog('Importing Curation Screenshot');
+    await importGameImage(curation.screenshot, game.id, SCREENSHOTS, path.join(fpPath, imagePath))
+    .then(() => { if (log) { logMessage('Screenshot Copied', curation); } });
+  })
+  .then(async () => {
+    // Notify extensions and let them make changes
+    await onWillImportCuration.fire(curationState);
+  })
+  .then(async () => {
+    // Copy each paired content folder one at a time (allows for cancellation)
+    for (const pair of curationState.contentToMove) {
+      await fs.copy(pair[0], pair[1], { recursive: true, preserveTimestamps: true });
+      // await copyFolder(pair[0], pair[1], moveFiles, opts.openDialog, log);
     }
   })
   .catch((error) => {

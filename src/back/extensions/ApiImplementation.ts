@@ -182,6 +182,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onDidRemovePlaylistGame() {
       return apiEmitters.games.onDidRemovePlaylistGame.event;
     },
+    get onWillImportGame() {
+      return apiEmitters.games.onWillImportCuration.event;
+    }
   };
 
   const extTags: typeof flashpoint.tags = {
