@@ -174,12 +174,12 @@
     "stopped": "Ĉesita",
     "killing": "Haltigi",
     "start": "Komenco",
-    "startDesc": "Start the service",
-    "stop": "Stop",
-    "stopDesc": "Stop the running service",
-    "restart": "Restart",
-    "restartDesc": "Restart the service",
-    "details": "Details",
+    "startDesc": "Komencigu la servon",
+    "stop": "Haltigu",
+    "stopDesc": "Ĉesu la aktivan servon",
+    "restart": "Rekomencu",
+    "restartDesc": "Rekomencigu la servon",
+    "details": "Detaloj",
     "detailsDesc": "Open dialog with service details"
   },
   "about": {
