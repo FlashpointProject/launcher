@@ -146,7 +146,7 @@
     "checkGameFileLocationDesc": "Enlistigu ĉiujn ludojn kun lanĉaj komandoj, kiuj ne povas esti analizitaj en dosierajn vojojn (ĉi tio rilatas al la funkcio 'Malfermu Dosierlokon', ne al lanĉado de la ludo)",
     "checkMissingExecMappings": "Kontrolu Mankantajn Exec-ajn Mapigojn",
     "checkMissingExecMappingsDesc": "Enlistigu ĉiujn unikajn ekzekutivojn por win32, linux kaj darwin, al kiuj mankas exec-a mapigo",
-    "renameImagesTitleToId": "Rename Images (Title => ID)",
+    "renameImagesTitleToId": "Alinomu Bildojn (Titolo => ID)",
     "renameImagesTitleToIdDesc": "Find all game images with the games title in their filename and rename them to use its ID instead",
     "renameImagesIdToTitle": "Rename Images (ID => Title)",
     "renameImagesIdToTitleDesc": "Find all game images with the games ID in their filename and rename them to use its title instead",
