@@ -180,13 +180,13 @@
     "restart": "Rekomencu",
     "restartDesc": "Rekomencigu la servon",
     "details": "Detaloj",
-    "detailsDesc": "Open dialog with service details"
+    "detailsDesc": "Malfermu dialogon kun servaj detaloj"
   },
   "about": {
-    "aboutHeader": "About",
-    "flashpoint": "BlueMaxima's Flashpoint",
-    "flashpointDesc": "The preservation project this launcher was built for, that aims to be an archive, museum and playable collection of web-based Internet games.",
-    "website": "Website",
+    "aboutHeader": "Pri",
+    "flashpoint": "Flashpoint de BlueMaxima",
+    "flashpointDesc": "La konservada projekto, por kiu ĉi tiu lanĉilo estis konstruita, celas esti arkivo, muzeo kaj ludebla kolekto de interretaj ludoj.",
+    "website": "Retejo",
     "flashpointLauncher": "Flashpoint Launcher",
     "flashpointLauncherDesc": "An open-source desktop application used to browse, manage and play games from the Flashpoint project.",
     "version": "Version",
