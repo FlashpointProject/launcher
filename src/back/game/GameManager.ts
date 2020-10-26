@@ -178,7 +178,7 @@ export namespace GameManager {
       // @TODO Make it infer the type of T from the value of "shallow", and then use that to make "games" get the correct type, somehow?
       // @PERF When multiple pages are requested as individual ranges, select all of them with a single query then split them up
       const games = (shallow)
-        ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher').getRawMany()) as ViewGame[]
+        ? (await query.select('game.id, game.title, game.platform, game.developer, game.publisher, game.extreme').getRawMany()) as ViewGame[]
         : await query.getMany();
       rangesOut.push({
         start: range.start,

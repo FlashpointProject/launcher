@@ -246,6 +246,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   gamesTotal={this.props.gamesTotal}
                   selectedGameId={selectedGameId}
                   draggedGameId={draggedGameId}
+                  showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}

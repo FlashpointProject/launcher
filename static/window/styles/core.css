@@ -1615,6 +1615,9 @@ body {
   background-repeat: no-repeat;
   background-position: center;
 }
+.game-grid-item__thumb__icons__icon:nth-child(2) {
+  margin-right: 0.15rem;
+}
 /* GameGrid Item Title */
 .game-grid-item__title {
   padding: calc(var(--width) * 0.001rem);

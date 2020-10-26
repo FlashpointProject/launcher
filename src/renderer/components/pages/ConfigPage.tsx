@@ -339,6 +339,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   renderLogoSetMemo = memoizeOne((platforms: string[], logoVersion: number) => {
     const allRows: JSX.Element[] = [];
+    platforms.push('Extreme'); // Let the extreme icon be added
     // Render 16 logos per row, vertically stacked
     for (let i = 0; i < platforms.length; i = i + 16) {
       const slice = platforms.slice(i, i+16);

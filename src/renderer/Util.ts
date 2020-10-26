@@ -104,6 +104,10 @@ export function getPlatformIconURL(platform: string, version: number): string {
   return `${getFileServerURL()}/logos/${platform}.png?v=${version}`;
 }
 
+export function getExtremeIconURL(version: number): string {
+  return `${getFileServerURL()}/logos/Extreme.png?v=${version}`;
+}
+
 export function getExtIconURL(id: string): string {
   return `${getFileServerURL()}/exticons/${id}`;
 }

@@ -414,6 +414,7 @@ export type ViewGame = {
   tags: Tag[];
   developer: string;
   publisher: string;
+  extreme: boolean;
 }
 
 export type BrowseChangeData = {

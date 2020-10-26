@@ -401,7 +401,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     .then(async (files) => {
       for (const file of files) {
         if (file.isDirectory()) {
-          await newThemeWatcher(`SYSTEM.${file.name}`, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
+          await newThemeWatcher(`${file.name}`, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
         }
       }
     });
@@ -432,7 +432,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       for (const file of files) {
         if (file.isDirectory()) {
           const logoSet: ILogoSet = {
-            id: `SYSTEM.${file.name.replace(' ', '-')}`,
+            id: `${file.name.replace(' ', '-')}`,
             name: `${file.name}`,
             path: file.name
           };
