@@ -1607,6 +1607,13 @@ body {
   position: absolute;
   bottom: 0;
 }
+.game-grid-item__thumb__icons--upper {
+  display: flex;
+  width: 100%;
+  padding: calc(0.001rem * var(--width));
+  position: absolute;
+  top: 0;
+}
 .game-grid-item__thumb__icons__icon {
   width: calc(0.144px * var(--width));
   height: calc(0.144px * var(--width));

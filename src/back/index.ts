@@ -47,12 +47,8 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
+
+const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -662,7 +658,25 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
           : path.join(state.config.flashpointPath, state.config.logoFolderPath);
         const filePath = path.join(logoFolder, relativePath);
         if (filePath.startsWith(logoFolder)) {
-          serveFile(req, res, filePath);
+          fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) {
+              // File doesn't exist, serve default image
+              const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
+              const replacementFilePath = path.join(basePath, 'window/images/Logos', relativePath);
+              if (replacementFilePath.startsWith(basePath)) {
+                fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
+                  if (err) {
+                    log.debug('Launcher', `SERVING: ${path.join(basePath, DEFAULT_LOGO_PATH)}`);
+                    serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
+                  } else {
+                    serveFile(req, res, replacementFilePath);
+                  }
+                });
+              }
+            } else {
+              serveFile(req, res, filePath);
+            }
+          });
         } else {
           log.warn('Launcher', `Illegal file request: "${filePath}"`);
         }

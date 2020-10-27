@@ -51,16 +51,18 @@ export function GameGridItem(props: GameGridItemProps) {
           <div
             className='game-grid-item__thumb__image'
             style={{ backgroundImage: `url('${thumbnail}')` }}>
+            {(extreme) ? (
+              <div className='game-grid-item__thumb__icons--upper'>
+                <div
+                  className='game-grid-item__thumb__icons__icon'
+                  style={{ backgroundImage: `url('${extremeIconPath}')` }} />
+              </div>
+            ) : undefined }
             <div className='game-grid-item__thumb__icons'>
               {(platformIcon) ? (
                 <div
                   className='game-grid-item__thumb__icons__icon'
                   style={{ backgroundImage: `url('${platformIcon}')` }} />
-              ) : undefined }
-              {(extreme) ? (
-                <div
-                  className='game-grid-item__thumb__icons__icon'
-                  style={{ backgroundImage: `url('${extremeIconPath}')` }} />
               ) : undefined }
             </div>
           </div>

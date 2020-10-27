@@ -339,10 +339,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   renderLogoSetMemo = memoizeOne((platforms: string[], logoVersion: number) => {
     const allRows: JSX.Element[] = [];
-    platforms.push('Extreme'); // Let the extreme icon be added
+    const toRender = [...platforms, 'Extreme'];
     // Render 16 logos per row, vertically stacked
-    for (let i = 0; i < platforms.length; i = i + 16) {
-      const slice = platforms.slice(i, i+16);
+    for (let i = 0; i < toRender.length; i = i + 16) {
+      const slice = toRender.slice(i, i+16);
       allRows.push(
         <div
           className='config-page__logo-row'
@@ -351,6 +351,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <div
               key={index}
               className='config-page__logo-row__logo'
+              title={platform}
               style={{ backgroundImage: `url('${getPlatformIconURL(platform, logoVersion)}')` }} />
           ) }
         </div>
