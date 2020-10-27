@@ -104,7 +104,7 @@ export async function newThemeWatcher(id: string, basePath: string, themePath: s
   });
   watcher.on('error', (err) => log.error('Launcher', err.message));
 
-  log.debug('Launcher', `Theme "${theme.id}" registered by "${owner || 'SYSTEM'}"`);
+  log.debug('Launcher', `[${owner || 'SYSTEM'}] Registered Theme "${theme.id}"`);
   registry.themes.set(theme.id, theme);
   watcher.watch(themePath, { recursionDepth: -1 });
 }

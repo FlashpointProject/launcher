@@ -413,7 +413,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         try {
           await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
         } catch (error) {
-          log.error('Extensions', `Error loading theme from "${c.extId}"\n${error}`);
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading theme "${theme.id}"\n${error}`);
         }
       }
     }
@@ -445,9 +445,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
               fullPath: realPath,
               files: files
             });
-            log.debug('Extensions', `Logo set "${logoSet.id}" registered by "SYSTEM"`);
+            log.debug('Extensions', `[SYSTEM] Registered Logo Set "${logoSet.id}"`);
           } catch (error) {
-            log.error('Extensions', `Error loading logo set from "SYSTEM"\n${error}`);
+            log.error('Extensions', `[SYSTEM] Error loading logo set "${logoSet.id}"\n${error}`);
           }
         }
       }
@@ -473,9 +473,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
             fullPath: realPath,
             files: files
           });
-          log.debug('Extensions', `Logo set "${logoSet.id}" registered by "${ext.manifest.displayName || ext.manifest.name}"`);
+          log.debug('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Registered Logo Set "${logoSet.id}"`);
         } catch (error) {
-          log.error('Extensions', `Error loading logo set from "${c.extId}"\n${error}`);
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading logo set "${logoSet.id}"\n${error}`);
         }
       }
     }

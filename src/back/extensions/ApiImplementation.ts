@@ -110,7 +110,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       }
       // Register command
       registry.commands.set(command, c);
-      log.debug('Extensions', `Command "${command}" registered by "${extManifest.displayName || extManifest.name}"`);
+      log.debug('Extensions', `[${extManifest.displayName || extManifest.name}] Registered Command "${command}"`);
       return c;
     }
   };

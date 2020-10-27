@@ -37,12 +37,12 @@ export async function scanExtensions(configData: AppConfigData): Promise<IExtens
           const ext = await parseExtension(manifestPath, ExtensionType.User);
           if (result.get(ext.id) !== undefined) {
             // An Extension with the same id has been registered earlier, latest read survives
-            log.warn('Extensions', `Overriding Extension ${ext.id}`);
+            log.warn('Extensions', `Overriding Extension ${ext.id} with extension at "${path.join(userExtPath, filename)}"`);
           }
           result.set(ext.id, ext);
         }
       })
-      .catch(err => log.error('Extensions', `Error loading User extension "${filename}"\n${err}`));
+      .catch(err => log.error('Extensions', `Error loading User extension at "${filename}"\n${err}`));
     }));
   });
 
