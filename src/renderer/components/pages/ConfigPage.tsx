@@ -227,7 +227,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 items={serverOptions} />
               {/* Metadata Server Host */}
               <ConfigBoxInput
-                title={strings.metadataServerHost}
+                title={`(INDEV) ${strings.metadataServerHost}`}
                 description={strings.metadataServerHostDesc}
                 contentClassName='setting__row__content--filepath-path'
                 editable={true}
