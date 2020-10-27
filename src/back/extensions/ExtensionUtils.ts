@@ -21,7 +21,7 @@ export function getExtensionEntry(ext: IExtension): string {
     const relative = path.relative(ext.extensionPath, filePath);
     if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
       // Path is inside extension path
-      return filePath;
+      return path.resolve(filePath);
     } else {
       // Don't allow imports outside extension path
       throw new Error('Extension is trying to import files outside its path!');

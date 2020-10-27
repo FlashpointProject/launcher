@@ -76,7 +76,7 @@ async function parseExtension(extFilePath: string, type: ExtensionType): Promise
     id: getExtensionID(manifest.author, manifest.name),
     type: type,
     manifest: manifest,
-    extensionPath: path.dirname(extFilePath)
+    extensionPath: path.resolve(path.dirname(extFilePath))
   };
   return ext;
 }
