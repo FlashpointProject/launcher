@@ -319,13 +319,13 @@ declare module 'flashpoint-launcher' {
          */
         function runService(name: string, info: ProcessInfo, basePath?: string): ManagedChildProcess;
         /**
-         * Runs a managed process given info, will die when disposed.
+         * Creates a managed process given info, will die when disposed. (Does not start it)
          * @param name Name of the process
          * @param info Process info to run.
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process.
          */
-        function runProcess(name: string, info: ProcessInfo, basePath?: string): DisposableChildProcess;
+        function createProcess(name: string, info: ProcessInfo, basePath?: string): DisposableChildProcess;
         /**
          * Kills and removes a service process started by runService
          * @param process Service process to remove
@@ -853,6 +853,15 @@ declare module 'flashpoint-launcher' {
         oldState: ProcessState;
         newState: ProcessState;
     };
+
+    interface ManagedChildProcess {
+        /** Fires whenever the status of a process changes. */
+        on(event: 'change', listener: (newState: ProcessState) => void): this;
+        emit(event: 'change', newState: ProcessState): boolean;
+        /** Fires whenever the process exits */
+        on(event: 'exit', listener: (code: number | null, signal: string | null) => void): this;
+        emit(event: 'exit', code: number | null, signal: string | null): boolean;
+    }
 
     class ManagedChildProcess {
         /** ID of the process */

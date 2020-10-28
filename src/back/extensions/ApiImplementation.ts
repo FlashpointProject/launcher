@@ -236,7 +236,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
         kill: true
       });
     },
-    runProcess: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
+    createProcess: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
       const cwd = path.join(basePath || extPath || state.config.flashpointPath, info.path);
       const proc = new DisposableChildProcess(id, name, cwd, {}, {...info, kill: true});

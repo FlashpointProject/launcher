@@ -20,8 +20,11 @@ export interface ManagedChildProcess {
   on(event: 'output', handler: (output: ILogPreEntry) => void): this;
   emit(event: 'output', output: ILogPreEntry): boolean;
   /** Fires whenever the status of a process changes. */
-  on(event: 'change', listener: () => void): this;
-  emit(event: 'change'): boolean;
+  on(event: 'change', listener: (newState: ProcessState) => void): this;
+  emit(event: 'change', newState: ProcessState): boolean;
+  /** Fires whenever the process exits */
+  on(event: 'exit', listener: (code: number | null, signal: string | null) => void): this;
+  emit(event: 'exit', code: number | null, signal: string | null): boolean;
 }
 
 export type ProcessOpts = {
@@ -133,6 +136,7 @@ export class ManagedChildProcess extends EventEmitter {
         else      { this.logContent(`${this.name} exited with signal ${signal}`); }
         const wasRunning = (this.state === ProcessState.RUNNING);
         this.process = undefined;
+        this.emit('exit', code, signal);
         this.setState(ProcessState.STOPPED);
         if (this.autoRestart && wasRunning && code) {
           if (this.autoRestartCount < MAX_RESTARTS) {
@@ -188,7 +192,7 @@ export class ManagedChildProcess extends EventEmitter {
     if (this.state !== state) {
       const oldState = this.state;
       this.state = state;
-      this.emit('change');
+      this.emit('change', state);
       onServiceChange.fire({ process: this, oldState, newState: state });
     }
   }
