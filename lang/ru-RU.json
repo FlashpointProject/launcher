@@ -49,7 +49,7 @@
     "extDevScripts": "Скрипт(ы) разработчика",
     "extThemes": "Тема(ы)",
     "extLogoSets": "Набор логотипа(ов)",
-    "extApplications": "Application(s)",
+    "extApplications": "Приложение(я)",
     "saveAndRestart": "Сохранить и перезапустить"
   },
   "home": {
@@ -371,7 +371,7 @@
     "authorPlaceholder": "Автор...",
     "id": "ID",
     "by": "от",
-    "extreme": "extreme"
+    "extreme": "экстрим"
   },
   "misc": {
     "noBlankFound": "{0} не найден",
