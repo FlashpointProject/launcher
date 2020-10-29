@@ -34,6 +34,8 @@ type OwnProps = {
   currentLibrary: string;
   /** Currently selected game entry (if any) */
   currentPlaylistEntry?: PlaylistGame;
+  /** Called when the play button is pressed */
+  onGameLaunch: (gameId: string) => void;
   /** Called when the selected game is deleted by this */
   onDeleteSelectedGame: () => void;
   /** Called when the selected game is removed from the selected by this */
@@ -251,6 +253,14 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
               </div>
             ) }
           </div>
+          {/* -- Play Button -- */}
+          { isPlaceholder ? undefined : (
+            <div
+              className='browse-right-sidebar__play-button'
+              onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)}>
+              {strings.play}
+            </div>
+          )}
           {/* -- Most Fields -- */}
           { isPlaceholder ? undefined : (
             <>

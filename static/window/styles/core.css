@@ -1237,6 +1237,15 @@ body {
   flex-direction: column;
   flex: 1 0 auto;
 }
+/* Browse-Right-Sidebar Play Button */
+.browse-right-sidebar__play-button {
+  width: 100%;
+  font-size: 2.5em;
+  text-align: center;
+  margin: auto;
+  margin-bottom: 0.5rem;
+  padding: 0.3rem 0;
+}
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application {
   padding: 0.5rem;

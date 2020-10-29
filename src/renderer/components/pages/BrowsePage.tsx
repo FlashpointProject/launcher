@@ -270,6 +270,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
             currentGame={this.state.currentGame}
             currentPlaylistEntry={this.state.currentPlaylistEntry}
             currentLibrary={this.props.gameLibrary}
+            onGameLaunch={this.onGameLaunch}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
             onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
