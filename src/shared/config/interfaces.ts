@@ -1,5 +1,3 @@
-import { ExtConfiguration, ExtConfigurationProp } from '@shared/extensions/interfaces';
-
 /** Data contained in the Config file */
 export type AppConfigData = {
   /** Path to the FlashPoint root folder (relative or absolute) */
