@@ -2,8 +2,8 @@
   "name": "الانجليزية",
   "config": {
     "configHeader": "الإعدادات",
-    "configDesc": "(You must press 'Save & Restart' for some changes to take effect)",
-    "preferencesHeader": "Preferences",
+    "configDesc": "(Морате притиснути „Сачувај и поново покрени“ да би неке промене ступиле на снагу)",
+    "preferencesHeader": "Поставке",
     "extremeGames": "Extreme Games",
     "extremeGamesDesc": "Show games with sexual, violent or other content unsuitable for children.",
     "enableEditing": "Enable Editing",
