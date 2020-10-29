@@ -58,13 +58,13 @@ declare module 'flashpoint-launcher' {
     function unzipFile(filePath: string, outDir: string, opts: ZipExtractOptions): Promise<void>;
 
     /**
-     * Loads the extensions config file (<extPath>/config.json)
+     * Gets an extension configuration value given its key
      */
-    function loadConfig(): Promise<any>;
+    function getExtConfigValue(key: string): any;
     /**
-     * Saves data to the extensions config file (<extPath>/config.json)
+     * Gets an extension configuration value given its key and a new value
      */
-    function saveConfig(data: any): Promise<void>;
+    function setExtConfigValue(key: string, value: any): Promise<void>;
 
     /**
      * Log functions to properly pass messages to the Logs Page.

@@ -3,7 +3,7 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { SocketClient } from '@shared/back/SocketClient';
 import { ExtensionContribution, IExtensionDescription, LogoSet } from '@shared/extensions/interfaces';
 import { OpenDialogOptions } from 'electron';
-import { AppConfigData } from './config/interfaces';
+import { AppConfigData, AppExtConfigData } from './config/interfaces';
 import { LangContainer, LangFile } from './lang';
 import { ILogEntry } from './Log/interface';
 import { AppPreferencesData } from './preferences/interfaces';
@@ -108,6 +108,8 @@ export interface IMainWindowExternal {
   initialDevScripts: ExtensionContribution<'devScripts'>[];
   initialContextButtons: ExtensionContribution<'contextButtons'>[];
   initialLogoSets: LogoSet[];
+  initialExtConfigs: ExtensionContribution<'configuration'>[];
+  initialExtConfig: AppExtConfigData;
 
   /**
    * Wait for the preload to initialize.

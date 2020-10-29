@@ -135,6 +135,8 @@ function createInitialMainState(): MainState {
     devScripts: window.Shared.initialDevScripts,
     contextButtons: window.Shared.initialContextButtons,
     logoSets: window.Shared.initialLogoSets,
+    extConfigs: window.Shared.initialExtConfigs,
+    extConfig: window.Shared.initialExtConfig,
     logoVersion: 0
   };
 }

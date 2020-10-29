@@ -267,6 +267,10 @@ export class App extends React.Component<AppProps> {
       }
     });
 
+    window.Shared.back.register(BackOut.UPDATE_EXT_CONFIG_DATA, (event, data) => {
+      this.props.setMainState({ extConfig: data });
+    });
+
     window.Shared.back.register(BackOut.TAG_CATEGORIES_CHANGE, (event, data) => {
       this.props.setTagCategories(data);
     });
@@ -602,6 +606,8 @@ export class App extends React.Component<AppProps> {
       devScripts: this.props.main.devScripts,
       contextButtons: this.props.main.contextButtons,
       logoSets: this.props.main.logoSets,
+      extConfigs: this.props.main.extConfigs,
+      extConfig: this.props.main.extConfig,
       logoVersion: this.props.main.logoVersion,
     };
 

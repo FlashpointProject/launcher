@@ -1,4 +1,4 @@
-import { AppConfigData } from '@shared/config/interfaces';
+import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { deepCopy, fixSlashes, parseVarStr } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
@@ -112,6 +112,26 @@ export function overwriteConfigData(
   // Return
   return source;
 }
+
+/**
+ * Overwrite a config data object with data from another object.
+ * @param source Object to overwrite.
+ * @param data Object with data to overwrite the source with.
+ * @returns Source argument (not a copy).
+ */
+export function overwriteExtConfigData(
+  source: AppExtConfigData,
+  data: any,
+  onError?: (error: string) => void
+): AppExtConfigData {
+  for (const key in data) {
+    source[key] = data[key];
+  }
+
+  // Return
+  return source;
+}
+
 
 function strArray(array: any): string[] {
   return Array.isArray(array)

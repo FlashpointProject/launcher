@@ -1,4 +1,5 @@
-import { PREFERENCES_FILENAME } from '@back/constants';
+import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
+import { ExtConfigFile } from '@back/ExtConfigFile';
 import { GameManager } from '@back/game/GameManager';
 import { TagManager } from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
@@ -14,7 +15,6 @@ import { ILogEntry, LogLevel } from '@shared/Log/interface';
 import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import * as flashpoint from 'flashpoint-launcher';
-import * as fs from 'fs';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
@@ -63,25 +63,13 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     });
   };
 
-  const loadConfig = async (): Promise<any> => {
-    if (extPath) {
-      const configPath = path.join(extPath, 'config.json');
-      return fs.promises.access(configPath, fs.constants.F_OK)
-      .then(() => fs.promises.readFile(configPath, { encoding: 'utf-8' }))
-      .then((text) => JSON.parse(text))
-      .catch(() => { return {}; }); // No config found, return default.
-    } else {
-      throw new Error('Cannot load a config for a fake extension!');
-    }
+  const getExtConfigValue = (key: string): any => {
+    return state.extConfig[key];
   };
-  const saveConfig = async (data: any): Promise<void> => {
-    if (extPath) {
-      const configPath = path.join(extPath, 'config.json');
-      const text = JSON.stringify(data, null, 2);
-      await fs.promises.writeFile(configPath, text, { encoding: 'utf-8' });
-    } else {
-      throw new Error('Cannot save a config for a fake extension!');
-    }
+
+  const setExtConfigValue = async (key: string, value: any): Promise<void> => {
+    state.extConfig[key] = value;
+    await ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
   };
 
   // Log Namespace
@@ -286,8 +274,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     unload: unload,
     getExtensionFileURL: getExtensionFileURL,
     unzipFile: unzipFile,
-    loadConfig: loadConfig,
-    saveConfig: saveConfig,
+    getExtConfigValue: getExtConfigValue,
+    setExtConfigValue: setExtConfigValue,
 
     // Namespaces
     log: extLog,

@@ -4,7 +4,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
@@ -115,12 +115,14 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
     devScripts: [],
     contextButtons: [],
     applications: [],
+    configuration: [],
   };
   parser.prop('logoSets',       true).array(item => contributes.logoSets.push(parseLogoSet(item)));
   parser.prop('themes',         true).array(item => contributes.themes.push(parseTheme(item)));
   parser.prop('devScripts',     true).array(item => contributes.devScripts.push(parseDevScript(item)));
   parser.prop('contextButtons', true).array(item => contributes.contextButtons.push(parseContextButton(item)));
   parser.prop('applications',   true).array(item => contributes.applications.push(parseApplication(item)));
+  parser.prop('configuration', true).array(item => contributes.configuration.push(parseConfiguration(item)));
   return contributes;
 }
 
@@ -192,4 +194,42 @@ function parseApplication(parser: IObjectParserProp<Application>): Application {
   if (numDefined !== 1) { throw new Error('Exactly one "path", "url" or "command" variable must be defined for an application, not both.'); }
   if (application.provides.length === 0) { throw new Error('Application must provide something. (Empty provides array)'); }
   return application;
+}
+
+function parseConfiguration(parser: IObjectParserProp<ExtConfiguration>): ExtConfiguration {
+  const configuration: ExtConfiguration = {
+    title: '',
+    properties: {}
+  };
+
+  parser.prop('title', v => configuration.title = str(v));
+  parser.prop('properties').map((item, key) => configuration.properties[key] = parseConfigurationProperty(item));
+
+  return configuration;
+}
+
+function parseConfigurationProperty(parser: IObjectParserProp<ExtConfigurationProp>): ExtConfigurationProp {
+  const prop: ExtConfigurationProp = {
+    title: '',
+    type: 'object',
+    default: {},
+    enum: [],
+    description: ''
+  };
+
+  parser.prop('title',       v => prop.title       = str(v));
+  parser.prop('type',        v => prop.type        = toPropType(v));
+  parser.prop('description', v => prop.description = str(v));
+  parser.prop('default',     v => prop.default     = v);
+  parser.prop('enum', true).arrayRaw(item => prop.enum.push(item));
+
+  return prop;
+}
+
+function toPropType(v: any): ExtConfigurationProp['type'] {
+  if (v === 'object' || v === 'string' || v === 'boolean') {
+    return v;
+  } else {
+    throw new Error('Configuration prop type is not valid. (string, object, number or boolean)');
+  }
 }

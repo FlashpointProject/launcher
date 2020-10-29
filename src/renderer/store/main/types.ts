@@ -3,6 +3,7 @@ import { CreditsData } from '@renderer/credits/types';
 import { ViewGameSet } from '@renderer/interfaces';
 import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
+import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -104,6 +105,10 @@ export type MainState = {
   devScripts: ExtensionContribution<'devScripts'>[];
   /** Context buttons added by extensions */
   contextButtons: ExtensionContribution<'contextButtons'>[];
+  /** Extension config options */
+  extConfigs: ExtensionContribution<'configuration'>[];
+  /** Current extension config data */
+  extConfig: AppExtConfigData;
 }
 
 export type MainAction = {

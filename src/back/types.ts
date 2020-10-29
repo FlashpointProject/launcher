@@ -2,7 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { TagCategory } from '@database/entity/TagCategory';
 import { BackInit, ViewGame } from '@shared/back/types';
-import { AppConfigData } from '@shared/config/interfaces';
+import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { ExecMapping, IBackProcessInfo, INamedBackProcessInfo } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ILogEntry } from '@shared/Log/interface';
@@ -40,6 +40,7 @@ export type BackState = {
   };
   preferences: AppPreferencesData;
   config: AppConfigData;
+  extConfig: AppExtConfigData;
   configFolder: string;
   exePath: string;
   localeCode: string;

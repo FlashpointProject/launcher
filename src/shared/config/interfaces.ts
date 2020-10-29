@@ -1,3 +1,5 @@
+import { ExtConfiguration, ExtConfigurationProp } from '@shared/extensions/interfaces';
+
 /** Data contained in the Config file */
 export type AppConfigData = {
   /** Path to the FlashPoint root folder (relative or absolute) */
@@ -56,3 +58,7 @@ export type AppConfigData = {
   /** Whether to notify that launcher updates are available */
   updatesEnabled: boolean;
 };
+
+export type AppExtConfigData = {
+  [key: string]: any;
+}

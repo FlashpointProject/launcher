@@ -25,7 +25,8 @@ import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
-import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
@@ -123,6 +124,8 @@ export function registerRequestCallbacks(state: BackState): void {
       devScripts: await state.extensionsService.getContributions('devScripts'),
       contextButtons: await state.extensionsService.getContributions('contextButtons'),
       logoSets: Array.from(state.registry.logoSets.values()),
+      extConfigs: await state.extensionsService.getContributions('configuration'),
+      extConfig: state.extConfig,
     };
 
   });
@@ -1049,6 +1052,12 @@ export function registerRequestCallbacks(state: BackState): void {
     };
     state.socketServer.send(event.client, BackOut.RUN_COMMAND, result);
     return result;
+  });
+
+  state.socketServer.register(BackIn.SET_EXT_CONFIG_VALUE, async (event, key, value) => {
+    state.extConfig[key] = value;
+    await ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
+    state.socketServer.send(event.client, BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
   });
 }
 

@@ -7,7 +7,13 @@ export async function parseAppVar(extId: string, appPath: string, launchCommand:
   const ext = await state.extensionsService.getExtension(extId);
   return parseVariableString(appPath, (name) => {
     switch (name) {
-      default: return '';
+      default: {
+        if (name.startsWith('extConf:')) {
+          const key = name.substr(8);
+          return state.extConfig[key];
+        }
+        return '';
+      }
       case 'extPath': return path.resolve(ext ? ext.extensionPath : '');
       case 'extDataURL': return `http://localhost:${state.fileServerPort}/extdata/${extId}/`;
       case 'os': return process.platform;

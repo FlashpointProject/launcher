@@ -29,8 +29,9 @@ import 'sqlite3';
 import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
-import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
+import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
+import { ExtConfigFile } from './ExtConfigFile';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
@@ -72,6 +73,7 @@ const state: BackState = {
   },
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
+  extConfig: createErrorProxy('extConfig'),
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
@@ -229,12 +231,14 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
-  const [pref, conf] = await (Promise.all([
+  const [pref, conf, extConf] = await (Promise.all([
     PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
-    ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME))
+    ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME)),
+    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME)),
   ]));
   state.preferences = pref;
   state.config = conf;
+  state.extConfig = extConf;
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
@@ -277,11 +281,35 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   await installNodeInterceptor(state.moduleInterceptor);
   // Load each extension
   await state.extensionsService.getExtensions()
-  .then((exts) => {
+  .then(async (exts) => {
+    // Set any ext config defaults
+    for (const contrib of (await state.extensionsService.getContributions('configuration'))) {
+      for (const extConfig of contrib.value) {
+        for (const key in extConfig.properties) {
+          // Value not set, use default
+          if (!(key in state.extConfig)) {
+            state.extConfig[key] = extConfig.properties[key].default;
+          } else {
+            const prop = extConfig.properties[key];
+            // If type is different, reset it
+            if (typeof state.extConfig[key] !== prop.type) {
+              log.debug('Extensions', `Invalid value type for "${key}", resetting to default`);
+              state.extConfig[key] = prop.default;
+            }
+            if (prop.enum.length > 0 && !(prop.enum.includes(state.extConfig[key]))) {
+              log.debug('Extensions', `Invalid value for "${key}", not in enum, resetting to default`);
+              state.extConfig[key] = prop.default;
+            }
+          }
+        }
+      }
+    }
+    ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
     exts.forEach(ext => {
       state.extensionsService.loadExtension(ext.id);
     });
   });
+
 
   // Init services
   try {

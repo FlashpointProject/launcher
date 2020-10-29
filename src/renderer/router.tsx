@@ -2,6 +2,7 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
+import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, ILogoSet, IExtensionDescription } from '@shared/extensions/interfaces';
 import { GamePropSuggestions } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
@@ -67,6 +68,8 @@ export type AppRouterProps = {
   devScripts: ExtensionContribution<'devScripts'>[],
   contextButtons: ExtensionContribution<'contextButtons'>[],
   logoSets: ILogoSet[],
+  extConfigs: ExtensionContribution<'configuration'>[],
+  extConfig: AppExtConfigData,
   logoVersion: number,
 };
 
@@ -117,6 +120,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,
       extensions: this.props.extensions,
+      extConfigs: this.props.extConfigs,
+      extConfig: this.props.extConfig,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,

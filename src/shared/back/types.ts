@@ -10,7 +10,7 @@ import { ChangedMeta, MetaEditFlags } from '@shared/MetaEdit';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { SocketTemplate } from '@shared/socket/types';
 import { MessageBoxOptions, OpenDialogOptions, OpenExternalOptions, SaveDialogOptions } from 'electron';
-import { AppConfigData } from '../config/interfaces';
+import { AppConfigData, AppExtConfigData } from '../config/interfaces';
 import { EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '../curate/types';
 import { ExecMapping, GamePropSuggestions, IService, ProcessAction } from '../interfaces';
 import { LangContainer, LangFile } from '../lang';
@@ -104,6 +104,7 @@ export enum BackIn {
 
   // Misc
   UPLOAD_LOG,
+  SET_EXT_CONFIG_VALUE,
 }
 
 export enum BackOut {
@@ -117,6 +118,7 @@ export enum BackOut {
   LOCALE_UPDATE,
   GET_MAIN_INIT_DATA,
   UPDATE_PREFERENCES_RESPONSE,
+  UPDATE_EXT_CONFIG_DATA,
   IMAGE_CHANGE,
   LOG_ENTRY_ADDED,
   SERVICE_CHANGE,
@@ -228,6 +230,7 @@ export type BackInTemplate = SocketTemplate<BackIn, {
 
   // Misc
   [BackIn.UPLOAD_LOG]: () => string | undefined;
+  [BackIn.SET_EXT_CONFIG_VALUE]: (key: string, value: any) => void;
 }>
 
 export type BackOutTemplate = SocketTemplate<BackOut, {
@@ -241,6 +244,7 @@ export type BackOutTemplate = SocketTemplate<BackOut, {
   [BackOut.LOCALE_UPDATE]: (data: string) => void;
   [BackOut.GET_MAIN_INIT_DATA]: () => void;
   [BackOut.UPDATE_PREFERENCES_RESPONSE]: (data: AppPreferencesData) => void;
+  [BackOut.UPDATE_EXT_CONFIG_DATA]: (data: AppExtConfigData) => void;
   [BackOut.IMAGE_CHANGE]: (folder: string, id: string) => void;
   [BackOut.LOG_ENTRY_ADDED]: (entry: ILogEntry, index: number) => void;
   [BackOut.SERVICE_CHANGE]: (data: IService) => void;
@@ -323,6 +327,8 @@ export type GetRendererInitDataResponse = {
   devScripts: ExtensionContribution<'devScripts'>[];
   contextButtons: ExtensionContribution<'contextButtons'>[];
   logoSets: LogoSet[];
+  extConfigs: ExtensionContribution<'configuration'>[];
+  extConfig: AppExtConfigData;
 }
 
 export type GetSuggestionsResponseData = {
