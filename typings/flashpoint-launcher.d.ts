@@ -317,7 +317,7 @@ declare module 'flashpoint-launcher' {
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process. Can be passed to removeService.
          */
-        function runService(name: string, info: ProcessInfo, basePath?: string): ManagedChildProcess;
+        function runService(name: string, info: ProcessInfo, opts: ProcessOpts, basePath?: string): ManagedChildProcess;
         /**
          * Creates a managed process given info, will die when disposed. (Does not start it)
          * @param name Name of the process
@@ -325,7 +325,7 @@ declare module 'flashpoint-launcher' {
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process.
          */
-        function createProcess(name: string, info: ProcessInfo, basePath?: string): DisposableChildProcess;
+        function createProcess(name: string, info: ProcessInfo, opts: ProcessOpts, basePath?: string): DisposableChildProcess;
         /**
          * Kills and removes a service process started by runService
          * @param process Service process to remove
