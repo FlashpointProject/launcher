@@ -2106,6 +2106,7 @@ body {
   margin-bottom: 0.15rem;
   flex: auto;
   padding: 0 1rem;
+  align-items: center;
 }
 .setting__row__content--override-row__seperator{
   margin-left: 0.3rem;

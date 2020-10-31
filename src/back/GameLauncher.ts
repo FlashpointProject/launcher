@@ -85,7 +85,7 @@ export namespace GameLauncher {
       }
       default: {
         let appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
-        const appPathOverride = opts.appPathOverrides.find(a => a.path === appPath);
+        const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
         if (appPathOverride) { appPath = appPathOverride.override; }
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
@@ -145,7 +145,7 @@ export namespace GameLauncher {
     // Launch game
     let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
     let appArgs: string[] = [];
-    const appPathOverride = opts.appPathOverrides.find(a => a.path === appPath);
+    const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
     const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(opts.game.applicationPath));
     // If any available provided applications, check if any work.

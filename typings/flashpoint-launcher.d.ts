@@ -805,6 +805,7 @@ declare module 'flashpoint-launcher' {
     type AppPathOverride = {
         path: string;
         override: string;
+        enabled: boolean;
     };
 
     type AppPreferencesDataMainWindow = {

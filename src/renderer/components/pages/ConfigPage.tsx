@@ -11,6 +11,7 @@ import { AppPathOverride } from 'flashpoint-launcher';
 import * as React from 'react';
 import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
+import { CheckBox } from '../CheckBox';
 import { ConfigBox } from '../ConfigBox';
 import { ConfigBoxCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
@@ -321,6 +322,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         <div
           className='setting__row__content--override-row'
           key={index}>
+          <CheckBox
+            checked={item.enabled}
+            onToggle={(checked) => this.onAppPathOverrideEnabledToggle(index, checked)}/>
           <InputField
             editable={true}
             onChange={(event) => this.onAppPathOverridePathChange(index, event.target.value)}
@@ -500,7 +504,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onNewAppPathOverride = (): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths.push({path: '', override: ''});
+    newPaths.push({path: '', override: '', enabled: true});
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 
@@ -513,6 +517,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths[index] = { ...newPaths[index], override: newOverride };
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onAppPathOverrideEnabledToggle = (index: number, checked: boolean): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths[index] = { ...newPaths[index], enabled: checked };
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 

@@ -71,6 +71,7 @@ export type AppPreferencesData = {
 export type AppPathOverride = {
   path: string;
   override: string;
+  enabled: boolean;
 }
 
 export type AppPreferencesDataMainWindow = {
