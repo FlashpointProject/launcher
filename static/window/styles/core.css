@@ -1245,6 +1245,8 @@ body {
   margin: auto;
   margin-bottom: 0.5rem;
   padding: 0.3rem 0;
+  user-select: none;
+  cursor: pointer;
 }
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application {
