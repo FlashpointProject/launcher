@@ -288,9 +288,9 @@
     "setPrimaryAlias": "Agordu Primaran Kaŝnomon",
     "mergeIntoTag": "Kunfandu en Etikedo",
     "mergeTag": "Kunfandu etikedon",
-    "makeAliasWhenMerged": "Make this an alias of the tag?",
-    "deleteTag": "Delete Tag",
-    "deleteTagCategory": "Delete Tag Category",
+    "makeAliasWhenMerged": "Ĉu igu ĉi tion kaŝnomon de la etikedo?",
+    "deleteTag": "Forigu Etikedon",
+    "deleteTagCategory": "Forigu Etikedan Kategorion",
     "locked": "Locked while processing..."
   },
   "curate": {
