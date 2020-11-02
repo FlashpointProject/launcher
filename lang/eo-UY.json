@@ -291,15 +291,15 @@
     "makeAliasWhenMerged": "Ĉu igu ĉi tion kaŝnomon de la etikedo?",
     "deleteTag": "Forigu Etikedon",
     "deleteTagCategory": "Forigu Etikedan Kategorion",
-    "locked": "Locked while processing..."
+    "locked": "Ŝlosita dum prilaborado..."
   },
   "curate": {
-    "importAll": "Import All",
-    "importAllDesc": "Import all curations that are currently loaded",
-    "deleteAll": "Delete All",
-    "deleteAllDesc": "Delete all curations that are currently loaded",
-    "saveImportedCurations": "Save Imported Curations",
-    "keepArchiveKey": "Keep Curation Archive UUID",
+    "importAll": "Importu ĉiujn",
+    "importAllDesc": "Importu ĉiujn ŝarĝitajn ŝanĝojn",
+    "deleteAll": "Forigi Ĉiujn",
+    "deleteAllDesc": "Forigu ĉiujn ŝarĝitajn ŝanĝojn",
+    "saveImportedCurations": "Konservu Importitajn Ŝanĝojn",
+    "keepArchiveKey": "Konservu UUID-Ŝangarkivon",
     "symlinkCurationContent": "Symlink Curation Content Folder (Admin prompts on Windows, Required for MAD4FP)",
     "openCurationsFolder": "Curations Folder",
     "openCurationsFolderDesc": "Open the Curations folder in explorer",
