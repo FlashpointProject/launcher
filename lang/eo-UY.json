@@ -348,14 +348,14 @@
     "nonExistingLibrary": "'Biblioteko' ne estas la nomo de ekzistanta biblioteko! (Defaŭlta estos uzata)",
     "nonContentFolders": "Nekontenaj dosierujoj trovitaj en ŝanĝdosierujo. Ĉu ili supozas esti tie?",
     "ilc_notHttp": "Uzu HTTP.",
-    "ilc_nonExistant": "Point to an existing file in your curation's 'content' folder."
+    "ilc_nonExistant": "Indiku ekzistantan dosieron en la dosierujo 'enhavo' de via ŝanĝo."
   },
   "playlist": {
-    "enterDescriptionHere": "Enter a description here...",
-    "noDescription": "No Description",
-    "save": "Save",
-    "saveDesc": "Save changes made and stop editing",
-    "discard": "Discard",
+    "enterDescriptionHere": "Enigu priskribon ĉi tie...",
+    "noDescription": "Sen Priskribo",
+    "save": "Konservu",
+    "saveDesc": "Konservu ŝanĝojn kaj ĉesu redakti",
+    "discard": "Forĵetu",
     "discardDesc": "Discard changes made and stop editing",
     "edit": "Redakti",
     "editDesc": "Redakti la ludliston",
