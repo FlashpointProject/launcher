@@ -46,6 +46,8 @@ type OwnProps = {
   search: SearchQuery;
   /** Currently selected game (if any). */
   selectedGameId?: string;
+  /** Is game running? */
+  gameRunning: boolean;
   /** Currently selected playlist (if any). */
   selectedPlaylistId?: string;
   /** Called when a game is selected. */
@@ -268,6 +270,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           onResize={this.onRightSidebarResize}>
           <ConnectedRightBrowseSidebar
             currentGame={this.state.currentGame}
+            gameRunning={this.props.gameRunning}
             currentPlaylistEntry={this.state.currentPlaylistEntry}
             currentLibrary={this.props.gameLibrary}
             onGameLaunch={this.onGameLaunch}

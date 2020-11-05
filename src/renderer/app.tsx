@@ -3,7 +3,7 @@ import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { BackIn, BackInit, BackOut } from '@shared/back/types';
 import { APP_TITLE, VIEW_PAGE_SIZE } from '@shared/constants';
-import { ProcessState, WindowIPC } from '@shared/interfaces';
+import { IService, ProcessState, WindowIPC } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -199,11 +199,12 @@ export class App extends React.Component<AppProps> {
 
     window.Shared.back.register(BackOut.SERVICE_CHANGE, (event, data) => {
       if (data.id) {
-        const service = window.Shared.services.find(item => item.id === data.id);
+        const newServices = [...this.props.main.services];
+        const service = newServices.find(item => item.id === data.id);
         if (service) {
           recursiveReplace(service, data);
         } else {
-          window.Shared.services.push(recursiveReplace({
+          newServices.push(recursiveReplace({
             id: 'invalid',
             name: 'Invalid',
             state: ProcessState.STOPPED,
@@ -217,13 +218,16 @@ export class App extends React.Component<AppProps> {
             },
           }, data));
         }
+        this.props.setMainState({ services: newServices });
       } else { throw new Error('Service update did not reference a service.'); }
     });
 
     window.Shared.back.register(BackOut.SERVICE_REMOVED, (event, id) => {
-      const index = window.Shared.services.findIndex(s => s.id === id);
+      const newServices = [...this.props.main.services];
+      const index = newServices.findIndex(s => s.id === id);
       if (index > -1) {
-        window.Shared.services.splice(index, 1);
+        newServices.splice(index, 1);
+        this.props.setMainState({ services: newServices });
       }
     });
 
@@ -590,6 +594,7 @@ export class App extends React.Component<AppProps> {
       creditsData: this.props.main.creditsData,
       creditsDoneLoading: this.props.main.creditsDoneLoading,
       selectedGameId: view && view.selectedGameId,
+      gameRunning: view ? this.checkGameRunningMemo(view.selectedGameId, this.props.main.services) : false,
       selectedPlaylistId: view && view.query.filter.playlistId,
       onSelectGame: this.onSelectGame,
       onDeletePlaylist: this.onPlaylistDelete,
@@ -845,6 +850,10 @@ export class App extends React.Component<AppProps> {
       }
     }
     return names;
+  });
+
+  private checkGameRunningMemo = memoizeOne((gameId: string | undefined, services: IService[]) => {
+    return gameId ? !!services.find(s => s.id === `game.${gameId}`) : false;
   });
 
   /**

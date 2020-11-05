@@ -52,6 +52,7 @@ export type AppRouterProps = {
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   selectedGameId?: string;
+  gameRunning: boolean;
   selectedPlaylistId?: string;
   onSelectGame: (gameId?: string) => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
@@ -100,6 +101,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onQuickSearch: this.props.onQuickSearch,
       onOpenExportMetaEdit: this.props.onOpenExportMetaEdit,
       selectedGameId: this.props.selectedGameId,
+      gameRunning: this.props.gameRunning,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
       onUpdatePlaylist: this.props.onUpdatePlaylist,

@@ -66,7 +66,7 @@ window.Shared = {
     offset: 0,
   },
 
-  services: createErrorProxy('services'),
+  initialServices: createErrorProxy('services'),
 
   isDev,
 
@@ -133,7 +133,7 @@ const onInit = (async () => {
       };
       window.Shared.fileServerPort = data.fileServerPort;
       window.Shared.log.entries = data.log;
-      window.Shared.services = data.services;
+      window.Shared.initialServices = data.services;
       window.Shared.customVersion = data.customVersion;
       window.Shared.initialLang = data.language;
       window.Shared.initialLangList = data.languages;

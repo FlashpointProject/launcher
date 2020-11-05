@@ -1238,7 +1238,8 @@ body {
   flex: 1 0 auto;
 }
 /* Browse-Right-Sidebar Play Button */
-.browse-right-sidebar__play-button {
+.browse-right-sidebar__play-button,
+.browse-right-sidebar__play-button--running {
   width: 100%;
   font-size: 2.5em;
   text-align: center;

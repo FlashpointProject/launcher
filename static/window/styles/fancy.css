@@ -572,8 +572,8 @@ body {
   color: var(--layout__browse-right-sidebar-searchable-hover);
 }
 /* Browse-Right-Sidebar Play Button */
-.browse-right-sidebar__play-button {
-  background-color: var(--layout__confirm-color);
+.browse-right-sidebar__play-button,
+.browse-right-sidebar__play-button--running {
   border-width: 2px;
   border-style: solid;
   border-color: var(--layout__primary-outline-color);
@@ -581,11 +581,23 @@ body {
   -webkit-text-stroke-width: 1px;
   -webkit-text-stroke-color: var(--layout__primary-outline-color);
 }
+.browse-right-sidebar__play-button {
+  background-color: var(--layout__confirm-color);
+}
 .browse-right-sidebar__play-button:hover {
   background-color: var(--layout__confirm-hover-color);
 }
 .browse-right-sidebar__play-button:active {
   background-color: var(--layout__confirm-active-color);
+}
+.browse-right-sidebar__play-button--running {
+  background-color: var(--layout__warning-bright-color);
+}
+.browse-right-sidebar__play-button--running:hover {
+  background-color: var(--layout__warning-medium-color);
+}
+.browse-right-sidebar__play-button--running:active {
+  background-color: var(--layout__warning-dark-color);
 }
 /* BrowseSidebar Title-Row Buttons */
 .browse-right-sidebar__title-row__buttons .icon__use {

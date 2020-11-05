@@ -6,7 +6,7 @@ import { BackIn, BackOut, BackOutTemplate, TagSuggestion } from '@shared/back/ty
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { wrapSearchTerm } from '@shared/game/GameFilter';
 import { ModelUtils } from '@shared/game/util';
-import { GamePropSuggestions, PickType } from '@shared/interfaces';
+import { GamePropSuggestions, PickType, ProcessAction } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { deepCopy } from '@shared/Util';
 import { Menu, MenuItemConstructorOptions, remote } from 'electron';
@@ -30,6 +30,8 @@ import { TagInputField } from './TagInputField';
 type OwnProps = {
   /** Currently selected game (if any) */
   currentGame?: Game;
+  /** Is the current game running? */
+  gameRunning: boolean;
   /* Current Library */
   currentLibrary: string;
   /** Currently selected game entry (if any) */
@@ -254,13 +256,25 @@ export class RightBrowseSidebar extends React.Component<RightBrowseSidebarProps,
             ) }
           </div>
           {/* -- Play Button -- */}
-          { isPlaceholder ? undefined : (
-            <div
-              className='browse-right-sidebar__play-button'
-              onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)}>
-              {strings.play}
-            </div>
-          )}
+          { isPlaceholder ? undefined :
+            this.props.gameRunning ? (
+              <div
+                className='browse-right-sidebar__play-button--running'
+                onClick={() => {
+                  if (this.props.currentGame) {
+                    window.Shared.back.send(BackIn.SERVICE_ACTION, ProcessAction.STOP, `game.${this.props.currentGame.id}`);
+                  }
+                }}>
+                {strings.stop}
+              </div>
+            ) : (
+              <div
+                className='browse-right-sidebar__play-button'
+                onClick={() => this.props.currentGame && this.props.onGameLaunch(this.props.currentGame.id)}>
+                {strings.play}
+              </div>
+            )
+          }
           {/* -- Most Fields -- */}
           { isPlaceholder ? undefined : (
             <>

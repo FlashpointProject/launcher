@@ -426,5 +426,6 @@ function createInitialState(): MainState {
     extConfigs: [],
     devScripts: [],
     contextButtons: [],
+    services: [],
   };
 }

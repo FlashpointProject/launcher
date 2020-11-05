@@ -208,6 +208,7 @@ const langTemplate = {
     'noTitle',
     'by',
     'play',
+    'stop',
     'noDeveloper',
     'alternateTitles',
     'noAlternateTitles',

@@ -5,7 +5,7 @@ import { UpgradeStage } from '@renderer/upgrade/types';
 import { BackInit, PageKeyset, ResponseGameRange, SearchGamesOpts, ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
-import { GamePropSuggestions } from '@shared/interfaces';
+import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { GameOrderBy, GameOrderReverse } from '@shared/order/interfaces';
 import { ITheme, Theme } from '@shared/ThemeFile';
@@ -109,6 +109,8 @@ export type MainState = {
   extConfigs: ExtensionContribution<'configuration'>[];
   /** Current extension config data */
   extConfig: AppExtConfigData;
+  /** Services */
+  services: IService[];
 }
 
 export type MainAction = {
