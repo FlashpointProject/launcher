@@ -4,7 +4,6 @@ import { TagCategory } from '@database/entity/TagCategory';
 import { createCurationIndexImage } from '@renderer/curate/importCuration';
 import { useDelayedThrottle } from '@renderer/hooks/useThrottle';
 import { BackIn, TagSuggestion } from '@shared/back/types';
-import { htdocsPath } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndex, EditCuration, EditCurationMeta, IndexedContent } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
@@ -1234,7 +1233,7 @@ function getPathOfHtdocsUrl(url: string): string | undefined {
   if (urlObj) {
     return path.join(
       window.Shared.config.fullFlashpointPath,
-      htdocsPath,
+      window.Shared.config.data.htdocsFolderPath,
       decodeURIComponent(path.join(urlObj.hostname, urlObj.pathname))
     );
   }

@@ -191,6 +191,7 @@ export function registerRequestCallbacks(state: BackState): void {
       GameLauncher.launchAdditionalApplication({
         addApp,
         fpPath: path.resolve(state.config.flashpointPath),
+        htdocsPath: state.config.htdocsFolderPath,
         native: addApp.parentGame && state.config.nativePlatforms.some(p => p === platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -225,6 +226,7 @@ export function registerRequestCallbacks(state: BackState): void {
       GameLauncher.launchGame({
         game,
         fpPath: path.resolve(state.config.flashpointPath),
+        htdocsPath: state.config.htdocsFolderPath,
         native: state.config.nativePlatforms.some(p => p === game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -819,6 +821,7 @@ export function registerRequestCallbacks(state: BackState): void {
         date: (data.date !== undefined) ? new Date(data.date) : undefined,
         saveCuration: data.saveCuration,
         fpPath: state.config.flashpointPath,
+        htdocsPath: state.config.htdocsFolderPath,
         imageFolderPath: state.config.imageFolderPath,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
@@ -864,6 +867,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
       await launchCuration(data.key, data.meta, data.addApps, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
+        htdocsPath: state.config.htdocsFolderPath,
         native: state.config.nativePlatforms.some(p => p === data.meta.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -889,6 +893,7 @@ export function registerRequestCallbacks(state: BackState): void {
     try {
       await launchAddAppCuration(data.curationKey, data.curation, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
+        htdocsPath: state.config.htdocsFolderPath,
         native: state.config.nativePlatforms.some(p => p === data.platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,

@@ -41,6 +41,7 @@ export type LaunchInfo = {
 
 type LaunchBaseOpts = {
   fpPath: string;
+  htdocsPath: string;
   execMappings: ExecMapping[];
   lang: LangContainer;
   isDev: boolean;
@@ -123,6 +124,7 @@ export namespace GameLauncher {
     if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
         fpPath: opts.fpPath,
+        htdocsPath: opts.htdocsPath,
         native: opts.native,
         execMappings: opts.execMappings,
         lang: opts.lang,

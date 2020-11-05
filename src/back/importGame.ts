@@ -3,7 +3,7 @@ import { Game } from '@database/entity/Game';
 import { Tag } from '@database/entity/Tag';
 import { TagCategory } from '@database/entity/TagCategory';
 import { validateSemiUUID } from '@renderer/util/uuid';
-import { htdocsPath, LOGOS, SCREENSHOTS } from '@shared/constants';
+import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { convertEditToCurationMetaFile } from '@shared/curate/metaToMeta';
 import { CurationIndexImage, EditAddAppCuration, EditAddAppCurationMeta, EditCuration, EditCurationMeta } from '@shared/curate/types';
 import { getContentFolderByKey, getCurationFolder, indexContentFolder } from '@shared/curate/util';
@@ -27,6 +27,7 @@ type ImportCurationOpts = {
   date?: Date;
   saveCuration: boolean;
   fpPath: string;
+  htdocsPath: string;
   imageFolderPath: string;
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
@@ -51,6 +52,7 @@ export const onWillImportCuration: ApiEmitter<CurationImportState> = new ApiEmit
 export async function importCuration(opts: ImportCurationOpts): Promise<void> {
   if (opts.date === undefined) { opts.date = new Date(); }
   const {
+    htdocsPath,
     curation,
     date,
     saveCuration,
@@ -212,7 +214,7 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
  */
 export async function launchCuration(key: string, meta: EditCurationMeta, addAppMetas: EditAddAppCurationMeta[], symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchGameOpts, 'game'|'addApps'>, onWillEvent:ApiEmitter<GameLaunchInfo>, onDidEvent: ApiEmitter<Game>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(key, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   curationLog(`Launching Curation ${meta.title}`);
   const game = await createGameFromCurationMeta(key, meta, [], new Date());
   GameLauncher.launchGame({
@@ -230,7 +232,7 @@ export async function launchCuration(key: string, meta: EditCurationMeta, addApp
  */
 export async function launchAddAppCuration(curationKey: string, appCuration: EditAddAppCuration, symlinkCurationContent: boolean,
   skipLink: boolean, opts: Omit<LaunchAddAppOpts, 'addApp'>, onWillEvent: ApiEmitter<AdditionalApp>, onDidEvent: ApiEmitter<AdditionalApp>) {
-  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, symlinkCurationContent); }
+  if (!skipLink || !symlinkCurationContent) { await linkContentFolder(curationKey, opts.fpPath, opts.isDev, opts.exePath, opts.htdocsPath, symlinkCurationContent); }
   const addApp = createAddAppFromCurationMeta(appCuration, createPlaceholderGame());
   await onWillEvent.fire(addApp);
   GameLauncher.launchAdditionalApplication({
@@ -315,7 +317,7 @@ async function importGameImage(image: CurationIndexImage, gameId: string, folder
 /** Symlinks (or copies if unavailble) a curations `content` folder to `htdocs\content`
  * @param curationKey Key of the (game) curation to link
  */
-async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, symlinkCurationContent: boolean) {
+async function linkContentFolder(curationKey: string, fpPath: string, isDev: boolean, exePath: string, htdocsPath: string, symlinkCurationContent: boolean) {
   const curationPath = path.join(fpPath, 'Curations', 'Working', curationKey);
   const htdocsContentPath = path.join(fpPath, htdocsPath, 'content');
   // Clear out old folder if exists

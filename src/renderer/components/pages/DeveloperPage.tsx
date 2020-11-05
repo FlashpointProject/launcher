@@ -676,7 +676,7 @@ function checkFileLocation(games: Game[]): string {
     if (game.broken) { skippedCount += 1; }
     else {
       try {
-        const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath);
+        const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath);
         if (gamePath === undefined) { pathFailed.push(game); }
       } catch (error) {
         pathError.push([ game, error ]);

@@ -371,7 +371,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           window.Shared.back.request(BackIn.GET_GAME, gameId)
           .then(game => {
             if (game) {
-              const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath);
+              const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath);
               if (gamePath) {
                 fs.stat(gamePath, error => {
                   if (!error) { remote.shell.showItemInFolder(gamePath); }

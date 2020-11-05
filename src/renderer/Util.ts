@@ -1,5 +1,4 @@
 import { Game } from '@database/entity/Game';
-import { htdocsPath } from '@shared/constants';
 import { parseSearchText } from '@shared/game/GameFilter';
 import { getFileServerURL } from '@shared/Util';
 import { remote } from 'electron';
@@ -124,7 +123,7 @@ export function getGameImagePath(folderName: string, gameId: string): string {
 type IGamePathInfo = Pick<Game, 'platform' | 'launchCommand'>;
 
 /* istanbul ignore next */
-export function getGamePath(game: IGamePathInfo, fpPath: string): string | undefined {
+export function getGamePath(game: IGamePathInfo, fpPath: string, htdocsPath: string): string | undefined {
   // @TODO Because some strings can be interpreted as different paths/URLs, maybe this should return an array
   //       of strings with all the possible paths of the "main" file?
   //       Example: Some web server files are stored in "Server/htdocs" while other are stored in "Server/cgi-bin".
