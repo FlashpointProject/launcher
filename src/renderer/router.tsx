@@ -4,7 +4,7 @@ import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
 import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, ILogoSet, IExtensionDescription } from '@shared/extensions/interfaces';
-import { GamePropSuggestions } from '@shared/interfaces';
+import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
@@ -71,6 +71,7 @@ export type AppRouterProps = {
   logoSets: ILogoSet[],
   extConfigs: ExtensionContribution<'configuration'>[],
   extConfig: AppExtConfigData,
+  services: IService[],
   logoVersion: number,
 };
 
@@ -141,6 +142,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       platforms: this.props.platformsFlat,
       playlists: this.props.playlists,
       devScripts: this.props.devScripts,
+      services: this.props.services
     };
     return (
       <Switch>

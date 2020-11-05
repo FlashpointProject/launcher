@@ -74,7 +74,7 @@ export interface IMainWindowExternal {
   }
 
   /** Current status of the services. */
-  services: IService[];
+  initialServices: IService[];
 
   /** If the launcher is running in development mode (using something like "npm run start"). */
   isDev: boolean;

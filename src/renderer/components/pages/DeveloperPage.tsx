@@ -6,7 +6,7 @@ import { BackIn, BackOut } from '@shared/back/types';
 import { AppConfigData } from '@shared/config/interfaces';
 import { LOGOS, SCREENSHOTS } from '@shared/constants';
 import { DevScript, ExtensionContribution } from '@shared/extensions/interfaces';
-import { ExecMapping } from '@shared/interfaces';
+import { ExecMapping, IService } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { Legacy_PlatformFileIterator } from '@shared/legacy/GameManager';
 import { stringifyMetaValue } from '@shared/MetaEdit';
@@ -33,6 +33,7 @@ export type DeveloperPageProps = {
   platforms: string[];
   playlists: Playlist[];
   devScripts: ExtensionContribution<'devScripts'>[];
+  services: IService[];
 };
 
 type DeveloperPageState = {
@@ -76,7 +77,7 @@ export class DeveloperPage extends React.Component<DeveloperPageProps, Developer
   render() {
     const strings = this.context.developer;
     const text = this.state.text;
-    const services = window.Shared.services;
+    const { services } = this.props;
     return (
       <div className='developer-page simple-scroll'>
         <div className='developer-page__inner'>

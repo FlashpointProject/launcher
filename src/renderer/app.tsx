@@ -614,6 +614,7 @@ export class App extends React.Component<AppProps> {
       extConfigs: this.props.main.extConfigs,
       extConfig: this.props.main.extConfig,
       logoVersion: this.props.main.logoVersion,
+      services: this.props.main.services,
     };
 
     // Render
