@@ -427,15 +427,15 @@
     "upgradeWillInstallTo": "{0} estos instalita al",
     "verifyPathSelection": "Estontaj ĝisdatigoj ankaŭ instalos ĉi tie. Ĉu ĉi tio ĝustas?",
     "restartNow": "Rekomencu nun?",
-    "restartToApplyUpgrade": "This upgrade will not be applied until you restart.\nDo you wish to do this now?",
+    "restartToApplyUpgrade": "Ĉi tiu ĝisdatigo ne estos aplikata ĝis vi rekomencos. Ĉu vi volas fari ĉi tion nun?",
     "areYouSure": "Ĉu vi certas?",
     "cancel": "Nuligi",
-    "mergePlaylists": "Merge Playlists",
-    "newPlaylist": "Stay Seperate",
-    "uploadPrivacyWarning": "This will make your Logs available publically.\nA link will be copied to your clipboard.\n\nAre you sure?",
+    "mergePlaylists": "Kunfandu Ludlistojn",
+    "newPlaylist": "Restu Aparte",
+    "uploadPrivacyWarning": "Ĉi tio disponigos viajn Registrojn publike. Ligo estos kopiita al via tondejo. \n\nĈu vi certas?",
     "overwriteFileTitle": "La dosiero jam eksistas!",
-    "overwriteFileMessage": "A file with the same name already exists. Do you want to overwrite it?",
-    "overwriteFileDetail": "File path:"
+    "overwriteFileMessage": "Dosiero kun la sama nomo jam ekzistas. Ĉu vi volas anstataŭigi ĝin?",
+    "overwriteFileDetail": "Dosiera vojo:"
   },
   "libraries": {
     "arcade": "Ludoj",
@@ -447,10 +447,10 @@
   },
   "upgrades": {
     "infinity": "Flashpoint Infinity",
-    "infinityDesc": "Required files. Adds support for Flash games.",
-    "tech": "Other Technologies",
-    "techDesc": "Adds support for all other tech - Shockwave, Unity, Java, HTML5, etc.",
-    "screenshots": "Logos & Screenshots",
-    "screenshotsDesc": "Adds logos for Grid view and screenshots for all games."
+    "infinityDesc": "Bezonataj dosieroj. Aldonas subtenon por Flash-ludoj.",
+    "tech": "Aliaj Teknologioj",
+    "techDesc": "Aldonas subtenon por ĉiuj aliaj teknologioj - Shockwave, Unity, Java, HTML5, ktp.",
+    "screenshots": "Logotipoj kaj Ekrankopioj",
+    "screenshotsDesc": "Aldonas emblemojn por Krada vido kaj ekrankopioj por ĉiuj ludoj."
   }
 }
