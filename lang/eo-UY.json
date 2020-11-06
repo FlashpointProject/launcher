@@ -388,9 +388,9 @@
   },
   "menu": {
     "viewThumbnailInFolder": "Vidu Bildeton en Dosierujo",
-    "viewScreenshotInFolder": "View Screenshot in Folder",
-    "openFileLocation": "Open File Location",
-    "duplicateMetaOnly": "Duplicate (Meta Only)",
+    "viewScreenshotInFolder": "Vidu Ekrankopion en Dosierujo",
+    "openFileLocation": "Malfermu Dosierlokon",
+    "duplicateMetaOnly": "Duplikatu (Nur Meta-n)",
     "duplicateMetaAndImages": "Duplicate (Meta && Images)",
     "copyGameUUID": "Copy Game UUID",
     "exportMetaOnly": "Export (Meta Only)",
