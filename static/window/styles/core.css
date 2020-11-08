@@ -2180,7 +2180,7 @@ body {
   /* Keep the mask's aspect ratio */
   --zoom: 1800%;
   width: var(--size);
-  height: calc(var(--size) * 0.9);
+  height: var(--size);
 }
 .fp-logo {
   width: 100%;
