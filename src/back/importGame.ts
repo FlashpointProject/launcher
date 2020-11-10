@@ -161,8 +161,10 @@ export async function importCuration(opts: ImportCurationOpts): Promise<void> {
         const dateStr = date.getFullYear().toString() + '-' +
                         (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
                         date.getUTCDate().toString().padStart(2, '0');
-        const backupPath = path.join(fpPath, 'Curations', '_Imported', `${dateStr}__${curation.key}`);
-        await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog);
+        const backupPath = path.join(fpPath, 'Curations', 'Imported', `${dateStr}__${curation.key}`);
+        await fs.copy(getCurationFolder(curation, fpPath), backupPath);
+        // Why does this return before finishing coying? Replaced with line above for now.
+        // await copyFolder(getCurationFolder(curation, fpPath), backupPath, true, opts.openDialog);
       }
       if (log) {
         logMessage('Content Copied', curation);
@@ -299,12 +301,13 @@ function createAddAppFromCurationMeta(addAppMeta: EditAddAppCuration, game: Game
 async function importGameImage(image: CurationIndexImage, gameId: string, folder: typeof LOGOS | typeof SCREENSHOTS, fullImagePath: string): Promise<void> {
   if (image.exists) {
     const last = path.join(gameId.substr(0, 2), gameId.substr(2, 2), gameId+'.png');
-    const imagePath = path.resolve(path.join(fullImagePath, folder, last));
+    const imagePath = path.join(fullImagePath, folder, last);
     if (imagePath.startsWith(fullImagePath)) { // (Make sure the image path does not climb out of the image folder)
       // Check if the image is its own file
       if (image.filePath !== undefined) {
         await fs.promises.mkdir(path.dirname(imagePath), { recursive: true });
-        await copyOrMoveFile(image.filePath, imagePath, false);
+        await fs.promises.access(image.filePath, fs.constants.R_OK).then(() => log.debug('TEST', 'CAN READ')).catch(() => log.debug('TEST', 'CAN NOT READ'));
+        await fs.promises.copyFile(image.filePath, imagePath);
       }
       // Check if the image is extracted
       else if (image.fileName !== undefined && image.rawData !== undefined) {
