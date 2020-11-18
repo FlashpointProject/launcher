@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Nincs cím",
     "by": "által",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Nincs fejlesztő",
     "alternateTitles": "Alternatív címek",
     "noAlternateTitles": "Nincsen alternatív cím(ek)",
