@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Ingen Titel",
     "by": "af",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Ingen Udvikler",
     "alternateTitles": "Alternative Titler",
     "noAlternateTitles": "Ingen Alternative Titler",
