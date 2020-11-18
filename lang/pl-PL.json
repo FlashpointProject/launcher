@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Brak Tytułu",
     "by": "autorstwa",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Brak Dewelopera",
     "alternateTitles": "Alternatywne Tytuły",
     "noAlternateTitles": "Brak Alternatywnych Tytułów",
