@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Uimh Teideal",
     "by": "de",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "No Developer",
     "alternateTitles": "Alternate Titles",
     "noAlternateTitles": "No Alternate Titles",
