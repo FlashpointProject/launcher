@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Walang Titulo",
     "by": "ni",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Walang nakasaad na Developer",
     "alternateTitles": "Alternatibong Titulo",
     "noAlternateTitles": "Walang Alternatibong Titulo",
