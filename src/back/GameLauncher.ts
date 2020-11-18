@@ -4,6 +4,7 @@ import { AppProvider } from '@shared/extensions/interfaces';
 import { ExecMapping, Omit } from '@shared/interfaces';
 import { LangContainer } from '@shared/lang';
 import { fixSlashes, padStart, stringifyArray } from '@shared/Util';
+import { Coerce } from '@shared/utils/Coerce';
 import { ChildProcess, exec } from 'child_process';
 import { EventEmitter } from 'events';
 import { AppPathOverride, ManagedChildProcess } from 'flashpoint-launcher';
@@ -11,6 +12,8 @@ import * as path from 'path';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { OpenExternalFunc, ShowMessageBoxFunc } from './types';
 import { isBrowserOpts } from './util/misc';
+
+const { str } = Coerce;
 
 export type LaunchAddAppOpts = LaunchBaseOpts & {
   addApp: AdditionalApp;
@@ -38,12 +41,14 @@ export type LaunchInfo = {
 
 type LaunchBaseOpts = {
   fpPath: string;
+  htdocsPath: string;
   execMappings: ExecMapping[];
   lang: LangContainer;
   isDev: boolean;
   exePath: string;
   appPathOverrides: AppPathOverride[];
   providers: AppProvider[];
+  proxy: string;
   openDialog: ShowMessageBoxFunc;
   openExternal: OpenExternalFunc;
   runGame: (gameLaunchInfo: GameLaunchInfo) => ManagedChildProcess;
@@ -81,7 +86,7 @@ export namespace GameLauncher {
       }
       default: {
         let appPath: string = fixSlashes(path.join(opts.fpPath, getApplicationPath(opts.addApp.applicationPath, opts.execMappings, opts.native)));
-        const appPathOverride = opts.appPathOverrides.find(a => a.path === appPath);
+        const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
         if (appPathOverride) { appPath = appPathOverride.override; }
         const appArgs: string = opts.addApp.launchCommand;
         const useWine: boolean = process.platform != 'win32' && appPath.endsWith('.exe');
@@ -89,7 +94,7 @@ export namespace GameLauncher {
           gamePath: appPath,
           gameArgs: appArgs,
           useWine,
-          env: getEnvironment(opts.fpPath),
+          env: getEnvironment(opts.fpPath, opts.proxy),
         };
         const proc = exec(
           createCommand(launchInfo),
@@ -119,6 +124,7 @@ export namespace GameLauncher {
     if (opts.game.addApps) {
       const addAppOpts: Omit<LaunchAddAppOpts, 'addApp'> = {
         fpPath: opts.fpPath,
+        htdocsPath: opts.htdocsPath,
         native: opts.native,
         execMappings: opts.execMappings,
         lang: opts.lang,
@@ -126,6 +132,7 @@ export namespace GameLauncher {
         exePath: opts.exePath,
         appPathOverrides: opts.appPathOverrides,
         providers: opts.providers,
+        proxy: opts.proxy,
         openDialog: opts.openDialog,
         openExternal: opts.openExternal,
         runGame: opts.runGame
@@ -139,7 +146,8 @@ export namespace GameLauncher {
     }
     // Launch game
     let appPath: string = getApplicationPath(opts.game.applicationPath, opts.execMappings, opts.native);
-    const appPathOverride = opts.appPathOverrides.find(a => a.path === appPath);
+    let appArgs: string[] = [];
+    const appPathOverride = opts.appPathOverrides.filter(a => a.enabled).find(a => a.path === appPath);
     if (appPathOverride) { appPath = appPathOverride.override; }
     const availableApps = opts.providers.filter(p => p.provides.includes(appPath) || p.provides.includes(opts.game.applicationPath));
     // If any available provided applications, check if any work.
@@ -154,9 +162,14 @@ export namespace GameLauncher {
           break;
         }
 
+        if (Array.isArray(res)) {
+          appPath = str(res[0]);
+          appArgs = res.slice(1).map(a => str(a));
+        }
+
         // Browser Mode Launch
         if (isBrowserOpts(res)) {
-          const env = getEnvironment(opts.fpPath);
+          const env = getEnvironment(opts.fpPath, opts.proxy);
           if ('ELECTRON_RUN_AS_NODE' in env) {
             delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
           }
@@ -194,7 +207,7 @@ export namespace GameLauncher {
       // Special case flash browser run.
       // @TODO Move to extension
       case ':flash:': {
-        const env = getEnvironment(opts.fpPath);
+        const env = getEnvironment(opts.fpPath, opts.proxy);
         if ('ELECTRON_RUN_AS_NODE' in env) {
           delete env['ELECTRON_RUN_AS_NODE']; // If this flag is present, it will disable electron features from the process
         }
@@ -217,9 +230,9 @@ export namespace GameLauncher {
       } break;
       default: {
         const gamePath: string = path.isAbsolute(appPath) ? fixSlashes(appPath) : fixSlashes(path.join(opts.fpPath, appPath));
-        const gameArgs: string = opts.game.launchCommand;
+        const gameArgs: string[] = [...appArgs, opts.game.launchCommand];
         const useWine: boolean = process.platform != 'win32' && gamePath.endsWith('.exe');
-        const env = getEnvironment(opts.fpPath);
+        const env = getEnvironment(opts.fpPath, opts.proxy);
         const gameLaunchInfo: GameLaunchInfo = {
           game: opts.game,
           launchInfo: {
@@ -274,13 +287,13 @@ export namespace GameLauncher {
   }
 
   /** Get an object containing the environment variables to use for the game / additional application. */
-  function getEnvironment(fpPath: string): NodeJS.ProcessEnv {
+  function getEnvironment(fpPath: string, proxy: string): NodeJS.ProcessEnv {
     // When using Linux, use the proxy created in BackgroundServices.ts
     // This is only needed on Linux because the proxy is installed on system
     // level entire system when using Windows.
     return {
       // Add proxy env vars if it's running on linux
-      ...((process.platform === 'linux') ? { http_proxy: 'http://localhost:22500/' } : null),
+      ...((process.platform === 'linux' && proxy !== '') ? { http_proxy: `http://${proxy}/` } : null),
       // Copy this processes environment variables
       ...process.env,
     };
@@ -290,17 +303,17 @@ export namespace GameLauncher {
     // This whole escaping thing is horribly broken. We probably want to switch
     // to an array representing the argv instead and not have a shell
     // in between.
-    const { gamePath: filename, gameArgs: args, useWine } = launchInfo;
-    const escapedArgs = escapeArgsForShell(args);
+    const { gamePath, gameArgs, useWine } = launchInfo;
+    const args = typeof gameArgs === 'string' ? [gameArgs] : gameArgs;
     switch (process.platform) {
       case 'win32':
-        return `"${filename}" ${escapedArgs.join(' ')}`;
+        return `"${gamePath}" ${args.join(' ')}`;
       case 'darwin':
       case 'linux':
         if (useWine) {
-          return `wine start /unix "${filename}" ${escapedArgs.join(' ')}`;
+          return `wine start /unix "${gamePath}" ${args.join(' ')}`;
         }
-        return `"${filename}" ${escapedArgs.join(' ')}`;
+        return `"${gamePath}" ${args.join(' ')}`;
       default:
         throw Error('Unsupported platform');
     }

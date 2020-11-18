@@ -38,7 +38,7 @@ declare module 'flashpoint-launcher' {
     function overwritePreferenceData(
         data: DeepPartial<AppPreferencesData>,
         onError?: (error: string) => void,
-    ): AppPreferencesData;
+    ): Promise<AppPreferencesData>;
 
     /** Unload own extension */
     function unload(): Promise<void>;
@@ -58,13 +58,13 @@ declare module 'flashpoint-launcher' {
     function unzipFile(filePath: string, outDir: string, opts: ZipExtractOptions): Promise<void>;
 
     /**
-     * Loads the extensions config file (<extPath>/config.json)
+     * Gets an extension configuration value given its key
      */
-    function loadConfig(): Promise<any>;
+    function getExtConfigValue(key: string): any;
     /**
-     * Saves data to the extensions config file (<extPath>/config.json)
+     * Gets an extension configuration value given its key and a new value
      */
-    function saveConfig(data: any): Promise<void>;
+    function setExtConfigValue(key: string, value: any): Promise<void>;
 
     /**
      * Log functions to properly pass messages to the Logs Page.
@@ -205,6 +205,8 @@ declare module 'flashpoint-launcher' {
         const onDidUpdatePlaylist: Event<{ oldPlaylist: Playlist; newPlaylist: Playlist }>;
         const onDidUpdatePlaylistGame: Event<{ oldGame: PlaylistGame; newGame: PlaylistGame }>;
         const onDidRemovePlaylistGame: Event<PlaylistGame>;
+
+        const onWillImportGame: Event<CurationImportState>;
     }
 
     /** Collection of Tag related API functions */
@@ -315,15 +317,15 @@ declare module 'flashpoint-launcher' {
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process. Can be passed to removeService.
          */
-        function runService(name: string, info: ProcessInfo, basePath?: string): ManagedChildProcess;
+        function runService(name: string, info: ProcessInfo, opts: ProcessOpts, basePath?: string): ManagedChildProcess;
         /**
-         * Runs a managed process given info, will die when disposed.
+         * Creates a managed process given info, will die when disposed. (Does not start it)
          * @param name Name of the process
          * @param info Process info to run.
          * @param basePath Override for directory to start in (info is relative to this), Extension path if none given
          * @returns A managed process.
          */
-        function runProcess(name: string, info: ProcessInfo, basePath?: string): DisposableChildProcess;
+        function createProcess(name: string, info: ProcessInfo, opts: ProcessOpts, basePath?: string): DisposableChildProcess;
         /**
          * Kills and removes a service process started by runService
          * @param process Service process to remove
@@ -803,6 +805,7 @@ declare module 'flashpoint-launcher' {
     type AppPathOverride = {
         path: string;
         override: string;
+        enabled: boolean;
     };
 
     type AppPreferencesDataMainWindow = {
@@ -820,6 +823,15 @@ declare module 'flashpoint-launcher' {
         /** Arguments to pass to the process */
         arguments: string[];
     };
+
+    type CurationImportState = {
+        /** Game being imported */
+        game: Game;
+        /** Files / Folders being copied, and to where */
+        contentToMove: string[][];
+        /** Path of the curation */
+        curationPath: string;
+    }
 
     type StatusState = {
         devConsole: string;
@@ -842,6 +854,15 @@ declare module 'flashpoint-launcher' {
         oldState: ProcessState;
         newState: ProcessState;
     };
+
+    interface ManagedChildProcess {
+        /** Fires whenever the status of a process changes. */
+        on(event: 'change', listener: (newState: ProcessState) => void): this;
+        emit(event: 'change', newState: ProcessState): boolean;
+        /** Fires whenever the process exits */
+        on(event: 'exit', listener: (code: number | null, signal: string | null) => void): this;
+        emit(event: 'exit', code: number | null, signal: string | null): boolean;
+    }
 
     class ManagedChildProcess {
         /** ID of the process */

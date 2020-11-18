@@ -1,8 +1,9 @@
 import { VIEW_PAGE_SIZE } from '@shared/constants';
+import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, List, ListRowProps, ScrollIndices } from 'react-virtualized';
 import { UpdateView, ViewGameSet } from '../interfaces';
-import { findElementAncestor } from '../Util';
+import { findElementAncestor, getExtremeIconURL } from '../Util';
 import { GameItemContainer } from './GameItemContainer';
 import { GameListHeader } from './GameListHeader';
 import { GameListItem } from './GameListItem';
@@ -22,6 +23,8 @@ export type GameListProps = {
   draggedGameId?: string;
   /** Height of each row in the list (in pixels). */
   rowHeight: number;
+  /** Whether to render the extreme icon when possible */
+  showExtremeIcon: boolean;
   /** Function that renders the elements to show instead of the grid if there are no games (render prop). */
   noRowsRenderer?: () => JSX.Element;
   /** Called when the user attempts to select a game. */
@@ -90,7 +93,7 @@ export class GameList extends React.Component<GameListProps> {
       <div
         className='game-list-wrapper'
         ref={this._wrapper}>
-        <GameListHeader />
+        <GameListHeader showExtremeIcon={this.props.showExtremeIcon} />
         <GameItemContainer
           className='game-browser__center-inner'
           onGameSelect={this.onGameSelect}
@@ -145,7 +148,8 @@ export class GameList extends React.Component<GameListProps> {
 
   /** Renders a single row in the game list. */
   rowRenderer = (props: ListRowProps): React.ReactNode => {
-    const { draggedGameId, games, selectedGameId } = this.props;
+    const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
+    const { draggedGameId, games, selectedGameId, showExtremeIcon } = this.props;
     if (!games) { throw new Error('Trying to render a row in game list, but no games are found?'); }
     const game = games[props.index];
     return game ? (
@@ -158,6 +162,9 @@ export class GameList extends React.Component<GameListProps> {
         tags={game.tags}
         developer={game.developer}
         publisher={game.publisher}
+        extreme={game.extreme}
+        extremeIconPath={extremeIconPath}
+        showExtremeIcon={showExtremeIcon}
         logoVersion={this.props.logoVersion}
         isDraggable={true}
         isSelected={game.id === selectedGameId}
@@ -233,6 +240,10 @@ export class GameList extends React.Component<GameListProps> {
 
     this.props.updateView(trailingPage, (leadingPage - trailingPage) + 2);
   }
+
+  extremeIconPathMemo = memoizeOne((logoVersion: number) => {
+    return getExtremeIconURL(logoVersion);
+  });
 }
 
 function findGameIndex(games: ViewGameSet | undefined, gameId: string | undefined): number {

@@ -7,7 +7,7 @@ import { TagAlias } from '@database/entity/TagAlias';
 import { TagCategory } from '@database/entity/TagCategory';
 import { Initial1593172736527 } from '@database/migration/1593172736527-Initial';
 import { AddExtremeToPlaylist1599706152407 } from '@database/migration/1599706152407-AddExtremeToPlaylist';
-import { BackInit, BackInitArgs, BackOut, BackIn } from '@shared/back/types';
+import { BackIn, BackInit, BackInitArgs, BackOut } from '@shared/back/types';
 import { ILogoSet, LogoSet } from '@shared/extensions/interfaces';
 import { IBackProcessInfo, RecursivePartial } from '@shared/interfaces';
 import { getDefaultLocalization, LangFileContent } from '@shared/lang';
@@ -29,13 +29,15 @@ import 'sqlite3';
 import { Tail } from 'tail';
 import { ConnectionOptions, createConnection } from 'typeorm';
 import { ConfigFile } from './ConfigFile';
-import { CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
+import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME, SERVICES_SOURCE } from './constants';
 import { loadExecMappingsFile } from './Execs';
+import { ExtConfigFile } from './ExtConfigFile';
 import { ApiEmitter } from './extensions/ApiEmitter';
 import { ExtensionService } from './extensions/ExtensionService';
 import { FPLNodeModuleFactory, INodeModuleFactory, installNodeInterceptor, registerInterceptor } from './extensions/NodeInterceptor';
 import { Command } from './extensions/types';
 import { GameManager } from './game/GameManager';
+import { onWillImportCuration } from './importGame';
 import { ManagedChildProcess, onServiceChange } from './ManagedChildProcess';
 import { registerRequestCallbacks } from './responses';
 import { ServicesFile } from './ServicesFile';
@@ -46,12 +48,8 @@ import { EventQueue } from './util/EventQueue';
 import { FolderWatcher } from './util/FolderWatcher';
 import { logFactory } from './util/logging';
 import { createContainer, exit, runService } from './util/misc';
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
-// Required for the DB Models to function
+
+const DEFAULT_LOGO_PATH = 'window/images/Logos/404.png';
 
 // Make sure the process.send function is available
 type Required<T> = T extends undefined ? never : T;
@@ -75,6 +73,7 @@ const state: BackState = {
   },
   preferences: createErrorProxy('preferences'),
   config: createErrorProxy('config'),
+  extConfig: createErrorProxy('extConfig'),
   configFolder: createErrorProxy('configFolder'),
   exePath: createErrorProxy('exePath'),
   localeCode: createErrorProxy('countryCode'),
@@ -128,6 +127,7 @@ const state: BackState = {
       onDidUpdatePlaylist: GameManager.onDidUpdatePlaylist,
       onDidUpdatePlaylistGame: GameManager.onDidUpdatePlaylistGame,
       onDidRemovePlaylistGame: GameManager.onDidRemovePlaylistGame,
+      onWillImportCuration: onWillImportCuration,
     },
     services: {
       onServiceNew: new ApiEmitter<flashpoint.ManagedChildProcess>(),
@@ -231,12 +231,14 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   log.info('Launcher', `Starting Flashpoint Launcher ${versionStr}`);
 
   // Read configs & preferences
-  const [pref, conf] = await (Promise.all([
+  const [pref, conf, extConf] = await (Promise.all([
     PreferencesFile.readOrCreateFile(path.join(state.configFolder, PREFERENCES_FILENAME)),
-    ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME))
+    ConfigFile.readOrCreateFile(path.join(state.configFolder, CONFIG_FILENAME)),
+    ExtConfigFile.readOrCreateFile(path.join(state.configFolder, EXT_CONFIG_FILENAME)),
   ]));
   state.preferences = pref;
   state.config = conf;
+  state.extConfig = extConf;
 
   // Check for custom version to report
   const versionFilePath = content.isDev ? path.join(process.cwd(), 'version.txt') : path.join(state.config.flashpointPath, 'version.txt');
@@ -279,11 +281,35 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
   await installNodeInterceptor(state.moduleInterceptor);
   // Load each extension
   await state.extensionsService.getExtensions()
-  .then((exts) => {
+  .then(async (exts) => {
+    // Set any ext config defaults
+    for (const contrib of (await state.extensionsService.getContributions('configuration'))) {
+      for (const extConfig of contrib.value) {
+        for (const key in extConfig.properties) {
+          // Value not set, use default
+          if (!(key in state.extConfig)) {
+            state.extConfig[key] = extConfig.properties[key].default;
+          } else {
+            const prop = extConfig.properties[key];
+            // If type is different, reset it
+            if (typeof state.extConfig[key] !== prop.type) {
+              log.debug('Extensions', `Invalid value type for "${key}", resetting to default`);
+              state.extConfig[key] = prop.default;
+            }
+            if (prop.enum.length > 0 && !(prop.enum.includes(state.extConfig[key]))) {
+              log.debug('Extensions', `Invalid value for "${key}", not in enum, resetting to default`);
+              state.extConfig[key] = prop.default;
+            }
+          }
+        }
+      }
+    }
+    ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
     exts.forEach(ext => {
       state.extensionsService.loadExtension(ext.id);
     });
   });
+
 
   // Init services
   try {
@@ -399,7 +425,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
     .then(async (files) => {
       for (const file of files) {
         if (file.isDirectory()) {
-          await newThemeWatcher(`SYSTEM.${file.name}`, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
+          await newThemeWatcher(`${file.name}`, dataThemeFolder, path.join(dataThemeFolder, file.name), state.themeState, state.registry, state.socketServer);
         }
       }
     });
@@ -415,7 +441,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
         try {
           await newThemeWatcher(theme.id, ext.extensionPath, realPath, state.themeState, state.registry, state.socketServer, ext.manifest.displayName || ext.manifest.name, theme.logoSet);
         } catch (error) {
-          log.error('Extensions', `Error loading theme from "${c.extId}"\n${error}`);
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading theme "${theme.id}"\n${error}`);
         }
       }
     }
@@ -430,7 +456,7 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
       for (const file of files) {
         if (file.isDirectory()) {
           const logoSet: ILogoSet = {
-            id: `SYSTEM.${file.name.replace(' ', '-')}`,
+            id: `${file.name.replace(' ', '-')}`,
             name: `${file.name}`,
             path: file.name
           };
@@ -447,9 +473,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
               fullPath: realPath,
               files: files
             });
-            log.debug('Extensions', `Logo set "${logoSet.id}" registered by "SYSTEM"`);
+            log.debug('Extensions', `[SYSTEM] Registered Logo Set "${logoSet.id}"`);
           } catch (error) {
-            log.error('Extensions', `Error loading logo set from "SYSTEM"\n${error}`);
+            log.error('Extensions', `[SYSTEM] Error loading logo set "${logoSet.id}"\n${error}`);
           }
         }
       }
@@ -475,9 +501,9 @@ async function onProcessMessage(message: any, sendHandle: any): Promise<void> {
             fullPath: realPath,
             files: files
           });
-          log.debug('Extensions', `Logo set "${logoSet.id}" registered by "${ext.manifest.displayName || ext.manifest.name}"`);
+          log.debug('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Registered Logo Set "${logoSet.id}"`);
         } catch (error) {
-          log.error('Extensions', `Error loading logo set from "${c.extId}"\n${error}`);
+          log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error loading logo set "${logoSet.id}"\n${error}`);
         }
       }
     }
@@ -660,7 +686,25 @@ function onFileServerRequest(req: http.IncomingMessage, res: http.ServerResponse
           : path.join(state.config.flashpointPath, state.config.logoFolderPath);
         const filePath = path.join(logoFolder, relativePath);
         if (filePath.startsWith(logoFolder)) {
-          serveFile(req, res, filePath);
+          fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) {
+              // File doesn't exist, serve default image
+              const basePath = state.isDev ? path.join(process.cwd(), 'build') : path.join(path.dirname(state.exePath), 'resources/app.asar/build');
+              const replacementFilePath = path.join(basePath, 'window/images/Logos', relativePath);
+              if (replacementFilePath.startsWith(basePath)) {
+                fs.access(replacementFilePath, fs.constants.F_OK, (err) => {
+                  if (err) {
+                    log.debug('Launcher', `SERVING: ${path.join(basePath, DEFAULT_LOGO_PATH)}`);
+                    serveFile(req, res, path.join(basePath, DEFAULT_LOGO_PATH));
+                  } else {
+                    serveFile(req, res, replacementFilePath);
+                  }
+                });
+              }
+            } else {
+              serveFile(req, res, filePath);
+            }
+          });
         } else {
           log.warn('Launcher', `Illegal file request: "${filePath}"`);
         }

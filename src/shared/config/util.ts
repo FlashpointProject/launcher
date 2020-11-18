@@ -1,4 +1,4 @@
-import { AppConfigData } from '@shared/config/interfaces';
+import { AppConfigData, AppExtConfigData } from '@shared/config/interfaces';
 import { deepCopy, fixSlashes, parseVarStr } from '@shared/Util';
 import { Coerce } from '@shared/utils/Coerce';
 import { ObjectParser } from '@shared/utils/ObjectParser';
@@ -16,6 +16,7 @@ const configDataDefaultBase: Readonly<AppConfigData> = Object.freeze({
   logoFolderPath: 'Data/Logos',
   playlistFolderPath: 'Data/Playlists',
   jsonFolderPath: 'Data',
+  htdocsFolderPath: 'Legacy/htdocs',
   platformFolderPath: 'Data/Platforms',
   themeFolderPath: 'Data/Themes',
   logoSetsFolderPath: 'Data/LogoSets',
@@ -86,6 +87,7 @@ export function overwriteConfigData(
   parser.prop('logoFolderPath',      v => source.logoFolderPath      = parseVarStr(str(v)));
   parser.prop('playlistFolderPath',  v => source.playlistFolderPath  = parseVarStr(str(v)));
   parser.prop('jsonFolderPath',      v => source.jsonFolderPath      = parseVarStr(str(v)));
+  parser.prop('htdocsFolderPath',    v => source.htdocsFolderPath    = parseVarStr(str(v)));
   parser.prop('platformFolderPath',  v => source.platformFolderPath  = parseVarStr(str(v)));
   parser.prop('themeFolderPath',     v => source.themeFolderPath     = parseVarStr(str(v)));
   parser.prop('logoSetsFolderPath',  v => source.logoSetsFolderPath  = parseVarStr(str(v)));
@@ -112,6 +114,26 @@ export function overwriteConfigData(
   // Return
   return source;
 }
+
+/**
+ * Overwrite a config data object with data from another object.
+ * @param source Object to overwrite.
+ * @param data Object with data to overwrite the source with.
+ * @returns Source argument (not a copy).
+ */
+export function overwriteExtConfigData(
+  source: AppExtConfigData,
+  data: any,
+  onError?: (error: string) => void
+): AppExtConfigData {
+  for (const key in data) {
+    source[key] = data[key];
+  }
+
+  // Return
+  return source;
+}
+
 
 function strArray(array: any): string[] {
   return Array.isArray(array)

@@ -46,6 +46,8 @@ type OwnProps = {
   search: SearchQuery;
   /** Currently selected game (if any). */
   selectedGameId?: string;
+  /** Is game running? */
+  gameRunning: boolean;
   /** Currently selected playlist (if any). */
   selectedPlaylistId?: string;
   /** Called when a game is selected. */
@@ -246,6 +248,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
                   gamesTotal={this.props.gamesTotal}
                   selectedGameId={selectedGameId}
                   draggedGameId={draggedGameId}
+                  showExtremeIcon={this.props.preferencesData.browsePageShowExtreme}
                   noRowsRenderer={this.noRowsRendererMemo(strings.browse)}
                   onGameSelect={this.onGameSelect}
                   onGameLaunch={this.onGameLaunch}
@@ -267,8 +270,10 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           onResize={this.onRightSidebarResize}>
           <ConnectedRightBrowseSidebar
             currentGame={this.state.currentGame}
+            gameRunning={this.props.gameRunning}
             currentPlaylistEntry={this.state.currentPlaylistEntry}
             currentLibrary={this.props.gameLibrary}
+            onGameLaunch={this.onGameLaunch}
             onDeleteSelectedGame={this.onDeleteSelectedGame}
             onRemoveSelectedGameFromPlaylist={this.onRemoveSelectedGameFromPlaylist}
             onDeselectPlaylist={this.onRightSidebarDeselectPlaylist}
@@ -366,7 +371,7 @@ export class BrowsePage extends React.Component<BrowsePageProps, BrowsePageState
           window.Shared.back.request(BackIn.GET_GAME, gameId)
           .then(game => {
             if (game) {
-              const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath);
+              const gamePath = getGamePath(game, window.Shared.config.fullFlashpointPath, window.Shared.config.data.htdocsFolderPath);
               if (gamePath) {
                 fs.stat(gamePath, error => {
                   if (!error) { remote.shell.showItemInFolder(gamePath); }

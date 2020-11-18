@@ -780,6 +780,7 @@ async function loadCurationFolder(key: string, fullPath: string, defaultGameMeta
           image.exists = false;
         }
         loadedCuration.thumbnail = image;
+        log.debug('Curate', `Loaded Image:\n${JSON.stringify(image, null, 2)}`);
         break;
       }
       case 'ss.png': {

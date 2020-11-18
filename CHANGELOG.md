@@ -1,8 +1,39 @@
-# Pre-Release 9.1.0
+# Release 9.1.0
 
 ## New
 
+### Extensions
+
+There is now a TypeScript / JavaScript API available to interact with the Flashpoint Launcher. Please check /docs/extensions.md and /docs/api for more information. Live API documentation can also be found at https://flashpointproject.github.io/launcher_ApiDocs/
+
+- Register listeners to lots of Events to get changes in Games, Playlists, Tags and Services
+- Include buttons on the Developer page to run commands / functions
+- Include context menu buttons when right clicking Games and Playlists to run commands / functions with them given as context
+- Package Themes and Logo Sets, optionally choosing to apply Logo Sets when applying a Theme
+- Provide application entries to run files / functions when launching a specific Application Path
+- Read and write User Configs and User Preferences
+- Provide their own Config values and optionally display them on the Config Page (Currently limited to Checkboxes, Inputs and Selects)
+- Modify the launch parameters of games at runtime via the onWill function parameters
+- Run their own registered services and processes
+
+### Various
+
+- Games marked as Extreme will show an Extreme logo in the upper left of the grid, or left of the list.
+- Logo Sets can be provided in /Data/LogoSets or via Extensions which override the Platform logo and Extreme logo. Expected layout to be the same as /Data/Logos.
+- Themes can specify a Logo Set to apply automatically when chosen itself. (if the Logo Set is also available)
+- Daemons can now be run as specified in services.json. See /docs/services.json for detailed information.
 - Playlists can now be flagged as extreme. *(Extreme playlists are hidden while the "Extreme Games" config is disabled)*
+- App Path Overrides can be given in Config. These (when enabled) will replace the matching application path with its other half when a game runs.
+
+## Changed
+
+- Flash Mode (:flash: applicaton path) has now been reworked into a general use Browser Mode so it can be used by Extensions.
+
+## Fixed
+
+- Playlists no longer falsely show duplicate entries
+- On Demand Images no longer crashes the backend when there is no internet connection
+- New lines are handled correctly when logging service output
 
 # Release 9.0.4
 

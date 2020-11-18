@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { useMemo } from 'react';
 
-export type GameListHeaderProps = {};
+export type GameListHeaderProps = {
+  showExtremeIcon: boolean;
+};
 
 /**
  * Header on top of the GameList.
@@ -10,6 +12,9 @@ export type GameListHeaderProps = {};
 export function GameListHeader(props: GameListHeaderProps) {
   return useMemo(() => (
     <div className='game-list-header'>
+      { props.showExtremeIcon ? (
+        <Column modifier='icon' hideDivider={true} />
+      ) : undefined}
       <Column modifier='icon' hideDivider={true} />
       <div className='game-list-header__right'>
         <Column title='Title'     modifier='title'     hideDivider={true} />

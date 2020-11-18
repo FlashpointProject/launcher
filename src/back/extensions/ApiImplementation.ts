@@ -1,3 +1,5 @@
+import { EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from '@back/constants';
+import { ExtConfigFile } from '@back/ExtConfigFile';
 import { GameManager } from '@back/game/GameManager';
 import { TagManager } from '@back/game/TagManager';
 import { DisposableChildProcess, ManagedChildProcess } from '@back/ManagedChildProcess';
@@ -5,13 +7,14 @@ import { BackState, StatusState } from '@back/types';
 import { clearDisposable, dispose, newDisposable, registerDisposable } from '@back/util/lifecycle';
 import { createPlaylistFromJson, getOpenMessageBoxFunc, getOpenOpenDialogFunc, getOpenSaveDialogFunc, removeService, runService, setStatus } from '@back/util/misc';
 import { pathTo7zBack } from '@back/util/SevenZip';
+import { BackOut } from '@shared/back/types';
 import { BrowsePageLayout } from '@shared/BrowsePageLayout';
 import { IExtensionManifest } from '@shared/extensions/interfaces';
 import { ProcessState } from '@shared/interfaces';
 import { ILogEntry, LogLevel } from '@shared/Log/interface';
+import { PreferencesFile } from '@shared/preferences/PreferencesFile';
 import { overwritePreferenceData } from '@shared/preferences/util';
 import * as flashpoint from 'flashpoint-launcher';
-import * as fs from 'fs';
 import { extractFull } from 'node-7z';
 import * as path from 'path';
 import { newExtLog } from './ExtensionUtils';
@@ -29,10 +32,15 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   const { registry, apiEmitters } = state;
 
   const getPreferences = () => state.preferences;
-  const extOverwritePreferenceData = (
+  const extOverwritePreferenceData = async (
     data: flashpoint.DeepPartial<flashpoint.AppPreferencesData>,
     onError?: (error: string) => void
-  ) => overwritePreferenceData(state.preferences, data, onError);
+  ) => {
+    overwritePreferenceData(state.preferences, data, onError);
+    await PreferencesFile.saveFile(path.join(state.configFolder, PREFERENCES_FILENAME), state.preferences);
+    state.socketServer.broadcast(BackOut.UPDATE_PREFERENCES_RESPONSE, state.preferences);
+    return state.preferences;
+  };
 
   const unload = () => state.extensionsService.unloadExtension(extId);
 
@@ -55,25 +63,13 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     });
   };
 
-  const loadConfig = async (): Promise<any> => {
-    if (extPath) {
-      const configPath = path.join(extPath, 'config.json');
-      return fs.promises.access(configPath, fs.constants.F_OK)
-      .then(() => fs.promises.readFile(configPath, { encoding: 'utf-8' }))
-      .then((text) => JSON.parse(text))
-      .catch(() => { return {}; }); // No config found, return default.
-    } else {
-      throw new Error('Cannot load a config for a fake extension!');
-    }
+  const getExtConfigValue = (key: string): any => {
+    return state.extConfig[key];
   };
-  const saveConfig = async (data: any): Promise<void> => {
-    if (extPath) {
-      const configPath = path.join(extPath, 'config.json');
-      const text = JSON.stringify(data);
-      await fs.promises.writeFile(configPath, text, { encoding: 'utf-8' });
-    } else {
-      throw new Error('Cannot save a config for a fake extension!');
-    }
+
+  const setExtConfigValue = async (key: string, value: any): Promise<void> => {
+    state.extConfig[key] = value;
+    await ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
   };
 
   // Log Namespace
@@ -102,7 +98,7 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
       }
       // Register command
       registry.commands.set(command, c);
-      log.debug('Extensions', `Command "${command}" registered by "${extManifest.displayName || extManifest.name}"`);
+      log.debug('Extensions', `[${extManifest.displayName || extManifest.name}] Registered Command "${command}"`);
       return c;
     }
   };
@@ -174,6 +170,9 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     get onDidRemovePlaylistGame() {
       return apiEmitters.games.onDidRemovePlaylistGame.event;
     },
+    get onWillImportGame() {
+      return apiEmitters.games.onWillImportCuration.event;
+    }
   };
 
   const extTags: typeof flashpoint.tags = {
@@ -218,17 +217,17 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
   };
 
   const extServices: typeof flashpoint.services = {
-    runService: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
+    runService: (name: string, info: flashpoint.ProcessInfo, opts?: flashpoint.ProcessOpts, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
-      return runService(state, id, name, basePath || extPath || state.config.flashpointPath, { detached: false }, {
+      return runService(state, id, name, basePath || extPath || state.config.flashpointPath, opts || {}, {
         ...info,
         kill: true
       });
     },
-    runProcess: (name: string, info: flashpoint.ProcessInfo, basePath?: string) => {
+    createProcess: (name: string, info: flashpoint.ProcessInfo, opts?: flashpoint.ProcessOpts, basePath?: string) => {
       const id = `${extManifest.name}.${name}`;
       const cwd = path.join(basePath || extPath || state.config.flashpointPath, info.path);
-      const proc = new DisposableChildProcess(id, name, cwd, {}, {...info, kill: true});
+      const proc = new DisposableChildProcess(id, name, cwd, opts || {}, {...info, kill: true});
       proc.onDispose = () => proc.kill();
       return proc;
     },
@@ -275,8 +274,8 @@ export function createApiFactory(extId: string, extManifest: IExtensionManifest,
     unload: unload,
     getExtensionFileURL: getExtensionFileURL,
     unzipFile: unzipFile,
-    loadConfig: loadConfig,
-    saveConfig: saveConfig,
+    getExtConfigValue: getExtConfigValue,
+    setExtConfigValue: setExtConfigValue,
 
     // Namespaces
     log: extLog,

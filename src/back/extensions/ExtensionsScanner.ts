@@ -4,7 +4,7 @@ import { Coerce } from '@shared/utils/Coerce';
 import { IObjectParserProp, ObjectParser } from '@shared/utils/ObjectParser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
+import { Application, ButtonContext, ContextButton, Contributions, DevScript, ExtConfiguration, ExtConfigurationProp, ExtensionType, ExtTheme, IExtension, IExtensionManifest, ILogoSet } from '../../shared/extensions/interfaces';
 
 const { str, num } = Coerce;
 const fsPromises = fs.promises;
@@ -37,12 +37,12 @@ export async function scanExtensions(configData: AppConfigData): Promise<IExtens
           const ext = await parseExtension(manifestPath, ExtensionType.User);
           if (result.get(ext.id) !== undefined) {
             // An Extension with the same id has been registered earlier, latest read survives
-            log.warn('Extensions', `Overriding Extension ${ext.id}`);
+            log.warn('Extensions', `Overriding Extension ${ext.id} with extension at "${path.join(userExtPath, filename)}"`);
           }
           result.set(ext.id, ext);
         }
       })
-      .catch(err => log.error('Extensions', `Error loading User extension "${filename}"\n${err}`));
+      .catch(err => log.error('Extensions', `Error loading User extension at "${filename}"\n${err}`));
     }));
   });
 
@@ -76,7 +76,7 @@ async function parseExtension(extFilePath: string, type: ExtensionType): Promise
     id: getExtensionID(manifest.author, manifest.name),
     type: type,
     manifest: manifest,
-    extensionPath: path.dirname(extFilePath)
+    extensionPath: path.resolve(path.dirname(extFilePath))
   };
   return ext;
 }
@@ -115,12 +115,14 @@ function parseContributions(parser: IObjectParserProp<Contributions>): Contribut
     devScripts: [],
     contextButtons: [],
     applications: [],
+    configuration: [],
   };
   parser.prop('logoSets',       true).array(item => contributes.logoSets.push(parseLogoSet(item)));
   parser.prop('themes',         true).array(item => contributes.themes.push(parseTheme(item)));
   parser.prop('devScripts',     true).array(item => contributes.devScripts.push(parseDevScript(item)));
   parser.prop('contextButtons', true).array(item => contributes.contextButtons.push(parseContextButton(item)));
   parser.prop('applications',   true).array(item => contributes.applications.push(parseApplication(item)));
+  parser.prop('configuration', true).array(item => contributes.configuration.push(parseConfiguration(item)));
   return contributes;
 }
 
@@ -179,15 +181,55 @@ function parseButtonContext(value: any): ButtonContext {
 function parseApplication(parser: IObjectParserProp<Application>): Application {
   const application: Application = {
     provides: [],
+    arguments: [],
     name: '',
   };
   parser.prop('provides').arrayRaw((item) => application.provides.push(str(item)));
   parser.prop('name',    v => application.name    = str(v));
   parser.prop('command', v => application.command = str(v), true);
+  parser.prop('arguments', true).arrayRaw(v => application.arguments.push(str(v)));
   parser.prop('path',    v => application.path    = str(v), true);
   parser.prop('url',     v => application.url    = str(v), true);
   const numDefined = num(!!application.command) + num(!!application.path) + num(!!application.url);
   if (numDefined !== 1) { throw new Error('Exactly one "path", "url" or "command" variable must be defined for an application, not both.'); }
   if (application.provides.length === 0) { throw new Error('Application must provide something. (Empty provides array)'); }
   return application;
+}
+
+function parseConfiguration(parser: IObjectParserProp<ExtConfiguration>): ExtConfiguration {
+  const configuration: ExtConfiguration = {
+    title: '',
+    properties: {}
+  };
+
+  parser.prop('title', v => configuration.title = str(v));
+  parser.prop('properties').map((item, key) => configuration.properties[key] = parseConfigurationProperty(item));
+
+  return configuration;
+}
+
+function parseConfigurationProperty(parser: IObjectParserProp<ExtConfigurationProp>): ExtConfigurationProp {
+  const prop: ExtConfigurationProp = {
+    title: '',
+    type: 'object',
+    default: {},
+    enum: [],
+    description: ''
+  };
+
+  parser.prop('title',       v => prop.title       = str(v));
+  parser.prop('type',        v => prop.type        = toPropType(v));
+  parser.prop('description', v => prop.description = str(v));
+  parser.prop('default',     v => prop.default     = v);
+  parser.prop('enum', true).arrayRaw(item => prop.enum.push(item));
+
+  return prop;
+}
+
+function toPropType(v: any): ExtConfigurationProp['type'] {
+  if (v === 'object' || v === 'string' || v === 'boolean') {
+    return v;
+  } else {
+    throw new Error('Configuration prop type is not valid. (string, object, number or boolean)');
+  }
 }

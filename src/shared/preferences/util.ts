@@ -134,10 +134,12 @@ function parseMainWindow(parser: IObjectParserProp<any>, output: AppPreferencesD
 function parseAppPathOverride(parser: IObjectParserProp<any>): AppPathOverride {
   const override: AppPathOverride = {
     path: '',
-    override: ''
+    override: '',
+    enabled: true
   };
   parser.prop('path',     v => override.path     = str(v));
   parser.prop('override', v => override.override = str(v));
+  parser.prop('enabled',  v => override.enabled  = !!v);
   return override;
 }
 

@@ -6,6 +6,7 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   id: string;
   title: string;
   platform: string;
+  extreme: boolean;
   /** Updates to clear platform icon cache */
   logoVersion: number;
   /** Path to the game's thumbnail. */
@@ -16,11 +17,13 @@ export type GameGridItemProps = Partial<GridCellProps> & {
   isSelected: boolean;
   /** If the cell is being dragged. */
   isDragged: boolean;
+  /** Path to the extreme icon */
+  extremeIconPath: string;
 };
 
 /** Displays a single game. Meant to be rendered inside a grid. */
 export function GameGridItem(props: GameGridItemProps) {
-  const { id, title, platform, thumbnail, isDraggable, isSelected, isDragged, style } = props;
+  const { id, title, platform, thumbnail, extreme, isDraggable, isSelected, isDragged, extremeIconPath, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
     getPlatformIconURL(platform, props.logoVersion)
@@ -48,6 +51,13 @@ export function GameGridItem(props: GameGridItemProps) {
           <div
             className='game-grid-item__thumb__image'
             style={{ backgroundImage: `url('${thumbnail}')` }}>
+            {(extreme) ? (
+              <div className='game-grid-item__thumb__icons--upper'>
+                <div
+                  className='game-grid-item__thumb__icons__icon'
+                  style={{ backgroundImage: `url('${extremeIconPath}')` }} />
+              </div>
+            ) : undefined }
             <div className='game-grid-item__thumb__icons'>
               {(platformIcon) ? (
                 <div

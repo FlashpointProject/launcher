@@ -10,6 +10,9 @@ export type GameListItemProps = ListRowProps & {
   tags: Tag[];
   developer: string;
   publisher: string;
+  extreme: boolean;
+  /** Don't render if extreme games is disabled, match header */
+  showExtremeIcon: boolean;
   /** Updates to clear platform icon cache */
   logoVersion: number;
   /** If the row can be dragged (defaults to false). */
@@ -18,10 +21,12 @@ export type GameListItemProps = ListRowProps & {
   isSelected: boolean;
   /** If the row is being dragged. */
   isDragged: boolean;
+  /** Path to the extreme icon */
+  extremeIconPath: string;
 };
 
 export function GameListItem(props: GameListItemProps) {
-  const { id, title, platform, tags, developer, publisher, isDraggable, isSelected, isDragged, index, style } = props;
+  const { id, title, platform, tags, developer, publisher, extreme, isDraggable, isSelected, isDragged, extremeIconPath, showExtremeIcon, index, style } = props;
   // Get the platform icon path
   const platformIcon = React.useMemo(() => (
     getPlatformIconURL(platform, props.logoVersion)
@@ -46,6 +51,15 @@ export function GameListItem(props: GameListItemProps) {
         className={className}
         draggable={isDraggable}
         { ...attributes }>
+        { showExtremeIcon &&
+          (extreme ? (
+            <div
+              className='game-list-item__icon'
+              style={{ backgroundImage: `url("${extremeIconPath}")` }} />
+          ) : (
+            <div className='game-list-item__icon' />
+          ))
+        }
         <div
           className='game-list-item__icon'
           style={{ backgroundImage: `url("${platformIcon}")` }} />

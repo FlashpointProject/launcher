@@ -25,7 +25,8 @@ import * as url from 'url';
 import * as util from 'util';
 import * as YAML from 'yaml';
 import { ConfigFile } from './ConfigFile';
-import { CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { CONFIG_FILENAME, EXT_CONFIG_FILENAME, PREFERENCES_FILENAME } from './constants';
+import { ExtConfigFile } from './ExtConfigFile';
 import { parseAppVar } from './extensions/util';
 import { GameManager } from './game/GameManager';
 import { TagManager } from './game/TagManager';
@@ -123,6 +124,8 @@ export function registerRequestCallbacks(state: BackState): void {
       devScripts: await state.extensionsService.getContributions('devScripts'),
       contextButtons: await state.extensionsService.getContributions('contextButtons'),
       logoSets: Array.from(state.registry.logoSets.values()),
+      extConfigs: await state.extensionsService.getContributions('configuration'),
+      extConfig: state.extConfig,
     };
 
   });
@@ -188,6 +191,7 @@ export function registerRequestCallbacks(state: BackState): void {
       GameLauncher.launchAdditionalApplication({
         addApp,
         fpPath: path.resolve(state.config.flashpointPath),
+        htdocsPath: state.config.htdocsFolderPath,
         native: addApp.parentGame && state.config.nativePlatforms.some(p => p === platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -195,6 +199,7 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
+        proxy: state.config.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state)
@@ -221,6 +226,7 @@ export function registerRequestCallbacks(state: BackState): void {
       GameLauncher.launchGame({
         game,
         fpPath: path.resolve(state.config.flashpointPath),
+        htdocsPath: state.config.htdocsFolderPath,
         native: state.config.nativePlatforms.some(p => p === game.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -228,6 +234,7 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
+        proxy: state.config.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -814,6 +821,7 @@ export function registerRequestCallbacks(state: BackState): void {
         date: (data.date !== undefined) ? new Date(data.date) : undefined,
         saveCuration: data.saveCuration,
         fpPath: state.config.flashpointPath,
+        htdocsPath: state.config.htdocsFolderPath,
         imageFolderPath: state.config.imageFolderPath,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
@@ -859,6 +867,7 @@ export function registerRequestCallbacks(state: BackState): void {
 
       await launchCuration(data.key, data.meta, data.addApps, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
+        htdocsPath: state.config.htdocsFolderPath,
         native: state.config.nativePlatforms.some(p => p === data.meta.platform),
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -866,6 +875,7 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
+        proxy: state.config.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -883,6 +893,7 @@ export function registerRequestCallbacks(state: BackState): void {
     try {
       await launchAddAppCuration(data.curationKey, data.curation, data.symlinkCurationContent, skipLink, {
         fpPath: path.resolve(state.config.flashpointPath),
+        htdocsPath: state.config.htdocsFolderPath,
         native: state.config.nativePlatforms.some(p => p === data.platform) || false,
         execMappings: state.execMappings,
         lang: state.languageContainer,
@@ -890,6 +901,7 @@ export function registerRequestCallbacks(state: BackState): void {
         exePath: state.exePath,
         appPathOverrides: state.preferences.appPathOverrides,
         providers: await getProviders(state),
+        proxy: state.config.browserModeProxy,
         openDialog: state.socketServer.showMessageBoxBack(event.client),
         openExternal: state.socketServer.openExternal(event.client),
         runGame: runGameFactory(state),
@@ -1045,6 +1057,12 @@ export function registerRequestCallbacks(state: BackState): void {
     };
     state.socketServer.send(event.client, BackOut.RUN_COMMAND, result);
     return result;
+  });
+
+  state.socketServer.register(BackIn.SET_EXT_CONFIG_VALUE, async (event, key, value) => {
+    state.extConfig[key] = value;
+    await ExtConfigFile.saveFile(path.join(state.configFolder, EXT_CONFIG_FILENAME), state.extConfig);
+    state.socketServer.send(event.client, BackOut.UPDATE_EXT_CONFIG_DATA, state.extConfig);
   });
 }
 
@@ -1214,11 +1232,12 @@ async function getProviders(state: BackState): Promise<AppProvider[]> {
         return {
           ...app,
           callback: async (game: Game) => {
-            log.debug('Launcher', 'PROCESSING CALLBACK');
             if (app.command) {
               return runCommand(state, app.command, [game]);
             } else if (app.path) {
-              return await parseAppVar(c.extId, app.path, game.launchCommand, state);
+              const parsedArgs = await Promise.all(app.arguments.map(a => parseAppVar(c.extId, a, game.launchCommand, state)));
+              const parsedPath = await parseAppVar(c.extId, app.path, game.launchCommand, state);
+              return [parsedPath, ...parsedArgs];
             } else if (app.url) {
               const formattedUrl = await parseAppVar(c.extId, app.url, game.launchCommand, state);
               const opts: BrowserApplicationOpts = {

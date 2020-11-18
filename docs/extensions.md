@@ -220,3 +220,36 @@ However, Applications can also provide `url` or `command` instead. The full deta
 - **\<exeDataURL>** - URL to the Extensions 'static' folder. Useful for Browser Mode.
 - **\<launchCommand\>** - Launch Command of the application. Useful for Browser Mode, `path` applications will have it included as arguments already.
 - **\<cwd\>** - Current working directory. This is not guaranteed to be anywhere relative to Flashpoint.exe nor the Flashpoint folder, do not use unless certain.
+- **\<extConf:com.example.value\>** - Extension config value. Place the config id after the semi-colon.
+
+### Configuration
+
+```json
+{
+  "configuration": [
+    {
+      "title": "Test Extension",
+      "properties": {
+        "title": "Test Select",
+        "type": "string",
+        "enum": [
+          "string1",
+          "string2"
+        ],
+        "default": "string1",
+        "description": "Example of an extension config prop",
+      }
+    }
+  ]
+}
+```
+
+**title** - Title of the Configuration section to display on the Config page.
+
+**properties** - Array of various Configuration props to be editable under this section.
+
+- **title** - Title of the configuration prop
+- **description** - Description of the configuration prop
+- **type** - Type of this configuration prop's value (string, boolean or object)
+- **enum** - *(Optional)* - Array of enums to use when you want a Select config box instead of an Input config box.
+- **default** - Default value of this configuration prop

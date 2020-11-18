@@ -121,7 +121,7 @@ export class ExtensionService {
       await Promise.resolve(extModule.activate.apply(global, [context]));
       this._setSubscriptions(ext.id, context.subscriptions);
       this._enableExtension(ext.id);
-      log.info('Extensions', `Extension Loaded "${ext.manifest.displayName || ext.manifest.name}" (${ext.id})`);
+      log.info('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Extension Loaded (${ext.id})`);
     } catch (err) {
       this.logExtension(ext.id, newExtLog(ext.manifest, err, log.error));
     }
@@ -152,7 +152,7 @@ export class ExtensionService {
       try {
         await Promise.resolve(extModule.deactivate.apply(global));
       } catch (error) {
-        log.error('Extensions', `Error in '${ext.manifest.displayName || ext.manifest.name} deactivation function.\n${error}'`);
+        log.error('Extensions', `[${ext.manifest.displayName || ext.manifest.name}] Error in deactivation function.\n${error}'`);
       }
     }
     // Dispose of all subscriptions the extension made

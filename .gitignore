@@ -18,6 +18,7 @@ package-lock.json
 # Launcher files (created during testing)
 /config.json
 /preferences.json
+/extConfig.json
 /.installed
 /.version
 /secret.txt

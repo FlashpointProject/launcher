@@ -207,6 +207,8 @@ const langTemplate = {
   browse: [
     'noTitle',
     'by',
+    'play',
+    'stop',
     'noDeveloper',
     'alternateTitles',
     'noAlternateTitles',

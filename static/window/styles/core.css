@@ -1237,6 +1237,18 @@ body {
   flex-direction: column;
   flex: 1 0 auto;
 }
+/* Browse-Right-Sidebar Play Button */
+.browse-right-sidebar__play-button,
+.browse-right-sidebar__play-button--running {
+  width: 100%;
+  font-size: 2.5em;
+  text-align: center;
+  margin: auto;
+  margin-bottom: 0.5rem;
+  padding: 0.3rem 0;
+  user-select: none;
+  cursor: pointer;
+}
 /* Browse-Right-Sidebar Additional-Application */
 .browse-right-sidebar__additional-application {
   padding: 0.5rem;
@@ -1607,6 +1619,13 @@ body {
   position: absolute;
   bottom: 0;
 }
+.game-grid-item__thumb__icons--upper {
+  display: flex;
+  width: 100%;
+  padding: calc(0.001rem * var(--width));
+  position: absolute;
+  top: 0;
+}
 .game-grid-item__thumb__icons__icon {
   width: calc(0.144px * var(--width));
   height: calc(0.144px * var(--width));
@@ -1614,6 +1633,9 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+}
+.game-grid-item__thumb__icons__icon:nth-child(2) {
+  margin-right: 0.15rem;
 }
 /* GameGrid Item Title */
 .game-grid-item__title {
@@ -2087,6 +2109,7 @@ body {
   margin-bottom: 0.15rem;
   flex: auto;
   padding: 0 1rem;
+  align-items: center;
 }
 .setting__row__content--override-row__seperator{
   margin-left: 0.3rem;
@@ -2157,7 +2180,7 @@ body {
   /* Keep the mask's aspect ratio */
   --zoom: 1800%;
   width: var(--size);
-  height: calc(var(--size) * 0.9);
+  height: var(--size);
 }
 .fp-logo {
   width: 100%;

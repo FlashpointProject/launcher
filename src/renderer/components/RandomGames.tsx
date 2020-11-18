@@ -2,7 +2,7 @@ import { LangContext } from '@renderer/util/lang';
 import { ViewGame } from '@shared/back/types';
 import { LOGOS } from '@shared/constants';
 import * as React from 'react';
-import { findElementAncestor, getGameImageURL } from '../Util';
+import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 import { SimpleButton } from './SimpleButton';
@@ -35,6 +35,8 @@ export function RandomGames(props: RandomGamesProps) {
         id={game.id}
         title={game.title}
         platform={game.platform}
+        extreme={game.extreme}
+        extremeIconPath={getExtremeIconURL(props.logoVersion)}
         thumbnail={getGameImageURL(LOGOS, game.id)}
         logoVersion={props.logoVersion}
         isSelected={false}

@@ -1,10 +1,11 @@
 import { BackOut, BackOutTemplate } from '@shared/back/types';
 import { LOGOS, VIEW_PAGE_SIZE } from '@shared/constants';
+import { memoizeOne } from '@shared/memoize';
 import * as React from 'react';
 import { ArrowKeyStepper, AutoSizer, ScrollIndices } from 'react-virtualized';
 import { Grid, GridCellProps, RenderedSection } from 'react-virtualized/dist/es/Grid';
 import { UpdateView, ViewGameSet } from '../interfaces';
-import { findElementAncestor, getGameImageURL } from '../Util';
+import { findElementAncestor, getExtremeIconURL, getGameImageURL } from '../Util';
 import { GameGridItem } from './GameGridItem';
 import { GameItemContainer } from './GameItemContainer';
 
@@ -176,6 +177,7 @@ export class GameGrid extends React.Component<GameGridProps> {
 
   /** Renders a single cell in the game grid. */
   cellRenderer = (props: GridCellProps): React.ReactNode => {
+    const extremeIconPath = this.extremeIconPathMemo(this.props.logoVersion);
     const { draggedGameId, games, gamesTotal, selectedGameId } = this.props;
     const index = props.rowIndex * this.columns + props.columnIndex;
     if (index < (gamesTotal || 0)) {
@@ -187,6 +189,8 @@ export class GameGrid extends React.Component<GameGridProps> {
           id={game ? game.id : ''}
           title={game ? game.title : ''}
           platform={game ? game.platform : ''}
+          extreme={game ? game.extreme : false}
+          extremeIconPath={extremeIconPath}
           thumbnail={game ? getGameImageURL(LOGOS, game.id) : ''}
           logoVersion={this.props.logoVersion}
           isDraggable={true}
@@ -342,6 +346,10 @@ export class GameGrid extends React.Component<GameGridProps> {
 
     this.props.updateView(trailingPage, (leadingPage - trailingPage) + 2);
   }
+
+  extremeIconPathMemo = memoizeOne((logoVersion: number) => {
+    return getExtremeIconURL(logoVersion);
+  });
 }
 
 function findGameIndex(games: ViewGameSet | undefined, gameId: string | undefined): number {

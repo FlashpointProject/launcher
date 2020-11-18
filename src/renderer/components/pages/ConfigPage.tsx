@@ -1,6 +1,7 @@
 import { WithPreferencesProps } from '@renderer/containers/withPreferences';
 import { BackIn } from '@shared/back/types';
-import { IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
+import { AppExtConfigData } from '@shared/config/interfaces';
+import { ExtConfigurationProp, ExtensionContribution, IExtensionDescription, ILogoSet } from '@shared/extensions/interfaces';
 import { autoCode, LangContainer, LangFile } from '@shared/lang';
 import { memoizeOne } from '@shared/memoize';
 import { updatePreferencesData } from '@shared/preferences/util';
@@ -10,6 +11,7 @@ import { AppPathOverride } from 'flashpoint-launcher';
 import * as React from 'react';
 import { getExtIconURL, getPlatformIconURL, isFlashpointValidCheck } from '../../Util';
 import { LangContext } from '../../util/lang';
+import { CheckBox } from '../CheckBox';
 import { ConfigBox } from '../ConfigBox';
 import { ConfigBoxCheckbox } from '../ConfigBoxCheckbox';
 import { ConfigBoxInput } from '../ConfigBoxInput';
@@ -37,6 +39,10 @@ type OwnProps = {
   serverNames: string[];
   /** All available extensions */
   extensions: IExtensionDescription[];
+  /** All available extension configurations */
+  extConfigs: ExtensionContribution<'configuration'>[];
+  /** Current extension config data */
+  extConfig: AppExtConfigData;
   localeCode: string;
 };
 
@@ -92,6 +98,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     const appPathOverrides = this.renderAppPathOverridesMemo(this.props.preferencesData.appPathOverrides);
     const logoSetPreviewRows = this.renderLogoSetMemo(this.props.platforms, this.props.logoVersion);
     const extensions = this.renderExtensionsMemo(this.props.extensions, strings);
+    const extConfigSections = this.renderExtensionConfigs(this.props.extConfigs, this.props.extConfig);
     return (
       <div className='config-page simple-scroll'>
         <div className='config-page__inner'>
@@ -227,7 +234,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
                 items={serverOptions} />
               {/* Metadata Server Host */}
               <ConfigBoxInput
-                title={strings.metadataServerHost}
+                title={`(INDEV) ${strings.metadataServerHost}`}
                 description={strings.metadataServerHostDesc}
                 contentClassName='setting__row__content--filepath-path'
                 editable={true}
@@ -252,6 +259,8 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
               </div>
             ) : <div>{formatString(strings.noExtensionsLoaded, window.Shared.config.data.extensionsPath)}</div>}
           </div>
+
+          {extConfigSections}
 
           {/* -- Save & Restart -- */}
           <div className='setting'>
@@ -313,6 +322,9 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
         <div
           className='setting__row__content--override-row'
           key={index}>
+          <CheckBox
+            checked={item.enabled}
+            onToggle={(checked) => this.onAppPathOverrideEnabledToggle(index, checked)}/>
           <InputField
             editable={true}
             onChange={(event) => this.onAppPathOverridePathChange(index, event.target.value)}
@@ -339,9 +351,10 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   renderLogoSetMemo = memoizeOne((platforms: string[], logoVersion: number) => {
     const allRows: JSX.Element[] = [];
+    const toRender = [...platforms, 'Extreme'];
     // Render 16 logos per row, vertically stacked
-    for (let i = 0; i < platforms.length; i = i + 16) {
-      const slice = platforms.slice(i, i+16);
+    for (let i = 0; i < toRender.length; i = i + 16) {
+      const slice = toRender.slice(i, i+16);
       allRows.push(
         <div
           className='config-page__logo-row'
@@ -350,6 +363,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
             <div
               key={index}
               className='config-page__logo-row__logo'
+              title={platform}
               style={{ backgroundImage: `url('${getPlatformIconURL(platform, logoVersion)}')` }} />
           ) }
         </div>
@@ -419,6 +433,31 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
     });
   });
 
+  renderExtensionConfigs = memoizeOne((extConfigs: ExtensionContribution<'configuration'>[], extConfig: AppExtConfigData) => {
+    let sections: JSX.Element[] = [];
+
+    extConfigs.forEach((contrib, idx) => {
+      sections = sections.concat(contrib.value.map((config, configIdx) => {
+        const propBoxes = [];
+        for (const key in config.properties) {
+          propBoxes.push(renderExtConfigProp(key, config.properties[key], extConfig[key]));
+        }
+        return (
+          <div
+            className='setting'
+            key={`${idx}_${configIdx}`}>
+            <p className='setting__title'>{config.title}</p>
+            <div className='setting__body'>
+              {propBoxes}
+            </div>
+          </div>
+        );
+      }));
+    });
+
+    return sections;
+  });
+
   onShowExtremeChange = (isChecked: boolean): void => {
     updatePreferencesData({ browsePageShowExtreme: isChecked });
   }
@@ -465,7 +504,7 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
 
   onNewAppPathOverride = (): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
-    newPaths.push({path: '', override: ''});
+    newPaths.push({path: '', override: '', enabled: true});
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 
@@ -478,6 +517,12 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   onAppPathOverrideOverrideChange = (index: number, newOverride: string): void => {
     const newPaths = [...this.props.preferencesData.appPathOverrides];
     newPaths[index] = { ...newPaths[index], override: newOverride };
+    updatePreferencesData({ appPathOverrides: newPaths });
+  }
+
+  onAppPathOverrideEnabledToggle = (index: number, checked: boolean): void => {
+    const newPaths = [...this.props.preferencesData.appPathOverrides];
+    newPaths[index] = { ...newPaths[index], enabled: checked };
     updatePreferencesData({ appPathOverrides: newPaths });
   }
 
@@ -575,6 +620,47 @@ export class ConfigPage extends React.Component<ConfigPageProps, ConfigPageState
   static contextType = LangContext;
 }
 
+function setExtConfigValue(key: string, value: any): void {
+  return window.Shared.back.send(BackIn.SET_EXT_CONFIG_VALUE, key, value);
+}
+
+function renderExtConfigProp(key: string, prop: ExtConfigurationProp, value: any): JSX.Element {
+  switch (prop.type) {
+    case 'boolean':
+      return (
+        <ConfigBoxCheckbox
+          key={key}
+          title={prop.title}
+          description={prop.description}
+          checked={!!value}
+          onToggle={checked => setExtConfigValue(key, checked)}/>
+      );
+    case 'string': {
+      if (prop.enum.length > 0) {
+        return (
+          <ConfigBoxSelect
+            key={key}
+            title={prop.title}
+            description={prop.description}
+            value={value}
+            items={itemizeExtEnums(prop.enum)}
+            onChange={event => setExtConfigValue(key, event.target.value)} />
+        );
+      } else {
+        return (
+          <ConfigBoxInput
+            key={key}
+            title={prop.title}
+            description={prop.description}
+            text={value}
+            onChange={event => setExtConfigValue(key, event.target.value)} />
+        );
+      }
+    }
+    default: throw new Error(`Unsupported config type to render "${prop.type}"`);
+  }
+}
+
 /** Format a theme item into a displayable name for the themes drop-down. */
 function formatThemeItemName(item: ITheme): string {
   return `${item.meta.name} (${item.id})`;
@@ -582,4 +668,12 @@ function formatThemeItemName(item: ITheme): string {
 
 function formatLogoSetName(item: ILogoSet): string {
   return `${item.name} (${item.id})`;
+}
+
+function itemizeExtEnums(enums: string[]): SelectItem[] {
+  return enums.map(e => {
+    return {
+      value: e
+    };
+  });
 }

@@ -21,6 +21,7 @@ export type Application = {
   provides: string[];
   name: string;
   command?: string;
+  arguments: string[];
   path?: string;
   url?: string;
 }
@@ -73,6 +74,7 @@ export type Contributions = {
   devScripts: DevScript[];
   contextButtons: ContextButton[];
   applications: Application[];
+  configuration: ExtConfiguration[];
 }
 
 export interface IExtensionDescription extends IExtensionManifest {
@@ -96,4 +98,19 @@ export interface IExtension {
   readonly type: ExtensionType,
   readonly manifest: IExtensionManifest,
   readonly extensionPath: string
+}
+
+export type ExtConfiguration = {
+  title: string;
+  properties: {
+    [key: string]: ExtConfigurationProp
+  };
+}
+
+export type ExtConfigurationProp = {
+  type: 'string' | 'object' | 'boolean';
+  default: any;
+  enum: any[];
+  title: string;
+  description: string;
 }

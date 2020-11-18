@@ -2,8 +2,9 @@ import { Game } from '@database/entity/Game';
 import { Playlist } from '@database/entity/Playlist';
 import { PlaylistGame } from '@database/entity/PlaylistGame';
 import { ViewGame } from '@shared/back/types';
+import { AppExtConfigData } from '@shared/config/interfaces';
 import { ExtensionContribution, ILogoSet, IExtensionDescription } from '@shared/extensions/interfaces';
-import { GamePropSuggestions } from '@shared/interfaces';
+import { GamePropSuggestions, IService } from '@shared/interfaces';
 import { LangContainer, LangFile } from '@shared/lang';
 import { ITheme } from '@shared/ThemeFile';
 import { AppUpdater, UpdateInfo } from 'electron-updater';
@@ -51,6 +52,7 @@ export type AppRouterProps = {
   creditsData?: CreditsData;
   creditsDoneLoading: boolean;
   selectedGameId?: string;
+  gameRunning: boolean;
   selectedPlaylistId?: string;
   onSelectGame: (gameId?: string) => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
@@ -67,6 +69,9 @@ export type AppRouterProps = {
   devScripts: ExtensionContribution<'devScripts'>[],
   contextButtons: ExtensionContribution<'contextButtons'>[],
   logoSets: ILogoSet[],
+  extConfigs: ExtensionContribution<'configuration'>[],
+  extConfig: AppExtConfigData,
+  services: IService[],
   logoVersion: number,
 };
 
@@ -97,6 +102,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       onQuickSearch: this.props.onQuickSearch,
       onOpenExportMetaEdit: this.props.onOpenExportMetaEdit,
       selectedGameId: this.props.selectedGameId,
+      gameRunning: this.props.gameRunning,
       selectedPlaylistId: this.props.selectedPlaylistId,
       onSelectGame: this.props.onSelectGame,
       onUpdatePlaylist: this.props.onUpdatePlaylist,
@@ -117,6 +123,8 @@ export class AppRouter extends React.Component<AppRouterProps> {
       localeCode: this.props.localeCode,
       serverNames: this.props.serverNames,
       extensions: this.props.extensions,
+      extConfigs: this.props.extConfigs,
+      extConfig: this.props.extConfig,
     };
     const aboutProps: AboutPageProps = {
       creditsData: this.props.creditsData,
@@ -134,6 +142,7 @@ export class AppRouter extends React.Component<AppRouterProps> {
       platforms: this.props.platformsFlat,
       playlists: this.props.playlists,
       devScripts: this.props.devScripts,
+      services: this.props.services
     };
     return (
       <Switch>
