@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Không tên",
     "by": "bởi",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Không có",
     "alternateTitles": "Tên khác",
     "noAlternateTitles": "Không có",
