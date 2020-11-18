@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Без наслова",
     "by": "од",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Нема произвођача",
     "alternateTitles": "Другачији називи",
     "noAlternateTitles": "Нема другачијих назива",
