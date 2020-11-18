@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Ei otsikkoa",
     "by": "-",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Ei kehittäjää",
     "alternateTitles": "Vaihtoehtoiset nimet",
     "noAlternateTitles": "Ei vaihtoehtoisia nimiä",
