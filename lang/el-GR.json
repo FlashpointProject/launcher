@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Χωρίς Τίτλο",
     "by": "από",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Χωρίς Προγραμματιστή",
     "alternateTitles": "Εναλλακτικοί Τίτλοι",
     "noAlternateTitles": "Χωρίς Εναλλακτικούς Τίτλους",
