@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "タイトルなし",
     "by": "開発者:",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "開発者なし",
     "alternateTitles": "別タイトル",
     "noAlternateTitles": "別タイトルなし",
