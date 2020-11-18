@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "제목 없음",
     "by": "-",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "개발자 없음",
     "alternateTitles": "다른 제목",
     "noAlternateTitles": "다른 제목 없음",
