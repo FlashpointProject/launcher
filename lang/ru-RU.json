@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Без названия",
     "by": "разработано",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Без разработчика",
     "alternateTitles": "Альтерн. названия",
     "noAlternateTitles": "Без альтернативных названий",
