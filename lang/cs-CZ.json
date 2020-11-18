@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Bez názvu",
     "by": "od",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Žádný vývojář",
     "alternateTitles": "Alternativní názvy",
     "noAlternateTitles": "Žádné alternativní názvy",
