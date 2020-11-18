@@ -198,8 +198,8 @@
   "browse": {
     "noTitle": "Nincs cím",
     "by": "által",
-    "play": "Play",
-    "stop": "Stop",
+    "play": "Lejátszás",
+    "stop": "Megállítás",
     "noDeveloper": "Nincs fejlesztő",
     "alternateTitles": "Alternatív címek",
     "noAlternateTitles": "Nincsen alternatív cím(ek)",
