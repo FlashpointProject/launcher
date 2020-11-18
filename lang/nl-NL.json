@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Geen titel",
     "by": "door",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Geen ontwikkelaar",
     "alternateTitles": "Alternatieve titels",
     "noAlternateTitles": "Geen alternatieve titels",
