@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "无标题",
     "by": "by",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "无开发者",
     "alternateTitles": "副标题",
     "noAlternateTitles": "无副标题",
