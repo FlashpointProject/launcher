@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Ingen tittel",
     "by": "av",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Ingen utvikler",
     "alternateTitles": "Alternative titler",
     "noAlternateTitles": "Ingen alternative titler",
