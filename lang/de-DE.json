@@ -198,8 +198,8 @@
   "browse": {
     "noTitle": "Kein Titel",
     "by": "von",
-    "play": "Play",
-    "stop": "Stop",
+    "play": "Abspielen",
+    "stop": "Anhalten",
     "noDeveloper": "Kein Entwickler",
     "alternateTitles": "Alternative Titel",
     "noAlternateTitles": "Keine alternativen Titel",
