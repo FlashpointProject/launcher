@@ -198,6 +198,8 @@
   "browse": {
     "noTitle": "Neniu Titolo",
     "by": "de",
+    "play": "Play",
+    "stop": "Stop",
     "noDeveloper": "Sen Programisto",
     "alternateTitles": "Alternativaj titoloj",
     "noAlternateTitles": "Neniuj alternativaj titoloj",
